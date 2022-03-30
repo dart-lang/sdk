@@ -1436,15 +1436,6 @@ class EquivalenceStrategy {
     if (!checkTypedef_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypedef_typeParametersOfFunctionType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkTypedef_positionalParameters(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkTypedef_namedParameters(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkTypedef_reference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4632,30 +4623,6 @@ class EquivalenceStrategy {
   bool checkTypedef_type(
       EquivalenceVisitor visitor, Typedef node, Typedef other) {
     return visitor.checkNodes(node.type, other.type, 'type');
-  }
-
-  bool checkTypedef_typeParametersOfFunctionType(
-      EquivalenceVisitor visitor, Typedef node, Typedef other) {
-    return visitor.checkLists(
-        node.typeParametersOfFunctionType,
-        other.typeParametersOfFunctionType,
-        visitor.checkDeclarations,
-        'typeParametersOfFunctionType');
-  }
-
-  bool checkTypedef_positionalParameters(
-      EquivalenceVisitor visitor, Typedef node, Typedef other) {
-    return visitor.checkLists(
-        node.positionalParameters,
-        other.positionalParameters,
-        visitor.checkDeclarations,
-        'positionalParameters');
-  }
-
-  bool checkTypedef_namedParameters(
-      EquivalenceVisitor visitor, Typedef node, Typedef other) {
-    return visitor.checkLists(node.namedParameters, other.namedParameters,
-        visitor.checkDeclarations, 'namedParameters');
   }
 
   bool checkTypedef_reference(

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 76;
+  UInt32 formatVersion = 77;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -288,9 +288,6 @@ type Typedef {
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
-  List<TypeParameter> typeParametersOfFunctionType;
-  List<VariableDeclarationPlain> positionalParameters;
-  List<VariableDeclarationPlain> namedParameters;
 }
 
 type Combinator {

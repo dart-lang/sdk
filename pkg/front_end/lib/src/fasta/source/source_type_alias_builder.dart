@@ -7,37 +7,27 @@ library fasta.source_type_alias_builder;
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-
-import 'package:kernel/type_algebra.dart'
-    show FreshTypeParameters, getFreshTypeParameters;
-
 import 'package:kernel/type_environment.dart';
-
-import '../fasta_codes.dart'
-    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
-
-import '../problems.dart' show unhandled;
-import '../scope.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/fixed_type_builder.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/type_builder.dart';
 import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-
+import '../fasta_codes.dart'
+    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/kernel_helper.dart';
-
+import '../problems.dart' show unhandled;
+import '../scope.dart';
 import '../util/helpers.dart';
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
@@ -101,33 +91,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     typedef.type ??= buildThisType();
 
     TypeBuilder? type = this.type;
-    if (type is FunctionTypeBuilder) {
-      List<TypeParameter> typeParameters = new List<TypeParameter>.generate(
-          type.typeVariables?.length ?? 0,
-          (int i) => type.typeVariables![i].parameter,
-          growable: false);
-      FreshTypeParameters freshTypeParameters =
-          getFreshTypeParameters(typeParameters);
-      for (int i = 0; i < freshTypeParameters.freshTypeParameters.length; i++) {
-        TypeParameter typeParameter =
-            freshTypeParameters.freshTypeParameters[i];
-        typedef.typeParametersOfFunctionType
-            .add(typeParameter..parent = typedef);
-      }
-
-      if (type.formals != null) {
-        for (FormalParameterBuilder formal in type.formals!) {
-          VariableDeclaration parameter = formal.build(libraryBuilder, 0);
-          parameter.type = freshTypeParameters.substitute(parameter.type);
-          if (formal.isNamed) {
-            typedef.namedParameters.add(parameter);
-          } else {
-            typedef.positionalParameters.add(parameter);
-          }
-          parameter.parent = typedef;
-        }
-      }
-    } else if (type is NamedTypeBuilder || type is FixedTypeBuilder) {
+    if (type is FunctionTypeBuilder ||
+        type is NamedTypeBuilder ||
+        type is FixedTypeBuilder) {
       // No error, but also no additional setup work.
       // ignore: unnecessary_null_comparison
     } else if (type != null) {

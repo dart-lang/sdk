@@ -1279,7 +1279,6 @@ class KernelReaderHelper {
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
   void SkipLibraryPart();
-  void SkipLibraryTypedef();
   TokenPosition ReadPosition();
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }

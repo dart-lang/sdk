@@ -128,9 +128,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   },
   'Typedef': {
     'typeParameters': FieldRule(isDeclaration: true),
-    'typeParametersOfFunctionType': FieldRule(isDeclaration: false),
-    'positionalParameters': FieldRule(isDeclaration: false),
-    'namedParameters': FieldRule(isDeclaration: false),
   },
   'TypedefTearOff': {
     'typeParameters': FieldRule(isDeclaration: true),
