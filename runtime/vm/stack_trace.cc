@@ -83,7 +83,8 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       var_data_field(Field::Handle(zone)),
       state_field(Field::Handle(zone)),
       on_data_field(Field::Handle(zone)),
-      state_data_field(Field::Handle(zone)) {
+      state_data_field(Field::Handle(zone)),
+      has_value_field(Field::Handle(zone)) {
   const auto& async_lib = Library::Handle(zone, Library::AsyncLibrary());
   // Look up classes:
   // - async:
@@ -143,6 +144,9 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   state_data_field =
       stream_iterator_class.LookupFieldAllowPrivate(Symbols::_stateData());
   ASSERT(!state_data_field.IsNull());
+  has_value_field =
+      stream_iterator_class.LookupFieldAllowPrivate(Symbols::_hasValue());
+  ASSERT(!has_value_field.IsNull());
 }
 
 ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
@@ -201,9 +205,33 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
 
   // If the async* stream is await-for'd:
   if (callback_instance_.GetClassId() == stream_iterator_class.id()) {
-    // _StreamIterator._stateData
-    future_ = Instance::Cast(callback_instance_).GetField(state_data_field);
-    return GetCallerInFutureImpl(future_);
+    // If `_hasValue` is true then the `StreamIterator._stateData` field
+    // contains the iterator's value. In that case we cannot unwind anymore.
+    //
+    // Notice: With correct async* semantics this may never be true: The async*
+    // generator should only be invoked to produce a vaue if there's an
+    // in-progress `await streamIterator.moveNext()` call. Once such call has
+    // finished the async* generator should be paused/yielded until the next
+    // such call - and being paused/yielded means it should not appear in stack
+    // traces.
+    //
+    // See dartbug.com/48695.
+    const auto& stream_iterator = Instance::Cast(callback_instance_);
+    if (stream_iterator.GetField(has_value_field) ==
+        Object::bool_true().ptr()) {
+      return Closure::null();
+    }
+
+    // If we have an await'er for `await streamIterator.moveNext()` we continue
+    // unwinding there.
+    //
+    // Notice: With correct async* semantics this may always contain a Future
+    // See also comment above as well as dartbug.com/48695.
+    future_ = stream_iterator.GetField(state_data_field);
+    if (future_.GetClassId() == future_impl_class.id()) {
+      return GetCallerInFutureImpl(future_);
+    }
+    return Closure::null();
   }
 
   UNREACHABLE();  // If no onData is found we have a bug.
