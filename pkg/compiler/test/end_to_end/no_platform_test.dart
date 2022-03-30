@@ -30,7 +30,8 @@ main() {
         (fe.DiagnosticMessage message) {
       message.plainTextFormatted.forEach(print);
       Expect.notEquals(fe.Severity.error, message.severity);
-    }, Uri.base.resolve('pkg/compiler/test/end_to_end/data/hello_world.dart'));
+    }, [Uri.base.resolve('pkg/compiler/test/end_to_end/data/hello_world.dart')],
+        false);
     Expect.isNotNull(new ir.CoreTypes(component).futureClass);
   }
 

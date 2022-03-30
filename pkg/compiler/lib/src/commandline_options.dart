@@ -112,6 +112,7 @@ class Flags {
   static const String reportAllMetrics = '--report-all-metrics';
 
   static const String dillDependencies = '--dill-dependencies';
+  static const String sources = '--sources';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
   static const String noClosedWorldInData = '--no-closed-world-in-data';

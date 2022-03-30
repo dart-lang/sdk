@@ -21,7 +21,8 @@ main(List<String> args) async {
         options,
         IOPipeline([
           OutlineDillCompilationStep(),
-          FullDillCompilationStep(),
+          FullDillCompilationStep(onlyOnSdk: true),
+          ModularAnalysisStep(onlyOnSdk: true),
           ModularAnalysisStep(),
           ConcatenateDillsStep(useModularAnalysis: true),
           ComputeClosedWorldStep(useModularAnalysis: true),

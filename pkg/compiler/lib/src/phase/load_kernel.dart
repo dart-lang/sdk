@@ -195,8 +195,10 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
 class _LoadFromSourceResult {
   final ir.Component component;
   final fe.InitializedCompilerState initializedCompilerState;
+  final List<Uri> moduleLibraries;
 
-  _LoadFromSourceResult(this.component, this.initializedCompilerState);
+  _LoadFromSourceResult(
+      this.component, this.initializedCompilerState, this.moduleLibraries);
 }
 
 Future<_LoadFromSourceResult> _loadFromSource(
@@ -215,21 +217,36 @@ Future<_LoadFromSourceResult> _loadFromSource(
       reportFrontEndMessage(reporter, message);
     }
   };
-  fe.CompilerOptions feOptions = fe.CompilerOptions()
-    ..target = target
-    ..librariesSpecificationUri = options.librariesSpecificationUri
-    ..packagesFileUri = options.packageConfig
-    ..explicitExperimentalFlags = options.explicitExperimentalFlags
-    ..verbose = verbose
-    ..fileSystem = fileSystem
-    ..onDiagnostic = onDiagnostic
-    ..verbosity = verbosity;
-  Uri resolvedUri = options.compilationTarget;
-  bool isLegacy = await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
-  _inferNullSafetyMode(options, !isLegacy);
 
+  // If we are passed a list of sources, then we are performing a modular
+  // compile. In this case, we cannot infer null safety from the source files
+  // and must instead rely on the options passed in on the command line.
+  bool isModularCompile = false;
+  List<Uri> sources = [];
+  if (options.sources != null) {
+    isModularCompile = true;
+    sources.addAll(options.sources);
+  } else {
+    fe.CompilerOptions feOptions = fe.CompilerOptions()
+      ..target = target
+      ..librariesSpecificationUri = options.librariesSpecificationUri
+      ..packagesFileUri = options.packageConfig
+      ..explicitExperimentalFlags = options.explicitExperimentalFlags
+      ..verbose = verbose
+      ..fileSystem = fileSystem
+      ..onDiagnostic = onDiagnostic
+      ..verbosity = verbosity;
+    Uri resolvedUri = options.compilationTarget;
+    bool isLegacy =
+        await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
+    _inferNullSafetyMode(options, !isLegacy);
+    sources.add(options.compilationTarget);
+  }
+
+  // If we are performing a modular compile, we expect the platform binary to be
+  // supplied along with other dill dependencies.
   List<Uri> dependencies = [];
-  if (options.platformBinaries != null) {
+  if (options.platformBinaries != null && !isModularCompile) {
     dependencies.add(options.platformBinaries
         .resolve(_getPlatformFilename(options, targetName)));
   }
@@ -248,10 +265,17 @@ Future<_LoadFromSourceResult> _loadFromSource(
           options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
       invocationModes: options.cfeInvocationModes,
       verbosity: verbosity);
-  ir.Component component = await fe.compile(
-      initializedCompilerState, verbose, fileSystem, onDiagnostic, resolvedUri);
+  ir.Component component = await fe.compile(initializedCompilerState, verbose,
+      fileSystem, onDiagnostic, sources, isModularCompile);
   _validateNullSafetyMode(options);
-  return _LoadFromSourceResult(component, initializedCompilerState);
+
+  // We have to compute canonical names on the component here to avoid missing
+  // canonical names downstream.
+  if (isModularCompile) {
+    component.computeCanonicalNames();
+  }
+  return _LoadFromSourceResult(
+      component, initializedCompilerState, isModularCompile ? sources : []);
 }
 
 Output _createOutput(
@@ -336,6 +360,7 @@ Future<Output> run(Input input) async {
         reporter, input.initializedCompilerState, targetName);
     component = result.component;
     initializedCompilerState = result.initializedCompilerState;
+    moduleLibraries = result.moduleLibraries;
   }
   if (component == null) return null;
   if (input.forceSerialization) {

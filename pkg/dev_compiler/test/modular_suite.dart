@@ -73,6 +73,12 @@ class SourceToSummaryDillStep implements IOModularStep {
   bool get onlyOnMain => false;
 
   @override
+  bool get onlyOnSdk => false;
+
+  @override
+  bool get notOnSdk => false;
+
+  @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print('\nstep: source-to-dill on $module');
@@ -163,6 +169,12 @@ class DDCStep implements IOModularStep {
   bool get onlyOnMain => false;
 
   @override
+  bool get onlyOnSdk => false;
+
+  @override
+  bool get notOnSdk => false;
+
+  @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print('\nstep: ddc on $module');
@@ -243,6 +255,12 @@ class RunD8 implements IOModularStep {
 
   @override
   bool get onlyOnMain => true;
+
+  @override
+  bool get onlyOnSdk => false;
+
+  @override
+  bool get notOnSdk => false;
 
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,

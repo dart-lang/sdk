@@ -171,6 +171,7 @@ class CompilerOptions implements DiagnosticOptions {
   Uri? get compilationTarget => inputDillUri ?? entryUri;
 
   bool get fromDill {
+    if (sources != null) return false;
     var targetPath = compilationTarget!.path;
     return targetPath.endsWith('.dill');
   }
@@ -190,6 +191,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// use a list of outline files for modular compiles, and only use full kernel
   /// files for linking.
   List<Uri>? dillDependencies;
+
+  /// A list of sources to compile, only used for modular analysis.
+  List<Uri>? sources;
 
   Uri? writeModularAnalysisUri;
 
@@ -676,6 +680,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
+      ..sources = _extractUriListOption(options, '${Flags.sources}')
       ..readProgramSplit =
           _extractUriOption(options, '${Flags.readProgramSplit}=')
       ..writeModularAnalysisUri =
