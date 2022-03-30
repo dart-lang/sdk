@@ -1227,27 +1227,36 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  return MakeLocationSummaryInternal(zone, is_optimizing, R11);
+  return MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(CallingConventions::kSecondNonArgumentRegister) | R(R11) |
+       R(CallingConventions::kFfiAnyNonAbiRegister) | R(R25)));
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  const Register temp1 = locs()->temp(0).reg();
+  const Register temp2 = locs()->temp(1).reg();
   // For regular calls, this holds the FP for rebasing the original locations
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(0).reg();
-  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-                  (1 << saved_fp_or_sp)) != 0);
-  const Register temp1 = locs()->temp(1).reg();
-  const Register temp2 = locs()->temp(2).reg();
-  const Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp_or_sp = locs()->temp(2).reg();
+  const Register temp_csp = locs()->temp(3).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
   ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
           (1 << saved_fp_or_sp)) != 0);
-  // temps don't need to be preserved.
+  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << temp_csp)) != 0);
+  // Other temps don't need to be preserved.
 
   __ mov(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
 
@@ -1279,14 +1288,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // We are entering runtime code, so the C stack pointer must be restored
     // from the stack limit to the top of the stack.
-    __ mov(R25, CSP);
+    __ mov(temp_csp, CSP);
     __ mov(CSP, SP);
 
     __ blr(branch);
 
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);
-    __ mov(CSP, R25);
+    __ mov(CSP, temp_csp);
 
 #if !defined(PRODUCT)
     __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());
@@ -1315,14 +1324,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // We are entering runtime code, so the C stack pointer must be restored
       // from the stack limit to the top of the stack.
-      __ mov(R25, CSP);
+      __ mov(temp_csp, CSP);
       __ mov(CSP, SP);
 
       __ blr(branch);
 
       // Restore the Dart stack pointer.
       __ mov(SP, CSP);
-      __ mov(CSP, R25);
+      __ mov(CSP, temp_csp);
 
       // Update information in the thread object and leave the safepoint.
       __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);

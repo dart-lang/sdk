@@ -6494,26 +6494,21 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
 LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     Zone* zone,
     bool is_optimizing,
-    const Register temp) const {
-  // The temporary register needs to be callee-saved and not an argument
-  // register.
-  ASSERT(((1 << CallingConventions::kFfiAnyNonAbiRegister) &
-          CallingConventions::kArgumentRegisters) == 0);
+    const RegList temps) const {
+  auto contains_call =
+      is_leaf_ ? LocationSummary::kNativeLeafCall : LocationSummary::kCall;
 
-  // TODO(dartbug.com/45468): Investigate whether we can avoid spilling
-  // registers across ffi leaf calls by not using `kCall` here.
   LocationSummary* summary = new (zone) LocationSummary(
       zone, /*num_inputs=*/InputCount(),
-      /*num_temps=*/temp == kNoRegister ? 2 : 3, LocationSummary::kCall);
+      /*num_temps=*/Utils::CountOneBitsWord(temps), contains_call);
 
-  const Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
-  const Register temp1 = CallingConventions::kSecondNonArgumentRegister;
-  ASSERT(temp0 != temp1);
-  summary->set_temp(0, Location::RegisterLocation(temp0));
-  summary->set_temp(1, Location::RegisterLocation(temp1));
-
-  if (temp != kNoRegister) {
-    summary->set_temp(2, Location::RegisterLocation(temp));
+  intptr_t reg_i = 0;
+  for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+    if ((temps & (1 << reg)) != 0) {
+      summary->set_temp(reg_i,
+                        Location::RegisterLocation(static_cast<Register>(reg)));
+      reg_i++;
+    }
   }
 
   summary->set_in(TargetAddressIndex(),
@@ -6524,10 +6519,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
   }
 
   if (marshaller_.PassTypedData()) {
-    // The register allocator already preserves this value across the call on
-    // a stack slot, so we'll use the spilled value directly.
-    summary->set_in(TypedDataIndex(), Location::RequiresStackSlot());
-
+    summary->set_in(TypedDataIndex(), Location::Any());
     // We don't care about return location, but we need to pass a register.
     summary->set_out(
         0, Location::RegisterLocation(CallingConventions::kReturnReg));
@@ -6654,13 +6646,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
                                    const Register temp0,
                                    const Register temp1) {
-  __ Comment("EmitReturnMoves");
-
   const auto& returnLocation =
       marshaller_.Location(compiler::ffi::kResultIndex);
   if (returnLocation.payload_type().IsVoid()) {
     return;
   }
+
+  __ Comment("EmitReturnMoves");
 
   NoTemporaryAllocator no_temp;
   if (returnLocation.IsRegisters() || returnLocation.IsFpuRegisters()) {
@@ -6675,15 +6667,20 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
 
     // Get the typed data pointer which we have pinned to a stack slot.
     const Location typed_data_loc = locs()->in(TypedDataIndex());
-    ASSERT(typed_data_loc.IsStackSlot());
-    ASSERT(typed_data_loc.base_reg() == FPREG);
-    // If this is a leaf call there is no extra call frame to step through.
-    if (is_leaf_) {
-      __ LoadMemoryValue(temp0, FPREG, typed_data_loc.ToStackSlotOffset());
+    if (typed_data_loc.IsStackSlot()) {
+      ASSERT(typed_data_loc.base_reg() == FPREG);
+      // If this is a leaf call there is no extra call frame to step through.
+      if (is_leaf_) {
+        __ LoadMemoryValue(temp0, FPREG, typed_data_loc.ToStackSlotOffset());
+      } else {
+        __ LoadMemoryValue(
+            temp0, FPREG,
+            kSavedCallerFpSlotFromFp * compiler::target::kWordSize);
+        __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+      }
     } else {
-      __ LoadMemoryValue(
-          temp0, FPREG, kSavedCallerFpSlotFromFp * compiler::target::kWordSize);
-      __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+      compiler->EmitMove(Location::RegisterLocation(temp0), typed_data_loc,
+                         &no_temp);
     }
     __ LoadField(temp0,
                  compiler::FieldAddress(

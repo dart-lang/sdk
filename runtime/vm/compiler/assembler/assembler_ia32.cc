@@ -2180,7 +2180,7 @@ void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   addl(dest, inc_imm);
 }
 
-void Assembler::LoadDoubleConstant(XmmRegister dst, double value) {
+void Assembler::LoadDImmediate(XmmRegister dst, double value) {
   // TODO(5410843): Need to have a code constants table.
   int64_t constant = bit_cast<int64_t, double>(value);
   pushl(Immediate(Utils::High32Bits(constant)));

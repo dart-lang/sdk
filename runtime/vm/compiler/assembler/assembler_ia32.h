@@ -713,6 +713,8 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadDImmediate(XmmRegister dst, double value);
+
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);
@@ -732,7 +734,6 @@ class Assembler : public AssemblerBase {
 
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
-  void LoadDoubleConstant(XmmRegister dst, double value);
 
   void LoadCompressed(Register dest, const Address& slot) { movl(dest, slot); }
 

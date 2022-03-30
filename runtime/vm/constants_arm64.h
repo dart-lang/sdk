@@ -81,7 +81,9 @@ enum Register {
 };
 
 enum VRegister {
+  // v0 Volatile; Parameter/scratch register, result register.
   V0 = 0,
+  // v1-v7 Volatile; Parameter/scratch register.
   V1 = 1,
   V2 = 2,
   V3 = 3,
@@ -89,6 +91,8 @@ enum VRegister {
   V5 = 5,
   V6 = 6,
   V7 = 7,
+  // v8-v15 Non-volatile; Scratch registers
+  // Only the bottom 64 bits are non-volatile! [ARM IHI 0055B, 5.1.2]
   V8 = 8,
   V9 = 9,
   V10 = 10,
@@ -97,6 +101,7 @@ enum VRegister {
   V13 = 13,
   V14 = 14,
   V15 = 15,
+  // v16-v31 Volatile; Scratch registers.
   V16 = 16,
   V17 = 17,
   V18 = 18,
@@ -104,7 +109,7 @@ enum VRegister {
   V20 = 20,
   V21 = 21,
   V22 = 22,
-  V23 = 24,
+  V23 = 23,
   V24 = 24,
   V25 = 25,
   V26 = 26,
@@ -429,6 +434,11 @@ const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
+
+const RegList kAbiVolatileFpuRegs =
+    R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7) | R(V16) |
+    R(V17) | R(V18) | R(V19) | R(V20) | R(V21) | R(V22) | R(V23) | R(V24) |
+    R(V25) | R(V26) | R(V27) | R(V28) | R(V29) | R(V30) | R(V31);
 
 constexpr int kStoreBufferWrapperSize = 32;
 

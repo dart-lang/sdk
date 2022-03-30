@@ -1175,29 +1175,38 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  // Use R10 as a temp register. We can't use RDI, RSI, RDX, R8, R9 as they are
-  // arg registers, and R11 is TMP.
-  return MakeLocationSummaryInternal(zone, is_optimizing, R10);
+  // Use R10 as a temp. register. We can't use RDI, RSI, RDX, R8, R9 as they are
+  // argument registers, and R11 is TMP.
+  return MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(CallingConventions::kSecondNonArgumentRegister) | R(R10) |
+       R(CallingConventions::kFfiAnyNonAbiRegister)));
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  // For regular calls, this holds the FP for rebasing the original locations
+  // during EmitParamMoves.
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
   // Note: R12 doubles as CODE_REG, which gets clobbered during frame setup in
   // regular calls.
-  const Register saved_sp = locs()->temp(0).reg();
-  // For regular calls, this holds the FP for rebasing the original locations
-  // during EmitParamMoves.
-  const Register saved_fp = locs()->temp(1).reg();
-  const Register temp = locs()->temp(2).reg();
-  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_sp = locs()->temp(2).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
   ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_sp)) != 0);
   ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_fp)) != 0);
-  // temp doesn't need to be preserved.
+  // Other temps don't need to be preserved.
 
   if (is_leaf_) {
     __ movq(saved_sp, SPREG);

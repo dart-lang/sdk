@@ -387,6 +387,7 @@ struct DispatchTableNullErrorABI {
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 
 #define R(reg) (static_cast<RegList>(1) << (reg))
 
