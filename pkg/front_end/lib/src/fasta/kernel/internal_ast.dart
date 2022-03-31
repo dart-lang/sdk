@@ -493,6 +493,17 @@ class ArgumentsImpl extends Arguments {
 
   List<Object?>? argumentsOriginalOrder;
 
+  /// True if the arguments are passed to the super-constructor in a
+  /// super-initializer, and the positional parameters are super-initializer
+  /// parameters. It is true that either all of the positional parameters are
+  /// super-initializer parameters or none of them, so a simple boolean
+  /// accurately reflects the state.
+  bool positionalAreSuperParameters = false;
+
+  /// Names of the named positional parameters. If none of the parameters are
+  /// super-positional, the field is null.
+  Set<String>? namedSuperParameterNames;
+
   ArgumentsImpl.internal(
       {required List<Expression> positional,
       required List<DartType>? types,

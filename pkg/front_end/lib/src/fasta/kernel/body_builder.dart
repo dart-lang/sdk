@@ -1854,6 +1854,7 @@ class BodyBuilder extends StackListenerImpl
 
     List<Expression>? positionalSuperParametersAsArguments;
     List<NamedExpression>? namedSuperParametersAsArguments;
+    Set<String>? namedSuperParameterNames;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isSuperInitializingFormal) {
@@ -1865,6 +1866,7 @@ class BodyBuilder extends StackListenerImpl
                         forNullGuardedAccess: false)
                       ..fileOffset = formal.charOffset)
                   ..fileOffset = formal.charOffset);
+            (namedSuperParameterNames ??= <String>{}).add(formal.name);
           } else {
             (positionalSuperParametersAsArguments ??= <Expression>[]).add(
                 new VariableGetImpl(formal.variable!,
@@ -1886,7 +1888,7 @@ class BodyBuilder extends StackListenerImpl
                   superInitializer.fileOffset, noLength))
             ..parent = constructor;
         } else if (libraryBuilder.enableSuperParametersInLibrary) {
-          Arguments arguments = superInitializer.arguments;
+          ArgumentsImpl arguments = superInitializer.arguments as ArgumentsImpl;
 
           if (positionalSuperParametersAsArguments != null) {
             if (arguments.positional.isNotEmpty) {
@@ -1904,12 +1906,14 @@ class BodyBuilder extends StackListenerImpl
             } else {
               arguments.positional.addAll(positionalSuperParametersAsArguments);
               setParents(positionalSuperParametersAsArguments, arguments);
+              arguments.positionalAreSuperParameters = true;
             }
           }
           if (namedSuperParametersAsArguments != null) {
             // TODO(cstefantsova): Report name conflicts.
             arguments.named.addAll(namedSuperParametersAsArguments);
             setParents(namedSuperParametersAsArguments, arguments);
+            arguments.namedSuperParameterNames = namedSuperParameterNames;
           }
         }
       } else if (initializers.last is RedirectingInitializer) {
@@ -1958,7 +1962,7 @@ class BodyBuilder extends StackListenerImpl
       /// >unless the enclosing class is class Object.
       Constructor? superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
-      Arguments arguments;
+      ArgumentsImpl arguments;
       List<Expression>? positionalArguments;
       List<NamedExpression>? namedArguments;
       if (libraryBuilder.enableSuperParametersInLibrary) {
@@ -1976,6 +1980,7 @@ class BodyBuilder extends StackListenerImpl
               forNullGuardedAccess: false)
         ]);
       }
+
       if (positionalArguments != null || namedArguments != null) {
         arguments = forest.createArguments(
             noLocation, positionalArguments ?? <Expression>[],
@@ -1983,6 +1988,11 @@ class BodyBuilder extends StackListenerImpl
       } else {
         arguments = forest.createArgumentsEmpty(noLocation);
       }
+
+      arguments.positionalAreSuperParameters =
+          positionalSuperParametersAsArguments != null;
+      arguments.namedSuperParameterNames = namedSuperParameterNames;
+
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
