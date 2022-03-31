@@ -44,6 +44,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_conditional
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_for_each_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
@@ -51,7 +52,6 @@ import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
