@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/deferred_closure_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -196,16 +198,20 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         substitution: substitution,
         inferrer: inferrer);
     if (deferredClosures != null) {
-      if (inferrer != null) {
-        substitution = Substitution.fromPairs(
-            rawType!.typeFormals, inferrer.partialInfer());
+      for (var stage in _ClosureDependencies(resolver.typeSystem,
+              deferredClosures, rawType?.typeFormals.toSet() ?? const {})
+          .planClosureReconciliationStages()) {
+        if (inferrer != null) {
+          substitution = Substitution.fromPairs(
+              rawType!.typeFormals, inferrer.partialInfer());
+        }
+        _resolveDeferredClosures(
+            rawType: rawType,
+            deferredClosures: stage,
+            identicalInfo: identicalInfo,
+            substitution: substitution,
+            inferrer: inferrer);
       }
-      _resolveDeferredClosures(
-          rawType: rawType,
-          deferredClosures: deferredClosures,
-          identicalInfo: identicalInfo,
-          substitution: substitution,
-          inferrer: inferrer);
     }
 
     if (inferrer != null) {
@@ -424,7 +430,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Resolves any closures that were deferred by [_visitArguments].
   void _resolveDeferredClosures(
       {required FunctionType? rawType,
-      required List<_DeferredClosure> deferredClosures,
+      required Iterable<_DeferredClosure> deferredClosures,
       List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
@@ -598,6 +604,50 @@ class MethodInvocationInferrer
       );
     }
     return returnType;
+  }
+}
+
+class _ClosureDependencies
+    extends ClosureDependencies<TypeParameterElement, _DeferredClosure> {
+  final TypeSystemImpl _typeSystem;
+
+  final Set<TypeParameterElement> _typeVariables;
+
+  _ClosureDependencies(this._typeSystem, Iterable<_DeferredClosure> closures,
+      this._typeVariables)
+      : super(closures, _typeVariables);
+
+  @override
+  Iterable<TypeParameterElement> typeVarsFreeInClosureArguments(
+      _DeferredClosure closure) {
+    var type = closure.parameter?.type;
+    if (type is FunctionType) {
+      Set<TypeParameterElement> result = {};
+      for (var parameter in type.parameters) {
+        result.addAll(_typeSystem.getFreeParameters(parameter.type,
+                candidates: _typeVariables) ??
+            const []);
+      }
+      return result;
+    } else {
+      return const [];
+    }
+  }
+
+  @override
+  Iterable<TypeParameterElement> typeVarsFreeInClosureReturns(
+      _DeferredClosure closure) {
+    var type = closure.parameter?.type;
+    if (type is FunctionType) {
+      return _typeSystem.getFreeParameters(type.returnType,
+              candidates: _typeVariables) ??
+          const [];
+    } else if (type != null) {
+      return _typeSystem.getFreeParameters(type, candidates: _typeVariables) ??
+          const [];
+    } else {
+      return const [];
+    }
   }
 }
 
