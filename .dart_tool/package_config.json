@@ -326,7 +326,7 @@
       "name": "frontend_server",
       "rootUri": "../pkg/frontend_server",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.15"
     },
     {
       "name": "frontend_server_client",

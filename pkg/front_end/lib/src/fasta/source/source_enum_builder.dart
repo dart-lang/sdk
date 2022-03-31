@@ -4,6 +4,7 @@
 
 library fasta.enum_builder;
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
 import 'package:kernel/ast.dart';
@@ -310,9 +311,21 @@ class SourceEnumBuilder extends SourceClassBuilder {
               /* typeParameters = */ null,
               <FormalParameterBuilder>[
                 new FormalParameterBuilder(
-                    null, 0, intType, "index", libraryBuilder, charOffset),
+                    null,
+                    FormalParameterKind.requiredPositional,
+                    0,
+                    intType,
+                    "index",
+                    libraryBuilder,
+                    charOffset),
                 new FormalParameterBuilder(
-                    null, 0, stringType, "name", libraryBuilder, charOffset)
+                    null,
+                    FormalParameterKind.requiredPositional,
+                    0,
+                    stringType,
+                    "name",
+                    libraryBuilder,
+                    charOffset)
               ],
               libraryBuilder,
               charOffset,
@@ -332,11 +345,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
           member.formals!.insert(
               0,
               new FormalParameterBuilder(
-                  null, 0, stringType, "name", libraryBuilder, charOffset));
+                  /* metadata = */ null,
+                  FormalParameterKind.requiredPositional,
+                  /* modifiers = */ 0,
+                  stringType,
+                  "name",
+                  libraryBuilder,
+                  charOffset));
           member.formals!.insert(
               0,
               new FormalParameterBuilder(
-                  null, 0, intType, "index", libraryBuilder, charOffset));
+                  /* metadata = */ null,
+                  FormalParameterKind.requiredPositional,
+                  /* modifiers = */ 0,
+                  intType,
+                  "index",
+                  libraryBuilder,
+                  charOffset));
         }
       });
     }

@@ -428,7 +428,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
                     superInitializingFormalIndex];
             correspondingSuperFormalType =
                 positionalSuperFormalType[superInitializingFormalIndex];
-            if (!hasImmediatelyDeclaredInitializer && !formal.isRequired) {
+            if (!hasImmediatelyDeclaredInitializer &&
+                !formal.isRequiredPositional) {
               (positionalSuperParameters ??= <int?>[]).add(formalIndex);
             } else {
               (positionalSuperParameters ??= <int?>[]).add(null);
@@ -441,7 +442,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
                 namedSuperFormalHasInitializer[formal.name]!;
             correspondingSuperFormalType = namedSuperFormalType[formal.name];
-            if (!hasImmediatelyDeclaredInitializer && !formal.isNamedRequired) {
+            if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
             }
           } else {

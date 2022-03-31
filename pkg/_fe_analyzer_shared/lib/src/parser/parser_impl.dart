@@ -63,10 +63,7 @@ import 'declaration_kind.dart' show DeclarationKind;
 import 'directive_context.dart';
 
 import 'formal_parameter_kind.dart'
-    show
-        FormalParameterKind,
-        isMandatoryFormalParameterKind,
-        isOptionalPositionalFormalParameterKind;
+    show FormalParameterKind, FormalParameterKindExtension;
 
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
@@ -1398,7 +1395,8 @@ class Parser {
         token = ensureCloseParen(token, begin);
         break;
       }
-      token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
+      token = parseFormalParameter(
+          token, FormalParameterKind.requiredPositional, kind);
       next = token.next!;
       if (!optional(',', next)) {
         Token next = token.next!;
@@ -1525,6 +1523,7 @@ class Parser {
     if (isModifier(next)) {
       if (optional('required', next)) {
         if (parameterKind == FormalParameterKind.optionalNamed) {
+          parameterKind = FormalParameterKind.requiredNamed;
           requiredToken = token = next;
           next = token.next!;
         }
@@ -1742,11 +1741,10 @@ class Parser {
       // TODO(danrubel): Consider removing the last parameter from the
       // handleValuedFormalParameter event... it appears to be unused.
       listener.handleValuedFormalParameter(equal, next);
-      if (isMandatoryFormalParameterKind(parameterKind)) {
+      if (parameterKind.isRequiredPositional) {
         reportRecoverableError(
             equal, codes.messageRequiredParameterWithDefault);
-      } else if (isOptionalPositionalFormalParameterKind(parameterKind) &&
-          identical(':', value)) {
+      } else if (parameterKind.isOptionalPositional && identical(':', value)) {
         reportRecoverableError(
             equal, codes.messagePositionalParameterWithEquals);
       } else if (inFunctionType ||

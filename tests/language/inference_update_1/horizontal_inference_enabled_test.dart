@@ -53,4 +53,58 @@ testFold(List<int> list) {
   a.expectStaticType<Exactly<int>>();
 }
 
+// The test cases below exercise situations where there are multiple closures in
+// the invocation, and they need to be inferred in the right order.
+
+testClosureAsParameterType(U Function<T, U>(T, U Function(T)) f) {
+  f(() => 0, (h) => [h()]..expectStaticType<Exactly<List<int>>>())
+      .expectStaticType<Exactly<List<int>>>();
+}
+
+testPropagateToEarlierClosure(U Function<T, U>(U Function(T), T Function()) f) {
+  f((x) => [x]..expectStaticType<Exactly<List<int>>>(), () => 0)
+      .expectStaticType<Exactly<List<int>>>();
+}
+
+testPropagateToLaterClosure(U Function<T, U>(T Function(), U Function(T)) f) {
+  f(() => 0, (x) => [x]..expectStaticType<Exactly<List<int>>>())
+      .expectStaticType<Exactly<List<int>>>();
+}
+
+testLongDepedencyChain(
+    V Function<T, U, V>(T Function(), U Function(T), V Function(U)) f) {
+  f(() => [0], (x) => x.single..expectStaticType<Exactly<int>>(),
+          (y) => {y}..expectStaticType<Exactly<Set<int>>>())
+      .expectStaticType<Exactly<Set<int>>>();
+}
+
+testDependencyCycle(Map<T, U> Function<T, U>(T Function(U), U Function(T)) f) {
+  f((x) => [x]..expectStaticType<Exactly<List<Object?>>>(),
+          (y) => {y}..expectStaticType<Exactly<Set<Object?>>>())
+      .expectStaticType<Exactly<Map<List<Object?>, Set<Object?>>>>();
+}
+
+testPropagateFromContravariantReturnType(
+    U Function<T, U>(void Function(T) Function(), U Function(T)) f) {
+  f(() => (int i) {}, (x) => [x]..expectStaticType<Exactly<List<int>>>())
+      .expectStaticType<Exactly<List<int>>>();
+}
+
+testPropagateToContravariantParameterType(
+    U Function<T, U>(T Function(), U Function(void Function(T))) f) {
+  f(() => 0, (x) => [x]..expectStaticType<Exactly<List<void Function(int)>>>())
+      .expectStaticType<Exactly<List<void Function(int)>>>();
+}
+
+testReturnTypeRefersToMultipleTypeVars(
+    void Function<T, U>(
+            Map<T, U> Function(), void Function(T), void Function(U))
+        f) {
+  f(() => {0: ''}, (k) {
+    k.expectStaticType<Exactly<int>>();
+  }, (v) {
+    v.expectStaticType<Exactly<String>>();
+  });
+}
+
 main() {}

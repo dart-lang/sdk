@@ -1234,10 +1234,10 @@ class BodyBuilder extends StackListenerImpl
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
         if (!parameter.isSuperInitializingFormal &&
-            (parameter.isOptional || initializer != null)) {
+            (parameter.isOptionalPositional || initializer != null)) {
           if (!parameter.initializerWasInferred) {
             parameter.initializerWasInferred = true;
-            if (parameter.isOptional) {
+            if (parameter.isOptionalPositional) {
               initializer ??= forest.createNullLiteral(
                   // TODO(ahe): Should store: originParameter.fileOffset
                   // https://github.com/dart-lang/sdk/issues/32289
@@ -1310,7 +1310,7 @@ class BodyBuilder extends StackListenerImpl
     if (builder.kind == ProcedureKind.Setter) {
       if (formals?.parameters == null ||
           formals!.parameters!.length != 1 ||
-          formals.parameters!.single.isOptional) {
+          formals.parameters!.single.isOptionalPositional) {
         int charOffset = formals?.charOffset ??
             body?.fileOffset ??
             builder.member.fileOffset;
@@ -1735,8 +1735,14 @@ class BodyBuilder extends StackListenerImpl
             : new List<FormalParameterBuilder>.generate(
                 parameters.positionalParameters.length, (int i) {
                 VariableDeclaration formal = parameters.positionalParameters[i];
-                return new FormalParameterBuilder(null, 0, null, formal.name!,
-                    libraryBuilder, formal.fileOffset,
+                return new FormalParameterBuilder(
+                    /* metadata = */ null,
+                    FormalParameterKind.requiredPositional,
+                    /* modifiers = */ 0,
+                    /* type = */ null,
+                    formal.name!,
+                    libraryBuilder,
+                    formal.fileOffset,
                     fileUri: uri)
                   ..variable = formal;
               }, growable: false);
@@ -4408,7 +4414,7 @@ class BodyBuilder extends StackListenerImpl
         return;
       }
     } else {
-      parameter = new FormalParameterBuilder(null, modifiers, type,
+      parameter = new FormalParameterBuilder(null, kind, modifiers, type,
           name?.name ?? '', libraryBuilder, offsetForToken(nameToken),
           fileUri: uri)
         ..hasDeclaredInitializer = (initializerStart != null);
@@ -4429,7 +4435,7 @@ class BodyBuilder extends StackListenerImpl
           variable.initializer = initializer..parent = variable;
         }
       }
-    } else if (kind != FormalParameterKind.mandatory) {
+    } else if (kind != FormalParameterKind.requiredPositional) {
       variable.initializer ??= forest.createNullLiteral(noLocation)
         ..parent = variable;
     }
@@ -4450,9 +4456,6 @@ class BodyBuilder extends StackListenerImpl
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterKind kind = optional("{", beginToken)
-        ? FormalParameterKind.optionalNamed
-        : FormalParameterKind.optionalPositional;
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
@@ -4463,9 +4466,6 @@ class BodyBuilder extends StackListenerImpl
     if (parameters == null) {
       push(new ParserRecovery(offsetForToken(beginToken)));
     } else {
-      for (FormalParameterBuilder parameter in parameters) {
-        parameter.kind = kind;
-      }
       push(parameters);
     }
   }
@@ -7272,8 +7272,7 @@ class BodyBuilder extends StackListenerImpl
       _validateTypeVariableUseInternal(builder.returnType,
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (builder.formals != null) {
-        for (FormalParameterBuilder formalParameterBuilder
-            in builder.formals!) {
+        for (ParameterBuilder formalParameterBuilder in builder.formals!) {
           _validateTypeVariableUseInternal(formalParameterBuilder.type,
               allowPotentiallyConstantType: allowPotentiallyConstantType);
         }

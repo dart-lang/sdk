@@ -127,36 +127,27 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     List<TypeVariableBuilder>? typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
-    List<FormalParameterBuilder> formals =
-        new List<FormalParameterBuilder>.filled(
-            positionalParameters.length + namedParameters.length,
-            dummyFormalParameterBuilder);
+    List<ParameterBuilder> formals = new List<ParameterBuilder>.filled(
+        positionalParameters.length + namedParameters.length,
+        dummyFormalParameterBuilder);
     for (int i = 0; i < positionalParameters.length; i++) {
       TypeBuilder type = positionalParameters[i].accept(this);
-      FormalParameterKind kind = FormalParameterKind.mandatory;
+      FormalParameterKind kind = FormalParameterKind.requiredPositional;
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] = new FormalParameterBuilder(
-          /* metadata = */ null,
-          /* modifiers = */ 0,
-          type,
-          /* name = */ '',
-          /* compilationUnit = */ null,
-          /* charOffset = */ TreeNode.noOffset)
-        ..kind = kind;
+      formals[i] = new FunctionTypeParameterBuilder(
+          /* metadata = */ null, kind, type, /* name = */ null);
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = parameter.type.accept(this);
-      formals[i + positionalParameters.length] = new FormalParameterBuilder(
-          /* metadata = */ null,
-          /* modifiers = */ 0,
-          type,
-          parameter.name,
-          /* compilationUnit = */ null,
-          /* charOffset = */ TreeNode.noOffset)
-        ..kind = FormalParameterKind.optionalNamed;
+      FormalParameterKind kind = parameter.isRequired
+          ? FormalParameterKind.requiredNamed
+          : FormalParameterKind.optionalNamed;
+      formals[i + positionalParameters.length] =
+          new FunctionTypeParameterBuilder(
+              /* metadata = */ null, kind, type, parameter.name);
     }
     return new FunctionTypeBuilder(
         returnType,
