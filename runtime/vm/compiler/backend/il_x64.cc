@@ -1204,8 +1204,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_sp = locs()->temp(2).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_sp)) != 0);
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_fp)) != 0);
+  ASSERT(IsCalleeSavedRegister(saved_sp));
+  ASSERT(IsCalleeSavedRegister(saved_fp));
   // Other temps don't need to be preserved.
 
   if (is_leaf_) {
@@ -5383,7 +5383,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
   // double arguments and XMM0 to return the result.
   ASSERT(R13 != CALLEE_SAVED_TEMP);
-  ASSERT(((1 << R13) & CallingConventions::kCalleeSaveCpuRegisters) != 0);
+  ASSERT(IsCalleeSavedRegister(R13));
 
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     ASSERT(InputCount() == 2);

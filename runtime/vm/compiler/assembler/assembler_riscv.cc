@@ -3616,6 +3616,16 @@ void Assembler::RestoreCodePointer() {
   CheckCodePointer();
 }
 
+void Assembler::RestorePoolPointer() {
+  if (FLAG_precompiled_mode) {
+    lx(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  } else {
+    lx(PP, Address(FP, target::frame_layout.code_from_fp * target::kWordSize));
+    lx(PP, FieldAddress(PP, target::Code::object_pool_offset()));
+  }
+  subi(PP, PP, kHeapObjectTag);  // Pool in PP is untagged!
+}
+
 // Restores the values of the registers that are blocked to cache some values
 // e.g. BARRIER_MASK and NULL_REG.
 void Assembler::RestorePinnedRegisters() {

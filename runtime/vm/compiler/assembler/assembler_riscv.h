@@ -1222,6 +1222,7 @@ class Assembler : public MicroAssembler {
 
   void CheckCodePointer();
   void RestoreCodePointer();
+  void RestorePoolPointer();
 
   // Restores the values of the registers that are blocked to cache some values
   // e.g. BARRIER_MASK and NULL_REG.
