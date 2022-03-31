@@ -141,7 +141,7 @@ main() {
 print(1)
 }
 ''';
-    _addOverlay(testFile, testCode);
+    await _addOverlay(testFile, testCode);
     // ask for fixes
     await waitForTasksFinished();
     var errorFixes = await _getFixesAt('print(1)');
@@ -177,7 +177,7 @@ dependencies:
     // Configure the test file.
     testFile = convertPath('/aaa/main.dart');
     testCode = 'main() { new Foo(); }';
-    _addOverlay(testFile, testCode);
+    await _addOverlay(testFile, testCode);
 
     await waitForTasksFinished();
     doAllDeclarationsTrackerWork();
@@ -196,11 +196,11 @@ dependencies:
         isFalse);
   }
 
-  void _addOverlay(String name, String contents) {
+  Future<void> _addOverlay(String name, String contents) async {
     var request =
         AnalysisUpdateContentParams({name: AddContentOverlay(contents)})
             .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+    await waitResponse(request);
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {

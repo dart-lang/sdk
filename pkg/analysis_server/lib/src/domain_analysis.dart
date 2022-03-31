@@ -12,6 +12,8 @@ import 'package:analysis_server/src/handler/legacy/analysis_get_navigation.dart'
 import 'package:analysis_server/src/handler/legacy/analysis_get_signature.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_reanalyze.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_set_analysis_roots.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_general_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_priority_files.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
@@ -63,52 +65,31 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
             .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS) {
-        return setGeneralSubscriptions(request);
+        AnalysisSetGeneralSubscriptionsHandler(
+                server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_SET_PRIORITY_FILES) {
-        return setPriorityFiles(request);
+        AnalysisSetPriorityFilesHandler(server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS) {
         AnalysisSetSubscriptionsHandler(server, request, cancellationToken)
             .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_UPDATE_CONTENT) {
+        // TODO(brianwilkerson) Converting this to a handler currently causes a
+        //  test to timeout.
         return updateContent(request);
       } else if (requestName == ANALYSIS_REQUEST_UPDATE_OPTIONS) {
+        // TODO(brianwilkerson) Converting this to a handler currently causes a
+        //  test to timeout.
         return updateOptions(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
-  }
-
-  /// Implement the 'analysis.setGeneralSubscriptions' request.
-  Response setGeneralSubscriptions(Request request) {
-    var params = AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
-    server.setGeneralAnalysisSubscriptions(params.subscriptions);
-    return AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
-  }
-
-  /// Implement the 'analysis.setPriorityFiles' request.
-  Response setPriorityFiles(Request request) {
-    var params = AnalysisSetPriorityFilesParams.fromRequest(request);
-
-    for (var file in params.files) {
-      if (!server.isAbsoluteAndNormalized(file)) {
-        return Response.invalidFilePathFormat(request, file);
-      }
-    }
-
-    server.setPriorityFiles(request.id, params.files);
-    //
-    // Forward the request to the plugins.
-    //
-    var converter = RequestConverter();
-    server.pluginManager.setAnalysisSetPriorityFilesParams(
-        converter.convertAnalysisSetPriorityFilesParams(params));
-    //
-    // Send the response.
-    //
-    return AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 
   /// Implement the 'analysis.updateContent' request.
