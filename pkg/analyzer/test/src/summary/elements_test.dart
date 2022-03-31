@@ -1840,7 +1840,7 @@ library
             parameters
               requiredPositional final super.a @63
                 type: int
-                superConstructorParameter: ParameterMember
+                superConstructorParameter: SuperFormalParameterMember
                   base: a@103
                   substitution: {T: String}
             superConstructor: ConstructorMember
