@@ -4,11 +4,10 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 
 /// Instances of the class [DiagnosticDomainHandler] implement a
 /// [RequestHandler] that handles requests in the `diagnostic` domain.
@@ -20,27 +19,15 @@ class DiagnosticDomainHandler implements RequestHandler {
   /// [server].
   DiagnosticDomainHandler(this.server);
 
-  /// Answer the `diagnostic.getDiagnostics` request.
-  Response computeDiagnostics(Request request) {
-    var contexts = server.driverMap.values.map(extractDataFromDriver).toList();
-    return DiagnosticGetDiagnosticsResult(contexts).toResponse(request.id);
-  }
-
-  /// Extract context data from the given [driver].
-  ContextData extractDataFromDriver(AnalysisDriver driver) {
-    var explicitFileCount = driver.addedFiles.length;
-    var knownFileCount = driver.knownFiles.length;
-    return ContextData(driver.name, explicitFileCount,
-        knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
-  }
-
   @override
   Response? handleRequest(
       Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS) {
-        return computeDiagnostics(request);
+        DiagnosticGetDiagnosticsHandler(server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == DIAGNOSTIC_REQUEST_GET_SERVER_PORT) {
         DiagnosticGetServerPortHandler(server, request, cancellationToken)
             .handle();
