@@ -160,6 +160,16 @@ abstract class SecurityContext {
   /// or client connections.
   void setAlpnProtocols(List<String> protocols, bool isServer);
 
+  /// If `true`, the [SecurityContext] will allow TLS renegotiation.
+  /// Renegotiation is only supported as a client and the HelloRequest must be
+  /// received at a quiet point in the application protocol. This is sufficient
+  /// to support the legacy use case of requesting a new client certificate
+  /// between an HTTP request and response in (unpipelined) HTTP/1.1.
+  /// NOTE: Renegotiation is an extremely problematic protocol feature and
+  /// should only be used to communicate with legacy servers in environments
+  /// where it is known to be safe.
+  abstract bool allowLegacyUnsafeRenegotiation;
+
   /// Encodes a set of supported protocols for ALPN/NPN usage.
   ///
   /// The [protocols] list is expected to contain protocols in descending order

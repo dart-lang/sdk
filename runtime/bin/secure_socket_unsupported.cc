@@ -130,6 +130,12 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
       "Secure Sockets unsupported on this platform"));
 }
 
+void FUNCTION_NAME(SecurityContext_SetAllowTlsRenegotiation)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
 void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(

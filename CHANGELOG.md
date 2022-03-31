@@ -74,6 +74,10 @@
 - Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
   which were no-ops.
 
+- **Breaking Change** [#48513](https://github.com/dart-lang/sdk/issues/48513):
+  Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
+  which allows TLS renegotiation for client secure sockets.
+
 #### `dart:isolate`
 
 - Add `Isolate.run` to run a function in a new isolate.
