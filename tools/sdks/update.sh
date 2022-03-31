@@ -51,6 +51,16 @@ cipd create \
   -ref $channel
 rm -rf sdk
 
+gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-linux-riscv64-release.zip" .
+unzip -q dartsdk-linux-riscv64-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/linux-riscv64 \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
+
 gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-macos-x64-release.zip" .
 unzip -q dartsdk-macos-x64-release.zip -d sdk
 cipd create \
