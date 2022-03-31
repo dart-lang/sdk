@@ -3,20 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: always_declare_return_types
-// ignore_for_file: avoid_returning_null_for_void
 // ignore_for_file: omit_local_variable_types
-// ignore_for_file: prefer_collection_literals
 // ignore_for_file: prefer_generic_function_type_aliases
 // ignore_for_file: prefer_single_quotes
-// ignore_for_file: unnecessary_this
 
 library js_ast.template;
 
 import 'nodes.dart';
 
 class TemplateManager {
-  Map<String, Template> expressionTemplates = Map<String, Template>();
-  Map<String, Template> statementTemplates = Map<String, Template>();
+  Map<String, Template> expressionTemplates = {};
+  Map<String, Template> statementTemplates = {};
 
   TemplateManager();
 
@@ -817,13 +814,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<ArrayBindingPattern> visitArrayBindingPattern(
       ArrayBindingPattern node) {
-    List<Instantiator> makeVars = node.variables.map(this.visit).toList();
+    List<Instantiator> makeVars = node.variables.map(visit).toList();
     return (a) => ArrayBindingPattern(splayNodes(makeVars, a));
   }
 
   @override
   Instantiator visitObjectBindingPattern(ObjectBindingPattern node) {
-    List<Instantiator> makeVars = node.variables.map(this.visit).toList();
+    List<Instantiator> makeVars = node.variables.map(visit).toList();
     return (a) => ObjectBindingPattern(splayNodes(makeVars, a));
   }
 
@@ -835,8 +832,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 /// InterpolatedNodeAnalysis determines which AST trees contain
 /// [InterpolatedNode]s, and the names of the named interpolated nodes.
 class InterpolatedNodeAnalysis extends BaseVisitorVoid {
-  final Set<Node> containsInterpolatedNode = Set<Node>();
-  final Set<String> holeNames = Set<String>();
+  final Set<Node> containsInterpolatedNode = {};
+  final Set<String> holeNames = {};
   int count = 0;
 
   InterpolatedNodeAnalysis();
@@ -853,7 +850,6 @@ class InterpolatedNodeAnalysis extends BaseVisitorVoid {
     int before = count;
     node.visitChildren(this);
     if (count != before) containsInterpolatedNode.add(node);
-    return null;
   }
 
   @override

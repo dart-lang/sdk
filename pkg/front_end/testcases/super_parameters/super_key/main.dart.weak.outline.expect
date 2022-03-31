@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class GalleryApp extends mai::StatefulWidget /*hasConstConstructor*/  {
+  const constructor •({mai::Key? key}) → self::GalleryApp
+    : super mai::StatefulWidget::•(key: key)
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+class Key extends core::Object {
+  synthetic constructor •() → mai::Key
+    ;
+}
+class StatefulWidget extends core::Object /*hasConstConstructor*/  {
+  final field mai::Key? key;
+  const constructor •({mai::Key? key}) → mai::StatefulWidget
+    : mai::StatefulWidget::key = key, super core::Object::•()
+    ;
+}

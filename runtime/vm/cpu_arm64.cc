@@ -22,6 +22,8 @@
 
 #if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
+#elif defined(DART_HOST_OS_WINDOWS)
+#include <processthreadsapi.h>
 #endif
 
 namespace dart {
@@ -52,6 +54,10 @@ void CPU::FlushICache(uword start, uword size) {
   zx_status_t result = zx_cache_flush(reinterpret_cast<const void*>(start),
                                       size, ZX_CACHE_FLUSH_INSN);
   ASSERT(result == ZX_OK);
+#elif defined(DART_HOST_OS_WINDOWS)
+  BOOL result = FlushInstructionCache(
+      GetCurrentProcess(), reinterpret_cast<const void*>(start), size);
+  ASSERT(result != 0);
 #else
 #error FlushICache not implemented for this OS
 #endif

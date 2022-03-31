@@ -484,7 +484,9 @@ class ContextManagerImpl implements ContextManager {
           }
 
           var optionsFile = analysisContext.contextRoot.optionsFile;
-          if (optionsFile != null) {
+
+          if (optionsFile != null &&
+              analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
             _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
           }
 
@@ -497,7 +499,8 @@ class ContextManagerImpl implements ContextManager {
 
           var pubspecFile =
               rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
-          if (pubspecFile.exists) {
+          if (pubspecFile.exists &&
+              analysisContext.contextRoot.isAnalyzed(pubspecFile.path)) {
             _analyzePubspecYaml(driver, pubspecFile.path);
           }
         }

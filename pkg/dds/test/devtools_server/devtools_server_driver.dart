@@ -66,7 +66,7 @@ class DevToolsServerDriver {
     final script =
         Platform.script.resolveUri(Uri.parse('./serve_devtools.dart'));
     final args = [
-      script.path,
+      script.toFilePath(),
       '--machine',
       '--port',
       '$port',
@@ -202,7 +202,7 @@ class DevToolsServerTestController {
   Future<void> startApp() async {
     final appUri = Platform.script
         .resolveUri(Uri.parse('../fixtures/empty_dart_app.dart'));
-    appFixture = await CliAppFixture.create(appUri.path);
+    appFixture = await CliAppFixture.create(appUri.toFilePath());
 
     // Track services method names as they're registered.
     appFixture.serviceConnection

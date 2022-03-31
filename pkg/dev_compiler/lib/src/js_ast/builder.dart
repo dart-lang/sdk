@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_declare_return_types
 // ignore_for_file: library_prefixes
 // ignore_for_file: non_constant_identifier_names
 // ignore_for_file: omit_local_variable_types
-// ignore_for_file: prefer_collection_literals
 // ignore_for_file: prefer_single_quotes
 // ignore_for_file: unnecessary_brace_in_string_interps
-// ignore_for_file: unnecessary_new
 
 /// Utilities for building JS ASTs at runtime. Contains a builder class and a
 /// parser that parses part of the language.
@@ -325,7 +322,7 @@ class JsBuilder {
       return string(value, quote);
     }
 
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
 
     for (int rune in value.runes) {
       final escape = _irregularEscape(rune, quote);
@@ -398,7 +395,7 @@ class JsBuilder {
   LiteralNumber number(num value) => LiteralNumber('$value');
 
   LiteralNumber uint64(int value) {
-    BigInt uint64Value = new BigInt.from(value).toUnsigned(64);
+    BigInt uint64Value = BigInt.from(value).toUnsigned(64);
     return LiteralNumber('$uint64Value');
   }
 
@@ -640,7 +637,7 @@ class MiniJsParser {
     '/': 5,
     '%': 5
   };
-  static final UNARY_OPERATORS = [
+  static final UNARY_OPERATORS = {
     '++',
     '--',
     '+',
@@ -651,12 +648,12 @@ class MiniJsParser {
     'void',
     'delete',
     'await'
-  ].toSet();
+  };
 
   static final ARROW_TOKEN = '=>';
   static final ELLIPSIS_TOKEN = '...';
 
-  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS = [
+  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS = {
     'typeof',
     'void',
     'delete',
@@ -664,7 +661,7 @@ class MiniJsParser {
     'instanceof',
     'await',
     'extends'
-  ].toSet();
+  };
 
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;

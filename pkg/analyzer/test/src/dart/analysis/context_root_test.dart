@@ -113,6 +113,26 @@ class ContextRootTest with ResourceProviderMixin {
     );
   }
 
+  test_isAnalyzed_explicitlyExcluded_byFile() {
+    var excludePath = convertPath('/test/root/exclude/c.dart');
+    var siblingPath = convertPath('/test/root/exclude/d.dart');
+    contextRoot.excluded.add(newFile2(excludePath, ''));
+    expect(contextRoot.isAnalyzed(excludePath), isFalse);
+    expect(contextRoot.isAnalyzed(siblingPath), isTrue);
+  }
+
+  test_isAnalyzed_explicitlyExcluded_byFile_analysisOptions() {
+    var excludePath = convertPath('/test/root/analysis_options.yaml');
+    contextRoot.excluded.add(newFile2(excludePath, ''));
+    expect(contextRoot.isAnalyzed(excludePath), isFalse);
+  }
+
+  test_isAnalyzed_explicitlyExcluded_byFile_pubspec() {
+    var excludePath = convertPath('/test/root/pubspec.yaml');
+    contextRoot.excluded.add(newFile2(excludePath, ''));
+    expect(contextRoot.isAnalyzed(excludePath), isFalse);
+  }
+
   test_isAnalyzed_explicitlyExcluded_byFolder() {
     String excludePath = convertPath('/test/root/exclude');
     String filePath = convertPath('/test/root/exclude/root.dart');

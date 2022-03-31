@@ -49,7 +49,7 @@ namespace dart {
 // The Linux/Android ABI and the iOS ABI differ in their choice of frame
 // pointer, their treatment of R9, and the interprocedural stack alignment.
 
-// EABI (Linux, Android)
+// EABI (Linux, Android, Windows)
 // See "Procedure Call Standard for the ARM Architecture".
 // R0-R1:  Argument / result / volatile
 // R2-R3:  Argument / volatile
@@ -61,9 +61,10 @@ namespace dart {
 // R15:    Program counter
 // Stack alignment: 4 bytes always, 8 bytes at public interfaces
 
-// Linux (Debian armhf) and Android also differ in whether floating point
-// arguments are passed in floating point registers. Linux uses hardfp and
-// Android uses softfp. See TargetCPUFeatures::hardfp_supported().
+// Linux (Debian armhf), Windows and Android also differ in whether floating
+// point arguments are passed in floating point registers. Linux and Windows
+// use hardfp and Android uses softfp. See
+// TargetCPUFeatures::hardfp_supported().
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
@@ -92,7 +93,7 @@ enum Register {
   R8 = 8,
   R9 = 9,
   R10 = 10,  // THR
-  R11 = 11,  // Linux FP
+  R11 = 11,  // Linux/Android/Windows FP
   R12 = 12,  // IP aka TMP
   R13 = 13,  // SP
   R14 = 14,  // LR

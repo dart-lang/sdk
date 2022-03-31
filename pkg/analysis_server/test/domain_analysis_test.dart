@@ -1223,6 +1223,30 @@ analyzer:
     ]);
   }
 
+  Future<void> test_setRoots_notDartFile_analysisOptions_excluded() async {
+    deleteTestPackageAnalysisOptionsFile();
+    var a_path = '$testPackageLibPath/a.dart';
+    var options_path = '$testPackageRootPath/analysis_options.yaml';
+
+    newFile2(a_path, 'error');
+
+    // 'analysis_options.yaml' that has an error and excludes itself.
+    newFile2(options_path, '''
+analyzer:
+  exclude:
+    - analysis_options.yaml
+  error:
+''');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    _assertAnalyzedFiles(
+      hasErrors: [a_path],
+      notAnalyzed: [options_path],
+    );
+  }
+
   Future<void> test_setRoots_notDartFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
@@ -1251,6 +1275,35 @@ analyzer:
     await setRoots(included: [workspaceRootPath], excluded: []);
 
     assertHasErrors(path);
+  }
+
+  Future<void> test_setRoots_notDartFile_pubspec_excluded() async {
+    deleteTestPackageAnalysisOptionsFile();
+    var a_path = '$testPackageLibPath/a.dart';
+    var pubspec_path = '$testPackageRootPath/pubspec.yaml';
+    var options_path = '$testPackageRootPath/analysis_options.yaml';
+
+    newFile2(a_path, 'error');
+
+    writeTestPackagePubspecYamlFile('''
+name:
+  - error
+''');
+
+    // 'analysis_options.yaml' that excludes pubspec.yaml.
+    newFile2(options_path, '''
+analyzer:
+  exclude:
+    - pubspec.yaml
+''');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    _assertAnalyzedFiles(
+      hasErrors: [a_path],
+      notAnalyzed: [pubspec_path],
+    );
   }
 
   Future<void> test_setRoots_packageConfigJsonFile() async {
