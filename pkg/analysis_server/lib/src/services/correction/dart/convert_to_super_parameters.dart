@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -136,15 +137,49 @@ class ConvertToSuperParameters extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       // Convert the parameters.
       for (var parameterData in allParameters) {
+        var keyword = parameterData.finalKeyword;
+
+        void insertSuper() {
+          if (keyword == null) {
+            builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
+          } else {
+            var tokenAfterKeyword = keyword.next!;
+            if (tokenAfterKeyword.offset == parameterData.nameOffset) {
+              builder.addSimpleReplacement(
+                  range.startStart(keyword, tokenAfterKeyword), 'super.');
+            } else {
+              builder.addDeletion(range.startStart(keyword, tokenAfterKeyword));
+              builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
+            }
+          }
+        }
+
         var typeToDelete = parameterData.typeToDelete;
         if (typeToDelete == null) {
-          builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
+          insertSuper();
         } else {
           var primaryRange = typeToDelete.primaryRange;
           if (primaryRange == null) {
+            // This only happens when the type is an inline function type with
+            // no return type, such as `f(int i)`. Inline function types can't
+            // have a `final` keyword unless there's an error in the code.
             builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
           } else {
-            builder.addSimpleReplacement(primaryRange, 'super.');
+            if (keyword == null) {
+              builder.addSimpleReplacement(primaryRange, 'super.');
+            } else {
+              var tokenAfterKeyword = keyword.next!;
+              if (tokenAfterKeyword.offset == primaryRange.offset) {
+                builder.addSimpleReplacement(
+                    range.startOffsetEndOffset(
+                        keyword.offset, primaryRange.end),
+                    'super.');
+              } else {
+                builder
+                    .addDeletion(range.startStart(keyword, tokenAfterKeyword));
+                builder.addSimpleReplacement(primaryRange, 'super.');
+              }
+            }
           }
           var parameterRange = typeToDelete.parameterRange;
           if (parameterRange != null) {
@@ -200,20 +235,24 @@ class ConvertToSuperParameters extends CorrectionProducer {
     if (!typeSystem.isSubtypeOf(thisType, superType)) {
       return null;
     }
-    var identifier = parameter.parameter.identifier;
+
+    var parameterNode = parameter.parameter;
+    var identifier = parameterNode.identifier;
     if (identifier == null) {
       // This condition should never occur, but the test is here to promote the
       // type.
       return null;
     }
+
     // Return the data.
     return _ParameterData(
       argumentIndex: argumentIndex,
-      defaultValueRange: _defaultValueRange(
-          parameter.parameter, superParameter, parameter.element),
+      defaultValueRange:
+          _defaultValueRange(parameterNode, superParameter, parameter.element),
+      finalKeyword: _finalKeyword(parameterNode),
       nameOffset: identifier.offset,
       parameterIndex: parameter.index,
-      typeToDelete: superType == thisType ? _type(parameter.parameter) : null,
+      typeToDelete: superType == thisType ? _type(parameterNode) : null,
     );
   }
 
@@ -230,6 +269,21 @@ class ConvertToSuperParameters extends CorrectionProducer {
         if (superDefault != null && superDefault == thisDefault) {
           return range.endEnd(parameter.identifier!, defaultValue);
         }
+      }
+    }
+    return null;
+  }
+
+  /// Return data about the type annotation on the [parameter]. This is the
+  /// information about the ranges of text that need to be removed in order to
+  /// remove the type annotation.
+  Token? _finalKeyword(FormalParameter parameter) {
+    if (parameter is DefaultFormalParameter) {
+      return _finalKeyword(parameter.parameter);
+    } else if (parameter is SimpleFormalParameter) {
+      var keyword = parameter.keyword;
+      if (keyword?.type == Keyword.FINAL) {
+        return keyword;
       }
     }
     return null;
@@ -376,6 +430,10 @@ class _Parameter {
 
 /// Information used to convert a single parameter.
 class _ParameterData {
+  /// The `final` keyword on the parameter, or `null` if there is no `final`
+  /// keyword.
+  final Token? finalKeyword;
+
   /// The type annotation that should be deleted from the parameter list, or
   /// `null` if there is no type annotation to delete or if the type should not
   /// be deleted.
@@ -397,7 +455,8 @@ class _ParameterData {
 
   /// Initialize a newly create data object.
   _ParameterData(
-      {required this.typeToDelete,
+      {required this.finalKeyword,
+      required this.typeToDelete,
       required this.nameOffset,
       required this.defaultValueRange,
       required this.parameterIndex,
