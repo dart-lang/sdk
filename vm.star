@@ -544,4 +544,5 @@ _extra_builder(
     "iso-stress-linux",
     channels = [],
     notifies = "dart-vm-team",
+    properties = slow_shards,
 )
