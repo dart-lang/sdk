@@ -78,10 +78,6 @@
   Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
   which allows TLS renegotiation for client secure sockets.
 
-#### `dart:isolate`
-
-- Add `Isolate.run` to run a function in a new isolate.
-
 ### Tools
 
 #### Dart command line
