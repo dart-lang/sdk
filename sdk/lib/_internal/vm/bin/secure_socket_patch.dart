@@ -209,12 +209,21 @@ class SecurityContext {
 
 class _SecurityContext extends NativeFieldWrapperClass1
     implements SecurityContext {
+  bool _allowLegacyUnsafeRenegotiation = false;
+
   _SecurityContext(bool withTrustedRoots) {
     _createNativeContext();
     if (withTrustedRoots) {
       _trustBuiltinRoots();
     }
   }
+
+  set allowLegacyUnsafeRenegotiation(bool allow) {
+    _allowLegacyUnsafeRenegotiation = allow;
+    _setAllowTlsRenegotiation(allow);
+  }
+
+  bool get allowLegacyUnsafeRenegotiation => _allowLegacyUnsafeRenegotiation;
 
   @pragma("vm:external-name", "SecurityContext_Allocate")
   external void _createNativeContext();
@@ -266,6 +275,8 @@ class _SecurityContext extends NativeFieldWrapperClass1
   external void _setAlpnProtocols(Uint8List protocols, bool isServer);
   @pragma("vm:external-name", "SecurityContext_TrustBuiltinRoots")
   external void _trustBuiltinRoots();
+  @pragma("vm:external-name", "SecurityContext_SetAllowTlsRenegotiation")
+  external void _setAllowTlsRenegotiation(bool allow);
 }
 
 /**

@@ -31,7 +31,8 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
       : ReferenceCounted(),
         context_(context),
         alpn_protocol_string_(nullptr),
-        trust_builtin_(false) {}
+        trust_builtin_(false),
+        allow_tls_renegotiation_(false) {}
 
   ~SSLCertContext() {
     SSL_CTX_free(context_);
@@ -82,6 +83,11 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
 
   bool trust_builtin() const { return trust_builtin_; }
 
+  void set_allow_tls_renegotiation(bool allow) {
+    allow_tls_renegotiation_ = allow;
+  }
+  bool allow_tls_renegotiation() const { return allow_tls_renegotiation_; }
+
   void set_trust_builtin(bool trust_builtin) { trust_builtin_ = trust_builtin; }
 
   void RegisterCallbacks(SSL* ssl);
@@ -112,7 +118,7 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   uint8_t* alpn_protocol_string_;
 
   bool trust_builtin_;
-
+  bool allow_tls_renegotiation_;
   static bool long_ssl_cert_evaluation_;
   static bool bypass_trusting_system_roots_;
 
