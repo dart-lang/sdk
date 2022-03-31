@@ -171,14 +171,15 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setOutput(Iterator<String> arguments) {
     outputSpecified = true;
+    String option = arguments.current;
     String path;
-    if (arguments.current == '-o') {
+    if (option == '-o' || option == '--out' || option == '--output') {
       if (!arguments.moveNext()) {
-        helpAndFail('Error: Missing file after -o option.');
+        helpAndFail("Missing file after '$option' option.");
       }
       path = arguments.current;
     } else {
-      path = extractParameter(arguments.current);
+      path = extractParameter(option);
     }
     out = Uri.base.resolve(fe.nativeToUriPath(path));
   }
@@ -186,7 +187,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setOptimizationLevel(String argument) {
     int value = int.tryParse(extractParameter(argument));
     if (value == null || value < 0 || value > 4) {
-      helpAndFail("Error: Unsupported optimization level '$argument', "
+      helpAndFail("Unsupported optimization level '$argument', "
           "supported levels are: 0, 1, 2, 3, 4");
       return;
     }
@@ -474,14 +475,14 @@ Future<api.CompilationResult> compile(List<String> argv,
       passThrough(argument);
       return;
     }
-    helpAndFail("Error: Unsupported dump-info format '$argument', "
+    helpAndFail("Unsupported dump-info format '$argument', "
         "supported formats are: json or binary");
   }
 
   String nullSafetyMode = null;
   void setNullSafetyMode(String argument) {
     if (nullSafetyMode != null && nullSafetyMode != argument) {
-      helpAndFail("Error: cannot specify both $nullSafetyMode and $argument.");
+      helpAndFail("Cannot specify both $nullSafetyMode and $argument.");
     }
     nullSafetyMode = argument;
     passThrough(argument);
@@ -573,7 +574,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler('${Flags.codegenShards}=.+', setCodegenShards),
     OptionHandler(Flags.cfeOnly, setCfeOnly),
     OptionHandler(Flags.debugGlobalInference, passThrough),
-    OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
+    OptionHandler('--output(?:=.+)?|--out(?:=.+)?|-o.*', setOutput,
+        multipleArguments: true),
     OptionHandler('-O.*', setOptimizationLevel),
     OptionHandler(Flags.allowMockCompilation, ignoreOption),
     OptionHandler(Flags.fastStartup, ignoreOption),
@@ -1171,7 +1173,7 @@ Usage: dart compile js [arguments] <dart entry point>
   -h, /h, /?, --help
     Print this usage information (add -v for information about all options).
 
-  -o <file name>, --out=<file name>
+  -o <file name>, --output=<file name>
     Write the output to <file name>.
 
   -m, --minify
