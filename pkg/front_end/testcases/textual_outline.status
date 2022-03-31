@@ -217,6 +217,7 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
+super_parameters/issue48714: FormatterCrash
 super_parameters/opt_out: FormatterCrash
 super_parameters/var_before_super: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash

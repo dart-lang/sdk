@@ -591,16 +591,9 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(importKeyword.charOffset);
     if (prefix is ParserRecovery) return;
 
-    if (!libraryBuilder.enableMacrosInLibrary) {
-      if (augmentToken != null) {
-        // TODO(johnniwinther): We should emit a different message when the
-        // experiment is not released yet. The current message indicates that
-        // changing the sdk version can solve the problem.
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            augmentToken.charOffset,
-            augmentToken.length);
+    if (augmentToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.macros, augmentToken.charOffset,
+          augmentToken.length)) {
         augmentToken = null;
       }
     }
@@ -875,16 +868,9 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
-    if (!libraryBuilder.enableMacrosInLibrary) {
-      if (macroToken != null) {
-        // TODO(johnniwinther): We should emit a different message when the
-        // experiment is not released yet. The current message indicates that
-        // changing the sdk version can solve the problem.
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            macroToken.charOffset,
-            macroToken.length);
+    if (macroToken != null) {
+      if (reportIfNotEnabled(
+          libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
         macroToken = null;
       }
     }
@@ -975,13 +961,9 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
-    if (!libraryBuilder.enableMacrosInLibrary) {
-      if (macroToken != null) {
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            macroToken.next!.charOffset,
-            macroToken.next!.length);
+    if (macroToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.macros,
+          macroToken.next!.charOffset, macroToken.next!.length)) {
         macroToken = null;
       }
     }
@@ -996,14 +978,10 @@ class OutlineBuilder extends StackListenerImpl {
             .popNonNullable(stack, interfacesCount, dummyTypeBuilder) ??
         NullValue.TypeBuilderList);
 
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary &&
-        implementsKeyword != null &&
+    if (implementsKeyword != null &&
         declarationContext == DeclarationContext.Enum) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          implementsKeyword.charOffset,
-          -1);
+      reportIfNotEnabled(libraryFeatures.enhancedEnums,
+          implementsKeyword.charOffset, implementsKeyword.length);
     }
   }
 
@@ -1403,11 +1381,8 @@ class OutlineBuilder extends StackListenerImpl {
             hiddenMembersOrTypes: hiddenMembersOrTypes ?? const <String>[],
             hiddenOperators: hiddenOperators ?? const <Operator>[]);
 
-    if (showKeyword != null && !libraryBuilder.enableExtensionTypesInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('extension-types',
-              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
-          showKeyword.charOffset,
+    if (showKeyword != null) {
+      reportIfNotEnabled(libraryFeatures.extensionTypes, showKeyword.charOffset,
           showKeyword.length);
     }
     Object? onType = pop();
@@ -1431,13 +1406,9 @@ class OutlineBuilder extends StackListenerImpl {
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
     bool isExtensionTypeDeclaration = typeKeyword != null;
-    if (!libraryBuilder.enableExtensionTypesInLibrary &&
-        isExtensionTypeDeclaration) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('extension-types',
-              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
-          extensionKeyword.next!.charOffset,
-          extensionKeyword.next!.length);
+    if (isExtensionTypeDeclaration) {
+      reportIfNotEnabled(libraryFeatures.extensionTypes,
+          extensionKeyword.next!.charOffset, extensionKeyword.next!.length);
     }
     libraryBuilder.addExtensionDeclaration(
         metadata,
@@ -1939,7 +1910,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (constructorName != null) {
         if (isConst &&
             bodyKind != MethodBody.Abstract &&
-            !libraryBuilder.enableConstFunctionsInLibrary) {
+            !libraryFeatures.constFunctions.isEnabled) {
           addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
           modifiers &= ~constMask;
         }
@@ -2272,13 +2243,9 @@ class OutlineBuilder extends StackListenerImpl {
       MemberKind memberKind) {
     debugEvent("FormalParameter");
 
-    if (superKeyword != null &&
-        !libraryBuilder.enableSuperParametersInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('super-parameters',
-              libraryBuilder.enableSuperParametersVersionInLibrary.toText()),
-          superKeyword.charOffset,
-          superKeyword.length);
+    if (superKeyword != null) {
+      reportIfNotEnabled(libraryFeatures.superParameters,
+          superKeyword.charOffset, superKeyword.length);
     }
 
     int charOffset = popCharOffset();
@@ -2692,7 +2659,7 @@ class OutlineBuilder extends StackListenerImpl {
         return;
       }
       if (type is FunctionTypeBuilder &&
-          !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
+          !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
             libraryBuilder.isNonNullableByDefault) {
@@ -2717,7 +2684,7 @@ class OutlineBuilder extends StackListenerImpl {
           // of a generic function).
           aliasedType = type;
         }
-      } else if (libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
+      } else if (libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
@@ -2977,7 +2944,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
-        if (!libraryBuilder.enableVarianceInLibrary) {
+        if (!libraryFeatures.variance.isEnabled) {
           reportVarianceModifierNotEnabled(variance);
         }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);
@@ -2989,13 +2956,9 @@ class OutlineBuilder extends StackListenerImpl {
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("endTypeVariables");
 
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary &&
-        declarationContext == DeclarationContext.Enum) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
+    if (declarationContext == DeclarationContext.Enum) {
+      reportIfNotEnabled(
+          libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
     }
 
     // Peek to leave type parameters on top of stack.
@@ -3103,7 +3066,7 @@ class OutlineBuilder extends StackListenerImpl {
       // omitted only within an enum element declaration.
       if (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
           TypeParameterScopeKind.enumDeclaration) {
-        if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+        if (libraryFeatures.enhancedEnums.isEnabled) {
           push(libraryBuilder.addConstructorReference(
               libraryBuilder.currentTypeParameterScopeBuilder.name,
               typeArguments,
@@ -3113,13 +3076,8 @@ class OutlineBuilder extends StackListenerImpl {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.
           if (typeArguments != null || suffix != null) {
-            addProblem(
-                templateExperimentNotEnabled.withArguments(
-                    'enhanced-enums',
-                    libraryBuilder.enableEnhancedEnumsVersionInLibrary
-                        .toText()),
-                charOffset,
-                -1);
+            addProblem(libraryFeatures.enhancedEnums.notEnabledMessage,
+                charOffset, noLength);
           }
           push(NullValue.ConstructorReference);
         }
@@ -3228,13 +3186,8 @@ class OutlineBuilder extends StackListenerImpl {
   void endEnumFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("EnumFactoryMethod");
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
 
     _endFactoryMethod(beginToken, factoryKeyword, endToken);
   }
@@ -3242,13 +3195,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
 
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.enumMethod);
@@ -3266,13 +3214,9 @@ class OutlineBuilder extends StackListenerImpl {
       int count,
       Token beginToken,
       Token endToken) {
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
+
     endClassFields(
         abstractToken,
         augmentToken,
@@ -3289,13 +3233,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
 
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.enumConstructor);
@@ -3310,7 +3249,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryBuilder.enableConstFunctionsInLibrary) {
+    if (!libraryFeatures.constFunctions.isEnabled) {
       handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
     }
   }
@@ -3438,13 +3377,8 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     ]));
 
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          withKeyword.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(libraryFeatures.enhancedEnums, withKeyword.charOffset,
+        withKeyword.length);
 
     Object? mixins = pop();
     if (mixins is ParserRecovery) {
@@ -3512,15 +3446,8 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void handleNewAsIdentifier(Token token) {
-    if (!libraryBuilder.enableConstructorTearOffsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'constructor-tearoffs',
-              libraryBuilder.enableConstructorTearOffsVersionInLibrary
-                  .toText()),
-          token.charOffset,
-          token.length);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.constructorTearoffs, token.charOffset, token.length);
   }
 }
 

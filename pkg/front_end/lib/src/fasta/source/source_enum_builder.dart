@@ -284,7 +284,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         staticFieldNameScheme,
         fieldReference: valuesFieldReference,
         fieldGetterReference: valuesGetterReference,
-        fieldSetterReference: valuesSetterReference);
+        fieldSetterReference: valuesSetterReference,
+        isSynthesized: true);
     members["values"] = valuesBuilder;
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
@@ -676,7 +677,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         typeArguments.add(typeBuilder.build(libraryBuilder));
       }
     }
-    if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+    if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // We need to create a BodyBuilder to solve the following: 1) if
       // the arguments token is provided, we'll use the BodyBuilder to
       // parse them and perform inference, 2) if the type arguments

@@ -973,6 +973,80 @@ class _MyWidgetState extends State<MyWidget> {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  Future<void> test_isIncomplete_falseIfAllIncluded() async {
+    final content = '''
+import 'a.dart';
+void f() {
+  A a = A();
+  a.^
+}
+    ''';
+
+    // Create a class with fields aaa1 to aaa500 in the other file.
+    newFile2(
+      join(projectFolderPath, 'lib', 'a.dart'),
+      [
+        'class A {',
+        for (var i = 1; i <= 500; i++) 'String get aaa$i => "";',
+        '}',
+      ].join('\n'),
+    );
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // Expect everything (hashCode etc. will take it over 500).
+    expect(res.items, hasLength(greaterThanOrEqualTo(500)));
+    expect(res.isIncomplete, isFalse);
+  }
+
+  Future<void> test_isIncomplete_trueIfNotAllIncluded() async {
+    final content = '''
+import 'a.dart';
+void f() {
+  A a = A();
+  a.^
+}
+    ''';
+
+    // Create a class with fields aaa1 to aaa500 in the other file.
+    newFile2(
+      join(projectFolderPath, 'lib', 'a.dart'),
+      [
+        'class A {',
+        for (var i = 1; i <= 500; i++) '  String get aaa$i => "";',
+        '  String get aaa => "";',
+        '}',
+      ].join('\n'),
+    );
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withApplyEditSupport(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      {'maxCompletionItems': 200},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // Should be capped at 200 and marked as incomplete.
+    expect(res.items, hasLength(200));
+    expect(res.isIncomplete, isTrue);
+
+    // Also ensure 'aaa' is included, since relevance sorting should have
+    // put it at the top.
+    expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
+  }
+
   Future<void> test_namedArg_insertReplaceRanges() async {
     /// Helper to check multiple completions in the same template file.
     Future<void> check(

@@ -33,6 +33,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/kernel/benchmarker.dart' show Benchmarker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -67,13 +68,7 @@ import '../builder/void_type_declaration_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../fasta_codes.dart' as fasta;
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        Template,
-        noLength,
-        templateExperimentNotEnabled;
+import '../fasta_codes.dart' show LocatedMessage, Message, Template, noLength;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
 import '../messages.dart' as messages show getLocationFromUri;
@@ -601,24 +596,7 @@ class BodyBuilder extends StackListenerImpl
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
 
   @override
-  bool get enableExtensionTypesInLibrary {
-    return libraryBuilder.enableExtensionTypesInLibrary;
-  }
-
-  @override
-  bool get enableConstFunctionsInLibrary {
-    return libraryBuilder.enableConstFunctionsInLibrary;
-  }
-
-  @override
-  bool get enableConstructorTearOffsInLibrary {
-    return libraryBuilder.enableConstructorTearOffsInLibrary;
-  }
-
-  @override
-  bool get enableNamedArgumentsAnywhereInLibrary {
-    return libraryBuilder.enableNamedArgumentsAnywhereInLibrary;
-  }
+  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   void _enterLocalState({bool inLateLocalInitializer: false}) {
     _localInitializerState =
@@ -1893,7 +1871,7 @@ class BodyBuilder extends StackListenerImpl
               buildProblem(fasta.messageEnumConstructorSuperInitializer,
                   superInitializer.fileOffset, noLength))
             ..parent = constructor;
-        } else if (libraryBuilder.enableSuperParametersInLibrary) {
+        } else if (libraryFeatures.superParameters.isEnabled) {
           ArgumentsImpl arguments = superInitializer.arguments as ArgumentsImpl;
 
           if (positionalSuperParametersAsArguments != null) {
@@ -1926,7 +1904,7 @@ class BodyBuilder extends StackListenerImpl
         RedirectingInitializer redirectingInitializer =
             initializers.last as RedirectingInitializer;
         if (sourceClassBuilder is SourceEnumBuilder &&
-            libraryBuilder.enableEnhancedEnumsInLibrary) {
+            libraryFeatures.enhancedEnums.isEnabled) {
           ArgumentsImpl arguments =
               redirectingInitializer.arguments as ArgumentsImpl;
           List<Expression> enumSyntheticArguments = [
@@ -1971,7 +1949,7 @@ class BodyBuilder extends StackListenerImpl
       ArgumentsImpl arguments;
       List<Expression>? positionalArguments;
       List<NamedExpression>? namedArguments;
-      if (libraryBuilder.enableSuperParametersInLibrary) {
+      if (libraryFeatures.superParameters.isEnabled) {
         positionalArguments = positionalSuperParametersAsArguments;
         namedArguments = namedSuperParametersAsArguments;
       }
@@ -2020,7 +1998,7 @@ class BodyBuilder extends StackListenerImpl
         initializer = buildSuperInitializer(
             true, superTarget, arguments, builder.charOffset);
       }
-      if (libraryBuilder.enableSuperParametersInLibrary) {
+      if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult =
             typeInferrer.inferInitializer(this, initializer);
         builder.addInitializer(initializer, this,
@@ -2066,7 +2044,7 @@ class BodyBuilder extends StackListenerImpl
       return;
     }
     List<Object?>? argumentsOriginalOrder;
-    if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+    if (libraryFeatures.namedArgumentsAnywhere.isEnabled) {
       argumentsOriginalOrder = new List<Object?>.of(arguments);
     }
     int firstNamedArgumentIndex = arguments.length;
@@ -2084,7 +2062,7 @@ class BodyBuilder extends StackListenerImpl
         argumentsOriginalOrder?[i] = argument;
         if (i > firstNamedArgumentIndex) {
           hasNamedBeforePositional = true;
-          if (!libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+          if (!libraryFeatures.namedArgumentsAnywhere.isEnabled) {
             arguments[i] = new NamedExpression(
                 "#$i",
                 buildProblem(fasta.messageExpectedNamedArgument,
@@ -2100,7 +2078,7 @@ class BodyBuilder extends StackListenerImpl
     if (firstNamedArgumentIndex < arguments.length) {
       List<Expression> positional;
       List<NamedExpression> named;
-      if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+      if (libraryFeatures.namedArgumentsAnywhere.isEnabled) {
         positional = new List<Expression>.filled(
             positionalCount, dummyExpression,
             growable: true);
@@ -2905,7 +2883,7 @@ class BodyBuilder extends StackListenerImpl
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
           !member.isConstructor &&
-          !enableConstFunctionsInLibrary) {
+          !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
             this, token, fasta.messageNotAConstantExpression);
       }
@@ -4120,7 +4098,7 @@ class BodyBuilder extends StackListenerImpl
     if (name is Generator) {
       bool allowPotentiallyConstantType;
       if (libraryBuilder.isNonNullableByDefault) {
-        if (enableConstructorTearOffsInLibrary) {
+        if (libraryFeatures.constructorTearoffs.isEnabled) {
           allowPotentiallyConstantType = true;
         } else {
           allowPotentiallyConstantType = inIsOrAsOperatorType;
@@ -4188,7 +4166,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeVariables != null) {
       for (TypeVariableBuilder builder in typeVariables) {
         if (builder.parameter.annotations.isNotEmpty) {
-          if (!libraryBuilder.enableGenericMetadataInLibrary) {
+          if (!libraryFeatures.genericMetadata.isEnabled) {
             addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
                 builder.charOffset, builder.name.length);
           }
@@ -4385,7 +4363,9 @@ class BodyBuilder extends StackListenerImpl
       buildDartType(type, allowPotentiallyConstantType: false);
     }
     Token? varOrFinalOrConst = pop(NullValue.Token) as Token?;
-    if (superKeyword != null && varOrFinalOrConst != null) {
+    if (superKeyword != null &&
+        varOrFinalOrConst != null &&
+        optional('var', varOrFinalOrConst)) {
       handleRecoverableError(
           fasta.templateExtraneousModifier.withArguments(varOrFinalOrConst),
           varOrFinalOrConst,
@@ -5239,7 +5219,7 @@ class BodyBuilder extends StackListenerImpl
     String name = pop() as String;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
     if (inMetadata && typeArguments != null) {
-      if (!libraryBuilder.enableGenericMetadataInLibrary) {
+      if (!libraryFeatures.genericMetadata.isEnabled) {
         handleRecoverableError(fasta.messageMetadataTypeArguments,
             nameLastToken.next!, nameLastToken.next!);
       }
@@ -5291,7 +5271,8 @@ class BodyBuilder extends StackListenerImpl
       {required int instantiationOffset,
       required int invocationOffset,
       required bool inImplicitCreationContext}) {
-    if (enableConstructorTearOffsInLibrary && inImplicitCreationContext) {
+    if (libraryFeatures.constructorTearoffs.isEnabled &&
+        inImplicitCreationContext) {
       Expression receiver = receiverFunction();
       if (typeArguments != null) {
         if (receiver is StaticTearOff &&
@@ -5565,7 +5546,7 @@ class BodyBuilder extends StackListenerImpl
         target = b.member;
       }
       if (type.isEnum &&
-          !(libraryBuilder.enableEnhancedEnumsInLibrary &&
+          !(libraryFeatures.enhancedEnums.isEnabled &&
               target is Procedure &&
               target.kind == ProcedureKind.Factory)) {
         return buildProblem(fasta.messageEnumInstantiation,
@@ -5610,7 +5591,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryBuilder.enableConstFunctionsInLibrary) {
+    if (!libraryFeatures.constFunctions.isEnabled) {
       handleRecoverableError(
           fasta.messageConstFactory, constKeyword, constKeyword);
     }
@@ -6837,7 +6818,7 @@ class BodyBuilder extends StackListenerImpl
     TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound;
     if (variance != null) {
-      if (!libraryBuilder.enableVarianceInLibrary) {
+      if (!libraryFeatures.variance.isEnabled) {
         reportVarianceModifierNotEnabled(variance);
       }
       variable.variance = Variance.fromString(variance.lexeme);
@@ -7198,7 +7179,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     List<TypeBuilder>? typeArguments =
         pop() as List<TypeBuilder>?; // typeArguments
-    if (libraryBuilder.enableConstructorTearOffsInLibrary) {
+    if (libraryFeatures.constructorTearoffs.isEnabled) {
       Object? operand = pop();
       if (operand is Generator) {
         push(operand.applyTypeArguments(
@@ -7217,13 +7198,8 @@ class BodyBuilder extends StackListenerImpl
           ..fileOffset = openAngleBracket.charOffset);
       }
     } else {
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'constructor-tearoffs',
-              libraryBuilder.enableConstructorTearOffsVersionInLibrary
-                  .toText()),
-          openAngleBracket.charOffset,
-          noLength);
+      addProblem(libraryFeatures.constructorTearoffs.notEnabledMessage,
+          openAngleBracket.charOffset, noLength);
     }
   }
 
@@ -7308,7 +7284,7 @@ class BodyBuilder extends StackListenerImpl
       {bool isConstantExpression: false, bool isNullAware: false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
-        !enableConstFunctionsInLibrary) {
+        !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
           fasta.templateNotConstantExpression
               .withArguments('Method invocation'),
@@ -7338,7 +7314,7 @@ class BodyBuilder extends StackListenerImpl
       bool isImplicitCall: false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
-        !enableConstFunctionsInLibrary) {
+        !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
           fasta.templateNotConstantExpression
               .withArguments('Method invocation'),
@@ -7480,15 +7456,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleNewAsIdentifier(Token token) {
-    if (!libraryBuilder.enableConstructorTearOffsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'constructor-tearoffs',
-              libraryBuilder.enableConstructorTearOffsVersionInLibrary
-                  .toText()),
-          token.charOffset,
-          token.length);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.constructorTearoffs, token.charOffset, token.length);
   }
 }
 

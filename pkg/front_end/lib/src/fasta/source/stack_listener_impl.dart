@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../fasta_codes.dart';
 
 import '../problems.dart' as problems
@@ -21,6 +22,8 @@ import 'source_library_builder.dart';
 
 abstract class StackListenerImpl extends StackListener {
   SourceLibraryBuilder get libraryBuilder;
+
+  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
@@ -75,11 +78,11 @@ abstract class StackListenerImpl extends StackListener {
     assert(!libraryBuilder.isNonNullableByDefault);
     // ignore: unnecessary_null_comparison
     assert(token != null);
-    if (libraryBuilder.enableNonNullableInLibrary) {
+    if (libraryFeatures.nonNullable.isSupported) {
       if (libraryBuilder.languageVersion.isExplicit) {
         addProblem(
             templateNonNullableOptOutExplicit.withArguments(
-                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+                libraryFeatures.nonNullable.enabledVersion.toText()),
             token.charOffset,
             token.charCount,
             context: <LocatedMessage>[
@@ -91,16 +94,16 @@ abstract class StackListenerImpl extends StackListener {
       } else {
         addProblem(
             templateNonNullableOptOutImplicit.withArguments(
-                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+                libraryFeatures.nonNullable.enabledVersion.toText()),
             token.charOffset,
             token.charCount);
       }
     } else {
       if (libraryBuilder.languageVersion.version <
-          libraryBuilder.enableNonNullableVersionInLibrary) {
+          libraryFeatures.nonNullable.enabledVersion) {
         addProblem(
             templateExperimentDisabledInvalidLanguageVersion.withArguments(
-                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+                libraryFeatures.nonNullable.enabledVersion.toText()),
             token.offset,
             noLength);
       } else {
@@ -108,6 +111,18 @@ abstract class StackListenerImpl extends StackListener {
             token.offset, noLength);
       }
     }
+  }
+
+  /// Reports an error if [feature] is not enabled, using [charOffset] and
+  /// [length] for the location of the message.
+  ///
+  /// Return `true` if the [feature] is not enabled.
+  bool reportIfNotEnabled(LibraryFeature feature, int charOffset, int length) {
+    if (!feature.isEnabled) {
+      addProblem(feature.notEnabledMessage, charOffset, length);
+      return true;
+    }
+    return false;
   }
 
   void reportErrorIfNullableType(Token? questionMark) {

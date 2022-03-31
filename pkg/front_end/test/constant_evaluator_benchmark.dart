@@ -87,12 +87,11 @@ void benchmark(Component component, List<Library> libraries) {
             new SilentErrorReporter(),
             evaluationMode,
             evaluateAnnotations: true,
-            enableTripleShift: target
-                .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-            enableConstFunctions: target
-                .isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-            enableConstructorTearOff: target.isExperimentEnabledGlobally(
-                ExperimentalFlag.constructorTearoffs),
+            enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
+            enableConstFunctions:
+                target.globalFeatures.constFunctions.isEnabled,
+            enableConstructorTearOff:
+                target.globalFeatures.constructorTearoffs.isEnabled,
             errorOnUnevaluatedConstant:
                 incrementalCompiler.context.options.errorOnUnevaluatedConstant);
         print("Transformed constants with $environmentDefinesDescription"

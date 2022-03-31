@@ -7,7 +7,6 @@
 /// A library to invoke the CFE to compute kernel summary files.
 ///
 /// Used by `utils/bazel/kernel_worker.dart`.
-
 import 'dart:async';
 import 'dart:io';
 
@@ -22,7 +21,6 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart' show Component, Library, Reference;
@@ -299,8 +297,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // Either set up or reset the state for macros based on experiment status.
   // TODO: Make this a part of `initializeCompiler`, if/when we want to make it
   // more widely supported.
-  if (state.processedOpts
-      .isExperimentEnabledGlobally(ExperimentalFlag.macros)) {
+  if (state.processedOpts.globalFeatures.macros.isEnabled) {
     enableMacros = true;
     forceEnableMacros = true;
 
@@ -324,8 +321,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             () => isolatedExecutor.start(serializationMode);
         break;
       case 'aot':
-        state.options.macroExecutorProvider =
-            () => processExecutor.start(serializationMode);
+        state.options.macroExecutorProvider = () => processExecutor.start(
+            serializationMode, processExecutor.CommunicationChannel.socket);
         break;
       default:
         throw ArgumentError('Unrecognized precompiled macro format $format');

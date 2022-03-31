@@ -205,12 +205,13 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     // emit the data as a table
     buf.writeln('<table>');
     buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
+        '<tr><th>Time</th><th>Computed Results</th><th>Transmitted Results</th><th>Source</th><th>Snippet</th></tr>');
     for (var completion in completions) {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCountStr}</td>'
+          '<td class="right">${completion.computedSuggestionCountStr}</td>'
+          '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');

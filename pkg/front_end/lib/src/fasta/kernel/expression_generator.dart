@@ -1503,7 +1503,7 @@ class StaticAccessGenerator extends Generator {
       {bool isTypeArgumentsInForest = false}) {
     if (_helper.constantContext != ConstantContext.none &&
         !_helper.isIdentical(readTarget) &&
-        !_helper.enableConstFunctionsInLibrary) {
+        !_helper.libraryFeatures.constFunctions.isEnabled) {
       return _helper.buildProblem(
           templateNotConstantExpression.withArguments('Method invocation'),
           offset,
@@ -3085,7 +3085,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     _helper.libraryBuilder.nonNullableBuilder, typeArguments,
                     allowPotentiallyConstantType: true, forTypeLiteral: true),
                 allowPotentiallyConstantType:
-                    _helper.enableConstructorTearOffsInLibrary));
+                    _helper.libraryFeatures.constructorTearoffs.isEnabled));
       }
     }
     return _expression!;
@@ -3110,7 +3110,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           usedAsClassFileUri: _uri);
 
       bool isConstructorTearOff = send is PropertySelector &&
-          _helper.enableConstructorTearOffsInLibrary &&
+          _helper.libraryFeatures.constructorTearoffs.isEnabled &&
           declarationBuilder is ClassBuilder;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
           ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
@@ -3173,7 +3173,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               "Unexpected non-null typeArguments of "
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
-          if (_helper.enableConstructorTearOffsInLibrary &&
+          if (_helper.libraryFeatures.constructorTearoffs.isEnabled &&
               declarationBuilder is ClassBuilder) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
@@ -4786,7 +4786,8 @@ abstract class Selector {
   /// Report an error if the selector name "new" when the constructor-tearoff
   /// feature is enabled.
   void reportNewAsSelector() {
-    if (name.text == 'new' && _helper.enableConstructorTearOffsInLibrary) {
+    if (name.text == 'new' &&
+        _helper.libraryFeatures.constructorTearoffs.isEnabled) {
       _helper.addProblem(messageNewAsSelector, fileOffset, name.text.length);
     }
   }

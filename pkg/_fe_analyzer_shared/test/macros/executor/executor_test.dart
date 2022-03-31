@@ -11,7 +11,9 @@ import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as processExecutor;
+    as processExecutor show start;
+import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
+    hide start;
 
 import 'package:test/test.dart';
 
@@ -26,11 +28,15 @@ void main() {
   late File simpleMacroFile;
   late Directory tmpDir;
 
-  for (var executorKind in ['Isolated', 'Process']) {
+  for (var executorKind in [
+    'Isolated',
+    'ProcessSocket',
+    'ProcessStdio',
+  ]) {
     group('$executorKind executor', () {
       for (var mode in [
         SerializationMode.byteDataServer,
-        SerializationMode.jsonServer
+        SerializationMode.jsonServer,
       ]) {
         final clientMode = mode == SerializationMode.byteDataServer
             ? SerializationMode.byteDataClient
@@ -42,7 +48,12 @@ void main() {
                 File(Platform.script.resolve('simple_macro.dart').toFilePath());
             executor = executorKind == 'Isolated'
                 ? await isolatedExecutor.start(mode)
-                : await processExecutor.start(mode);
+                : executorKind == 'ProcessSocket'
+                    ? await processExecutor.start(
+                        mode, CommunicationChannel.socket)
+                    : await processExecutor.start(
+                        mode, CommunicationChannel.stdio);
+
             tmpDir = Directory.systemTemp.createTempSync('executor_test');
             macroUri = simpleMacroFile.absolute.uri;
 

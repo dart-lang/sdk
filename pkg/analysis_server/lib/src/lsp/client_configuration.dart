@@ -151,6 +151,14 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
 /// known editors allow per-file configuration and it allows us to keep the
 /// settings cached, invalidated only when WorkspaceFolders change.
 class LspResourceClientConfiguration {
+  /// The maximum number of completions to return for completion requests by
+  /// default.
+  ///
+  /// This has been set fairly high initially to avoid changing behaviour too
+  /// much. The Dart-Code extension will override this default with its own
+  /// to gather feedback and then this can be adjusted accordingly.
+  static const defaultMaxCompletions = 2000;
+
   final Map<String, Object?> _settings;
   final LspResourceClientConfiguration? _fallback;
 
@@ -186,6 +194,15 @@ class LspResourceClientConfiguration {
   /// If null, the formatters default will be used.
   int? get lineLength =>
       _settings['lineLength'] as int? ?? _fallback?.lineLength;
+
+  /// Maximum number of CompletionItems per completion request.
+  ///
+  /// If more than this are available, the list is truncated and isIncomplete
+  /// is set to true.
+  int get maxCompletionItems =>
+      _settings['maxCompletionItems'] as int? ??
+      _fallback?.maxCompletionItems ??
+      defaultMaxCompletions;
 
   /// Whether to rename files when renaming classes inside them where the file
   /// and class name match.

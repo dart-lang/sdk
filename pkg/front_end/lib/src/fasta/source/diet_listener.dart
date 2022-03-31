@@ -1132,7 +1132,7 @@ class DietListener extends StackListenerImpl {
           ? ""
           : nameOrQualified as String;
     }
-    if (libraryBuilder.enableConstructorTearOffsInLibrary) {
+    if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
     declaration = currentClass!.constructorScope.local[suffix];

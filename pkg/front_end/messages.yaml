@@ -4597,6 +4597,10 @@ StaticAndInstanceConflictCause:
   problemMessage: "This is the instance member."
   severity: CONTEXT
 
+InstanceAndSynthesizedStaticConflict:
+  problemMessage: "This instance member conflicts with the synthesized static member called '#name'."
+  analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
+
 FfiAbiSpecificIntegerInvalid:
   # Used by dart:ffi
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."

@@ -364,35 +364,8 @@ class ProcessedOptions {
   Target get target =>
       _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
-  /// Returns `true` if the [flag] is enabled globally by default.
-  bool isExperimentEnabledByDefault(flags.ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        defaultExperimentFlagsForTesting:
-            _raw.defaultExperimentFlagsForTesting);
-  }
-
-  /// Returns `true` if the [flag] is enabled globally.
-  ///
-  /// This is `true` either if the [flag] is passed through an explicit
-  /// `--enable-experiment` option or if the [flag] is expired and on by
-  /// default.
-  bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        explicitExperimentalFlags: _raw.explicitExperimentalFlags,
-        defaultExperimentFlagsForTesting:
-            _raw.defaultExperimentFlagsForTesting);
-  }
-
-  /// Returns `true` if the experiment with the given [flag] is enabled either
-  /// explicitly or implicitly for the library with the given [importUri].
-  ///
-  /// Note that the library can still opt out of the experiment by having a
-  /// lower language version than required for the experiment. See
-  /// [getExperimentEnabledVersionInLibrary].
-  bool isExperimentEnabledInLibrary(
-      flags.ExperimentalFlag flag, Uri importUri) {
-    return _raw.isExperimentEnabledInLibrary(flag, importUri);
-  }
+  /// Returns the global state of the experimental features.
+  flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
 
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt in to the experiment with the given [flag].

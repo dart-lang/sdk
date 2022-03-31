@@ -6461,7 +6461,7 @@ class InferenceVisitor
       TypeLiteral node, DartType typeContext) {
     DartType inferredType =
         inferrer.coreTypes.typeRawType(inferrer.libraryBuilder.nonNullable);
-    if (inferrer.libraryBuilder.enableConstructorTearOffsInLibrary) {
+    if (inferrer.libraryFeatures.constructorTearoffs.isEnabled) {
       inferrer.libraryBuilder.checkBoundsInType(
           node.type,
           inferrer.typeSchemaEnvironment,

@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/member_values_conflicts.dart:9:12: Error: This instance member conflicts with the synthesized static member called 'values'.
+//   void set values(List<E> val) {} // Error.
+//            ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::e1, self::E::e2];
+  static const field self::E e1 = const self::E::•(0, "e1");
+  static const field self::E e2 = const self::E::•(1, "e2");
+  const constructor •(core::int index, core::String name) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  set values(core::List<self::E> val) → void
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///member_values_conflicts.dart:5:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "e1"}, const E{_Enum.index: 1, _Enum._name: "e2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///member_values_conflicts.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///member_values_conflicts.dart:7:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "e2"})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

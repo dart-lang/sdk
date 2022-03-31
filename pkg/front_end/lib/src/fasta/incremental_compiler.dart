@@ -62,8 +62,6 @@ import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
-import '../api_prototype/experimental_flags.dart';
-
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
@@ -983,7 +981,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
-    if (c.options.isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+    if (c.options.globalFeatures.nonNullable.isEnabled) {
       switch (c.options.nnbdMode) {
         case NnbdMode.Weak:
           // Don't expect strong or invalid.
@@ -1150,8 +1148,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<LibraryBuilder> originalNotReusedLibraries;
     Set<Uri>? missingSources;
 
-    if (!context.options.isExperimentEnabledGlobally(
-        ExperimentalFlag.alternativeInvalidationStrategy)) return null;
+    if (!context
+        .options.globalFeatures.alternativeInvalidationStrategy.isEnabled) {
+      return null;
+    }
     if (_modulesToLoad != null) return null;
     if (reusedResult.directlyInvalidated.isEmpty) return null;
     if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
@@ -1199,8 +1199,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           enableTripleShift:
               /* should this be on the library? */
               /* this is effectively what the constant evaluator does */
-              context.options
-                  .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift));
+              context.options.globalFeatures.tripleShift.isEnabled);
       String? before = textualOutline(previousSource, scannerConfiguration,
           performModelling: true);
       if (before == null) {
@@ -2603,8 +2602,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
         // Compute "output nnbd mode".
         NonNullableByDefaultCompiledMode compiledMode;
-        if (context.options
-            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+        if (context.options.globalFeatures.nonNullable.isEnabled) {
           switch (context.options.nnbdMode) {
             case NnbdMode.Weak:
               compiledMode = NonNullableByDefaultCompiledMode.Weak;

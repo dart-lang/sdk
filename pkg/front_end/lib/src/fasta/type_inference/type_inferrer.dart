@@ -15,6 +15,7 @@ import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/instrumentation.dart'
     show
         Instrumentation,
@@ -193,7 +194,7 @@ class TypeInferrerImpl implements TypeInferrer {
               new TypeOperationsCfe(engine.typeSchemaEnvironment),
               assignedVariables,
               respectImplicitlyTypedVarInitializers:
-                  libraryBuilder.enableConstructorTearOffsInLibrary)
+                  libraryFeatures.constructorTearoffs.isEnabled)
           : new FlowAnalysis.legacy(
               new TypeOperationsCfe(engine.typeSchemaEnvironment),
               assignedVariables);
@@ -252,6 +253,8 @@ class TypeInferrerImpl implements TypeInferrer {
   bool get isNonNullableByDefault => libraryBuilder.isNonNullableByDefault;
 
   NnbdMode get nnbdMode => libraryBuilder.loader.nnbdMode;
+
+  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   DartType get bottomType =>
       isNonNullableByDefault ? const NeverType.nonNullable() : const NullType();
@@ -817,7 +820,7 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     ImplicitInstantiation? implicitInstantiation;
-    if (coerceExpression && libraryBuilder.enableConstructorTearOffsInLibrary) {
+    if (coerceExpression && libraryFeatures.constructorTearoffs.isEnabled) {
       implicitInstantiation =
           computeImplicitInstantiation(expressionType, contextType);
       if (implicitInstantiation != null) {
@@ -1249,7 +1252,7 @@ class TypeInferrerImpl implements TypeInferrer {
       target = isReceiverTypePotentiallyNullable
           ? const ObjectAccessTarget.nullableCallFunction()
           : const ObjectAccessTarget.callFunction();
-    } else if (libraryBuilder.enableExtensionTypesInLibrary &&
+    } else if (libraryFeatures.extensionTypes.isEnabled &&
         receiverBound is ExtensionType) {
       target = _findDirectExtensionTypeMember(receiverBound, name, fileOffset,
           isSetter: isSetter,
@@ -2291,7 +2294,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     List<VariableDeclaration>? localHoistedExpressions;
-    if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary &&
+    if (libraryFeatures.namedArgumentsAnywhere.isEnabled &&
         arguments.argumentsOriginalOrder != null &&
         hoistedExpressions == null &&
         !isTopLevel) {
@@ -2337,7 +2340,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
     List<Object?> argumentsEvaluationOrder;
-    if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary &&
+    if (libraryFeatures.namedArgumentsAnywhere.isEnabled &&
         arguments.argumentsOriginalOrder != null) {
       if (staticTarget?.isExtensionMember ?? false) {
         // Add the receiver.
@@ -2368,7 +2371,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // vector, and none of the arguments is hoisted. That way the legacy
     // behavior is preserved.
     int hoistingEndIndex;
-    if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+    if (libraryFeatures.namedArgumentsAnywhere.isEnabled) {
       hoistingEndIndex = argumentsEvaluationOrder.length - 1;
       for (int i = argumentsEvaluationOrder.length - 2;
           i >= 0 && hoistingEndIndex == i + 1;

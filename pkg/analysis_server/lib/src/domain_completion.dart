@@ -256,7 +256,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         var lengthRestricted =
             suggestionBuilders.take(params.maxResults).toList();
-        completionPerformance.suggestionCount = lengthRestricted.length;
+        completionPerformance.computedSuggestionCount =
+            suggestionBuilders.length;
+        completionPerformance.transmittedSuggestionCount =
+            lengthRestricted.length;
 
         var suggestions = lengthRestricted.map((e) => e.build()).toList();
 
@@ -477,7 +480,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             );
           });
 
-          completionPerformance.suggestionCount = suggestionBuilders.length;
+          completionPerformance.computedSuggestionCount =
+              suggestionBuilders.length;
+          completionPerformance.transmittedSuggestionCount =
+              suggestionBuilders.length;
         } finally {
           ifMatchesRequestClear(completionRequest);
         }

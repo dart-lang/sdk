@@ -815,10 +815,10 @@ severity: $severity
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
-  Future<Token> tokenize(SourceLibraryBuilder library,
+  Future<Token> tokenize(SourceLibraryBuilder libraryBuilder,
       {bool suppressLexicalErrors: false}) async {
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
-    Uri fileUri = library.fileUri;
+    Uri fileUri = libraryBuilder.fileUri;
 
     // Lookup the file URI in the cache.
     List<int>? bytes = sourceBytes[fileUri];
@@ -827,18 +827,18 @@ severity: $severity
       // Error recovery.
       if (fileUri.isScheme(untranslatableUriScheme)) {
         Message message =
-            templateUntranslatableUri.withArguments(library.importUri);
-        library.addProblemAtAccessors(message);
-        bytes = synthesizeSourceForMissingFile(library.importUri, null);
+            templateUntranslatableUri.withArguments(libraryBuilder.importUri);
+        libraryBuilder.addProblemAtAccessors(message);
+        bytes = synthesizeSourceForMissingFile(libraryBuilder.importUri, null);
       } else if (!fileUri.hasScheme) {
         target.benchmarker?.endSubdivide();
         return internalProblem(
             templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
-            library.importUri);
+            libraryBuilder.importUri);
       } else if (fileUri.isScheme(SourceLibraryBuilder.MALFORMED_URI_SCHEME)) {
-        library.addProblemAtAccessors(messageExpectedUri);
-        bytes = synthesizeSourceForMissingFile(library.importUri, null);
+        libraryBuilder.addProblemAtAccessors(messageExpectedUri);
+        bytes = synthesizeSourceForMissingFile(libraryBuilder.importUri, null);
       }
       if (bytes != null) {
         Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
@@ -857,8 +857,9 @@ severity: $severity
       } on FileSystemException catch (e) {
         Message message =
             templateCantReadFile.withArguments(fileUri, e.message);
-        library.addProblemAtAccessors(message);
-        rawBytes = synthesizeSourceForMissingFile(library.importUri, message);
+        libraryBuilder.addProblemAtAccessors(message);
+        rawBytes =
+            synthesizeSourceForMissingFile(libraryBuilder.importUri, message);
       }
       Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
       zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
@@ -872,36 +873,38 @@ severity: $severity
         configuration: new ScannerConfiguration(
             enableTripleShift: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.tripleShift,
-                library.importUri,
-                library.packageLanguageVersion.version),
+                libraryBuilder.importUri,
+                libraryBuilder.packageLanguageVersion.version),
             enableExtensionMethods:
                 target.isExperimentEnabledInLibraryByVersion(
                     ExperimentalFlag.extensionMethods,
-                    library.importUri,
-                    library.packageLanguageVersion.version),
+                    libraryBuilder.importUri,
+                    libraryBuilder.packageLanguageVersion.version),
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.nonNullable,
-                library.importUri,
-                library.packageLanguageVersion.version),
-            forAugmentationLibrary: library.isAugmentation),
+                libraryBuilder.importUri,
+                libraryBuilder.packageLanguageVersion.version),
+            forAugmentationLibrary: libraryBuilder.isAugmentation),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
-        library.registerExplicitLanguageVersion(
+        libraryBuilder.registerExplicitLanguageVersion(
             new Version(version.major, version.minor),
             offset: version.offset,
             length: version.length);
       }
       scanner.configuration = new ScannerConfiguration(
-          enableTripleShift: library.enableTripleShiftInLibrary,
-          enableExtensionMethods: library.enableExtensionMethodsInLibrary,
-          enableNonNullable: library.isNonNullableByDefault);
+          enableTripleShift:
+              libraryBuilder.libraryFeatures.tripleShift.isEnabled,
+          enableExtensionMethods:
+              libraryBuilder.libraryFeatures.extensionMethods.isEnabled,
+          enableNonNullable: libraryBuilder.isNonNullableByDefault);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      Uri importUri = library.importUri;
-      if (library.isPatch) {
+      Uri importUri = libraryBuilder.importUri;
+      if (libraryBuilder.isPatch) {
         // For patch files we create a "fake" import uri.
         // We cannot use the import uri from the patched library because
         // several different files would then have the same import uri,
@@ -910,19 +913,19 @@ severity: $severity
         // represented several files?
         List<String> newPathSegments =
             new List<String>.of(importUri.pathSegments);
-        newPathSegments.add(library.fileUri.pathSegments.last);
+        newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
         newPathSegments[0] = "${newPathSegments[0]}-patch";
         importUri = importUri.replace(pathSegments: newPathSegments);
       }
       target.addSourceInformation(
-          importUri, library.fileUri, result.lineStarts, source);
+          importUri, libraryBuilder.fileUri, result.lineStarts, source);
     }
-    library.issuePostponedProblems();
-    library.markLanguageVersionFinal();
+    libraryBuilder.issuePostponedProblems();
+    libraryBuilder.markLanguageVersionFinal();
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.addProblem(error.assertionMessage, offsetForToken(token),
+        libraryBuilder.addProblem(error.assertionMessage, offsetForToken(token),
             lengthForToken(token), fileUri);
       }
       token = token.next!;
@@ -1900,7 +1903,7 @@ severity: $severity
   }
 
   bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
-    if (!cls.libraryBuilder.enableEnhancedEnumsInLibrary) {
+    if (!cls.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       cls.addProblem(
           templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
           cls.charOffset,

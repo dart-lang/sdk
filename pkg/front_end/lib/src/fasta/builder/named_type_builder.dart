@@ -16,7 +16,6 @@ import '../fasta_codes.dart'
         messageTypeVariableInStaticContext,
         messageTypedefCause,
         noLength,
-        templateExperimentNotEnabled,
         templateExtendingRestricted,
         templateNotAType,
         templateSupertypeIsIllegal,
@@ -269,10 +268,9 @@ class NamedTypeBuilder extends TypeBuilder {
     }
     if (_declaration!.isExtension &&
         library is SourceLibraryBuilder &&
-        !library.enableExtensionTypesInLibrary) {
-      Message message = templateExperimentNotEnabled.withArguments(
-          'extension-types',
-          library.enableExtensionTypesVersionInLibrary.toText());
+        !library.libraryFeatures.extensionTypes.isEnabled) {
+      Message message =
+          library.libraryFeatures.extensionTypes.notEnabledMessage;
       int typeNameLength = nameLength;
       int typeNameOffset = nameOffset;
       library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
