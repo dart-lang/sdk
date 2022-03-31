@@ -23,7 +23,6 @@ import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
-import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
@@ -86,8 +85,6 @@ class Compiler {
   api.CompilerOutput _outputProvider;
 
   api.CompilerOutput get outputProvider => _outputProvider;
-
-  final List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
   ir.Component componentForTesting;
   JClosedWorld backendClosedWorldForTesting;
@@ -431,8 +428,6 @@ class Compiler {
       load_kernel.Output output, Set<Uri> moduleLibraries) async {
     ir.Component component = output.component;
     List<Uri> libraries = output.libraries;
-    _userCodeLocations
-        .addAll(moduleLibraries.map((module) => CodeLocation(module)));
     final input = modular_analysis.Input(
         options, reporter, environment, component, libraries, moduleLibraries);
     return await selfTask.measureSubtask(
@@ -541,7 +536,6 @@ class Compiler {
     if (options.readClosedWorldUri == null) {
       Uri rootLibraryUri = output.rootLibraryUri;
       Iterable<Uri> libraries = output.libraries;
-      _userCodeLocations.add(CodeLocation(rootLibraryUri));
       JsClosedWorld closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
       closedWorldAndIndices = ClosedWorldAndIndices(closedWorld, null);
@@ -819,38 +813,9 @@ class Compiler {
     }
   }
 
-  /// Helper for determining whether the current element is declared within
-  /// 'user code'.
-  ///
-  /// See [inUserCode] for what defines 'user code'.
-  bool currentlyInUserCode() {
-    return inUserCode(currentElement);
-  }
-
   /// Helper for determining whether [element] is declared within 'user code'.
-  ///
-  /// What constitutes 'user code' is defined by the URI(s) provided by the
-  /// entry point(s) of compilation or analysis:
-  ///
-  /// If an entrypoint URI uses the 'package' scheme then every library from
-  /// that same package is considered to be in user code. For instance, if
-  /// an entry point URI is 'package:foo/bar.dart' then every library whose
-  /// canonical URI starts with 'package:foo/' is in user code.
-  ///
-  /// If an entrypoint URI uses another scheme than 'package' then every library
-  /// with that scheme is in user code. For instance, an entry point URI is
-  /// 'file:///foo.dart' then every library whose canonical URI scheme is
-  /// 'file' is in user code.
-  ///
-  /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
-  /// if no entrypoints have been set.
-  bool inUserCode(Entity element, {bool assumeInUserCode = false}) {
-    if (element == null) return assumeInUserCode;
-    Uri libraryUri = _uriFromElement(element);
-    if (libraryUri == null) return false;
-    if (_userCodeLocations.isEmpty && assumeInUserCode) return true;
-    return _userCodeLocations.any(
-        (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
+  bool inUserCode(Entity element) {
+    return element == null || _uriFromElement(element) != null;
   }
 
   /// Return a canonical URI for the source of [element].

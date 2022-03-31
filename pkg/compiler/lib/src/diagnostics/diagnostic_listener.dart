@@ -90,7 +90,7 @@ class DiagnosticReporter {
         case api.Diagnostic.WARNING:
         case api.Diagnostic.HINT:
           Entity element = _elementFromSpannable(message.spannable);
-          if (!_compiler.inUserCode(element, assumeInUserCode: true)) {
+          if (!_compiler.inUserCode(element)) {
             Uri uri = _compiler.getCanonicalUri(element);
             if (options.showPackageWarningsFor(uri)) {
               _reportDiagnostic(message, infos, kind);
