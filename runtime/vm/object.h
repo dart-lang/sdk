@@ -2663,6 +2663,7 @@ class Function : public Object {
   void PrintName(const NameFormattingParams& params,
                  BaseTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
+  const char* QualifiedScrubbedNameCString() const;
   StringPtr QualifiedUserVisibleName() const;
   const char* QualifiedUserVisibleNameCString() const;
 

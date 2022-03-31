@@ -9761,6 +9761,13 @@ StringPtr Function::QualifiedScrubbedName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
+const char* Function::QualifiedScrubbedNameCString() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(NameFormattingParams(kScrubbedName), &printer);
+  return printer.buffer();
+}
+
 StringPtr Function::QualifiedUserVisibleName() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
