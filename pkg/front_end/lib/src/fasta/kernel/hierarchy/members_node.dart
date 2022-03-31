@@ -37,6 +37,7 @@ import '../../messages.dart'
         templateCantInferTypeDueToNoCombinedSignature,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
+        templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 import '../../names.dart' show noSuchMethodName;
@@ -531,12 +532,23 @@ class ClassMembersNodeBuilder {
         staticMember = b;
         instanceMember = a;
       }
-      classBuilder.libraryBuilder.addProblem(messageStaticAndInstanceConflict,
-          staticMember.charOffset, name.length, staticMember.fileUri,
-          context: <LocatedMessage>[
-            messageStaticAndInstanceConflictCause.withLocation(
-                instanceMember.fileUri, instanceMember.charOffset, name.length)
-          ]);
+      if (!staticMember.isSynthesized) {
+        classBuilder.libraryBuilder.addProblem(messageStaticAndInstanceConflict,
+            staticMember.charOffset, name.length, staticMember.fileUri,
+            context: <LocatedMessage>[
+              messageStaticAndInstanceConflictCause.withLocation(
+                  instanceMember.fileUri,
+                  instanceMember.charOffset,
+                  name.length)
+            ]);
+      } else {
+        classBuilder.libraryBuilder.addProblem(
+            templateInstanceAndSynthesizedStaticConflict
+                .withArguments(staticMember.name.text),
+            instanceMember.charOffset,
+            name.length,
+            instanceMember.fileUri);
+      }
     } else {
       // This message can be reported twice (when merging localMembers with
       // classSetters, or localSetters with classMembers). By ensuring that

@@ -70,6 +70,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   final bool isTopLevel;
 
+  final bool isSynthesized;
+
   SourceFieldBuilder(
       this.metadata,
       this.type,
@@ -88,7 +90,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
-      Token? constInitializerToken})
+      Token? constInitializerToken,
+      this.isSynthesized = false})
       : _constInitializerToken = constInitializerToken,
         super(libraryBuilder, charOffset) {
     bool isInstanceMember = fieldNameScheme.isInstanceMember;
@@ -756,6 +759,9 @@ class SourceFieldMember extends BuilderClassMember {
 
   @override
   bool get isProperty => true;
+
+  @override
+  bool get isSynthesized => memberBuilder.isSynthesized;
 
   @override
   bool isSameDeclaration(ClassMember other) {

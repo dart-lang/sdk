@@ -284,7 +284,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         staticFieldNameScheme,
         fieldReference: valuesFieldReference,
         fieldGetterReference: valuesGetterReference,
-        fieldSetterReference: valuesSetterReference);
+        fieldSetterReference: valuesSetterReference,
+        isSynthesized: true);
     members["values"] = valuesBuilder;
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;

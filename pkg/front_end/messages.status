@@ -475,6 +475,7 @@ InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
+InstanceAndSynthesizedStaticConflict/example: Fail
 InstantiationNonGenericFunctionType/analyzerCode: Fail
 InstantiationTooFewArguments/analyzerCode: Fail
 InstantiationTooManyArguments/analyzerCode: Fail

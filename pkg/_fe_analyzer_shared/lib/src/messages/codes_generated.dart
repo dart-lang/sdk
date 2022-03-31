@@ -5642,6 +5642,33 @@ Message _withArgumentsInputFileNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInstanceAndSynthesizedStaticConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""This instance member conflicts with the synthesized static member called '#name'.""",
+    withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInstanceAndSynthesizedStaticConflict =
+    const Code<Message Function(String name)>(
+        "InstanceAndSynthesizedStaticConflict",
+        analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstanceAndSynthesizedStaticConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInstanceAndSynthesizedStaticConflict,
+      problemMessage:
+          """This instance member conflicts with the synthesized static member called '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(int count, int count2)>
     templateInstantiationTooFewArguments =
     const Template<Message Function(int count, int count2)>(
