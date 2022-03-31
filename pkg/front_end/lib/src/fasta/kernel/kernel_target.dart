@@ -1088,11 +1088,11 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
 
+    TypeDependency? typeDependency;
     if (hasTypeDependency) {
-      loader.registerTypeDependency(
-          constructor,
-          new TypeDependency(constructor, superConstructor, substitution,
-              copyReturnType: false));
+      typeDependency = new TypeDependency(
+          constructor, superConstructor, substitution,
+          copyReturnType: false);
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
@@ -1107,16 +1107,20 @@ class KernelTarget extends TargetImplementation {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
           classBuilder.cls, classBuilder.libraryBuilder);
     }
-    return new SyntheticSourceConstructorBuilder(
-        classBuilder, constructor, constructorTearOff,
-        // We pass on the original constructor and the cloned function nodes to
-        // ensure that the default values are computed and cloned for the
-        // outline. It is needed to make the default values a part of the
-        // outline for const constructors, and additionally it is required for
-        // a potential subclass using super initializing parameters that will
-        // required the cloning of the default values.
-        definingConstructor: superConstructorBuilder,
-        delayedDefaultValueCloner: delayedDefaultValueCloner);
+    SyntheticSourceConstructorBuilder constructorBuilder =
+        new SyntheticSourceConstructorBuilder(
+            classBuilder, constructor, constructorTearOff,
+            // We pass on the original constructor and the cloned function nodes
+            // to ensure that the default values are computed and cloned for the
+            // outline. It is needed to make the default values a part of the
+            // outline for const constructors, and additionally it is required
+            // for a potential subclass using super initializing parameters that
+            // will required the cloning of the default values.
+            definingConstructor: superConstructorBuilder,
+            delayedDefaultValueCloner: delayedDefaultValueCloner,
+            typeDependency: typeDependency);
+    loader.registerConstructorToBeInferred(constructor, constructorBuilder);
+    return constructorBuilder;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
