@@ -25,7 +25,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         InvocationMode,
         DiagnosticMessage,
         DiagnosticMessageHandler,
-        ExperimentalFlag,
         FileSystem,
         FileSystemEntity,
         NnbdMode,
@@ -277,7 +276,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..verbosity = verbosity;
 
   if (nullSafety == null &&
-      compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
+      compilerOptions.globalFeatures.nonNullable.isEnabled) {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 

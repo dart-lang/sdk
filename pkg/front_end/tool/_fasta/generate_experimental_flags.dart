@@ -120,36 +120,185 @@ part of 'experimental_flags.dart';
 
   sb.write('''
 
-enum ExperimentalFlag {
+/// An experiment flag including its fixed properties.
+class ExperimentalFlag {
+  /// The name of this flag as used in the --enable-experiment option.
+  final String name;
+
+  /// `true` if this experimental feature is enabled by default.
+  ///
+  /// When `true`, the feature can still be disabled in individual libraries
+  /// with a language version below the [experimentEnabledVersion], and if not
+  /// [isExpired], the feature can also be disabled by using a 'no-' prefix
+  /// in the --enable-experiment option.
+  final bool isEnabledByDefault;
+
+  /// `true` if this feature can no longer be changed using the
+  /// --enable-experiment option.
+  ///
+  /// Libraries can still opt out of the feature by using a language version
+  /// below the [experimentEnabledVersion].
+  final bool isExpired;
+  final Version enabledVersion;
+
+  /// The minimum version that supports this feature.
+  ///
+  /// If the feature is not enabled by default, this is the current language
+  /// version.
+  final Version experimentEnabledVersion;
+
+  /// The minimum version that supports this feature in allowed libraries.
+  ///
+  /// Allowed libraries are specified in
+  /// 
+  ///    sdk/lib/_internal/allowed_experiments.json
+  final Version experimentReleasedVersion;
+
+  const ExperimentalFlag(
+      {required this.name,
+      required this.isEnabledByDefault,
+      required this.isExpired,
+      required this.enabledVersion,
+      required this.experimentEnabledVersion,
+      required this.experimentReleasedVersion});
 ''');
   for (String key in keys) {
-    sb.writeln('  ${keyToIdentifier(key)},');
+    String identifier = keyToIdentifier(key);
+    int enabledInMajor;
+    int enabledInMinor;
+    String? enabledIn =
+        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    if (enabledIn == null) {
+      enabledInMajor = currentVersionMajor;
+      enabledInMinor = currentVersionMinor;
+    } else {
+      List<String> split = enabledIn.split(".");
+      enabledInMajor = int.parse(split[0]);
+      enabledInMinor = int.parse(split[1]);
+    }
+    bool? expired = (features[key] as YamlMap)['expired'];
+    bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
+    if (shipped) {
+      if (expired == false) {
+        throw 'Cannot mark shipped feature "$key" as "expired: false"';
+      }
+    }
+    int releaseMajor;
+    int releaseMinor;
+    String? experimentalReleaseVersion = getAsVersionNumberString(
+        (features[key] as YamlMap)['experimentalReleaseVersion']);
+    if (experimentalReleaseVersion != null) {
+      List<String> split = experimentalReleaseVersion.split(".");
+      releaseMajor = int.parse(split[0]);
+      releaseMinor = int.parse(split[1]);
+    } else if (enabledIn != null) {
+      List<String> split = enabledIn.split(".");
+      releaseMajor = int.parse(split[0]);
+      releaseMinor = int.parse(split[1]);
+    } else {
+      releaseMajor = currentVersionMajor;
+      releaseMinor = currentVersionMinor;
+    }
+
+    sb.writeln('''
+  static const ExperimentalFlag ${identifier} =
+    const ExperimentalFlag(
+      name: '$key',
+      isEnabledByDefault: $shipped,
+      isExpired: ${expired == true},
+      enabledVersion: const Version($enabledInMajor, $enabledInMinor),
+      experimentEnabledVersion: const Version($enabledInMajor, $enabledInMinor),
+      experimentReleasedVersion: const Version($releaseMajor, $releaseMinor));
+''');
+  }
+  sb.write('''
+}
+''');
+
+  sb.write('''
+/// Interface for accessing the global state of experimental features. 
+class GlobalFeatures {
+  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
+  final AllowedExperimentalFlags? allowedExperimentalFlags;
+  final Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting;
+  final Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
+  final Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
+
+  GlobalFeatures(this.explicitExperimentalFlags,
+      {this.allowedExperimentalFlags,
+      this.defaultExperimentFlagsForTesting,
+      this.experimentEnabledVersionForTesting,
+      this.experimentReleasedVersionForTesting});
+
+  GlobalFeature _computeGlobalFeature(ExperimentalFlag flag) {
+    return new GlobalFeature(
+        flag,
+        isExperimentEnabled(flag,
+            defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+            explicitExperimentalFlags: explicitExperimentalFlags));
+  }
+
+  LibraryFeature _computeLibraryFeature(
+      ExperimentalFlag flag, Uri canonicalUri, Version libraryVersion) {
+    return new LibraryFeature(
+        flag,
+        isExperimentEnabledInLibrary(flag, canonicalUri,
+            defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+            explicitExperimentalFlags: explicitExperimentalFlags,
+            allowedExperimentalFlags: allowedExperimentalFlags),
+        getExperimentEnabledVersionInLibrary(
+            flag, canonicalUri, explicitExperimentalFlags,
+            allowedExperimentalFlags: allowedExperimentalFlags,
+            defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+            experimentEnabledVersionForTesting:
+                experimentEnabledVersionForTesting,
+            experimentReleasedVersionForTesting:
+                experimentReleasedVersionForTesting),
+        isExperimentEnabledInLibraryByVersion(
+            flag, canonicalUri, libraryVersion,
+            defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+            explicitExperimentalFlags: explicitExperimentalFlags,
+            allowedExperimentalFlags: allowedExperimentalFlags));
+  }
+''');
+  for (String key in keys) {
+    String identifier = keyToIdentifier(key);
+    sb.write('''
+
+  GlobalFeature? _${identifier};
+  GlobalFeature get ${identifier} =>
+      _${identifier} ??= _computeGlobalFeature(ExperimentalFlag.${identifier});    
+''');
   }
   sb.write('''
 }
 
+/// Interface for accessing the state of experimental features within a
+/// specific library.
+class LibraryFeatures {
+  final GlobalFeatures globalFeatures;
+  final Uri canonicalUri;
+  final Version libraryVersion;
+
+  LibraryFeatures(this.globalFeatures, this.canonicalUri, this.libraryVersion);
+''');
+  for (String key in keys) {
+    String identifier = keyToIdentifier(key);
+    sb.write('''
+
+  LibraryFeature? _${identifier};
+  LibraryFeature get ${identifier} => _${identifier} ??= globalFeatures
+      ._computeLibraryFeature(
+          ExperimentalFlag.${identifier},
+          canonicalUri,
+          libraryVersion);
+''');
+  }
+  sb.write('''
+}
 ''');
 
-  for (String key in keys) {
-    int major;
-    int minor;
-    String? enabledIn =
-        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
-    if (enabledIn == null) {
-      major = currentVersionMajor;
-      minor = currentVersionMinor;
-    } else {
-      List<String> split = enabledIn.split(".");
-      major = int.parse(split[0]);
-      minor = int.parse(split[1]);
-    }
-    sb.writeln('  const Version enable'
-        '${keyToIdentifier(key, upperCaseFirst: true)}'
-        'Version = const Version($major, $minor);');
-  }
-
   sb.write('''
-
 ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
 ''');
@@ -161,78 +310,15 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   return null;
 }
 
-const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
+final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 ''');
   for (String key in keys) {
-    bool? expired = (features[key] as YamlMap)['expired'];
-    bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
-    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${shipped},');
-    if (shipped) {
-      if (expired == false) {
-        throw 'Cannot mark shipped feature "$key" as "expired: false"';
-      }
-    }
+    sb.writeln('''
+  ExperimentalFlag.${keyToIdentifier(key)}:
+      ExperimentalFlag.${keyToIdentifier(key)}.isEnabledByDefault,''');
   }
   sb.write('''
 };
-
-const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
-''');
-  for (String key in keys) {
-    bool expired = (features[key] as YamlMap)['expired'] == true;
-    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${expired},');
-  }
-  sb.write('''
-};
-
-const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
-''');
-  for (String key in keys) {
-    int major;
-    int minor;
-    String? enabledIn =
-        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
-    if (enabledIn != null) {
-      List<String> split = enabledIn.split(".");
-      major = int.parse(split[0]);
-      minor = int.parse(split[1]);
-    } else {
-      major = currentVersionMajor;
-      minor = currentVersionMinor;
-    }
-    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: '
-        'const Version($major, $minor),');
-  }
-  sb.write('''
-};
-
-const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
-''');
-  for (String key in keys) {
-    int major;
-    int minor;
-    String? enabledIn =
-        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
-    String? experimentalReleaseVersion = getAsVersionNumberString(
-        (features[key] as YamlMap)['experimentalReleaseVersion']);
-    if (experimentalReleaseVersion != null) {
-      List<String> split = experimentalReleaseVersion.split(".");
-      major = int.parse(split[0]);
-      minor = int.parse(split[1]);
-    } else if (enabledIn != null) {
-      List<String> split = enabledIn.split(".");
-      major = int.parse(split[0]);
-      minor = int.parse(split[1]);
-    } else {
-      major = currentVersionMajor;
-      minor = currentVersionMinor;
-    }
-    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: '
-        'const Version($major, $minor),');
-  }
-  sb.write('''
-};
-
 ''');
 
   Uri allowListFile = computeAllowListFile(repoDir);

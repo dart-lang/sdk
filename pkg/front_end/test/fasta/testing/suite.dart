@@ -869,7 +869,7 @@ class StressConstantEvaluatorStep
       target.backendTarget,
       result.component,
       result.options.environmentDefines,
-      target.isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+      target.globalFeatures.tripleShift.isEnabled,
       environment,
       !target.backendTarget.supportsSetLiterals,
       result.options.errorOnUnevaluatedConstant,

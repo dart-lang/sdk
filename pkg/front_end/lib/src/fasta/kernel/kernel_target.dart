@@ -17,7 +17,8 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
-import '../../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../../api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, GlobalFeatures;
 import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
 import '../../base/processed_options.dart' show ProcessedOptions;
@@ -171,9 +172,7 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
-  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
-    return _options.isExperimentEnabledInLibrary(flag, importUri);
-  }
+  GlobalFeatures get globalFeatures => _options.globalFeatures;
 
   Version getExperimentEnabledVersionInLibrary(
       ExperimentalFlag flag, Uri importUri) {
@@ -184,20 +183,6 @@ class KernelTarget extends TargetImplementation {
       ExperimentalFlag flag, Uri importUri, Version version) {
     return _options.isExperimentEnabledInLibraryByVersion(
         flag, importUri, version);
-  }
-
-  /// Returns `true` if the [flag] is enabled by default.
-  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
-    return _options.isExperimentEnabledByDefault(flag);
-  }
-
-  /// Returns `true` if the [flag] is enabled globally.
-  ///
-  /// This is `true` either if the [flag] is passed through an explicit
-  /// `--enable-experiment` option or if the [flag] is expired and on by
-  /// default.
-  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
-    return _options.isExperimentEnabledGlobally(flag);
   }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
@@ -704,7 +689,7 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
     NonNullableByDefaultCompiledMode? compiledMode = null;
-    if (isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+    if (globalFeatures.nonNullable.isEnabled) {
       switch (loader.nnbdMode) {
         case NnbdMode.Weak:
           compiledMode = NonNullableByDefaultCompiledMode.Weak;
@@ -1595,12 +1580,10 @@ class KernelTarget extends TargetImplementation {
             new KernelConstantErrorReporter(loader),
             evaluationMode,
             evaluateAnnotations: true,
-            enableTripleShift:
-                isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-            enableConstFunctions:
-                isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-            enableConstructorTearOff: isExperimentEnabledGlobally(
-                ExperimentalFlag.constructorTearoffs),
+            enableTripleShift: globalFeatures.tripleShift.isEnabled,
+            enableConstFunctions: globalFeatures.constFunctions.isEnabled,
+            enableConstructorTearOff:
+                globalFeatures.constructorTearoffs.isEnabled,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
@@ -1617,8 +1600,7 @@ class KernelTarget extends TargetImplementation {
     });
     ticker.logMs("Added constant coverage");
 
-    if (loader.target.context.options
-        .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
+    if (loader.target.context.options.globalFeatures.valueClass.isEnabled) {
       valueClass.transformComponent(component!, loader.coreTypes,
           loader.hierarchy, loader.referenceFromIndex, environment);
       ticker.logMs("Lowered value classes");
@@ -1652,12 +1634,9 @@ class KernelTarget extends TargetImplementation {
       new KernelConstantErrorReporter(loader),
       evaluationMode,
       evaluateAnnotations: true,
-      enableTripleShift:
-          isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-      enableConstFunctions:
-          isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-      enableConstructorTearOff:
-          isExperimentEnabledGlobally(ExperimentalFlag.constructorTearoffs),
+      enableTripleShift: globalFeatures.tripleShift.isEnabled,
+      enableConstFunctions: globalFeatures.constFunctions.isEnabled,
+      enableConstructorTearOff: globalFeatures.constructorTearoffs.isEnabled,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
     );
     ticker.logMs("Evaluated constants");
@@ -1676,7 +1655,7 @@ class KernelTarget extends TargetImplementation {
     // because the SDK might be agnostic and therefore needs to be weakened
     // for legacy mode.
     assert(
-        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
+        globalFeatures.nonNullable.isEnabled ||
             loader.nnbdMode == NnbdMode.Weak,
         "Non-weak nnbd mode found without experiment enabled: "
         "${loader.nnbdMode}.");

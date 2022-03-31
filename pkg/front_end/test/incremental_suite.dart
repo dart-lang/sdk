@@ -23,7 +23,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, experimentEnabledVersion;
+    show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -392,7 +392,7 @@ class NewWorldTest {
 
   String doStringReplacements(String input) {
     Version enableNonNullableVersion =
-        experimentEnabledVersion[ExperimentalFlag.nonNullable]!;
+        ExperimentalFlag.nonNullable.experimentEnabledVersion;
     String output = input.replaceAll("%NNBD_VERSION_MARKER%",
         "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
     return output;

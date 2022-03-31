@@ -9,20 +9,19 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../builder/builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
-
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show LocatedMessage;
 import '../messages.dart' show Message;
 import '../scope.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
-
 import 'constness.dart' show Constness;
 import 'forest.dart' show Forest;
 import 'internal_ast.dart';
@@ -57,13 +56,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Member? lookupSuperMember(Name name, {bool isSetter});
 
-  bool get enableExtensionTypesInLibrary;
-
-  bool get enableConstFunctionsInLibrary;
-
-  bool get enableConstructorTearOffsInLibrary;
-
-  bool get enableNamedArgumentsAnywhereInLibrary;
+  LibraryFeatures get libraryFeatures;
 
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,

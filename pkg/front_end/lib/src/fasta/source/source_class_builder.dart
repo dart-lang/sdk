@@ -727,7 +727,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
-    if (libraryBuilder.enableEnhancedEnumsInLibrary && !isEnum) {
+    if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
       bool hasEnumSuperinterface = false;
       List<Supertype> interfaces =
           hierarchyBuilder.getNodeFromClass(cls).superclasses;
@@ -1322,29 +1322,28 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkBoundsInSupertype(
       Supertype supertype, TypeEnvironment typeEnvironment) {
-    SourceLibraryBuilder libraryBuilder2 = this.libraryBuilder;
-    Library library = libraryBuilder2.library;
+    Library library = libraryBuilder.library;
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         new InterfaceType(
             supertype.classNode, library.nonNullable, supertype.typeArguments),
         typeEnvironment,
-        libraryBuilder2.isNonNullableByDefault
+        libraryBuilder.isNonNullableByDefault
             ? SubtypeCheckMode.withNullabilities
             : SubtypeCheckMode.ignoringNullabilities,
         allowSuperBounded: false,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed:
-            libraryBuilder2.enableGenericMetadataInLibrary);
+            libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
-      bool inferred = libraryBuilder2.inferredTypes.contains(argument);
+      bool inferred = libraryBuilder.inferredTypes.contains(argument);
       if (issue.isGenericTypeAsArgumentIssue) {
         if (inferred) {
           // Supertype can't be or contain super-bounded types, so null is
           // passed for super-bounded hint here.
-          libraryBuilder2.reportTypeArgumentIssue(
+          libraryBuilder.reportTypeArgumentIssue(
               templateGenericFunctionTypeInferredAsActualTypeArgument
                   .withArguments(argument, library.isNonNullableByDefault),
               fileUri,
@@ -1355,7 +1354,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         } else {
           // Supertype can't be or contain super-bounded types, so null is
           // passed for super-bounded hint here.
-          libraryBuilder2.reportTypeArgumentIssue(
+          libraryBuilder.reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               charOffset,
@@ -1371,7 +1370,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 template) {
           // Supertype can't be or contain super-bounded types, so null is
           // passed for super-bounded hint here.
-          libraryBuilder2.reportTypeArgumentIssue(
+          libraryBuilder.reportTypeArgumentIssue(
               template.withArguments(
                   argument,
                   typeParameter.bound,

@@ -521,7 +521,7 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     if (nullSafety == null &&
-        compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
+        compilerOptions.globalFeatures.nonNullable.isEnabled) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 

@@ -75,7 +75,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     if (library is SourceLibraryBuilder &&
-        library.enableExtensionTypesInLibrary) {
+        library.libraryFeatures.extensionTypes.isEnabled) {
       return buildTypeWithBuiltArguments(
           library,
           nullabilityBuilder.build(library),
@@ -90,7 +90,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     if (library is SourceLibraryBuilder &&
-        library.enableExtensionTypesInLibrary) {
+        library.libraryFeatures.extensionTypes.isEnabled) {
       return new ExtensionType(extension, nullability, arguments);
     } else {
       throw new UnsupportedError(

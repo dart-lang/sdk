@@ -22,16 +22,13 @@ import '../macro_serializer.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
-        defaultExperimentalFlags,
         ExperimentalFlag,
-        expiredExperimentalFlags,
+        GlobalFeatures,
         parseExperimentalFlag;
 
 import 'experimental_flags.dart' as flags
     show
         getExperimentEnabledVersionInLibrary,
-        isExperimentEnabled,
-        isExperimentEnabledInLibrary,
         isExperimentEnabledInLibraryByVersion;
 
 import 'file_system.dart' show FileSystem;
@@ -275,29 +272,14 @@ class CompilerOptions {
   /// Verbosity level used for filtering emitted messages.
   Verbosity verbosity = Verbosity.all;
 
-  /// Returns `true` if the experiment with the given [flag] is enabled, either
-  /// explicitly or implicitly.
-  ///
-  /// Note that libraries can still opt out of the experiment by having a lower
-  /// language version than required for the experiment.
-  bool isExperimentEnabled(ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
-  }
+  GlobalFeatures? _globalFeatures;
 
-  /// Returns `true` if the experiment with the given [flag] is enabled either
-  /// explicitly or implicitly for the library with the given [importUri].
-  ///
-  /// Note that the library can still opt out of the experiment by having a
-  /// lower language version than required for the experiment. See
-  /// [getExperimentEnabledVersionInLibrary].
-  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
-    return flags.isExperimentEnabledInLibrary(flag, importUri,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
-  }
+  GlobalFeatures get globalFeatures => _globalFeatures ??= new GlobalFeatures(
+      explicitExperimentalFlags,
+      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
+      allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
 
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt in to the experiment with the given [flag].
@@ -443,8 +425,8 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
               "Experiment specified with conflicting values: " + experiment);
         }
       } else {
-        if (expiredExperimentalFlags[flag]!) {
-          if (value != defaultExperimentalFlags[flag]) {
+        if (flag.isExpired) {
+          if (value != flag.isEnabledByDefault) {
             /// Produce an error when the value is not the default value.
             if (value) {
               onError("Enabling experiment " +
@@ -455,7 +437,7 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
                   experiment +
                   " is no longer supported.");
             }
-            value = defaultExperimentalFlags[flag]!;
+            value = flag.isEnabledByDefault;
           } else if (onWarning != null) {
             /// Produce a warning when the value is the default value.
             if (value) {

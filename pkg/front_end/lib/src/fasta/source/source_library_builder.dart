@@ -310,142 +310,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   TypeParameterScopeBuilder get libraryTypeParameterScopeBuilderForTesting =>
       _libraryTypeParameterScopeBuilder;
 
-  bool? _enableConstFunctionsInLibrary;
-  bool? _enableVarianceInLibrary;
-  bool? _enableNonfunctionTypeAliasesInLibrary;
-  bool? _enableNonNullableInLibrary;
-  Version? _enableNonNullableVersionInLibrary;
-  Version? _enableConstructorTearoffsVersionInLibrary;
-  Version? _enableExtensionTypesVersionInLibrary;
-  Version? _enableNamedArgumentsAnywhereVersionInLibrary;
-  Version? _enableSuperParametersVersionInLibrary;
-  Version? _enableEnhancedEnumsVersionInLibrary;
-  Version? _enableMacrosVersionInLibrary;
-  bool? _enableTripleShiftInLibrary;
-  bool? _enableExtensionMethodsInLibrary;
-  bool? _enableGenericMetadataInLibrary;
-  bool? _enableExtensionTypesInLibrary;
-  bool? _enableEnhancedEnumsInLibrary;
-  bool? _enableConstructorTearOffsInLibrary;
-  bool? _enableNamedArgumentsAnywhereInLibrary;
-  bool? _enableSuperParametersInLibrary;
-  bool? _enableMacrosInLibrary;
+  LibraryFeatures? _libraryFeatures;
 
-  bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
-      loader.target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.constFunctions,
-          _packageUri ?? importUri,
-          languageVersion.version);
-
-  bool get enableVarianceInLibrary => _enableVarianceInLibrary ??= loader.target
-      .isExperimentEnabledInLibraryByVersion(ExperimentalFlag.variance,
+  /// Returns the state of the experimental features within this library.
+  LibraryFeatures get libraryFeatures =>
+      _libraryFeatures ??= new LibraryFeatures(loader.target.globalFeatures,
           _packageUri ?? importUri, languageVersion.version);
-
-  bool get enableNonfunctionTypeAliasesInLibrary =>
-      _enableNonfunctionTypeAliasesInLibrary ??= loader.target
-          .isExperimentEnabledInLibraryByVersion(
-              ExperimentalFlag.nonfunctionTypeAliases,
-              _packageUri ?? importUri,
-              languageVersion.version);
-
-  /// Returns `true` if the 'non-nullable' experiment is enabled for this
-  /// library.
-  ///
-  /// Note that the library might still opt out of the experiment by having
-  /// a version that is too low for opting in to the experiment.
-  bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.nonNullable, _packageUri ?? importUri);
-
-  Version get enableNonNullableVersionInLibrary =>
-      _enableNonNullableVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.nonNullable, _packageUri ?? importUri);
-
-  bool get enableConstructorTearOffsInLibrary =>
-      _enableConstructorTearOffsInLibrary ??= loader.target
-          .isExperimentEnabledInLibraryByVersion(
-              ExperimentalFlag.constructorTearoffs,
-              _packageUri ?? importUri,
-              languageVersion.version);
-
-  Version get enableConstructorTearOffsVersionInLibrary =>
-      _enableConstructorTearoffsVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.constructorTearoffs, _packageUri ?? importUri);
-
-  bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
-      loader.target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.tripleShift,
-          _packageUri ?? importUri,
-          languageVersion.version);
-
-  bool get enableExtensionMethodsInLibrary =>
-      _enableExtensionMethodsInLibrary ??= loader.target
-          .isExperimentEnabledInLibraryByVersion(
-              ExperimentalFlag.extensionMethods,
-              _packageUri ?? importUri,
-              languageVersion.version);
-
-  bool get enableGenericMetadataInLibrary => _enableGenericMetadataInLibrary ??=
-      loader.target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.genericMetadata,
-          _packageUri ?? importUri,
-          languageVersion.version);
-
-  bool get enableExtensionTypesInLibrary => _enableExtensionTypesInLibrary ??=
-      loader.target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.extensionTypes,
-          _packageUri ?? importUri,
-          languageVersion.version);
-
-  Version get enableExtensionTypesVersionInLibrary =>
-      _enableExtensionTypesVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.extensionTypes, _packageUri ?? importUri);
-
-  bool get enableNamedArgumentsAnywhereInLibrary =>
-      _enableNamedArgumentsAnywhereInLibrary ??= loader.target
-          .isExperimentEnabledInLibraryByVersion(
-              ExperimentalFlag.namedArgumentsAnywhere,
-              _packageUri ?? importUri,
-              languageVersion.version);
-
-  Version get enableNamedArgumentsAnywhereVersionInLibrary =>
-      _enableNamedArgumentsAnywhereVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.namedArgumentsAnywhere,
-              _packageUri ?? importUri);
-
-  bool get enableSuperParametersInLibrary => _enableSuperParametersInLibrary ??=
-      loader.target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.superParameters,
-          _packageUri ?? importUri,
-          languageVersion.version);
-
-  Version get enableSuperParametersVersionInLibrary =>
-      _enableSuperParametersVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.superParameters, _packageUri ?? importUri);
-
-  bool get enableEnhancedEnumsInLibrary => _enableEnhancedEnumsInLibrary ??=
-      loader.target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.enhancedEnums,
-          _packageUri ?? importUri,
-          languageVersion.version);
-
-  Version get enableEnhancedEnumsVersionInLibrary =>
-      _enableEnhancedEnumsVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.enhancedEnums, _packageUri ?? importUri);
-
-  bool get enableMacrosInLibrary => _enableMacrosInLibrary ??= loader.target
-      .isExperimentEnabledInLibraryByVersion(ExperimentalFlag.macros,
-          _packageUri ?? importUri, languageVersion.version);
-
-  Version get enableMacrosVersionInLibrary => _enableMacrosVersionInLibrary ??=
-      loader.target.getExperimentEnabledVersionInLibrary(
-          ExperimentalFlag.macros, _packageUri ?? importUri);
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -571,8 +441,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   bool _computeIsNonNullableByDefault() =>
-      enableNonNullableInLibrary &&
-      languageVersion.version >= enableNonNullableVersionInLibrary;
+      libraryFeatures.nonNullable.isSupported &&
+      languageVersion.version >= libraryFeatures.nonNullable.enabledVersion;
 
   LanguageVersion get languageVersion {
     assert(
@@ -711,7 +581,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       prefix = name as String;
       suffix = null;
     }
-    if (enableConstructorTearOffsInLibrary) {
+    if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
     if (prefix == className) {
@@ -2635,7 +2505,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (constructorBuilder.isConst) {
       currentTypeParameterScopeBuilder.declaresConstConstructor = true;
     }
-    if (constructorBuilder.isConst || enableSuperParametersInLibrary) {
+    if (constructorBuilder.isConst ||
+        libraryFeatures.superParameters.isEnabled) {
       // const constructors will have their initializers compiled and written
       // into the outline. In case of super-parameters language feature, the
       // super initializers are required to infer the types of super parameters.
@@ -2999,7 +2870,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (typeVariables != null) {
       for (TypeVariableBuilder builder in typeVariables) {
         if (builder.metadata != null) {
-          if (!enableGenericMetadataInLibrary) {
+          if (!libraryFeatures.genericMetadata.isEnabled) {
             addProblem(messageAnnotationOnFunctionTypeTypeVariable,
                 builder.charOffset, builder.name.length, builder.fileUri);
           }
@@ -3589,7 +3460,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// any errors were reported.
   bool _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
       TypeVariableBuilder typeVariable) {
-    if (enableGenericMetadataInLibrary) return false;
+    if (libraryFeatures.genericMetadata.isEnabled) return false;
 
     bool hasReportedErrors = false;
     hasReportedErrors =
@@ -3609,7 +3480,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// reported.
   bool _recursivelyReportGenericFunctionTypesAsBoundsForType(
       TypeBuilder? typeBuilder) {
-    if (enableGenericMetadataInLibrary) return false;
+    if (libraryFeatures.genericMetadata.isEnabled) return false;
 
     List<FunctionTypeBuilder> genericFunctionTypeBuilders =
         <FunctionTypeBuilder>[];
@@ -3637,7 +3508,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Returns `true` if any errors were reported.
   bool _reportGenericFunctionTypeAsBoundIfNeeded(
       TypeVariableBuilder typeVariable) {
-    if (enableGenericMetadataInLibrary) return false;
+    if (libraryFeatures.genericMetadata.isEnabled) return false;
 
     TypeBuilder? bound = typeVariable.bound;
     bool isUnaliasedGenericFunctionType = bound is FunctionTypeBuilder &&
@@ -3687,7 +3558,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
       bool haveErroneousBounds = false;
       if (!inErrorRecovery) {
-        if (!enableGenericMetadataInLibrary) {
+        if (!libraryFeatures.genericMetadata.isEnabled) {
           for (TypeVariableBuilder variable in variables) {
             haveErroneousBounds =
                 _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
@@ -4207,7 +4078,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               : SubtypeCheckMode.ignoringNullabilities,
           allowSuperBounded: true,
           isNonNullableByDefault: library.isNonNullableByDefault,
-          areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+          areGenericArgumentsAllowed:
+              libraryFeatures.genericMetadata.isEnabled);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -4284,7 +4156,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               : SubtypeCheckMode.ignoringNullabilities,
           allowSuperBounded: true,
           isNonNullableByDefault: library.isNonNullableByDefault,
-          areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+          areGenericArgumentsAllowed:
+              libraryFeatures.genericMetadata.isEnabled);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -4394,7 +4267,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             : SubtypeCheckMode.ignoringNullabilities,
         allowSuperBounded: allowSuperBounded,
         isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+        areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
@@ -4461,7 +4334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             : SubtypeCheckMode.ignoringNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+        areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     if (issues.isNotEmpty) {
       DartType? targetReceiver;
       if (klass != null) {
@@ -4547,7 +4420,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             : SubtypeCheckMode.ignoringNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+        areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,
@@ -4580,7 +4453,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             : SubtypeCheckMode.ignoringNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+        areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         // TODO(johnniwinther): Special-case messaging on function type
@@ -4617,7 +4490,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             : SubtypeCheckMode.ignoringNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+        areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     reportTypeArgumentIssues(issues, fileUri, offset,
         targetReceiver: functionType,
         typeArgumentsInfo: inferred
