@@ -5577,3 +5577,6 @@ EnumContainsRestrictedInstanceDeclaration:
 
 EnumImplementerContainsRestrictedInstanceDeclaration:
   problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'."
+
+EnumAbstractMember:
+  problemMessage: "Enums can't declare abstract members."

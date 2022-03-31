@@ -1,0 +1,173 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:8:8: Error: Enums can't declare abstract members.
+//   void foo(); // Error.
+//        ^^^
+//
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:14:11: Error: Enums can't declare abstract members.
+//   int get foo; // Error.
+//           ^^^
+//
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:20:12: Error: Enums can't declare abstract members.
+//   void set foo(int val); // Error.
+//            ^^^
+//
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:27:6: Error: The non-abstract class 'E4' is missing implementations for these members:
+//  - InterfaceMethod.foo
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// enum E4 implements InterfaceMethod { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:24:8: Context: 'InterfaceMethod.foo' is defined here.
+//   void foo();
+//        ^^^
+//
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:35:6: Error: The non-abstract class 'E5' is missing implementations for these members:
+//  - InterfaceGetter.foo
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// enum E5 implements InterfaceGetter { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:32:11: Context: 'InterfaceGetter.foo' is defined here.
+//   int get foo;
+//           ^^^
+//
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:43:6: Error: The non-abstract class 'E6' is missing implementations for these members:
+//  - InterfaceSetter.foo=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// enum E6 implements InterfaceSetter { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:40:12: Context: 'InterfaceSetter.foo=' is defined here.
+//   void set foo(int val);
+//            ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
+  static const field self::E1 element = const self::E1::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  abstract method foo() → void;
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
+  static const field self::E2 element = const self::E2::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  abstract get foo() → core::int;
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
+  static const field self::E3 element = const self::E3::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+  abstract set foo(core::int val) → void;
+}
+abstract class InterfaceMethod extends core::Object {
+  synthetic constructor •() → self::InterfaceMethod
+    ;
+  abstract method foo() → void;
+}
+class E4 extends core::_Enum implements self::InterfaceMethod /*isEnum*/  {
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::element];
+  static const field self::E4 element = const self::E4::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class InterfaceGetter extends core::Object {
+  synthetic constructor •() → self::InterfaceGetter
+    ;
+  abstract get foo() → core::int;
+}
+class E5 extends core::_Enum implements self::InterfaceGetter /*isEnum*/  {
+  static const field core::List<self::E5> values = const <self::E5>[self::E5::element];
+  static const field self::E5 element = const self::E5::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class InterfaceSetter extends core::Object {
+  synthetic constructor •() → self::InterfaceSetter
+    ;
+  abstract set foo(core::int val) → void;
+}
+class E6 extends core::_Enum implements self::InterfaceSetter /*isEnum*/  {
+  static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
+  static const field self::E6 element = const self::E6::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class MethodImplementation extends core::Object /*isMixinDeclaration*/  {
+  method foo() → void
+    ;
+}
+abstract class _E7&_Enum&MethodImplementation = core::_Enum with self::MethodImplementation /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&MethodImplementation
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method foo() → void
+    return super.{self::MethodImplementation::foo}();
+}
+class E7 extends self::_E7&_Enum&MethodImplementation /*isEnum*/  {
+  static const field core::List<self::E7> values = const <self::E7>[self::E7::element];
+  static const field self::E7 element = const self::E7::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E7
+    ;
+  method toString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+  abstract method foo() → void;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:5:6 -> ListConstant(const <E1*>[const E1{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:6:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:11:6 -> ListConstant(const <E2*>[const E2{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:12:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:17:6 -> ListConstant(const <E3*>[const E3{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:18:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:27:6 -> ListConstant(const <E4*>[const E4{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:28:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:35:6 -> ListConstant(const <E5*>[const E5{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:36:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:43:6 -> ListConstant(const <E6*>[const E6{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:44:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:51:6 -> ListConstant(const <E7*>[const E7{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_members.dart:52:3 -> InstanceConstant(const E7{})
+Extra constant evaluation: evaluated: 50, effectively constant: 14

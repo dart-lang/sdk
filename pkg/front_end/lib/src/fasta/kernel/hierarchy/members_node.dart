@@ -27,6 +27,7 @@ import '../../messages.dart'
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
+        messageEnumAbstractMember,
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
@@ -2351,14 +2352,19 @@ class ClassMembersNodeBuilder {
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
       if (isNameVisibleIn(declaration.name, classBuilder.libraryBuilder)) {
-        String name = declaration.fullNameForErrors;
-        String className = declaration.classBuilder.fullNameForErrors;
-        String displayName =
-            declaration.isSetter ? "$className.$name=" : "$className.$name";
-        contextMap[displayName] = templateMissingImplementationCause
-            .withArguments(displayName)
-            .withLocation(
-                declaration.fileUri, declaration.charOffset, name.length);
+        if (classBuilder.isEnum && declaration.classBuilder == classBuilder) {
+          classBuilder.addProblem(messageEnumAbstractMember,
+              declaration.charOffset, declaration.name.text.length);
+        } else {
+          String name = declaration.fullNameForErrors;
+          String className = declaration.classBuilder.fullNameForErrors;
+          String displayName =
+              declaration.isSetter ? "$className.$name=" : "$className.$name";
+          contextMap[displayName] = templateMissingImplementationCause
+              .withArguments(displayName)
+              .withLocation(
+                  declaration.fileUri, declaration.charOffset, name.length);
+        }
       }
     }
     if (contextMap.isEmpty) return;
