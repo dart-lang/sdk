@@ -3478,10 +3478,13 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 }
 
 void Assembler::TransitionNativeToGenerated(Register state,
-                                            bool exit_safepoint) {
+                                            bool exit_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (exit_safepoint) {
-    ExitFullSafepoint(state);
+    ExitFullSafepoint(state, ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
@@ -3540,7 +3543,8 @@ void Assembler::EnterFullSafepoint(Register state) {
   Bind(&done);
 }
 
-void Assembler::ExitFullSafepoint(Register state) {
+void Assembler::ExitFullSafepoint(Register state,
+                                  bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Register addr = RA;
@@ -3566,7 +3570,14 @@ void Assembler::ExitFullSafepoint(Register state) {
   }
 
   Bind(&slow_path);
-  lx(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    lx(addr,
+       Address(THR,
+               target::Thread::
+                   exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    lx(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   lx(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   jalr(addr);
 
@@ -3766,21 +3777,33 @@ LeafRuntimeScope::~LeafRuntimeScope() {
 #undef __
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+  COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+  COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_MASK));
+  COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+  // Need to save.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(PP));
+
   // N.B. The ordering here is important. We must never read beyond SP or
   // it may have already been clobbered by a signal handler.
-  subi(SP, SP, frame_space + 2 * target::kWordSize);
-  sx(RA, Address(SP, frame_space + 1 * target::kWordSize));
-  sx(FP, Address(SP, frame_space + 0 * target::kWordSize));
-  addi(FP, SP, frame_space + 2 * target::kWordSize);
+  subi(SP, SP, frame_space + 3 * target::kWordSize);
+  sx(RA, Address(SP, frame_space + 2 * target::kWordSize));
+  sx(FP, Address(SP, frame_space + 1 * target::kWordSize));
+  sx(PP, Address(SP, frame_space + 0 * target::kWordSize));
+  addi(FP, SP, frame_space + 3 * target::kWordSize);
+  const intptr_t kAbiStackAlignment = 16;  // For both 32 and 64 bit.
+  andi(SP, SP, ~(kAbiStackAlignment - 1));
 }
 
 void Assembler::LeaveCFrame() {
   // N.B. The ordering here is important. We must never read beyond SP or
   // it may have already been clobbered by a signal handler.
-  subi(SP, FP, 2 * target::kWordSize);
-  lx(FP, Address(SP, 0 * target::kWordSize));
-  lx(RA, Address(SP, 1 * target::kWordSize));
-  addi(SP, SP, 2 * target::kWordSize);
+  subi(SP, FP, 3 * target::kWordSize);
+  lx(PP, Address(SP, 0 * target::kWordSize));
+  lx(FP, Address(SP, 1 * target::kWordSize));
+  lx(RA, Address(SP, 2 * target::kWordSize));
+  addi(SP, SP, 3 * target::kWordSize);
 }
 
 // A0: Receiver

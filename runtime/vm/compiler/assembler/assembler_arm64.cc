@@ -1905,6 +1905,13 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+  COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+  COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+  COMPILE_ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+  COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+
   Push(FP);
   mov(FP, SP);
   ReserveAlignedFrameSpace(frame_space);
