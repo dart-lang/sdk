@@ -69,15 +69,27 @@ $_importMarker
 /// Entrypoint to be spawned with [Isolate.spawnUri] or [Process.start].
 ///
 /// Supports the client side of the macro expansion protocol.
-void main(_, [SendPort? sendPort]) {
+void main(List<String> arguments, [SendPort? sendPort]) {
   // Function that sends the result of a [Serializer] using either [sendPort]
   // or [stdout].
   void Function(Serializer) sendResult;
 
-  // The stream for incoming messages, could be either a ReceivePort or stdin.
+  // The stream for incoming messages, could be either a ReceivePort, stdin, or
+  // a socket.
   Stream<Object?> messageStream;
 
-  withSerializationMode($_modeMarker, () {
+  String? socketAddress;
+  int? socketPort;
+  if (arguments.isNotEmpty) {
+    if (arguments.length != 2) {
+      throw new ArgumentError(
+          'Expected exactly two or zero arguments, got \$arguments.');
+    }
+    socketAddress = arguments.first;
+    socketPort = int.parse(arguments[1]);
+  }
+
+  withSerializationMode($_modeMarker, () async {
     if (sendPort != null) {
       ReceivePort receivePort = new ReceivePort();
       messageStream = receivePort;
@@ -87,12 +99,20 @@ void main(_, [SendPort? sendPort]) {
       // isolate.
       sendPort.send(receivePort.sendPort);
     } else {
-      sendResult = _sendStdoutResult;
+      late Stream<List<int>> inputStream;
+      if (socketAddress != null && socketPort != null) {
+        var socket = await Socket.connect(socketAddress, socketPort);
+        sendResult = _sendIOSinkResultFactory(socket);
+        inputStream = socket;
+      } else {
+        sendResult = _sendIOSinkResultFactory(stdout);
+        inputStream = stdin;
+      }
       if (serializationMode == SerializationMode.byteDataClient) {
-        messageStream = MessageGrouper(stdin).messageStream;
+        messageStream = MessageGrouper(inputStream).messageStream;
       } else if (serializationMode == SerializationMode.jsonClient) {
-        messageStream = stdin
-          .transform(const Utf8Decoder())
+        messageStream = const Utf8Decoder()
+          .bind(inputStream)
           .transform(const LineSplitter())
           .map((line) => jsonDecode(line)!);
       } else {
@@ -339,26 +359,28 @@ void _sendIsolateResult(Serializer serializer, SendPort sendPort) {
   }
 }
 
-/// Sends [serializer.result] to [stdout].
+/// Returns a function which takes a [Serializer] and sends its result to
+/// [sink].
 ///
 /// Serializes the result to a string if using JSON.
-void _sendStdoutResult(Serializer serializer) {
-  if (serializationMode == SerializationMode.jsonClient) {
-    stdout.writeln(jsonEncode(serializer.result));
-  } else if (serializationMode == SerializationMode.byteDataClient) {
-    Uint8List result = (serializer as ByteDataSerializer).result;
-    int length = result.lengthInBytes;
-    stdout.add([
-      length >> 24 & 0xff,
-      length >> 16 & 0xff,
-      length >> 8 & 0xff,
-      length & 0xff,
-    ]);
-    stdout.add(result);
-  } else {
-    throw new UnsupportedError(
-        'Unsupported serialization mode \$serializationMode for '
-        'ProcessExecutor');
-  }
-}
+void Function(Serializer) _sendIOSinkResultFactory(IOSink sink) =>
+    (Serializer serializer) {
+      if (serializationMode == SerializationMode.jsonClient) {
+        sink.writeln(jsonEncode(serializer.result));
+      } else if (serializationMode == SerializationMode.byteDataClient) {
+        Uint8List result = (serializer as ByteDataSerializer).result;
+        int length = result.lengthInBytes;
+        sink.add([
+          length >> 24 & 0xff,
+          length >> 16 & 0xff,
+          length >> 8 & 0xff,
+          length & 0xff,
+        ]);
+        sink.add(result);
+      } else {
+        throw new UnsupportedError(
+            'Unsupported serialization mode \$serializationMode for '
+            'ProcessExecutor');
+      }
+    };
 ''';

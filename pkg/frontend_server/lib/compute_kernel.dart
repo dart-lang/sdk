@@ -321,8 +321,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             () => isolatedExecutor.start(serializationMode);
         break;
       case 'aot':
-        state.options.macroExecutorProvider =
-            () => processExecutor.start(serializationMode);
+        state.options.macroExecutorProvider = () => processExecutor.start(
+            serializationMode, processExecutor.CommunicationChannel.socket);
         break;
       default:
         throw ArgumentError('Unrecognized precompiled macro format $format');

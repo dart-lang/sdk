@@ -639,6 +639,7 @@ interim
 interior
 interleaved
 intermediate
+internet
 interpolations
 interrupted
 intersects
@@ -651,6 +652,7 @@ introspector
 ints
 invariants
 io
+ipv
 isolate
 isolated
 isolates
@@ -734,6 +736,7 @@ locationd
 logged
 logically
 lookahead
+loopback
 lots
 lp
 lparen
@@ -968,6 +971,7 @@ ps
 pulled
 pure
 puts
+pv
 q
 q'i
 qi
