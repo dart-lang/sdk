@@ -133,6 +133,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showWarnings;
   bool showHints;
   bool enableColors;
+  List<Uri> sources;
   int optimizationLevel = null;
   Uri platformBinaries;
   Map<String, String> environment = Map<String, String>();
@@ -289,11 +290,12 @@ Future<api.CompilationResult> compile(List<String> argv,
         Uri.base.resolve(extractPath(argument, isDirectory: true));
   }
 
-  void setUriList(String flag, String argument) {
+  List<Uri> setUriList(String flag, String argument) {
     String list = extractParameter(argument);
-    String uriList = list.splitMapJoin(',',
-        onMatch: (_) => ',', onNonMatch: (p) => '${fe.nativeToUri(p)}');
+    List<Uri> uris = list.split(',').map(fe.nativeToUri).toList();
+    String uriList = uris.map((uri) => '$uri').join(',');
     options.add('${flag}=${uriList}');
+    return uris;
   }
 
   void setModularAnalysisInputs(String argument) {
@@ -359,6 +361,10 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setDillDependencies(String argument) {
     setUriList(Flags.dillDependencies, argument);
+  }
+
+  void setSources(String argument) {
+    sources = setUriList(Flags.sources, argument);
   }
 
   void setCfeOnly(String argument) {
@@ -547,6 +553,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler('--library-root=.+', ignoreOption),
     OptionHandler('--libraries-spec=.+', setLibrarySpecificationUri),
     OptionHandler('${Flags.dillDependencies}=.+', setDillDependencies),
+    OptionHandler('${Flags.sources}=.+', setSources),
     OptionHandler('${Flags.readModularAnalysis}=.+', setModularAnalysisInputs),
     OptionHandler(
         '${Flags.writeModularAnalysis}|${Flags.writeModularAnalysis}=.+',
@@ -761,7 +768,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
   }
 
-  if (arguments.isEmpty && entryUri == null && inputDillUri == null) {
+  if (arguments.isEmpty &&
+      entryUri == null &&
+      inputDillUri == null &&
+      sources == null) {
     helpAndFail('No Dart file specified.');
   }
 
@@ -787,8 +797,11 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   // Make [scriptName] a relative path..
-  String scriptName =
-      fe.relativizeUri(Uri.base, inputDillUri ?? entryUri, Platform.isWindows);
+  String scriptName = sources == null
+      ? fe.relativizeUri(Uri.base, inputDillUri ?? entryUri, Platform.isWindows)
+      : sources
+          .map((uri) => fe.relativizeUri(Uri.base, uri, Platform.isWindows))
+          .join(',');
 
   switch (writeStrategy) {
     case WriteStrategy.toJs:

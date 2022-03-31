@@ -113,14 +113,14 @@ abstract class TypeInferenceEngine {
   /// This is represented as a map from a constructor to its library
   /// builder because the builder is used to report errors due to cyclic
   /// inference dependencies.
-  final Map<Constructor, DeclaredSourceConstructorBuilder> toBeInferred = {};
+  final Map<Constructor, SourceConstructorBuilder> toBeInferred = {};
 
   /// A map containing constructors in the process of being inferred.
   ///
   /// This is used to detect cyclic inference dependencies.  It is represented
   /// as a map from a constructor to its library builder because the builder
   /// is used to report errors.
-  final Map<Constructor, DeclaredSourceConstructorBuilder> beingInferred = {};
+  final Map<Constructor, SourceConstructorBuilder> beingInferred = {};
 
   final Map<Member, TypeDependency> typeDependencies = {};
 
@@ -144,7 +144,7 @@ abstract class TypeInferenceEngine {
   void finishTopLevelInitializingFormals() {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
-    for (DeclaredSourceConstructorBuilder builder in toBeInferred.values) {
+    for (SourceConstructorBuilder builder in toBeInferred.values) {
       builder.inferFormalTypes(typeSchemaEnvironment);
     }
     toBeInferred.clear();

@@ -47,7 +47,6 @@ account
 accounted
 accumulate
 accurate
-accurately
 achieve
 act
 acting
@@ -490,7 +489,6 @@ closure
 closures
 clue
 code
-coerce
 coincides
 coinductively
 collapses

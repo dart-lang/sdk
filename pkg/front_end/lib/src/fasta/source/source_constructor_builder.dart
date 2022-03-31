@@ -26,7 +26,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
-import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
+import '../kernel/kernel_helper.dart'
+    show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
@@ -52,6 +53,9 @@ import 'source_function_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
+  /// Infers the types of any untyped initializing formals.
+  void inferFormalTypes(TypeEnvironment typeEnvironment);
+
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 }
@@ -224,7 +228,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     return _constructor;
   }
 
-  /// Infers the types of any untyped initializing formals.
+  @override
   void inferFormalTypes(TypeEnvironment typeEnvironment) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
@@ -321,14 +325,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     ConstructorBuilder? superTargetBuilder =
         _computeSuperTargetBuilder(initializers);
 
-    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
+    if (superTargetBuilder is SourceConstructorBuilder) {
       superTargetBuilder.inferFormalTypes(typeEnvironment);
-    } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
-      MemberBuilder? superTargetOriginBuilder =
-          superTargetBuilder._effectivelyDefiningConstructor;
-      if (superTargetOriginBuilder is DeclaredSourceConstructorBuilder) {
-        superTargetOriginBuilder.inferFormalTypes(typeEnvironment);
-      }
     }
 
     Constructor superTarget;
@@ -339,10 +337,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       superFormals = superTargetBuilder.formals!;
     } else if (superTargetBuilder is DillConstructorBuilder) {
       superTarget = superTargetBuilder.constructor;
+      superConstructorFunction = superTargetBuilder.function;
       if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
         superFormals = superTargetBuilder.formals;
-      } else {
-        superConstructorFunction = superTargetBuilder.function;
       }
     } else {
       // The error in this case should be reported elsewhere. Here we perform a
@@ -354,7 +351,27 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     List<bool> positionalSuperFormalHasInitializer = [];
     Map<String, DartType?> namedSuperFormalType = {};
     Map<String, bool> namedSuperFormalHasInitializer = {};
-    if (superFormals != null) {
+    // TODO(johnniwinther): Clean this up when [VariableDeclaration] has a
+    // `hasDeclaredInitializer` flag.
+    if (superFormals != null && superConstructorFunction != null) {
+      for (VariableDeclaration formal
+          in superConstructorFunction.positionalParameters) {
+        positionalSuperFormalType.add(formal.type);
+      }
+      for (VariableDeclaration formal
+          in superConstructorFunction.namedParameters) {
+        namedSuperFormalType[formal.name!] = formal.type;
+      }
+      for (FormalParameterBuilder formal in superFormals) {
+        if (formal.isPositional) {
+          positionalSuperFormalHasInitializer
+              .add(formal.hasDeclaredInitializer);
+        } else {
+          namedSuperFormalHasInitializer[formal.name] =
+              formal.hasDeclaredInitializer;
+        }
+      }
+    } else if (superFormals != null) {
       for (FormalParameterBuilder formal in superFormals) {
         if (formal.isPositional) {
           positionalSuperFormalType.add(formal.variable?.type);
@@ -802,18 +819,33 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   /// the constructor that effectively defines this constructor.
   MemberBuilder? _immediatelyDefiningConstructor;
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
+  TypeDependency? _typeDependency;
 
   SyntheticSourceConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
       {MemberBuilder? definingConstructor,
-      DelayedDefaultValueCloner? delayedDefaultValueCloner})
+      DelayedDefaultValueCloner? delayedDefaultValueCloner,
+      TypeDependency? typeDependency})
       : _immediatelyDefiningConstructor = definingConstructor,
         _delayedDefaultValueCloner = delayedDefaultValueCloner,
+        _typeDependency = typeDependency,
         super(constructor, constructorTearOff, parent);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
+
+  @override
+  void inferFormalTypes(TypeEnvironment typeEnvironment) {
+    if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
+      (_immediatelyDefiningConstructor as SourceConstructorBuilder)
+          .inferFormalTypes(typeEnvironment);
+    }
+    if (_typeDependency != null) {
+      _typeDependency!.copyInferred();
+      _typeDependency = null;
+    }
+  }
 
   MemberBuilder? get _effectivelyDefiningConstructor {
     MemberBuilder? origin = _immediatelyDefiningConstructor;

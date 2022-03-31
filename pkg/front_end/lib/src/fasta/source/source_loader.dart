@@ -974,7 +974,7 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, DeclaredSourceConstructorBuilder builder) {
+      Constructor constructor, SourceConstructorBuilder builder) {
     _typeInferenceEngine!.toBeInferred[constructor] = builder;
   }
 

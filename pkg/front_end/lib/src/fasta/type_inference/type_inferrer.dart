@@ -388,8 +388,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   void inferConstructorParameterTypes(Constructor target) {
-    DeclaredSourceConstructorBuilder? constructor =
-        engine.beingInferred[target];
+    SourceConstructorBuilder? constructor = engine.beingInferred[target];
     if (constructor != null) {
       // There is a cyclic dependency where inferring the types of the
       // initializing formals of a constructor required us to infer the
@@ -494,7 +493,6 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
       bool isVoidAllowed: false,
-      bool coerceExpression: true,
       Template<Message Function(DartType, DartType, bool)>? errorTemplate,
       Template<Message Function(DartType, DartType, bool)>?
           nullabilityErrorTemplate,
@@ -510,7 +508,6 @@ class TypeInferrerImpl implements TypeInferrer {
             declaredContextType: declaredContextType,
             runtimeCheckedType: runtimeCheckedType,
             isVoidAllowed: isVoidAllowed,
-            coerceExpression: coerceExpression,
             errorTemplate: errorTemplate,
             nullabilityErrorTemplate: nullabilityErrorTemplate,
             nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
@@ -529,7 +526,6 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
       bool isVoidAllowed: false,
-      bool coerceExpression: true,
       Template<Message Function(DartType, DartType, bool)>? errorTemplate,
       Template<Message Function(DartType, DartType, bool)>?
           nullabilityErrorTemplate,
@@ -581,8 +577,7 @@ class TypeInferrerImpl implements TypeInferrer {
         contextType, inferenceResult.inferredType,
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
-        isExpressionTypePrecise: preciseTypeErrorTemplate != null,
-        coerceExpression: coerceExpression);
+        isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
     if (assignabilityResult.needsTearOff) {
       TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
@@ -786,8 +781,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType contextType, DartType expressionType,
       {required bool isNonNullableByDefault,
       required bool isVoidAllowed,
-      required bool isExpressionTypePrecise,
-      required bool coerceExpression}) {
+      required bool isExpressionTypePrecise}) {
     // ignore: unnecessary_null_comparison
     assert(isNonNullableByDefault != null);
     // ignore: unnecessary_null_comparison
@@ -799,7 +793,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // should tear off `.call`.
     // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
     bool needsTearoff = false;
-    if (coerceExpression && expressionType is InterfaceType) {
+    if (expressionType is InterfaceType) {
       Class classNode = expressionType.classNode;
       Member? callMember =
           classHierarchy.getInterfaceMember(classNode, callName);
@@ -818,7 +812,7 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     ImplicitInstantiation? implicitInstantiation;
-    if (coerceExpression && libraryBuilder.enableConstructorTearOffsInLibrary) {
+    if (libraryBuilder.enableConstructorTearOffsInLibrary) {
       implicitInstantiation =
           computeImplicitInstantiation(expressionType, contextType);
       if (implicitInstantiation != null) {
@@ -872,15 +866,8 @@ class TypeInferrerImpl implements TypeInferrer {
       return const AssignabilityResult(AssignabilityKind.unassignablePrecise,
           needsTearOff: false);
     }
-
-    if (coerceExpression) {
-      // Insert an implicit downcast.
-      return new AssignabilityResult(AssignabilityKind.assignableCast,
-          needsTearOff: needsTearoff,
-          implicitInstantiation: implicitInstantiation);
-    }
-
-    return new AssignabilityResult(AssignabilityKind.unassignable,
+    // Insert an implicit downcast.
+    return new AssignabilityResult(AssignabilityKind.assignableCast,
         needsTearOff: needsTearoff,
         implicitInstantiation: implicitInstantiation);
   }
@@ -2630,23 +2617,17 @@ class TypeInferrerImpl implements TypeInferrer {
           DartType actualType = actualTypes![i];
           Expression expression;
           NamedExpression? namedExpression;
-          bool coerceExpression;
           if (i < numPositionalArgs) {
             expression = arguments.positional[positionalShift + i];
             positionalArgumentTypes.add(actualType);
-            coerceExpression = !arguments.positionalAreSuperParameters;
           } else {
             namedExpression = arguments.named[i - numPositionalArgs];
             expression = namedExpression.value;
             namedArgumentTypes
                 .add(new NamedType(namedExpression.name, actualType));
-            coerceExpression = !(arguments.namedSuperParameterNames
-                    ?.contains(namedExpression.name) ??
-                false);
           }
           expression = ensureAssignable(expectedType, actualType, expression,
               isVoidAllowed: expectedType is VoidType,
-              coerceExpression: coerceExpression,
               // TODO(johnniwinther): Specialize message for operator
               // invocations.
               errorTemplate: templateArgumentTypeNotAssignable,

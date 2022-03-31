@@ -250,11 +250,13 @@ class TypeDependency {
   final Member original;
   final Substitution substitution;
   final bool copyReturnType;
+  bool _hasBeenInferred = false;
 
   TypeDependency(this.synthesized, this.original, this.substitution,
       {required this.copyReturnType});
 
   void copyInferred() {
+    if (_hasBeenInferred) return;
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
       VariableDeclaration synthesizedParameter =
           synthesized.function!.positionalParameters[i];
@@ -275,5 +277,6 @@ class TypeDependency {
       synthesized.function!.returnType =
           substitution.substituteType(original.function!.returnType);
     }
+    _hasBeenInferred = true;
   }
 }

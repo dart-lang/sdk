@@ -86,6 +86,8 @@ class SourceOnlyStep implements MemoryModularStep {
   List<DataId> get moduleDataNeeded => const [];
   List<DataId> get resultData => [resultId];
   bool get onlyOnMain => false;
+  bool get onlyOnSdk => false;
+  bool get notOnSdk => false;
 
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
@@ -114,6 +116,8 @@ class ModuleDataStep implements MemoryModularStep {
   final DataId resultId;
   final DataId inputId;
   bool get onlyOnMain => false;
+  bool get onlyOnSdk => false;
+  bool get notOnSdk => false;
 
   ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
       : moduleDataNeeded = requestInput ? [inputId] : [];
@@ -144,6 +148,8 @@ class TwoOutputStep implements MemoryModularStep {
   final DataId result2Id;
   final DataId inputId;
   bool get onlyOnMain => false;
+  bool get onlyOnSdk => false;
+  bool get notOnSdk => false;
 
   TwoOutputStep(
       this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
@@ -177,6 +183,8 @@ class LinkStep implements MemoryModularStep {
   final DataId resultId;
   List<DataId> get resultData => [resultId];
   bool get onlyOnMain => false;
+  bool get onlyOnSdk => false;
+  bool get notOnSdk => false;
 
   LinkStep(this.action, this.inputId, this.depId, this.resultId,
       bool requestDependencies)
@@ -208,6 +216,8 @@ class MainOnlyStep implements MemoryModularStep {
   final DataId resultId;
   List<DataId> get resultData => [resultId];
   bool get onlyOnMain => true;
+  bool get onlyOnSdk => false;
+  bool get notOnSdk => false;
 
   MainOnlyStep(this.action, this.inputId, this.depId, this.resultId,
       bool requestDependencies)

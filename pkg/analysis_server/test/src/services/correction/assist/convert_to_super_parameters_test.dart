@@ -164,6 +164,70 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_final_named_withoutType() async {
+    await resolveTestCode('''
+class A {
+  A({required int x});
+}
+class B extends A {
+  B({required final x}) : super(x: x);
+}
+''');
+    // `dynamic` is not a subtype of `int`
+    await assertNoAssistAt('B(');
+  }
+
+  Future<void> test_final_named_withType() async {
+    await resolveTestCode('''
+class A {
+  A({required int x});
+}
+class B extends A {
+  B({required final int x}) : super(x: x);
+}
+''');
+    await assertHasAssistAt('B(', '''
+class A {
+  A({required int x});
+}
+class B extends A {
+  B({required super.x});
+}
+''');
+  }
+
+  Future<void> test_final_positional_withoutType() async {
+    await resolveTestCode('''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(final x) : super(x);
+}
+''');
+    // `dynamic` is not a subtype of `int`
+    await assertNoAssistAt('B(');
+  }
+
+  Future<void> test_final_positional_withType() async {
+    await resolveTestCode('''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(final int x) : super(x);
+}
+''');
+    await assertHasAssistAt('B(', '''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(super.x);
+}
+''');
+  }
+
   Future<void> test_functionTypedFormalParameter() async {
     await resolveTestCode('''
 class A {
