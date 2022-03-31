@@ -410,10 +410,7 @@ class Compiler {
         }
         await serializationTask.serializeComponent(component);
       }
-      // We currently do not return the trimmed component from [produceKernel]
-      // because downstream phases, in particular modular analysis, currently
-      // depend on the untrimmed dill.
-      return output;
+      return output.withNewComponent(component);
     } else {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();

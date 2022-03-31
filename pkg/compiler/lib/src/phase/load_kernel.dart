@@ -64,6 +64,9 @@ class Output {
 
   final fe.InitializedCompilerState initializedCompilerState;
 
+  Output withNewComponent(ir.Component component) => Output(component,
+      rootLibraryUri, libraries, moduleLibraries, initializedCompilerState);
+
   Output(this.component, this.rootLibraryUri, this.libraries,
       this.moduleLibraries, this.initializedCompilerState);
 }
