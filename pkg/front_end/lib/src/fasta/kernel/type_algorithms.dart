@@ -137,7 +137,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder formal in type.formals!) {
+      for (ParameterBuilder formal in type.formals!) {
         result = Variance.meet(
             result,
             Variance.combine(
@@ -281,9 +281,9 @@ TypeBuilder? substituteRange(
       variables = new List<TypeVariableBuilder>.filled(
           type.typeVariables!.length, dummyTypeVariableBuilder);
     }
-    List<FormalParameterBuilder>? formals;
+    List<ParameterBuilder>? formals;
     if (type.formals != null) {
-      formals = new List<FormalParameterBuilder>.filled(
+      formals = new List<ParameterBuilder>.filled(
           type.formals!.length, dummyFormalParameterBuilder);
     }
     TypeBuilder? returnType;
@@ -322,7 +322,7 @@ TypeBuilder? substituteRange(
     }
     if (type.formals != null) {
       for (int i = 0; i < formals!.length; i++) {
-        FormalParameterBuilder formal = type.formals![i];
+        ParameterBuilder formal = type.formals![i];
         TypeBuilder? parameterType = substituteRange(
             formal.type,
             functionTypeUpperSubstitution ?? upperSubstitution,
@@ -331,15 +331,8 @@ TypeBuilder? substituteRange(
             unboundTypeVariables,
             variance: Variance.combine(variance, Variance.contravariant));
         if (parameterType != formal.type) {
-          formals[i] = new FormalParameterBuilder(
-              formal.metadata,
-              formal.modifiers,
-              parameterType,
-              formal.name,
-              formal.parent as LibraryBuilder?,
-              formal.charOffset,
-              fileUri: formal.fileUri,
-              isExtensionThis: formal.isExtensionThis);
+          formals[i] = new FunctionTypeParameterBuilder(
+              formal.metadata, formal.kind, parameterType, formal.name);
           changed = true;
         } else {
           formals[i] = formal;
@@ -476,7 +469,7 @@ class TypeVariablesGraph implements Graph<int> {
           }
         }
         if (type.formals != null) {
-          for (FormalParameterBuilder parameter in type.formals!) {
+          for (ParameterBuilder parameter in type.formals!) {
             collectReferencesFrom(index, parameter.type);
           }
         }
@@ -530,7 +523,7 @@ List<NamedTypeBuilder> findVariableUsesInType(
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder formal in type.formals!) {
+      for (ParameterBuilder formal in type.formals!) {
         uses.addAll(findVariableUsesInType(variable, formal.type));
       }
     }
@@ -651,7 +644,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder formal in type.formals!) {
+      for (ParameterBuilder formal in type.formals!) {
         typesAndDependencies
             .addAll(findRawTypesWithInboundReferences(formal.type));
       }
@@ -822,7 +815,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
       }
     }
     if (start.formals != null) {
-      for (FormalParameterBuilder formal in start.formals!) {
+      for (ParameterBuilder formal in start.formals!) {
         paths.addAll(findRawTypePathsToDeclaration(formal.type, end, visited));
       }
     }
@@ -1030,7 +1023,7 @@ void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
     }
     findUnaliasedGenericFunctionTypes(type.returnType, result: result);
     if (type.formals != null) {
-      for (FormalParameterBuilder formal in type.formals!) {
+      for (ParameterBuilder formal in type.formals!) {
         findUnaliasedGenericFunctionTypes(formal.type, result: result);
       }
     }
@@ -1059,7 +1052,7 @@ void findGenericFunctionTypes(TypeBuilder? type,
     }
     findGenericFunctionTypes(type.returnType, result: result);
     if (type.formals != null) {
-      for (FormalParameterBuilder formal in type.formals!) {
+      for (ParameterBuilder formal in type.formals!) {
         findGenericFunctionTypes(formal.type, result: result);
       }
     }

@@ -544,7 +544,7 @@ class MacroApplications {
           namedParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
-            isRequired: formal.isNamedRequired,
+            isRequired: formal.isRequiredNamed,
             isNamed: true,
             type: type,
           ));
@@ -552,7 +552,7 @@ class MacroApplications {
           positionalParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
-            isRequired: formal.isRequired,
+            isRequired: formal.isRequiredPositional,
             isNamed: false,
             type: type,
           ));

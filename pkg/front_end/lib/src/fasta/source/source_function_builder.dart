@@ -355,13 +355,13 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           function.positionalParameters.add(parameter);
         }
         parameter.parent = function;
-        if (formal.isRequired) {
+        if (formal.isRequiredPositional) {
           function.requiredParameterCount++;
         }
 
         if (libraryBuilder.isNonNullableByDefault) {
           // Required named parameters can't have default values.
-          if (formal.isNamedRequired && formal.initializerToken != null) {
+          if (formal.isRequiredNamed && formal.initializerToken != null) {
             libraryBuilder.addProblem(
                 templateRequiredNamedParameterHasDefaultValueError
                     .withArguments(formal.name),
@@ -374,7 +374,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
     if (!isExtensionInstanceMember &&
         isSetter &&
-        (formals?.length != 1 || formals![0].isOptional)) {
+        (formals?.length != 1 || formals![0].isOptionalPositional)) {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.

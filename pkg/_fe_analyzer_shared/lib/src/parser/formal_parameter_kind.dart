@@ -4,21 +4,35 @@
 
 library _fe_analyzer_shared.parser.formal_parameter_kind;
 
-// TODO(johnniwinther): Update this to support required named arguments.
 enum FormalParameterKind {
-  mandatory,
+  requiredPositional,
+  requiredNamed,
   optionalNamed,
   optionalPositional,
 }
 
-bool isMandatoryFormalParameterKind(FormalParameterKind type) {
-  return FormalParameterKind.mandatory == type;
-}
+extension FormalParameterKindExtension on FormalParameterKind {
+  bool get isRequiredPositional {
+    return FormalParameterKind.requiredPositional == this;
+  }
 
-bool isOptionalNamedFormalParameterKind(FormalParameterKind type) {
-  return FormalParameterKind.optionalNamed == type;
-}
+  bool get isOptionalNamed {
+    return FormalParameterKind.optionalNamed == this;
+  }
 
-bool isOptionalPositionalFormalParameterKind(FormalParameterKind type) {
-  return FormalParameterKind.optionalPositional == type;
+  bool get isOptionalPositional {
+    return FormalParameterKind.optionalPositional == this;
+  }
+
+  bool get isRequiredNamed {
+    return FormalParameterKind.requiredNamed == this;
+  }
+
+  bool get isRequired => isRequiredPositional || isRequiredNamed;
+
+  bool get isOptional => isOptionalPositional || isOptionalNamed;
+
+  bool get isPositional => isRequiredPositional || isOptionalPositional;
+
+  bool get isNamed => isRequiredNamed || isOptionalNamed;
 }

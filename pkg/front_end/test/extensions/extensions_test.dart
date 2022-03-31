@@ -233,7 +233,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     if (memberBuilder is SourceFunctionBuilder) {
       if (memberBuilder.formals != null) {
         for (FormalParameterBuilder parameter in memberBuilder.formals!) {
-          if (parameter.isRequired) {
+          if (parameter.isRequiredPositional) {
             features.addElement(Tags.builderRequiredParameters, parameter.name);
           } else if (parameter.isPositional) {
             features.addElement(

@@ -289,10 +289,10 @@ class DietListener extends StackListenerImpl {
     if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder? type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
-        List<FormalParameterBuilder>? formals = type.formals;
+        List<ParameterBuilder>? formals = type.formals;
         if (formals != null) {
           for (int i = 0; i < formals.length; ++i) {
-            FormalParameterBuilder formal = formals[i];
+            ParameterBuilder formal = formals[i];
             List<MetadataBuilder>? metadata = formal.metadata;
             if (metadata != null && metadata.length > 0) {
               // [parseMetadata] is using [Parser.parseMetadataStar] under the

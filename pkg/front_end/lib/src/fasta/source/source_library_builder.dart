@@ -7,6 +7,7 @@ library fasta.source_library_builder;
 import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
@@ -2264,7 +2265,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         } else if (type is FunctionTypeBuilder) {
           if (type.formals != null) {
-            for (FormalParameterBuilder formal in type.formals!) {
+            for (ParameterBuilder formal in type.formals!) {
               if (usesTypeVariables(formal.type)) {
                 return true;
               }
@@ -3014,6 +3015,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder>? metadata,
+      FormalParameterKind kind,
       int modifiers,
       TypeBuilder? type,
       String name,
@@ -3030,7 +3032,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= superInitializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset,
+        metadata, kind, modifiers, type, name, this, charOffset,
         fileUri: fileUri)
       ..initializerToken = initializerToken
       ..hasDeclaredInitializer = (initializerToken != null);
@@ -4176,8 +4178,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (!isNonNullableByDefault) return;
 
     for (FormalParameterBuilder formal in formals) {
-      bool isOptionalPositional = formal.isOptional && formal.isPositional;
-      bool isOptionalNamed = !formal.isNamedRequired && formal.isNamed;
+      bool isOptionalPositional =
+          formal.isOptionalPositional && formal.isPositional;
+      bool isOptionalNamed = !formal.isRequiredNamed && formal.isNamed;
       bool isOptional = isOptionalPositional || isOptionalNamed;
       if (isOptional &&
           formal.variable!.type.isPotentiallyNonNullable &&
@@ -5455,7 +5458,7 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
     }
     if (root.formals != null && root.formals!.isNotEmpty) {
       internalDependents = <TypeBuilder>[];
-      for (FormalParameterBuilder formal in root.formals!) {
+      for (ParameterBuilder formal in root.formals!) {
         internalDependents.add(formal.type!);
       }
     }

@@ -1797,7 +1797,7 @@ class OutlineBuilder extends StackListenerImpl {
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
-            if (!formal.isRequired) {
+            if (!formal.isRequiredPositional) {
               addProblem(messageOperatorWithOptionalFormals, formal.charOffset,
                   formal.name.length);
             }
@@ -1920,8 +1920,15 @@ class OutlineBuilder extends StackListenerImpl {
           libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
-            null, finalMask, thisType, extensionThisName, null, charOffset,
-            fileUri: uri, isExtensionThis: true));
+            /* metadata = */ null,
+            FormalParameterKind.requiredPositional,
+            finalMask,
+            thisType,
+            extensionThisName,
+            null,
+            charOffset,
+            fileUri: uri,
+            isExtensionThis: true));
         if (formals != null) {
           synthesizedFormals.addAll(formals);
         }
@@ -2284,6 +2291,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       push(libraryBuilder.addFormalParameter(
           metadata,
+          kind,
           modifiers,
           type,
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
@@ -2321,9 +2329,6 @@ class OutlineBuilder extends StackListenerImpl {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterKind kind = optional("{", beginToken)
-        ? FormalParameterKind.optionalNamed
-        : FormalParameterKind.optionalPositional;
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
@@ -2334,9 +2339,6 @@ class OutlineBuilder extends StackListenerImpl {
     if (parameters == null) {
       push(new ParserRecovery(offsetForToken(beginToken)));
     } else {
-      for (FormalParameterBuilder parameter in parameters) {
-        parameter.kind = kind;
-      }
       push(parameters);
     }
   }
