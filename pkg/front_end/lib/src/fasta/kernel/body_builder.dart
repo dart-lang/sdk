@@ -4385,7 +4385,9 @@ class BodyBuilder extends StackListenerImpl
       buildDartType(type, allowPotentiallyConstantType: false);
     }
     Token? varOrFinalOrConst = pop(NullValue.Token) as Token?;
-    if (superKeyword != null && varOrFinalOrConst != null) {
+    if (superKeyword != null &&
+        varOrFinalOrConst != null &&
+        optional('var', varOrFinalOrConst)) {
       handleRecoverableError(
           fasta.templateExtraneousModifier.withArguments(varOrFinalOrConst),
           varOrFinalOrConst,
