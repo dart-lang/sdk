@@ -330,8 +330,7 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
   File* file = GetFile(args);
   ASSERT(file != NULL);
   int64_t length = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length) &&
-      (length >= 0)) {
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
     if (file->Truncate(length)) {
       Dart_SetBooleanReturnValue(args, true);
     } else {
