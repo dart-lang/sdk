@@ -1962,8 +1962,22 @@ class _InvalidAccessVerifier {
     }
 
     if (hasVisibleForOverriding) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, node, [name]);
+      var parent = node.parent;
+      var validOverride = false;
+      if (parent is MethodInvocation && parent.target is SuperExpression ||
+          parent is PropertyAccess && parent.target is SuperExpression) {
+        var methodDeclaration =
+            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
+        if (methodDeclaration?.name.token.value() == identifier.token.value()) {
+          validOverride = true;
+        }
+      }
+      if (!validOverride) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+            node,
+            [name]);
+      }
     }
   }
 
