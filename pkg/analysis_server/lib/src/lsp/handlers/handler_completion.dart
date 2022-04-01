@@ -61,108 +61,131 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
 
-    final lineInfo = await unit.map(
-      // If we don't have a unit, we can still try to obtain the line info from
-      // the server (this could be because the file is non-Dart, such as YAML or
-      // another handled by a plugin).
-      (error) => path.mapResult(getLineInfo),
-      (unit) => success(unit.lineInfo),
-    );
-    final offset =
-        await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
-
-    return offset.mapResult((offset) async {
-      Future<ErrorOr<CompletionList>>? serverResultsFuture;
-      final pathContext = server.resourceProvider.pathContext;
-      final fileExtension = pathContext.extension(path.result);
-
-      final maxResults = server.clientConfiguration
-          .forResource(path.result)
-          .maxCompletionItems;
-
-      CompletionPerformance? completionPerformance;
-      if (fileExtension == '.dart' && !unit.isError) {
-        final result = unit.result;
-        var performanceOperation = OperationPerformanceImpl('<root>');
-        completionPerformance = CompletionPerformance(
-          operation: performanceOperation,
-          path: result.path,
-          content: result.content,
-          offset: offset,
-        );
-        server.performanceStats.completion.add(completionPerformance);
-
-        serverResultsFuture = _getServerDartItems(
-          clientCapabilities,
-          result,
-          completionPerformance,
-          performanceOperation,
-          offset,
-          triggerCharacter,
-          token,
-          maxResults: maxResults,
-        );
-      } else if (fileExtension == '.yaml') {
-        YamlCompletionGenerator? generator;
-        if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
-          generator = AnalysisOptionsGenerator(server.resourceProvider);
-        } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
-          generator = FixDataGenerator(server.resourceProvider);
-        } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
-          generator = PubspecGenerator(
-              server.resourceProvider, server.pubPackageService);
-        }
-        if (generator != null) {
-          serverResultsFuture = _getServerYamlItems(
-            generator,
-            clientCapabilities,
-            path.result,
-            lineInfo.result,
-            offset,
-            token,
-          );
-        }
-      }
-
-      serverResultsFuture ??=
-          Future.value(success(CompletionList(isIncomplete: false, items: [])));
-
-      final pluginResultsFuture = _getPluginResults(
-          clientCapabilities, lineInfo.result, path.result, offset);
-
-      // Await both server + plugin results together to allow async/IO to
-      // overlap.
-      final serverAndPluginResults =
-          await Future.wait([serverResultsFuture, pluginResultsFuture]);
-      final serverResults = serverAndPluginResults[0];
-      final pluginResults = serverAndPluginResults[1];
-
-      if (serverResults.isError) return serverResults;
-      if (pluginResults.isError) return pluginResults;
-
-      final untruncatedItems = serverResults.result.items
-          .followedBy(pluginResults.result.items)
-          .toList();
-
-      final truncatedItems = untruncatedItems.length > maxResults
-          ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
-          : untruncatedItems;
-
-      // If we're tracing performance (only Dart), record the number of results
-      // after truncation.
-      completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
-
-      return success(CompletionList(
-        // If any set of the results is incomplete, the whole batch must be
-        // marked as such.
-        isIncomplete: serverResults.result.isIncomplete ||
-            pluginResults.result.isIncomplete ||
-            truncatedItems.length != untruncatedItems.length,
-        items: truncatedItems,
-      ));
+    // IMPORTANT:
+    // This handler is frequently called while the user is typing, which means
+    // during any `await` there is a good chance of the file contents being
+    // updated, but we must return results consistent with the file at the time
+    // this request started so that the client can compensate for any typing
+    // in the meantime.
+    //
+    // To do this, tell the server to lock requests until we have a resolved
+    // unit and LineInfo.
+    late ErrorOr<LineInfo> lineInfo;
+    late ErrorOr<ResolvedUnitResult> unit;
+    await server.lockRequestsWhile(() async {
+      unit = await path.mapResult(requireResolvedUnit);
+      lineInfo = await unit.map(
+        // If we don't have a unit, we can still try to obtain the line info from
+        // the server (this could be because the file is non-Dart, such as YAML or
+        // another handled by a plugin).
+        (error) => path.mapResult(getLineInfo),
+        (unit) => success(unit.lineInfo),
+      );
     });
+
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
+
+    // Map the offset, propagating the previous failure if we didn't have a
+    // valid LineInfo.
+    final offsetResult = !lineInfo.isError
+        ? toOffset(lineInfo.result, pos)
+        : failure<int>(lineInfo);
+
+    if (offsetResult.isError) {
+      return failure(offsetResult);
+    }
+    final offset = offsetResult.result;
+
+    Future<ErrorOr<CompletionList>>? serverResultsFuture;
+    final pathContext = server.resourceProvider.pathContext;
+    final fileExtension = pathContext.extension(path.result);
+
+    final maxResults =
+        server.clientConfiguration.forResource(path.result).maxCompletionItems;
+
+    CompletionPerformance? completionPerformance;
+    if (fileExtension == '.dart' && !unit.isError) {
+      final result = unit.result;
+      var performanceOperation = OperationPerformanceImpl('<root>');
+      completionPerformance = CompletionPerformance(
+        operation: performanceOperation,
+        path: result.path,
+        content: result.content,
+        offset: offset,
+      );
+      server.performanceStats.completion.add(completionPerformance);
+
+      serverResultsFuture = _getServerDartItems(
+        clientCapabilities,
+        unit.result,
+        completionPerformance,
+        performanceOperation,
+        offset,
+        triggerCharacter,
+        token,
+        maxResults: maxResults,
+      );
+    } else if (fileExtension == '.yaml') {
+      YamlCompletionGenerator? generator;
+      if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
+        generator = AnalysisOptionsGenerator(server.resourceProvider);
+      } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
+        generator = FixDataGenerator(server.resourceProvider);
+      } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
+        generator =
+            PubspecGenerator(server.resourceProvider, server.pubPackageService);
+      }
+      if (generator != null) {
+        serverResultsFuture = _getServerYamlItems(
+          generator,
+          clientCapabilities,
+          path.result,
+          lineInfo.result,
+          offset,
+          token,
+        );
+      }
+    }
+
+    serverResultsFuture ??=
+        Future.value(success(CompletionList(isIncomplete: false, items: [])));
+
+    final pluginResultsFuture = _getPluginResults(
+        clientCapabilities, lineInfo.result, path.result, offset);
+
+    // Await both server + plugin results together to allow async/IO to
+    // overlap.
+    final serverAndPluginResults =
+        await Future.wait([serverResultsFuture, pluginResultsFuture]);
+    final serverResults = serverAndPluginResults[0];
+    final pluginResults = serverAndPluginResults[1];
+
+    if (serverResults.isError) return serverResults;
+    if (pluginResults.isError) return pluginResults;
+
+    final untruncatedItems = serverResults.result.items
+        .followedBy(pluginResults.result.items)
+        .toList();
+
+    final truncatedItems = untruncatedItems.length > maxResults
+        ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
+        : untruncatedItems;
+
+    // If we're tracing performance (only Dart), record the number of results
+    // after truncation.
+    completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
+
+    return success(CompletionList(
+      // If any set of the results is incomplete, the whole batch must be
+      // marked as such.
+      isIncomplete: serverResults.result.isIncomplete ||
+          pluginResults.result.isIncomplete ||
+          truncatedItems.length != untruncatedItems.length,
+      items: truncatedItems,
+    ));
   }
 
   /// Build a list of existing imports so we can filter out any suggestions

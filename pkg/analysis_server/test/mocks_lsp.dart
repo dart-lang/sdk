@@ -75,9 +75,10 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(lsp.Message message) onMessage,
+  StreamSubscription<void> listen(void Function(lsp.Message message) onMessage,
       {Function? onError, void Function()? onDone}) {
-    _clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
+    return _clientToServer.stream
+        .listen(onMessage, onError: onError, onDone: onDone);
   }
 
   @override
