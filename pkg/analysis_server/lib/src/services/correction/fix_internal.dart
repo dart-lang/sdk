@@ -995,6 +995,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NON_BOOL_CONDITION: [
       AddNeNull.newInstance,
     ],
+    CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [
+      AddConst.newInstance,
+    ],
     CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
       CreateClass.newInstance,
       CreateMixin.newInstance,
