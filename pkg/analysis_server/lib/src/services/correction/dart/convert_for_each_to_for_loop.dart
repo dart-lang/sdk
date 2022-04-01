@@ -5,7 +5,9 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -60,6 +62,7 @@ class ConvertForEachToForLoop extends CorrectionProducer {
           builder.write(') ');
         });
         builder.addDeletion(range.endEnd(body, statement));
+        body.visitChildren(_ReturnVisitor(builder));
       });
     } else if (body is ExpressionFunctionBody) {
       await builder.addDartFileEdit(file, (builder) {
@@ -80,10 +83,22 @@ class ConvertForEachToForLoop extends CorrectionProducer {
           builder.write(prefix);
           builder.write('}');
         });
+        body.visitChildren(_ReturnVisitor(builder));
       });
     }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static ConvertForEachToForLoop newInstance() => ConvertForEachToForLoop();
+}
+
+class _ReturnVisitor extends RecursiveAstVisitor<void> {
+  final DartFileEditBuilder builder;
+
+  _ReturnVisitor(this.builder);
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    builder.addSimpleReplacement(range.node(node), 'continue;');
+  }
 }

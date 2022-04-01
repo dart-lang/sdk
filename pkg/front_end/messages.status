@@ -214,6 +214,8 @@ DuplicatedName/example: Fail
 DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
+EnumAbstractMember/analyzerCode: Fail
+EnumAbstractMember/example: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
 EnumConstructorSuperInitializer/analyzerCode: Fail
 EnumConstructorSuperInitializer/example: Fail

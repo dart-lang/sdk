@@ -2738,6 +2738,9 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+
   EnterFrame(0);
   ReserveAlignedFrameSpace(frame_space);
 }

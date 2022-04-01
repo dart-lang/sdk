@@ -1,0 +1,47 @@
+enum E1 {
+  element;
+
+  void foo();
+}
+
+enum E2 {
+  element;
+
+  int get foo;
+}
+
+enum E3 {
+  element;
+
+  void set foo(int val);
+}
+
+abstract class InterfaceMethod {
+  void foo();
+}
+
+enum E4 implements InterfaceMethod { element }
+
+abstract class InterfaceGetter {
+  int get foo;
+}
+
+enum E5 implements InterfaceGetter { element }
+
+abstract class InterfaceSetter {
+  void set foo(int val);
+}
+
+enum E6 implements InterfaceSetter { element }
+
+mixin MethodImplementation {
+  void foo() {}
+}
+
+enum E7 with MethodImplementation {
+  element;
+
+  void foo();
+}
+
+main() {}

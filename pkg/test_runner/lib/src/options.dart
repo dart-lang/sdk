@@ -105,8 +105,8 @@ none:                 Do not compile the Dart code.
 dart2js:              Compile to JavaScript using dart2js.
 dart2analyzer:        Perform static analysis on Dart code using the analyzer.
 compare_analyzer_cfe: Compare analyzer and common front end representations.
-dartdevc:             Compile to JavaScript using dart2js.
-dartdevk:             Compile to JavaScript using dartdevk.
+dartdevc:             Compile to JavaScript using dartdevc.
+dartdevk:             Compile to JavaScript using dartdevc (same as dartdevc).
 app_jitk:             Compile the Dart code into Kernel and then into an app
                       snapshot.
 dartk:                Compile the Dart code into Kernel before running test.

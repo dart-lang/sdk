@@ -2782,6 +2782,14 @@ const MessageCode messageEncoding = const MessageCode("Encoding",
     problemMessage: r"""Unable to decode bytes as UTF-8.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumAbstractMember = messageEnumAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumAbstractMember = const MessageCode(
+    "EnumAbstractMember",
+    problemMessage: r"""Enums can't declare abstract members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

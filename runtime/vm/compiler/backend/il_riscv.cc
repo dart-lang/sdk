@@ -1425,8 +1425,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(saved_fp_or_sp != target);
 
   // Ensure these are callee-saved register and are preserved across the call.
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-          (1 << saved_fp_or_sp)) != 0);
+  ASSERT(IsCalleeSavedRegister(saved_fp_or_sp));
   // Other temps don't need to be preserved.
 
   __ mv(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
@@ -1458,6 +1457,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
     EmitCall(compiler, target);
+
+    ASSERT(!IsCalleeSavedRegister(PP));
+    __ RestorePoolPointer();
 
 #if !defined(PRODUCT)
     __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());

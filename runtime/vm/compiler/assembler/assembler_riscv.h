@@ -1214,12 +1214,15 @@ class Assembler : public MicroAssembler {
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void TransitionNativeToGenerated(Register scratch,
+                                   bool exit_safepoint,
+                                   bool ignore_unwind_in_progress = false);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
   void CheckCodePointer();
   void RestoreCodePointer();
+  void RestorePoolPointer();
 
   // Restores the values of the registers that are blocked to cache some values
   // e.g. BARRIER_MASK and NULL_REG.

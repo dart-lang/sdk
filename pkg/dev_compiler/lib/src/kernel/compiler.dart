@@ -3002,7 +3002,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (type.nullability == Nullability.undetermined) {
-      throw UnsupportedError('Undetermined Nullability');
+      _undeterminedNullabilityError(type);
     }
 
     // Emit non-nullable version directly.
@@ -3037,7 +3037,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     typeRep ??= _emitFutureOrNameNoInterop();
 
     if (type.declaredNullability == Nullability.undetermined) {
-      throw UnsupportedError('Undetermined Nullability');
+      _undeterminedNullabilityError(type);
     }
 
     // Emit non-nullable version directly.
@@ -3050,6 +3050,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // use it everywhere it appears.
     return _typeTable.nameType(type, typeRep);
   }
+
+  void /* Never */ _undeterminedNullabilityError(DartType type) =>
+      throw UnsupportedError(
+          'Undetermined Nullability encounted while compiling '
+          '${currentLibrary.fileUri}, which contains the type: $type.');
 
   /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
   ///

@@ -756,6 +756,7 @@ class FileTest {
     try {
       openedFile.truncateSync(-5);
     } on FileSystemException catch (ex) {
+      Expect.notEquals(ex.osError!.errorCode, 0);
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;

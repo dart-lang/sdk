@@ -1253,9 +1253,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register temp_csp = locs()->temp(3).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-          (1 << saved_fp_or_sp)) != 0);
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << temp_csp)) != 0);
+  ASSERT(IsCalleeSavedRegister(saved_fp_or_sp));
+  ASSERT(IsCalleeSavedRegister(temp_csp));
   // Other temps don't need to be preserved.
 
   __ mov(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);

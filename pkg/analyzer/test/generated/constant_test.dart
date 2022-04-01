@@ -647,6 +647,30 @@ B
 ''');
   }
 
+  test_superFormalParameter_explicitSuper_requiredNamed_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B<T> extends A {
+  final int b;
+  const B(this.b, {required super.a}) : super();
+}
+
+const x = B<int>(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
   test_superFormalParameter_explicitSuper_requiredPositional() async {
     await assertNoErrorsInCode('''
 class A {
@@ -665,6 +689,30 @@ const x = B(1, 2);
     var value = findElement.topVar('x').evaluationResult.value;
     assertDartObjectText(value, r'''
 B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredPositional_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B<T> extends A {
+  final int b;
+  const B(super.a, this.b) : super();
+}
+
+const x = B<int>(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
   (super): A
     a: int 1
   b: int 2
@@ -695,6 +743,30 @@ B
 ''');
   }
 
+  test_superFormalParameter_implicitSuper_requiredNamed_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B<T> extends A {
+  final int b;
+  const B(this.b, {required super.a});
+}
+
+const x = B<int>(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
   test_superFormalParameter_implicitSuper_requiredPositional() async {
     await assertNoErrorsInCode('''
 class A {
@@ -713,6 +785,30 @@ const x = B(1, 2);
     var value = findElement.topVar('x').evaluationResult.value;
     assertDartObjectText(value, r'''
 B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredPositional_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B<T> extends A {
+  final int b;
+  const B(super.a, this.b);
+}
+
+const x = B<int>(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
   (super): A
     a: int 1
   b: int 2
