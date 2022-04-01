@@ -12,211 +12,322 @@ library /*isNonNullableByDefault*/;
 //   int new = 42; // error
 //       ^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:19:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:19:15: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   C() : super.new(); // error
 //               ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:20:20: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:20:20: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   C.named() : this.new(); // error
 //                    ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/new_as_selector.dart:31:16: Error: 'new' can't be used as an identifier because it's a keyword.
 // Try renaming this to be an identifier that isn't a keyword.
 //   external int new; // error
 //                ^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:23:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:23:10: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //     this.new; // error
 //          ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:24:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:24:10: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //     this.new(); // error
 //          ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:25:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:25:10: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //     this.new<int>(); // error
 //          ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:26:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:26:10: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //     this.new = 87; // error
 //          ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:39:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:39:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   new C().new; // error
 //           ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:40:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:40:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   new C().new(); // error
 //           ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:41:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:41:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   new C().new = 87; // error
 //           ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:43:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:43:5: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   c.new; // error
 //     ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:44:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:44:5: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   c.new = 87; // error
 //     ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:46:7: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:46:7: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo.new; // error
 //       ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:47:7: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:47:7: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo.new(); // error
 //       ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:48:7: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:48:7: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo.new<int>(); // error
 //       ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:49:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:49:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo?.new; // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:50:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:50:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo?.new(); // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:51:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:51:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo?.new<int>(); // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:52:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:52:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo..new; // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:53:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:53:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo..new(); // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:54:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:54:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   foo..new<int>(); // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:55:9: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:55:9: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   (foo).new; // error
 //         ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:56:9: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:56:9: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   (foo).new(); // error
 //         ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:57:9: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:57:9: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   (foo).new<int>(); // error
 //         ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:58:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:58:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   prefix1.new; // error
 //           ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:59:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:59:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   prefix1.new(); // error
 //           ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:60:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:60:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   prefix1.new<int>(); // error
 //           ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:61:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:61:13: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   prefix2.c.new; // error
 //             ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:62:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:62:13: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   prefix2.c.new(); // error
 //             ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:63:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:63:13: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   prefix2.c.new<int>(); // error
 //             ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:64:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:64:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   E(0).new; // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:65:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:65:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   E(0).new(); // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:66:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:66:8: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   E(0).new<int>(); // error
 //        ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:67:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:67:14: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   unresolved.new; // error
 //              ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/new_as_selector.dart:67:3: Error: Undefined name 'unresolved'.
 //   unresolved.new; // error
 //   ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:68:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:68:14: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   unresolved.new(); // error
 //              ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/new_as_selector.dart:68:3: Error: Undefined name 'unresolved'.
 //   unresolved.new(); // error
 //   ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:69:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:69:14: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   unresolved.new<int>(); // error
 //              ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/new_as_selector.dart:69:3: Error: Undefined name 'unresolved'.
 //   unresolved.new<int>(); // error
 //   ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:70:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:70:5: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   C.new; // error
 //     ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/new_as_selector.dart:70:5: Error: Member not found: 'new'.
 //   C.new; // error
 //     ^^^
 //
-// pkg/front_end/testcases/general/new_as_selector.dart:71:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/new_as_selector.dart:71:5: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   C.new(); // error
 //     ^^^
+// pkg/front_end/testcases/general/new_as_selector.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

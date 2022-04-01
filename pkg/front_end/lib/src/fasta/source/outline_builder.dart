@@ -3076,8 +3076,8 @@ class OutlineBuilder extends StackListenerImpl {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.
           if (typeArguments != null || suffix != null) {
-            addProblem(libraryFeatures.enhancedEnums.notEnabledMessage,
-                charOffset, noLength);
+            libraryBuilder.reportFeatureNotEnabled(
+                libraryFeatures.enhancedEnums, uri, charOffset, noLength);
           }
           push(NullValue.ConstructorReference);
         }

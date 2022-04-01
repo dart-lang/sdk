@@ -278,6 +278,11 @@ ExperimentDisabledInvalidLanguageVersion/example: Fail
 ExperimentNotEnabled/example: Fail
 ExperimentNotEnabledNoFlag/example: Fail
 ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail
+ExperimentNotEnabledOffByDefault/example: Fail
+ExperimentOptOutExplicit/analyzerCode: Fail
+ExperimentOptOutExplicit/example: Fail
+ExperimentOptOutImplicit/analyzerCode: Fail
+ExperimentOptOutImplicit/example: Fail
 ExplicitExtensionArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionArgumentMismatch/example: Fail
 ExplicitExtensionAsExpression/analyzerCode: Fail
@@ -678,6 +683,11 @@ NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
+NullSafetyDisabledInvalidLanguageVersion/example: Fail
+NullSafetyOptOutExplicit/analyzerCode: Fail
+NullSafetyOptOutExplicit/example: Fail
+NullSafetyOptOutImplicit/analyzerCode: Fail
+NullSafetyOptOutImplicit/example: Fail
 NullableExpressionCallError/analyzerCode: Fail
 NullableExpressionCallError/example: Fail
 NullableExpressionCallWarning/analyzerCode: Fail

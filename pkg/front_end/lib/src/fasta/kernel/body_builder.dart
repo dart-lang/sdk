@@ -7198,8 +7198,11 @@ class BodyBuilder extends StackListenerImpl
           ..fileOffset = openAngleBracket.charOffset);
       }
     } else {
-      addProblem(libraryFeatures.constructorTearoffs.notEnabledMessage,
-          openAngleBracket.charOffset, noLength);
+      libraryBuilder.reportFeatureNotEnabled(
+          libraryFeatures.constructorTearoffs,
+          uri,
+          openAngleBracket.charOffset,
+          noLength);
     }
   }
 

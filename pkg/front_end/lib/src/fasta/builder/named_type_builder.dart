@@ -269,11 +269,13 @@ class NamedTypeBuilder extends TypeBuilder {
     if (_declaration!.isExtension &&
         library is SourceLibraryBuilder &&
         !library.libraryFeatures.extensionTypes.isEnabled) {
-      Message message =
-          library.libraryFeatures.extensionTypes.notEnabledMessage;
       int typeNameLength = nameLength;
       int typeNameOffset = nameOffset;
-      library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
+      Message message = library.reportFeatureNotEnabled(
+          library.libraryFeatures.extensionTypes,
+          fileUri!,
+          typeNameOffset,
+          typeNameLength);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, typeNameOffset, typeNameLength));
     } else if (_declaration!.isTypeVariable) {

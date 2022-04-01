@@ -4,8 +4,6 @@
 
 import 'package:kernel/kernel.dart' show Version;
 
-import '../fasta/fasta_codes.dart';
-
 part 'experimental_flags_generated.dart';
 
 /// The set of experiments enabled for SDK and packages.
@@ -262,11 +260,4 @@ class LibraryFeature extends ExperimentalFeature {
   LibraryFeature(ExperimentalFlag flag, this.isSupported, this.enabledVersion,
       this.isEnabled)
       : super(flag);
-
-  // TODO(johnniwinther): We should emit a different message when the
-  // experiment is not released yet. The current message indicates that
-  // changing the sdk version can solve the problem.
-  /// Returns a [Message] for reporting that this feature is not enabled.
-  Message get notEnabledMessage => templateExperimentNotEnabled.withArguments(
-      flag.name, enabledVersion.toText());
 }

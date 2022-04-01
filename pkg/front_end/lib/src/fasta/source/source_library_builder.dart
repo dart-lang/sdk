@@ -317,6 +317,50 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _libraryFeatures ??= new LibraryFeatures(loader.target.globalFeatures,
           _packageUri ?? importUri, languageVersion.version);
 
+  /// Reports that [feature] is not enabled, using [charOffset] and
+  /// [length] for the location of the message.
+  ///
+  /// Return the primary message.
+  Message reportFeatureNotEnabled(
+      LibraryFeature feature, Uri fileUri, int charOffset, int length) {
+    assert(!feature.isEnabled);
+    Message message;
+    if (feature.isSupported) {
+      if (languageVersion.isExplicit) {
+        message = templateExperimentOptOutExplicit.withArguments(
+            feature.flag.name, feature.enabledVersion.toText());
+        addProblem(message, charOffset, length, fileUri,
+            context: <LocatedMessage>[
+              templateExperimentOptOutComment
+                  .withArguments(feature.flag.name)
+                  .withLocation(languageVersion.fileUri!,
+                      languageVersion.charOffset, languageVersion.charCount)
+            ]);
+      } else {
+        message = templateExperimentOptOutImplicit.withArguments(
+            feature.flag.name, feature.enabledVersion.toText());
+        addProblem(message, charOffset, length, fileUri);
+      }
+    } else {
+      if (feature.flag.isEnabledByDefault) {
+        if (languageVersion.version < feature.enabledVersion) {
+          message =
+              templateExperimentDisabledInvalidLanguageVersion.withArguments(
+                  feature.flag.name, feature.enabledVersion.toText());
+          addProblem(message, charOffset, length, fileUri);
+        } else {
+          message = templateExperimentDisabled.withArguments(feature.flag.name);
+          addProblem(message, charOffset, length, fileUri);
+        }
+      } else {
+        message = templateExperimentNotEnabledOffByDefault
+            .withArguments(feature.flag.name);
+        addProblem(message, charOffset, length, fileUri);
+      }
+    }
+    return message;
+  }
+
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
     switch (loader.nnbdMode) {
