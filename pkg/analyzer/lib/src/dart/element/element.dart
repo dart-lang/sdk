@@ -1617,7 +1617,7 @@ class DefaultSuperFormalParameterElementImpl
       return super.evaluationResult;
     }
 
-    var superConstructorParameter = this.superConstructorParameter;
+    var superConstructorParameter = this.superConstructorParameter?.declaration;
     if (superConstructorParameter is ParameterElementImpl) {
       return superConstructorParameter.evaluationResult;
     }

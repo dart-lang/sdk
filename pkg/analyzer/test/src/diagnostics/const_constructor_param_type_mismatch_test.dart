@@ -336,10 +336,24 @@ class A {
 }
 
 class B extends A {
-  static const f = B();
-
   const B({super.a});
 }
+
+const b = const B();
+''');
+  }
+
+  test_superFormalParameter_inherited_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({int a = 0});
+}
+
+class B extends A<int> {
+  const B({super.a});
+}
+
+const b = const B();
 ''');
   }
 
