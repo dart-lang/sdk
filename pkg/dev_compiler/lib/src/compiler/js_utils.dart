@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import '../js_ast/js_ast.dart';
 
 /// Simplify `(args) => (() => { ... })()` to `(args) => { ... }`.
 // TODO(jmesserly): find a better home for this function
 Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
-  if (fn.body is Block && fn.body.statements.length == 1) {
+  if (fn.body.statements.length == 1) {
     var stat = fn.body.statements.single;
     if (stat is Return && stat.value is Call) {
       var call = stat.value as Call;
