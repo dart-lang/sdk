@@ -176,7 +176,7 @@ vars = {
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_edit_rev": "4fadb43801b07f90b3f0c6065dbce4efc6d8d55e",
   "yaml_rev": "ad0779d1baa25c6b10a192d080efc45de02b6a32",
-  "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
+  "zlib_rev": "faff052b6b6edcd6dd548513fe44ac0941427bf0",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
