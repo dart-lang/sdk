@@ -48,7 +48,7 @@ class IdGenerator {
 
   /// Returns a new Id (possibly recycled)
   String newId() {
-    var id;
+    String id;
     if (_free.isEmpty) {
       id = prologue + (_next++).toString();
     } else {
