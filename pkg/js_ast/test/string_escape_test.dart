@@ -14,7 +14,7 @@ const int $LCURLY = $OPEN_CURLY_BRACKET;
 const int $RCURLY = $CLOSE_CURLY_BRACKET;
 
 void main() {
-  check(input, expected, {bool utf8 = false}) {
+  void check(input, expected, {bool utf8 = false}) {
     if (input is List) input = String.fromCharCodes(input);
     String actual = DebugPrint(js.string(input), utf8: utf8);
     if (expected is List) {

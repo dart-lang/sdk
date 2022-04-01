@@ -14,8 +14,8 @@ class _DeferredStatement extends DeferredStatement {
   _DeferredStatement(this.statement);
 }
 
-main() {
-  // Defering a statement should not change how it prints.
+void main() {
+  // Deferring a statement should not change how it prints.
   var undeferredStatement = js.statement('var x = 3');
   var deferredStatement = _DeferredStatement(undeferredStatement);
   Expect.equals(DebugPrint(undeferredStatement), DebugPrint(deferredStatement));

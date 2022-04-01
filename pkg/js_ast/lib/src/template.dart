@@ -126,13 +126,13 @@ class Template {
         // number of holes should be quite limited.
         String unusedNames = arguments.keys
             .where((name) => !holeNames.contains(name))
-            .join(", ");
-        throw "Template arguments has unused mappings: $unusedNames";
+            .join(', ');
+        throw 'Template arguments has unused mappings: $unusedNames';
       }
       if (!holeNames.every((String name) => arguments.containsKey(name))) {
         String notFound =
-            holeNames.where((name) => !arguments.containsKey(name)).join(", ");
-        throw "Template arguments is missing mappings for: $notFound";
+            holeNames.where((name) => !arguments.containsKey(name)).join(', ');
+        throw 'Template arguments is missing mappings for: $notFound';
       }
       return instantiator(arguments);
     }
@@ -434,7 +434,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  TODO(String name) {
+  Never TODO(String name) {
     throw UnimplementedError('$this.$name');
   }
 
@@ -601,7 +601,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitCall(Call node) =>
       handleCallOrNew(node, (target, arguments) => Call(target, arguments));
 
-  Instantiator handleCallOrNew(Call node, finish(target, arguments)) {
+  Instantiator handleCallOrNew(Call node, Function(dynamic, dynamic) finish) {
     Instantiator makeTarget = visit(node.target);
     Iterable<Instantiator> argumentMakers =
         node.arguments.map(visitSplayableExpression).toList();
@@ -855,7 +855,7 @@ class InterpolatedNodeAnalysis extends BaseVisitorVoid {
   }
 
   @override
-  visitInterpolatedNode(InterpolatedNode node) {
+  void visitInterpolatedNode(InterpolatedNode node) {
     containsInterpolatedNode.add(node);
     if (node.isNamed) holeNames.add(node.nameOrPosition);
     ++count;

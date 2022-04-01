@@ -6,8 +6,8 @@
 
 library js_ast;
 
-export 'src/nodes.dart';
 export 'src/builder.dart';
+export 'src/equivalence_visitor.dart';
+export 'src/nodes.dart';
 export 'src/printer.dart';
 export 'src/template.dart';
-export 'src/equivalence_visitor.dart';
