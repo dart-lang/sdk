@@ -680,9 +680,6 @@ Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   Dart_Handle type = GetDartType(kIOLibURL, "OSError");
   ASSERT(!Dart_IsError(type));
   Dart_Handle args[2];
-  if (os_error->code() == 0) {
-    FATAL("Fatal error OSError (code : 0)  DartUtils::NewDartOSError");
-  }
   args[0] = NewString(os_error->message());
   args[1] = Dart_NewInteger(os_error->code());
   return Dart_New(type, Dart_Null(), 2, args);
