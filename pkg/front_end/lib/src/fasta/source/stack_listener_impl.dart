@@ -81,19 +81,19 @@ abstract class StackListenerImpl extends StackListener {
     if (libraryFeatures.nonNullable.isSupported) {
       if (libraryBuilder.languageVersion.isExplicit) {
         addProblem(
-            templateNonNullableOptOutExplicit.withArguments(
+            templateNullSafetyOptOutExplicit.withArguments(
                 libraryFeatures.nonNullable.enabledVersion.toText()),
             token.charOffset,
             token.charCount,
             context: <LocatedMessage>[
-              messageNonNullableOptOutComment.withLocation(
+              messageNullSafetyOptOutComment.withLocation(
                   libraryBuilder.languageVersion.fileUri!,
                   libraryBuilder.languageVersion.charOffset,
                   libraryBuilder.languageVersion.charCount)
             ]);
       } else {
         addProblem(
-            templateNonNullableOptOutImplicit.withArguments(
+            templateNullSafetyOptOutImplicit.withArguments(
                 libraryFeatures.nonNullable.enabledVersion.toText()),
             token.charOffset,
             token.charCount);
@@ -102,7 +102,7 @@ abstract class StackListenerImpl extends StackListener {
       if (libraryBuilder.languageVersion.version <
           libraryFeatures.nonNullable.enabledVersion) {
         addProblem(
-            templateExperimentDisabledInvalidLanguageVersion.withArguments(
+            templateNullSafetyDisabledInvalidLanguageVersion.withArguments(
                 libraryFeatures.nonNullable.enabledVersion.toText()),
             token.offset,
             noLength);
@@ -119,7 +119,7 @@ abstract class StackListenerImpl extends StackListener {
   /// Return `true` if the [feature] is not enabled.
   bool reportIfNotEnabled(LibraryFeature feature, int charOffset, int length) {
     if (!feature.isEnabled) {
-      addProblem(feature.notEnabledMessage, charOffset, length);
+      libraryBuilder.reportFeatureNotEnabled(feature, uri, charOffset, length);
       return true;
     }
     return false;

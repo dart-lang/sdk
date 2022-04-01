@@ -286,13 +286,22 @@ ExperimentNotEnabled:
   correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
+ExperimentNotEnabledOffByDefault:
+  problemMessage: "This requires the experimental '#string' language feature to be enabled."
+  correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."
   correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
-ExperimentDisabledInvalidLanguageVersion:
+NullSafetyDisabledInvalidLanguageVersion:
   problemMessage: "This requires the null safety language feature, which requires language version of #string2 or higher."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentDisabledInvalidLanguageVersion:
+  problemMessage: "This requires the '#string' language feature, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
@@ -5096,16 +5105,28 @@ FieldNonNullableWithoutInitializerError:
 FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
-NonNullableOptOutExplicit:
+NullSafetyOptOutExplicit:
   problemMessage: "Null safety features are disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
 
-NonNullableOptOutImplicit:
+ExperimentOptOutExplicit:
+  problemMessage: "The '#string' language feature is disabled for this library."
+  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
+
+NullSafetyOptOutImplicit:
   problemMessage: "Null safety features are disabled for this library."
   correctionMessage: "Try removing the package language version or setting the language version to #string or higher."
 
-NonNullableOptOutComment:
+NullSafetyOptOutComment:
   problemMessage: "This is the annotation that opts out this library from null safety features."
+  severity: CONTEXT
+
+ExperimentOptOutImplicit:
+  problemMessage: "The '#string' language feature is disabled for this library."
+  correctionMessage: "Try removing the package language version or setting the language version to #string2 or higher."
+
+ExperimentOptOutComment:
+  problemMessage: "This is the annotation that opts out this library from the '#string' language feature."
   severity: CONTEXT
 
 AwaitInLateLocalInitializer:

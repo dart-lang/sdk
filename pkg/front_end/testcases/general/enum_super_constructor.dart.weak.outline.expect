@@ -2,19 +2,25 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/enum_super_constructor.dart:9:3: Error: This requires the 'enhanced-enums' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.17 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/enum_super_constructor.dart:9:3: Error: The 'enhanced-enums' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.17 or higher.
 //   A() : super();
 //   ^
+// pkg/front_end/testcases/general/enum_super_constructor.dart:5:1: Context: This is the annotation that opts out this library from the 'enhanced-enums' language feature.
+// // @dart=2.16
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/enum_super_constructor.dart:9:3: Error: Generative enum constructors must be marked as 'const'.
 //   A() : super();
 //   ^
 //
-// pkg/front_end/testcases/general/enum_super_constructor.dart:14:3: Error: This requires the 'enhanced-enums' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.17 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/enum_super_constructor.dart:14:3: Error: The 'enhanced-enums' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.17 or higher.
 //   const B() : super();
 //   ^
+// pkg/front_end/testcases/general/enum_super_constructor.dart:5:1: Context: This is the annotation that opts out this library from the 'enhanced-enums' language feature.
+// // @dart=2.16
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
 //   const B() : super();

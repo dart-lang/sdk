@@ -34,19 +34,19 @@ class B1<T> {}
 extension B2<T> on B1<T> {}
 
 main() {
-  /*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/
+  /*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/
   A2 var1;
-  /*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/
+  /*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/
   B2<A1> var2;
-  B1</*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/A2> var3;
+  B1</*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/A2> var3;
 }
 
-/*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/
+/*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/
 A2 method1() => null;
 
 // TODO(johnniwinther): We should report an error on the number of type
 // arguments here.
-/*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/
+/*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/
 B2<A1> method2() => null;
 
-B1</*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/A2> method3() => null;
+B1</*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/A2> method3() => null;

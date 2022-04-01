@@ -12,10 +12,13 @@ library;
 //   var c2 = new C.bar<int>();
 //                  ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:20:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/regress/issue_34403.dart:20:13: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   var c3 = C<String>.bar<int>();
 //             ^
+// pkg/front_end/testcases/regress/issue_34403.dart:4:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.9
+// ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:20:22: Error: A constructor invocation can't have type arguments after the constructor name.
 // Try removing the type arguments or placing them after the class name.
@@ -37,10 +40,13 @@ library;
 //   const d2 = const D.foo<int>();
 //                      ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:29:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/regress/issue_34403.dart:29:15: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const d3 = D<String>.foo<int>();
 //               ^
+// pkg/front_end/testcases/regress/issue_34403.dart:4:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.9
+// ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:29:24: Error: A constructor invocation can't have type arguments after the constructor name.
 // Try removing the type arguments or placing them after the class name.
@@ -62,10 +68,13 @@ library;
 //   var e2 = new p.E.bar<int>();
 //                    ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:38:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/regress/issue_34403.dart:38:15: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   var e3 = p.E<String>.bar<int>();
 //               ^
+// pkg/front_end/testcases/regress/issue_34403.dart:4:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.9
+// ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:38:24: Error: A constructor invocation can't have type arguments after the constructor name.
 // Try removing the type arguments or placing them after the class name.
@@ -87,10 +96,13 @@ library;
 //   const f2 = const p.F.foo<int>();
 //                        ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:47:17: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/regress/issue_34403.dart:47:17: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const f3 = p.F<String>.foo<int>();
 //                 ^
+// pkg/front_end/testcases/regress/issue_34403.dart:4:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.9
+// ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:47:26: Error: A constructor invocation can't have type arguments after the constructor name.
 // Try removing the type arguments or placing them after the class name.

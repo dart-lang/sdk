@@ -3462,27 +3462,29 @@ Message _withArgumentsExperimentDisabled(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string2)>
+const Template<Message Function(String string, String string2)>
     templateExperimentDisabledInvalidLanguageVersion =
-    const Template<Message Function(String string2)>(
+    const Template<Message Function(String string, String string2)>(
         problemMessageTemplate:
-            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+            r"""This requires the '#string' language feature, which requires language version of #string2 or higher.""",
         withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string2)>
+const Code<Message Function(String string, String string2)>
     codeExperimentDisabledInvalidLanguageVersion =
-    const Code<Message Function(String string2)>(
+    const Code<Message Function(String string, String string2)>(
         "ExperimentDisabledInvalidLanguageVersion",
         analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentDisabledInvalidLanguageVersion(String string2) {
+Message _withArgumentsExperimentDisabledInvalidLanguageVersion(
+    String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
   return new Message(codeExperimentDisabledInvalidLanguageVersion,
       problemMessage:
-          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
-      arguments: {'string2': string2});
+          """This requires the '${string}' language feature, which requires language version of ${string2} or higher.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3514,6 +3516,123 @@ Message _withArgumentsExperimentNotEnabled(String string, String string2) {
           """This requires the '${string}' language feature to be enabled.""",
       correctionMessage:
           """Try updating your pubspec.yaml to set the minimum SDK constraint to ${string2} or higher, and running 'pub get'.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateExperimentNotEnabledOffByDefault = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""This requires the experimental '#string' language feature to be enabled.""",
+    correctionMessageTemplate:
+        r"""Try passing the '--enable-experiment=#string' command line option.""",
+    withArguments: _withArgumentsExperimentNotEnabledOffByDefault);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeExperimentNotEnabledOffByDefault =
+    const Code<Message Function(String string)>(
+        "ExperimentNotEnabledOffByDefault",
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentNotEnabledOffByDefault(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentNotEnabledOffByDefault,
+      problemMessage:
+          """This requires the experimental '${string}' language feature to be enabled.""",
+      correctionMessage: """Try passing the '--enable-experiment=${string}' command line option.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateExperimentOptOutComment = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""This is the annotation that opts out this library from the '#string' language feature.""",
+    withArguments: _withArgumentsExperimentOptOutComment);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExperimentOptOutComment =
+    const Code<Message Function(String string)>("ExperimentOptOutComment",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentOptOutComment(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentOptOutComment,
+      problemMessage:
+          """This is the annotation that opts out this library from the '${string}' language feature.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateExperimentOptOutExplicit = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' language feature is disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the `@dart=` annotation or setting the language version to #string2 or higher.""",
+    withArguments: _withArgumentsExperimentOptOutExplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeExperimentOptOutExplicit =
+    const Code<Message Function(String string, String string2)>(
+  "ExperimentOptOutExplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentOptOutExplicit(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentOptOutExplicit,
+      problemMessage:
+          """The '${string}' language feature is disabled for this library.""",
+      correctionMessage:
+          """Try removing the `@dart=` annotation or setting the language version to ${string2} or higher.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateExperimentOptOutImplicit = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' language feature is disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the package language version or setting the language version to #string2 or higher.""",
+    withArguments: _withArgumentsExperimentOptOutImplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeExperimentOptOutImplicit =
+    const Code<Message Function(String string, String string2)>(
+  "ExperimentOptOutImplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentOptOutImplicit(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentOptOutImplicit,
+      problemMessage:
+          """The '${string}' language feature is disabled for this library.""",
+      correctionMessage:
+          """Try removing the package language version or setting the language version to ${string2} or higher.""",
       arguments: {'string': string, 'string2': string2});
 }
 
@@ -8114,72 +8233,6 @@ Message _withArgumentsNonNullableNotAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonNullableOptOutComment = messageNonNullableOptOutComment;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonNullableOptOutComment = const MessageCode(
-    "NonNullableOptOutComment",
-    severity: Severity.context,
-    problemMessage:
-        r"""This is the annotation that opts out this library from null safety features.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateNonNullableOptOutExplicit = const Template<
-        Message Function(String string)>(
-    problemMessageTemplate:
-        r"""Null safety features are disabled for this library.""",
-    correctionMessageTemplate:
-        r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
-    withArguments: _withArgumentsNonNullableOptOutExplicit);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeNonNullableOptOutExplicit =
-    const Code<Message Function(String string)>(
-  "NonNullableOptOutExplicit",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableOptOutExplicit(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeNonNullableOptOutExplicit,
-      problemMessage: """Null safety features are disabled for this library.""",
-      correctionMessage:
-          """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
-      arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateNonNullableOptOutImplicit = const Template<
-        Message Function(String string)>(
-    problemMessageTemplate:
-        r"""Null safety features are disabled for this library.""",
-    correctionMessageTemplate:
-        r"""Try removing the package language version or setting the language version to #string or higher.""",
-    withArguments: _withArgumentsNonNullableOptOutImplicit);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeNonNullableOptOutImplicit =
-    const Code<Message Function(String string)>(
-  "NonNullableOptOutImplicit",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableOptOutImplicit(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeNonNullableOptOutImplicit,
-      problemMessage: """Null safety features are disabled for this library.""",
-      correctionMessage:
-          """Try removing the package language version or setting the language version to ${string} or higher.""",
-      arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonPartOfDirectiveInPart = messageNonPartOfDirectiveInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8394,6 +8447,96 @@ const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
         r"""The '?..' cascade operator must be first in the cascade sequence.""",
     correctionMessage:
         r"""Try moving the '?..' operator to be the first cascade operator in the sequence.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateNullSafetyDisabledInvalidLanguageVersion =
+    const Template<Message Function(String string2)>(
+        problemMessageTemplate:
+            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+        withArguments: _withArgumentsNullSafetyDisabledInvalidLanguageVersion);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeNullSafetyDisabledInvalidLanguageVersion =
+    const Code<Message Function(String string2)>(
+        "NullSafetyDisabledInvalidLanguageVersion",
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullSafetyDisabledInvalidLanguageVersion(String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeNullSafetyDisabledInvalidLanguageVersion,
+      problemMessage:
+          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
+      arguments: {'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNullSafetyOptOutComment = messageNullSafetyOptOutComment;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNullSafetyOptOutComment = const MessageCode(
+    "NullSafetyOptOutComment",
+    severity: Severity.context,
+    problemMessage:
+        r"""This is the annotation that opts out this library from null safety features.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateNullSafetyOptOutExplicit = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""Null safety features are disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
+    withArguments: _withArgumentsNullSafetyOptOutExplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNullSafetyOptOutExplicit =
+    const Code<Message Function(String string)>(
+  "NullSafetyOptOutExplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullSafetyOptOutExplicit(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeNullSafetyOptOutExplicit,
+      problemMessage: """Null safety features are disabled for this library.""",
+      correctionMessage:
+          """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateNullSafetyOptOutImplicit = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""Null safety features are disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the package language version or setting the language version to #string or higher.""",
+    withArguments: _withArgumentsNullSafetyOptOutImplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNullSafetyOptOutImplicit =
+    const Code<Message Function(String string)>(
+  "NullSafetyOptOutImplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullSafetyOptOutImplicit(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeNullSafetyOptOutImplicit,
+      problemMessage: """Null safety features are disabled for this library.""",
+      correctionMessage:
+          """Try removing the package language version or setting the language version to ${string} or higher.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableInterfaceError =
