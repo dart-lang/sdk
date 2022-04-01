@@ -70,20 +70,25 @@ Map<int?, String> f9(int? p) => {p!: ''}; // LINT
 Map<int, String> f9ok(int? p) => {p!: ''}; // OK
 Map<String, int?> f10(int? p) => {'': p!}; // LINT
 Map<String, int> f10ok(int? p) => {'': p!}; // OK
-Iterable<int?> f11(int? p) sync* {yield p!;} // LINT
-Iterable<int> f11ok(int? p) sync* {yield p!;} // OK
-Stream<int?> f12(int? p) async* {yield p!;} // LINT
-Stream<int> f12ok(int? p) async* {yield p!;} // OK
-Future<void> f13(int? p) async {
+Map<String, int?> f11_if(int? p) => {if (1 != 0) '': p!}; // LINT
+Map<String, int?> f11_if2(int? p) => {if (1 != 0) if (1 != 0) '': p!}; // LINT
+Map<String, int> f11_if_ok(int? p) => {if (1 != 0) '': p!}; // OK
+Map<String, int?> f11_for(int? p) => {for (var a in <int>[]) '': p!}; // LINT
+Map<String, int> f11_for_ok(int? p) => {for (var a in <int>[]) '': p!}; // OK
+Iterable<int?> f12(int? p) sync* {yield p!;} // LINT
+Iterable<int> f12ok(int? p) sync* {yield p!;} // OK
+Stream<int?> f13(int? p) async* {yield p!;} // LINT
+Stream<int> f13ok(int? p) async* {yield p!;} // OK
+Future<void> f14(int? p) async {
   var f = Future(() => p);
   int? i;
   i = await f!; // LINT
 }
-Future<int?> f14(int? p) async => p!; // LINT
-Future<int> f14ok(int? p) async => p!; // OK
-dynamic f15(int? p) async => p!; // OK
+Future<int?> f15(int? p) async => p!; // LINT
+Future<int> f15ok(int? p) async => p!; // OK
+dynamic f16(int? p) async => p!; // OK
 
-typedef F16 = Future<int?>;
-F16 f16(int? p) async => p!; // LINT
-typedef F16ok = Future<int>;
-F16ok f16ok(int? p) async => p!; // OK
+typedef F17 = Future<int?>;
+F17 f17(int? p) async => p!; // LINT
+typedef F17ok = Future<int>;
+F17ok f17ok(int? p) async => p!; // OK

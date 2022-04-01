@@ -110,9 +110,19 @@ DartType? getExpectedType(PostfixExpression node) {
   }
   // as member of map
   if (parent is MapLiteralEntry) {
-    var typeParameters =
-        (parent.parent! as SetOrMapLiteral).staticType as ParameterizedType?;
-    return typeParameters?.typeArguments[parent.key == node ? 0 : 1];
+    var grandParent = parent.parent;
+    while (true) {
+      if (grandParent is ForElement) {
+        grandParent = grandParent.parent;
+      } else if (grandParent is IfElement) {
+        grandParent = grandParent.parent;
+      } else if (grandParent is SetOrMapLiteral) {
+        var type = grandParent.staticType as InterfaceType?;
+        return type?.typeArguments[parent.key == node ? 0 : 1];
+      } else {
+        return null;
+      }
+    }
   }
   // as parameter of function
   if (parent is NamedExpression) {
