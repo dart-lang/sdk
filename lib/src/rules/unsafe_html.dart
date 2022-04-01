@@ -18,8 +18,8 @@ const _details = r'''
 **AVOID**
 
 * assigning directly to the `href` field of an AnchorElement
-* assigning directly to the `src` field of an EmbedElement, IFrameElement,
-  ImageElement, or ScriptElement
+* assigning directly to the `src` field of an EmbedElement, IFrameElement, or
+  ScriptElement
 * assigning directly to the `srcdoc` field of an IFrameElement
 * calling the `createFragment` method of Element
 * calling the `open` method of Window
@@ -124,7 +124,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type.isDynamic ||
           type.extendsDartHtmlClass('EmbedElement') ||
           type.extendsDartHtmlClass('IFrameElement') ||
-          type.extendsDartHtmlClass('ImageElement') ||
           type.extendsDartHtmlClass('ScriptElement')) {
         rule.reportLint(assignment,
             arguments: ['src'], errorCode: unsafeAttributeCode);
