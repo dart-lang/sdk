@@ -748,7 +748,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     body = [classDef];
-    _emitStaticFields(c, body);
+    _emitStaticFieldsAndAccessors(c, body);
     if (finishGenericTypeTest != null) body.add(finishGenericTypeTest);
     for (var peer in jsPeerNames) {
       _registerExtensionType(c, peer, body);
@@ -1323,12 +1323,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Emits static fields for a class, and initialize them eagerly if possible,
   /// otherwise define them as lazy properties.
-  void _emitStaticFields(Class c, List<js_ast.Statement> body) {
+  void _emitStaticFieldsAndAccessors(Class c, List<js_ast.Statement> body) {
     var fields = c.fields
         .where((f) => f.isStatic && !isRedirectingFactoryField(f))
         .toList();
+    var fieldNames = Set.from(fields.map((f) => f.name));
+    var staticSetters = c.procedures.where(
+        (p) => p.isStatic && p.isAccessor && fieldNames.contains(p.name));
+    var members = [...fields, ...staticSetters];
     if (fields.isNotEmpty) {
-      body.add(_emitLazyFields(_emitTopLevelName(c), fields,
+      body.add(_emitLazyMembers(_emitTopLevelName(c), members,
           (n) => _emitStaticMemberName(n.name.text)));
     }
   }
@@ -1847,10 +1851,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     Set<Member> redirectingFactories;
+    var staticFieldNames = <Name>{};
     for (var m in c.fields) {
       if (m.isStatic) {
         if (isRedirectingFactoryField(m)) {
           redirectingFactories = getRedirectingFactories(m).toSet();
+        } else {
+          staticFieldNames.add(m.name);
         }
       } else if (_extensionTypes.isNativeClass(c)) {
         jsMethods.addAll(_emitNativeFieldAccessors(m));
@@ -1872,6 +1879,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var savedUri = _currentUri;
     for (var m in c.procedures) {
+      // Static accessors on static/lazy fields are emitted earlier in
+      // `_emitStaticFieldsAndAccessors`.
+      if (m.isStatic && m.isAccessor && staticFieldNames.contains(m.name)) {
+        continue;
+      }
       _staticTypeContext.enterMember(m);
       // For the Dart SDK, we use the member URI because it may be different
       // from the class (because of patch files). User code does not need this.
@@ -2310,36 +2322,51 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (fields.isEmpty) return;
-    moduleItems.add(_emitLazyFields(
+    moduleItems.add(_emitLazyMembers(
         emitLibraryName(_currentLibrary), fields, _emitTopLevelMemberName));
   }
 
-  js_ast.Statement _emitLazyFields(
-      js_ast.Expression objExpr,
-      Iterable<Field> fields,
-      js_ast.LiteralString Function(Field f) emitFieldName) {
+  js_ast.Statement _emitLazyMembers(
+    js_ast.Expression objExpr,
+    Iterable<Member> members,
+    js_ast.LiteralString Function(Member) emitMemberName,
+  ) {
     var accessors = <js_ast.Method>[];
     var savedUri = _currentUri;
 
-    for (var field in fields) {
-      _currentUri = field.fileUri;
-      _staticTypeContext.enterMember(field);
-      var access = emitFieldName(field);
-      memberNames[field] = access.valueWithoutQuotes;
-      accessors.add(js_ast.Method(access, _emitStaticFieldInitializer(field),
-          isGetter: true)
-        ..sourceInformation = _hoverComment(
-            js_ast.PropertyAccess(objExpr, access),
-            field.fileOffset,
-            field.name.text.length));
+    for (var member in members) {
+      _currentUri = member.fileUri;
+      _staticTypeContext.enterMember(member);
+      var access = emitMemberName(member);
+      memberNames[member] = access.valueWithoutQuotes;
 
-      // TODO(jmesserly): currently uses a dummy setter to indicate writable.
-      if (!field.isFinal && !field.isConst) {
+      if (member is Field) {
+        accessors.add(js_ast.Method(access, _emitStaticFieldInitializer(member),
+            isGetter: true)
+          ..sourceInformation = _hoverComment(
+              js_ast.PropertyAccess(objExpr, access),
+              member.fileOffset,
+              member.name.text.length));
+        if (!member.isFinal && !member.isConst) {
+          // TODO(jmesserly): currently uses a dummy setter to indicate
+          // writable.
+          accessors.add(js_ast.Method(
+              access, js.call('function(_) {}') as js_ast.Fun,
+              isSetter: true));
+        }
+      } else if (member is Procedure) {
         accessors.add(js_ast.Method(
-            access, js.call('function(_) {}') as js_ast.Fun,
-            isSetter: true));
+            access, _emitFunction(member.function, member.name.text),
+            isGetter: member.isGetter, isSetter: member.isSetter)
+          ..sourceInformation = _hoverComment(
+              js_ast.PropertyAccess(objExpr, access),
+              member.fileOffset,
+              member.name.text.length));
+      } else {
+        throw UnsupportedError(
+            'Unsupported lazy member type ${member.runtimeType}: $member');
       }
-      _staticTypeContext.leaveMember(field);
+      _staticTypeContext.leaveMember(member);
     }
     _currentUri = savedUri;
 
@@ -4777,9 +4804,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitStaticSet(StaticSet node) {
     var target = node.target;
+    var result = _emitStaticTarget(target);
     var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
-    return _visitExpression(value)
-        .toAssignExpression(_emitStaticTarget(target));
+    return _visitExpression(value).toAssignExpression(result);
   }
 
   @override

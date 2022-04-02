@@ -18,15 +18,15 @@ class Message {
   final MessageType type;
 
   // Client-side identifier for this message.
-  final serial;
+  final Object? serial;
 
   final String? method;
 
   final params = <String, dynamic>{};
-  final result = {};
-  final error = {};
+  final result = <String, dynamic>{};
+  final error = <String, dynamic>{};
 
-  factory Message.fromJsonRpc(Client? client, Map map) {
+  factory Message.fromJsonRpc(Client? client, Map<String, dynamic> map) {
     if (map.containsKey('id')) {
       final id = map['id'];
       if (id != null && id is! num && id is! String) {
@@ -48,47 +48,47 @@ class Message {
   }
 
   // http://www.jsonrpc.org/specification#request_object
-  Message._fromJsonRpcRequest(Client? client, Map map)
+  Message._fromJsonRpcRequest(Client? client, Map<String, dynamic> map)
       : client = client,
         type = MessageType.Request,
         serial = map['id'],
-        method = map['method'] {
+        method = (map['method'] as String?) {
     if (map['params'] != null) {
-      params.addAll(map['params']);
+      params.addAll(map['params'] as Map<String, dynamic>);
     }
   }
 
   // http://www.jsonrpc.org/specification#notification
-  Message._fromJsonRpcNotification(Client? client, Map map)
+  Message._fromJsonRpcNotification(Client? client, Map<String, dynamic> map)
       : client = client,
         type = MessageType.Notification,
-        method = map['method'],
+        method = (map['method'] as String?),
         serial = null {
     if (map['params'] != null) {
-      params.addAll(map['params']);
+      params.addAll(map['params'] as Map<String, dynamic>);
     }
   }
 
   // http://www.jsonrpc.org/specification#response_object
-  Message._fromJsonRpcResult(Client? client, Map map)
+  Message._fromJsonRpcResult(Client? client, Map<String, dynamic> map)
       : client = client,
         type = MessageType.Response,
         serial = map['id'],
         method = null {
-    result.addAll(map['result']);
+    result.addAll(map['result'] as Map<String, dynamic>);
   }
 
   // http://www.jsonrpc.org/specification#response_object
-  Message._fromJsonRpcError(Client? client, Map map)
+  Message._fromJsonRpcError(Client? client, Map<String, dynamic> map)
       : client = client,
         type = MessageType.Response,
         serial = map['id'],
         method = null {
-    error.addAll(map['error']);
+    error.addAll(map['error'] as Map<String, dynamic>);
   }
 
   static String _methodNameFromUri(Uri uri) {
-    if (uri == null || uri.pathSegments.length == 0) {
+    if (uri.pathSegments.length == 0) {
       return '';
     }
     return uri.pathSegments[0];
@@ -147,7 +147,7 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List<String> _makeAllString(List list) {
+  List<String> _makeAllString(List<Object> list) {
     var new_list = List<String>.filled(list.length, "");
     for (var i = 0; i < list.length; i++) {
       new_list[i] = list[i].toString();
@@ -167,8 +167,9 @@ class Message {
       _setResponseFromPort(value);
     };
     final keys = _makeAllString(params.keys.toList(growable: false));
-    final values = _makeAllString(params.values.toList(growable: false));
-    final request = List<dynamic>.filled(6, null)
+    final values =
+        _makeAllString(params.values.cast<Object>().toList(growable: false));
+    final request = List<Object?>.filled(6, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = receivePort.sendPort
       ..[2] = serial
@@ -212,7 +213,7 @@ class Message {
       _setResponseFromPort(value);
     };
     var keys = params.keys.toList(growable: false);
-    var values = params.values.toList(growable: false);
+    var values = params.values.cast<Object>().toList(growable: false);
     if (!_methodNeedsObjectParameters(method!)) {
       keys = _makeAllString(keys);
       values = _makeAllString(values);
@@ -235,7 +236,7 @@ class Message {
     return _completer.future;
   }
 
-  void _setResponseFromPort(dynamic response) {
+  void _setResponseFromPort(Object? response) {
     if (response == null) {
       // We should only have a null response for Notifications.
       assert(type == MessageType.Notification);
@@ -252,10 +253,10 @@ class Message {
 }
 
 @pragma("vm:external-name", "VMService_SendIsolateServiceMessage")
-external bool sendIsolateServiceMessage(SendPort sp, List m);
+external bool sendIsolateServiceMessage(SendPort sp, List<Object?> m);
 
 @pragma("vm:external-name", "VMService_SendRootServiceMessage")
-external void sendRootServiceMessage(List m);
+external void sendRootServiceMessage(List<Object?> m);
 
 @pragma("vm:external-name", "VMService_SendObjectRootServiceMessage")
-external void sendObjectRootServiceMessage(List m);
+external void sendObjectRootServiceMessage(List<Object?> m);

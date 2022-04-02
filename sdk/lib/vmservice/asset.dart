@@ -42,10 +42,10 @@ class Asset {
     if (tarBytes == null) {
       return null;
     }
-    List assetList = _decodeAssets(tarBytes);
-    Map<String, Asset> assets = new HashMap<String, Asset>();
+    final assetList = _decodeAssets(tarBytes);
+    final assets = <String, Asset>{};
     for (int i = 0; i < assetList.length; i += 2) {
-      final a = Asset(assetList[i], assetList[i + 1]);
+      final a = Asset(assetList[i] as String, assetList[i + 1] as Uint8List);
       assets[a.name] = a;
     }
     return assets;
@@ -55,7 +55,7 @@ class Asset {
 }
 
 @pragma("vm:external-name", "VMService_DecodeAssets")
-external List _decodeAssets(Uint8List data);
+external List<Object> _decodeAssets(Uint8List data);
 
 Map<String, Asset>? _assets;
 Map<String, Asset> get assets {

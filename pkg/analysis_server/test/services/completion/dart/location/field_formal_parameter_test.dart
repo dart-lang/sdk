@@ -30,66 +30,63 @@ class FieldFormalParameterTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
-  /// https://github.com/dart-lang/sdk/issues/39028
-  Future<void> test_mixin_constructor() async {
-    var response = await getTestCodeSuggestions('''
-mixin M {
-  var field = 0;
-  M(this.^);
-}
-''');
-
-    check(response).suggestions.isEmpty;
+  Future<void> test_class_replacement_left() async {
+    _checkContainers(
+      declarations: 'var field = 0;',
+      constructorParameters: 'this.f^',
+      validator: (response) {
+        check(response)
+          ..hasReplacement(left: 1)
+          ..suggestions.matchesInAnyOrder([
+            (suggestion) => suggestion
+              ..completion.isEqualTo('field')
+              ..isField
+              ..returnType.isEqualTo('int'),
+          ]);
+      },
+    );
   }
 
-  Future<void> test_replacement_left() async {
-    var response = await getTestCodeSuggestions('''
-class A {
-  var field = 0;
-  A(this.f^);
-}
-''');
-
-    check(response)
-      ..hasReplacement(left: 1)
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('field')
-          ..isField
-          ..returnType.isEqualTo('int'),
-      ]);
+  Future<void> test_class_replacement_right() async {
+    _checkContainers(
+      declarations: 'var field = 0;',
+      constructorParameters: 'this.^f',
+      validator: (response) {
+        check(response)
+          ..hasReplacement(right: 1)
+          ..suggestions.matchesInAnyOrder([
+            (suggestion) => suggestion
+              ..completion.isEqualTo('field')
+              ..isField
+              ..returnType.isEqualTo('int'),
+          ]);
+      },
+    );
   }
 
-  Future<void> test_replacement_right() async {
+  Future<void> test_class_suggestions_instanceFields_local() async {
     var response = await getTestCodeSuggestions('''
 class A {
-  var field = 0;
-  A(this.^f);
-}
-''');
-
-    check(response)
-      ..hasReplacement(right: 1)
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('field')
-          ..isField
-          ..returnType.isEqualTo('int'),
-      ]);
-  }
-
-  Future<void> test_suggestions_onlyLocal() async {
-    var response = await getTestCodeSuggestions('''
-class A {
+  static final superStatic = 0;
   var inherited = 0;
+
+  void superMethod() {}
+  int get superGetter => 0;
+  void superSetter(int _) {}
 }
 
 class B extends A {
+  static final thisStatic = 0;
+
   var first = 0;
   var second = 1.2;
+
   B(this.^);
-  B.constructor() {}
-  void method() {}
+  B.otherConstructor() {}
+
+  void thisMethod() {}
+  int get thisGetter => 0;
+  void thisSetter(int _) {}
 }
 ''');
 
@@ -107,12 +104,56 @@ class B extends A {
       ]);
   }
 
-  Future<void> test_suggestions_onlyNotSpecified_optionalNamed() async {
+  Future<void> test_class_suggestions_onlyNotSpecified_optionalNamed() async {
+    _checkContainers(
+      declarations: 'final int x; final int y;',
+      constructorParameters: '{this.x, this.^}',
+      validator: (response) {
+        check(response)
+          ..hasEmptyReplacement()
+          ..suggestions.matchesInAnyOrder([
+            (suggestion) => suggestion
+              ..completion.isEqualTo('y')
+              ..isField
+              ..returnType.isEqualTo('int'),
+          ]);
+      },
+    );
+  }
+
+  Future<void>
+      test_class_suggestions_onlyNotSpecified_requiredPositional() async {
+    _checkContainers(
+      declarations: 'final int x; final int y;',
+      constructorParameters: 'this.x, this.^',
+      validator: (response) {
+        check(response)
+          ..hasEmptyReplacement()
+          ..suggestions.matchesInAnyOrder([
+            (suggestion) => suggestion
+              ..completion.isEqualTo('y')
+              ..isField
+              ..returnType.isEqualTo('int'),
+          ]);
+      },
+    );
+  }
+
+  Future<void> test_enum_suggestions_instanceFields() async {
     var response = await getTestCodeSuggestions('''
-class Point {
-  final int x;
-  final int y;
-  Point({this.x, this.^});
+enum E {
+  v();
+
+  static final zero = 0;
+  final int first;
+  final double second;
+
+  E(this.^);
+  E.otherConstructor();
+
+  void myMethod() {}
+  int get myGetter => 0;
+  void mySetter(int _) {}
 }
 ''');
 
@@ -120,28 +161,53 @@ class Point {
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
         (suggestion) => suggestion
-          ..completion.isEqualTo('y')
+          ..completion.isEqualTo('first')
           ..isField
           ..returnType.isEqualTo('int'),
+        (suggestion) => suggestion
+          ..completion.isEqualTo('second')
+          ..isField
+          ..returnType.isEqualTo('double'),
       ]);
   }
 
-  Future<void> test_suggestions_onlyNotSpecified_requiredPositional() async {
+  /// https://github.com/dart-lang/sdk/issues/39028
+  Future<void> test_mixin_constructor() async {
     var response = await getTestCodeSuggestions('''
-class Point {
-  final int x;
-  final int y;
-  Point(this.x, this.^);
+mixin M {
+  var field = 0;
+  M(this.^);
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('y')
-          ..isField
-          ..returnType.isEqualTo('int'),
-      ]);
+    check(response).suggestions.isEmpty;
+  }
+
+  Future<void> _checkContainers({
+    required String declarations,
+    required String constructorParameters,
+    required void Function(CompletionResponseForTesting response) validator,
+  }) async {
+    // class
+    {
+      var response = await getTestCodeSuggestions('''
+class A {
+  $declarations
+  A($constructorParameters);
+}
+''');
+      validator(response);
+    }
+    // enum
+    {
+      var response = await getTestCodeSuggestions('''
+enum E {
+  v;
+  $declarations
+  E($constructorParameters);
+}
+''');
+      validator(response);
+    }
   }
 }

@@ -118,6 +118,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   @visibleForTesting
   int contextBuilds = 0;
 
+  /// The subscription to the stream of incoming messages from the client.
+  late StreamSubscription<void> _channelSubscription;
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -155,7 +158,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.status.listen(sendStatusNotification);
     analysisDriverScheduler.start();
 
-    channel.listen(handleMessage, onDone: done, onError: socketError);
+    _channelSubscription =
+        channel.listen(handleMessage, onDone: done, onError: socketError);
     _pluginChangeSubscription =
         pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
   }
@@ -380,6 +384,36 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         logException(errorMessage, error, stackTrace);
       }
     }, socketError);
+  }
+
+  /// Locks the server from processing incoming messages until [operation]
+  /// completes.
+  ///
+  /// This can be used to obtain analysis results/resolved units consistent with
+  /// the state of a file at the time this method was called, preventing
+  /// changes by incoming file modifications.
+  ///
+  /// The contents of [operation] should be kept as short as possible and since
+  /// cancellation requests will also be blocked for the duration of this
+  /// operation, handles should generally check the cancellation flag
+  /// immediately after this function returns.
+  FutureOr<T> lockRequestsWhile<T>(FutureOr<T> Function() operation) async {
+    final completer = Completer<void>();
+
+    // Pause handling incoming messages until `operation` completes.
+    //
+    // If this method is called multiple times, the pauses will stack, meaning
+    // the subscription will not resume until all operations complete.
+    _channelSubscription.pause(completer.future);
+
+    try {
+      // `await` here is imported to ensure `finally` doesn't execute until
+      // `operation()` completes (`whenComplete` is not available on
+      // `FutureOr`).
+      return await operation();
+    } finally {
+      completer.complete();
+    }
   }
 
   /// Logs the error on the client using window/logMessage.

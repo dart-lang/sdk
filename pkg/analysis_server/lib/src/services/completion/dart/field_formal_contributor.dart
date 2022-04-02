@@ -52,23 +52,26 @@ class FieldFormalContributor extends DartCompletionContributor {
       }
     }
 
-    var enclosingClass = constructor.thisOrAncestorOfType<ClassDeclaration>();
+    ClassElement? enclosingClass;
+    var constructorParent = constructor.parent;
+    if (constructorParent is ClassDeclaration) {
+      enclosingClass = constructorParent.declaredElement;
+    } else if (constructorParent is EnumDeclaration) {
+      enclosingClass = constructorParent.declaredElement;
+    } else {
+      return;
+    }
     if (enclosingClass == null) {
       return;
     }
 
     // Add suggestions for fields that are not already referenced.
-    for (var member in enclosingClass.members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (var variable in member.fields.variables) {
-          var field = variable.name.staticElement;
-          if (field is FieldElement) {
-            var fieldName = field.name;
-            if (fieldName.isNotEmpty) {
-              if (!referencedFields.contains(fieldName)) {
-                builder.suggestFieldFormalParameter(field);
-              }
-            }
+    for (var field in enclosingClass.fields) {
+      if (!field.isSynthetic && !field.isEnumConstant && !field.isStatic) {
+        var fieldName = field.name;
+        if (fieldName.isNotEmpty) {
+          if (!referencedFields.contains(fieldName)) {
+            builder.suggestFieldFormalParameter(field);
           }
         }
       }

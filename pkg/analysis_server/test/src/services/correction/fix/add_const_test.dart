@@ -11,6 +11,7 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddConst_NonConstGenerativeEnumConstructorTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsBulkTest);
@@ -19,6 +20,42 @@ void main() {
         AddConst_PreferConstLiteralsToCreateImmutablesBulkTest);
     defineReflectiveTests(AddConst_PreferConstLiteralsToCreateImmutablesTest);
   });
+}
+
+@reflectiveTest
+class AddConst_NonConstGenerativeEnumConstructorTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CONST;
+
+  Future<void> test_named() async {
+    await resolveTestCode('''
+enum E {
+  v.named();
+  E.named();
+}
+''');
+    await assertHasFix('''
+enum E {
+  v.named();
+  const E.named();
+}
+''');
+  }
+
+  Future<void> test_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  E();
+}
+''');
+    await assertHasFix('''
+enum E {
+  v;
+  const E();
+}
+''');
+  }
 }
 
 @reflectiveTest

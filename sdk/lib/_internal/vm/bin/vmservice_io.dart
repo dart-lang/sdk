@@ -108,7 +108,7 @@ class _DebuggingSession {
       mode: ProcessStartMode.detachedWithStdio,
     );
     final completer = Completer<void>();
-    late StreamSubscription stderrSub;
+    late StreamSubscription<String> stderrSub;
     stderrSub = _process!.stderr.transform(utf8.decoder).listen((event) {
       final result = json.decode(event) as Map<String, dynamic>;
       final state = result['state'];
@@ -145,7 +145,7 @@ class _DebuggingSession {
   Process? _process;
 }
 
-Future cleanupCallback() async {
+Future<void> cleanupCallback() async {
   // Cancel the sigquit subscription.
   if (_signalSubscription != null) {
     await _signalSubscription.cancel();
@@ -191,7 +191,7 @@ Future<Uri> createTempDirCallback(String base) async {
   return fsUri;
 }
 
-Future deleteDirCallback(Uri path) async =>
+Future<void> deleteDirCallback(Uri path) async =>
     await Directory.fromUri(path).delete(recursive: true);
 
 class PendingWrite {
@@ -200,7 +200,7 @@ class PendingWrite {
   final Uri uri;
   final List<int> bytes;
 
-  Future write() async {
+  Future<void> write() async {
     final file = File.fromUri(uri);
     final parent_directory = file.parent;
     await parent_directory.create(recursive: true);
@@ -221,7 +221,7 @@ class WriteLimiter {
   static const kMaxOpenWrites = 16;
   static int openWrites = 0;
 
-  static Future scheduleWrite(Uri path, List<int> bytes) async {
+  static Future<void> scheduleWrite(Uri path, List<int> bytes) async {
     // Create a new pending write.
     final pw = PendingWrite(path, bytes);
     pendingWrites.add(pw);
@@ -229,7 +229,7 @@ class WriteLimiter {
     return pw.completer.future;
   }
 
-  static _maybeWriteFiles() {
+  static void _maybeWriteFiles() {
     while (openWrites < kMaxOpenWrites) {
       if (pendingWrites.length > 0) {
         final pw = pendingWrites.removeLast();
@@ -241,14 +241,14 @@ class WriteLimiter {
     }
   }
 
-  static _writeCompleted() {
+  static void _writeCompleted() {
     openWrites--;
     assert(openWrites >= 0);
     _maybeWriteFiles();
   }
 }
 
-Future writeFileCallback(Uri path, List<int> bytes) async =>
+Future<void> writeFileCallback(Uri path, List<int> bytes) async =>
     WriteLimiter.scheduleWrite(path, bytes);
 
 Future<void> writeStreamFileCallback(Uri path, Stream<List<int>> bytes) async {
@@ -336,7 +336,7 @@ _onSignal(ProcessSignal signal) {
 
 Timer? _registerSignalHandlerTimer;
 
-_registerSignalHandler() {
+void _registerSignalHandler() {
   if (VMService().isExiting) {
     // If the VM started shutting down we don't want to register this signal
     // handler, otherwise we'll cause the VM to hang after killing the service

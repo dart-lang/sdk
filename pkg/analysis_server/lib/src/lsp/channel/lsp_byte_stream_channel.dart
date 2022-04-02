@@ -48,9 +48,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Message message) onMessage,
+  StreamSubscription<void> listen(void Function(Message message) onMessage,
       {Function? onError, void Function()? onDone}) {
-    _input.transform(LspPacketTransformer()).listen(
+    return _input.transform(LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
       onError: onError,
       onDone: () {

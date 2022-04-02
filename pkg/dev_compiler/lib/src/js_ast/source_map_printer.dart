@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-// ignore_for_file: always_declare_return_types
-// ignore_for_file: omit_local_variable_types
-
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
 import 'js_ast.dart';
@@ -28,14 +23,14 @@ class NodeEnd {
   final SourceLocation end;
   NodeEnd(this.end);
   @override
-  toString() => '#<NodeEnd $end>';
+  String toString() => '#<NodeEnd $end>';
 }
 
 class NodeSpan {
   final SourceLocation start, end;
   NodeSpan(this.start, this.end);
   @override
-  toString() => '#<NodeSpan $start to $end>';
+  String toString() => '#<NodeSpan $start to $end>';
 }
 
 class HoverComment {
@@ -43,7 +38,7 @@ class HoverComment {
   final Expression expression;
   HoverComment(this.expression, this.start, this.end);
   @override
-  toString() => '#<HoverComment `$expression` @ $start to $end>';
+  String toString() => '#<HoverComment `$expression` @ $start to $end>';
 }
 
 class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
@@ -59,14 +54,14 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   /// The last marked line in the buffer.
   int _previousDartOffset = -1;
 
-  SourceLocation _pendingDartOffset;
-  SourceLocation _pendingJSLocation;
+  SourceLocation? _pendingDartOffset;
+  SourceLocation? _pendingJSLocation;
 
   @override
   void emit(String code) {
     var chars = code.runes.toList();
     var length = chars.length;
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       var c = chars[i];
       if (c == _LF || (c == _CR && (i + 1 == length || chars[i + 1] != _LF))) {
         // Return not followed by line-feed is treated as a new line.
@@ -84,7 +79,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
     var srcInfo = node.sourceInformation;
     if (srcInfo == null || srcInfo == continueSourceMap) return;
 
-    SourceLocation dartStart;
+    SourceLocation? dartStart;
     if (srcInfo is SourceLocation) {
       dartStart = srcInfo;
     } else if (srcInfo is NodeSpan) {
@@ -116,7 +111,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
     var srcInfo = node.sourceInformation;
     if (srcInfo == null || srcInfo == continueSourceMap) return;
 
-    SourceLocation dartEnd;
+    SourceLocation? dartEnd;
     if (srcInfo is NodeSpan) {
       dartEnd = srcInfo.end;
     } else if (srcInfo is NodeEnd) {
@@ -130,7 +125,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       if (node is Fun || node is Method || node is NamedFunction) {
         // Mark the exit point of a function. V8 steps to the end of a function
         // at its exit, so this provides a mapping for that location.
-        int column = _column - 1;
+        var column = _column - 1;
         if (column >= 0) {
           // Adjust the colum, because any ending brace or semicolon is already in
           // the output.
@@ -169,13 +164,13 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   void _flushPendingMarks() {
     var pending = _pendingDartOffset;
     if (pending != null) {
-      _markInternal(pending, _pendingJSLocation);
+      _markInternal(pending, _pendingJSLocation!);
       _pendingDartOffset = null;
       _pendingJSLocation = null;
     }
   }
 
-  void _mark(SourceLocation dartLocation, [SourceLocation jsLocation]) {
+  void _mark(SourceLocation dartLocation, [SourceLocation? jsLocation]) {
     _flushPendingMarks();
     jsLocation ??= _getJSLocation();
     _markInternal(dartLocation, jsLocation);

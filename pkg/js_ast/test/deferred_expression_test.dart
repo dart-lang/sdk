@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 
-main() {
+void main() {
   Map<Expression, DeferredExpression> map = {};
   VariableUse variableUse = VariableUse('variable');
   DeferredExpression deferred =
@@ -75,18 +75,18 @@ void test(Map<Expression, DeferredExpression> map, String template,
     DeferredExpression deferred = map[argument];
     Expect.isTrue(
         directContext.enterPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in direct enter positions: "
-        "${directContext.enterPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in direct enter positions: '
+        '${directContext.enterPositions.keys}');
     Expect.isTrue(
         deferredContext.enterPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.enterPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.enterPositions.keys}');
     Expect.isTrue(
         deferredContext.enterPositions.containsKey(deferred),
-        "Argument ${DebugPrint(deferred)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.enterPositions.keys}");
+        'Argument ${DebugPrint(deferred)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.enterPositions.keys}');
     Expect.equals(directContext.enterPositions[argument],
         deferredContext.enterPositions[argument]);
     Expect.equals(directContext.enterPositions[argument],
@@ -94,18 +94,18 @@ void test(Map<Expression, DeferredExpression> map, String template,
 
     Expect.isTrue(
         directContext.exitPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in direct enter positions: "
-        "${directContext.exitPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in direct enter positions: '
+        '${directContext.exitPositions.keys}');
     Expect.isTrue(
         deferredContext.exitPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.exitPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.exitPositions.keys}');
     Expect.isTrue(
         deferredContext.exitPositions.containsKey(deferred),
-        "Argument ${DebugPrint(deferred)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.exitPositions.keys}");
+        'Argument ${DebugPrint(deferred)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.exitPositions.keys}');
     Expect.equals(directContext.exitPositions[argument],
         deferredContext.exitPositions[argument]);
     Expect.equals(directContext.exitPositions[argument],

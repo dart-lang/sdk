@@ -707,9 +707,8 @@ CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION:
 CompileTimeErrorCode.NON_BOOL_OPERAND:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
-  status: needsFix
+  status: hasFix
   since: 2.17
-  issue: https://github.com/dart-lang/sdk/issues/48479
 CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
