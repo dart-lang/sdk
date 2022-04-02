@@ -203,7 +203,8 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
   uint8_t* buffer = NULL;
   Dart_Handle external_array = IOBuffer::Allocate(length, &buffer);
   if (Dart_IsNull(external_array)) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    OSError os_error(-1, "Failed to allocate buffer", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
     return;
   }
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
@@ -289,11 +290,13 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   // Write all the data out into the file.
   char* byte_buffer = reinterpret_cast<char*>(buffer);
   bool success = file->WriteFully(byte_buffer + start, length);
+  OSError os_error;  // capture error if any
 
   // Release the direct pointer acquired above.
   ThrowIfError(Dart_TypedDataReleaseData(buffer_obj));
+
   if (!success) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   } else {
     Dart_SetReturnValue(args, Dart_Null());
   }
