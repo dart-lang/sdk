@@ -92,6 +92,21 @@ int f(Foo foo) {
 ''');
   }
 
+  test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive_parenthesis() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case (Foo.a):
+      return 0;
+    case (Foo.b):
+      return 1;
+  }
+}
+''');
+  }
+
   test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
     await assertErrorsInCode(r'''
 enum Foo { a, b }
