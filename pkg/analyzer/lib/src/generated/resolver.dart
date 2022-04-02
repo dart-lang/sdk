@@ -3820,7 +3820,9 @@ class _SwitchExhaustiveness {
   }
 
   static Element? _referencedElement(Expression expression) {
-    if (expression is PrefixedIdentifier) {
+    if (expression is ParenthesizedExpression) {
+      return _referencedElement(expression.expression);
+    } else if (expression is PrefixedIdentifier) {
       return expression.staticElement;
     } else if (expression is PropertyAccess) {
       return expression.propertyName.staticElement;
