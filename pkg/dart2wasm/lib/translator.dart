@@ -95,6 +95,7 @@ class Translator {
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure throwNullCheckError;
+  late final Procedure throwAsCheckError;
   late final Procedure mapFactory;
   late final Procedure mapPut;
   late final Procedure immutableMapIndexNullable;
@@ -192,6 +193,8 @@ class Translator {
         .firstWhere((p) => p.name.text == "_interpolate");
     throwNullCheckError = typeErrorClass.procedures
         .firstWhere((p) => p.name.text == "_throwNullCheckError");
+    throwAsCheckError = typeErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwAsCheckError");
     mapFactory = lookupCollection("LinkedHashMap").procedures.firstWhere(
         (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
     mapPut = lookupCollection("_CompactLinkedCustomHashMap")
