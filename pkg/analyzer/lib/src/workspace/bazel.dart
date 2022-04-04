@@ -122,7 +122,12 @@ class BazelPackageUriResolver extends UriResolver {
     }
 
     String packageName = uriPath.substring(0, slash);
+
     String fileUriPart = uriPath.substring(slash + 1);
+    if (fileUriPart.isEmpty) {
+      return null;
+    }
+
     String filePath = fileUriPart.replaceAll('/', _context.separator);
 
     if (!packageName.contains('.')) {
