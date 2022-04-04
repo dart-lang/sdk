@@ -553,7 +553,7 @@ Future testTooLargeControlMessage(String tempDirPath) async {
               socket.close();
             }
           }), (e, st) {
-    // print('Got expected unhandled exception $e $st');
+    print('Got expected unhandled exception $e $st');
     Expect.equals(true, e is SocketException);
     completer.complete(true);
   });
@@ -823,79 +823,6 @@ Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
   });
 }
 
-Future testDeleteFile(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
-    return;
-  }
-  final name = '$tempDirPath/sock';
-  final address = InternetAddress(name, type: InternetAddressType.unix);
-  var server = await RawServerSocket.bind(address, 0, shared: false);
-  final file = File(name);
-  Expect.isTrue(file.existsSync());
-  Expect.isTrue(await file.exists());
-  file.deleteSync();
-  Expect.isFalse(file.existsSync());
-  Expect.isFalse(await file.exists());
-  await server.close();
-
-  server = await RawServerSocket.bind(address, 0, shared: false);
-  Expect.isTrue(file.existsSync());
-  Expect.isTrue(await file.exists());
-  await file.delete();
-  Expect.isFalse(file.existsSync());
-  Expect.isFalse(await file.exists());
-  await server.close();
-}
-
-Future testFileStat(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
-    return;
-  }
-  final name = '$tempDirPath/sock';
-  final address = InternetAddress(name, type: InternetAddressType.unix);
-  var server = await RawServerSocket.bind(address, 0, shared: false);
-  FileStat fileStat = FileStat.statSync(name);
-  Expect.equals(FileSystemEntityType.unixDomainSock, fileStat.type);
-  await server.close();
-}
-
-Future testFileRename(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
-    return;
-  }
-  final name1 = '$tempDirPath/sock1';
-  final name2 = '$tempDirPath/sock2';
-  final address = InternetAddress(name1, type: InternetAddressType.unix);
-  var server = await RawServerSocket.bind(address, 0, shared: false);
-  final file1 = File(name1);
-  final file2 = file1.renameSync(name2);
-  Expect.isFalse(file1.existsSync());
-  Expect.isTrue(file2.existsSync());
-  await server.close();
-  file2.deleteSync();
-  Expect.isFalse(file1.existsSync());
-  Expect.isFalse(file2.existsSync());
-}
-
-Future testFileCopy(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
-    return;
-  }
-  final name1 = '$tempDirPath/sock1';
-  final name2 = '$tempDirPath/sock2';
-  final address = InternetAddress(name1, type: InternetAddressType.unix);
-  final file1 = File(name1);
-  var server = await RawServerSocket.bind(address, 0, shared: false);
-  try {
-    final file2 = file1.copySync(name2);
-    Expect.isFalse(true);
-  } catch (e) {
-    Expect.isTrue(e is FileSystemException);
-  }
-  await server.close();
-  Expect.isFalse(file1.existsSync());
-}
-
 void main(List<String> args) async {
   runZonedGuarded(() async {
     if (args.length > 0 && args[0] == '--start-stdio-message-test') {
@@ -904,6 +831,7 @@ void main(List<String> args) async {
       });
       return;
     }
+
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testAddress('${dir.path}');
     });
@@ -948,18 +876,6 @@ void main(List<String> args) async {
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testStdioMessage('${dir.path}', caller: true);
-    });
-    await withTempDir('unix_socket_test', (Directory dir) async {
-      await testDeleteFile('${dir.path}');
-    });
-    await withTempDir('unix_socket_test', (Directory dir) async {
-      await testFileStat('${dir.path}');
-    });
-    await withTempDir('unix_socket_test', (Directory dir) async {
-      await testFileRename('${dir.path}');
-    });
-    await withTempDir('unix_socket_test', (Directory dir) async {
-      await testFileCopy('${dir.path}');
     });
   }, (e, st) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {

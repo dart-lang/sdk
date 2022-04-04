@@ -389,27 +389,7 @@ File::Type File::GetType(Namespace* namespc,
   if (S_ISLNK(entry_info.st_mode)) {
     return File::kIsLink;
   }
-  if (S_ISSOCK(entry_info.st_mode)) {
-    return File::kIsSock;
-  }
-  if (S_ISFIFO(entry_info.st_mode)) {
-    return File::kIsPipe;
-  }
   return File::kDoesNotExist;
-}
-
-static void SetErrno(File::Type type) {
-  switch (type) {
-    case File::kIsDirectory:
-      errno = EISDIR;
-      break;
-    case File::kDoesNotExist:
-      errno = ENOENT;
-      break;
-    default:
-      errno = EINVAL;
-      break;
-  }
 }
 
 static bool CheckTypeAndSetErrno(Namespace* namespc,
@@ -420,17 +400,23 @@ static bool CheckTypeAndSetErrno(Namespace* namespc,
   if (actual == expected) {
     return true;
   }
-  SetErrno(actual);
+  switch (actual) {
+    case File::kIsDirectory:
+      errno = EISDIR;
+      break;
+    case File::kDoesNotExist:
+      errno = ENOENT;
+      break;
+    default:
+      errno = EINVAL;
+      break;
+  }
   return false;
 }
 
 bool File::Delete(Namespace* namespc, const char* name) {
-  File::Type type = File::GetType(namespc, name, true);
-  if (type == kIsFile || type == kIsSock || type == kIsPipe) {
-    return (NO_RETRY_EXPECTED(unlink(name)) == 0);
-  }
-  SetErrno(type);
-  return false;
+  return CheckTypeAndSetErrno(namespc, name, kIsFile, true) &&
+         (NO_RETRY_EXPECTED(unlink(name)) == 0);
 }
 
 bool File::DeleteLink(Namespace* namespc, const char* name) {
@@ -441,12 +427,8 @@ bool File::DeleteLink(Namespace* namespc, const char* name) {
 bool File::Rename(Namespace* namespc,
                   const char* old_path,
                   const char* new_path) {
-  File::Type type = File::GetType(namespc, old_path, true);
-  if (type == kIsFile || type == kIsSock || type == kIsPipe) {
-    return (NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0);
-  }
-  SetErrno(type);
-  return false;
+  return CheckTypeAndSetErrno(namespc, old_path, kIsFile, true) &&
+         (NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0);
 }
 
 bool File::RenameLink(Namespace* namespc,
@@ -459,12 +441,8 @@ bool File::RenameLink(Namespace* namespc,
 bool File::Copy(Namespace* namespc,
                 const char* old_path,
                 const char* new_path) {
-  File::Type type = File::GetType(namespc, old_path, true);
-  if (type == kIsFile || type == kIsSock || type == kIsPipe) {
-    return (copyfile(old_path, new_path, NULL, COPYFILE_ALL) == 0);
-  }
-  SetErrno(type);
-  return false;
+  return CheckTypeAndSetErrno(namespc, old_path, kIsFile, true) &&
+         (copyfile(old_path, new_path, NULL, COPYFILE_ALL) == 0);
 }
 
 static bool StatHelper(Namespace* namespc, const char* name, struct stat* st) {
@@ -502,10 +480,6 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
       data[kType] = kIsDirectory;
     } else if (S_ISLNK(st.st_mode)) {
       data[kType] = kIsLink;
-    } else if (S_ISSOCK(st.st_mode)) {
-      data[kType] = kIsSock;
-    } else if (S_ISFIFO(st.st_mode)) {
-      data[kType] = kIsPipe;
     } else {
       data[kType] = kDoesNotExist;
     }
