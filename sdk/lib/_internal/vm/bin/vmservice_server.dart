@@ -373,7 +373,7 @@ class Server {
       request.response.close();
       return;
     }
-    final asset = assets[path];
+    final asset = assets![path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType = ContentType.parse(asset.mimeType);
