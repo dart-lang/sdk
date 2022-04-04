@@ -111,6 +111,27 @@ class B {
     ]);
   }
 
+  test_operator() async {
+    newFile2('$testPackageLibPath/a.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @visibleForOverriding
+  operator >(A other) => true;
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+class B {
+  void m(A a) => a > A();
+}
+''', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 47, 1),
+    ]);
+  }
+
   test_overriding_getter() async {
     newFile2('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
@@ -169,14 +190,18 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 class B extends A {
   @override
   operator >(A other) => super > other;
+
+  void m() => super > A();
 }
-''');
+''', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 111, 1),
+    ]);
   }
 
   test_overriding_setter() async {

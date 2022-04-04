@@ -58,7 +58,7 @@ class Asset {
 external List<Object> _decodeAssets(Uint8List data);
 
 Map<String, Asset>? _assets;
-Map<String, Asset> get assets {
+Map<String, Asset>? get assets {
   if (_assets == null) {
     try {
       _assets = Asset.request();
@@ -66,5 +66,5 @@ Map<String, Asset> get assets {
       print('Could not load Observatory assets: $e');
     }
   }
-  return _assets!;
+  return _assets;
 }

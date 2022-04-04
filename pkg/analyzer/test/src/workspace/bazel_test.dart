@@ -133,7 +133,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
       '/workspace/my/lib/a.dart',
     ]);
     _assertResolve(
-      'file:///workspace/my/lib/a.dart',
+      toUriStr('/workspace/my/lib/a.dart'),
       getFile('/workspace/my/lib/a.dart'),
     );
   }
@@ -143,7 +143,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
       '/workspace/WORKSPACE',
     ]);
     _assertResolve(
-      'file:///workspace/my/lib/a.dart',
+      toUriStr('/workspace/my/lib/a.dart'),
       getFile('/workspace/my/lib/a.dart'),
       exists: false,
     );
@@ -231,7 +231,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       '/workspace/WORKSPACE',
       '/workspace/my/foo/test',
     ]);
-    _assertResolve('file:///workspace/bazel-bin/my/test/a .dart',
+    _assertResolve(toUriStr('/workspace/bazel-bin/my/test/a .dart'),
         '/workspace/my/test/a .dart',
         exists: false, restore: false);
   }
@@ -242,7 +242,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
       '/workspace/bazel-bin/'
     ]);
-    _assertResolve('file:///workspace/bazel-bin/my/foo/test/foo1.dart',
+    _assertResolve(toUriStr('/workspace/bazel-bin/my/foo/test/foo1.dart'),
         '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
         restore: false);
   }
@@ -253,7 +253,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       '/workspace/bazel-genfiles/',
       '/workspace/my/foo/test/foo1.dart'
     ]);
-    _assertResolve('file:///workspace/bazel-genfiles/my/foo/test/foo1.dart',
+    _assertResolve(toUriStr('/workspace/bazel-genfiles/my/foo/test/foo1.dart'),
         '/workspace/my/foo/test/foo1.dart',
         restore: false);
   }
@@ -264,7 +264,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       '/workspace/bazel-genfiles/',
       '/other/my/foo/test/foo1.dart'
     ]);
-    _assertNoResolve('file:///other/my/foo/test/foo1.dart');
+    _assertNoResolve(toUriStr('/other/my/foo/test/foo1.dart'));
   }
 
   void test_resolveAbsolute_file_readonly_to_workspace() {
@@ -273,7 +273,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       '/READONLY/workspace/',
       '/workspace/my/foo/test/foo1.dart'
     ]);
-    _assertResolve('file:///READONLY/workspace/my/foo/test/foo1.dart',
+    _assertResolve(toUriStr('/READONLY/workspace/my/foo/test/foo1.dart'),
         '/workspace/my/foo/test/foo1.dart',
         restore: false);
   }
@@ -283,7 +283,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       '/workspace/WORKSPACE',
       '/workspace/bazel-genfiles/my/foo/test/foo1.dart'
     ]);
-    _assertResolve('file:///workspace/my/foo/test/foo1.dart',
+    _assertResolve(toUriStr('/workspace/my/foo/test/foo1.dart'),
         '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
         restore: false);
   }

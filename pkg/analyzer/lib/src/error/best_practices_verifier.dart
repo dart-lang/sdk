@@ -341,6 +341,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
     _checkForInvariantNullComparison(node);
+    _invalidAccessVerifier.verifyBinary(node);
     super.visitBinaryExpression(node);
   }
 
@@ -1849,6 +1850,25 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(identifier, element);
   }
 
+  void verifyBinary(BinaryExpression node) {
+    var element = node.staticElement;
+    if (element != null && _hasVisibleForOverriding(element)) {
+      var operator = node.operator;
+
+      if (node.leftOperand is SuperExpression) {
+        var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
+        if (methodDeclaration?.name.name == operator.lexeme) {
+          return;
+        }
+      }
+
+      _errorReporter.reportErrorForToken(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+          operator,
+          [operator.type.lexeme]);
+    }
+  }
+
   void verifyImport(ImportDirective node) {
     var element = node.uriElement;
     if (_hasInternal(element) &&
@@ -1968,7 +1988,7 @@ class _InvalidAccessVerifier {
           parent is PropertyAccess && parent.target is SuperExpression) {
         var methodDeclaration =
             grandparent?.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name.token.value() == identifier.token.value()) {
+        if (methodDeclaration?.name.name == identifier.name) {
           validOverride = true;
         }
       }
