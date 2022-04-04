@@ -91,6 +91,8 @@ class LintNames {
   static const String prefer_final_in_for_each = 'prefer_final_in_for_each';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_final_parameters = 'prefer_final_parameters';
+  static const String prefer_function_declarations_over_variables =
+      'prefer_function_declarations_over_variables';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';
   static const String prefer_generic_function_type_aliases =

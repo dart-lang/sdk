@@ -52,6 +52,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
@@ -530,6 +531,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_for_elements_to_map_fromIterable: [
       ConvertMapFromIterableToForLiteral.newInstance,
+    ],
+    LintNames.prefer_function_declarations_over_variables: [
+      ConvertToFunctionDeclaration.newInstance,
     ],
     LintNames.prefer_generic_function_type_aliases: [
       ConvertToGenericFunctionSyntax.newInstance,

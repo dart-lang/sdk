@@ -63,6 +63,8 @@ import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_function_declaration_test.dart'
+    as convert_to_function_declaration;
 import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
@@ -279,6 +281,7 @@ void main() {
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();
+    convert_to_function_declaration.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_if_null.main();
