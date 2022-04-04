@@ -173,7 +173,11 @@ class StreamManager {
     String stream, {
     bool? includePrivates,
   }) async {
-    await _streamSubscriptionMutex.runGuarded(
+    // Weakly guard stream listening as it's safe to perform multiple listens
+    // on a stream concurrently. However, cancelling streams while listening
+    // to them concurrently can put things in a bad state. Use weak guarding to
+    // improve latency of stream subscription.
+    await _streamSubscriptionMutex.runGuardedWeak(
       () async {
         assert(stream.isNotEmpty);
         bool streamNewlySubscribed = false;
