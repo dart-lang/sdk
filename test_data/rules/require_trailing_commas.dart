@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// test w/ `dart test -N require_trailing_commas`
+
 class RequireTrailingCommasExample {
   RequireTrailingCommasExample.constructor1(Object param1, Object param2);
 
@@ -241,6 +243,30 @@ class RequireTrailingCommasExample {
       false,
       'a very very very very very very very very very long string',
     );
+
+    assert(() {
+      return true;
+    }());
+
+    assert(() {
+      return true;
+    }(), 'comment'); // LINT
+
+    assert(
+      () {
+        return true;
+      }(),
+      'comment',
+    );
+
+    dynamic f;
+    f((a, b, c) {
+      return true;
+    } (
+      '',
+      '',
+      '',
+    )); // LINT
   }
 }
 

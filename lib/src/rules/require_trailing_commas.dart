@@ -152,18 +152,27 @@ class _Visitor extends SimpleAstVisitor<void> {
       _lineInfo.getLocation(token2.offset).lineNumber;
 
   bool _shouldAllowTrailingCommaException(AstNode lastNode) {
-    // No exceptions are allowed if the last parameter is named.
+    // No exceptions are allowed if the last argument is named.
     if (lastNode is FormalParameter && lastNode.isNamed) return false;
 
-    // No exceptions are allowed if the entire last parameter fits on one line.
+    // No exceptions are allowed if the entire last argument fits on one line.
     if (_isSameLine(lastNode.beginToken, lastNode.endToken)) return false;
 
-    // Exception is allowed if the last parameter is a function literal.
+    // Exception is allowed if the last argument is a function literal.
     if (lastNode is FunctionExpression && lastNode.body is BlockFunctionBody) {
       return true;
     }
 
-    // Exception is allowed if the last parameter is a set, map or list literal.
+    // Exception is allowed if the last argument is a anonymous function call.
+    // This case arises a lot in asserts.
+    if (lastNode is FunctionExpressionInvocation &&
+        lastNode.function is FunctionExpression &&
+        _isSameLine(lastNode.argumentList.leftParenthesis,
+            lastNode.argumentList.rightParenthesis)) {
+      return true;
+    }
+
+    // Exception is allowed if the last argument is a set, map or list literal.
     if (lastNode is SetOrMapLiteral || lastNode is ListLiteral) return true;
 
     return false;
