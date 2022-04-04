@@ -278,7 +278,8 @@ class ByteDataSerializer extends Serializer {
   @override
   void addInt(int value) {
     if (value >= 0x0) {
-      if (value + DataKind.values.length <= 0xff) {
+      assert(DataKind.values.length < 0xff);
+      if (value <= 0xff - DataKind.values.length) {
         _builder..addByte(value + DataKind.values.length);
       } else if (value <= 0xff) {
         _builder
@@ -380,10 +381,52 @@ class ByteDataSerializer extends Serializer {
   }
 
   @override
-  void endList() => _builder.addByte(DataKind.endList.index);
+  void startList() => _builder.addByte(DataKind.startList.index);
 
   @override
-  void startList() => _builder.addByte(DataKind.startList.index);
+  void endList() => _builder.addByte(DataKind.endList.index);
+
+  /// Used to signal the start of an arbitrary length list of map entries.
+  void startMap() => _builder.addByte(DataKind.startMap.index);
+
+  /// Used to signal the end of an arbitrary length list of map entries.
+  void endMap() => _builder.addByte(DataKind.endMap.index);
+
+  /// Serializes a [Uint8List].
+  void addUint8List(Uint8List value) {
+    _builder.addByte(DataKind.uint8List.index);
+    addInt(value.length);
+    _builder.add(value);
+  }
+
+  /// Serializes an object with arbitrary structure. It supports `bool`,
+  /// `int`, `String`, `null`, `Uint8List`, `List`, `Map`.
+  void addAny(Object? value) {
+    if (value == null) {
+      addNull();
+    } else if (value is bool) {
+      addBool(value);
+    } else if (value is int) {
+      addInt(value);
+    } else if (value is String) {
+      addString(value);
+    } else if (value is Uint8List) {
+      addUint8List(value);
+    } else if (value is List) {
+      startList();
+      value.forEach(addAny);
+      endList();
+    } else if (value is Map) {
+      startMap();
+      for (MapEntry<Object?, Object?> entry in value.entries) {
+        addAny(entry.key);
+        addAny(entry.value);
+      }
+      endMap();
+    } else {
+      throw new ArgumentError('(${value.runtimeType}) $value');
+    }
+  }
 
   @override
   Uint8List get result => _builder.takeBytes();
@@ -494,6 +537,32 @@ class ByteDataDeserializer extends Deserializer {
     _byteOffsetIncrement = 1;
   }
 
+  /// Asserts that the current item is the start of a map.
+  ///
+  /// An example for how to read from a map is as follows:
+  ///
+  /// I know it's a map of ints to strings.
+  ///
+  /// ```
+  ///   var result = <int, String>[];
+  ///   deserializer.expectMap();
+  ///   while (deserializer.moveNext()) {
+  ///     var key = deserializer.expectInt();
+  ///     deserializer.next();
+  ///     var value = deserializer.expectString();
+  ///     result[key] = value;
+  ///   }
+  ///   // We have already called `moveNext` to move past the map.
+  ///   deserializer.expectBool();
+  /// ```
+  void expectMap() {
+    DataKind kind = _readKind();
+    if (kind != DataKind.startMap) {
+      throw new StateError('Expected the start to a map but found a $kind');
+    }
+    _byteOffsetIncrement = 1;
+  }
+
   @override
   String expectString() {
     DataKind kind = _readKind();
@@ -514,6 +583,75 @@ class ByteDataDeserializer extends Deserializer {
     }
   }
 
+  /// Reads the current value as [Uint8List].
+  Uint8List expectUint8List() {
+    _byteOffsetIncrement = 1;
+    moveNext();
+    int length = expectInt();
+    int offset = _byteOffset + _byteOffsetIncrement!;
+    _byteOffsetIncrement = _byteOffsetIncrement! + length;
+    return _bytes.buffer.asUint8List(offset, length);
+  }
+
+  /// Reads the current value as an object of arbitrary structure.
+  Object? expectAny() {
+    const Set<DataKind> boolKinds = {
+      DataKind.boolFalse,
+      DataKind.boolTrue,
+    };
+
+    const Set<DataKind> intKinds = {
+      DataKind.directEncodedUint8,
+      DataKind.int8,
+      DataKind.int16,
+      DataKind.int32,
+      DataKind.int64,
+      DataKind.uint8,
+      DataKind.uint16,
+      DataKind.uint32,
+      DataKind.uint64,
+    };
+
+    const Set<DataKind> stringKinds = {
+      DataKind.oneByteString,
+      DataKind.twoByteString,
+    };
+
+    DataKind kind = _readKind();
+    if (boolKinds.contains(kind)) {
+      return expectBool();
+    } else if (kind == DataKind.nil) {
+      checkNull();
+      return null;
+    } else if (intKinds.contains(kind)) {
+      return expectInt();
+    } else if (stringKinds.contains(kind)) {
+      return expectString();
+    } else if (kind == DataKind.startList) {
+      List<Object?> result = [];
+      expectList();
+      while (moveNext()) {
+        Object? element = expectAny();
+        result.add(element);
+      }
+      return result;
+    } else if (kind == DataKind.startMap) {
+      Map<Object?, Object?> result = {};
+      expectMap();
+      while (moveNext()) {
+        Object? key = expectAny();
+        moveNext();
+        Object? value = expectAny();
+        result[key] = value;
+      }
+      return result;
+    } else if (kind == DataKind.uint8List) {
+      return expectUint8List();
+    } else {
+      throw new StateError('Expected: $kind');
+    }
+  }
+
   @override
   bool moveNext() {
     int? increment = _byteOffsetIncrement;
@@ -524,8 +662,9 @@ class ByteDataDeserializer extends Deserializer {
     _byteOffset += increment;
     if (_byteOffset >= _bytes.lengthInBytes) {
       return false;
-    } else if (_readKind() == DataKind.endList) {
-      // You don't explicitly consume list end markers.
+    } else if (_readKind() == DataKind.endList ||
+        _readKind() == DataKind.endMap) {
+      // You don't explicitly consume list/map end markers.
       _byteOffsetIncrement = 1;
       return false;
     } else {
@@ -541,6 +680,8 @@ enum DataKind {
   directEncodedUint8, // Encoded in the kind byte.
   startList,
   endList,
+  startMap,
+  endMap,
   int8,
   int16,
   int32,
@@ -552,6 +693,7 @@ enum DataKind {
   float64,
   oneByteString,
   twoByteString,
+  uint8List,
 }
 
 /// Must be set using `withSerializationMode` before doing any serialization or
