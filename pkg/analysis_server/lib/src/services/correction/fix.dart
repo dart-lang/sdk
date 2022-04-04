@@ -408,6 +408,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Convert to 'Function' syntax everywhere in file",
   );
+  static const CONVERT_TO_FUNCTION_DECLARATION = FixKind(
+    'dart.fix.convert.toFunctionDeclaration',
+    DartFixKindPriority.DEFAULT,
+    'Convert to function declaration',
+  );
+  static const CONVERT_TO_FUNCTION_DECLARATION_MULTI = FixKind(
+    'dart.fix.convert.toFunctionDeclaration.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to function declaration everywhere in file',
+  );
   static const CONVERT_TO_IF_ELEMENT = FixKind(
     'dart.fix.convert.toIfElement',
     DartFixKindPriority.DEFAULT,

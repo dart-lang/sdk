@@ -53,14 +53,16 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
     var fsState = analysisDriver.fsState;
 
-    // The file is the generated file.
+    // Prepare URI(s).
     var generatedUri = toUri(generatedPath);
+    var writableUri = toUri(writablePath);
+
+    // The file is the generated file.
     var generatedFile = fsState.getFileForUri(generatedUri).t1!;
-    expect(generatedFile.uri, generatedUri);
+    expect(generatedFile.uri, writableUri);
     expect(generatedFile.path, generatedPath);
 
     // The file is cached under the requested URI.
-    var writableUri = toUri(writablePath);
     var writableFile1 = fsState.getFileForUri(writableUri).t1!;
     var writableFile2 = fsState.getFileForUri(writableUri).t1!;
     expect(writableFile1, same(generatedFile));
@@ -79,16 +81,18 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
     var fsState = analysisDriver.fsState;
 
-    // The file is cached under the requested URI.
+    // Prepare URI(s).
+    var generatedUri = toUri(generatedPath);
     var writableUri = toUri(writablePath);
+
+    // The file is cached under the requested URI.
     var writableFile1 = fsState.getFileForUri(writableUri).t1!;
     var writableFile2 = fsState.getFileForUri(writableUri).t1!;
     expect(writableFile2, same(writableFile1));
 
     // The file is the generated file.
-    var generatedUri = toUri(generatedPath);
     var generatedFile = fsState.getFileForUri(generatedUri).t1!;
-    expect(generatedFile.uri, generatedUri);
+    expect(generatedFile.uri, writableUri);
     expect(generatedFile.path, generatedPath);
     expect(writableFile2, same(generatedFile));
   }

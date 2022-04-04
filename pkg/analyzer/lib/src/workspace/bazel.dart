@@ -25,6 +25,23 @@ class BazelFileUriResolver extends ResourceUriResolver {
   BazelFileUriResolver(this.workspace) : super(workspace.provider);
 
   @override
+  Uri pathToUri(String path) {
+    var pathContext = workspace.provider.pathContext;
+    for (var genRoot in [
+      ...workspace.binPaths,
+      workspace.genfiles,
+      workspace.readonly,
+    ]) {
+      if (genRoot != null && pathContext.isWithin(genRoot, path)) {
+        String relative = pathContext.relative(path, from: genRoot);
+        var writablePath = pathContext.join(workspace.root, relative);
+        return pathContext.toUri(writablePath);
+      }
+    }
+    return workspace.provider.pathContext.toUri(path);
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;

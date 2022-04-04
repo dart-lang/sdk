@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -26,67 +27,133 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
   late final BazelWorkspace workspace;
   late final BazelFileUriResolver resolver;
 
-  void setUp() {
-    newFile2('/workspace/WORKSPACE', '');
-    newFolder('/workspace/bazel-genfiles');
-    workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/workspace'))!;
-    resolver = BazelFileUriResolver(workspace);
-    newFile2('/workspace/test.dart', '');
-    newFile2('/workspace/bazel-bin/gen1.dart', '');
-    newFile2('/workspace/bazel-genfiles/gen2.dart', '');
-    expect(workspace.isBazel, isTrue);
-  }
-
-  void test_pathToUri() {
-    Uri uri = toUri('/workspace/test.dart');
-    var source = resolver.resolveAbsolute(uri)!;
-    expect(resolver.pathToUri(source.fullName), uri);
-  }
-
-  void test_resolveAbsolute_doesNotExist() {
-    var source = _resolvePath('/workspace/foo.dart')!;
-    expect(source.exists(), isFalse);
-    expect(source.fullName, convertPath('/workspace/foo.dart'));
-  }
-
-  void test_resolveAbsolute_file() {
-    var source = _resolvePath('/workspace/test.dart')!;
-    expect(source.exists(), isTrue);
-    expect(source.fullName, convertPath('/workspace/test.dart'));
-  }
-
-  void test_resolveAbsolute_folder() {
-    var source = _resolvePath('/workspace');
-    expect(source, isNull);
-  }
-
-  void test_resolveAbsolute_generated_file_exists_one() {
-    var source = _resolvePath('/workspace/gen1.dart')!;
-    expect(source.exists(), isTrue);
-    expect(source.fullName, convertPath('/workspace/bazel-bin/gen1.dart'));
-  }
-
-  void test_resolveAbsolute_generated_file_exists_two() {
-    var source = _resolvePath('/workspace/gen2.dart')!;
-    expect(source.exists(), isTrue);
-    expect(source.fullName, convertPath('/workspace/bazel-genfiles/gen2.dart'));
+  void test_resolveAbsolute_bazelBin_exists() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-bin/my/test/a.dart',
+    ]);
+    _assertResolve(
+      toUriStr('/workspace/bazel-bin/my/test/a.dart'),
+      getFile('/workspace/bazel-bin/my/test/a.dart'),
+      restoredUriStr: toUriStr('/workspace/my/test/a.dart'),
+    );
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
     Uri uri = Uri(scheme: 'dart', path: 'core');
     var source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_notFile_httpsUri() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
     Uri uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
     var source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
+  void test_resolveAbsolute_outsideOfWorkspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
+    expect(
+      resolver.resolveAbsolute(
+        toUri('/foo'),
+      ),
+      isNull,
+    );
+  }
+
+  void test_resolveAbsolute_workspaceRoot() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
+    expect(
+      resolver.resolveAbsolute(
+        toUri('/workspace'),
+      ),
+      isNull,
+    );
+  }
+
+  void test_resolveAbsolute_writableUri_bazelBin_hasWritable() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/my/test/a.dart',
+      '/workspace/bazel-bin/my/test/a.dart',
+    ]);
+    _assertResolve(
+      toUriStr('/workspace/my/test/a.dart'),
+      getFile('/workspace/bazel-bin/my/test/a.dart'),
+    );
+  }
+
+  void test_resolveAbsolute_writableUri_bazelBin_noWritable() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-bin/my/test/a.dart',
+    ]);
+    _assertResolve(
+      toUriStr('/workspace/my/test/a.dart'),
+      getFile('/workspace/bazel-bin/my/test/a.dart'),
+    );
+  }
+
+  void test_resolveAbsolute_writableUri_bazelGenfiles_hasWritable() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/my/test/a.dart',
+      '/workspace/bazel-genfiles/my/test/a.dart',
+    ]);
+    _assertResolve(
+      toUriStr('/workspace/my/test/a.dart'),
+      getFile('/workspace/bazel-genfiles/my/test/a.dart'),
+    );
+  }
+
+  void test_resolveAbsolute_writableUri_bazelGenfiles_noWritable() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/my/test/a.dart',
+    ]);
+    _assertResolve(
+      toUriStr('/workspace/my/test/a.dart'),
+      getFile('/workspace/bazel-genfiles/my/test/a.dart'),
+    );
+  }
+
+  void test_resolveAbsolute_writableUri_writable() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/my/lib/a.dart',
+    ]);
+    _assertResolve(
+      'file:///workspace/my/lib/a.dart',
+      getFile('/workspace/my/lib/a.dart'),
+    );
+  }
+
+  void test_resolveAbsolute_writableUri_writable_doesNotExist() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
+    _assertResolve(
+      'file:///workspace/my/lib/a.dart',
+      getFile('/workspace/my/lib/a.dart'),
+      exists: false,
+    );
+  }
+
   @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
     Uri uri =
         resourceProvider.pathContext.toUri(convertPath('/workspace/test.dart'));
     var source = resolver.resolveAbsolute(uri)!;
@@ -97,10 +164,37 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
         uri);
   }
 
-  Source? _resolvePath(String absolutePosixPath) {
-    String absolutePath = convertPath(absolutePosixPath);
-    Uri uri = resourceProvider.pathContext.toUri(absolutePath);
-    return resolver.resolveAbsolute(uri);
+  void _addResources(List<String> paths) {
+    for (String path in paths) {
+      if (path.endsWith('/')) {
+        newFolder(path.substring(0, path.length - 1));
+      } else {
+        newFile2(path, '');
+      }
+    }
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      getFolder('/workspace').path,
+    )!;
+    resolver = BazelFileUriResolver(workspace);
+  }
+
+  void _assertResolve(
+    String uriStr,
+    File file, {
+    bool exists = true,
+    String? restoredUriStr,
+  }) {
+    var uri = Uri.parse(uriStr);
+
+    var source = resolver.resolveAbsolute(uri)!;
+    var path = source.fullName;
+    expect(path, file.path);
+    expect(source.uri, uri);
+    expect(source.exists(), exists);
+
+    restoredUriStr ??= uriStr;
+    expect(resolver.pathToUri(path), Uri.parse(restoredUriStr));
   }
 }
 

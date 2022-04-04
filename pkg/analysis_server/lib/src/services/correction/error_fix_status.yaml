@@ -1741,7 +1741,7 @@ LintCode.prefer_for_elements_to_map_fromIterable:
 LintCode.prefer_foreach:
   status: needsEvaluation
 LintCode.prefer_function_declarations_over_variables:
-  status: needsEvaluation
+  status: hasFix
 LintCode.prefer_generic_function_type_aliases:
   status: hasFix
 LintCode.prefer_if_elements_to_conditional_expressions:
