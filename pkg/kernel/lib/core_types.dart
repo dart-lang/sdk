@@ -178,6 +178,9 @@ class CoreTypes {
 
   late final Class futureClass = index.getClass('dart:core', 'Future');
 
+  late final Procedure futureSyncFactory =
+      index.getMember('dart:async', 'Future', 'sync') as Procedure;
+
   // TODO(dmitryas): Remove it when FutureOrType is fully supported.
   late final Class deprecatedFutureOrClass =
       index.getClass('dart:async', 'FutureOr');

@@ -1,0 +1,2 @@
+Future<int> foo() async {}
+void main() {}
