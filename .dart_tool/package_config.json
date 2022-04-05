@@ -386,7 +386,7 @@
       "name": "js_ast",
       "rootUri": "../pkg/js_ast",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.16"
     },
     {
       "name": "js_runtime",
