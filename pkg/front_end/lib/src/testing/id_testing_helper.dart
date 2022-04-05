@@ -270,14 +270,14 @@ void onFailure(String message) => throw new StateError(message);
 RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   retainDataForTesting = true;
-  return (TestData testData,
+  return (MarkerOptions markerOptions, TestData testData,
       {required bool testAfterFailures,
       required bool verbose,
       required bool succinct,
       required bool printCode,
       Map<String, List<String>>? skipMap,
       required Uri nullUri}) {
-    return runTest(testData, dataComputer, testedConfigs,
+    return runTest(markerOptions, testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         verbose: verbose,
         succinct: succinct,
@@ -291,8 +291,11 @@ RunTestFunction<T> runTestFor<T>(
 /// Runs [dataComputer] on [testData] for all [testedConfigs].
 ///
 /// Returns `true` if an error was encountered.
-Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
-    DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
+Future<Map<String, TestResult<T>>> runTest<T>(
+    MarkerOptions markerOptions,
+    TestData testData,
+    DataComputer<T> dataComputer,
+    List<TestConfig> testedConfigs,
     {required bool testAfterFailures,
     required bool verbose,
     required bool succinct,
@@ -315,7 +318,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
       continue;
     }
     results[config.marker] = await runTestForConfig(
-        testData, dataComputer, config,
+        markerOptions, testData, dataComputer, config,
         fatalErrors: !testAfterFailures,
         onFailure: onFailure,
         verbose: verbose,
@@ -329,7 +332,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<TestResult<T>> runTestForConfig<T>(
+Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
     {required bool fatalErrors,
     required bool verbose,
@@ -560,7 +563,7 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   CfeCompiledData<T> compiledData = new CfeCompiledData<T>(
       compilerResult, testData.entryPoint, actualMaps, globalData);
-  return checkCode(config.name, testData.testFileUri, testData.code,
+  return checkCode(markerOptions, config.marker, config.name, testData,
       memberAnnotations, compiledData, dataComputer.dataValidator,
       fatalErrors: fatalErrors, succinct: succinct, onFailure: onFailure);
 }

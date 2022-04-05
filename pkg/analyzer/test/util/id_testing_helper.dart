@@ -36,28 +36,6 @@ final TestConfig analyzerDefaultConfig = TestConfig(
 /// tests.
 Uri _defaultDir = Uri.parse('file:///a/b/c/');
 
-Future<TestResult<T>> checkTests<T>(
-    String rawCode, DataComputer<T> dataComputer, FeatureSet featureSet) async {
-  AnnotatedCode code =
-      AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
-  String testFileName = 'test.dart';
-  var testFileUri = _toTestUri(testFileName);
-  var memorySourceFiles = {testFileName: code.sourceCode};
-  var marker = 'analyzer';
-  Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-    marker: MemberAnnotations<IdValue>(),
-  };
-  computeExpectedMap(testFileUri, testFileName, code, expectedMaps,
-      onFailure: onFailure);
-  Map<Uri, AnnotatedCode> codeMap = {testFileUri: code};
-  var testData = TestData(testFileName, testFileUri, testFileUri,
-      memorySourceFiles, codeMap, expectedMaps);
-  var config =
-      TestConfig(marker, 'provisional test config', featureSet: featureSet);
-  return runTestForConfig<T>(testData, dataComputer, config,
-      onFailure: onFailure);
-}
-
 /// Creates the testing URI used for [fileName] in annotated tests.
 Uri createUriForFileName(String fileName) => _toTestUri(fileName);
 
@@ -68,8 +46,11 @@ void onFailure(String message) {
 /// Runs [dataComputer] on [testData] for all [testedConfigs].
 ///
 /// Returns `true` if an error was encountered.
-Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
-    DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
+Future<Map<String, TestResult<T>>> runTest<T>(
+    MarkerOptions markerOptions,
+    TestData testData,
+    DataComputer<T> dataComputer,
+    List<TestConfig> testedConfigs,
     {required bool testAfterFailures,
     bool forUserLibrariesOnly = true,
     Iterable<Id> globalIds = const <Id>[],
@@ -88,7 +69,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
       continue;
     }
     results[config.marker] = await runTestForConfig(
-        testData, dataComputer, config,
+        markerOptions, testData, dataComputer, config,
         fatalErrors: !testAfterFailures, onFailure: onFailure);
   }
   return results;
@@ -97,14 +78,14 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
 /// Creates a test runner for [dataComputer] on [testedConfigs].
 RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
-  return (TestData testData,
+  return (MarkerOptions markerOptions, TestData testData,
       {required bool testAfterFailures,
       bool? verbose,
       bool? succinct,
       bool? printCode,
       Map<String, List<String>>? skipMap,
       Uri? nullUri}) {
-    return runTest(testData, dataComputer, testedConfigs,
+    return runTest(markerOptions, testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         onFailure: onFailure,
         skipMap: skipMap);
@@ -114,7 +95,7 @@ RunTestFunction<T> runTestFor<T>(
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<TestResult<T>> runTestForConfig<T>(
+Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
     {bool fatalErrors = true,
     required void Function(String message) onFailure,
@@ -213,7 +194,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   });
   var compiledData = AnalyzerCompiledData<T>(
       testData.code, testData.entryPoint, actualMaps, globalData);
-  return checkCode(config.name, testData.testFileUri, testData.code,
+  return checkCode(markerOptions, config.marker, config.name, testData,
       memberAnnotations, compiledData, dataComputer.dataValidator,
       fatalErrors: fatalErrors, onFailure: onFailure);
 }
