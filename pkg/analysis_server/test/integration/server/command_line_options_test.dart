@@ -43,6 +43,7 @@ class OptionsPackagesIntegrationTest
 ''');
 
     return server.start(
+      dartSdkPath: dartSdkPath,
       diagnosticPort: diagnosticPort,
       servicesPort: servicesPort,
       packagesFile: packagesPath,

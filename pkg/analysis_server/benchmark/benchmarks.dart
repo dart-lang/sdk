@@ -75,6 +75,7 @@ abstract class Benchmark {
   Future oneTimeSetup() => Future.value();
 
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   });
@@ -194,6 +195,8 @@ class RunCommand extends Command {
   final List<Benchmark> benchmarks;
 
   RunCommand(this.benchmarks) {
+    argParser.addOption('dart-sdk',
+        help: 'The absolute normalized path of the Dart SDK.');
     argParser.addOption('flutter-repository',
         help: 'The absolute normalized path of the Flutter repository.');
     argParser.addFlag('quick',
@@ -230,6 +233,7 @@ class RunCommand extends Command {
 
     var benchmarkId = args.rest.first;
     var repeatCount = int.parse(args['repeat'] as String);
+    var dartSdkPath = args['dart-sdk'] as String?;
     var flutterRepository = args['flutter-repository'] as String?;
     var quick = args['quick'] as bool;
     var verbose = args['verbose'] as bool;
@@ -239,6 +243,8 @@ class RunCommand extends Command {
       print("Benchmark '$benchmarkId' not found.");
       exit(1);
     });
+
+    dartSdkPath ??= path.dirname(path.dirname(Platform.resolvedExecutable));
 
     if (benchmark is FlutterBenchmark) {
       if (flutterRepository != null) {
@@ -274,6 +280,7 @@ class RunCommand extends Command {
 
       for (var iteration = 0; iteration < actualIterations; iteration++) {
         var newResult = await benchmark.run(
+          dartSdkPath: dartSdkPath,
           quick: quick,
           verbose: verbose,
         );

@@ -115,7 +115,7 @@ final LIBRARIES = const <String, LibraryInfo> {
     var sdkPath = createNonStandardSdk();
     return server.start(
         diagnosticPort: diagnosticPort,
-        sdkPath: sdkPath,
+        dartSdkPath: sdkPath,
         servicesPort: servicesPort);
   }
 

@@ -37,6 +37,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -55,7 +56,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     // Open a small directory, but with the package config that allows us
     // to analyze any file in `package:flutter`, including tests.
     var startTimer = Stopwatch()..start();
-    await test.setUp([
+    await test.setUp(dartSdkPath, [
       '$flutterPkgPath/lib/src/physics',
     ]);
 

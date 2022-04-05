@@ -25,7 +25,7 @@ abstract class AbstractBenchmarkTest {
   void debugStdio();
   Future<int> getMemoryUsage();
   Future<void> openFile(String filePath, String contents);
-  Future<void> setUp(List<String> roots);
+  Future<void> setUp(String dartSdkPath, List<String> roots);
   Future<void> shutdown();
 
   Future<void> updateFile(String filePath, String contents);
@@ -76,7 +76,8 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
   }
 
   @override
-  Future<void> setUp(List<String> roots) async {
+  Future<void> setUp(String dartSdkPath, List<String> roots) async {
+    _test.dartSdkPath = dartSdkPath;
     await _test.setUp();
     await _test.subscribeToStatusNotifications();
     await _test.subscribeToAvailableSuggestions();
@@ -187,7 +188,8 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   }
 
   @override
-  Future<void> setUp(List<String> roots) async {
+  Future<void> setUp(String dartSdkPath, List<String> roots) async {
+    _test.dartSdkPath = dartSdkPath;
     _test.instrumentationService = InstrumentationLogAdapter(_logger);
     await _test.setUp();
     _test.projectFolderPath = roots.single;

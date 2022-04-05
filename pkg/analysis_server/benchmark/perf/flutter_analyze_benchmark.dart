@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
 import '../benchmarks.dart';
 
 Future<int> _runProcess(
@@ -57,6 +55,7 @@ class FlutterAnalyzeBenchmark extends Benchmark implements FlutterBenchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -64,12 +63,10 @@ class FlutterAnalyzeBenchmark extends Benchmark implements FlutterBenchmark {
       deleteServerCache();
     }
 
-    var dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
-
     var stopwatch = Stopwatch()..start();
 
     await _runProcess(
-      Platform.resolvedExecutable,
+      '$dartSdkPath/bin/dart',
       [
         'packages/flutter_tools/bin/flutter_tools.dart',
         'analyze',
