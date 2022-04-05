@@ -39,6 +39,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
+import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
@@ -106,6 +107,9 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The support for Flutter properties.
   WidgetDescriptions flutterWidgetDescriptions = WidgetDescriptions();
+
+  /// The context used by the execution domain handlers.
+  final ExecutionContext executionContext = ExecutionContext();
 
   /// The [Completer] that completes when analysis is complete.
   Completer<void>? _onAnalysisCompleteCompleter;
@@ -221,7 +225,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       EditDomainHandler(this),
       SearchDomainHandler(this),
       CompletionDomainHandler(this),
-      ExecutionDomainHandler(this),
+      ExecutionDomainHandler(this, executionContext),
       DiagnosticDomainHandler(this),
       AnalyticsDomainHandler(this),
       KytheDomainHandler(this),

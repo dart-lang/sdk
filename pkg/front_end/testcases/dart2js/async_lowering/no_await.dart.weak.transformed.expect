@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method foo1() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
+  asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    final core::int c = 3;
+    return c;
+  });
+static method foo2() → asy::Future<void> /* futureValueType= void */ /* originally async */ 
+  asy::Future::sync<void>(() → FutureOr<void>? {
+    final core::int c = 3;
+  });
+static method foo3() → dynamic /* futureValueType= dynamic */ /* originally async */ 
+  asy::Future::sync<dynamic>(() → FutureOr<dynamic>? {
+    return 234;
+  });
+static method bar(() → asy::Future<core::int> func) → void {
+  func(){() → asy::Future<core::int>};
+}
+static method foo4() → asy::Future<core::bool> async /* futureValueType= core::bool */ {
+  await asy::Future::value<core::int>(2);
+  self::bar(() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
+    asy::Future::sync<core::int>(() → FutureOr<core::int> => 3);
+);
+  return true;
+}
+static method foo5(core::bool x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
+  asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    if(x)
+      return 123;
+    return 234;
+  });
+static method main() → void {
+  self::foo1();
+  self::foo2();
+  self::foo3();
+  self::foo4();
+  self::foo5(true);
+}

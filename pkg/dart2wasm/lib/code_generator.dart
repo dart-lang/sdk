@@ -2092,8 +2092,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
-    // TODO(joshualitt): Emit type test and throw exception on failure
-    return wrap(node.operand, expectedType);
+    w.Label asCheckBlock = b.block();
+    wrap(node.operand, translator.topInfo.nullableType);
+    w.Local operand = addLocal(translator.topInfo.nullableType);
+    b.local_tee(operand);
+
+    // We lower an `as` expression to a type test, throwing a [TypeError] if
+    // the type test fails.
+    emitTypeTest(node.type, dartTypeOf(node.operand), node);
+    b.br_if(asCheckBlock);
+    b.local_get(operand);
+    _makeType(node.type, node);
+    _call(translator.stackTraceCurrent.reference);
+    _call(translator.throwAsCheckError.reference);
+    b.unreachable();
+    b.end();
+    b.local_get(operand);
+    return operand.type;
   }
 }
 

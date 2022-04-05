@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../options.dart';
+import 'async_lowering.dart';
 import 'factory_specializer.dart';
 import 'late_lowering.dart';
 
@@ -26,13 +27,18 @@ void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
 class _Lowering extends Transformer {
   final FactorySpecializer factorySpecializer;
   final LateLowering _lateLowering;
+  final AsyncLowering? _asyncLowering;
 
   Member? _currentMember;
 
   _Lowering(
       CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? _options)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
-        _lateLowering = LateLowering(coreTypes, _options);
+        _lateLowering = LateLowering(coreTypes, _options),
+        _asyncLowering =
+            (_options?.features.simpleAsyncToFuture.isEnabled ?? false)
+                ? AsyncLowering(coreTypes)
+                : null;
 
   @override
   TreeNode defaultMember(Member node) {
@@ -56,8 +62,10 @@ class _Lowering extends Transformer {
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
     _lateLowering.enterFunction();
+    _asyncLowering?.enterFunction(node);
     node.transformChildren(this);
     _lateLowering.exitFunction();
+    _asyncLowering?.transformFunctionNodeAndExit(node);
     return node;
   }
 
@@ -84,5 +92,19 @@ class _Lowering extends Transformer {
     _currentMember = node;
     node.transformChildren(this);
     return _lateLowering.transformField(node, _currentMember!);
+  }
+
+  @override
+  TreeNode visitAwaitExpression(AwaitExpression expression) {
+    _asyncLowering?.visitAwaitExpression(expression);
+    expression.transformChildren(this);
+    return expression;
+  }
+
+  @override
+  TreeNode visitReturnStatement(ReturnStatement statement) {
+    _asyncLowering?.visitReturnStatement(statement);
+    statement.transformChildren(this);
+    return statement;
   }
 }

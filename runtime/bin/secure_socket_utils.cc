@@ -21,15 +21,22 @@ namespace bin {
 
 // Get the error messages from BoringSSL, and put them in buffer as a
 // null-terminated string.
-void SecureSocketUtils::FetchErrorString(const SSL* ssl,
-                                         TextBuffer* text_buffer) {
+// This function extracts all the error messages into a string and returns
+// the first error code so that this error can be passed in as the OSError
+// error code to the IOException.
+uint32_t SecureSocketUtils::FetchErrorString(const SSL* ssl,
+                                             TextBuffer* text_buffer) {
   const char* sep = File::PathSeparator();
+  uint32_t errCode = 0;
   while (true) {
     const char* path = NULL;
     int line = -1;
     uint32_t error = ERR_get_error_line(&path, &line);
     if (error == 0) {
       break;
+    }
+    if (errCode == 0) {
+      errCode = error;
     }
     text_buffer->Printf("\n\t%s", ERR_reason_error_string(error));
     if ((ssl != NULL) && (ERR_GET_LIB(error) == ERR_LIB_SSL) &&
@@ -43,6 +50,7 @@ void SecureSocketUtils::FetchErrorString(const SSL* ssl,
       text_buffer->Printf("(%s:%d)", path, line);
     }
   }
+  return errCode;
 }
 
 // Handle an error reported from the BoringSSL library.
@@ -53,7 +61,10 @@ void SecureSocketUtils::ThrowIOException(int status,
   Dart_Handle exception;
   {
     TextBuffer error_string(SSL_ERROR_MESSAGE_BUFFER_SIZE);
-    SecureSocketUtils::FetchErrorString(ssl, &error_string);
+    uint32_t errCode = SecureSocketUtils::FetchErrorString(ssl, &error_string);
+    if (status == 0) {
+      status = errCode;
+    }
     OSError os_error_struct(status, error_string.buffer(), OSError::kBoringSSL);
     Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
     exception =

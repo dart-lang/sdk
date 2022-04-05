@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method foo1() → asy::Future<void> async /* futureValueType= void */ {
+  await 6;
+}
+static method foo2() → asy::Future<core::int> async /* futureValueType= core::int */ {
+  return await 6;
+}
+static method main() → void {
+  self::foo1();
+  self::foo2();
+}

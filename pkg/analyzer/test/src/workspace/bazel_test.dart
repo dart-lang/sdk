@@ -331,6 +331,15 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     expect(source, isNull);
   }
 
+  void test_resolveAbsolute_null_emptyFileUriPart() {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
+    var uri = Uri.parse('package:foo.bar/');
+    var source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
   void test_resolveAbsolute_null_noSlash() {
     _addResources([
       '/workspace/WORKSPACE',

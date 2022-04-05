@@ -1675,18 +1675,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ sx(T4, Address(SP, 0 * target::kWordSize));
 
   // Atomically clear kOldAndNotRememberedBit.
-  // TODO(riscv): Use amoand instead of lr/sc.
   ASSERT(target::Object::tags_offset() == 0);
   __ subi(T3, A0, kHeapObjectTag);
-  // T3: Untagged address of header word (lr/sc do not support offsets).
-  Label retry;
-  __ Bind(&retry);
-  __ lr(T2, Address(T3, 0));
-  __ andi(TMP2, T2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
-  __ beqz(TMP2, &lost_race);
-  __ andi(T2, T2, ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ sc(T4, T2, Address(T3, 0));
-  __ bnez(T4, &retry);
+  // T3: Untagged address of header word (amo's do not support offsets).
+  __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+#if XLEN == 32
+  __ amoandw(TMP2, TMP2, Address(T3, 0));
+#else
+  __ amoandd(TMP2, TMP2, Address(T3, 0));
+#endif
+  __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+  __ beqz(TMP2, &lost_race);  // Was already clear -> lost race.
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1738,18 +1737,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ sx(T4, Address(SP, 0 * target::kWordSize));
 
   // Atomically clear kOldAndNotMarkedBit.
-  // TODO(riscv): Use amoand instead of lr/sc.
-  Label marking_retry, marking_overflow;
+  Label marking_overflow;
   ASSERT(target::Object::tags_offset() == 0);
   __ subi(T3, A1, kHeapObjectTag);
-  // T3: Untagged address of header word (lr/sc do not support offsets).
-  __ Bind(&marking_retry);
-  __ lr(T2, Address(T3, 0));
-  __ andi(TMP2, T2, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
-  __ beqz(TMP2, &lost_race);
-  __ andi(T2, T2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-  __ sc(T4, T2, Address(T3, 0));
-  __ bnez(T4, &marking_retry);
+  // T3: Untagged address of header word (amo's do not support offsets).
+  __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+#if XLEN == 32
+  __ amoandw(TMP2, TMP2, Address(T3, 0));
+#else
+  __ amoandd(TMP2, TMP2, Address(T3, 0));
+#endif
+  __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
+  __ beqz(TMP2, &lost_race);  // Was already clear -> lost race.
 
   __ LoadFromOffset(T4, THR, target::Thread::marking_stack_block_offset());
   __ LoadFromOffset(T2, T4, target::MarkingStackBlock::top_offset(),

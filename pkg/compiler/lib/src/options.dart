@@ -85,6 +85,10 @@ class FeatureOptions {
   /// dump-info's output.
   FeatureOption newDumpInfo = FeatureOption('new-dump-info');
 
+  /// Whether to implement some simple async functions using Futures directly
+  /// to reduce generated code size.
+  FeatureOption simpleAsyncToFuture = FeatureOption('simple-async-to-future');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [
     newHolders,
@@ -97,7 +101,11 @@ class FeatureOptions {
   ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [writeUtf8, newDumpInfo];
+  late final List<FeatureOption> canary = [
+    writeUtf8,
+    newDumpInfo,
+    simpleAsyncToFuture
+  ];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
