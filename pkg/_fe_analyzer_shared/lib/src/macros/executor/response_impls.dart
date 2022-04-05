@@ -7,22 +7,6 @@ import '../api.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
 
-/// Implementation of [MacroClassIdentifier].
-class MacroClassIdentifierImpl implements MacroClassIdentifier {
-  final String id;
-
-  MacroClassIdentifierImpl(Uri library, String name) : id = '$library#$name';
-
-  MacroClassIdentifierImpl.deserialize(Deserializer deserializer)
-      : id = (deserializer..moveNext()).expectString();
-
-  void serialize(Serializer serializer) => serializer.addString(id);
-
-  operator ==(other) => other is MacroClassIdentifierImpl && id == other.id;
-
-  int get hashCode => id.hashCode;
-}
-
 /// Implementation of [MacroInstanceIdentifier].
 class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
   /// Unique identifier for this instance, passed in from the server.

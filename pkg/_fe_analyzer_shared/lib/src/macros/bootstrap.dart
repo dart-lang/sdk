@@ -25,16 +25,16 @@ String bootstrapMacroIsolate(
   macroDeclarations
       .forEach((String macroImport, Map<String, List<String>> macroClasses) {
     imports.writeln('import \'$macroImport\';');
+    constructorEntries.writeln("Uri.parse('$macroImport'): {");
     macroClasses.forEach((String macroName, List<String> constructorNames) {
-      constructorEntries
-          .writeln("MacroClassIdentifierImpl(Uri.parse('$macroImport'), "
-              "'$macroName'): {");
+      constructorEntries.writeln("'$macroName': {");
       for (String constructor in constructorNames) {
         constructorEntries.writeln("'$constructor': "
             "$macroName.${constructor.isEmpty ? 'new' : constructor},");
       }
       constructorEntries.writeln('},');
     });
+    constructorEntries.writeln("}");
   });
   return template
       .replaceFirst(_importMarker, imports.toString())
@@ -169,8 +169,8 @@ void _handleMessage(
   sendResult(serializer);
 }
 
-/// Maps macro identifiers to constructors.
-final _macroConstructors = <MacroClassIdentifierImpl, Map<String, Macro Function()>>{
+/// Maps libraries by uri to macros by name, and then constructors by name.
+final _macroConstructors = <Uri, Map<String, Map<String, Macro Function()>>>{
   $_macroConstructorEntriesMarker
 };
 
@@ -181,15 +181,21 @@ final _macroInstances = <MacroInstanceIdentifierImpl, Macro>{};
 Future<SerializableResponse> _instantiateMacro(
     InstantiateMacroRequest request) async {
   try {
-    var constructors = _macroConstructors[request.macroClass];
-    if (constructors == null) {
-      throw new ArgumentError('Unrecognized macro class \${request.macroClass}');
+    var classes = _macroConstructors[request.library];
+    if (classes == null) {
+      throw new ArgumentError('Unrecognized macro library \${request.library}');
     }
-    var constructor = constructors[request.constructorName];
+    var constructors = classes[request.name];
+    if (constructors == null) {
+      throw new ArgumentError(
+          'Unrecognized macro class \${request.name} for library '
+          '\${request.library}');
+    }
+    var constructor = constructors[request.constructor];
     if (constructor == null) {
       throw new ArgumentError(
-          'Unrecognized constructor name "\${request.constructorName}" for '
-          'macro class "\${request.macroClass}".');
+          'Unrecognized constructor name "\${request.constructor}" for '
+          'macro class "\${request.name}".');
     }
 
     var instance = Function.apply(constructor, request.arguments.positional, {

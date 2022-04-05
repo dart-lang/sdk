@@ -46,14 +46,6 @@ void main() {
           setUpAll(() async {
             simpleMacroFile =
                 File(Platform.script.resolve('simple_macro.dart').toFilePath());
-            executor = executorKind == 'Isolated'
-                ? await isolatedExecutor.start(mode)
-                : executorKind == 'ProcessSocket'
-                    ? await processExecutor.start(
-                        mode, CommunicationChannel.socket)
-                    : await processExecutor.start(
-                        mode, CommunicationChannel.stdio);
-
             tmpDir = Directory.systemTemp.createTempSync('executor_test');
             macroUri = simpleMacroFile.absolute.uri;
 
@@ -86,22 +78,26 @@ void main() {
                 reason: 'stdout: ${buildSnapshotResult.stdout}\n'
                     'stderr: ${buildSnapshotResult.stderr}');
 
-            var clazzId = await executor.loadMacro(macroUri, macroName,
-                precompiledKernelUri: kernelOutputFile.uri);
-            expect(clazzId, isNotNull, reason: 'Can load a macro.');
+            executor = executorKind == 'Isolated'
+                ? await isolatedExecutor.start(mode, kernelOutputFile.uri)
+                : executorKind == 'ProcessSocket'
+                    ? await processExecutor.start(mode,
+                        CommunicationChannel.socket, kernelOutputFile.path)
+                    : await processExecutor.start(mode,
+                        CommunicationChannel.stdio, kernelOutputFile.path);
 
-            instanceId =
-                await executor.instantiateMacro(clazzId, '', Arguments([], {}));
+            instanceId = await executor.instantiateMacro(
+                macroUri, macroName, '', Arguments([], {}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with no arguments.');
 
             instanceId = await executor.instantiateMacro(
-                clazzId, '', Arguments([1, 2], {}));
+                macroUri, macroName, '', Arguments([1, 2], {}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with positional arguments.');
 
             instanceId = await executor.instantiateMacro(
-                clazzId, 'named', Arguments([], {'x': 1, 'y': 2}));
+                macroUri, macroName, 'named', Arguments([], {'x': 1, 'y': 2}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with named arguments.');
           });

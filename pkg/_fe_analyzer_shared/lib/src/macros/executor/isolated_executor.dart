@@ -6,30 +6,26 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import '../executor/multi_executor.dart';
 import '../executor/executor_base.dart';
 import '../executor/serialization.dart';
 import '../executor.dart';
 
-/// Returns a [MacroExecutor] which loads macros into isolates using precompiled
-/// kernel files and communicates with that isolate using [serializationMode].
+/// Spawns a [MacroExecutor] as an isolate by passing [uriToSpawn] to
+/// [Isolate.spawnUri], and communicating using [serializationMode].
 ///
-/// The [serializationMode] must be a `server` variant, and any precompiled
-/// programs must use the corresponding `client` variant.
+/// The [uriToSpawn] can be any valid Uri for [Isolate.spawnUri].
+///
+/// Both [arguments] and [packageConfigUri] will be forwarded to
+/// [Isolate.spawnUri] if provided.
+///
+/// The [serializationMode] must be a `server` variant, and [uriToSpawn] must
+/// use the corresponding `client` variant.
 ///
 /// This is the only public api exposed by this library.
-Future<MacroExecutor> start(SerializationMode serializationMode) async =>
-    new MultiMacroExecutor((Uri library, String name,
-        {Uri? precompiledKernelUri}) {
-      if (precompiledKernelUri == null) {
-        throw new UnsupportedError(
-            'This environment requires a non-null `precompiledKernelUri` to be '
-            'passed when loading macros.');
-      }
-
-      return _SingleIsolatedMacroExecutor.start(
-          library, name, precompiledKernelUri, serializationMode);
-    });
+Future<MacroExecutor> start(SerializationMode serializationMode, Uri uriToSpawn,
+        {List<String> arguments = const [], Uri? packageConfigUri}) async =>
+    _SingleIsolatedMacroExecutor.start(
+        uriToSpawn, serializationMode, arguments, packageConfigUri);
 
 /// Actual implementation of the isolate based macro executor.
 class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
@@ -48,11 +44,15 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
       : super(
             messageStream: messageStream, serializationMode: serializationMode);
 
-  static Future<_SingleIsolatedMacroExecutor> start(Uri library, String name,
-      Uri precompiledKernelUri, SerializationMode serializationMode) async {
+  static Future<_SingleIsolatedMacroExecutor> start(
+      Uri uriToSpawn,
+      SerializationMode serializationMode,
+      List<String> arguments,
+      Uri? packageConfig) async {
     ReceivePort receivePort = new ReceivePort();
-    Isolate isolate =
-        await Isolate.spawnUri(precompiledKernelUri, [], receivePort.sendPort);
+    Isolate isolate = await Isolate.spawnUri(
+        uriToSpawn, arguments, receivePort.sendPort,
+        packageConfig: packageConfig);
     Completer<SendPort> sendPortCompleter = new Completer();
     StreamController<Object> messageStreamController =
         new StreamController(sync: true);
@@ -79,7 +79,7 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
   }
 
   @override
-  void close() => onClose();
+  Future<void> close() => new Future.sync(onClose);
 
   /// Sends the [Serializer.result] to [sendPort], possibly wrapping it in a
   /// [TransferableTypedData] object.

@@ -8,7 +8,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
@@ -827,11 +827,8 @@ class ProcessedOptions {
     }
   }
 
-  Future<MacroExecutor> Function() get macroExecutorProvider =>
-      _raw.macroExecutorProvider;
-
-  Map<Uri, Uri> get precompiledMacroUris =>
-      _raw.precompiledMacroUris ?? const {};
+  MultiMacroExecutor get macroExecutor =>
+      _raw.macroExecutor ??= new MultiMacroExecutor();
 
   CompilerOptions get rawOptionsForTesting => _raw;
 }

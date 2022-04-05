@@ -136,6 +136,7 @@ body's
 bof
 bom
 bones
+bookkeeping
 bootstrap
 bother
 boundness
@@ -221,6 +222,7 @@ combinator
 combiner
 communicate
 communicates
+communicating
 communication
 compared
 compares
@@ -502,6 +504,7 @@ former
 fortunately
 fourth
 framework
+freed
 freely
 freshly
 frontend
@@ -947,6 +950,7 @@ presented
 presubmit
 presumably
 prev
+primarily
 prime
 printer
 printf
@@ -1168,6 +1172,8 @@ shr
 shrinking
 shru
 shut
+shutdown
+shuts
 shutting
 si
 sibling
@@ -1213,6 +1219,7 @@ specifics
 speeding
 spend
 spent
+spin
 spuriously
 sq
 sra
@@ -1423,6 +1430,8 @@ unpleasant
 unqualified
 unreachable
 unregister
+unregistered
+unregisters
 unseen
 unset
 unshadowed

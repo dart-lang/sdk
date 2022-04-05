@@ -6,6 +6,9 @@
 library front_end.kernel_generator_impl;
 
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
+    as isolatedExecutor;
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
@@ -95,7 +98,9 @@ Future<CompilerResult> generateKernelInternal(
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
       kernelTarget.benchmarker?.enterPhase(BenchmarkPhases.precompileMacros);
-      if (await precompileMacros(neededPrecompilations, options)) {
+      Map<Uri, ExecutorFactoryToken>? precompiled =
+          await precompileMacros(neededPrecompilations, options);
+      if (precompiled != null) {
         kernelTarget.benchmarker
             ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
         continue;
@@ -272,32 +277,34 @@ Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 
 /// Compiles the libraries for the macro classes in [neededPrecompilations].
 ///
-/// Returns `true` if macro classes were compiled and added to the
-/// [CompilerOptions.precompiledMacroUris] of the provided [options].
+/// Returns a map of library uri to [ExecutorFactoryToken] if macro classes were
+/// compiled and added to the [CompilerOptions.macroExecutor] of the provided
+/// [options].
 ///
-/// Returns `false` if no macro classes needed precompilation or if macro
+/// Returns `null` if no macro classes needed precompilation or if macro
 /// precompilation is not supported.
-Future<bool> precompileMacros(NeededPrecompilations? neededPrecompilations,
+Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
+    NeededPrecompilations? neededPrecompilations,
     ProcessedOptions options) async {
   if (neededPrecompilations != null) {
     if (enableMacros) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
       // the compiler options for the precompilation.
       if (options.rawOptionsForTesting.macroTarget != null) {
-        await _compileMacros(
-            neededPrecompilations, options.rawOptionsForTesting);
         // TODO(johnniwinther): Assert that some works has been done.
         // TODO(johnniwinther): Stop in case of compile-time errors.
-        return true;
+        return await _compileMacros(
+            neededPrecompilations, options.rawOptionsForTesting);
       }
     } else {
       throw new UnsupportedError('Macro precompilation is not supported');
     }
   }
-  return false;
+  return null;
 }
 
-Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
+Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
+    NeededPrecompilations neededPrecompilations,
     CompilerOptions options) async {
   assert(options.macroSerializer != null);
   CompilerOptions precompilationOptions = new CompilerOptions();
@@ -309,11 +316,11 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
   // macros likely need them.
   precompilationOptions.environmentDefines = options.environmentDefines ?? {};
   precompilationOptions.packagesFileUri = options.packagesFileUri;
-  precompilationOptions.precompiledMacroUris = options.precompiledMacroUris;
+  MultiMacroExecutor macroExecutor = precompilationOptions.macroExecutor =
+      options.macroExecutor ??= new MultiMacroExecutor();
   // TODO(johnniwinther): What if sdk root isn't set? How do we then get the
   // right sdk?
   precompilationOptions.sdkRoot = options.sdkRoot;
-  precompilationOptions.macroExecutorProvider = options.macroExecutorProvider;
 
   Map<String, Map<String, List<String>>> macroDeclarations = {};
   neededPrecompilations.macroDeclarations
@@ -332,9 +339,13 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
       await kernelForProgramInternal(uri, precompilationOptions);
   Uri precompiledUri = await options.macroSerializer!
       .createUriForComponent(compilerResult!.component!);
-  Map<Uri, Uri> precompiledMacroUris = options.precompiledMacroUris ??= {};
-  neededPrecompilations.macroDeclarations
-      .forEach((Uri uri, Map<String, List<String>> macroClasses) {
-    precompiledMacroUris[uri] = precompiledUri;
-  });
+  Set<Uri> macroLibraries =
+      neededPrecompilations.macroDeclarations.keys.toSet();
+  ExecutorFactoryToken executorToken = macroExecutor.registerExecutorFactory(
+      () => isolatedExecutor.start(
+          SerializationMode.byteDataServer, precompiledUri),
+      macroLibraries);
+  return <Uri, ExecutorFactoryToken>{
+    for (Uri library in macroLibraries) library: executorToken,
+  };
 }

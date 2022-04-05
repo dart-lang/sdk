@@ -67,6 +67,8 @@ extension DeserializerExtensions on Deserializer {
     }
   }
 
+  Uri expectUri() => Uri.parse(expectString());
+
   /// Helper method to read a list of [RemoteInstance]s.
   List<T> _expectRemoteInstanceList<T extends RemoteInstance>() {
     expectList();
@@ -411,6 +413,13 @@ extension SerializeCode on Code {
         return;
     }
   }
+}
+
+extension Helpers on Serializer {
+  void addUri(Uri uri) => addString('$uri');
+
+  void addSerializable(Serializable serializable) =>
+      serializable.serialize(this);
 }
 
 enum _CodePartKind {
