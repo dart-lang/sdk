@@ -22,7 +22,41 @@ void main() {
 class AnalysisDomainGetErrorsTest
     extends AbstractAnalysisServerIntegrationTest {
   String createNonStandardSdk() {
+    String executableFilePathIn(String sdkPath) {
+      var name = Platform.isWindows ? 'dart.exe' : 'dart';
+      return path.join(sdkPath, 'bin', name);
+    }
+
+    String serverSnapshotPathIn(String sdkPath) {
+      return path.join(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'analysis_server.dart.snapshot',
+      );
+    }
+
     var sdkPath = path.join(sourceDirectory.path, 'sdk');
+
+    var standardSdkPath = path.dirname(
+      path.dirname(Platform.resolvedExecutable),
+    );
+
+    Directory(
+      path.join(sdkPath, 'bin', 'snapshots'),
+    ).createSync(recursive: true);
+
+    File(
+      executableFilePathIn(standardSdkPath),
+    ).copySync(
+      executableFilePathIn(sdkPath),
+    );
+
+    File(
+      serverSnapshotPathIn(standardSdkPath),
+    ).copySync(
+      serverSnapshotPathIn(sdkPath),
+    );
 
     Directory(path.join(sdkPath, 'lib', 'core')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);
