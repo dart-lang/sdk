@@ -67,7 +67,7 @@ class TypeSchemaEnvironmentTest {
       class C extends A;
     """);
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
 
     // typeConstraint: EMPTY <: TYPE <: EMPTY
     checkConstraintLowerBound(constraint: "", bound: "UNKNOWN");
@@ -87,7 +87,7 @@ class TypeSchemaEnvironmentTest {
       class C extends A;
     """);
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
 
     // typeConstraint: EMPTY <: TYPE <: EMPTY
     checkConstraintUpperBound(constraint: "", bound: "UNKNOWN");
@@ -416,7 +416,7 @@ class TypeSchemaEnvironmentTest {
       class B extends A;
     """);
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
     checkLowerBound(
         type1: "() ->* A*", type2: "() ->* B*", lowerBound: "() ->* B*");
     checkLowerBound(
@@ -585,7 +585,7 @@ class TypeSchemaEnvironmentTest {
   void test_lower_bound_top() {
     parseTestLibrary("class A;");
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
     checkLowerBound(type1: "dynamic", type2: "A*", lowerBound: "A*");
     checkLowerBound(type1: "A*", type2: "dynamic", lowerBound: "A*");
     checkLowerBound(type1: "Object?", type2: "A*", lowerBound: "A*");
@@ -667,7 +667,7 @@ class TypeSchemaEnvironmentTest {
   void test_inferGenericFunctionOrType() {
     parseTestLibrary("");
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
 
     // Test an instantiation of [1, 2.0] with no context.  This should infer
     // as List<?> during downwards inference.
@@ -742,7 +742,7 @@ class TypeSchemaEnvironmentTest {
 
     // Assuming: class A<T extends num*> {}
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
 
     // With no constraints:
     // Downward inference should infer A<?>
@@ -786,7 +786,7 @@ class TypeSchemaEnvironmentTest {
   void test_inferTypeFromConstraints_simple() {
     parseTestLibrary("");
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
 
     // With an upper bound of List<?>*:
     // Downwards inference should infer List<List<?>*>*
@@ -824,7 +824,7 @@ class TypeSchemaEnvironmentTest {
       class L implements K;
     """);
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
     checkUpperBound(type1: "B*", type2: "E*", upperBound: "B*");
     checkUpperBound(type1: "D*", type2: "C*", upperBound: "C*");
     checkUpperBound(type1: "D*", type2: "E*", upperBound: "A*");
@@ -1297,7 +1297,7 @@ class TypeSchemaEnvironmentTest {
   void test_upper_bound_typeParameter() {
     parseTestLibrary("");
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
     checkUpperBound(
         type1: "T",
         type2: "T",
@@ -1396,7 +1396,7 @@ class TypeSchemaEnvironmentTest {
       class B<Y> extends A<Y>;
     """);
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
 
     // Solve(? <: T <: ?) => ?
     checkConstraintSolving("", "UNKNOWN", grounded: false);
@@ -1488,7 +1488,7 @@ class TypeSchemaEnvironmentTest {
   void test_unknown_at_bottom() {
     parseTestLibrary("class A;");
 
-    // TODO(dmitryas): Test for various nullabilities.
+    // TODO(cstefantsova): Test for various nullabilities.
     checkIsLegacySubtype("UNKNOWN", "A*");
   }
 

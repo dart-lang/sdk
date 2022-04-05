@@ -7,7 +7,7 @@ import '../core_types.dart';
 
 class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   final CoreTypes coreTypes;
-  // TODO(dmitryas): Implement also equateBottomTypes.
+  // TODO(cstefantsova): Implement also equateBottomTypes.
   final bool equateTopTypes;
   final bool ignoreAllNullabilities;
   final bool ignoreTopLevelNullability;

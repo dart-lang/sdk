@@ -208,9 +208,9 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.
-    // An alternative is to use the offset of the node the cloned type variable
-    // is declared on.
+    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
+    // idea.  An alternative is to use the offset of the node the cloned type
+    // variable is declared on.
     return new TypeVariableBuilder(name, parent!, charOffset, fileUri,
         bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
         variableVariance: variance,

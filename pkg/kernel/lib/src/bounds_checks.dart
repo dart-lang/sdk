@@ -500,8 +500,8 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
     if (argument is TypeParameterType && argument.promotedBound != null) {
-      // TODO(dmitryas): Consider recognizing this case with a flag on the issue
-      // object.
+      // TODO(cstefantsova): Consider recognizing this case with a flag on the
+      // issue object.
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     } else if (!areGenericArgumentsAllowed &&
         isGenericFunctionTypeOrAlias(argument)) {
@@ -679,8 +679,8 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 
   // TypedefTypes receive special treatment because the variance of their
   // arguments' positions depend on the opt-in status of the library.
-  // TODO(dmitryas): Remove the method when the discrepancy between the NNBD
-  // modes is resolved.
+  // TODO(cstefantsova): Remove the method when the discrepancy between the
+  // NNBD modes is resolved.
   @override
   DartType? visitTypedefType(TypedefType node, int variance) {
     Nullability? newNullability = visitNullability(node);

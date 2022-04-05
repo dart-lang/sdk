@@ -2641,7 +2641,7 @@ class OutlineBuilder extends StackListenerImpl {
       libraryBuilder.beginNestedDeclaration(
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
-      // TODO(dmitryas): Make sure that RHS of typedefs can't have '?'.
+      // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
       aliasedType = libraryBuilder.addFunctionType(returnType, null, formals,
           const NullabilityBuilder.omitted(), uri, charOffset);
     } else {

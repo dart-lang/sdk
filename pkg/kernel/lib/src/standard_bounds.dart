@@ -103,7 +103,7 @@ mixin StandardBounds {
       return false;
     }
 
-    // TODO(dmitryas): Update the following after the spec is updated.
+    // TODO(cstefantsova): Update the following after the spec is updated.
     if (s.declaredNullability == Nullability.nullable &&
         t.declaredNullability == Nullability.legacy) {
       return true;
@@ -200,7 +200,7 @@ mixin StandardBounds {
       return false;
     }
 
-    // TODO(dmitryas): Update the following after the spec is updated.
+    // TODO(cstefantsova): Update the following after the spec is updated.
     if (s.declaredNullability == Nullability.nullable &&
         t.declaredNullability == Nullability.legacy) {
       return true;
@@ -952,8 +952,8 @@ mixin StandardBounds {
         }
         substitution = Substitution.fromMap(substitutionMap);
         for (int i = 0; i < m && boundsMatch; ++i) {
-          // TODO(dmitryas): Figure out if a procedure for syntactic equality
-          // should be used instead.
+          // TODO(cstefantsova): Figure out if a procedure for syntactic
+          // equality should be used instead.
           if (!areMutualSubtypes(
               f.typeParameters[i].bound,
               substitution.substituteType(g.typeParameters[i].bound),
@@ -1151,7 +1151,7 @@ mixin StandardBounds {
         }
         substitution = Substitution.fromMap(substitutionMap);
         for (int i = 0; i < m && boundsMatch; ++i) {
-          // TODO(dmitryas): Figure out if a procedure for syntactic
+          // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
           if (!areMutualSubtypes(
               f.typeParameters[i].bound,

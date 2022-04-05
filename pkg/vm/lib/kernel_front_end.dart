@@ -471,8 +471,8 @@ Future runGlobalTransformations(
 
   final coreTypes = new CoreTypes(component);
 
-  // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
-  // mixin applications when creating mixin applications in frontend,
+  // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of
+  // identical mixin applications when creating mixin applications in frontend,
   // so all backends (and all transformation passes from the very beginning)
   // can benefit from mixin de-duplication.
   // At least, in addition to VM/AOT case we should run this transformation

@@ -1078,7 +1078,7 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
 ///
 /// Some types are nullable even without the application of the nullable type
 /// constructor at the top level, for example, Null or FutureOr<int?>.
-// TODO(dmitryas): Remove [coreTypes] parameter when NullType is landed.
+// TODO(cstefantsova): Remove [coreTypes] parameter when NullType is landed.
 DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
   return type.accept1(const _NullabilityConstructorUnwrapper(), coreTypes);
 }
@@ -1087,7 +1087,7 @@ DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
 ///
 /// Implementing the function as a visitor makes the necessity of supporting a
 /// new implementation of [DartType] visible at compile time.
-// TODO(dmitryas): Remove CoreTypes as the second argument when NullType is
+// TODO(cstefantsova): Remove CoreTypes as the second argument when NullType is
 // landed.
 class _NullabilityConstructorUnwrapper
     implements DartTypeVisitor1<DartType, CoreTypes> {
