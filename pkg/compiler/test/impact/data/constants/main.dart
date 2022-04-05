@@ -7,7 +7,52 @@
 import 'lib.dart';
 import 'lib.dart' deferred as defer;
 
-/*member: main:static=%*/
+/*member: main:static=[
+  boolLiteral(0),
+  boolLiteralDeferred(0),
+  boolLiteralRef(0),
+  doubleLiteral(0),
+  doubleLiteralDeferred(0),
+  doubleLiteralRef(0),
+  instanceConstant(0),
+  instanceConstantDeferred(0),
+  instanceConstantRef(0),
+  instantiation(0),
+  instantiationDeferred(0),
+  instantiationRef(0),
+  intLiteral(0),
+  intLiteralDeferred(0),
+  intLiteralRef(0),
+  listLiteral(0),
+  listLiteralDeferred(0),
+  listLiteralRef(0),
+  mapLiteral(0),
+  mapLiteralDeferred(0),
+  mapLiteralRef(0),
+  nullLiteral(0),
+  nullLiteralDeferred(0),
+  nullLiteralRef(0),
+  setLiteral(0),
+  setLiteralDeferred(0),
+  setLiteralRef(0),
+  staticTearOff(0),
+  staticTearOffDeferred(0),
+  staticTearOffRef(0),
+  stringLiteral(0),
+  stringLiteralDeferred(0),
+  stringLiteralRef(0),
+  stringMapLiteral(0),
+  stringMapLiteralDeferred(0),
+  stringMapLiteralRef(0),
+  symbolLiteral(0),
+  symbolLiteralDeferred(0),
+  symbolLiteralRef(0),
+  topLevelTearOff(0),
+  topLevelTearOffDeferred(0),
+  topLevelTearOffRef(0),
+  typeLiteral(0),
+  typeLiteralDeferred(0),
+  typeLiteralRef(0)]*/
 main() {
   nullLiteral();
   boolLiteral();
@@ -100,7 +145,10 @@ stringLiteral() {
   return local;
 }
 
-/*member: symbolLiteral:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: symbolLiteral:
+ static=[Symbol.(1)],
+ type=[inst:Symbol]
+*/
 symbolLiteral() => #foo;
 
 /*member: listLiteral:type=[
@@ -132,8 +180,12 @@ stringMapLiteral() => const {'foo': false};
 setLiteral() => const {true, false};
 
 /*member: instanceConstant:
- static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
- type=[const:Class,inst:JSBool]
+ static=[
+  Class.field2=BoolConstant(false),
+  SuperClass.field1=BoolConstant(true)],
+ type=[
+  const:Class,
+  inst:JSBool]
 */
 instanceConstant() => const Class(true, false);
 
@@ -151,7 +203,14 @@ typeLiteral() {
   return local;
 }
 
-/*member: instantiation:static=[closureFunctionType(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
+/*member: instantiation:
+ static=[
+  closureFunctionType(1),
+  id,
+  instantiate1(1),
+  instantiatedGenericFunctionType(2)],
+ type=[inst:Instantiation1<dynamic>]
+*/
 instantiation() {
   const int Function(int) local = id;
   return local;
@@ -196,7 +255,10 @@ doubleLiteralRef() => doubleLiteralField;
 /*member: stringLiteralRef:type=[inst:JSString]*/
 stringLiteralRef() => stringLiteralField;
 
-/*member: symbolLiteralRef:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: symbolLiteralRef:
+ static=[Symbol.(1)],
+ type=[inst:Symbol]
+*/
 symbolLiteralRef() => symbolLiteralField;
 
 /*member: listLiteralRef:type=[
@@ -228,8 +290,12 @@ stringMapLiteralRef() => stringMapLiteralField;
 setLiteralRef() => setLiteralField;
 
 /*member: instanceConstantRef:
- static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
- type=[const:Class,inst:JSBool]
+ static=[
+  Class.field2=BoolConstant(false),
+  SuperClass.field1=BoolConstant(true)],
+ type=[
+  const:Class,
+  inst:JSBool]
 */
 instanceConstantRef() => instanceConstantField;
 
@@ -244,7 +310,14 @@ instanceConstantRef() => instanceConstantField;
 */
 typeLiteralRef() => typeLiteralField;
 
-/*member: instantiationRef:static=[closureFunctionType(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
+/*member: instantiationRef:
+ static=[
+  closureFunctionType(1),
+  id,
+  instantiate1(1),
+  instantiatedGenericFunctionType(2)],
+ type=[inst:Instantiation1<dynamic>]
+*/
 instantiationRef() => instantiationField;
 
 /*member: topLevelTearOffRef:static=[topLevelMethod]*/
@@ -281,7 +354,10 @@ doubleLiteralDeferred() => defer.doubleLiteralField;
 stringLiteralDeferred() => defer.stringLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*member: symbolLiteralDeferred:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: symbolLiteralDeferred:
+ static=[Symbol.(1)],
+ type=[inst:Symbol]
+*/
 symbolLiteralDeferred() => defer.symbolLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
@@ -317,8 +393,12 @@ stringMapLiteralDeferred() => defer.stringMapLiteralField;
 setLiteralDeferred() => defer.setLiteralField;
 
 /*member: instanceConstantDeferred:
- static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
- type=[const:Class{defer},inst:JSBool]
+ static=[
+  Class.field2=BoolConstant(false),
+  SuperClass.field1=BoolConstant(true)],
+ type=[
+  const:Class{defer},
+  inst:JSBool]
 */
 instanceConstantDeferred() => defer.instanceConstantField;
 
@@ -333,7 +413,14 @@ instanceConstantDeferred() => defer.instanceConstantField;
 */
 typeLiteralDeferred() => defer.typeLiteralField;
 
-/*member: instantiationDeferred:static=[closureFunctionType(1),id{defer},instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
+/*member: instantiationDeferred:
+ static=[
+  closureFunctionType(1),
+  id{defer},
+  instantiate1(1),
+  instantiatedGenericFunctionType(2)],
+ type=[inst:Instantiation1<dynamic>]
+*/
 instantiationDeferred() => defer.instantiationField;
 
 /*member: topLevelTearOffDeferred:static=[topLevelMethod{defer}]*/

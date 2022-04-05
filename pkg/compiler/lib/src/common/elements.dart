@@ -911,13 +911,7 @@ abstract class CommonElements {
   FunctionEntity get checkDeferredIsLoaded =>
       _findHelperFunction('checkDeferredIsLoaded');
 
-  FunctionEntity get throwNoSuchMethod =>
-      _findHelperFunction('throwNoSuchMethod');
-
   FunctionEntity get createRuntimeType => _findRtiFunction('createRuntimeType');
-
-  FunctionEntity get fallThroughError =>
-      _findHelperFunction("getFallThroughError");
 
   FunctionEntity get createInvocationMirror =>
       _findHelperFunction('createInvocationMirror');

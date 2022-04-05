@@ -9,7 +9,6 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
@@ -27,7 +26,6 @@ import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
-import '../js_backend/impact_transformer.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -155,17 +153,6 @@ class KernelFrontendStrategy {
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    final impactTransformer = JavaScriptImpactTransformer(
-        elementEnvironment,
-        commonElements,
-        impacts,
-        nativeBasicData,
-        _nativeResolutionEnqueuer,
-        _backendUsageBuilder,
-        _customElementsResolutionAnalysis,
-        rtiNeedBuilder,
-        classHierarchyBuilder,
-        annotationsData);
     InterceptorDataBuilder interceptorDataBuilder = InterceptorDataBuilderImpl(
         nativeBasicData, elementEnvironment, commonElements);
     return ResolutionEnqueuer(
@@ -207,12 +194,17 @@ class KernelFrontendStrategy {
             nativeBasicData,
             nativeDataBuilder,
             annotationsDataBuilder,
-            impactTransformer,
             closureModels,
             compiler.impactCache,
             _fieldAnalysis,
             _modularStrategy,
-            _irAnnotationData),
+            _irAnnotationData,
+            impacts,
+            _nativeResolutionEnqueuer,
+            _backendUsageBuilder,
+            _customElementsResolutionAnalysis,
+            rtiNeedBuilder,
+            annotationsData),
         annotationsData);
   }
 
@@ -287,7 +279,6 @@ class KernelFrontendStrategy {
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final CompilerTask _compilerTask;
   final KernelToElementMap _elementMap;
-  final JavaScriptImpactTransformer _impactTransformer;
   final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
@@ -295,6 +286,12 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KFieldAnalysis _fieldAnalysis;
   final ModularStrategy _modularStrategy;
   final IrAnnotationData _irAnnotationData;
+  final BackendImpacts _impacts;
+  final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  final BackendUsageBuilder _backendUsageBuilder;
+  final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final AnnotationsData _annotationsData;
 
   KernelWorkItemBuilder(
       this._compilerTask,
@@ -302,12 +299,17 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       this._annotationsDataBuilder,
-      this._impactTransformer,
       this._closureModels,
       this._impactCache,
       this._fieldAnalysis,
       this._modularStrategy,
-      this._irAnnotationData)
+      this._irAnnotationData,
+      this._impacts,
+      this._nativeResolutionEnqueuer,
+      this._backendUsageBuilder,
+      this._customElementsResolutionAnalysis,
+      this._rtiNeedBuilder,
+      this._annotationsData)
       : _nativeMemberResolver = KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
@@ -316,7 +318,6 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
     return KernelWorkItem(
         _compilerTask,
         _elementMap,
-        _impactTransformer,
         _nativeMemberResolver,
         _annotationsDataBuilder,
         entity,
@@ -324,14 +325,19 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
         _impactCache,
         _fieldAnalysis,
         _modularStrategy,
-        _irAnnotationData);
+        _irAnnotationData,
+        _impacts,
+        _nativeResolutionEnqueuer,
+        _backendUsageBuilder,
+        _customElementsResolutionAnalysis,
+        _rtiNeedBuilder,
+        _annotationsData);
   }
 }
 
 class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
   final KernelToElementMap _elementMap;
-  final JavaScriptImpactTransformer _impactTransformer;
   final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   @override
@@ -341,11 +347,16 @@ class KernelWorkItem implements WorkItem {
   final KFieldAnalysis _fieldAnalysis;
   final ModularStrategy _modularStrategy;
   final IrAnnotationData _irAnnotationData;
+  final BackendImpacts _impacts;
+  final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  final BackendUsageBuilder _backendUsageBuilder;
+  final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final AnnotationsData _annotationsData;
 
   KernelWorkItem(
       this._compilerTask,
       this._elementMap,
-      this._impactTransformer,
       this._nativeMemberResolver,
       this._annotationsDataBuilder,
       this.element,
@@ -353,7 +364,13 @@ class KernelWorkItem implements WorkItem {
       this._impactCache,
       this._fieldAnalysis,
       this._modularStrategy,
-      this._irAnnotationData);
+      this._irAnnotationData,
+      this._impacts,
+      this._nativeResolutionEnqueuer,
+      this._backendUsageBuilder,
+      this._customElementsResolutionAnalysis,
+      this._rtiNeedBuilder,
+      this._annotationsData);
 
   @override
   WorldImpact run() {
@@ -383,10 +400,15 @@ class KernelWorkItem implements WorkItem {
       }
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
-        ResolutionImpact impact =
-            _elementMap.computeWorldImpact(element, impactBuilderData);
-        WorldImpact worldImpact =
-            _impactTransformer.transformResolutionImpact(impact);
+        WorldImpact worldImpact = _elementMap.computeWorldImpact(
+            element,
+            _impacts,
+            _nativeResolutionEnqueuer,
+            _backendUsageBuilder,
+            _customElementsResolutionAnalysis,
+            _rtiNeedBuilder,
+            _annotationsData,
+            impactBuilderData);
         if (_impactCache != null) {
           _impactCache[element] = worldImpact;
         }
