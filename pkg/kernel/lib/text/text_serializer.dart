@@ -1397,7 +1397,7 @@ void unwrapNeverType(NeverType type) {}
 
 NeverType wrapNeverType(void ignored) => const NeverType.legacy();
 
-// TODO(dmitryas):  Also handle nameParameters, and typedefType.
+// TODO(cstefantsova):  Also handle nameParameters, and typedefType.
 TextSerializer<FunctionType> functionTypeSerializer = new Wrapped<
         Tuple2<List<TypeParameter>,
             Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>,

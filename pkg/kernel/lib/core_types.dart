@@ -181,7 +181,7 @@ class CoreTypes {
   late final Procedure futureSyncFactory =
       index.getMember('dart:async', 'Future', 'sync') as Procedure;
 
-  // TODO(dmitryas): Remove it when FutureOrType is fully supported.
+  // TODO(cstefantsova): Remove it when FutureOrType is fully supported.
   late final Class deprecatedFutureOrClass =
       index.getClass('dart:async', 'FutureOr');
 
@@ -1041,7 +1041,8 @@ class CoreTypes {
   }
 
   InterfaceType legacyRawType(Class klass) {
-    // TODO(dmitryas): Consider using computeBounds instead of DynamicType here.
+    // TODO(cstefantsova): Consider using computeBounds instead of DynamicType
+    // here.
     return _legacyRawTypes[klass] ??= new InterfaceType(
         klass,
         Nullability.legacy,
@@ -1050,7 +1051,8 @@ class CoreTypes {
   }
 
   InterfaceType nullableRawType(Class klass) {
-    // TODO(dmitryas): Consider using computeBounds instead of DynamicType here.
+    // TODO(cstefantsova): Consider using computeBounds instead of DynamicType
+    // here.
     return _nullableRawTypes[klass] ??= new InterfaceType(
         klass,
         Nullability.nullable,
@@ -1059,7 +1061,8 @@ class CoreTypes {
   }
 
   InterfaceType nonNullableRawType(Class klass) {
-    // TODO(dmitryas): Consider using computeBounds instead of DynamicType here.
+    // TODO(cstefantsova): Consider using computeBounds instead of DynamicType
+    // here.
     return _nonNullableRawTypes[klass] ??= new InterfaceType(
         klass,
         Nullability.nonNullable,

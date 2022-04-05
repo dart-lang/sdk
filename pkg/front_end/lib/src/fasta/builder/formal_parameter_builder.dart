@@ -170,8 +170,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
-    // how it should be cloned.  Consider cloning it instead of reusing it.
+    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
+    // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
         type?.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
@@ -285,8 +285,8 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
-    // how it should be cloned.  Consider cloning it instead of reusing it.
+    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
+    // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
         type?.clone(newTypes, contextLibrary, contextDeclaration), name);
   }

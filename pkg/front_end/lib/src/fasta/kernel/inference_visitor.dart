@@ -2369,7 +2369,7 @@ class InferenceVisitor
 
       mapEntryClass ??=
           inferrer.coreTypes.index.getClass('dart:core', 'MapEntry');
-      // TODO(dmitryas):  Handle the case of an ambiguous Set.
+      // TODO(cstefantsova):  Handle the case of an ambiguous Set.
       entry.entryType = new InterfaceType(
           mapEntryClass!,
           inferrer.libraryBuilder.nonNullable,
@@ -6929,7 +6929,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitCheckLibraryIsLoaded(
       CheckLibraryIsLoaded node, DartType typeContext) {
-    // TODO(dmitryas): Figure out the suitable nullability for that.
+    // TODO(cstefantsova): Figure out the suitable nullability for that.
     return new ExpressionInferenceResult(
         inferrer.coreTypes.objectRawType(inferrer.libraryBuilder.nullable),
         node);

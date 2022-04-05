@@ -71,8 +71,8 @@ class Types with StandardBounds {
   }
 
   IsSubtypeOf performNullabilityAwareSubtypeCheck(DartType s, DartType t) {
-    // TODO(johnniwinther,dmitryas): Ensure complete handling of InvalidType in
-    // the subtype relation.
+    // TODO(johnniwinther,cstefantsova): Ensure complete handling of
+    // InvalidType in the subtype relation.
     if (s is InvalidType || t is InvalidType) {
       return const IsSubtypeOf.always();
     }
@@ -654,7 +654,8 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   IsSubtypeOf isIntersectionRelated(
       TypeParameterType intersection, TypeParameterType t, Types types) {
     // Nullable types aren't promoted to intersection types.
-    // TODO(dmitryas): Uncomment the following when the inference is updated.
+    // TODO(cstefantsova): Uncomment the following when the inference is
+    // updated.
     //assert(intersection.typeParameterTypeNullability != Nullability.nullable);
 
     // Rule 8.
@@ -855,7 +856,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, FutureOrType t, Types types) {
-    // TODO(dmitryas): Revise the original optimization.
+    // TODO(cstefantsova): Revise the original optimization.
     return types
         // Rule 11.
         .performNullabilityAwareSubtypeCheck(
@@ -1128,7 +1129,8 @@ class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
     if (s.extension != t.extension) {
       return const IsSubtypeOf.never();
     }
-    // TODO(dmitryas): Check if subtyping or mutual subtyping should be used.
+    // TODO(cstefantsova): Check if subtyping or mutual subtyping should be
+    // used.
     return types
         .areTypeArgumentsOfSubtypeKernel(
             s.typeArguments, t.typeArguments, t.extension.typeParameters)

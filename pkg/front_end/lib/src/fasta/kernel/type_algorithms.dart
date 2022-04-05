@@ -1064,7 +1064,7 @@ void findGenericFunctionTypes(TypeBuilder? type,
     }
 
     TypeDeclarationBuilder? declaration = type.declaration;
-    // TODO(dmitryas): Unalias beyond the first layer for the check.
+    // TODO(cstefantsova): Unalias beyond the first layer for the check.
     if (declaration is TypeAliasBuilder) {
       TypeBuilder? rhsType = declaration.type;
       if (rhsType is FunctionTypeBuilder &&

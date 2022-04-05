@@ -6406,10 +6406,11 @@ class ConstructorInvocation extends InvocationExpression {
     }
   }
 
-  // TODO(dmitryas): Change the getter into a method that accepts a CoreTypes.
+  // TODO(cstefantsova): Change the getter into a method that accepts a
+  // CoreTypes.
   InterfaceType get constructedType {
     Class enclosingClass = target.enclosingClass;
-    // TODO(dmitryas): Get raw type from a CoreTypes object if arguments is
+    // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
     return arguments.types.isEmpty
         ? new InterfaceType(
@@ -10653,8 +10654,8 @@ class _PrivateName extends Name {
   Library get library => libraryName.asLibrary;
 
   static int _computeHashCode(String name, Reference libraryName) {
-    // TODO(dmitryas): Factor in [libraryName] in a non-deterministic way into
-    // the result.  Note, the previous code here was the following:
+    // TODO(cstefantsova): Factor in [libraryName] in a non-deterministic way
+    // into the result.  Note, the previous code here was the following:
     //     return 131 * name.hashCode + 17 * libraryName.asLibrary._libraryId;
     return name.hashCode;
   }
@@ -10843,13 +10844,15 @@ class InvalidType extends DartType {
 
   @override
   Nullability get declaredNullability {
-    // TODO(johnniwinther,dmitryas): Consider implementing invalidNullability.
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
     return Nullability.legacy;
   }
 
   @override
   Nullability get nullability {
-    // TODO(johnniwinther,dmitryas): Consider implementing invalidNullability.
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
     return Nullability.legacy;
   }
 
@@ -11413,7 +11416,7 @@ class TypedefType extends DartType {
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
-  // TODO(dmitryas): Replace with uniteNullabilities(declaredNullability,
+  // TODO(cstefantsova): Replace with uniteNullabilities(declaredNullability,
   // typedefNode.type.nullability).
   @override
   Nullability get nullability => declaredNullability;
