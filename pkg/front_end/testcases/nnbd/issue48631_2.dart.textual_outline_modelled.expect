@@ -1,0 +1,22 @@
+import 'dart:async';
+
+abstract class A {
+  T foo<T>(B<T> b);
+}
+
+abstract class D<W> implements A {}
+
+class B<X> {
+  B(X x);
+}
+
+class C<Y> {
+  C(this.bar);
+  final Bar<FutureOr<Y>, D<Y>> bar;
+}
+
+final baz = C<int>((a) {
+  return a.foo(B(Future.value(0)));
+});
+main() {}
+typedef Bar<V, U extends A> = V Function(U);
