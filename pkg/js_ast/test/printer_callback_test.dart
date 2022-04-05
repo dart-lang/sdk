@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 // Note: This test relies on LF line endings in the source file.
 
 // Test that JS printer callbacks occur when expected.
@@ -178,11 +176,8 @@ class FixedName extends Name {
 
 void check(TestCase testCase) {
   Map<TestMode, String> map = testCase.data;
-  String code = map[TestMode.INPUT];
-
-  // Input is the same as output.
-  code ??= map[TestMode.NONE];
-
+  // Unspecified input is the same as output.
+  String? code = map[TestMode.INPUT] ?? map[TestMode.NONE]!;
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions();
   Map arguments = {};
   testCase.environment.forEach((String name, String value) {
@@ -221,7 +216,7 @@ class Context extends SimpleJavaScriptPrintingContext {
 
   @override
   void exitNode(
-      Node node, int startPosition, int endPosition, int delimiterPosition) {
+      Node node, int startPosition, int endPosition, int? delimiterPosition) {
     int value = id(node);
     if (mode == TestMode.DELIMITER && delimiterPosition != null) {
       tagMap.putIfAbsent(delimiterPosition, () => []).add(tag(value));
@@ -239,7 +234,7 @@ class Context extends SimpleJavaScriptPrintingContext {
       if (offset < position) {
         sb.write(text.substring(offset, position));
       }
-      tagMap[position].forEach((String tag) => sb.write(tag));
+      tagMap[position]!.forEach((String tag) => sb.write(tag));
       offset = position;
     }
     if (offset < text.length) {

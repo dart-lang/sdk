@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_ast.string_escape_test;
 
 import 'package:js_ast/js_ast.dart';
@@ -14,9 +12,11 @@ const int $LCURLY = $OPEN_CURLY_BRACKET;
 const int $RCURLY = $CLOSE_CURLY_BRACKET;
 
 void main() {
-  void check(input, expected, {bool utf8 = false}) {
-    if (input is List) input = String.fromCharCodes(input);
-    String actual = DebugPrint(js.string(input), utf8: utf8);
+  void check(Object input, Object expected, {bool utf8 = false}) {
+    String string = input is String
+        ? input
+        : String.fromCharCodes(List<int>.from(input as Iterable));
+    String actual = DebugPrint(js.string(string), utf8: utf8);
     if (expected is List) {
       expect(actual.codeUnits, expected);
     } else {
