@@ -2131,6 +2131,30 @@ class UnlinkedCall : public CallSiteData {
 // or the original ICData object. In case of background compilation we
 // copy the ICData in a child object, thus freezing it during background
 // compilation. Code may contain only original ICData objects.
+//
+// ICData's backing store is an array that logically contains several valid
+// entries followed by a sentinal entry.
+//
+//   [<entry-0>, <...>, <entry-N>, <sentinel>]
+//
+// Each entry has the following form:
+//
+//   [arg0?, arg1?, argN?, count, target-function/code, exactness?]
+//
+// The <entry-X> need to contain valid type feedback.
+// The <sentinel> entry and must have kIllegalCid value for all
+// members of the entry except for the last one (`exactness` if
+// present, otherwise `target-function/code`) - which we use as a backref:
+//
+//   * For empty ICData we use a cached/shared backing store. So there is no
+//     unique backref, we use kIllegalCid instead.
+//   * For non-empty ICData the backref in the backing store array will point to
+//     the ICData object.
+//
+// Updating the ICData happens under a lock to avoid phantom-reads. The backing
+// is treated as an immutable Copy-on-Write data structure: Adding to the ICData
+// makes a copy with length+1 which will be store-release'd so any reader can
+// see it (and doesn't need to hold a lock).
 class ICData : public CallSiteData {
  public:
   FunctionPtr Owner() const;
@@ -2239,15 +2263,17 @@ class ICData : public CallSiteData {
   // the final one.
   intptr_t Length() const;
 
-  // Takes O(result) time!
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
   // Takes O(result)) time!
   intptr_t NumberOfUsedChecks() const;
 
-  // Takes O(n) time!
   bool NumberOfChecksIs(intptr_t n) const;
+
+  bool IsValidEntryIndex(intptr_t index) const {
+    return 0 <= index && index < NumberOfChecks();
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedICData));
@@ -2275,10 +2301,14 @@ class ICData : public CallSiteData {
   }
 #endif
 
-  // Replaces entry |index| with the sentinel.
   // NOTE: Can only be called during reload.
-  void WriteSentinelAt(intptr_t index,
-                       const CallSiteResetter& proof_of_reload) const;
+  void Clear(const CallSiteResetter& proof_of_reload) const {
+    TruncateTo(0, proof_of_reload);
+  }
+
+  // NOTE: Can only be called during reload.
+  void TruncateTo(intptr_t num_checks,
+                  const CallSiteResetter& proof_of_reload) const;
 
   // Clears the count for entry |index|.
   // NOTE: Can only be called during reload.
@@ -2483,9 +2513,9 @@ class ICData : public CallSiteData {
   }
 
   // Does entry |index| contain the sentinel value?
-  bool IsSentinelAt(intptr_t index) const;
   void SetNumArgsTested(intptr_t value) const;
   void SetReceiversStaticType(const AbstractType& type) const;
+  DEBUG_ONLY(void AssertInvariantsAreSatisfied() const;)
 
   static void SetTargetAtPos(const Array& data,
                              intptr_t data_pos,
@@ -2567,6 +2597,7 @@ class ICData : public CallSiteData {
                                                bool tracking_exactness);
   static ArrayPtr CachedEmptyICDataArray(intptr_t num_args_tested,
                                          bool tracking_exactness);
+  static bool IsCachedEmptyEntry(const Array& array);
   static ICDataPtr NewDescriptor(Zone* zone,
                                  const Function& owner,
                                  const String& target_name,
