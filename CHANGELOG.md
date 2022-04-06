@@ -1,3 +1,12 @@
+## 2.18.0
+
+### Core libraries
+
+#### `dart:html`
+
+- Add `connectionState` attribute and `connectionstatechange` listener to
+  `RtcPeerConnection`.
+
 ## 2.17.0
 
 ### Core libraries
@@ -50,9 +59,6 @@
   accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
   return their correct return types now as well - `PerformanceEntry?` and
   `PerformanceMeasure?`, respectively.
-
-- Add `connectionState` attribute and `connectionstatechange` listener to
-  RTCPeerConnection.
 
 #### `dart:indexed_db`
 
