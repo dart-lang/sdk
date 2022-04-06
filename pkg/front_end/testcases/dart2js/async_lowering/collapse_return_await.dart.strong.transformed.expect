@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method bar() → asy::Future<core::int> {
+  return asy::Future::value<core::int>(123);
+}
+static method foo1() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
+  return asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    return self::bar();
+  });
+static method foo2(core::bool x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
+  return asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    if(x)
+      return asy::Future::value<core::int>(345);
+    return self::bar();
+  });
+static method foo3(core::bool x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
+  return asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    if(x)
+      return 234;
+    return asy::Future::value<core::int>(123);
+  });
+static method main() → void {
+  self::foo1();
+  self::foo2(true);
+  self::foo3(true);
+}

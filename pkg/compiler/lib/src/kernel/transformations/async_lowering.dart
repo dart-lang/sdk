@@ -10,9 +10,15 @@ import 'package:kernel/kernel.dart';
 
 class _FunctionData {
   final List<AwaitExpression> awaits = [];
-  final List<ReturnStatement> returnStatements = [];
+  final Set<ReturnStatement> returnStatements = {};
 
   _FunctionData();
+
+  /// Returns true if all [AwaitExpression]s are children of [ReturnStatement]s.
+  bool allAwaitsDirectReturn() {
+    return awaits.every(
+        (awaitExpression) => returnStatements.contains(awaitExpression.parent));
+  }
 }
 
 /// Handles simplification of basic 'async' functions into [Future]s.
@@ -59,9 +65,23 @@ class AsyncLowering {
             ]))));
   }
 
+  void _transformDirectReturnAwaits(
+      FunctionNode node, _FunctionData functionData) {
+    // If every await is the direct child of a return statement then we can
+    // do the following transformation:
+    // return await e; --> return e;
+    final updatedReturns = <ReturnStatement>{};
+    for (final awaitExpression in functionData.awaits) {
+      final returnStatement = awaitExpression.parent as ReturnStatement;
+      updatedReturns.add(returnStatement);
+      awaitExpression.replaceWith(awaitExpression.operand);
+    }
+  }
+
   void _transformAsyncFunctionNode(FunctionNode node) {
     assert(_functions.isNotEmpty, 'Must be within a function scope.');
     final functionData = _functions.last;
+    var isLowered = false;
     if (functionData.awaits.isEmpty) {
       // There are no awaits within this function so convert to a simple
       // Future.sync call with the function's returned expressions. We use
@@ -90,6 +110,12 @@ class AsyncLowering {
       //    handle the unpacking of the returned future in that case.
       // 3) The return type of the function is not specified. In this case we
       //    instantiate Future.value with 'dynamic'.
+      isLowered = true;
+    } else if (functionData.allAwaitsDirectReturn()) {
+      _transformDirectReturnAwaits(node, functionData);
+      isLowered = true;
+    }
+    if (isLowered) {
       _wrapBodySync(node);
     }
   }
