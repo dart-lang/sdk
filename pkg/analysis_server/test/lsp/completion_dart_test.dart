@@ -23,7 +23,8 @@ void main() {
     defineReflectiveTests(CompletionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
-    defineReflectiveTests(FlutterSnippetCompletionWithNullSafetyTest);
+    defineReflectiveTests(
+        FlutterSnippetCompletionWithLatestLanguageVersionTest);
     defineReflectiveTests(CompletionTestWithNullSafetyTest);
   });
 }
@@ -2793,12 +2794,20 @@ void f() {
 
 @reflectiveTest
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  /// Standard import statements expected for basic Widgets.
+  String get expectedImports => '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';''';
+
   /// Nullability suffix expected in this test class.
   ///
   /// Used to allow all tests to be run in both modes without having to
-  /// duplicate all tests ([FlutterSnippetCompletionWithNullSafetyTest]
+  /// duplicate all tests ([FlutterSnippetCompletionWithLatestLanguageVersionTest]
   /// overrides this).
-  String get questionSuffix => '';
+  String get expectedNullableSuffix => '';
+
+  /// Constructor params expected on Widget classes.
+  String get expectedWidgetConstructorParams => '({Key key}) : super(key: key)';
 
   @override
   void setUp() {
@@ -2833,7 +2842,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatefulWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
@@ -2875,7 +2884,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatefulWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
@@ -2931,7 +2940,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -2960,13 +2969,12 @@ class B {}
     );
 
     expect(updated, '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+$expectedImports
 
 class A {}
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -2991,11 +2999,10 @@ stless^
     );
 
     expect(updated, '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+$expectedImports
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -3018,11 +3025,10 @@ class \${1:MyWidget} extends StatelessWidget {
     );
 
     expect(updated, '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+$expectedImports
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -3063,10 +3069,17 @@ stle^
 }
 
 @reflectiveTest
-class FlutterSnippetCompletionWithNullSafetyTest
+class FlutterSnippetCompletionWithLatestLanguageVersionTest
     extends FlutterSnippetCompletionTest {
   @override
-  String get questionSuffix => '?';
+  String get expectedImports => '''
+import 'package:flutter/src/widgets/framework.dart';''';
+
+  @override
+  String get expectedNullableSuffix => '?';
+
+  @override
+  String get expectedWidgetConstructorParams => '({super.key})';
 
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
