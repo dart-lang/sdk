@@ -170,7 +170,7 @@ void _handleMessage(
 }
 
 /// Maps libraries by uri to macros by name, and then constructors by name.
-final _macroConstructors = <Uri, Map<String, Map<String, Macro Function()>>>{
+final _macroConstructors = <Uri, Map<String, Map<String, Function>>>{
   $_macroConstructorEntriesMarker
 };
 
