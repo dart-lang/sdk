@@ -121,7 +121,7 @@ class ElementInfoCollector {
   AbstractValue _resultOfParameter(Local e) =>
       _globalInferenceResults.resultOfParameter(e);
 
-  FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
+  FieldInfo visitField(FieldEntity field) {
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
@@ -201,7 +201,7 @@ class ElementInfoCollector {
           }
         }
       } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member, containingClass: clazz);
+        FieldInfo fieldInfo = visitField(member);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;
@@ -436,7 +436,7 @@ class KernelInfoCollector {
       _constantToInfo[constant] = info;
       result.constants.add(info);
     });
-    environment.libraries.forEach(visitLibrary);
+    component.libraries.forEach(visitLibrary);
   }
 
   /// Whether to emit information about [entity].
@@ -449,24 +449,32 @@ class KernelInfoCollector {
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
-  LibraryInfo visitLibrary(LibraryEntity lib) {
-    String libname = environment.getLibraryName(lib);
-    if (libname.isEmpty) {
+  LibraryInfo visitLibrary(ir.Library lib) {
+    final libEntity = environment.lookupLibrary(lib.importUri);
+    if (libEntity == null) return null;
+
+    String libname = lib.name;
+    if (libname == null || libname.isEmpty) {
       libname = '<unnamed>';
     }
-    int size = dumpInfoTask.sizeOf(lib);
-    LibraryInfo info = LibraryInfo(libname, lib.canonicalUri, null, size);
-    _entityToInfo[lib] = info;
 
-    environment.forEachLibraryMember(lib, (MemberEntity member) {
-      if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo = visitFunction(member);
+    int size = dumpInfoTask.sizeOf(libEntity);
+    LibraryInfo info = LibraryInfo(libname, lib.importUri, null, size);
+    _entityToInfo[libEntity] = info;
+
+    lib.members.forEach((ir.Member member) {
+      final memberEntity =
+          environment.lookupLibraryMember(libEntity, member.name.text);
+      if (memberEntity == null) return;
+
+      if (member.function != null) {
+        FunctionInfo functionInfo = visitFunction(memberEntity);
         if (functionInfo != null) {
           info.topLevelFunctions.add(functionInfo);
           functionInfo.parent = info;
         }
-      } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member);
+      } else {
+        FieldInfo fieldInfo = visitField(member, fieldEntity: memberEntity);
         if (fieldInfo != null) {
           info.topLevelVariables.add(fieldInfo);
           fieldInfo.parent = info;
@@ -474,21 +482,24 @@ class KernelInfoCollector {
       }
     });
 
-    environment.forEachClass(lib, (ClassEntity clazz) {
-      ClassTypeInfo classTypeInfo = visitClassType(clazz);
+    lib.classes.forEach((ir.Class clazz) {
+      final classEntity = environment.lookupClass(libEntity, clazz.name);
+      if (classEntity == null) return;
+
+      ClassTypeInfo classTypeInfo = visitClassType(classEntity);
       if (classTypeInfo != null) {
         info.classTypes.add(classTypeInfo);
         classTypeInfo.parent = info;
       }
 
-      ClassInfo classInfo = visitClass(clazz);
+      ClassInfo classInfo = visitClass(clazz, classEntity: classEntity);
       if (classInfo != null) {
         info.classes.add(classInfo);
         classInfo.parent = info;
       }
     });
 
-    if (info.isEmpty && !shouldKeep(lib)) return null;
+    if (info.isEmpty && !shouldKeep(libEntity)) return null;
     result.libraries.add(info);
     return info;
   }
@@ -499,8 +510,8 @@ class KernelInfoCollector {
   AbstractValue _resultOfParameter(Local e) =>
       _globalInferenceResults.resultOfParameter(e);
 
-  FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
-    AbstractValue inferredType = _resultOfMember(field).type;
+  FieldInfo visitField(ir.Field field, {FieldEntity fieldEntity}) {
+    AbstractValue inferredType = _resultOfMember(fieldEntity).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
         closedWorld.abstractValueDomain
@@ -509,21 +520,22 @@ class KernelInfoCollector {
       return null;
     }
 
-    int size = dumpInfoTask.sizeOf(field);
-    List<CodeSpan> code = dumpInfoTask.codeOf(field);
+    int size = dumpInfoTask.sizeOf(fieldEntity);
+    List<CodeSpan> code = dumpInfoTask.codeOf(fieldEntity);
 
     // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
 
     FieldInfo info = FieldInfo(
-        name: field.name,
-        type: '${environment.getFieldType(field)}',
+        name: field.name.text,
+        type: field.type.toStringInternal(),
         inferredType: '$inferredType',
         code: code,
-        outputUnit: _unitInfoForMember(field),
+        outputUnit: _unitInfoForMember(fieldEntity),
         isConst: field.isConst);
-    _entityToInfo[field] = info;
-    FieldAnalysisData fieldData = closedWorld.fieldAnalysis.getFieldData(field);
+    _entityToInfo[fieldEntity] = info;
+    FieldAnalysisData fieldData =
+        closedWorld.fieldAnalysis.getFieldData(fieldEntity);
     if (fieldData.initialValue != null) {
       info.initializer = _constantToInfo[fieldData.initialValue];
     }
@@ -534,7 +546,7 @@ class KernelInfoCollector {
       info.coverageId = '${field.hashCode}';
     }
 
-    int closureSize = _addClosureInfo(info, field);
+    int closureSize = _addClosureInfo(info, fieldEntity);
     info.size = size + closureSize;
 
     result.fields.add(info);
@@ -559,18 +571,28 @@ class KernelInfoCollector {
     return classTypeInfo;
   }
 
-  ClassInfo visitClass(ClassEntity clazz) {
+  ClassInfo visitClass(ir.Class clazz, {ClassEntity classEntity}) {
     // Omit class if it is not needed.
     ClassInfo classInfo = ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
-        outputUnit: _unitInfoForClass(clazz));
-    _entityToInfo[clazz] = classInfo;
+        outputUnit: _unitInfoForClass(classEntity));
+    _entityToInfo[classEntity] = classInfo;
 
-    int size = dumpInfoTask.sizeOf(clazz);
-    environment.forEachLocalClassMember(clazz, (member) {
-      if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo = visitFunction(member);
+    int size = dumpInfoTask.sizeOf(classEntity);
+    clazz.members.forEach((ir.Member member) {
+      MemberEntity memberEntity =
+          environment.lookupClassMember(classEntity, member.name.text);
+      if (memberEntity == null) return;
+      // Note: JWorld representations of a kernel member may omit the field or
+      // getter. Filter those cases here.
+      if ((member is ir.Field && memberEntity is! FieldEntity) ||
+          (member is ir.Procedure && memberEntity is! FunctionEntity)) {
+        return;
+      }
+
+      if (member.function != null) {
+        FunctionInfo functionInfo = visitFunction(memberEntity);
         if (functionInfo != null) {
           classInfo.functions.add(functionInfo);
           functionInfo.parent = classInfo;
@@ -578,8 +600,8 @@ class KernelInfoCollector {
             size += closureInfo.size;
           }
         }
-      } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member, containingClass: clazz);
+      } else {
+        FieldInfo fieldInfo = visitField(member, fieldEntity: memberEntity);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;
@@ -587,12 +609,14 @@ class KernelInfoCollector {
             size += closureInfo.size;
           }
         }
-      } else {
-        throw StateError('Class member not a function or field');
       }
     });
-    environment.forEachConstructor(clazz, (constructor) {
-      FunctionInfo functionInfo = visitFunction(constructor);
+
+    clazz.constructors.forEach((ir.Constructor constructor) {
+      final constructorEntity =
+          environment.lookupConstructor(classEntity, constructor.name.text);
+      if (constructorEntity == null) return;
+      FunctionInfo functionInfo = visitFunction(constructorEntity);
       if (functionInfo != null) {
         classInfo.functions.add(functionInfo);
         functionInfo.parent = classInfo;
@@ -604,7 +628,8 @@ class KernelInfoCollector {
 
     classInfo.size = size;
 
-    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+    if (!compiler.backendStrategy.emitterTask.neededClasses
+            .contains(classEntity) &&
         classInfo.fields.isEmpty &&
         classInfo.functions.isEmpty) {
       return null;
