@@ -78,7 +78,7 @@ class CallerClosureFinder {
   Class& future_listener_class;
   Class& async_start_stream_controller_class;
   Class& stream_controller_class;
-  Class& async_stream_controller_class;
+  Class& sync_stream_controller_class;
   Class& controller_subscription_class;
   Class& buffering_stream_subscription_class;
   Class& stream_iterator_class;

@@ -44,10 +44,10 @@ static method bar(dynamic d) → dynamic /* originally async* */ {
                       return null;
                     else
                       [yield] null;
-                    if(:controller.{asy::_AsyncStarStreamController::addStream}(x as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>){(asy::Stream<dynamic>) → core::bool})
+                    :controller.{asy::_AsyncStarStreamController::addStream}(x as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>){(asy::Stream<dynamic>) → void};
+                    [yield] null;
+                    if(_in::unsafeCast<core::bool>(:result_or_exception))
                       return null;
-                    else
-                      [yield] null;
                   }
                 }
                 else
