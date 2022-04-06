@@ -9,7 +9,7 @@ import 'package:analysis_server/src/handler/legacy/server_cancel_request.dart';
 import 'package:analysis_server/src/handler/legacy/server_get_version.dart';
 import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [ServerDomainHandler] implement a [RequestHandler]
 /// that handles requests in the server domain.

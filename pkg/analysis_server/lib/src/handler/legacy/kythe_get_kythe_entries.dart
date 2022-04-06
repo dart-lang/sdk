@@ -11,8 +11,8 @@ import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 

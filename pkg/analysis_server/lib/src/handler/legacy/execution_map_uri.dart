@@ -9,8 +9,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `execution.mapUri` request.
 class ExecutionMapUriHandler extends LegacyHandler {

@@ -9,7 +9,7 @@ import 'package:analysis_server/src/handler/legacy/analytics_enable.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_is_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_timing.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [AnalyticsDomainHandler] implement a [RequestHandler]
 /// that handles requests in the `analytics` domain.

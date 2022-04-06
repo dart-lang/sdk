@@ -10,7 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';

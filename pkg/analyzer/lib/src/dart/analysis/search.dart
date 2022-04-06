@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:collection/collection.dart';
 
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
@@ -165,7 +166,7 @@ class Search {
   /// Add matching declarations to the [result].
   Future<void> declarations(
       WorkspaceSymbols result, RegExp? regExp, int? maxResults,
-      {String? onlyForFile}) async {
+      {String? onlyForFile, CancellationToken? cancellationToken}) async {
     if (result.hasMoreDeclarationsThan(maxResults)) {
       return;
     }
@@ -251,7 +252,14 @@ class Search {
     }
 
     await _driver.discoverAvailableFiles();
+
+    if (cancellationToken?.isCancellationRequested ?? false) {
+      result.cancelled = true;
+      return;
+    }
+
     var knownFiles = _driver.fsState.knownFiles.toList();
+    var filesProcessed = 0;
     for (var file in knownFiles) {
       var libraryElement = _driver.getLibraryByFile(file);
       if (libraryElement != null) {
@@ -265,6 +273,16 @@ class Search {
           } on _MaxNumberOfDeclarationsError {
             return;
           }
+        }
+      }
+      filesProcessed++;
+
+      // Periodically yield and check cancellation token.
+      if (cancellationToken != null && filesProcessed % 20 == 0) {
+        await null; // allow cancellation requests to be processed.
+        if (cancellationToken.isCancellationRequested) {
+          result.cancelled = true;
+          return;
         }
       }
     }
@@ -819,6 +837,9 @@ class WorkspaceSymbols {
   final List<Declaration> declarations = [];
   final List<String> files = [];
   final Map<String, int> _pathToIndex = {};
+
+  /// Whether this search was marked cancelled before it completed.
+  bool cancelled = false;
 
   bool hasMoreDeclarationsThan(int? maxResults) {
     return maxResults != null && declarations.length >= maxResults;

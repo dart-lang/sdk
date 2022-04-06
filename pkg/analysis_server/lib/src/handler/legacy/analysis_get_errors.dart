@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `analysis.getErrors` request.
 class AnalysisGetErrorsHandler extends LegacyHandler {

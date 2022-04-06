@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/correction/fix/analysis_options/fix
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:html/parser.dart';

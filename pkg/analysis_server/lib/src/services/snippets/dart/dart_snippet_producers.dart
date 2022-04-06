@@ -5,6 +5,9 @@
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart' show LinterContextImpl;
@@ -300,10 +303,15 @@ class DartMainFunctionSnippetProducer extends DartSnippetProducer {
 abstract class DartSnippetProducer extends SnippetProducer {
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
+  final LibraryElement libraryElement;
+  final bool useSuperParams;
 
   DartSnippetProducer(DartSnippetRequest request)
       : sessionHelper = AnalysisSessionHelper(request.analysisSession),
         utils = CorrectionUtils(request.unit),
+        libraryElement = request.unit.libraryElement,
+        useSuperParams = request.unit.libraryElement.featureSet
+            .isEnabled(Feature.super_parameters),
         super(request);
 
   bool get isInTestDirectory {
@@ -311,6 +319,11 @@ abstract class DartSnippetProducer extends SnippetProducer {
     return LinterContextImpl.testDirectories
         .any((testDir) => path.contains(testDir));
   }
+
+  /// The nullable suffix to use in this library.
+  NullabilitySuffix get nullableSuffix => libraryElement.isNonNullableByDefault
+      ? NullabilitySuffix.question
+      : NullabilitySuffix.none;
 
   bool isLintEnabled(String name) {
     var analysisOptions = sessionHelper.session.analysisContext.analysisOptions;

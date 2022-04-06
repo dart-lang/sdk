@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:meta/meta.dart';
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {
@@ -44,13 +45,16 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
 
 /// Produces a [Snippet] that creates a Flutter StatefulWidget and related State
 /// class.
-class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
+class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer
+    with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stful';
   static const label = 'Flutter Stateful Widget';
 
   late ClassElement? classStatefulWidget;
   late ClassElement? classState;
+  @override
   late ClassElement? classBuildContext;
+  @override
   late ClassElement? classKey;
 
   FlutterStatefulWidgetSnippetProducer._(DartSnippetRequest request)
@@ -63,50 +67,20 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
     // Checked by isValid().
     final classStatefulWidget = this.classStatefulWidget!;
     final classState = this.classState!;
-    final classWidget = this.classWidget!;
-    final classBuildContext = this.classBuildContext!;
-    final classKey = this.classKey!;
 
-    // Only include `?` for nulable types like Key? if in a null-safe library.
-    final nullableSuffix = request.unit.libraryElement.isNonNullableByDefault
-        ? NullabilitySuffix.question
-        : NullabilitySuffix.none;
-
-    final className = 'MyWidget';
     await builder.addDartFileEdit(request.filePath, (builder) {
       builder.addReplacement(request.replacementRange, (builder) {
         // Write the StatefulWidget class
         builder.writeClassDeclaration(
-          className,
+          widgetClassName,
           nameGroupName: 'name',
           superclass: _getType(classStatefulWidget),
           membersWriter: () {
-            // Add the constructor.
-            builder.write('  ');
-            builder.writeConstructorDeclaration(
-              className,
-              classNameGroupName: 'name',
-              isConst: true,
-              parameterWriter: () {
-                builder.write('{');
-                builder.writeParameter(
-                  'key',
-                  type: _getType(classKey, nullableSuffix),
-                );
-                builder.write('}');
-              },
-              initializerWriter: () => builder.write('super(key: key)'),
-            );
+            writeWidgetConstructor(builder);
             builder.writeln();
             builder.writeln();
 
-            // Add the createState method.
-            builder.writeln('  @override');
-            builder.write('  State<');
-            builder.addSimpleLinkedEdit('name', className);
-            builder.write('> createState() => _');
-            builder.addSimpleLinkedEdit('name', className);
-            builder.writeln('State();');
+            writeCreateStateMethod(builder);
           },
         );
         builder.writeln();
@@ -114,33 +88,14 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
 
         // Write the State class.
         builder.write('class _');
-        builder.addSimpleLinkedEdit('name', className);
+        builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.write('State extends ');
         builder.writeReference(classState);
         builder.write('<');
-        builder.addSimpleLinkedEdit('name', className);
+        builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.writeln('> {');
         {
-          // Add the build method.
-          builder.writeln('  @override');
-          builder.write('  ');
-          builder.writeFunctionDeclaration(
-            'build',
-            returnType: _getType(classWidget),
-            parameterWriter: () {
-              builder.writeParameter(
-                'context',
-                type: _getType(classBuildContext),
-              );
-            },
-            bodyWriter: () {
-              builder.writeln('{');
-              builder.write('    ');
-              builder.selectHere();
-              builder.writeln();
-              builder.writeln('  }');
-            },
-          );
+          writeBuildMethod(builder);
         }
         builder.write('}');
       });
@@ -178,13 +133,15 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
 /// Produces a [Snippet] that creates a Flutter StatefulWidget with a
 /// AnimationController and related State class.
 class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
-    extends FlutterSnippetProducer {
+    extends FlutterSnippetProducer with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stanim';
   static const label = 'Flutter Widget with AnimationController';
 
   late ClassElement? classStatefulWidget;
   late ClassElement? classState;
+  @override
   late ClassElement? classBuildContext;
+  @override
   late ClassElement? classKey;
   late ClassElement? classAnimationController;
   late ClassElement? classSingleTickerProviderStateMixin;
@@ -200,53 +157,23 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
     // Checked by isValid().
     final classStatefulWidget = this.classStatefulWidget!;
     final classState = this.classState!;
-    final classWidget = this.classWidget!;
-    final classBuildContext = this.classBuildContext!;
-    final classKey = this.classKey!;
     final classAnimationController = this.classAnimationController!;
     final classSingleTickerProviderStateMixin =
         this.classSingleTickerProviderStateMixin!;
 
-    // Only include `?` for nulable types like Key? if in a null-safe library.
-    final nullableSuffix = request.unit.libraryElement.isNonNullableByDefault
-        ? NullabilitySuffix.question
-        : NullabilitySuffix.none;
-
-    final className = 'MyWidget';
     await builder.addDartFileEdit(request.filePath, (builder) {
       builder.addReplacement(request.replacementRange, (builder) {
         // Write the StatefulWidget class
         builder.writeClassDeclaration(
-          className,
+          widgetClassName,
           nameGroupName: 'name',
           superclass: _getType(classStatefulWidget),
           membersWriter: () {
-            // Add the constructor.
-            builder.write('  ');
-            builder.writeConstructorDeclaration(
-              className,
-              classNameGroupName: 'name',
-              isConst: true,
-              parameterWriter: () {
-                builder.write('{');
-                builder.writeParameter(
-                  'key',
-                  type: _getType(classKey, nullableSuffix),
-                );
-                builder.write('}');
-              },
-              initializerWriter: () => builder.write('super(key: key)'),
-            );
+            writeWidgetConstructor(builder);
             builder.writeln();
             builder.writeln();
 
-            // Add the createState method.
-            builder.writeln('  @override');
-            builder.write('  State<');
-            builder.addSimpleLinkedEdit('name', className);
-            builder.write('> createState() => _');
-            builder.addSimpleLinkedEdit('name', className);
-            builder.writeln('State();');
+            writeCreateStateMethod(builder);
           },
         );
         builder.writeln();
@@ -254,11 +181,11 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
 
         // Write the State class.
         builder.write('class _');
-        builder.addSimpleLinkedEdit('name', className);
+        builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.write('State extends ');
         builder.writeReference(classState);
         builder.write('<');
-        builder.addSimpleLinkedEdit('name', className);
+        builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.writeln('>');
         builder.write('    with ');
         builder.writeReference(classSingleTickerProviderStateMixin);
@@ -302,26 +229,7 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
         }
         builder.writeln();
         {
-          // Add the build method.
-          builder.writeln('  @override');
-          builder.write('  ');
-          builder.writeFunctionDeclaration(
-            'build',
-            returnType: _getType(classWidget),
-            parameterWriter: () {
-              builder.writeParameter(
-                'context',
-                type: _getType(classBuildContext),
-              );
-            },
-            bodyWriter: () {
-              builder.writeln('{');
-              builder.write('    ');
-              builder.selectHere();
-              builder.writeln();
-              builder.writeln('  }');
-            },
-          );
+          writeBuildMethod(builder);
         }
         builder.write('}');
       });
@@ -363,12 +271,15 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
 }
 
 /// Produces a [Snippet] that creates a Flutter StatelessWidget.
-class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
+class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer
+    with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stless';
   static const label = 'Flutter Stateless Widget';
 
   late ClassElement? classStatelessWidget;
+  @override
   late ClassElement? classBuildContext;
+  @override
   late ClassElement? classKey;
 
   FlutterStatelessWidgetSnippetProducer._(DartSnippetRequest request)
@@ -380,62 +291,19 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
 
     // Checked by isValid().
     final classStatelessWidget = this.classStatelessWidget!;
-    final classWidget = this.classWidget!;
-    final classBuildContext = this.classBuildContext!;
-    final classKey = this.classKey!;
 
-    // Only include `?` for nulable types like Key? if in a null-safe library.
-    final nullableSuffix = request.unit.libraryElement.isNonNullableByDefault
-        ? NullabilitySuffix.question
-        : NullabilitySuffix.none;
-
-    final className = 'MyWidget';
     await builder.addDartFileEdit(request.filePath, (builder) {
       builder.addReplacement(request.replacementRange, (builder) {
         builder.writeClassDeclaration(
-          className,
+          widgetClassName,
           nameGroupName: 'name',
           superclass: _getType(classStatelessWidget),
           membersWriter: () {
-            // Add the constructor.
-            builder.write('  ');
-            builder.writeConstructorDeclaration(
-              className,
-              classNameGroupName: 'name',
-              isConst: true,
-              parameterWriter: () {
-                builder.write('{');
-                builder.writeParameter(
-                  'key',
-                  type: _getType(classKey, nullableSuffix),
-                );
-                builder.write('}');
-              },
-              initializerWriter: () => builder.write('super(key: key)'),
-            );
+            writeWidgetConstructor(builder);
             builder.writeln();
             builder.writeln();
 
-            // Add the build method.
-            builder.writeln('  @override');
-            builder.write('  ');
-            builder.writeFunctionDeclaration(
-              'build',
-              returnType: _getType(classWidget),
-              parameterWriter: () {
-                builder.writeParameter(
-                  'context',
-                  type: _getType(classBuildContext),
-                );
-              },
-              bodyWriter: () {
-                builder.writeln('{');
-                builder.write('    ');
-                builder.selectHere();
-                builder.writeln();
-                builder.writeln('  }');
-              },
-            );
+            writeBuildMethod(builder);
           },
         );
       });
@@ -467,4 +335,77 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
   static FlutterStatelessWidgetSnippetProducer newInstance(
           DartSnippetRequest request) =>
       FlutterStatelessWidgetSnippetProducer._(request);
+}
+
+/// A mixin that provides some common methods for producers that build snippets
+/// for Flutter widget classes.
+mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
+  ClassElement? get classBuildContext;
+  ClassElement? get classKey;
+  String get widgetClassName => 'MyWidget';
+
+  void writeBuildMethod(DartEditBuilder builder) {
+    // Checked by isValid() before this will be called.
+    final classBuildContext = this.classBuildContext!;
+    final classWidget = this.classWidget!;
+
+    // Add the build method.
+    builder.writeln('  @override');
+    builder.write('  ');
+    builder.writeFunctionDeclaration(
+      'build',
+      returnType: _getType(classWidget),
+      parameterWriter: () {
+        builder.writeParameter(
+          'context',
+          type: _getType(classBuildContext),
+        );
+      },
+      bodyWriter: () {
+        builder.writeln('{');
+        builder.write('    ');
+        builder.selectHere();
+        builder.writeln();
+        builder.writeln('  }');
+      },
+    );
+  }
+
+  void writeCreateStateMethod(DartEditBuilder builder) {
+    builder.writeln('  @override');
+    builder.write('  State<');
+    builder.addSimpleLinkedEdit('name', widgetClassName);
+    builder.write('> createState() => _');
+    builder.addSimpleLinkedEdit('name', widgetClassName);
+    builder.writeln('State();');
+  }
+
+  void writeWidgetConstructor(DartEditBuilder builder) {
+    // Checked by isValid() before this will be called.
+    final classKey = this.classKey!;
+
+    String keyName;
+    DartType? keyType;
+    void Function()? keyInitializer;
+    if (useSuperParams) {
+      keyName = 'super.key';
+    } else {
+      keyName = 'key';
+      keyType = _getType(classKey, nullableSuffix);
+      keyInitializer = () => builder.write('super(key: key)');
+    }
+
+    builder.write('  ');
+    builder.writeConstructorDeclaration(
+      widgetClassName,
+      classNameGroupName: 'name',
+      isConst: true,
+      parameterWriter: () {
+        builder.write('{');
+        builder.writeParameter(keyName, type: keyType);
+        builder.write('}');
+      },
+      initializerWriter: keyInitializer,
+    );
+  }
 }

@@ -10,7 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_analysis_flags.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `analysis.getImportedElements` request.
 class AnalysisGetImportedElementsHandler extends LegacyHandler {

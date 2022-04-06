@@ -8,9 +8,9 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// A request handler for the legacy protocol.
 abstract class LegacyHandler {

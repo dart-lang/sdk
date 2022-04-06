@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -135,6 +136,26 @@ mixin B {
     var b = findElement.mixin('B');
     expect(await _findClassMembers('test'),
         unorderedEquals([a.methods[0], b.fields[0]]));
+  }
+
+  test_declarations_cancel() async {
+    await resolveTestCode('''
+class C {
+  int f;
+  C();
+  C.named();
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    var token = CancelableToken();
+    var searchFuture = driver.search
+        .declarations(results, null, null, cancellationToken: token);
+    token.cancel();
+    await searchFuture;
+    expect(results.cancelled, isTrue);
   }
 
   test_declarations_class() async {

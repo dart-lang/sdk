@@ -10,13 +10,13 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 

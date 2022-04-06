@@ -9,8 +9,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// The handler for the `completion.getSuggestionDetails2` request.

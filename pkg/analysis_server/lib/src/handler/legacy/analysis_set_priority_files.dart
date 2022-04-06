@@ -9,7 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `analysis.setPriorityFiles` request.
 class AnalysisSetPriorityFilesHandler extends LegacyHandler {

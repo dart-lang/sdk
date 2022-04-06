@@ -23,11 +23,11 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
