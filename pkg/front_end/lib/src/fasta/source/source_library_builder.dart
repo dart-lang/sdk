@@ -3421,26 +3421,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // of the depth-first search.  Continue to the next one.
         continue;
       }
-      if (type.parameter.bound is TypeParameterType) {
+      DartType peeledBound = _peelOffFutureOr(type.parameter.bound);
+      if (peeledBound is TypeParameterType) {
         TypeParameterType current = type;
-        TypeParameterType? next = current.parameter.bound as TypeParameterType;
+        TypeParameterType? next = peeledBound;
+        bool isDirectDependency = identical(type.parameter.bound, peeledBound);
         while (next != null && getDeclaredNullability(next) == null) {
           stack[stackTop++] = current;
           setDeclaredNullability(current, marker);
 
           current = next;
-          if (current.parameter.bound is TypeParameterType) {
-            next = current.parameter.bound as TypeParameterType;
+          peeledBound = _peelOffFutureOr(current.parameter.bound);
+          isDirectDependency = isDirectDependency &&
+              identical(current.parameter.bound, peeledBound);
+          if (peeledBound is TypeParameterType) {
+            next = peeledBound;
             if (getDeclaredNullability(next) == marker) {
               setDeclaredNullability(next, Nullability.undetermined);
-              current.parameter.bound = const InvalidType();
-              current.parameter.defaultType = const InvalidType();
-              addProblem(
-                  templateCycleInTypeVariables.withArguments(
-                      next.parameter.name!, current.parameter.name!),
-                  pendingNullability.charOffset,
-                  next.parameter.name!.length,
-                  pendingNullability.fileUri);
+              if (isDirectDependency) {
+                current.parameter.bound = const InvalidType();
+                current.parameter.defaultType = const InvalidType();
+                addProblem(
+                    templateCycleInTypeVariables.withArguments(
+                        next.parameter.name!, current.parameter.name!),
+                    pendingNullability.charOffset,
+                    next.parameter.name!.length,
+                    pendingNullability.fileUri);
+              }
               next = null;
             }
           } else {
@@ -4865,6 +4872,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         .add(new PendingNullability(fileUri, charOffset, type));
   }
 
+  bool hasPendingNullability(DartType type) {
+    type = _peelOffFutureOr(type);
+    if (type is TypeParameterType) {
+      for (PendingNullability pendingNullability in _pendingNullabilities) {
+        if (pendingNullability.type == type) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static DartType _peelOffFutureOr(DartType type) {
+    while (type is FutureOrType) {
+      type = type.typeArgument;
+    }
+    return type;
+  }
+
   /// Performs delayed bounds checks on [TypedefType]s for the library
   ///
   /// As [TypedefType]s are built, they are eagerly unaliased, making it
@@ -5409,6 +5435,11 @@ class PendingNullability {
   final TypeParameterType type;
 
   PendingNullability(this.fileUri, this.charOffset, this.type);
+
+  @override
+  String toString() {
+    return "PendingNullability(${fileUri}, ${charOffset}, ${type})";
+  }
 }
 
 class UncheckedTypedefType {
