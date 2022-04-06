@@ -11,7 +11,7 @@ import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
-import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitor;
+import 'universe/world_impact.dart' show WorldImpact;
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
@@ -80,8 +80,6 @@ abstract class Enqueuer {
   // side-effects.
   static bool skipEnqueuerCheckForTesting = false;
 
-  WorldImpactVisitor get impactVisitor;
-
   bool queueIsClosed;
 
   bool get queueIsEmpty;
@@ -91,7 +89,10 @@ abstract class Enqueuer {
   /// Apply the [worldImpact] to this enqueuer.
   void applyImpact(WorldImpact worldImpact) {
     if (worldImpact.isEmpty) return;
-    worldImpact.apply(impactVisitor);
+    worldImpact.forEachStaticUse(processStaticUse);
+    worldImpact.forEachDynamicUse((_, use) => processDynamicUse(use));
+    worldImpact.forEachTypeUse(processTypeUse);
+    worldImpact.forEachConstantUse((_, use) => processConstantUse(use));
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods(
@@ -134,32 +135,6 @@ abstract class Enqueuer {
       }
     });
     return true;
-  }
-}
-
-class EnqueuerImpactVisitor implements WorldImpactVisitor {
-  final Enqueuer enqueuer;
-
-  EnqueuerImpactVisitor(this.enqueuer);
-
-  @override
-  void visitDynamicUse(MemberEntity member, DynamicUse dynamicUse) {
-    enqueuer.processDynamicUse(dynamicUse);
-  }
-
-  @override
-  void visitStaticUse(MemberEntity member, StaticUse staticUse) {
-    enqueuer.processStaticUse(member, staticUse);
-  }
-
-  @override
-  void visitTypeUse(MemberEntity member, TypeUse typeUse) {
-    enqueuer.processTypeUse(member, typeUse);
-  }
-
-  @override
-  void visitConstantUse(MemberEntity member, ConstantUse constantUse) {
-    enqueuer.processConstantUse(constantUse);
   }
 }
 

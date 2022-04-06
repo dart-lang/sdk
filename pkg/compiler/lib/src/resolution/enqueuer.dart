@@ -22,7 +22,6 @@ import '../universe/use.dart'
         StaticUseKind,
         TypeUse,
         TypeUseKind;
-import '../universe/world_impact.dart' show WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
 
@@ -44,9 +43,6 @@ class ResolutionEnqueuer extends Enqueuer {
   @override
   bool queueIsClosed = false;
 
-  @override
-  WorldImpactVisitor impactVisitor;
-
   final Queue<WorkItem> _queue = Queue<WorkItem>();
 
   // If not `null` this is called when the queue has been emptied. It allows for
@@ -55,9 +51,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   ResolutionEnqueuer(this.task, this._reporter, this.listener,
       this.worldBuilder, this._workItemBuilder, this._annotationsData,
-      [this.name = 'resolution enqueuer']) {
-    impactVisitor = EnqueuerImpactVisitor(this);
-  }
+      [this.name = 'resolution enqueuer']);
 
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses =>

@@ -19,7 +19,7 @@ import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart';
 import '../universe/use.dart';
-import '../universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
+import '../universe/world_impact.dart' show WorldImpact;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].
@@ -239,16 +239,13 @@ class EntityDataInfoBuilder {
   /// Extract any dependencies that are known from the impact of [element].
   void _addDependenciesFromImpact(MemberEntity element) {
     WorldImpact worldImpact = impactCache[element];
-    worldImpact.apply(WorldImpactVisitorImpl(
-        visitStaticUse: (MemberEntity member, StaticUse staticUse) {
-      _addFromStaticUse(element, staticUse);
-    }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
-      _addFromTypeUse(element, typeUse);
-    }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
-      // TODO(johnniwinther): Use rti need data to skip unneeded type
-      // arguments.
-      addTypeListDependencies(dynamicUse.typeArguments);
-    }));
+    worldImpact.forEachStaticUse(_addFromStaticUse);
+    worldImpact.forEachTypeUse(_addFromTypeUse);
+
+    // TODO(johnniwinther): Use rti need data to skip unneeded type
+    // arguments.
+    worldImpact.forEachDynamicUse(
+        (_, use) => addTypeListDependencies(use.typeArguments));
   }
 }
 

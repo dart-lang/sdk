@@ -27,7 +27,7 @@ import 'inferrer/types.dart'
 import 'js/js.dart' as jsAst;
 import 'js_model/js_strategy.dart';
 import 'js_backend/field_analysis.dart';
-import 'universe/world_impact.dart' show WorldImpact, WorldImpactVisitorImpl;
+import 'universe/world_impact.dart' show WorldImpact;
 import 'util/sink_adapter.dart';
 import 'world.dart' show JClosedWorld;
 
@@ -891,16 +891,17 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
-    impact.apply(WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
+    impact.forEachDynamicUse((_, dynamicUse) {
       AbstractValue mask = dynamicUse.receiverConstraint;
       selections.addAll(closedWorld
           // TODO(het): Handle `call` on `Closure` through
           // `world.includesClosureCall`.
           .locateMembers(dynamicUse.selector, mask)
           .map((MemberEntity e) => Selection(e, mask)));
-    }, visitStaticUse: (member, staticUse) {
+    });
+    impact.forEachStaticUse((_, staticUse) {
       selections.add(Selection(staticUse.element, null));
-    }));
+    });
     unregisterImpact(entity);
     return selections;
   }
