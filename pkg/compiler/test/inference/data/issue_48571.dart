@@ -21,35 +21,35 @@ Base either = DateTime.now()
     ? Child2()
     : Child1();
 
-/*member: test1:[null|exact=Child1]*/
+/*member: test1:Union(null, [exact=Child1], [exact=Child2])*/
 test1() {
   Base child = either;
   if (trivial(child is Child1 && true)) return child;
   return null;
 }
 
-/*member: test2:[null|exact=Child1]*/
+/*member: test2:Union(null, [exact=Child1], [exact=Child2])*/
 test2() {
   Base child = either;
   if (child is Child1 || trivial(child is Child1 && true)) return child;
   return null;
 }
 
-/*member: test3:[null]*/
+/*member: test3:[null|exact=Child2]*/
 test3() {
   Base child = either;
   if (trivial(child is Child1 && true) && child is Child2) return child;
   return null;
 }
 
-/*member: test4:[null]*/
+/*member: test4:[null|exact=Child2]*/
 test4() {
   Base child = either;
   if (child is Child2 && trivial(child is Child1 && true)) return child;
   return null;
 }
 
-/*member: test5:[null|exact=Child1]*/
+/*member: test5:Union(null, [exact=Child1], [exact=Child2])*/
 test5() {
   Base child = either;
   if ((child is Child1 && true) /*invoke: [exact=JSBool]*/ == false)
@@ -64,7 +64,7 @@ test6() {
   return null;
 }
 
-/*member: test7:[null|exact=Child1]*/
+/*member: test7:Union(null, [exact=Child1], [exact=Child2])*/
 test7() {
   Base child = either;
   if (trivial(trivial(child is Child1 && true))) return child;
