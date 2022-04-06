@@ -99,6 +99,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     _stateAfterWhenFalseInternal = whenFalse;
   }
 
+  /// Removes from the current [_state] any data from the boolean value of the
+  /// most recently visited node.
+  void _clearConditionalStateAfter() {
+    _stateAfterWhenTrueInternal = _stateAfterWhenFalseInternal = null;
+  }
+
   final SideEffectsBuilder _sideEffectsBuilder;
   final Map<JumpTarget, List<LocalState>> _breaksFor =
       <JumpTarget, List<LocalState>>{};
@@ -257,13 +263,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     var oldAccumulateIsChecks = _accumulateIsChecks;
     _accumulateIsChecks = conditionContext;
     var result = node?.accept(this);
+
+    // Clear the conditional state to ensure we don't accidentally carry over
+    // conclusions from a nested condition into an outer condition. For example:
+    //
+    //   if (methodCall(x is T && true)) { /* don't assume x is T here. */ }
+    if (!conditionContext) _clearConditionalStateAfter();
     _accumulateIsChecks = oldAccumulateIsChecks;
     return result;
-  }
-
-  void visitList(List<ir.Node> nodes) {
-    if (nodes == null) return;
-    nodes.forEach(visit);
   }
 
   void handleParameter(ir.VariableDeclaration node, {bool isOptional}) {
@@ -1696,11 +1703,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
   }
 
   TypeInformation handleCondition(ir.Node node) {
-    bool oldAccumulateIsChecks = _accumulateIsChecks;
-    _accumulateIsChecks = true;
-    TypeInformation result = visit(node, conditionContext: true);
-    _accumulateIsChecks = oldAccumulateIsChecks;
-    return result;
+    return visit(node, conditionContext: true);
   }
 
   void _potentiallyAddIsCheck(ir.IsExpression node) {

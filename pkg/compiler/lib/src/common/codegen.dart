@@ -31,8 +31,7 @@ import '../ssa/ssa.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
-import '../universe/world_impact.dart'
-    show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
@@ -199,15 +198,6 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         (Selector selector) => selector.writeToDataSink(sink),
         allowNull: true);
     sink.end(tag);
-  }
-
-  @override
-  void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
-    dynamicUses.forEach((DynamicUse use) => visitor.visitDynamicUse);
-    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
-    constantUses
-        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
