@@ -55,7 +55,7 @@ class Asset {
 }
 
 @pragma("vm:external-name", "VMService_DecodeAssets")
-external List<Object> _decodeAssets(Uint8List data);
+external List<dynamic> _decodeAssets(Uint8List data);
 
 Map<String, Asset>? _assets;
 Map<String, Asset>? get assets {
