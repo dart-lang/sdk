@@ -6,9 +6,6 @@
  compilationSequence=[
   package:macro/macro.dart,
   main.dart],
- macroClassIds=[
-  package:macro/macro.dart/Macro1,
-  package:precompiled_macro/precompiled_macro.dart/PrecompiledMacro],
  macroInstanceIds=[
   package:macro/macro.dart/Macro1/(),
   package:precompiled_macro/precompiled_macro.dart/PrecompiledMacro/()],

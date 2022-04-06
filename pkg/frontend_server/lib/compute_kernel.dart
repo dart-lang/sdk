@@ -314,28 +314,41 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             '${parsedArgs['macro-serialization-mode']}');
     }
 
+    // TODO: Handle invalidation of precompiled macros.
+    // TODO: Handle multiple macro libraries compiled to a single precompiled
+    // kernel file.
+    var macroExecutor = state.options.macroExecutor;
     var format = parsedArgs['precompiled-macro-format'];
-    switch (format) {
-      case 'kernel':
-        state.options.macroExecutorProvider =
-            () => isolatedExecutor.start(serializationMode);
-        break;
-      case 'aot':
-        state.options.macroExecutorProvider = () => processExecutor.start(
-            serializationMode, processExecutor.CommunicationChannel.socket);
-        break;
-      default:
-        throw ArgumentError('Unrecognized precompiled macro format $format');
-    }
-    var precompiledMacroUris = state.options.precompiledMacroUris = {};
     for (var parts in (parsedArgs['precompiled-macro'] as List<String>)
         .map((arg) => arg.split(';'))) {
-      precompiledMacroUris[Uri.parse(parts[0])] = toUri(parts[1]);
+      var library = Uri.parse(parts[0]);
+      if (macroExecutor.libraryIsRegistered(library)) {
+        continue;
+      }
+      var programUri = toUri(parts[1]);
+      switch (format) {
+        case 'kernel':
+          macroExecutor.registerExecutorFactory(
+              () => isolatedExecutor.start(serializationMode, programUri),
+              {library});
+          break;
+        case 'aot':
+          macroExecutor.registerExecutorFactory(
+              () => processExecutor.start(
+                  serializationMode,
+                  processExecutor.CommunicationChannel.socket,
+                  programUri.toFilePath()),
+              {library});
+          break;
+        default:
+          throw ArgumentError('Unrecognized precompiled macro format $format');
+      }
     }
   } else {
     enableMacros = false;
     forceEnableMacros = false;
-    state.options.precompiledMacroUris = {};
+    await state.options.macroExecutor?.close();
+    state.options.macroExecutor = null;
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {

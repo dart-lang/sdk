@@ -166,31 +166,11 @@ class BackendImpacts {
     ]);
   }
 
-  BackendImpact _fallThroughError;
-
-  BackendImpact get fallThroughError {
-    return _fallThroughError ??=
-        BackendImpact(staticUses: [_commonElements.fallThroughError]);
-  }
-
   BackendImpact _asCheck;
 
   BackendImpact get asCheck {
     return _asCheck ??= BackendImpact(staticUses: [], otherImpacts: [
       newRtiImpact,
-    ]);
-  }
-
-  BackendImpact _throwNoSuchMethod;
-
-  BackendImpact get throwNoSuchMethod {
-    return _throwNoSuchMethod ??= BackendImpact(staticUses: [
-      _commonElements.throwNoSuchMethod,
-    ], otherImpacts: [
-      // Also register the types of the arguments passed to this method.
-      _needsList('Needed to encode the arguments for throw NoSuchMethodError.'),
-      _needsString('Needed to encode the name for throw NoSuchMethodError.'),
-      mapLiteralClass, // noSuchMethod helpers are passed a Map.
     ]);
   }
 
@@ -241,15 +221,6 @@ class BackendImpacts {
       _commonElements.jsFixedArrayClass,
       _commonElements.jsExtendableArrayClass,
       _commonElements.jsUnmodifiableArrayClass
-    ]);
-  }
-
-  BackendImpact _throwRuntimeError;
-
-  BackendImpact get throwRuntimeError {
-    return _throwRuntimeError ??= BackendImpact(otherImpacts: [
-      // Also register the types of the arguments passed to this method.
-      stringValues
     ]);
   }
 

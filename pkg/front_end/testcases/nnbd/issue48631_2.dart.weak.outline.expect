@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef Bar<V extends core::Object? = dynamic, contravariant U extends self::A> = (U) → V%;
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract method foo<T extends core::Object? = dynamic>(self::B<self::A::foo::T%> b) → self::A::foo::T%;
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  constructor •(self::B::X% x) → self::B<self::B::X%>
+    ;
+}
+class C<Y extends core::Object? = dynamic> extends core::Object {
+  final field (self::D<self::C::Y%>) → FutureOr<self::C::Y%>% bar;
+  constructor •((self::D<self::C::Y%>) → FutureOr<self::C::Y%>% bar) → self::C<self::C::Y%>
+    ;
+}
+abstract class D<W extends core::Object? = dynamic> extends core::Object implements self::A {
+  synthetic constructor •() → self::D<self::D::W%>
+    ;
+}
+static final field self::C<core::int> baz;
+static method main() → dynamic
+  ;

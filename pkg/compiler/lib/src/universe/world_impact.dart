@@ -74,14 +74,18 @@ class WorldImpact {
   }
 }
 
-abstract class WorldImpactBuilder {
+abstract class WorldImpactBuilder extends WorldImpact {
   void registerDynamicUse(DynamicUse dynamicUse);
   void registerTypeUse(TypeUse typeUse);
   void registerStaticUse(StaticUse staticUse);
   void registerConstantUse(ConstantUse constantUse);
 }
 
-class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
+class WorldImpactBuilderImpl extends WorldImpactBuilder {
+  /// The [MemberEntity] associated with this set of impacts. Maybe null.
+  @override
+  final MemberEntity member;
+
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
   Set<DynamicUse> _dynamicUses;
@@ -89,10 +93,11 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   Set<TypeUse> _typeUses;
   Set<ConstantUse> _constantUses;
 
-  WorldImpactBuilderImpl();
+  WorldImpactBuilderImpl([this.member]);
 
   WorldImpactBuilderImpl.internal(
-      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses);
+      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses,
+      {this.member});
 
   @override
   bool get isEmpty =>
@@ -161,7 +166,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
 /// Mutable implementation of [WorldImpact] used to transform
 /// [ResolutionImpact] or [CodegenImpact] to [WorldImpact].
-class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
+class TransformedWorldImpact extends WorldImpactBuilder {
   final WorldImpact worldImpact;
 
   Setlet<StaticUse> _staticUses;
@@ -225,16 +230,6 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   void registerConstantUse(ConstantUse constantUse) {
     _constantUses ??= Setlet.of(worldImpact.constantUses);
     _constantUses.add(constantUse);
-  }
-
-  @override
-  void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
-    dynamicUses
-        .forEach((DynamicUse use) => visitor.visitDynamicUse(member, use));
-    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
-    constantUses
-        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
   }
 
   @override

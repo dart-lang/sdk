@@ -11,6 +11,9 @@ import 'dart:convert' show JsonEncoder;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macros;
+
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
 
@@ -59,8 +62,6 @@ import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
-
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
@@ -183,6 +184,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // This will be set if the right environment variable is set
   // (enableIncrementalCompilerBenchmarking).
   Benchmarker? _benchmarker;
+
+  /// Map by library [Uri] to the [macros.ExecutorFactoryToken]s that was
+  /// retrieved when registering the compiled macro executor for that library.
+  ///
+  /// This is primarily used for invalidation.
+  final Map<Uri, macros.ExecutorFactoryToken> macroExecutorFactoryTokens = {};
 
   RecorderForTesting? get recorderForTesting => null;
 
@@ -330,7 +337,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       _benchmarker
           ?.enterPhase(BenchmarkPhases.incremental_invalidatePrecompiledMacros);
-      _invalidatePrecompiledMacros(c.options, reusedResult.notReusedLibraries);
+      await _invalidatePrecompiledMacros(
+          c.options, reusedResult.notReusedLibraries);
 
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
@@ -378,9 +386,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         NeededPrecompilations? neededPrecompilations =
             await currentKernelTarget.computeNeededPrecompilations();
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        if (enableMacros &&
-            await precompileMacros(neededPrecompilations, c.options)) {
-          continue;
+        if (enableMacros) {
+          Map<Uri, macros.ExecutorFactoryToken>? precompiled =
+              await precompileMacros(neededPrecompilations, c.options);
+          if (precompiled != null) {
+            macroExecutorFactoryTokens.addAll(precompiled);
+            continue;
+          }
         }
         _benchmarker?.enterPhase(
             BenchmarkPhases.incremental_experimentalInvalidationPatchUpScopes);
@@ -1477,21 +1489,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Removes the precompiled macros whose libraries cannot be reused.
-  void _invalidatePrecompiledMacros(ProcessedOptions processedOptions,
-      Set<LibraryBuilder> notReusedLibraries) {
+  Future<void> _invalidatePrecompiledMacros(ProcessedOptions processedOptions,
+      Set<LibraryBuilder> notReusedLibraries) async {
     if (notReusedLibraries.isEmpty) {
       return;
     }
-    CompilerOptions compilerOptions = processedOptions.rawOptionsForTesting;
-    Map<Uri, Uri>? precompiledMacroUris = compilerOptions.precompiledMacroUris;
-    if (precompiledMacroUris != null) {
-      Set<Uri> importUris =
-          notReusedLibraries.map((library) => library.importUri).toSet();
-      for (Uri macroLibraryUri in precompiledMacroUris.keys.toList()) {
-        if (importUris.contains(macroLibraryUri)) {
-          precompiledMacroUris.remove(macroLibraryUri);
-        }
-      }
+    if (macroExecutorFactoryTokens.isNotEmpty) {
+      await Future.wait(notReusedLibraries
+          .map((library) => library.importUri)
+          .where(macroExecutorFactoryTokens.containsKey)
+          .map((importUri) => processedOptions.macroExecutor
+              .unregisterExecutorFactory(
+                  macroExecutorFactoryTokens.remove(importUri)!,
+                  libraries: {importUri})));
     }
   }
 

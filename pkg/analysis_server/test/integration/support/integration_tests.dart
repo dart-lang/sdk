@@ -108,6 +108,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// updates.
   bool _subscribedToServerStatus = false;
 
+  String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
+
   AbstractAnalysisServerIntegrationTest() {
     initializeInttestMixin();
   }
@@ -236,6 +238,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     int? servicesPort,
   }) {
     return server.start(
+      dartSdkPath: dartSdkPath,
       diagnosticPort: diagnosticPort,
       servicesPort: servicesPort,
     );
@@ -607,16 +610,17 @@ class Server {
   /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
   /// to be used.
   Future start({
+    required String dartSdkPath,
     int? diagnosticPort,
     String? instrumentationLogFile,
     String? packagesFile,
     bool profileServer = false,
-    String? sdkPath,
     int? servicesPort,
     bool useAnalysisHighlight2 = false,
   }) async {
     _time.start();
-    var dartBinary = Platform.executable;
+
+    var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
 
     // The integration tests run 3x faster when run from snapshots (you need to
     // run test.py with --use-sdk).
@@ -624,21 +628,8 @@ class Server {
     String serverPath;
 
     if (useSnapshot) {
-      // Look for snapshots/analysis_server.dart.snapshot.
       serverPath = path.normalize(path.join(
-          path.dirname(Platform.resolvedExecutable),
-          'snapshots',
-          'analysis_server.dart.snapshot'));
-
-      if (!FileSystemEntity.isFileSync(serverPath)) {
-        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
-        serverPath = path.normalize(path.join(
-            path.dirname(Platform.resolvedExecutable),
-            'dart-sdk',
-            'bin',
-            'snapshots',
-            'analysis_server.dart.snapshot'));
-      }
+          dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
     } else {
       var rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
@@ -673,6 +664,7 @@ class Server {
     // Add server arguments.
     //
     arguments.add('--suppress-analytics');
+    arguments.add('--sdk=$dartSdkPath');
     if (diagnosticPort != null) {
       arguments.add('--port');
       arguments.add(diagnosticPort.toString());
@@ -682,9 +674,6 @@ class Server {
     }
     if (packagesFile != null) {
       arguments.add('--packages=$packagesFile');
-    }
-    if (sdkPath != null) {
-      arguments.add('--sdk=$sdkPath');
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');

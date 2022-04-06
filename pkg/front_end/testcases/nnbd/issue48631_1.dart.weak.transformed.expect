@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method foo<T extends core::Object? = dynamic>(self::foo::T% t) → FutureOr<self::foo::T?> {}
+static method bar<S extends core::Object? = dynamic>(core::bool t, self::bar::S% s) → dynamic {
+  core::List<FutureOr<self::bar::S?>?> x = core::_GrowableList::_literal2<FutureOr<self::bar::S?>?>(self::foo<self::bar::S%>(s), s);
+}
+static method main() → dynamic {}

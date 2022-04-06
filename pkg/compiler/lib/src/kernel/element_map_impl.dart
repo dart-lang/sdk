@@ -15,7 +15,6 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
-import '../common/resolution.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -33,15 +32,22 @@ import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
+import '../js_backend/annotations.dart';
+import '../js_backend/backend_impact.dart';
+import '../js_backend/backend_usage.dart';
+import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/behavior.dart';
+import '../native/enqueue.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
+import '../universe/world_impact.dart';
 
 import 'element_map.dart';
 import 'env.dart';
@@ -103,6 +109,7 @@ class KernelToElementMap implements IrToElementMap {
   BehaviorBuilder _nativeBehaviorBuilder;
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
+  Map<ir.Member, ImpactData> impactDataForTesting;
 
   KernelToElementMap(this.reporter, this._environment, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
@@ -1443,8 +1450,15 @@ class KernelToElementMap implements IrToElementMap {
       _nativeBehaviorBuilder ??= BehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(
-      KMember member, ImpactBuilderData impactBuilderData) {
+  WorldImpact computeWorldImpact(
+      KMember member,
+      BackendImpacts impacts,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      BackendUsageBuilder backendUsageBuilder,
+      CustomElementsResolutionAnalysis customElementsResolutionAnalysis,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      AnnotationsData annotationsData,
+      ImpactBuilderData impactBuilderData) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
@@ -1454,6 +1468,10 @@ class KernelToElementMap implements IrToElementMap {
     }
     ImpactData impactData = impactBuilderData.impactData;
     memberData.staticTypes = impactBuilderData.cachedStaticTypes;
+    if (retainDataForTesting) {
+      impactDataForTesting ??= {};
+      impactDataForTesting[node] = impactData;
+    }
     KernelImpactConverter converter = KernelImpactConverter(
         this,
         member,
@@ -1462,7 +1480,13 @@ class KernelToElementMap implements IrToElementMap {
         _constantValuefier,
         // TODO(johnniwinther): Pull the static type context from the cached
         // static types.
-        ir.StaticTypeContext(node, typeEnvironment));
+        ir.StaticTypeContext(node, typeEnvironment),
+        impacts,
+        nativeResolutionEnqueuer,
+        backendUsageBuilder,
+        customElementsResolutionAnalysis,
+        rtiNeedBuilder,
+        annotationsData);
     return converter.convert(impactData);
   }
 

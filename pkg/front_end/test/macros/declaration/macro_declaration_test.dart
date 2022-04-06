@@ -6,6 +6,7 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
@@ -42,14 +43,11 @@ class MacroTestConfig extends TestConfig {
   @override
   TestMacroExecutor customizeCompilerOptions(
       CompilerOptions options, TestData testData) {
-    TestMacroExecutor macroExecutor = new TestMacroExecutor();
-    options.macroExecutorProvider = () async => macroExecutor;
-    Uri precompiledPackage =
-        Uri.parse('package:precompiled_macro/precompiled_macro.dart');
-    options.precompiledMacroUris = {
-      precompiledPackage: dummyUri,
-    };
-    return macroExecutor;
+    TestMacroExecutor testExecutor =
+        options.macroExecutor = new TestMacroExecutor();
+    testExecutor.registerExecutorFactory(() => testExecutor,
+        {Uri.parse('package:precompiled_macro/precompiled_macro.dart')});
+    return testExecutor;
   }
 }
 
@@ -101,7 +99,6 @@ class Tags {
   static const String neededPrecompilations = 'neededPrecompilations';
   static const String declaredMacros = 'declaredMacros';
   static const String appliedMacros = 'appliedMacros';
-  static const String macroClassIds = 'macroClassIds';
   static const String macroInstanceIds = 'macroInstanceIds';
   static const String error = 'error';
 }
@@ -260,9 +257,6 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
         }
         features.addElement(Tags.neededPrecompilations, sb.toString());
       }
-      for (_MacroClassIdentifier id in macroExecutor.macroClasses) {
-        features.addElement(Tags.macroClassIds, id.toText());
-      }
       for (_MacroInstanceIdentifier id in macroExecutor.macroInstances) {
         features.addElement(Tags.macroInstanceIds, id.toText());
       }
@@ -289,8 +283,7 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
   }
 }
 
-class TestMacroExecutor implements MacroExecutor {
-  List<_MacroClassIdentifier> macroClasses = [];
+class TestMacroExecutor extends MultiMacroExecutor {
   List<_MacroInstanceIdentifier> macroInstances = [];
 
   @override
@@ -303,7 +296,7 @@ class TestMacroExecutor implements MacroExecutor {
   }
 
   @override
-  void close() {
+  Future<void> close() async {
     // TODO: implement close
   }
 
@@ -337,58 +330,24 @@ class TestMacroExecutor implements MacroExecutor {
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(
-      MacroClassIdentifier macroClass,
-      String constructor,
-      Arguments arguments) async {
-    _MacroInstanceIdentifier id = new _MacroInstanceIdentifier(
-        macroClass as _MacroClassIdentifier, constructor, arguments);
+      Uri library, String name, String constructor, Arguments arguments) async {
+    _MacroInstanceIdentifier id =
+        new _MacroInstanceIdentifier(library, name, constructor, arguments);
     macroInstances.add(id);
     return id;
   }
-
-  @override
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
-      {Uri? precompiledKernelUri}) async {
-    _MacroClassIdentifier id = new _MacroClassIdentifier(library, name);
-    macroClasses.add(id);
-    return id;
-  }
-}
-
-class _MacroClassIdentifier implements MacroClassIdentifier {
-  final Uri uri;
-  final String className;
-
-  _MacroClassIdentifier(this.uri, this.className);
-
-  String toText() => '${importUriToString(uri)}/${className}';
-
-  @override
-  int get hashCode => uri.hashCode * 13 + className.hashCode * 17;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is _MacroClassIdentifier &&
-        uri == other.uri &&
-        className == other.className;
-  }
-
-  @override
-  String toString() => 'MacroClassIdentifier($uri,$className)';
-
-  @override
-  void serialize(Serializer serializer) => throw UnimplementedError();
 }
 
 class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
-  final _MacroClassIdentifier macroClass;
+  final Uri library;
+  final String name;
   final String constructor;
   final Arguments arguments;
 
-  _MacroInstanceIdentifier(this.macroClass, this.constructor, this.arguments);
+  _MacroInstanceIdentifier(
+      this.library, this.name, this.constructor, this.arguments);
 
-  String toText() => '${macroClass.toText()}/${constructor}()';
+  String toText() => '${importUriToString(library)}/${name}/${constructor}()';
 
   @override
   void serialize(Serializer serializer) => throw UnimplementedError();

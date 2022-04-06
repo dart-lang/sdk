@@ -886,6 +886,9 @@ abstract class RuntimeTypesNeedBuilder {
   /// Registers that a generic [instantiation] is used.
   void registerGenericInstantiation(GenericInstantiation instantiation);
 
+  /// Registers a [TypeVariableType] literal on this [RuntimeTypesNeedBuilder].
+  void registerTypeVariableLiteral(TypeVariableType variable);
+
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
       KClosedWorld closedWorld, CompilerOptions options);
@@ -905,6 +908,9 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 
   @override
   void registerGenericInstantiation(GenericInstantiation instantiation) {}
+
+  @override
+  void registerTypeVariableLiteral(TypeVariableType variable) {}
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -954,6 +960,18 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
   @override
   void registerGenericInstantiation(GenericInstantiation instantiation) {
     _genericInstantiations.add(instantiation);
+  }
+
+  @override
+  void registerTypeVariableLiteral(TypeVariableType variable) {
+    Entity typeDeclaration = variable.element.typeDeclaration;
+    if (typeDeclaration is ClassEntity) {
+      registerClassUsingTypeVariableLiteral(typeDeclaration);
+    } else if (typeDeclaration is FunctionEntity) {
+      registerMethodUsingTypeVariableLiteral(typeDeclaration);
+    } else if (typeDeclaration is Local) {
+      registerLocalFunctionUsingTypeVariableLiteral(typeDeclaration);
+    }
   }
 
   @override

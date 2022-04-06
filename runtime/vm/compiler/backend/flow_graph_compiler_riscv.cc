@@ -1031,7 +1031,24 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
 void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
                                      Register dst,
                                      Register tmp) {
-  UNIMPLEMENTED();
+  compiler::Label skip_reloc;
+  __ j(&skip_reloc, compiler::Assembler::kNearJump);
+  InsertBSSRelocation(relocation);
+  __ Bind(&skip_reloc);
+
+  __ auipc(tmp, 0);
+  __ addi(tmp, tmp, -compiler::target::kWordSize);
+
+  // tmp holds the address of the relocation.
+  __ lx(dst, compiler::Address(tmp));
+
+  // dst holds the relocation itself: tmp - bss_start.
+  // tmp = tmp + (bss_start - tmp) = bss_start
+  __ add(tmp, tmp, dst);
+
+  // tmp holds the start of the BSS section.
+  // Load the "get-thread" routine: *bss_start.
+  __ lx(dst, compiler::Address(tmp));
 }
 
 #undef __

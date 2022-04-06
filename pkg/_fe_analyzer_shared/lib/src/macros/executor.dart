@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'api.dart';
+// ignore: unused_import
 import 'bootstrap.dart'; // For doc comments only.
 import 'executor/serialization.dart';
 
@@ -14,32 +15,15 @@ import 'executor/serialization.dart';
 /// during macro discovery and expansion, and unifies how augmentation libraries
 /// are produced.
 abstract class MacroExecutor {
-  /// Invoked when an implementation discovers a new macro definition in a
-  /// [library] with [name], and prepares this executor to run the macro.
-  ///
-  /// May be invoked more than once for the same macro, which will cause the
-  /// macro to be re-loaded. Previous [MacroClassIdentifier]s and
-  /// [MacroInstanceIdentifier]s given for this macro will be invalid after
-  /// that point and should be discarded.
-  ///
-  /// The [precompiledKernelUri] if passed must point to a kernel program for
-  /// the given macro. A bootstrap Dart program can be generated with the
-  /// [bootstrapMacroIsolate] function, and the result should be compiled to
-  /// kernel and passed here.
-  ///
-  /// Some implementations may require [precompiledKernelUri] to be passed, and
-  /// will throw an [UnsupportedError] if it is not.
-  ///
-  /// Throws an exception if the macro fails to load.
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
-      {Uri? precompiledKernelUri});
-
-  /// Creates an instance of [macroClass] in the executor, and returns an
-  /// identifier for that instance.
+  /// Creates an instance of the macro [name] from [library] in the executor,
+  /// and returns an identifier for that instance.
   ///
   /// Throws an exception if an instance is not created.
+  ///
+  /// Instances may be re-used throughout a single build, but should be
+  /// re-created on subsequent builds (even incremental ones).
   Future<MacroInstanceIdentifier> instantiateMacro(
-      MacroClassIdentifier macroClass, String constructor, Arguments arguments);
+      Uri library, String name, String constructor, Arguments arguments);
 
   /// Runs the type phase for [macro] on a given [declaration].
   ///
@@ -93,7 +77,7 @@ abstract class MacroExecutor {
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.
-  void close();
+  Future<void> close();
 }
 
 /// The arguments passed to a macro constructor.
@@ -265,12 +249,6 @@ enum IdentifierKind {
   staticInstanceMember,
   topLevelMember,
 }
-
-/// An opaque identifier for a macro class, retrieved by
-/// [MacroExecutor.loadMacro].
-///
-/// Used to execute or reload this macro in the future.
-abstract class MacroClassIdentifier implements Serializable {}
 
 /// An opaque identifier for an instance of a macro class, retrieved by
 /// [MacroExecutor.instantiateMacro].

@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "7baaec7cf49188b92ceed2af98beb1caf8939756",
+  "co19_rev": "6604c07f70757e9d081f64a08ab36f5b9aeaf937",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "b2034a17609472e374623f3dbe0efd9f5cb258af",
 
@@ -141,7 +141,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "a3a102a549388a6dbfecc9252fabb618f9a2f5f7",
+  "pub_rev": "a949b329b1b51f5f3973a790e0a0a45897d837de",
   "pub_semver_rev": "ea6c54019948dc03042c595ce9413e17aaf7aa38",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
@@ -150,7 +150,7 @@ vars = {
   "shelf_proxy_tag": "ccd311f64d8689e7a145d703ba267975d6df9e28", # 1.0.0
   "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
-  "source_map_stack_trace_rev": "80709f2d2fe5086ab50d744a28a2d26ea4384a1b",
+  "source_map_stack_trace_rev": "8eabd96b1811e30a11d3c54c9b4afae4fb72e98f",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "6499ee3adac8d469e2953e2e8ba4bdb4c2fbef90",
   "source_span_rev": "dc189b455d823e2919667f6c5dcb41ab7483bce0",

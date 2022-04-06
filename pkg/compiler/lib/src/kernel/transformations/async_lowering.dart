@@ -48,7 +48,7 @@ class AsyncLowering {
     final futureValueType = node.futureValueType!;
     _updateFunctionBody(
         node,
-        ExpressionStatement(StaticInvocation(
+        ReturnStatement(StaticInvocation(
             _coreTypes.futureSyncFactory,
             Arguments([
               FunctionExpression(FunctionNode(node.body,

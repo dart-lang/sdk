@@ -18,6 +18,24 @@
 
 - Add `ref=` and `[]=` methods to the `StructPointer` and `UnionPointer`
   extensions. They copy a compound instance into a native memory region.
+- Add `AbiSpecificInteger`s for common C types:
+  - `char`
+  - `unsigned char`
+  - `signed char`
+  - `short`
+  - `unsigned short`
+  - `int`
+  - `unsigned int`
+  - `long`
+  - `unsigned long`
+  - `long long`
+  - `unsigned long long`
+  - `uintptr_t`
+  - `size_t`
+  - `wchar_t`
+- Add `NativeFinalizer` which can potentially detect when objects are
+  "garbage collected". `NativeFinalizer`s run native code where `dart:core`'s
+  `Finalizer`s run Dart code on finalization.
 
 #### `dart:html`
 
@@ -171,6 +189,11 @@ Flutter apps (issue [flutter/flutter#97301][]).
 - Add `Error.throwWithStackTrace` which can `throw` an
   error with an existing stack trace, instead of creating
   a new stack trace.
+
+#### `dart:ffi`
+
+- Add `Abi` and `AbiSpecificInteger`. These enable specifying integers which
+  have different sizes/signs per ABI (hardware and OS combination).
 
 #### `dart:io`
 
@@ -608,6 +631,10 @@ them, you must set the lower bound on the SDK constraint for your package to
   Code catching the class should move to catching `Error` instead
   (or, for integers, check first for whether it's dividing by zero).
 
+#### `dart:ffi`
+
+- Add `Bool` native type.
+
 #### `dart:io`
 
 - **Breaking change** [#46875](https://github.com/dart-lang/sdk/issues/46875):
@@ -912,8 +939,9 @@ This is a patch release that fixes:
 
 #### `dart:ffi`
 
-- Adds the `DynamicLibrary.providesSymbol` function to check whether a symbol is
+- Add the `DynamicLibrary.providesSymbol` function to check whether a symbol is
   available in a dynamic library.
+- Add `Union` native type for interacting with unions in native memory.
 
 #### `dart:html`
 
@@ -1210,6 +1238,11 @@ This is a patch release that fixes:
 
 - Added `serverWebSocketUri` property to `ServiceProtocolInfo`.
 
+#### `dart:ffi`
+
+- Add `Packed` for interacting with packed structs in native memory.
+- Add `Array` for interacting with structs with inline arrays.
+
 ### Dart VM
 
 ### Tools
@@ -1350,6 +1383,26 @@ This is a patch release that fixes:
 - Add `Set.unmodifiable()` constructor, which allows users to create
   unmodifiable `Set` instances.
 
+#### `dart:ffi`
+
+- **Breaking change** [#44621][]: Invocations with a generic `T` of `sizeOf<T>`,
+  `Pointer<T>.elementAt()`, `Pointer<T extends Struct>.ref`, and
+  `Pointer<T extends Struct>[]` are being deprecated in the current stable
+  release (2.12), and are planned to be fully removed in the following stable
+  release (2.13). Consequently, `allocate` in `package:ffi` will no longer be
+  able to invoke `sizeOf<T>` generically, and will be deprecated as well.
+  Instead, the `Allocator` it is introduced to `dart:ffi`, and also requires a
+  constant `T` on invocations. For migration notes see the breaking change
+  request.
+
+- **Breaking change** [#44622][]: Subtypes of `Struct` without any native member
+  are being deprecated in the current stable release (2.12), and are planned to
+  be fully removed in the following stable release (2.13). Migrate opaque types
+  to extend `Opaque` rather than `Struct`.
+
+[#44621]: https://github.com/dart-lang/sdk/issues/44621
+[#44622]: https://github.com/dart-lang/sdk/issues/44622
+
 #### `dart:io`
 
 - `HttpRequest` now correctly follows HTTP 308 redirects
@@ -1384,26 +1437,6 @@ This is a patch release that fixes:
   API functions using that type have been updated.
 
 [#42312]: https://github.com/dart-lang/sdk/issues/42312
-
-### Foreign Function Interface (`dart:ffi`)
-
-- **Breaking change** [#44621][]: Invocations with a generic `T` of `sizeOf<T>`,
-  `Pointer<T>.elementAt()`, `Pointer<T extends Struct>.ref`, and
-  `Pointer<T extends Struct>[]` are being deprecated in the current stable
-  release (2.12), and are planned to be fully removed in the following stable
-  release (2.13). Consequently, `allocate` in `package:ffi` will no longer be
-  able to invoke `sizeOf<T>` generically, and will be deprecated as well.
-  Instead, the `Allocator` it is introduced to `dart:ffi`, and also requires a
-  constant `T` on invocations. For migration notes see the breaking change
-  request.
-
-- **Breaking change** [#44622][]: Subtypes of `Struct` without any native member
-  are being deprecated in the current stable release (2.12), and are planned to
-  be fully removed in the following stable release (2.13). Migrate opaque types
-  to extend `Opaque` rather than `Struct`.
-
-[#44621]: https://github.com/dart-lang/sdk/issues/44621
-[#44622]: https://github.com/dart-lang/sdk/issues/44622
 
 ### Dart2JS
 
@@ -2028,6 +2061,19 @@ breaking changes:
   parameter provided in the constructor. This will be used by tooling to allow
   for better filtering of timeline events.
 
+#### `dart:ffi`
+
+- **Breaking change**: Changed `Pointer.asFunction()` and
+  `DynamicLibrary.lookupFunction()` to extension methods. Invoking them
+  dynamically previously already threw an exception, so the runtime behavior
+  stays the same. However, the extension methods are only visible if `dart:ffi`
+  is imported directly. This breaks code where `dart:ffi` is not directly
+  imported. To fix, add:
+
+  ```dart
+  import 'dart:ffi';
+  ```
+
 #### `dart:html`
 
 - **Breaking change** [#39627][]: Changed the return type of several HTML native
@@ -2166,19 +2212,6 @@ breaking changes:
   - `Dart_IsLegacyType()`
   - `Dart_IsNonNullableType()`
   - `Dart_IsNullableType()`
-
-### Foreign Function Interface (`dart:ffi`)
-
-- **Breaking change**: Changed `Pointer.asFunction()` and
-  `DynamicLibrary.lookupFunction()` to extension methods. Invoking them
-  dynamically previously already threw an exception, so the runtime behavior
-  stays the same. However, the extension methods are only visible if `dart:ffi`
-  is imported directly. This breaks code where `dart:ffi` is not directly
-  imported. To fix, add:
-
-  ```dart
-  import 'dart:ffi';
-  ```
 
 ### Tools
 
@@ -2561,18 +2594,7 @@ documentation.
 - Added optional `parent` parameter to `TimelineTask` constructor to allow for
   linking of asynchronous timeline events in the DevTools timeline view.
 
-#### `dart:io`
-
-- Added `enableTimelineLogging` property to `HttpClient` which, when enabled,
-  will post HTTP connection and request information to the developer timeline
-  for all `HttpClient` instances.
-
-### Dart VM
-
-- Added a new tool for AOT compiling Dart programs to native, self-contained
-  executables. See https://dart.dev/tools/dart2native for additional details.
-
-### Foreign Function Interface (`dart:ffi`)
+#### `dart:ffi`
 
 - **Breaking change**: The API now makes use of static extension members. Static
   extension members enable the `dart:ffi` API to be more precise with types, and
@@ -2591,6 +2613,17 @@ documentation.
 - Faster memory load and stores.
 - The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
 - Callbacks are now supported in AOT (ahead-of-time) compiled code.
+
+#### `dart:io`
+
+- Added `enableTimelineLogging` property to `HttpClient` which, when enabled,
+  will post HTTP connection and request information to the developer timeline
+  for all `HttpClient` instances.
+
+### Dart VM
+
+- Added a new tool for AOT compiling Dart programs to native, self-contained
+  executables. See https://dart.dev/tools/dart2native for additional details.
 
 ### Dart for the Web
 

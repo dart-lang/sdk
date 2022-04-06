@@ -7,10 +7,6 @@
   macro_lib1.dart|macro_lib2a.dart|package:_fe_analyzer_shared/src/macros/api.dart,
   macro_lib2b.dart,
   main.dart],
- macroClassIds=[
-  macro_lib1.dart/Macro1,
-  macro_lib2a.dart/Macro2a,
-  macro_lib2b.dart/Macro2b],
  macroInstanceIds=[
   macro_lib1.dart/Macro1/(),
   macro_lib2a.dart/Macro2a/(),

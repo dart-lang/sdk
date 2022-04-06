@@ -96,9 +96,6 @@ class SerializableResponse implements Response, Serializable {
         deserializer.moveNext();
         error = deserializer.expectString();
         break;
-      case MessageType.macroClassIdentifier:
-        response = new MacroClassIdentifierImpl.deserialize(deserializer);
-        break;
       case MessageType.macroInstanceIdentifier:
         response = new MacroInstanceIdentifierImpl.deserialize(deserializer);
         break;
@@ -219,34 +216,38 @@ class LoadMacroRequest extends Request {
 
 /// A request to instantiate a macro instance.
 class InstantiateMacroRequest extends Request {
-  final MacroClassIdentifier macroClass;
-  final String constructorName;
+  final Uri library;
+  final String name;
+  final String constructor;
   final Arguments arguments;
 
   /// The ID to assign to the identifier, this needs to come from the requesting
   /// side so that it is unique.
   final int instanceId;
 
-  InstantiateMacroRequest(
-      this.macroClass, this.constructorName, this.arguments, this.instanceId,
+  InstantiateMacroRequest(this.library, this.name, this.constructor,
+      this.arguments, this.instanceId,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
   InstantiateMacroRequest.deserialize(
       Deserializer deserializer, int serializationZoneId)
-      : macroClass = new MacroClassIdentifierImpl.deserialize(deserializer),
-        constructorName = (deserializer..moveNext()).expectString(),
+      : library = (deserializer..moveNext()).expectUri(),
+        name = (deserializer..moveNext()).expectString(),
+        constructor = (deserializer..moveNext()).expectString(),
         arguments = new Arguments.deserialize(deserializer),
         instanceId = (deserializer..moveNext()).expectInt(),
         super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
-    serializer.addInt(MessageType.instantiateMacroRequest.index);
-    macroClass.serialize(serializer);
-    serializer.addString(constructorName);
-    arguments.serialize(serializer);
-    serializer.addInt(instanceId);
+    serializer
+      ..addInt(MessageType.instantiateMacroRequest.index)
+      ..addUri(library)
+      ..addString(name)
+      ..addString(constructor)
+      ..addSerializable(arguments)
+      ..addInt(instanceId);
     super.serialize(serializer);
   }
 }
@@ -845,7 +846,6 @@ enum MessageType {
   isSubtypeOfRequest,
   loadMacroRequest,
   remoteInstance,
-  macroClassIdentifier,
   macroInstanceIdentifier,
   macroExecutionResult,
   namedStaticType,

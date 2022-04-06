@@ -71,7 +71,7 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       future_listener_class(Class::Handle(zone)),
       async_start_stream_controller_class(Class::Handle(zone)),
       stream_controller_class(Class::Handle(zone)),
-      async_stream_controller_class(Class::Handle(zone)),
+      sync_stream_controller_class(Class::Handle(zone)),
       controller_subscription_class(Class::Handle(zone)),
       buffering_stream_subscription_class(Class::Handle(zone)),
       stream_iterator_class(Class::Handle(zone)),
@@ -100,9 +100,9 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   stream_controller_class =
       async_lib.LookupClassAllowPrivate(Symbols::_StreamController());
   ASSERT(!stream_controller_class.IsNull());
-  async_stream_controller_class =
-      async_lib.LookupClassAllowPrivate(Symbols::_AsyncStreamController());
-  ASSERT(!async_stream_controller_class.IsNull());
+  sync_stream_controller_class =
+      async_lib.LookupClassAllowPrivate(Symbols::_SyncStreamController());
+  ASSERT(!sync_stream_controller_class.IsNull());
   controller_subscription_class =
       async_lib.LookupClassAllowPrivate(Symbols::_ControllerSubscription());
   ASSERT(!controller_subscription_class.IsNull());
@@ -171,7 +171,7 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
   const Instance& controller = Instance::Cast(context_entry_);
   controller_ = controller.GetField(controller_controller_field);
   ASSERT(!controller_.IsNull());
-  ASSERT(controller_.GetClassId() == async_stream_controller_class.id());
+  ASSERT(controller_.GetClassId() == sync_stream_controller_class.id());
 
   // Get the _StreamController._state field.
   state_ = Instance::Cast(controller_).GetField(state_field);
@@ -209,7 +209,7 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
     // contains the iterator's value. In that case we cannot unwind anymore.
     //
     // Notice: With correct async* semantics this may never be true: The async*
-    // generator should only be invoked to produce a vaue if there's an
+    // generator should only be invoked to produce a value if there's an
     // in-progress `await streamIterator.moveNext()` call. Once such call has
     // finished the async* generator should be paused/yielded until the next
     // such call - and being paused/yielded means it should not appear in stack

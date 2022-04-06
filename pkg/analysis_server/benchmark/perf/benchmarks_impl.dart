@@ -27,6 +27,7 @@ class AnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -36,7 +37,7 @@ class AnalysisBenchmark extends Benchmark {
     if (verbose) {
       test.debugStdio();
     }
-    await test.setUp(getProjectRoots(quick: quick));
+    await test.setUp(dartSdkPath, getProjectRoots(quick: quick));
     await test.analysisFinished;
 
     stopwatch.stop();
@@ -156,6 +157,7 @@ class ColdAnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -166,7 +168,7 @@ class ColdAnalysisBenchmark extends Benchmark {
     var stopwatch = Stopwatch()..start();
 
     var test = testConstructor();
-    await test.setUp(getProjectRoots(quick: quick));
+    await test.setUp(dartSdkPath, getProjectRoots(quick: quick));
     await test.analysisFinished;
 
     stopwatch.stop();
