@@ -262,11 +262,15 @@ class RequireTrailingCommasExample {
     dynamic f;
     f((a, b, c) {
       return true;
-    } (
+    }(
       '',
       '',
       '',
     )); // LINT
+
+    f('''
+A multiline string
+      '''); // OK
   }
 }
 

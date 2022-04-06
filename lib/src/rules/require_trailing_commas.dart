@@ -149,7 +149,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _isSameLine(Token token1, Token token2) =>
       _lineInfo.getLocation(token1.offset).lineNumber ==
-      _lineInfo.getLocation(token2.offset).lineNumber;
+      _lineInfo.getLocation(token2.end).lineNumber;
 
   bool _shouldAllowTrailingCommaException(AstNode lastNode) {
     // No exceptions are allowed if the last argument is named.
@@ -162,6 +162,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (lastNode is FunctionExpression && lastNode.body is BlockFunctionBody) {
       return true;
     }
+
+    // Exception is allowed if the last argument is a (multiline) string literal.
+    if (lastNode is StringLiteral) return true;
 
     // Exception is allowed if the last argument is a anonymous function call.
     // This case arises a lot in asserts.
