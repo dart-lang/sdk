@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static final _todoRegExp = RegExp(r'//+(.* )?TODO\b');
 
   static final _todoExpectedRegExp =
-      RegExp(r'// TODO\([a-zA-Z][-a-zA-Z0-9]*\): ');
+      RegExp(r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9]*\): ');
 
   final LintRule rule;
 
