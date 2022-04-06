@@ -16409,6 +16409,9 @@
         "support_level": "untriaged"
       },
       "close": {},
+      "connectionState": {
+        "support_level": "untriaged"
+      },
       "createAnswer": {},
       "createDTMFSender": {},
       "createDataChannel": {},
@@ -16437,6 +16440,9 @@
       "iceGatheringState": {},
       "localDescription": {},
       "onaddstream": {},
+      "onconnectionstatechange": {
+        "support_level": "untriaged"
+      },
       "ondatachannel": {},
       "onicecandidate": {},
       "oniceconnectionstatechange": {},

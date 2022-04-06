@@ -51,6 +51,9 @@
   return their correct return types now as well - `PerformanceEntry?` and
   `PerformanceMeasure?`, respectively.
 
+- Add `connectionState` attribute and `connectionstatechange` listener to
+  RTCPeerConnection.
+
 #### `dart:indexed_db`
 
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
