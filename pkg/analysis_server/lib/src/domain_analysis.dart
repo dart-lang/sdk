@@ -18,8 +18,8 @@ import 'package:analysis_server/src/handler/legacy/analysis_set_subscriptions.da
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
 /// that handles requests in the `analysis` domain.

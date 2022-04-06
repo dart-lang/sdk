@@ -7,7 +7,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [DiagnosticDomainHandler] implement a
 /// [RequestHandler] that handles requests in the `diagnostic` domain.

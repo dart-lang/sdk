@@ -10,9 +10,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `edit.bulkFixes` request.
 class EditBulkFixes extends LegacyHandler {

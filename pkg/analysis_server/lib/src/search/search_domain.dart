@@ -11,9 +11,9 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [SearchDomainHandler] implement a [RequestHandler]
 /// that handles requests in the search domain.

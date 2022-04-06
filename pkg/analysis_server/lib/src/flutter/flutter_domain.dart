@@ -7,8 +7,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// A [RequestHandler] that handles requests in the `flutter` domain.
 class FlutterDomainHandler extends AbstractRequestHandler {

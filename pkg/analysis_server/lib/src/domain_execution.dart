@@ -11,7 +11,7 @@ import 'package:analysis_server/src/handler/legacy/execution_map_uri.dart';
 import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
 /// that handles requests in the `execution` domain.
