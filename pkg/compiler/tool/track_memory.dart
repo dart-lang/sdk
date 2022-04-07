@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// A script to track the high water-mark of memory usage of an application.
 /// To monitor how much memory dart2js is using, run dart2js as follows:
 ///

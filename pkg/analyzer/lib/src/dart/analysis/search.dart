@@ -167,125 +167,9 @@ class Search {
   Future<void> declarations(
       WorkspaceSymbols result, RegExp? regExp, int? maxResults,
       {String? onlyForFile, CancellationToken? cancellationToken}) async {
-    if (result.hasMoreDeclarationsThan(maxResults)) {
-      return;
-    }
-
-    void addDeclaration(LineInfo lineInfo, Element element) {
-      if (result.hasMoreDeclarationsThan(maxResults)) {
-        throw const _MaxNumberOfDeclarationsError();
-      }
-
-      if (element.isSynthetic) {
-        return;
-      }
-
-      var source = element.source;
-      if (source == null) {
-        return;
-      }
-
-      var path = source.fullName;
-      if (onlyForFile != null && path != onlyForFile) {
-        return;
-      }
-
-      var name = element.name;
-      if (name == null || name.isEmpty) {
-        return;
-      }
-      if (name.endsWith('=')) {
-        name = name.substring(0, name.length - 1);
-      }
-      if (regExp != null && !regExp.hasMatch(name)) {
-        return;
-      }
-
-      var enclosing = element.enclosingElement;
-
-      String? className;
-      String? mixinName;
-      if (enclosing is ClassElement) {
-        if (enclosing.isEnum) {
-          // skip
-        } else if (enclosing.isMixin) {
-          mixinName = enclosing.name;
-        } else {
-          className = enclosing.name;
-        }
-      }
-
-      var kind = _getSearchElementKind(element);
-      if (kind == null) {
-        return;
-      }
-
-      String? parameters;
-      if (element is ExecutableElement) {
-        var displayString = element.getDisplayString(withNullability: true);
-        var parameterIndex = displayString.indexOf('(');
-        if (parameterIndex > 0) {
-          parameters = displayString.substring(parameterIndex);
-        }
-      }
-
-      element as ElementImpl; // to access codeOffset/codeLength
-      var locationOffset = element.nameOffset;
-      var locationStart = lineInfo.getLocation(locationOffset);
-
-      result.declarations.add(
-        Declaration(
-          result._getPathIndex(path),
-          lineInfo,
-          name,
-          kind,
-          locationOffset,
-          locationStart.lineNumber,
-          locationStart.columnNumber,
-          element.codeOffset ?? 0,
-          element.codeLength ?? 0,
-          className,
-          mixinName,
-          parameters,
-        ),
-      );
-    }
-
-    await _driver.discoverAvailableFiles();
-
-    if (cancellationToken?.isCancellationRequested ?? false) {
-      result.cancelled = true;
-      return;
-    }
-
-    var knownFiles = _driver.fsState.knownFiles.toList();
-    var filesProcessed = 0;
-    for (var file in knownFiles) {
-      var libraryElement = _driver.getLibraryByFile(file);
-      if (libraryElement != null) {
-        for (var unitElement in libraryElement.units) {
-          try {
-            unitElement.accept(
-              _FunctionElementVisitor((element) {
-                addDeclaration(unitElement.lineInfo, element);
-              }),
-            );
-          } on _MaxNumberOfDeclarationsError {
-            return;
-          }
-        }
-      }
-      filesProcessed++;
-
-      // Periodically yield and check cancellation token.
-      if (cancellationToken != null && filesProcessed % 20 == 0) {
-        await null; // allow cancellation requests to be processed.
-        if (cancellationToken.isCancellationRequested) {
-          result.cancelled = true;
-          return;
-        }
-      }
-    }
+    await _FindDeclarations(_driver, result, regExp, maxResults,
+            onlyForFile: onlyForFile)
+        .compute(cancellationToken);
   }
 
   /// Returns references to the [element].
@@ -876,16 +760,209 @@ class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   }
 }
 
-/// A visitor that handles any element with a function.
-class _FunctionElementVisitor extends GeneralizingElementVisitor<void> {
-  final void Function(Element element) process;
+class _FindDeclarations {
+  final AnalysisDriver driver;
+  final WorkspaceSymbols result;
+  final int? maxResults;
+  final RegExp? regExp;
+  final String? onlyForFile;
 
-  _FunctionElementVisitor(this.process);
+  _FindDeclarations(this.driver, this.result, this.regExp, this.maxResults,
+      {this.onlyForFile});
 
-  @override
-  void visitElement(Element element) {
-    process(element);
-    super.visitElement(element);
+  /// Add matching declarations to the [result].
+  Future<void> compute(CancellationToken? cancellationToken) async {
+    if (result.hasMoreDeclarationsThan(maxResults)) {
+      return;
+    }
+
+    await driver.discoverAvailableFiles();
+
+    if (cancellationToken != null &&
+        cancellationToken.isCancellationRequested) {
+      result.cancelled = true;
+      return;
+    }
+
+    var knownFiles = driver.fsState.knownFiles.toList();
+    var filesProcessed = 0;
+    try {
+      for (var file in knownFiles) {
+        var libraryElement = driver.getLibraryByFile(file);
+        if (libraryElement != null) {
+          _addUnits(file, libraryElement.units);
+        }
+
+        // Periodically yield and check cancellation token.
+        if (cancellationToken != null && (filesProcessed++) % 20 == 0) {
+          await null; // allow cancellation requests to be processed.
+          if (cancellationToken.isCancellationRequested) {
+            result.cancelled = true;
+            return;
+          }
+        }
+      }
+    } on _MaxNumberOfDeclarationsError {
+      return;
+    }
+  }
+
+  void _addAccessors(FileState file, List<PropertyAccessorElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.displayName);
+      }
+    }
+  }
+
+  void _addClasses(FileState file, List<ClassElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+      _addAccessors(file, element.accessors);
+      _addConstructors(file, element.constructors);
+      _addFields(file, element.fields);
+      _addMethods(file, element.methods);
+    }
+  }
+
+  void _addConstructors(FileState file, List<ConstructorElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.name);
+      }
+    }
+  }
+
+  void _addDeclaration(FileState file, Element element, String name) {
+    if (result.hasMoreDeclarationsThan(maxResults)) {
+      throw const _MaxNumberOfDeclarationsError();
+    }
+
+    if (onlyForFile != null && file.path != onlyForFile) {
+      return;
+    }
+
+    if (regExp != null && !regExp!.hasMatch(name)) {
+      return;
+    }
+
+    var enclosing = element.enclosingElement;
+
+    String? className;
+    String? mixinName;
+    if (enclosing is ClassElement) {
+      if (enclosing.isEnum) {
+        // skip
+      } else if (enclosing.isMixin) {
+        mixinName = enclosing.name;
+      } else {
+        className = enclosing.name;
+      }
+    }
+
+    var kind = _getSearchElementKind(element);
+    if (kind == null) {
+      return;
+    }
+
+    String? parameters;
+    if (element is ExecutableElement) {
+      var displayString = element.getDisplayString(withNullability: true);
+      var parameterIndex = displayString.indexOf('(');
+      if (parameterIndex > 0) {
+        parameters = displayString.substring(parameterIndex);
+      }
+    }
+
+    element as ElementImpl; // to access codeOffset/codeLength
+    var locationOffset = element.nameOffset;
+    var locationStart = file.lineInfo.getLocation(locationOffset);
+
+    result.declarations.add(
+      Declaration(
+        result._getPathIndex(file.path),
+        file.lineInfo,
+        name,
+        kind,
+        locationOffset,
+        locationStart.lineNumber,
+        locationStart.columnNumber,
+        element.codeOffset ?? 0,
+        element.codeLength ?? 0,
+        className,
+        mixinName,
+        parameters,
+      ),
+    );
+  }
+
+  void _addExtensions(FileState file, List<ExtensionElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      var name = element.name;
+      if (name != null) {
+        _addDeclaration(file, element, name);
+      }
+      _addAccessors(file, element.accessors);
+      _addFields(file, element.fields);
+      _addMethods(file, element.methods);
+    }
+  }
+
+  void _addFields(FileState file, List<FieldElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.name);
+      }
+    }
+  }
+
+  void _addFunctions(FileState file, List<FunctionElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+    }
+  }
+
+  void _addMethods(FileState file, List<MethodElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+    }
+  }
+
+  void _addTypeAliases(FileState file, List<TypeAliasElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+    }
+  }
+
+  void _addUnits(FileState file, List<CompilationUnitElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addAccessors(file, element.accessors);
+      _addClasses(file, element.classes);
+      _addClasses(file, element.enums);
+      _addClasses(file, element.mixins);
+      _addExtensions(file, element.extensions);
+      _addFunctions(file, element.functions);
+      _addTypeAliases(file, element.typeAliases);
+      _addVariables(file, element.topLevelVariables);
+    }
+  }
+
+  void _addVariables(FileState file, List<TopLevelVariableElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.name);
+      }
+    }
   }
 }
 

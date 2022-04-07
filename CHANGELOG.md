@@ -1,3 +1,12 @@
+## 2.18.0
+
+### Core libraries
+
+#### `dart:html`
+
+- Add `connectionState` attribute and `connectionstatechange` listener to
+  `RtcPeerConnection`.
+
 ## 2.17.0
 
 ### Core libraries

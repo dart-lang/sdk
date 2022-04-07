@@ -237,6 +237,30 @@ enum E {
         offset: 18, codeOffset: 18, codeLength: 3);
   }
 
+  test_declarations_extension() async {
+    await resolveTestCode('''
+extension E on int {
+  int f;
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+    declarations.assertHas('E', DeclarationKind.EXTENSION,
+        offset: 10, codeOffset: 0, codeLength: 82);
+    declarations.assertHas('f', DeclarationKind.FIELD,
+        offset: 27, codeOffset: 23, codeLength: 5);
+    declarations.assertHas('g', DeclarationKind.GETTER,
+        offset: 40, codeOffset: 32, codeLength: 15);
+    declarations.assertHas('s', DeclarationKind.SETTER,
+        offset: 59, codeOffset: 50, codeLength: 16);
+    declarations.assertHas('m', DeclarationKind.METHOD,
+        offset: 74, codeOffset: 69, codeLength: 11);
+  }
+
   test_declarations_maxResults() async {
     await resolveTestCode('''
 class A {}

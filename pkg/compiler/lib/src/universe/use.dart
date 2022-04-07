@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// This library defines individual world impacts.
 ///
 /// We call these building blocks `uses`. Each `use` is a single impact of the

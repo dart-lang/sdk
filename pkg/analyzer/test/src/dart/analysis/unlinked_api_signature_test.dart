@@ -16,34 +16,8 @@ main() {
 
 @reflectiveTest
 class UnitApiSignatureTest extends ParseBase {
-  void assertNotSameSignature(String oldCode, String newCode) {
-    assertSignature(oldCode, newCode, same: false);
-  }
-
-  void assertSameSignature(String oldCode, String newCode) {
-    assertSignature(oldCode, newCode, same: true);
-  }
-
-  void assertSignature(String oldCode, String newCode, {required bool same}) {
-    var path = convertPath('/test.dart');
-
-    newFile2(path, oldCode);
-    var oldUnit = parseUnit(path).unit;
-    var oldSignature = computeUnlinkedApiSignature(oldUnit);
-
-    newFile2(path, newCode);
-    var newUnit = parseUnit(path).unit;
-    var newSignature = computeUnlinkedApiSignature(newUnit);
-
-    if (same) {
-      expect(newSignature, oldSignature);
-    } else {
-      expect(newSignature, isNot(oldSignature));
-    }
-  }
-
   test_class_annotation() async {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 const a = 0;
 
 class C {}
@@ -56,7 +30,7 @@ class C {}
   }
 
   test_class_constructor_block_to_empty() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {
   C() {
     var v = 1;
@@ -70,7 +44,7 @@ class C {
   }
 
   test_class_constructor_body() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {
   C() {
     var v = 1;
@@ -86,7 +60,7 @@ class C {
   }
 
   test_class_constructor_empty_to_block() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {
   C();
 }
@@ -100,7 +74,7 @@ class C {
   }
 
   test_class_constructor_initializer_const() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   final int f;
   const C() : f = 1;
@@ -114,7 +88,7 @@ class C {
   }
 
   test_class_constructor_initializer_empty() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   C.foo() : ;
 }
@@ -127,7 +101,7 @@ class C {
 
   /// See https://github.com/dart-lang/sdk/issues/46206
   test_class_constructor_initializer_notConst() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   final int f;
   C.foo() : f = 1;
@@ -143,7 +117,7 @@ class C {
   }
 
   test_class_constructor_parameters_add() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   C(int a);
 }
@@ -155,7 +129,7 @@ class C {
   }
 
   test_class_constructor_parameters_remove() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   C(int a, int b);
 }
@@ -167,7 +141,7 @@ class C {
   }
 
   test_class_constructor_parameters_rename() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   C(int a);
 }
@@ -179,7 +153,7 @@ class C {
   }
 
   test_class_constructor_parameters_type() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   C(int p);
 }
@@ -191,7 +165,7 @@ class C {
   }
 
   test_class_constructor_redirectedConstructor_const() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {
   const factory A() = B.foo;
 }
@@ -211,7 +185,7 @@ class B implements A {
   }
 
   test_class_constructor_redirectedConstructor_notConst() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {
   factory A() = B.foo;
 }
@@ -231,7 +205,7 @@ class B implements A {
   }
 
   test_class_documentation_add() async {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {}
 ''', r'''
 /// foo
@@ -240,7 +214,7 @@ class C {}
   }
 
   test_class_documentation_change() async {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 /// foo
 class C {}
 ''', r'''
@@ -250,7 +224,7 @@ class C {}
   }
 
   test_class_documentation_remove() async {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 /// foo
 class C {}
 ''', r'''
@@ -259,7 +233,7 @@ class C {}
   }
 
   test_class_extends() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {}
 class B {}
 ''', r'''
@@ -273,7 +247,7 @@ class B extends A {}
   /// byte sequence as the empty string. But these are different ASTs,
   /// so they should have different signatures.
   test_class_factoryConstructor_addEqNothing() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {
   factory A();
 }
@@ -290,7 +264,7 @@ class A {
   /// at the same position, without any separator, so failed to see the
   /// difference.
   test_class_factoryConstructor_empty_to_eq() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {
   factory A();
   static void foo<U>() {}
@@ -304,7 +278,7 @@ class A {
   }
 
   test_class_field_const_add_outOfOrder() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {
   static f = Object();
 }
@@ -312,121 +286,12 @@ class A {
 class A {
   const
   static f = Object();
-}
-''');
-  }
-
-  test_class_field_const_add_outOfOrder_hasFinal() {
-    assertNotSameSignature(r'''
-class A {
-  static final f = Object();
-}
-''', r'''
-class A {
-  const
-  static final f = Object();
-}
-''');
-  }
-
-  test_class_field_final_add() {
-    assertNotSameSignature(r'''
-class C {
-  int a = 0;
-}
-''', r'''
-class C {
-  final int a = 0;
-}
-''');
-  }
-
-  test_class_field_late_add() {
-    assertNotSameSignature(r'''
-class C {
-  int a;
-}
-''', r'''
-class C {
-  late int a;
-}
-''');
-  }
-
-  test_class_field_late_remove() {
-    assertNotSameSignature(r'''
-class C {
-  late int a;
-}
-''', r'''
-class C {
-  int a;
-}
-''');
-  }
-
-  test_class_field_static_add() {
-    assertNotSameSignature(r'''
-class C {
-  int a;
-}
-''', r'''
-class C {
-  static int a;
-}
-''');
-  }
-
-  test_class_field_withoutType() {
-    assertNotSameSignature(r'''
-class C {
-  var a = 1;
-}
-''', r'''
-class C {
-  var a = 2;
-}
-''');
-  }
-
-  test_class_field_withoutType2() {
-    assertNotSameSignature(r'''
-class C {
-  var a = 1, b = 2, c, d = 4;
-}
-''', r'''
-class C {
-  var a = 1, b, c = 3, d = 4;
-}
-''');
-  }
-
-  test_class_field_withType() {
-    assertSameSignature(r'''
-class C {
-  int a = 1;
-}
-''', r'''
-class C {
-  int a = 2;
-}
-''');
-  }
-
-  test_class_field_withType_const() {
-    assertNotSameSignature(r'''
-class C {
-  static const int a = 1;
-}
-''', r'''
-class C {
-  static const int a = 2;
 }
 ''');
   }
 
   test_class_field_withType_final_hasConstConstructor() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {
   final int a = 1;
   const C();
@@ -435,24 +300,12 @@ class C {
 class C {
   final int a = 2;
   const C();
-}
-''');
-  }
-
-  test_class_field_withType_final_noConstConstructor() {
-    assertSameSignature(r'''
-class C {
-  final int a = 1;
-}
-''', r'''
-class C {
-  final int a = 2;
 }
 ''');
   }
 
   test_class_field_withType_hasConstConstructor() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {
   int a = 1;
   const C();
@@ -466,7 +319,7 @@ class C {
   }
 
   test_class_field_withType_static_final_hasConstConstructor() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {
   static final int a = 1;
   const C();
@@ -480,7 +333,7 @@ class C {
   }
 
   test_class_field_withType_static_hasConstConstructor() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 class C {
   static int a = 1;
   const C();
@@ -494,7 +347,7 @@ class C {
   }
 
   test_class_implements() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {}
 class B {}
 ''', r'''
@@ -503,401 +356,8 @@ class B implements A {}
 ''');
   }
 
-  test_class_method_annotation() {
-    assertNotSameSignature(r'''
-const a = 0;
-
-class C {
-  void foo() {}
-}
-''', r'''
-const a = 0;
-
-class C {
-  @a
-  void foo() {}
-}
-''');
-  }
-
-  test_class_method_body_async_to_asyncStar() {
-    assertNotSameSignature(r'''
-class C {
-  foo() async {}
-}
-''', r'''
-class C {
-  foo() async* {}
-}
-''');
-  }
-
-  test_class_method_body_async_to_sync() {
-    assertNotSameSignature(r'''
-class C {
-  foo() async {}
-}
-''', r'''
-class C {
-  foo() {}
-}
-''');
-  }
-
-  test_class_method_body_asyncStar_to_async() {
-    assertNotSameSignature(r'''
-class C {
-  foo() async* {}
-}
-''', r'''
-class C {
-  foo() async {}
-}
-''');
-  }
-
-  test_class_method_body_asyncStar_to_syncStar() {
-    assertNotSameSignature(r'''
-class C {
-  foo() async* {}
-}
-''', r'''
-class C {
-  foo() sync* {}
-}
-''');
-  }
-
-  test_class_method_body_block() {
-    assertSameSignature(r'''
-class C {
-  int foo() {
-    return 1;
-  }
-}
-''', r'''
-class C {
-  int foo() {
-    return 2;
-  }
-}
-''');
-  }
-
-  test_class_method_body_block_to_empty() {
-    assertNotSameSignature(r'''
-class C {
-  void foo() {}
-}
-''', r'''
-class C {
-  void foo();
-}
-''');
-  }
-
-  test_class_method_body_block_to_expression() {
-    assertSameSignature(r'''
-class C {
-  int foo() {
-    return 1;
-  }
-}
-''', r'''
-class C {
-  int foo() => 2;
-}
-''');
-  }
-
-  test_class_method_body_empty_to_block() {
-    assertNotSameSignature(r'''
-class C {
-  void foo();
-}
-''', r'''
-class C {
-  void foo() {}
-}
-''');
-  }
-
-  test_class_method_body_empty_to_expression() {
-    assertNotSameSignature(r'''
-class C {
-  int foo();
-}
-''', r'''
-class C {
-  int foo() => 0;
-}
-''');
-  }
-
-  test_class_method_body_expression() {
-    assertSameSignature(r'''
-class C {
-  int foo() => 1;
-}
-''', r'''
-class C {
-  int foo() => 2;
-}
-''');
-  }
-
-  test_class_method_body_expression_to_block() {
-    assertSameSignature(r'''
-class C {
-  int foo() => 1;
-}
-''', r'''
-class C {
-  int foo() {
-    return 2;
-  }
-}
-''');
-  }
-
-  test_class_method_body_sync_to_async() {
-    assertNotSameSignature(r'''
-class C {
-  foo() {}
-}
-''', r'''
-class C {
-  foo() async {}
-}
-''');
-  }
-
-  test_class_method_body_sync_to_syncStar() {
-    assertNotSameSignature(r'''
-class C {
-  foo() sync* {}
-}
-''', r'''
-class C {
-  foo() {}
-}
-''');
-  }
-
-  test_class_method_body_syncStar_to_sync() {
-    assertNotSameSignature(r'''
-class C {
-  foo() sync* {}
-}
-''', r'''
-class C {
-  foo() {}
-}
-''');
-  }
-
-  test_class_method_getter_body_block_to_empty() {
-    assertNotSameSignature(r'''
-class C {
-  int get foo {
-    return 1;
-  }
-}
-''', r'''
-class C {
-  int get foo;
-}
-''');
-  }
-
-  test_class_method_getter_body_block_to_expression() {
-    assertSameSignature(r'''
-class C {
-  int get foo {
-    return 1;
-  }
-}
-''', r'''
-class C {
-  int get foo => 2;
-}
-''');
-  }
-
-  test_class_method_getter_body_empty_to_block() {
-    assertNotSameSignature(r'''
-class C {
-  int get foo;
-}
-''', r'''
-class C {
-  int get foo {
-    return 0;
-  }
-}
-''');
-  }
-
-  test_class_method_getter_body_empty_to_expression() {
-    assertNotSameSignature(r'''
-class C {
-  int get foo;
-}
-''', r'''
-class C {
-  int get foo => 0;
-}
-''');
-  }
-
-  test_class_method_getter_body_expression_to_block() {
-    assertSameSignature(r'''
-class C {
-  int get foo => 1;
-}
-''', r'''
-class C {
-  int get foo {
-    return 2;
-  }
-}
-''');
-  }
-
-  test_class_method_getter_body_expression_to_empty() {
-    assertNotSameSignature(r'''
-class C {
-  int get foo => 0;
-}
-''', r'''
-class C {
-  int get foo;
-}
-''');
-  }
-
-  test_class_method_parameters_add() {
-    assertNotSameSignature(r'''
-class C {
-  foo(int a) {}
-}
-''', r'''
-class C {
-  foo(int a, int b) {}
-}
-''');
-  }
-
-  test_class_method_parameters_remove() {
-    assertNotSameSignature(r'''
-class C {
-  foo(int a, int b) {}
-}
-''', r'''
-class C {
-  foo(int a) {}
-}
-''');
-  }
-
-  test_class_method_parameters_rename() {
-    assertNotSameSignature(r'''
-class C {
-  void foo(int a) {}
-}
-''', r'''
-class C {
-  void foo(int b) {}
-}
-''');
-  }
-
-  test_class_method_parameters_type() {
-    assertNotSameSignature(r'''
-class C {
-  void foo(int p) {}
-}
-''', r'''
-class C {
-  void foo(double p) {}
-}
-''');
-  }
-
-  test_class_method_returnType() {
-    assertNotSameSignature(r'''
-class C {
-  int foo() => 0;
-}
-''', r'''
-class C {
-  num foo() => 0;
-}
-''');
-  }
-
-  test_class_method_setter_body_block_to_empty() {
-    assertNotSameSignature(r'''
-class C {
-  set foo(_) {}
-}
-''', r'''
-class C {
-  set foo(_);
-}
-''');
-  }
-
-  test_class_method_setter_body_empty_to_block() {
-    assertNotSameSignature(r'''
-class C {
-  set foo(_);
-}
-''', r'''
-class C {
-  set foo(_) {}
-}
-''');
-  }
-
-  test_class_method_typeParameters_add() async {
-    assertNotSameSignature(r'''
-class C {
-  void foo() {}
-}
-''', r'''
-class C {
-  void foo<T>() {}
-}
-''');
-  }
-
-  test_class_method_typeParameters_remove() {
-    assertNotSameSignature(r'''
-class C {
-  void foo<T>() {}
-}
-''', r'''
-class C {
-  void foo() {}
-}
-''');
-  }
-
-  test_class_method_typeParameters_rename() {
-    assertNotSameSignature(r'''
-class C {
-  void foo<T>() {}
-}
-''', r'''
-class C {
-  void foo<U>() {}
-}
-''');
-  }
-
   test_class_modifier() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class C {}
 ''', r'''
 abstract class C {}
@@ -905,7 +365,7 @@ abstract class C {}
   }
 
   test_class_with() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {}
 class B {}
 class C extends A {}
@@ -916,8 +376,165 @@ class C extends A with B {}
 ''');
   }
 
+  test_classLike_field_const_add_outOfOrder_hasFinal() {
+    _assertNotSameSignature_classLike(r'''
+static final f = Object();
+''', r'''
+const
+static final f = Object();
+''');
+  }
+
+  test_classLike_field_final_add() {
+    _assertNotSameSignature_classLike(r'''
+int a = 0;
+''', r'''
+final int a = 0;
+''');
+  }
+
+  test_classLike_field_late_add() {
+    _assertNotSameSignature_classLike(r'''
+int a;
+''', r'''
+late int a;
+''');
+  }
+
+  test_classLike_field_late_remove() {
+    _assertNotSameSignature_classLike(r'''
+late int a;
+''', r'''
+int a;
+''');
+  }
+
+  test_classLike_field_static_add() {
+    _assertNotSameSignature_classLike(r'''
+int a;
+''', r'''
+static int a;
+''');
+  }
+
+  test_classLike_field_withoutType() {
+    _assertNotSameSignature_classLike(r'''
+var a = 1;
+''', r'''
+var a = 2;
+''');
+  }
+
+  test_classLike_field_withoutType2() {
+    _assertNotSameSignature_classLike(r'''
+var a = 1, b = 2, c, d = 4;
+''', r'''
+var a = 1, b, c = 3, d = 4;
+''');
+  }
+
+  test_classLike_field_withType() {
+    _assertSameSignature_classLike(r'''
+int a = 1;
+''', r'''
+int a = 2;
+''');
+  }
+
+  test_classLike_field_withType_const() {
+    _assertNotSameSignature_classLike(r'''
+static const int a = 1;
+''', r'''
+static const int a = 2;
+''');
+  }
+
+  test_classLike_field_withType_final_noConstConstructor() {
+    _assertSameSignature_classLike(r'''
+final int a = 1;
+''', r'''
+final int a = 2;
+''');
+  }
+
+  test_classLike_method_body_block_to_empty() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {}
+''', r'''
+void foo();
+''');
+  }
+
+  test_classLike_method_body_empty_to_block() {
+    _assertNotSameSignature_classLike(r'''
+void foo();
+''', r'''
+void foo() {}
+''');
+  }
+
+  test_classLike_method_body_empty_to_expression() {
+    _assertNotSameSignature_classLike(r'''
+int foo();
+''', r'''
+int foo() => 0;
+''');
+  }
+
+  test_classLike_method_getter_body_block_to_empty() {
+    _assertNotSameSignature_classLike(r'''
+int get foo {
+  return 1;
+}
+''', r'''
+int get foo;
+''');
+  }
+
+  test_classLike_method_getter_body_empty_to_block() {
+    _assertNotSameSignature_classLike(r'''
+int get foo;
+''', r'''
+int get foo {
+  return 0;
+}
+''');
+  }
+
+  test_classLike_method_getter_body_empty_to_expression() {
+    _assertNotSameSignature_classLike(r'''
+int get foo;
+''', r'''
+int get foo => 0;
+''');
+  }
+
+  test_classLike_method_getter_body_expression_to_empty() {
+    _assertNotSameSignature_classLike(r'''
+int get foo => 0;
+''', r'''
+int get foo;
+''');
+  }
+
+  test_classLike_method_setter_body_block_to_empty() {
+    _assertNotSameSignature_classLike(r'''
+set foo(_) {}
+''', r'''
+set foo(_);
+''');
+  }
+
+  test_classLike_method_setter_body_empty_to_block() {
+    _assertNotSameSignature_classLike(r'''
+set foo(_);
+''', r'''
+set foo(_) {}
+''');
+  }
+
   test_commentAdd() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 var a = 1;
 var b = 2;
 var c = 3;
@@ -936,7 +553,7 @@ var c = 3;
   }
 
   test_commentRemove() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 var a = 1; // comment
 
 /// comment 1
@@ -955,7 +572,7 @@ var c = 3;
   }
 
   test_directive_library_add() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {}
 ''', r'''
 library foo;
@@ -964,7 +581,7 @@ class A {}
   }
 
   test_directive_library_change_name() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 library foo;
 class A {}
 ''', r'''
@@ -974,7 +591,7 @@ class A {}
   }
 
   test_directive_library_change_name_length() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 library foo.bar;
 class A {}
 ''', r'''
@@ -984,7 +601,7 @@ class A {}
   }
 
   test_directive_library_change_name_offset() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 library foo;
 class A {}
 ''', r'''
@@ -994,7 +611,7 @@ class A {}
   }
 
   test_directive_library_remove() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 library foo;
 class A {}
 ''', r'''
@@ -1002,57 +619,49 @@ class A {}
 ''');
   }
 
-  test_featureSet_add() async {
-    assertNotSameSignature(r'''
-class A {}
-''', r'''
-// @dart = 2.5
-class A {}
-''');
-  }
-
-  test_featureSet_change() async {
-    assertNotSameSignature(r'''
-// @dart = 2.6
-class A {}
-''', r'''
-// @dart = 2.2
-class A {}
-''');
-  }
-
-  test_featureSet_remove() async {
-    assertNotSameSignature(r'''
-// @dart = 2.5
-class A {}
-''', r'''
-class A {}
-''');
-  }
-
-  test_function_annotation() {
-    assertNotSameSignature(r'''
-const a = 0;
-
+  test_executable_annotation() {
+    _assertNotSameSignature_executable(r'''
 void foo() {}
 ''', r'''
-const a = 0;
-
 @a
 void foo() {}
 ''');
   }
 
-  test_function_body_async_to_sync() {
-    assertNotSameSignature(r'''
+  test_executable_body_async_to_asyncStar() {
+    _assertNotSameSignature_executable(r'''
+foo() async {}
+''', r'''
+foo() async* {}
+''');
+  }
+
+  test_executable_body_async_to_sync() {
+    _assertNotSameSignature_executable(r'''
 foo() async {}
 ''', r'''
 foo() {}
 ''');
   }
 
-  test_function_body_block() {
-    assertSameSignature(r'''
+  test_executable_body_asyncStar_to_async() {
+    _assertNotSameSignature_executable(r'''
+foo() async* {}
+''', r'''
+foo() async {}
+''');
+  }
+
+  test_executable_body_asyncStar_to_syncStar() {
+    _assertNotSameSignature_executable(r'''
+foo() async* {}
+''', r'''
+foo() sync* {}
+''');
+  }
+
+  test_executable_body_block() {
+    _assertSameSignature_executable(r'''
 int foo() {
   return 1;
 }
@@ -1063,8 +672,8 @@ int foo() {
 ''');
   }
 
-  test_function_body_block_to_expression() {
-    assertSameSignature(r'''
+  test_executable_body_block_to_expression() {
+    _assertSameSignature_executable(r'''
 int foo() {
   return 1;
 }
@@ -1073,32 +682,50 @@ int foo() => 2;
 ''');
   }
 
-  test_function_body_expression() {
-    assertSameSignature(r'''
+  test_executable_body_expression() {
+    _assertSameSignature_executable(r'''
 int foo() => 1;
 ''', r'''
 int foo() => 2;
 ''');
   }
 
-  test_function_body_sync_to_async() {
-    assertNotSameSignature(r'''
+  test_executable_body_expression_to_block() {
+    _assertSameSignature_executable(r'''
+int foo() => 1;
+''', r'''
+int foo() {
+  return 2;
+}
+''');
+  }
+
+  test_executable_body_sync_to_async() {
+    _assertNotSameSignature_executable(r'''
 foo() {}
 ''', r'''
 foo() async {}
 ''');
   }
 
-  test_function_body_sync_to_syncStar() {
-    assertNotSameSignature(r'''
-foo() {}
-''', r'''
+  test_executable_body_sync_to_syncStar() {
+    _assertNotSameSignature_executable(r'''
 foo() sync* {}
+''', r'''
+foo() {}
 ''');
   }
 
-  test_function_getter_block_to_expression() {
-    assertSameSignature(r'''
+  test_executable_body_syncStar_to_sync() {
+    _assertNotSameSignature_executable(r'''
+foo() sync* {}
+''', r'''
+foo() {}
+''');
+  }
+
+  test_executable_getter_body_block_to_expression() {
+    _assertSameSignature_executable(r'''
 int get foo {
   return 1;
 }
@@ -1107,56 +734,110 @@ int get foo => 2;
 ''');
   }
 
-  test_function_parameters_rename() {
-    assertNotSameSignature(r'''
+  test_executable_getter_body_expression_to_block() {
+    _assertSameSignature_executable(r'''
+int get foo => 1;
+''', r'''
+int get foo {
+  return 2;
+}
+''');
+  }
+
+  test_executable_parameters_add() {
+    _assertNotSameSignature_executable(r'''
+foo(int a) {}
+''', r'''
+foo(int a, int b) {}
+''');
+  }
+
+  test_executable_parameters_remove() {
+    _assertNotSameSignature_executable(r'''
+foo(int a, int b) {}
+''', r'''
+foo(int a) {}
+''');
+  }
+
+  test_executable_parameters_rename() {
+    _assertNotSameSignature_executable(r'''
 void foo(int a) {}
 ''', r'''
 void foo(int b) {}
 ''');
   }
 
-  test_function_parameters_type() {
-    assertNotSameSignature(r'''
+  test_executable_parameters_type() {
+    _assertNotSameSignature_executable(r'''
 void foo(int p) {}
 ''', r'''
 void foo(double p) {}
 ''');
   }
 
-  test_function_returnType() {
-    assertNotSameSignature(r'''
+  test_executable_returnType() {
+    _assertNotSameSignature_executable(r'''
 int foo() => 0;
 ''', r'''
 num foo() => 0;
 ''');
   }
 
-  test_function_typeParameters_add() {
-    assertNotSameSignature(r'''
+  test_executable_typeParameters_add() async {
+    _assertNotSameSignature_executable(r'''
 void foo() {}
 ''', r'''
 void foo<T>() {}
 ''');
   }
 
-  test_function_typeParameters_remove() {
-    assertNotSameSignature(r'''
+  test_executable_typeParameters_remove() {
+    _assertNotSameSignature_executable(r'''
 void foo<T>() {}
 ''', r'''
 void foo() {}
 ''');
   }
 
-  test_function_typeParameters_rename() {
-    assertNotSameSignature(r'''
+  test_executable_typeParameters_rename() {
+    _assertNotSameSignature_executable(r'''
 void foo<T>() {}
 ''', r'''
 void foo<U>() {}
 ''');
   }
 
+  test_featureSet_add() async {
+    _assertNotSameSignature(r'''
+class A {}
+''', r'''
+// @dart = 2.5
+class A {}
+''');
+  }
+
+  test_featureSet_change() async {
+    _assertNotSameSignature(r'''
+// @dart = 2.6
+class A {}
+''', r'''
+// @dart = 2.2
+class A {}
+''');
+  }
+
+  test_featureSet_remove() async {
+    _assertNotSameSignature(r'''
+// @dart = 2.5
+class A {}
+''', r'''
+class A {}
+''');
+  }
+
   test_issue34850() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 foo
 Future<List<int>> bar() {}
 ''', r'''
@@ -1166,7 +847,7 @@ Future<List<int>> bar(int x) {}
   }
 
   test_mixin_field_withoutType() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 mixin M {
   var a = 1;
 }
@@ -1178,7 +859,7 @@ mixin M {
   }
 
   test_mixin_field_withType() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 mixin M {
   int a = 1;
 }
@@ -1190,7 +871,7 @@ mixin M {
   }
 
   test_mixin_implements() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {}
 mixin M {}
 ''', r'''
@@ -1200,7 +881,7 @@ mixin M implements A {}
   }
 
   test_mixin_method_body_block() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 mixin M {
   int foo() {
     return 1;
@@ -1216,7 +897,7 @@ mixin M {
   }
 
   test_mixin_method_body_expression() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 mixin M {
   int foo() => 1;
 }
@@ -1228,7 +909,7 @@ mixin M {
   }
 
   test_mixin_on() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 class A {}
 mixin M {}
 ''', r'''
@@ -1238,7 +919,7 @@ mixin M on A {}
   }
 
   test_topLevelVariable_final_add() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 int a = 0;
 ''', r'''
 final int a = 0;
@@ -1246,7 +927,7 @@ final int a = 0;
   }
 
   test_topLevelVariable_late_add() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 int a;
 ''', r'''
 late int a;
@@ -1254,7 +935,7 @@ late int a;
   }
 
   test_topLevelVariable_late_remove() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 late int a;
 ''', r'''
 int a;
@@ -1262,7 +943,7 @@ int a;
   }
 
   test_topLevelVariable_withoutType() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 var a = 1;
 ''', r'''
 var a = 2;
@@ -1270,7 +951,7 @@ var a = 2;
   }
 
   test_topLevelVariable_withoutType2() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 var a = 1, b = 2, c, d = 4;;
 ''', r'''
 var a = 1, b, c = 3, d = 4;;
@@ -1278,7 +959,7 @@ var a = 1, b, c = 3, d = 4;;
   }
 
   test_topLevelVariable_withType() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 int a = 1;
 ''', r'''
 int a = 2;
@@ -1286,7 +967,7 @@ int a = 2;
   }
 
   test_topLevelVariable_withType_const() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 const int a = 1;
 ''', r'''
 const int a = 2;
@@ -1294,7 +975,7 @@ const int a = 2;
   }
 
   test_topLevelVariable_withType_final() {
-    assertSameSignature(r'''
+    _assertSameSignature(r'''
 final int a = 1;
 ''', r'''
 final int a = 2;
@@ -1302,7 +983,7 @@ final int a = 2;
   }
 
   test_topLevelVariable_withType_initializer_add() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 int a;
 ''', r'''
 int a = 1;
@@ -1310,7 +991,7 @@ int a = 1;
   }
 
   test_topLevelVariable_withType_initializer_remove() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 int a = 1;
 ''', r'''
 int a;
@@ -1318,10 +999,84 @@ int a;
   }
 
   test_typedef_generic_parameters_type() {
-    assertNotSameSignature(r'''
+    _assertNotSameSignature(r'''
 typedef F = void Function(int);
 ''', r'''
 typedef F = void Function(double);
 ''');
+  }
+
+  void _assertNotSameSignature(String oldCode, String newCode) {
+    _assertSignature(oldCode, newCode, same: false);
+  }
+
+  void _assertNotSameSignature_classLike(String oldCode, String newCode) {
+    _assertSignature_classLike(oldCode, newCode, same: false);
+  }
+
+  void _assertNotSameSignature_executable(String oldCode, String newCode) {
+    _assertSignature_executable(oldCode, newCode, same: false);
+  }
+
+  void _assertSameSignature(String oldCode, String newCode) {
+    _assertSignature(oldCode, newCode, same: true);
+  }
+
+  void _assertSameSignature_classLike(String oldCode, String newCode) {
+    _assertSignature_classLike(oldCode, newCode, same: true);
+  }
+
+  void _assertSameSignature_executable(String oldCode, String newCode) {
+    _assertSignature_executable(oldCode, newCode, same: true);
+  }
+
+  void _assertSignature(String oldCode, String newCode, {required bool same}) {
+    var path = convertPath('/test.dart');
+
+    newFile2(path, oldCode);
+    var oldUnit = parseUnit(path).unit;
+    var oldSignature = computeUnlinkedApiSignature(oldUnit);
+
+    newFile2(path, newCode);
+    var newUnit = parseUnit(path).unit;
+    var newSignature = computeUnlinkedApiSignature(newUnit);
+
+    if (same) {
+      expect(newSignature, oldSignature);
+    } else {
+      expect(newSignature, isNot(oldSignature));
+    }
+  }
+
+  void _assertSignature_classLike(
+    String oldCode,
+    String newCode, {
+    required bool same,
+  }) {
+    _assertSignature('''
+class A {
+$oldCode
+}
+''', '''
+class A {
+$newCode
+}
+''', same: same);
+
+    _assertSignature('''
+mixin M {
+$oldCode
+}
+''', '''
+mixin M {
+$newCode
+}
+''', same: same);
+  }
+
+  void _assertSignature_executable(String oldCode, String newCode,
+      {required bool same}) {
+    _assertSignature_classLike(oldCode, newCode, same: same);
+    _assertSignature(oldCode, newCode, same: same);
   }
 }

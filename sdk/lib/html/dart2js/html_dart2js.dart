@@ -26985,6 +26985,15 @@ class RtcPeerConnection extends EventTarget {
       const EventStreamProvider<MediaStreamEvent>('addstream');
 
   /**
+   * Static factory designed to expose `connectionstatechange` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  static const EventStreamProvider<Event> connectionStateChangeEvent =
+      const EventStreamProvider<Event>('connectionstatechange');
+
+  /**
    * Static factory designed to expose `datachannel` events to event
    * handlers that are not necessarily instances of [RtcPeerConnection].
    *
@@ -27047,6 +27056,8 @@ class RtcPeerConnection extends EventTarget {
    */
   static const EventStreamProvider<RtcTrackEvent> trackEvent =
       const EventStreamProvider<RtcTrackEvent>('track');
+
+  String? get connectionState native;
 
   String? get iceConnectionState native;
 
@@ -27161,6 +27172,10 @@ class RtcPeerConnection extends EventTarget {
 
   /// Stream of `addstream` events handled by this [RtcPeerConnection].
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
+
+  /// Stream of `connectionstatechange` events handled by this [RtcPeerConnection].
+  Stream<Event> get onConnectionStateChange =>
+      connectionStateChangeEvent.forTarget(this);
 
   /// Stream of `datachannel` events handled by this [RtcPeerConnection].
   Stream<RtcDataChannelEvent> get onDataChannel =>

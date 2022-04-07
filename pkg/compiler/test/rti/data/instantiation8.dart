@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 // TODO(47054): Take closure signature into account to handle equality of
 // instantiated closures.
 /*class: Class:deps=[create]*/

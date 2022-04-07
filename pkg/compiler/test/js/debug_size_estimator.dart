@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:compiler/src/js/size_estimator.dart';
 
 /// This class is supposed to be identical to [SizeEstimator] with the sole

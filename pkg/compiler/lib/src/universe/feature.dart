@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 // TODO(sigmund): rename universe => world
 /// Describes individual features that may be seen in a program. Most features
 /// can be described only by name using the [Feature] enum, some features are
