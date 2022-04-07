@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.2.2+1
+- Documentation update for `FieldRef` and `FuncRef`.
+
 ## 8.2.2
 - Updated the following optional fields to be nullable in `SocketStatistic`:
   - `endTime`

@@ -4302,6 +4302,9 @@ class FieldRef extends ObjRef {
   String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
+  ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// field from a mixin application, patched class, etc.
   ObjRef? owner;
 
   /// The declared type of this field.
@@ -4320,6 +4323,9 @@ class FieldRef extends ObjRef {
   bool? isStatic;
 
   /// The location of this field in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a field
+  /// from a mixin application, patched class, etc.
   @optional
   SourceLocation? location;
 
@@ -4386,6 +4392,9 @@ class Field extends Obj implements FieldRef {
   String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
+  ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// field from a mixin application, patched class, etc.
   ObjRef? owner;
 
   /// The declared type of this field.
@@ -4404,6 +4413,9 @@ class Field extends Obj implements FieldRef {
   bool? isStatic;
 
   /// The location of this field in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a field
+  /// from a mixin application, patched class, etc.
   @optional
   SourceLocation? location;
 
@@ -4630,6 +4642,10 @@ class FuncRef extends ObjRef {
 
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
+  ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
   dynamic owner;
 
@@ -4643,6 +4659,10 @@ class FuncRef extends ObjRef {
   bool? implicit;
 
   /// The location of this function in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
   @optional
   SourceLocation? location;
 
@@ -4706,6 +4726,10 @@ class Func extends Obj implements FuncRef {
 
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
+  ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
   dynamic owner;
 
@@ -4719,6 +4743,10 @@ class Func extends Obj implements FuncRef {
   bool? implicit;
 
   /// The location of this function in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
   @optional
   SourceLocation? location;
 
