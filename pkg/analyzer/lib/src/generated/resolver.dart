@@ -258,10 +258,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// unit containing the node being visited. The [typeProvider] is the object
   /// used to access the types from the core library. The [errorListener] is the
   /// error listener that will be informed of any errors that are found during
-  /// resolution. The [nameScope] is the scope used to resolve identifiers in
-  /// the node that will first be visited.  If `null` or unspecified, a new
-  /// [LibraryScope] will be created based on [definingLibrary] and
-  /// [typeProvider].
+  /// resolution.
   ///
   /// TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
@@ -2910,7 +2907,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// [definingLibrary] is the element for the library containing the node being
   /// visited.
   /// [source] is the source representing the compilation unit containing the
-  /// node being visited
+  /// node being visited.
   /// [typeProvider] is the object used to access the types from the core
   /// library.
   /// [errorListener] is the error listener that will be informed of any errors
