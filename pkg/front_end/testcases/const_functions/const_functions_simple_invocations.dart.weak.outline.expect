@@ -19,9 +19,9 @@ static const field core::int multi = self::multiFn(1);
 static const field core::int multi2 = self::multiFn(2);
 static method binaryFn(core::int a, core::int b) → core::int
   ;
-static method optionalFn(core::int c, [core::int d]) → core::int
+static method optionalFn(core::int c, [has-declared-initializer core::int d]) → core::int
   ;
-static method namedFn(core::int e, {core::int f}) → core::int
+static method namedFn(core::int e, {has-declared-initializer core::int f}) → core::int
   ;
 static method typeFn<T extends core::Object? = dynamic>(self::typeFn::T% x) → self::typeFn::T%
   ;

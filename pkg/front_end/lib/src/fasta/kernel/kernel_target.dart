@@ -1001,6 +1001,7 @@ class KernelTarget extends TargetImplementation {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
+          hasDeclaredInitializer: formal.hasDeclaredInitializer,
           type: const UnknownType());
       if (!hasTypeDependency && formal.type is! UnknownType) {
         copy.type = substitution.substituteType(formal.type);

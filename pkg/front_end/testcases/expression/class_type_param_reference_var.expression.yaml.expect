@@ -2,6 +2,6 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return () → #lib1::A::T? {
-    #lib1::A::T? k = null;
+    has-declared-initializer #lib1::A::T? k = null;
     return k;
   };

@@ -7,7 +7,7 @@ class Class1 extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Class1::•]/*isLegacy*/;
   constructor _([core::int field = 42]) → self::Class1
     ;
-  static method _#_#tearOff([core::int field]) → self::Class1
+  static method _#_#tearOff([has-declared-initializer core::int field]) → self::Class1
     return new self::Class1::_(field);
   static factory •([core::int field]) → self::Class1
     return new self::Class1::_(field);
@@ -19,7 +19,7 @@ class Class2 extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Class2::•]/*isLegacy*/;
   constructor _({core::int field = 42}) → self::Class2
     ;
-  static method _#_#tearOff({core::int field}) → self::Class2
+  static method _#_#tearOff({has-declared-initializer core::int field}) → self::Class2
     return new self::Class2::_(field: field);
   static factory •({core::int field}) → self::Class2
     return new self::Class2::_(field: field);
@@ -33,7 +33,7 @@ static method testDefaultValues() → void
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+static method throws(() → dynamic f, {has-declared-initializer core::bool inSoundModeOnly}) → dynamic
   ;
 
 

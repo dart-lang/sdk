@@ -88,7 +88,7 @@ static method method() → dynamic {
       return #nonNullableUninitializedFinalLocal = nonNullableUninitializedFinalLocal#param;
     else
       throw new _in::LateError::localAI("nonNullableUninitializedFinalLocal");
-  lowered core::int? #nullableInitializedNonFinalLocal;
+  lowered has-declared-initializer core::int? #nullableInitializedNonFinalLocal;
   lowered core::bool #nullableInitializedNonFinalLocal#isSet = false;
   function #nullableInitializedNonFinalLocal#get() → core::int? {
     if(!#nullableInitializedNonFinalLocal#isSet) {
@@ -101,12 +101,12 @@ static method method() → dynamic {
     #nullableInitializedNonFinalLocal#isSet = true;
     return #nullableInitializedNonFinalLocal = nullableInitializedNonFinalLocal#param;
   }
-  lowered core::int? #nonNullableInitializedNonFinalLocal;
+  lowered has-declared-initializer core::int? #nonNullableInitializedNonFinalLocal;
   function #nonNullableInitializedNonFinalLocal#get() → core::int
     return let final core::int? #t13 = #nonNullableInitializedNonFinalLocal in #t13 == null ?{core::int} #nonNullableInitializedNonFinalLocal = 0 : #t13{core::int};
   function #nonNullableInitializedNonFinalLocal#set(core::int nonNullableInitializedNonFinalLocal#param) → dynamic
     return #nonNullableInitializedNonFinalLocal = nonNullableInitializedNonFinalLocal#param;
-  lowered final core::int? #nullableInitializedFinalLocal;
+  lowered final has-declared-initializer core::int? #nullableInitializedFinalLocal;
   lowered core::bool #nullableInitializedFinalLocal#isSet = false;
   function #nullableInitializedFinalLocal#get() → core::int? {
     if(!#nullableInitializedFinalLocal#isSet) {
@@ -118,7 +118,7 @@ static method method() → dynamic {
     }
     return #nullableInitializedFinalLocal;
   }
-  lowered final core::int? #nonNullableInitializedFinalLocal;
+  lowered final has-declared-initializer core::int? #nonNullableInitializedFinalLocal;
   function #nonNullableInitializedFinalLocal#get() → core::int
     return let final core::int? #t15 = #nonNullableInitializedFinalLocal in #t15 == null ?{core::int} let final core::int #t16 = 0 in #nonNullableInitializedFinalLocal == null ?{core::int} #nonNullableInitializedFinalLocal = #t16 : throw new _in::LateError::localADI("nonNullableInitializedFinalLocal") : #t15{core::int};
 }

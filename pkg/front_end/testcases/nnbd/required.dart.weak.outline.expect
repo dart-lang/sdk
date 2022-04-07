@@ -36,7 +36,7 @@ class C extends self::A {
     ;
 }
 static field ({a: core::int, required b: core::int}) → dynamic field;
-static method method({core::int a, required core::int b, required final core::int c}) → dynamic
+static method method({has-declared-initializer core::int a, required core::int b, required final core::int c}) → dynamic
   ;
 static method ok() → dynamic
   ;

@@ -6,6 +6,6 @@ import "dart:core" as core;
 import "dart:async";
 
 static method main() → dynamic {
-  asy::Future<core::int*>* futureInt = null;
+  has-declared-initializer asy::Future<core::int*>* futureInt = null;
   asy::Future<core::int*>* x = futureInt;
 }

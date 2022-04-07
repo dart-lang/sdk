@@ -3210,7 +3210,7 @@ class BinaryBuilder {
     // The [VariableDeclaration] instance is not created at this point yet,
     // so `null` is temporarily set as the parent of the annotation nodes.
     List<Expression> annotations = readAnnotationList(null);
-    int flags = readByte();
+    int flags = readUInt30();
     VariableDeclaration node = new VariableDeclaration(
         readStringOrNullIfEmpty(),
         type: readDartType(),

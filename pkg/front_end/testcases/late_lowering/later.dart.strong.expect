@@ -137,21 +137,21 @@ static method hest() → dynamic async /* futureValueType= dynamic */ {
   return "hest";
 }
 static method fisk() → dynamic async /* futureValueType= dynamic */ {
-  lowered core::String? #s1;
+  lowered has-declared-initializer core::String? #s1;
   function #s1#get() → core::String
     return let final core::String? #t6 = #s1 in #t6 == null ?{core::String} #s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest(); // Error.
                    ^^^^^" : #t6{core::String};
   function #s1#set(core::String s1#param) → dynamic
     return #s1 = s1#param;
-  lowered core::String? #s2;
+  lowered has-declared-initializer core::String? #s2;
   function #s2#get() → core::String
     return let final core::String? #t7 = #s2 in #t7 == null ?{core::String} #s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}'; // Error.
                              ^^^^^"}${#C1}" : #t7{core::String};
   function #s2#set(core::String s2#param) → dynamic
     return #s2 = s2#param;
-  lowered core::Function? #f;
+  lowered has-declared-initializer core::Function? #f;
   function #f#get() → core::Function
     return let final core::Function? #t8 = #f in #t8 == null ?{core::Function} #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() : #t8{core::Function};
   function #f#set(core::Function f#param) → dynamic

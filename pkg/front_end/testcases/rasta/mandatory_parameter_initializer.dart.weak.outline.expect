@@ -9,5 +9,5 @@ library;
 //
 import self as self;
 
-static method main(dynamic arguments) → dynamic
+static method main(has-declared-initializer dynamic arguments) → dynamic
   ;

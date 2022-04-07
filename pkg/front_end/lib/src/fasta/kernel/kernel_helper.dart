@@ -225,6 +225,7 @@ class DelayedDefaultValueCloner {
             synthesizedParameterType, SubtypeCheckMode.withNullabilities)) {
       _cloneInitializer(originalParameter, synthesizedParameter);
     } else {
+      synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
             templateOptionalSuperParameterWithoutInitializer.withArguments(
@@ -260,10 +261,14 @@ class TypeDependency {
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
       VariableDeclaration synthesizedParameter =
           synthesized.function!.positionalParameters[i];
-      VariableDeclaration constructorParameter =
+      VariableDeclaration originalParameter =
           original.function!.positionalParameters[i];
       synthesizedParameter.type =
-          substitution.substituteType(constructorParameter.type);
+          substitution.substituteType(originalParameter.type);
+      if (!synthesizedParameter.hasDeclaredInitializer) {
+        synthesizedParameter.hasDeclaredInitializer =
+            originalParameter.hasDeclaredInitializer;
+      }
     }
     for (int i = 0; i < original.function!.namedParameters.length; i++) {
       VariableDeclaration synthesizedParameter =
@@ -272,6 +277,10 @@ class TypeDependency {
           original.function!.namedParameters[i];
       synthesizedParameter.type =
           substitution.substituteType(originalParameter.type);
+      if (!synthesizedParameter.hasDeclaredInitializer) {
+        synthesizedParameter.hasDeclaredInitializer =
+            originalParameter.hasDeclaredInitializer;
+      }
     }
     if (copyReturnType) {
       synthesized.function!.returnType =

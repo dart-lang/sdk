@@ -102,7 +102,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::List<core::int*>* spread = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
   core::Map<core::String*, core::int*>* mapSpread = <core::String*, core::int*>{"foo": 4, "bar": 2};
   core::int* notSpreadInt = 42;
-  () →* core::int* notSpreadFunction = null;
+  has-declared-initializer () →* core::int* notSpreadFunction = null;
   core::Map<core::int*, core::num*>* mapIntNum = <core::int*, core::num*>{42: 42};
   core::List<core::num*>* listNum = core::_GrowableList::_literal1<core::num*>(42);
   core::List<dynamic>* lhs10 = block {
@@ -382,19 +382,19 @@ Try providing type arguments for the literal explicitly to disambiguate it.
                                             ^": null};
   core::List<core::int*>* lhs80 = block {
     final core::List<core::int*>* #t50 = core::_GrowableList::•<core::int*>(0);
-    final core::Iterable<core::int*>* #t51 = null;
+    final has-declared-initializer core::Iterable<core::int*>* #t51 = null;
     if(!(#t51 == null))
       #t50.{core::List::addAll}{Invariant}(#t51){(core::Iterable<core::int*>*) →* void};
   } =>#t50;
   core::Set<core::int*>* set80 = block {
     final core::Set<core::int*>* #t52 = new col::_CompactLinkedHashSet::•<core::int*>();
-    final core::Iterable<core::int*>* #t53 = null;
+    final has-declared-initializer core::Iterable<core::int*>* #t53 = null;
     if(!(#t53 == null))
       #t52.{core::Set::addAll}{Invariant}(#t53){(core::Iterable<core::int*>*) →* void};
   } =>#t52;
   core::Set<dynamic>* set81ambiguous = block {
     final core::Set<dynamic>* #t54 = new col::_CompactLinkedHashSet::•<dynamic>();
-    final core::Iterable<dynamic>* #t55 = null;
+    final has-declared-initializer core::Iterable<dynamic>* #t55 = null;
     if(!(#t55 == null)) {
       core::Iterator<dynamic>* :sync-for-iterator = #t55.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -418,7 +418,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t54;
   core::Map<core::String*, core::int*>* map80 = block {
     final core::Map<core::String*, core::int*>* #t60 = <core::String*, core::int*>{};
-    final core::Map<core::String*, core::int*>* #t61 = null;
+    final has-declared-initializer core::Map<core::String*, core::int*>* #t61 = null;
     if(!(#t61 == null)) {
       core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = #t61.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

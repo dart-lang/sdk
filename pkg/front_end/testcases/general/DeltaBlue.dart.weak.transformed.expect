@@ -383,9 +383,9 @@ static method main() → dynamic {
 }
 static method chainTest(core::int n) → void {
   self::planner = new self::Planner::•();
-  self::Variable? prev = null;
-  self::Variable? first = null;
-  self::Variable? last = null;
+  has-declared-initializer self::Variable? prev = null;
+  has-declared-initializer self::Variable? first = null;
+  has-declared-initializer self::Variable? last = null;
   for (core::int i = 0; i.{core::num::<=}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     self::Variable v = new self::Variable::•("v${i}", 0);
     if(!(prev == null))
@@ -412,8 +412,8 @@ static method projectionTest(core::int n) → void {
   self::planner = new self::Planner::•();
   self::Variable scale = new self::Variable::•("scale", 10);
   self::Variable offset = new self::Variable::•("offset", 1000);
-  self::Variable? src = null;
-  self::Variable? dst = null;
+  has-declared-initializer self::Variable? src = null;
+  has-declared-initializer self::Variable? dst = null;
   core::List<self::Variable> dests = core::_GrowableList::•<self::Variable>(0);
   for (core::int i = 0; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     src = new self::Variable::•("src", i);

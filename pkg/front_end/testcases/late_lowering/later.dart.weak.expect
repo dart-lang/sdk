@@ -157,7 +157,7 @@ static method hest() → dynamic async /* futureValueType= dynamic */ {
   return "hest";
 }
 static method fisk() → dynamic async /* futureValueType= dynamic */ {
-  lowered core::String? #s1;
+  lowered has-declared-initializer core::String? #s1;
   lowered core::bool #s1#isSet = false;
   function #s1#get() → core::String {
     if(!#s1#isSet) {
@@ -172,7 +172,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
     #s1#isSet = true;
     return #s1 = s1#param;
   }
-  lowered core::String? #s2;
+  lowered has-declared-initializer core::String? #s2;
   lowered core::bool #s2#isSet = false;
   function #s2#get() → core::String {
     if(!#s2#isSet) {
@@ -187,7 +187,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
     #s2#isSet = true;
     return #s2 = s2#param;
   }
-  lowered core::Function? #f;
+  lowered has-declared-initializer core::Function? #f;
   lowered core::bool #f#isSet = false;
   function #f#get() → core::Function {
     if(!#f#isSet) {

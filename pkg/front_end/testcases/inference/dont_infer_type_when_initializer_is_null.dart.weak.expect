@@ -2,7 +2,7 @@ library test;
 import self as self;
 
 static method test() → dynamic {
-  dynamic x = null;
+  has-declared-initializer dynamic x = null;
   x = "hi";
   x = 3;
 }

@@ -37,7 +37,7 @@ static method testNullableInitializedNonFinalLocal() → void {
   core::print(x{core::int});
   x = 42;
   core::print(x{core::int});
-  late core::int? y = null;
+  late has-declared-initializer core::int? y = null;
   core::print(y);
   y = 42;
   core::print(y{core::int});
@@ -51,7 +51,7 @@ static method testNonNullableInitializedNonFinalLocal() → void {
 static method testNullableInitializedFinalLocal() → void {
   late final core::int? x = 1.{core::int::unary-}(){() → core::int};
   core::print(x);
-  late final core::int? y = null;
+  late final has-declared-initializer core::int? y = null;
   core::print(y);
 }
 static method testNonNullableInitializedFinalLocal() → void {

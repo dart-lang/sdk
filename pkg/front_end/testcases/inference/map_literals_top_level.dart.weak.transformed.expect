@@ -51,7 +51,7 @@ static method test2() → dynamic {
  - 'Pattern' is from 'dart:core'.
   x2 /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
                                                             ^" in 42 as{TypeError} core::Pattern*){(core::num*, core::Pattern*) →* void};
-  core::Pattern* p = null;
+  has-declared-initializer core::Pattern* p = null;
   self::x2.{core::Map::[]=}(2, p){(core::num*, core::Pattern*) →* void};
   core::Map<core::int*, core::String*>* y = self::x2 as{TypeError} core::Map<core::int*, core::String*>*;
 }

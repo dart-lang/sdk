@@ -516,7 +516,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::int*>* map20 = block {
     final core::Map<core::String*, core::int*>* #t12 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::int*>* #t13 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t13 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
         #t12.{core::Map::[]=}{Invariant}(#t13.{core::MapEntry::key}{core::String*}, #t13.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t12.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t12;
@@ -534,7 +534,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, dynamic>* map21 = block {
     final core::Map<core::String*, dynamic>* #t16 = <core::String*, dynamic>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, dynamic>* #t17 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, dynamic>* #t17 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
         #t16.{core::Map::[]=}{Invariant}(#t17.{core::MapEntry::key}{core::String*}, #t17.{core::MapEntry::value}{dynamic}){(core::String*, dynamic) →* void};
     #t16.{core::Map::[]=}{Invariant}("baz", null){(core::String*, dynamic) →* void};
   } =>#t16;
@@ -552,7 +552,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::List<core::int*>*>* map22 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t20 = <core::String*, core::List<core::int*>*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t21 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t21 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
         #t20.{core::Map::[]=}{Invariant}(#t21.{core::MapEntry::key}{core::String*}, #t21.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t20.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t20;
@@ -573,7 +573,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::Map<core::String*, core::int*>* #t24 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::int*>* #t25 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t25 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
           #t24.{core::Map::[]=}{Invariant}(#t25.{core::MapEntry::key}{core::String*}, #t25.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t24.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t24;
@@ -594,7 +594,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::Map<core::String*, dynamic>* #t28 = <core::String*, dynamic>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, dynamic>* #t29 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, dynamic>* #t29 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
           #t28.{core::Map::[]=}{Invariant}(#t29.{core::MapEntry::key}{core::String*}, #t29.{core::MapEntry::value}{dynamic}){(core::String*, dynamic) →* void};
     #t28.{core::Map::[]=}{Invariant}("baz", null){(core::String*, dynamic) →* void};
   } =>#t28;
@@ -615,7 +615,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::Map<core::String*, core::List<core::int*>*>* #t32 = <core::String*, core::List<core::int*>*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t33 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t33 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
           #t32.{core::Map::[]=}{Invariant}(#t33.{core::MapEntry::key}{core::String*}, #t33.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t32.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t32;
@@ -667,7 +667,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::Map<core::String*, core::List<core::int*>*>* #t42 = <core::String*, core::List<core::int*>*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t43 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t43 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
           #t42.{core::Map::[]=}{Invariant}(#t43.{core::MapEntry::key}{core::String*}, #t43.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t42.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t42;
@@ -685,7 +685,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::int*>* map50 = block {
     final core::Map<core::String*, core::int*>* #t46 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::int*>* #t47 in <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t47 in <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
         #t46.{core::Map::[]=}{Invariant}(#t47.{core::MapEntry::key}{core::String*}, #t47.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t46.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t46;
@@ -721,7 +721,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::Map<core::String*, core::int*>* #t54 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::int*>* #t55 in <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t55 in <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
           #t54.{core::Map::[]=}{Invariant}(#t55.{core::MapEntry::key}{core::String*}, #t55.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t54.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t54;
@@ -739,7 +739,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::List<core::int*>*>* map60 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t58 = <core::String*, core::List<core::int*>*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t59 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t59 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
         #t58.{core::Map::[]=}{Invariant}(#t59.{core::MapEntry::key}{core::String*}, #t59.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t58.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t58;
@@ -760,7 +760,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
     final core::Map<core::String*, core::List<core::int*>*>* #t62 = <core::String*, core::List<core::int*>*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t63 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t63 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
           #t62.{core::Map::[]=}{Invariant}(#t63.{core::MapEntry::key}{core::String*}, #t63.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t62.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t62;
@@ -829,10 +829,10 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::num*>* map81 = block {
     final core::Map<core::String*, core::num*>* #t73 = <core::String*, core::num*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::num*>* #t74 in mapToInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::num*>* #t74 in mapToInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
         #t73.{core::Map::[]=}{Invariant}(#t74.{core::MapEntry::key}{core::String*}, #t74.{core::MapEntry::value}{core::num*}){(core::String*, core::num*) →* void};
     else
-      for (final core::MapEntry<core::String*, core::num*>* #t75 in mapToDouble.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::num*>* #t75 in mapToDouble.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
         #t73.{core::Map::[]=}{Invariant}(#t75.{core::MapEntry::key}{core::String*}, #t75.{core::MapEntry::value}{core::num*}){(core::String*, core::num*) →* void};
     #t73.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::num*) →* void};
   } =>#t73;
@@ -880,7 +880,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::num*>* map83 = block {
     final core::Map<core::String*, core::num*>* #t81 = <core::String*, core::num*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::num*>* #t82 in mapToInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::num*>* #t82 in mapToInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
         #t81.{core::Map::[]=}{Invariant}(#t82.{core::MapEntry::key}{core::String*}, #t82.{core::MapEntry::value}{core::num*}){(core::String*, core::num*) →* void};
     else
       #t81.{core::Map::[]=}{Invariant}("bar", 3.14){(core::String*, core::num*) →* void};
@@ -906,7 +906,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::List<core::int*>* list91 = block {
     final core::List<core::int*>* #t86 = <core::int*>[];
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final dynamic #t87 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      for (final has-declared-initializer dynamic #t87 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
         final core::int* #t88 = #t87 as{TypeError} core::int*;
         #t86.{core::List::add}{Invariant}(#t88){(core::int*) →* void};
       }
@@ -914,7 +914,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Set<core::int*>* set91 = block {
     final core::Set<core::int*>* #t89 = col::LinkedHashSet::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final dynamic #t90 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      for (final has-declared-initializer dynamic #t90 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
         final core::int* #t91 = #t90 as{TypeError} core::int*;
         #t89.{core::Set::add}{Invariant}(#t91){(core::int*) →* core::bool*};
       }
@@ -923,7 +923,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   core::Map<core::String*, core::int*>* map91 = block {
     final core::Map<core::String*, core::int*>* #t92 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<dynamic, dynamic>* #t93 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}) {
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t93 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}) {
         final core::String* #t94 = #t93.{core::MapEntry::key}{dynamic} as{TypeError} core::String*;
         final core::int* #t95 = #t93.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
         #t92.{core::Map::[]=}{Invariant}(#t94, #t95){(core::String*, core::int*) →* void};
@@ -988,7 +988,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::Map<core::String*, core::int*>* #t104 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::int*>* #t105 in <core::String*, core::int*>{"bar": invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:94:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t105 in <core::String*, core::int*>{"bar": invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:94:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <String, int>{if (oracle(\"foo\")) ...{\"bar\": \"bar\"}, \"baz\": null};
                                               ^" in "bar" as{TypeError} core::int*}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
         #t104.{core::Map::[]=}{Invariant}(#t105.{core::MapEntry::key}{core::String*}, #t105.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
@@ -1259,7 +1259,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::int*>* map20 = block {
     final core::Map<core::String*, core::int*>* #t133 = <core::String*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::String*, core::int*>* #t134 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t134 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
         #t133.{core::Map::[]=}{Invariant}(#t134.{core::MapEntry::key}{core::String*}, #t134.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t133.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t133;
@@ -1277,7 +1277,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, dynamic>* map21 = block {
     final core::Map<core::String*, dynamic>* #t137 = <core::String*, dynamic>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::String*, dynamic>* #t138 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, dynamic>* #t138 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
         #t137.{core::Map::[]=}{Invariant}(#t138.{core::MapEntry::key}{core::String*}, #t138.{core::MapEntry::value}{dynamic}){(core::String*, dynamic) →* void};
     #t137.{core::Map::[]=}{Invariant}("baz", null){(core::String*, dynamic) →* void};
   } =>#t137;
@@ -1295,7 +1295,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::List<core::int*>*>* map22 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t141 = <core::String*, core::List<core::int*>*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t142 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t142 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
         #t141.{core::Map::[]=}{Invariant}(#t142.{core::MapEntry::key}{core::String*}, #t142.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t141.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t141;
@@ -1316,7 +1316,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, core::int*>* #t145 = <core::String*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::int*>* #t146 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t146 in <core::String*, core::int*>{"bar": 42}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
           #t145.{core::Map::[]=}{Invariant}(#t146.{core::MapEntry::key}{core::String*}, #t146.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t145.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t145;
@@ -1337,7 +1337,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, dynamic>* #t149 = <core::String*, dynamic>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, dynamic>* #t150 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, dynamic>* #t150 in <core::String*, dynamic>{"bar": dynVar}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, dynamic>>})
           #t149.{core::Map::[]=}{Invariant}(#t150.{core::MapEntry::key}{core::String*}, #t150.{core::MapEntry::value}{dynamic}){(core::String*, dynamic) →* void};
     #t149.{core::Map::[]=}{Invariant}("baz", null){(core::String*, dynamic) →* void};
   } =>#t149;
@@ -1358,7 +1358,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, core::List<core::int*>*>* #t153 = <core::String*, core::List<core::int*>*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t154 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t154 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[42]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
           #t153.{core::Map::[]=}{Invariant}(#t154.{core::MapEntry::key}{core::String*}, #t154.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t153.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t153;
@@ -1376,7 +1376,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::List<core::int*>*>* map40 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t157 = <core::String*, core::List<core::int*>*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t158 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t158 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
         #t157.{core::Map::[]=}{Invariant}(#t158.{core::MapEntry::key}{core::String*}, #t158.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t157.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t157;
@@ -1414,7 +1414,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, core::List<core::int*>*>* #t165 = <core::String*, core::List<core::int*>*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t166 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t166 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
           #t165.{core::Map::[]=}{Invariant}(#t166.{core::MapEntry::key}{core::String*}, #t166.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t165.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t165;
@@ -1432,7 +1432,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::int*>* map50 = block {
     final core::Map<core::String*, core::int*>* #t169 = <core::String*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::String*, core::int*>* #t170 in <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::int*>* #t170 in <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>})
         #t169.{core::Map::[]=}{Invariant}(#t170.{core::MapEntry::key}{core::String*}, #t170.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
     #t169.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
   } =>#t169;
@@ -1478,7 +1478,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::List<core::int*>*>* map60 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t179 = <core::String*, core::List<core::int*>*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t180 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+      for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t180 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
         #t179.{core::Map::[]=}{Invariant}(#t180.{core::MapEntry::key}{core::String*}, #t180.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t179.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t179;
@@ -1499,7 +1499,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, core::List<core::int*>*>* #t183 = <core::String*, core::List<core::int*>*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::List<core::int*>*>* #t184 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::List<core::int*>*>* #t184 in <core::String*, core::List<core::int*>*>{"bar": <core::int*>[]}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>})
           #t183.{core::Map::[]=}{Invariant}(#t184.{core::MapEntry::key}{core::String*}, #t184.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
     #t183.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::List<core::int*>*) →* void};
   } =>#t183;
@@ -1587,10 +1587,10 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, core::num*>* #t196 = <core::String*, core::num*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::num*>* #t197 in mapStringInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::num*>* #t197 in mapStringInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
           #t196.{core::Map::[]=}{Invariant}(#t197.{core::MapEntry::key}{core::String*}, #t197.{core::MapEntry::value}{core::num*}){(core::String*, core::num*) →* void};
       else
-        for (final core::MapEntry<core::String*, core::num*>* #t198 in mapStringDouble.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::num*>* #t198 in mapStringDouble.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
           #t196.{core::Map::[]=}{Invariant}(#t198.{core::MapEntry::key}{core::String*}, #t198.{core::MapEntry::value}{core::num*}){(core::String*, core::num*) →* void};
     #t196.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::num*) →* void};
   } =>#t196;
@@ -1615,10 +1615,10 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<dynamic, dynamic>* #t201 = <dynamic, dynamic>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<dynamic, dynamic>* #t202 in mapStringInt.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+        for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t202 in mapStringInt.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
           #t201.{core::Map::[]=}{Invariant}(#t202.{core::MapEntry::key}{dynamic}, #t202.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) →* void};
       else
-        for (final core::MapEntry<dynamic, dynamic>* #t203 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+        for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t203 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
           #t201.{core::Map::[]=}{Invariant}(#t203.{core::MapEntry::key}{dynamic}, #t203.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) →* void};
     #t201.{core::Map::[]=}{Invariant}("baz", null){(dynamic, dynamic) →* void};
   } =>#t201;
@@ -1643,7 +1643,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
     final core::Map<core::String*, core::num*>* #t206 = <core::String*, core::num*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        for (final core::MapEntry<core::String*, core::num*>* #t207 in mapStringInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
+        for (final has-declared-initializer core::MapEntry<core::String*, core::num*>* #t207 in mapStringInt.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::num*>>})
           #t206.{core::Map::[]=}{Invariant}(#t207.{core::MapEntry::key}{core::String*}, #t207.{core::MapEntry::value}{core::num*}){(core::String*, core::num*) →* void};
       else
         #t206.{core::Map::[]=}{Invariant}("bar", 3.14){(core::String*, core::num*) →* void};
@@ -1669,7 +1669,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::List<core::int*>* list91 = block {
     final core::List<core::int*>* #t211 = <core::int*>[];
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final dynamic #t212 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      for (final has-declared-initializer dynamic #t212 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
         final core::int* #t213 = #t212 as{TypeError} core::int*;
         #t211.{core::List::add}{Invariant}(#t213){(core::int*) →* void};
       }
@@ -1677,7 +1677,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Set<core::int*>* set91 = block {
     final core::Set<core::int*>* #t214 = col::LinkedHashSet::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final dynamic #t215 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      for (final has-declared-initializer dynamic #t215 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
         final core::int* #t216 = #t215 as{TypeError} core::int*;
         #t214.{core::Set::add}{Invariant}(#t216){(core::int*) →* core::bool*};
       }
@@ -1686,7 +1686,7 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   core::Map<core::String*, core::int*>* map91 = block {
     final core::Map<core::String*, core::int*>* #t217 = <core::String*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<dynamic, dynamic>* #t218 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}) {
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t218 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}) {
         final core::String* #t219 = #t218.{core::MapEntry::key}{dynamic} as{TypeError} core::String*;
         final core::int* #t220 = #t218.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
         #t217.{core::Map::[]=}{Invariant}(#t219, #t220){(core::String*, core::int*) →* void};
@@ -1804,7 +1804,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Map<core::int*, core::int*>* #t241 = <core::int*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
-      for (final core::MapEntry<core::int*, core::int*>* #t242 in <core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:217:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (final has-declared-initializer core::MapEntry<core::int*, core::int*>* #t242 in <core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:217:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                      ^" in "bar" as{TypeError} core::int*: invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:217:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};

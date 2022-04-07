@@ -1011,7 +1011,7 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();
+      flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNameIndex:

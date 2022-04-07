@@ -10,11 +10,11 @@ static method main() → dynamic {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t1 = <core::int*>[0];
     #t1.{core::List::addAll}{Invariant}(list1){(core::Iterable<core::int*>*) →* void};
-    for (final dynamic #t2 in list2) {
+    for (final has-declared-initializer dynamic #t2 in list2) {
       final core::int* #t3 = #t2 as{TypeError} core::int*;
       #t1.{core::List::add}{Invariant}(#t3){(core::int*) →* void};
     }
-    for (final dynamic #t4 in list3 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+    for (final has-declared-initializer dynamic #t4 in list3 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
       final core::int* #t5 = #t4 as{TypeError} core::int*;
       #t1.{core::List::add}{Invariant}(#t5){(core::int*) →* void};
     }
@@ -37,11 +37,11 @@ static method main() → dynamic {
     final core::Set<core::int*>* #t9 = col::LinkedHashSet::•<core::int*>();
     #t9.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
     #t9.{core::Set::addAll}{Invariant}(set1){(core::Iterable<core::int*>*) →* void};
-    for (final dynamic #t10 in set2) {
+    for (final has-declared-initializer dynamic #t10 in set2) {
       final core::int* #t11 = #t10 as{TypeError} core::int*;
       #t9.{core::Set::add}{Invariant}(#t11){(core::int*) →* core::bool*};
     }
-    for (final dynamic #t12 in set3 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+    for (final has-declared-initializer dynamic #t12 in set3 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
       final core::int* #t13 = #t12 as{TypeError} core::int*;
       #t9.{core::Set::add}{Invariant}(#t13){(core::int*) →* core::bool*};
     }
@@ -54,14 +54,14 @@ static method main() → dynamic {
   core::Map<core::int*, core::String*>* map = block {
     final core::Map<core::int*, core::String*>* #t14 = <core::int*, core::String*>{};
     #t14.{core::Map::[]=}{Invariant}(0, "foo"){(core::int*, core::String*) →* void};
-    for (final core::MapEntry<core::int*, core::String*>* #t15 in map1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>})
+    for (final has-declared-initializer core::MapEntry<core::int*, core::String*>* #t15 in map1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>})
       #t14.{core::Map::[]=}{Invariant}(#t15.{core::MapEntry::key}{core::int*}, #t15.{core::MapEntry::value}{core::String*}){(core::int*, core::String*) →* void};
-    for (final core::MapEntry<dynamic, dynamic>* #t16 in map2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>}) {
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t16 in map2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>}) {
       final core::int* #t17 = #t16.{core::MapEntry::key}{dynamic} as{TypeError} core::int*;
       final core::String* #t18 = #t16.{core::MapEntry::value}{dynamic} as{TypeError} core::String*;
       #t14.{core::Map::[]=}{Invariant}(#t17, #t18){(core::int*, core::String*) →* void};
     }
-    for (final core::MapEntry<dynamic, dynamic>* #t19 in (map3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>}) {
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t19 in (map3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>}) {
       final core::int* #t20 = #t19.{core::MapEntry::key}{dynamic} as{TypeError} core::int*;
       final core::String* #t21 = #t19.{core::MapEntry::value}{dynamic} as{TypeError} core::String*;
       #t14.{core::Map::[]=}{Invariant}(#t20, #t21){(core::int*, core::String*) →* void};

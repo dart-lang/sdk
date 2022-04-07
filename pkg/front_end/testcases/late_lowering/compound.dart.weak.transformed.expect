@@ -23,7 +23,7 @@ static method main() → dynamic {
   self::expect(0, #local1#get(){() → core::int});
   #local1#set(#local1#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
   self::expect(2, #local1#get(){() → core::int});
-  lowered core::int? #local2;
+  lowered has-declared-initializer core::int? #local2;
   lowered core::bool #local2#isSet = false;
   function #local2#get() → core::int {
     if(!#local2#isSet) {

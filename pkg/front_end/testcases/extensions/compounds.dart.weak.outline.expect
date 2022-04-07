@@ -102,5 +102,5 @@ static method testExplicitNullAwareProperties(self::Class* v) → dynamic
   ;
 static method testExplicitNullAwareIntProperties(self::IntClass* v) → dynamic
   ;
-static method expect(dynamic expected, dynamic actual, [dynamic expectNull]) → dynamic
+static method expect(dynamic expected, dynamic actual, [has-declared-initializer dynamic expectNull]) → dynamic
   ;

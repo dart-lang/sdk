@@ -20,7 +20,7 @@ static method main() → dynamic {
   self::expect(0, #local1#get(){() → core::int});
   #local1#set(#local1#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
   self::expect(2, #local1#get(){() → core::int});
-  lowered core::int? #local2;
+  lowered has-declared-initializer core::int? #local2;
   function #local2#get() → core::int
     return let final core::int? #t2 = #local2 in #t2 == null ?{core::int} #local2 = 1 : #t2{core::int};
   function #local2#set(core::int local2#param) → dynamic

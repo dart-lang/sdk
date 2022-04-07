@@ -62,10 +62,10 @@ static field core::Map<dynamic, dynamic> map1 = block {
   if (i > 0) ...nullableMap, // error
                 ^", null){(dynamic, dynamic) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
-    for (final core::MapEntry<dynamic, dynamic> #t2 in (self::dynamicMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t2 in (self::dynamicMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
       #t1.{core::Map::[]=}{Invariant}(#t2.{core::MapEntry::key}{dynamic}, #t2.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
-    for (final core::MapEntry<dynamic, dynamic> #t3 in self::nullableMap!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t3 in self::nullableMap!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
       #t1.{core::Map::[]=}{Invariant}(#t3.{core::MapEntry::key}{dynamic}, #t3.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
 } =>#t1;
 static field core::Set<dynamic> set1 = block {
@@ -103,10 +103,10 @@ static method testMap<X extends dynamic, Y extends core::Map<core::int, core::St
     if (i > 0) ...y, // error
                   ^", null){(dynamic, dynamic) → void};
     if(self::i.{core::num::>}(0){(core::num) → core::bool})
-      for (final core::MapEntry<dynamic, dynamic> #t7 in z.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t7 in z.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
         #t6.{core::Map::[]=}{Invariant}(#t7.{core::MapEntry::key}{dynamic}, #t7.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
     if(self::i.{core::num::>}(0){(core::num) → core::bool})
-      for (final core::MapEntry<dynamic, dynamic> #t8 in y!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t8 in y!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
         #t6.{core::Map::[]=}{Invariant}(#t8.{core::MapEntry::key}{dynamic}, #t8.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
   } =>#t6;
 }

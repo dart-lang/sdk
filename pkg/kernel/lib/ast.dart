@@ -10275,7 +10275,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isCovariantByDeclaration: false,
       bool isLate: false,
       bool isRequired: false,
-      bool isLowered: false}) {
+      bool isLowered: false,
+      bool hasDeclaredInitializer: false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -10289,6 +10290,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isLate = isLate;
       this.isRequired = isRequired;
       this.isLowered = isLowered;
+      this.hasDeclaredInitializer = hasDeclaredInitializer;
     }
   }
 
@@ -10310,16 +10312,18 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isLate = isLate;
     this.isRequired = isRequired;
     this.isLowered = isLowered;
+    this.hasDeclaredInitializer = true;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagInitializingFormal = 1 << 2;
-  static const int FlagCovariantByDeclaration = 1 << 3;
+  static const int FlagHasDeclaredInitializer = 1 << 2;
+  static const int FlagInitializingFormal = 1 << 3;
   static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagRequired = 1 << 6;
-  static const int FlagLowered = 1 << 7;
+  static const int FlagCovariantByDeclaration = 1 << 7;
+  static const int FlagLowered = 1 << 8;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -10363,6 +10367,15 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Lowering is used for instance of encoding of 'this' in extension instance
   /// members and encoding of late locals.
   bool get isLowered => flags & FlagLowered != 0;
+
+  /// Whether the variable has an initializer, either by declaration or copied
+  /// from an original declaration.
+  ///
+  /// Note that the variable might have a synthesized initializer expression,
+  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
+  /// For instance, for duplicate variable names, an invalid expression is set
+  /// as the initializer of the second variable.
+  bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
 
   /// Whether the variable is assignable.
   ///
@@ -10414,6 +10427,12 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   void set isLowered(bool value) {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  void set hasDeclaredInitializer(bool value) {
+    flags = value
+        ? (flags | FlagHasDeclaredInitializer)
+        : (flags & ~FlagHasDeclaredInitializer);
   }
 
   void clearAnnotations() {

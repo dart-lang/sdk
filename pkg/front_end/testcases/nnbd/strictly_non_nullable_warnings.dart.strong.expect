@@ -147,7 +147,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     final core::Set<core::String> #t7 = col::LinkedHashSet::•<core::String>();
     final core::Iterable<dynamic>? #t8 = l;
     if(!(#t8 == null))
-      for (final dynamic #t9 in #t8{core::Iterable<dynamic>}) {
+      for (final has-declared-initializer dynamic #t9 in #t8{core::Iterable<dynamic>}) {
         final core::String #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::String;
         #t7.{core::Set::add}{Invariant}(#t10){(core::String) → core::bool};
       }
@@ -162,14 +162,14 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     final core::Map<core::String, core::int> #t13 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t14 = m;
     if(!(#t14 == null))
-      for (final core::MapEntry<core::String, core::int> #t15 in #t14{core::Map<core::String, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::int>>})
+      for (final has-declared-initializer core::MapEntry<core::String, core::int> #t15 in #t14{core::Map<core::String, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::int>>})
         #t13.{core::Map::[]=}{Invariant}(#t15.{core::MapEntry::key}{core::String}, #t15.{core::MapEntry::value}{core::int}){(core::String, core::int) → void};
   } =>#t13;
   block {
     final core::Map<core::String, core::int> #t16 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t17 = m;
     if(!(#t17 == null))
-      for (final core::MapEntry<core::String, core::int> #t18 in #t17{core::Map<core::String, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::int>>})
+      for (final has-declared-initializer core::MapEntry<core::String, core::int> #t18 in #t17{core::Map<core::String, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::int>>})
         #t16.{core::Map::[]=}{Invariant}(#t18.{core::MapEntry::key}{core::String}, #t18.{core::MapEntry::value}{core::int}){(core::String, core::int) → void};
   } =>#t16;
   s!;
