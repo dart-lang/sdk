@@ -8,26 +8,22 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
-import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `execution.mapUri` request.
 class ExecutionMapUriHandler extends LegacyHandler {
-  /// The context used by the execution domain handlers.
-  final ExecutionContext executionContext;
-
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   ExecutionMapUriHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken, this.executionContext)
+      CancellationToken cancellationToken)
       : super(server, request, cancellationToken);
 
   @override
   Future<void> handle() async {
     var params = ExecutionMapUriParams.fromRequest(request);
     var contextId = params.id;
-    var path = executionContext.contextMap[contextId];
+    var path = server.executionContext.contextMap[contextId];
     if (path == null) {
       sendResponse(Response.invalidParameter(request, 'id',
           'There is no execution context with an id of $contextId'));

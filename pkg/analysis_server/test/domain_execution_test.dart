@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -124,7 +123,6 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   Future<void> setUp() async {
     super.setUp();
     await createProject();
-    handler = ExecutionDomainHandler(server, server.executionContext);
     await _createExecutionContext(testFile);
   }
 
