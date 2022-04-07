@@ -29,7 +29,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -110,18 +109,18 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
             return null;
           else
             [yield] null;
-          :controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
+          if(:controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-                                                               ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} asy::Stream<core::List<core::int*>*>*){(asy::Stream<core::List<core::int*>*>) → void};
-          [yield] null;
-          if(_in::unsafeCast<core::bool>(:result_or_exception))
+                                                               ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} asy::Stream<core::List<core::int*>*>*){(asy::Stream<core::List<core::int*>*>) → core::bool})
             return null;
-          :controller.{asy::_AsyncStarStreamController::addStream}(self::MyStream::•<core::List<core::int*>*>()){(asy::Stream<core::List<core::int*>*>) → void};
-          [yield] null;
-          if(_in::unsafeCast<core::bool>(:result_or_exception))
+          else
+            [yield] null;
+          if(:controller.{asy::_AsyncStarStreamController::addStream}(self::MyStream::•<core::List<core::int*>*>()){(asy::Stream<core::List<core::int*>*>) → core::bool})
             return null;
+          else
+            [yield] null;
         }
         return;
       }

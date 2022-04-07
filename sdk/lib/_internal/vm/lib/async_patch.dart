@@ -117,13 +117,6 @@ class _AsyncStarStreamController<T> {
   bool isSuspendedAtYield = false;
   _Future? cancellationFuture = null;
 
-  /// Argument passed to the generator when it is resumed after an addStream.
-  ///
-  /// `true` if the generator should exit after `yield*` resumes.
-  /// `false` if the generator should continue after `yield*` resumes.
-  /// `null` otherwies.
-  bool? continuationArgument = null;
-
   Stream<T> get stream {
     final Stream<T> local = controller.stream;
     if (local is _StreamImpl<T>) {
@@ -135,8 +128,7 @@ class _AsyncStarStreamController<T> {
   void runBody() {
     isScheduled = false;
     isSuspendedAtYield = false;
-    asyncStarBody(continuationArgument, null);
-    continuationArgument = null;
+    asyncStarBody(null, null);
   }
 
   void scheduleGenerator() {
@@ -160,11 +152,11 @@ class _AsyncStarStreamController<T> {
   bool add(T event) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
     if (isSuspendedAtYield) _fatal("unexpected yield");
-    controller.add(event);
+    // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) {
       return true;
     }
-
+    controller.add(event);
     scheduleGenerator();
     isSuspendedAtYield = true;
     return false;
@@ -173,39 +165,20 @@ class _AsyncStarStreamController<T> {
   // Adds the elements of stream into this controller's stream.
   // The generator will be scheduled again when all of the
   // elements of the added stream have been consumed.
-  void addStream(Stream<T> stream) {
+  // Returns true if the caller should terminate
+  // execution of the generator.
+  bool addStream(Stream<T> stream) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
-
-    if (exitAfterYieldStarIfCancelled()) return;
-
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) return true;
     isAdding = true;
-    final whenDoneAdding = controller.addStream(stream, cancelOnError: false);
+    var whenDoneAdding = controller.addStream(stream, cancelOnError: false);
     whenDoneAdding.then((_) {
       isAdding = false;
-      if (exitAfterYieldStarIfCancelled()) return;
-      resumeNormallyAfterYieldStar();
-    });
-  }
-
-  /// Schedules the generator to exit after `yield*` if stream was cancelled.
-  ///
-  /// Returns `true` if generator is told to exit and `false` otherwise.
-  bool exitAfterYieldStarIfCancelled() {
-    // If consumer cancelled subscription we should tell async* generator to
-    // finish (i.e. run finally clauses and return).
-    if (!controller.hasListener) {
-      continuationArgument = true;
       scheduleGenerator();
-      return true;
-    }
+      if (!isScheduled) isSuspendedAtYield = true;
+    });
     return false;
-  }
-
-  /// Schedules the generator to resume normally after `yield*`.
-  void resumeNormallyAfterYieldStar() {
-    continuationArgument = false;
-    scheduleGenerator();
-    if (!isScheduled) isSuspendedAtYield = true;
   }
 
   void addError(Object error, StackTrace stackTrace) {
@@ -238,7 +211,7 @@ class _AsyncStarStreamController<T> {
   }
 
   _AsyncStarStreamController(this.asyncStarBody)
-      : controller = new StreamController(sync: true) {
+      : controller = new StreamController() {
     controller.onListen = this.onListen;
     controller.onResume = this.onResume;
     controller.onCancel = this.onCancel;
