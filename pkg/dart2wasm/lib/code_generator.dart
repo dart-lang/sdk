@@ -1660,8 +1660,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitFunctionInvocation(
       FunctionInvocation node, w.ValueType expectedType) {
-    FunctionType functionType = node.functionType!;
-    int parameterCount = functionType.requiredParameterCount;
+    int parameterCount = node.functionType?.requiredParameterCount ??
+        node.arguments.positional.length;
     return _functionCall(parameterCount, node.receiver, node.arguments);
   }
 
@@ -2057,7 +2057,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         .getSubtypesOf(type.classNode)
         .where((c) => !c.isAbstract)
         .toList();
-    if (concrete.isEmpty) {
+    if (type.classNode == translator.coreTypes.functionClass) {
+      ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
+      translator.ref_test(b, functionInfo);
+    } else if (concrete.isEmpty) {
       b.drop();
       b.i32_const(0);
     } else if (concrete.length == 1) {

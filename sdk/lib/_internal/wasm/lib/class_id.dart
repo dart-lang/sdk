@@ -6,7 +6,7 @@
 
 @pragma("wasm:entry-point")
 class ClassID {
-  external static int getID(Object value);
+  external static int getID(Object? value);
 
   @pragma("wasm:class-id", "dart.typed_data#_ExternalUint8Array")
   external static int get cidExternalUint8Array;
