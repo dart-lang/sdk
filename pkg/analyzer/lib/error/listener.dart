@@ -57,7 +57,7 @@ class ErrorReporter {
   /// given [_errorListener]. Errors will be reported against the
   /// [_defaultSource] unless another source is provided later.
   ErrorReporter(this._errorListener, this._source,
-      {this.isNonNullableByDefault = false});
+      {required this.isNonNullableByDefault});
 
   Source get source => _source;
 

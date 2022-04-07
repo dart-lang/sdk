@@ -788,7 +788,7 @@ class _FindDeclarations {
     var filesProcessed = 0;
     try {
       for (var file in knownFiles) {
-        var libraryElement = driver.getLibraryByFile(file);
+        var libraryElement = await driver.getLibraryByFile(file);
         if (libraryElement != null) {
           _addUnits(file, libraryElement.units);
         }

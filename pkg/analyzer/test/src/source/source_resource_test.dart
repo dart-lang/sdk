@@ -3,13 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -83,28 +79,6 @@ class FileSourceTest with ResourceProviderMixin {
     expect(source2.hashCode, source1.hashCode);
   }
 
-  @Deprecated('Use uri.isScheme("dart") instead')
-  void test_isInSystemLibrary_contagious() {
-    DartSdk sdk = _createSdk();
-    UriResolver resolver = DartUriResolver(sdk);
-    SourceFactory factory = SourceFactory([resolver]);
-    // resolve dart:core
-    Source result = resolver.resolveAbsolute(Uri.parse("dart:async"))!;
-    expect(result.isInSystemLibrary, isTrue);
-    // system libraries reference only other system libraries
-    Source partSource = factory.resolveUri(result, "stream.dart")!;
-    expect(partSource.isInSystemLibrary, isTrue);
-  }
-
-  @Deprecated('Use uri.isScheme("dart") instead')
-  void test_isInSystemLibrary_false() {
-    File file = getFile("/does/not/exist.dart");
-    FileSource source = FileSource(file);
-    expect(source, isNotNull);
-    expect(source.fullName, file.path);
-    expect(source.isInSystemLibrary, isFalse);
-  }
-
   void test_issue14500() {
     // see https://code.google.com/p/dart/issues/detail?id=14500
     FileSource source = FileSource(getFile("/some/packages/foo:bar.dart"));
@@ -162,14 +136,5 @@ class FileSourceTest with ResourceProviderMixin {
     expect(source, isNotNull);
     expect(source.fullName, file.path);
     expect(source.uri.toString(), 'dart:core');
-  }
-
-  DartSdk _createSdk() {
-    var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
-    return FolderBasedDartSdk(resourceProvider, sdkRoot);
   }
 }

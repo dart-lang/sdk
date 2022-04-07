@@ -106,19 +106,6 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNull);
   }
 
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreAbsolute() {
-    Uri uri =
-        resourceProvider.pathContext.toUri(convertPath('/workspace/test.dart'));
-    var source = resolver.resolveAbsolute(uri)!;
-    expect(source, isNotNull);
-    expect(resolver.restoreAbsolute(source), uri);
-    expect(
-        resolver.restoreAbsolute(NonExistingSource(
-            source.fullName, Uri.parse('package:test/test.dart'))),
-        uri);
-  }
-
   Source? _resolvePath(String path) {
     Uri uri = toUri(path);
     return resolver.resolveAbsolute(uri);
@@ -223,8 +210,6 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     // If enabled, test also "restoreAbsolute".
     if (restore) {
       expect(resolver.pathToUri(path), uri);
-      // ignore: deprecated_member_use_from_same_package
-      expect(resolver.restoreAbsolute(source), uri);
     }
     return source;
   }

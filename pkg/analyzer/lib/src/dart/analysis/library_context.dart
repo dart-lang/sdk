@@ -31,7 +31,7 @@ var counterLoadedLibraries = 0;
 var timerBundleToBytes = Stopwatch(); // TODO(scheglov) use
 var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
-var timerLoad2 = Stopwatch();
+var timerLoad = Stopwatch();
 
 /// Context information necessary to analyze one or more libraries within an
 /// [AnalysisDriver].
@@ -104,8 +104,8 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  void load2(FileState targetLibrary) {
-    timerLoad2.start();
+  Future<void> load(FileState targetLibrary) async {
+    timerLoad.start();
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -114,7 +114,7 @@ class LibraryContext {
     var bytesGet = 0;
     var bytesPut = 0;
 
-    void loadBundle(LibraryCycle cycle) {
+    Future<void> loadBundle(LibraryCycle cycle) async {
       if (cycle.libraries.isEmpty ||
           elementFactory.hasLibrary(cycle.libraries.first.uriStr)) {
         return;
@@ -122,7 +122,9 @@ class LibraryContext {
 
       librariesTotal += cycle.libraries.length;
 
-      cycle.directDependencies.forEach(loadBundle);
+      for (var directDependency in cycle.directDependencies) {
+        await loadBundle(directDependency);
+      }
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       var macroLibraries = <MacroLibrary>[];
@@ -206,7 +208,7 @@ class LibraryContext {
           timerLinking.start();
           // TODO(scheglov) Migrate when we are ready to switch to async.
           // ignore: deprecated_member_use_from_same_package
-          linkResult = link2.link(elementFactory, inputLibraries);
+          linkResult = await link2.link2(elementFactory, inputLibraries);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
@@ -245,9 +247,9 @@ class LibraryContext {
       }
     }
 
-    logger.run('Prepare linked bundles', () {
+    await logger.runAsync('Prepare linked bundles', () async {
       var libraryCycle = targetLibrary.libraryCycle;
-      loadBundle(libraryCycle);
+      await loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
@@ -263,7 +265,7 @@ class LibraryContext {
     // exists without doing any work. But the type provider must be created.
     _createElementFactoryTypeProvider();
 
-    timerLoad2.stop();
+    timerLoad.stop();
   }
 
   /// Ensure that type provider is created.

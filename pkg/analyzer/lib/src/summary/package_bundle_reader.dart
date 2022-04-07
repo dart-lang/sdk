@@ -70,14 +70,6 @@ class InSummarySource extends BasicSource {
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
-  @Deprecated('Not used anymore')
-  @override
-  int get modificationStamp => 0;
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind => UriKind.PACKAGE_URI;
-
   @override
   bool exists() => true;
 

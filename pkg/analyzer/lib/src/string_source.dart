@@ -17,35 +17,18 @@ class StringSource extends Source {
   @override
   final Uri uri;
 
-  @override
-  final int modificationStamp;
-
   StringSource(this._contents, String? fullName, {Uri? uri})
       : fullName = fullName ?? '/test.dart',
-        uri = _computeUri(uri, fullName),
-        modificationStamp = DateTime.now().millisecondsSinceEpoch;
+        uri = _computeUri(uri, fullName);
 
   @override
-  TimestampedData<String> get contents =>
-      TimestampedData(modificationStamp, _contents);
-
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => uri.toString();
+  TimestampedData<String> get contents => TimestampedData(0, _contents);
 
   @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
-  @Deprecated('Use uri.isScheme("dart") instead')
-  @override
-  bool get isInSystemLibrary => false;
-
   @override
   String get shortName => fullName;
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind => UriKind.FILE_URI;
 
   /// Return `true` if the given [object] is a string source that is equal to
   /// this source.

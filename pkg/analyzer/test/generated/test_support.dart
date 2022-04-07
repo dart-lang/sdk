@@ -435,7 +435,6 @@ class TestInstrumentor extends NoopInstrumentationService {
 class TestSource extends Source {
   final String _name;
   String _contents;
-  int _modificationStamp = 0;
   bool exists2 = true;
 
   /// A flag indicating whether an exception should be generated when an attempt
@@ -457,10 +456,6 @@ class TestSource extends Source {
     return TimestampedData<String>(0, _contents);
   }
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => _name;
-
   @override
   String get fullName {
     return _name;
@@ -469,17 +464,6 @@ class TestSource extends Source {
   @override
   int get hashCode => 0;
 
-  @Deprecated('Use uri.isScheme("dart") instead')
-  @override
-  bool get isInSystemLibrary {
-    return false;
-  }
-
-  @Deprecated('Not used anymore')
-  @override
-  int get modificationStamp =>
-      generateExceptionOnRead ? -1 : _modificationStamp;
-
   @override
   String get shortName {
     return _name;
@@ -487,12 +471,6 @@ class TestSource extends Source {
 
   @override
   Uri get uri => Uri.file(_name);
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind {
-    throw UnsupportedError('uriKind');
-  }
 
   @override
   bool operator ==(Object other) {
@@ -511,7 +489,6 @@ class TestSource extends Source {
 
   void setContents(String value) {
     generateExceptionOnRead = false;
-    _modificationStamp = DateTime.now().millisecondsSinceEpoch;
     _contents = value;
   }
 
@@ -525,21 +502,6 @@ class TestSourceWithUri extends TestSource {
 
   TestSourceWithUri(String path, this.uri, [String content = ''])
       : super(path, content);
-
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => uri.toString();
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind {
-    if (uri.isScheme('dart')) {
-      return UriKind.DART_URI;
-    } else if (uri.isScheme('package')) {
-      return UriKind.PACKAGE_URI;
-    }
-    return UriKind.FILE_URI;
-  }
 
   @override
   bool operator ==(Object other) {

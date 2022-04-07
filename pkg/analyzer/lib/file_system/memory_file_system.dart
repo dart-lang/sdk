@@ -146,21 +146,12 @@ class MemoryResourceProvider implements ResourceProvider {
     _notifyWatchers(path, ChangeType.MODIFY);
   }
 
-  File newFile(
-    String path,
-    String content, [
-    @Deprecated('This parameter is not used and will be removed') int? stamp,
-  ]) {
+  File newFile(String path, String content) {
     var bytes = utf8.encode(content) as Uint8List;
-    // ignore: deprecated_member_use_from_same_package
-    return newFileWithBytes(path, bytes, stamp);
+    return newFileWithBytes(path, bytes);
   }
 
-  File newFileWithBytes(
-    String path,
-    List<int> bytes, [
-    @Deprecated('This parameter is not used and will be removed') int? stamp,
-  ]) {
+  File newFileWithBytes(String path, List<int> bytes) {
     _ensureAbsoluteAndNormalized(path);
     bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
 

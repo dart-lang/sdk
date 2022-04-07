@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/workspace/workspace.dart';
 
 MicroContextObjects createMicroContextObjects({
   required FileResolver fileResolver,
@@ -137,12 +136,6 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
   @override
   Folder? get sdkRoot => null;
-
-  @Deprecated('Use contextRoot.workspace instead')
-  @override
-  Workspace get workspace {
-    return contextRoot.workspace;
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

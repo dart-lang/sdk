@@ -5,7 +5,7 @@
 library _fe_analyzer_shared.scanner.token;
 
 import 'token.dart' as analyzer;
-import 'token.dart' show Token, TokenType;
+import 'token.dart' show TokenType;
 
 import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -116,10 +116,6 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
   }
 
   @override
-  Token copy() => new StringToken._(
-      type, valueOrLazySubstring, charOffset, copyComments(precedingComments));
-
-  @override
   String value() => lexeme;
 }
 
@@ -134,10 +130,6 @@ class SyntheticStringToken extends StringToken
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new SyntheticStringToken(
-      type, valueOrLazySubstring, offset, copyComments(precedingComments));
 }
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
@@ -167,24 +159,6 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
   CommentToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
       bool asciiOnly, int charOffset)
       : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
-
-  CommentToken._(TokenType type, valueOrLazySubstring, int charOffset)
-      : super._(type, valueOrLazySubstring, charOffset);
-
-  @override
-  CommentToken copy() =>
-      new CommentToken._(type, valueOrLazySubstring, charOffset);
-
-  @override
-  void remove() {
-    if (previous != null) {
-      previous!.setNextWithoutSettingPrevious(next);
-      next?.previous = previous;
-    } else {
-      assert(parent!.precedingComments == this);
-      parent!.precedingComments = next as CommentToken;
-    }
-  }
 }
 
 class LanguageVersionToken extends CommentToken
@@ -209,10 +183,6 @@ class LanguageVersionToken extends CommentToken
       int tokenStart, this.major, this.minor)
       : super.fromUtf8Bytes(
             TokenType.SINGLE_LINE_COMMENT, bytes, start, end, true, tokenStart);
-
-  @override
-  LanguageVersionToken copy() =>
-      new LanguageVersionToken.from(lexeme, offset, major, minor);
 }
 
 class DartDocToken extends CommentToken
@@ -234,13 +204,6 @@ class DartDocToken extends CommentToken
   DartDocToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
       bool asciiOnly, int charOffset)
       : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
-
-  DartDocToken._(TokenType type, valueOrLazySubstring, int charOffset)
-      : super._(type, valueOrLazySubstring, charOffset);
-
-  @override
-  DartDocToken copy() =>
-      new DartDocToken._(type, valueOrLazySubstring, charOffset);
 }
 
 /**

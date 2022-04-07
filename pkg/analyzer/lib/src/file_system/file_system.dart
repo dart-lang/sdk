@@ -32,10 +32,6 @@ class ResourceUriResolver extends UriResolver {
     return file.createSource(uri);
   }
 
-  @Deprecated('Use pathToUri() instead')
-  @override
-  Uri restoreAbsolute(Source source) => pathToUri(source.fullName);
-
   /// Return `true` if the given [uri] is a `file` URI.
   static bool isFileUri(Uri uri) => uri.isScheme(FILE_SCHEME);
 }

@@ -73,7 +73,7 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var element = analysisDriver.getLibraryByFile(file);
+      var element = await analysisDriver.getLibraryByFile(file);
       if (element == null || importedLibraries.contains(element)) {
         continue;
       }
