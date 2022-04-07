@@ -1482,6 +1482,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void KillLocked(LibMsgId msg_id);
 
   void Shutdown();
+  void RunAndCleanupFinalizersOnShutdown();
   void LowLevelShutdown();
 
   // Unregister the [isolate] from the thread, remove it from the isolate group,

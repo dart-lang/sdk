@@ -55,10 +55,6 @@ class _MockSource implements Source {
 
   _MockSource(this.uri);
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => '$uri';
-
   @override
   String get fullName => uri.path;
 

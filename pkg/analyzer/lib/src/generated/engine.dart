@@ -319,7 +319,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _lintRules = rules;
   }
 
-  @override
   Uint32List get signature {
     if (_signature == null) {
       ApiSignature buffer = ApiSignature();

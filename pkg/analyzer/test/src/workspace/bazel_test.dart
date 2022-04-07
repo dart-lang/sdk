@@ -149,21 +149,6 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     );
   }
 
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreAbsolute() {
-    _addResources([
-      '/workspace/WORKSPACE',
-    ]);
-    Uri uri =
-        resourceProvider.pathContext.toUri(convertPath('/workspace/test.dart'));
-    var source = resolver.resolveAbsolute(uri)!;
-    expect(resolver.restoreAbsolute(source), uri);
-    expect(
-        resolver.restoreAbsolute(NonExistingSource(
-            source.fullName, Uri.parse('package:test/test.dart'))),
-        uri);
-  }
-
   void _addResources(List<String> paths) {
     for (String path in paths) {
       if (path.endsWith('/')) {
@@ -687,18 +672,13 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     // If enabled, test also "restoreAbsolute".
     if (restore) {
       expect(resolver.pathToUri(path), uri);
-      // ignore: deprecated_member_use_from_same_package
-      expect(resolver.restoreAbsolute(source), uri);
     }
   }
 
   void _assertRestore(String posixPath, String? expectedUriStr) {
     var expectedUri = expectedUriStr != null ? Uri.parse(expectedUriStr) : null;
     String path = convertPath(posixPath);
-    _MockSource source = _MockSource(path);
     expect(resolver.pathToUri(path), expectedUri);
-    // ignore: deprecated_member_use_from_same_package
-    expect(resolver.restoreAbsolute(source), expectedUri);
   }
 }
 
@@ -1237,16 +1217,4 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   /// Expect that [BazelWorkspace.findFile], given [path], returns [equals].
   void _expectFindFile(String path, {required String equals}) =>
       expect(workspace.findFile(convertPath(path))!.path, convertPath(equals));
-}
-
-class _MockSource implements Source {
-  @override
-  final String fullName;
-
-  _MockSource(this.fullName);
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    throw StateError('Unexpected invocation of ${invocation.memberName}');
-  }
 }

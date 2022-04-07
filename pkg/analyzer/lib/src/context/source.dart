@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/package_build.dart';
 
@@ -137,15 +136,6 @@ class SourceFactoryImpl implements SourceFactory {
               stackTrace));
       return null;
     }
-  }
-
-  @Deprecated('Use pathToUri() instead')
-  @override
-  Uri? restoreUri(Source source) {
-    if (source is InSummarySource) {
-      return source.uri;
-    }
-    return pathToUri(source.fullName);
   }
 
   /// Return a source object representing the URI that results from resolving

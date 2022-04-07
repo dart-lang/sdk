@@ -606,16 +606,6 @@ class ElementImplTest extends AbstractTypeSystemTest {
     Element element = ElementFactory.classElement2("C");
     expect(element.isPublic, isTrue);
   }
-
-  void test_SORT_BY_OFFSET() {
-    ClassElementImpl classElementA = class_(name: 'A');
-    classElementA.nameOffset = 1;
-    ClassElementImpl classElementB = ElementFactory.classElement2("B");
-    classElementB.nameOffset = 2;
-    expect(Element.SORT_BY_OFFSET(classElementA, classElementA), 0);
-    expect(Element.SORT_BY_OFFSET(classElementA, classElementB) < 0, isTrue);
-    expect(Element.SORT_BY_OFFSET(classElementB, classElementA) > 0, isTrue);
-  }
 }
 
 @reflectiveTest

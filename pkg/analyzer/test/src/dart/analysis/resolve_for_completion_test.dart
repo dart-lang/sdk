@@ -574,7 +574,7 @@ void f<T^>() {
     await testDriver.applyPendingFileChanges();
 
     var performance = OperationPerformanceImpl('<root>');
-    var result = testDriver.resolveForCompletion(
+    var result = await testDriver.resolveForCompletion(
       path: path,
       offset: offset,
       performance: performance,

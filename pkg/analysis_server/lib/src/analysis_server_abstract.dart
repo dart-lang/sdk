@@ -503,7 +503,7 @@ abstract class AbstractAnalysisServer {
 
     try {
       await driver.applyPendingFileChanges();
-      return driver.resolveForCompletion(
+      return await driver.resolveForCompletion(
         path: path,
         offset: offset,
         performance: performance,

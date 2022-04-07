@@ -55,9 +55,6 @@ class BeginToken extends SimpleToken {
   }
 
   @override
-  Token copy() => new BeginToken(type, offset, copyComments(precedingComments));
-
-  @override
   Token? get endGroup => endToken;
 
   /**
@@ -83,25 +80,6 @@ class CommentToken extends StringToken {
    */
   CommentToken(TokenType type, String value, int offset)
       : super(type, value, offset);
-
-  @override
-  CommentToken copy() => new CommentToken(type, _value, offset);
-
-  /**
-   * Remove this comment token from the list.
-   *
-   * This is used when we decide to interpret the comment as syntax.
-   */
-  void remove() {
-    Token? previous = this.previous;
-    if (previous != null) {
-      previous.setNextWithoutSettingPrevious(next);
-      next?.previous = previous;
-    } else {
-      assert(parent!.precedingComments == this);
-      parent!.precedingComments = next as CommentToken?;
-    }
-  }
 }
 
 /**
@@ -114,9 +92,6 @@ class DocumentationCommentToken extends CommentToken {
    */
   DocumentationCommentToken(TokenType type, String value, int offset)
       : super(type, value, offset);
-
-  @override
-  CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
 }
 
 enum KeywordStyle {
@@ -482,10 +457,6 @@ class KeywordToken extends SimpleToken {
       : super(keyword, offset, precedingComment);
 
   @override
-  Token copy() =>
-      new KeywordToken(keyword, offset, copyComments(precedingComments));
-
-  @override
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
@@ -515,10 +486,6 @@ class LanguageVersionToken extends CommentToken {
 
   LanguageVersionToken.from(String text, int offset, this.major, this.minor)
       : super(TokenType.SINGLE_LINE_COMMENT, text, offset);
-
-  @override
-  LanguageVersionToken copy() =>
-      new LanguageVersionToken.from(lexeme, offset, major, minor);
 }
 
 /**
@@ -634,25 +601,6 @@ class SimpleToken implements Token {
   String? get stringValue => type.stringValue;
 
   @override
-  Token copy() =>
-      new SimpleToken(type, offset, copyComments(precedingComments));
-
-  @override
-  CommentToken? copyComments(CommentToken? token) {
-    if (token == null) {
-      return null;
-    }
-    CommentToken head = token.copy();
-    Token tail = head;
-    token = token.next as CommentToken?;
-    while (token != null) {
-      tail = tail.setNext(token.copy());
-      token = token.next as CommentToken?;
-    }
-    return head;
-  }
-
-  @override
   bool matchesAny(List<TokenType> types) {
     for (TokenType type in types) {
       if (this.type == type) {
@@ -719,10 +667,6 @@ class StringToken extends SimpleToken {
   String get lexeme => _value;
 
   @override
-  Token copy() =>
-      new StringToken(type, _value, offset, copyComments(precedingComments));
-
-  @override
   String value() => _value;
 }
 
@@ -740,10 +684,6 @@ class SyntheticBeginToken extends BeginToken {
 
   @override
   Token? beforeSynthetic;
-
-  @override
-  Token copy() =>
-      new SyntheticBeginToken(type, offset, copyComments(precedingComments));
 
   @override
   bool get isSynthetic => true;
@@ -767,9 +707,6 @@ class SyntheticKeywordToken extends KeywordToken {
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new SyntheticKeywordToken(keyword, offset);
 }
 
 /**
@@ -794,9 +731,6 @@ class SyntheticStringToken extends StringToken {
 
   @override
   int get length => _length ?? super.length;
-
-  @override
-  Token copy() => new SyntheticStringToken(type, _value, offset, _length);
 }
 
 /**
@@ -813,9 +747,6 @@ class SyntheticToken extends SimpleToken {
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new SyntheticToken(type, offset);
 }
 
 /// A token used to replace another token in the stream, while still keeping the
@@ -839,9 +770,6 @@ class ReplacementToken extends SyntheticToken {
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new ReplacementToken(type, replacedToken);
 }
 
 /**
@@ -1040,18 +968,6 @@ abstract class Token implements SyntacticEntity {
    * Return the type of the token.
    */
   TokenType get type;
-
-  /**
-   * Return a newly created token that is a copy of this tokens
-   * including any [preceedingComment] tokens,
-   * but that is not a part of any token stream.
-   */
-  Token copy();
-
-  /**
-   * Copy a linked list of comment tokens identical to the given comment tokens.
-   */
-  CommentToken? copyComments(CommentToken? token);
 
   /**
    * Return `true` if this token has any one of the given [types].

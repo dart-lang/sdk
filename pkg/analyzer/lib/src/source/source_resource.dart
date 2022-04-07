@@ -38,9 +38,6 @@ class FileSource extends Source {
   /// The cached absolute path of this source.
   String? _absolutePath;
 
-  /// The cached encoding for this source.
-  String? _encoding;
-
   /// Initialize a newly created source object to represent the given [file]. If
   /// a [uri] is given, then it will be used as the URI from which the source
   /// was derived, otherwise a `file:` URI will be created based on the [file].
@@ -67,36 +64,14 @@ class FileSource extends Source {
         file.modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => _encoding ??= uri.toString();
-
   @override
   String get fullName => _absolutePath ??= file.path;
 
   @override
   int get hashCode => uri.hashCode;
 
-  @Deprecated('Use uri.isScheme("dart") instead')
-  @override
-  bool get isInSystemLibrary => uri.isScheme(DartUriResolver.DART_SCHEME);
-
-  @Deprecated('Not used anymore')
-  @override
-  int get modificationStamp {
-    try {
-      return file.modificationStamp;
-    } on FileSystemException {
-      return -1;
-    }
-  }
-
   @override
   String get shortName => file.shortName;
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind => UriKind.fromScheme(uri.scheme);
 
   @override
   bool operator ==(Object other) {

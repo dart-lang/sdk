@@ -1111,8 +1111,8 @@ DART_EXPORT void ReleaseClosureCallback() {
 ////////////////////////////////////////////////////////////////////////////////
 // NativeFinalizer tests
 
-DART_EXPORT void SetArgumentTo42(intptr_t* token) {
-  *token = 42;
+DART_EXPORT void SetArgumentTo42(void* token) {
+  *reinterpret_cast<intptr_t*>(token) = 42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

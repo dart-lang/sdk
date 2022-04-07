@@ -17,7 +17,6 @@ main() {
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(ResolveRelativeUriTest);
-    defineReflectiveTests(UriKindTest);
   });
 }
 
@@ -71,22 +70,6 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
   void test_resolve_nonDart() {
     var result = resolver.resolveAbsolute(Uri.parse("package:some/file.dart"));
     expect(result, isNull);
-  }
-
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreAbsolute_library() {
-    _SourceMock source = _SourceMock();
-    source.fullName = convertPath('/sdk/lib/core/core.dart');
-    var dartUri = resolver.restoreAbsolute(source);
-    expect(dartUri.toString(), 'dart:core');
-  }
-
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreAbsolute_part() {
-    _SourceMock source = _SourceMock();
-    source.fullName = convertPath('/sdk/lib/core/int.dart');
-    var dartUri = resolver.restoreAbsolute(source);
-    expect(dartUri.toString(), 'dart:core/int.dart');
   }
 }
 
@@ -191,24 +174,6 @@ class ResolveRelativeUriTest {
   }
 }
 
-@reflectiveTest
-class UriKindTest {
-  @deprecated
-  test_fromEncoding() async {
-    expect(UriKind.fromEncoding(0x64), same(UriKind.DART_URI));
-    expect(UriKind.fromEncoding(0x66), same(UriKind.FILE_URI));
-    expect(UriKind.fromEncoding(0x70), same(UriKind.PACKAGE_URI));
-    expect(UriKind.fromEncoding(0x58), isNull);
-  }
-
-  @deprecated
-  test_getEncoding() async {
-    expect(UriKind.DART_URI.encoding, 0x64);
-    expect(UriKind.FILE_URI.encoding, 0x66);
-    expect(UriKind.PACKAGE_URI.encoding, 0x70);
-  }
-}
-
 class _SimpleDartSdkTest with ResourceProviderMixin {
   late final DartSdk sdk;
 
@@ -230,18 +195,5 @@ part of dart.core;
 
     Folder sdkFolder = newFolder('/sdk');
     sdk = FolderBasedDartSdk(resourceProvider, sdkFolder);
-  }
-}
-
-class _SourceMock implements Source {
-  @override
-  late final String fullName;
-
-  @override
-  late final Uri uri;
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

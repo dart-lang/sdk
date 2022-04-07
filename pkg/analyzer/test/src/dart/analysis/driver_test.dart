@@ -1521,6 +1521,9 @@ void f(A a) {}
     // Notify the driver that the file was changed.
     driver.changeFile(a);
 
+    // ...and apply this change.
+    await driver.applyPendingFileChanges();
+
     // So, `class A {}` is declared now.
     expect(driver.getFileSyncValid(a).lineInfo.lineCount, 2);
     expect((await driver.getResultValid(b)).errors, isEmpty);
@@ -2474,6 +2477,9 @@ void f(A a) {}
 
     // Notify the driver that the file was changed.
     driver.changeFile(a);
+
+    // ...and apply this change.
+    await driver.applyPendingFileChanges();
 
     // So, `class A {}` is declared now.
     {

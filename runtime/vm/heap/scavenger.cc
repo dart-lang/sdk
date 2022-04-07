@@ -1212,9 +1212,13 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
       if (UNLIKELY(class_id == kFinalizerEntryCid)) {
         FinalizerEntryPtr raw_entry =
             static_cast<FinalizerEntryPtr>(raw_object);
+        if (FLAG_trace_finalizers) {
+          THR_Print("Scavenger::IterateStoreBuffers Processing Entry %p\n",
+                    raw_entry->untag());
+        }
         // Detect `FinalizerEntry::value` promotion to update external space.
         //
-        // This treats old-space FinalizerEntry fields as strong. Values, deatch
+        // This treats old-space FinalizerEntry fields as strong. Values, detach
         // keys, and finalizers in new space won't be reclaimed until after they
         // are promoted.
         // This will only visit the strong references, end enqueue the entry.
@@ -1225,13 +1229,15 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
           const Heap::Space after_gc_space = SpaceForExternal(raw_entry);
           if (after_gc_space == Heap::kOld) {
             const intptr_t external_size = raw_entry->untag()->external_size_;
-            if (FLAG_trace_finalizers) {
-              THR_Print(
-                  "Scavenger %p Store buffer, promoting external size %" Pd
-                  " bytes from new to old space\n",
-                  visitor, external_size);
+            if (external_size > 0) {
+              if (FLAG_trace_finalizers) {
+                THR_Print(
+                    "Scavenger %p Store buffer, promoting external size %" Pd
+                    " bytes from new to old space\n",
+                    visitor, external_size);
+              }
+              visitor->isolate_group()->heap()->PromotedExternal(external_size);
             }
-            visitor->isolate_group()->heap()->PromotedExternal(external_size);
           }
         }
       } else {

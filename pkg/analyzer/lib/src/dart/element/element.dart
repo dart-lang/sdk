@@ -1116,18 +1116,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   int get hashCode => source.hashCode;
 
-  @Deprecated('Not useful for clients')
-  @override
-  bool get hasLoadLibraryFunction {
-    final functions = this.functions;
-    for (int i = 0; i < functions.length; i++) {
-      if (functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @override
   String get identifier => '${source.uri}';
 
@@ -1185,12 +1173,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   TypeParameterizedElementMixin? get typeParameterContext => null;
-
-  @Deprecated('Use classes instead')
-  @override
-  List<ClassElement> get types {
-    return _classes;
-  }
 
   @override
   bool operator ==(Object other) =>
@@ -3560,10 +3542,6 @@ class ImportElementImpl extends UriReferencedElementImpl
         NamespaceBuilder().createImportNamespaceForDirective(this);
   }
 
-  @Deprecated('Use prefix.nameOffset instead')
-  @override
-  int get prefixOffset => prefix?.nameOffset ?? -1;
-
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitImportElement(this);
 
@@ -3773,21 +3751,6 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   List<ExportElement> get exports_unresolved {
     return _exports;
-  }
-
-  @Deprecated('Support for dart-ext is replaced with FFI')
-  @override
-  bool get hasExtUri => false;
-
-  @Deprecated('Not useful for clients')
-  @override
-  bool get hasLoadLibraryFunction {
-    for (int i = 0; i < units.length; i++) {
-      if (units[i].hasLoadLibraryFunction) {
-        return true;
-      }
-    }
-    return false;
   }
 
   bool get hasPartOfDirective {

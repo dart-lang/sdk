@@ -1,3 +1,26 @@
+## 4.0.0 (Not yet released - breaking changes)
+* Removed deprecated `UriKind` and `Source.uriKind`.
+* Removed deprecated `LibraryElement.hasExtUri`.
+* Removed deprecated `LibraryElement.hasLoadLibraryFunction`.
+* Removed deprecated `ImportElement.prefixOffset`.
+* Removed deprecated `CompilationUnitElement.types`.
+* Removed deprecated `Source.encoding`.
+* Removed deprecated `Source.isInSystemLibrary`.
+* Removed deprecated `Source.modificationStamp`.
+* Removed deprecated `stamp` in `MemoryResourceProvider`.
+* Removed deprecated `SourceFactory.restoreUri`, use `pathToUri` instead.
+* Removed deprecated `AnalysisContext.workspace`.
+* The `isNonNullableByDefault` parameter in `ErrorReporter` is now required.
+* Removed `Element.SORT_BY_OFFSET`, it is not used.
+* Changed synchronous `AnalysisSession.getFile` and `getParsedUnit` to fail
+  if there are pending file changes, instead of reading. As for any other
+  `AnalysisSession` method, await `AnalysisContext.applyPendingFileChanges()`.
+* Removed `Token.copy()` and `copyComments()`.
+* Removed `CommentToken.remove()`.
+* Removed deprecated `astFactory` and `AstFactory`.
+* Removed `AnalysisOptions.signature` and `signaturesEqual`.
+* Removed deprecated `buildSdkSummary()`.
+
 ## 3.4.1
 * Remove checks for consistency after operations in `AnalysisSession`.
 

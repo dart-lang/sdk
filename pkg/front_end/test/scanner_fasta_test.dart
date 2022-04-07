@@ -212,66 +212,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
     expect(token.precedingComments?.lexeme, '// EOF comment');
   }
 
-  void test_CommentToken_remove() {
-    const code = '''
-/// aaa
-/// bbbb
-/// ccccc
-main() {}
-''';
-
-    late Token token;
-    late fasta.CommentToken c1;
-    late fasta.CommentToken c2;
-    late fasta.CommentToken c3;
-
-    void prepareTokens() {
-      token = scanString(code, includeComments: true).tokens;
-
-      expect(token.type.kind, fasta.IDENTIFIER_TOKEN);
-
-      c1 = token.precedingComments!;
-      c2 = c1.next as fasta.CommentToken;
-      c3 = c2.next as fasta.CommentToken;
-      expect(c3.next, isNull);
-
-      expect(c1.parent, token);
-      expect(c2.parent, token);
-      expect(c3.parent, token);
-
-      expect(c1.lexeme, '/// aaa');
-      expect(c2.lexeme, '/// bbbb');
-      expect(c3.lexeme, '/// ccccc');
-    }
-
-    // Remove the first token.
-    {
-      prepareTokens();
-      c1.remove();
-      expect(token.precedingComments, c2);
-      expect(c2.next, c3);
-      expect(c3.next, isNull);
-    }
-
-    // Remove the second token.
-    {
-      prepareTokens();
-      c2.remove();
-      expect(token.precedingComments, c1);
-      expect(c1.next, c3);
-      expect(c3.next, isNull);
-    }
-
-    // Remove the last token.
-    {
-      prepareTokens();
-      c3.remove();
-      expect(token.precedingComments, c1);
-      expect(c1.next, c2);
-      expect(c2.next, isNull);
-    }
-  }
-
   void test_double_error() {
     String source = "3457e";
     ErrorListener listener = new ErrorListener();

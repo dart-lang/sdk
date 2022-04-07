@@ -36,7 +36,7 @@ class Extensions {
         continue;
       }
 
-      var libraryElement = analysisDriver.getLibraryByFile(file);
+      var libraryElement = await analysisDriver.getLibraryByFile(file);
       if (libraryElement == null) {
         continue;
       }
