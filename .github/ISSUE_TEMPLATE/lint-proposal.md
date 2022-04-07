@@ -46,5 +46,5 @@ assignees: ''
 <!-- Links -->
 [Writing Lints]: https://github.com/dart-lang/linter/blob/master/doc/WritingLints.MD
 [Effective Dart]: https://dart.dev/guides/language/effective-dart
-[Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo]
+[Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo
 [SDK Tracker]: https://github.com/dart-lang/sdk/issues
