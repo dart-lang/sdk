@@ -26,7 +26,8 @@ class ThreadInterrupterWin : public AllStatic {
 #if defined(HOST_ARCH_IA32)
     // On IA32, CONTEXT_CONTROL includes Eip, Ebp, and Esp.
     context.ContextFlags = CONTEXT_CONTROL;
-#elif defined(HOST_ARCH_X64)
+#elif defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM) ||                      \
+    defined(HOST_ARCH_ARM64)
     // On X64, CONTEXT_CONTROL includes Rip and Rsp. Rbp is classified
     // as an "integer" register.
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
@@ -44,6 +45,16 @@ class ThreadInterrupterWin : public AllStatic {
       state->fp = static_cast<uintptr_t>(context.Rbp);
       state->csp = static_cast<uintptr_t>(context.Rsp);
       state->dsp = static_cast<uintptr_t>(context.Rsp);
+#elif defined(HOST_ARCH_ARM)
+      state->pc = static_cast<uintptr_t>(context.Pc);
+      state->fp = static_cast<uintptr_t>(context.R11);
+      state->csp = static_cast<uintptr_t>(context.Sp);
+      state->dsp = static_cast<uintptr_t>(context.Sp);
+#elif defined(HOST_ARCH_ARM64)
+      state->pc = static_cast<uintptr_t>(context.Pc);
+      state->fp = static_cast<uintptr_t>(context.Fp);
+      state->csp = static_cast<uintptr_t>(context.Sp);
+      state->dsp = static_cast<uintptr_t>(context.X15);
 #else
 #error Unsupported architecture.
 #endif

@@ -4832,7 +4832,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kBIT_NOT:
-      __ mvn(result, value);
+      __ mvn_(result, value);
       // Remove inverted smi-tag.
       __ andi(result, result, compiler::Immediate(~kSmiTagMask));
       break;
@@ -6145,7 +6145,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   switch (op_kind()) {
     case Token::kBIT_NOT:
-      __ mvn(out, left);
+      __ mvn_(out, left);
       break;
     case Token::kNEGATE:
       __ sub(out, ZR, compiler::Operand(left));

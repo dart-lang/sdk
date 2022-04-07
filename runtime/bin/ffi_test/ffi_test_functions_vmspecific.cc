@@ -185,7 +185,10 @@ DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
 // Clobbers some registers with special meaning in Dart before re-entry, for
 // stress-testing. Not used on 32-bit Windows due to complications with Windows
 // "safeseh".
-#if defined(DART_TARGET_OS_WINDOWS) && defined(HOST_ARCH_IA32)
+// TODO(47824): Figure out how ARM/ARM64 syntax is different on Windows.
+#if defined(DART_TARGET_OS_WINDOWS) &&                                         \
+    (defined(HOST_ARCH_IA32) || defined(HOST_ARCH_ARM) ||                      \
+     defined(HOST_ARCH_ARM64))
 void ClobberAndCall(void (*fn)()) {
   fn();
 }
