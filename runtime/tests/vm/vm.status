@@ -58,10 +58,12 @@ dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exac
 [ $builder_tag == optimization_counter_threshold ]
 cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
+dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # GC happens at unpredictable times.
 dart/kernel_determinism_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/appjit*: SkipByDesign # Test needs to a particular opt-counter value
+dart_2/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # GC happens at unpredictable times.
 dart_2/kernel_determinism_test: SkipSlow
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
