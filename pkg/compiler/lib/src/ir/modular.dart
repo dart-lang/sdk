@@ -5,7 +5,6 @@
 // @dart = 2.10
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir
@@ -17,7 +16,7 @@ import '../diagnostics/source_span.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
-import '../options.dart';
+import '../kernel/element_map.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'annotations.dart';
@@ -73,19 +72,20 @@ class ModuleData {
 }
 
 /// Compute [ModularMemberData] from the IR.
-ModularMemberData computeModularMemberData(ir.Member node,
-    {CompilerOptions options,
-    ir.TypeEnvironment typeEnvironment,
-    ir.ClassHierarchy classHierarchy,
+ModularMemberData computeModularMemberData(
+    KernelToElementMap elementMap,
+    ir.Member node,
     ScopeModel scopeModel,
-    EnumSet<PragmaAnnotation> annotations}) {
+    EnumSet<PragmaAnnotation> annotations) {
   var staticTypeCache = StaticTypeCacheImpl();
   var impactBuilderData = ImpactBuilder(
-          ir.StaticTypeContext(node, typeEnvironment, cache: staticTypeCache),
+          elementMap,
+          ir.StaticTypeContext(node, elementMap.typeEnvironment,
+              cache: staticTypeCache),
           staticTypeCache,
-          classHierarchy,
+          elementMap.classHierarchy,
           scopeModel.variableScopeModel,
-          useAsserts: options.enableUserAssertions,
+          useAsserts: elementMap.options.enableUserAssertions,
           inferEffectivelyFinalVariableTypes:
               !annotations.contains(PragmaAnnotation.disableFinal))
       .computeImpact(node);

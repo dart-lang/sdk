@@ -9,7 +9,11 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import '../common/elements.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../ir/scope.dart';
+import '../kernel/element_map.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
@@ -21,6 +25,7 @@ import 'util.dart';
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
+  final KernelToElementMap _elementMap;
 
   @override
   final VariableScopeModel variableScopeModel;
@@ -34,11 +39,23 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   final inferEffectivelyFinalVariableTypes;
 
-  ImpactBuilder(this.staticTypeContext, StaticTypeCacheImpl staticTypeCache,
-      ir.ClassHierarchy classHierarchy, this.variableScopeModel,
-      {this.useAsserts = false, this.inferEffectivelyFinalVariableTypes = true})
+  ImpactBuilder(
+      this._elementMap,
+      this.staticTypeContext,
+      StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy,
+      this.variableScopeModel,
+      {this.useAsserts = false,
+      this.inferEffectivelyFinalVariableTypes = true})
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+
+  CommonElements get _commonElements => _elementMap.commonElements;
+
+  DiagnosticReporter get _reporter => _elementMap.reporter;
+
+  String _typeToString(DartType type) =>
+      type.toStructuredText(_elementMap.types, _elementMap.options);
 
   /// Return the named arguments names as a list of strings.
   List<String> _getNamedArguments(ir.Arguments arguments) =>
@@ -313,6 +330,23 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     registerProcedureNode(procedure);
   }
 
+  void _handleConstConstructorInvocation(ir.ConstructorInvocation node) {
+    assert(node.isConst);
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    if (_commonElements.isSymbolConstructor(constructor)) {
+      DartType argumentType = _elementMap.getDartType(
+          node.arguments.positional.first.getStaticType(staticTypeContext));
+      // TODO(joshualitt): Does the CFE check this for us?
+      if (argumentType != _commonElements.stringType) {
+        // TODO(het): Get the actual span for the Symbol constructor argument
+        _reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+            MessageKind.STRING_EXPECTED, {'type': _typeToString(argumentType)});
+        return;
+      }
+      registerConstSymbolConstructorInvocationNode();
+    }
+  }
+
   @override
   void handleConstructorInvocation(ir.ConstructorInvocation node,
       ArgumentTypes argumentTypes, ir.DartType resultType) {
@@ -325,7 +359,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         getDeferredImport(node),
         isConst: node.isConst);
     if (node.isConst) {
-      registerConstConstructorInvocationNode(node);
+      _handleConstConstructorInvocation(node);
     }
   }
 
@@ -959,13 +993,15 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
-    _data._constConstructorInvocationNodes ??= [];
-    _data._constConstructorInvocationNodes.add(node);
+  void registerConstSymbolConstructorInvocationNode() {
+    _data._hasConstSymbolConstructorInvocation = true;
   }
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
+/// It is critical that all of the data in this class be invariant to changes in
+/// the AST that occur after modular compilation and before deserializing the
+/// impact data.
 class ImpactData {
   static const String tag = 'ImpactData';
 
@@ -1012,7 +1048,7 @@ class ImpactData {
   List<ir.Procedure> _procedureNodes;
   List<ir.SwitchStatement> _switchStatementNodes;
   List<ir.StaticInvocation> _staticInvocationNodes;
-  List<ir.ConstructorInvocation> _constConstructorInvocationNodes;
+  bool _hasConstSymbolConstructorInvocation = false;
 
   ImpactData();
 
@@ -1109,8 +1145,7 @@ class ImpactData {
         source.readTreeNodes<ir.SwitchStatement>(emptyAsNull: true);
     _staticInvocationNodes =
         source.readTreeNodes<ir.StaticInvocation>(emptyAsNull: true);
-    _constConstructorInvocationNodes =
-        source.readTreeNodes<ir.ConstructorInvocation>(emptyAsNull: true);
+    _hasConstSymbolConstructorInvocation = source.readBool();
     source.end(tag);
   }
 
@@ -1186,13 +1221,12 @@ class ImpactData {
     sink.writeList(_runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink),
         allowNull: true);
 
-    // TODO(johnniwinther): Remove these when CFE provides constants.
     sink.writeMemberNodes(_constructorNodes, allowNull: true);
     sink.writeMemberNodes(_fieldNodes, allowNull: true);
     sink.writeMemberNodes(_procedureNodes, allowNull: true);
     sink.writeTreeNodes(_switchStatementNodes, allowNull: true);
     sink.writeTreeNodes(_staticInvocationNodes, allowNull: true);
-    sink.writeTreeNodes(_constConstructorInvocationNodes, allowNull: true);
+    sink.writeBool(_hasConstSymbolConstructorInvocation);
 
     sink.end(tag);
   }
@@ -1527,10 +1561,8 @@ class ImpactData {
         registry.registerStaticInvocationNode(data);
       }
     }
-    if (_constConstructorInvocationNodes != null) {
-      for (ir.ConstructorInvocation data in _constConstructorInvocationNodes) {
-        registry.registerConstConstructorInvocationNode(data);
-      }
+    if (_hasConstSymbolConstructorInvocation) {
+      registry.registerConstSymbolConstructorInvocationNode();
     }
   }
 }

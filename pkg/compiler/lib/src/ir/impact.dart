@@ -182,13 +182,12 @@ abstract class ImpactRegistry {
   void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType);
 
-  // TODO(johnniwinther): Remove these when CFE provides constants.
   void registerConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);
   void registerProcedureNode(ir.Procedure node);
   void registerStaticInvocationNode(ir.StaticInvocation node);
   void registerSwitchStatementNode(ir.SwitchStatement node);
-  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node);
+  void registerConstSymbolConstructorInvocationNode();
 }
 
 class ImpactBuilderData {
