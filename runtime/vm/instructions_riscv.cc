@@ -227,7 +227,9 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 #endif
       if (instr.rs1p() == PP) {
         // PP is untagged on RISC-V.
-        ASSERT(Utils::IsAligned(offset, kWordSize));
+        if (!Utils::IsAligned(offset, kWordSize)) {
+          return false;  // Being used as argument register A5.
+        }
         intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
         const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
         if (!pool.IsNull() && (index < pool.Length()) &&
@@ -249,7 +251,9 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       intptr_t offset = instr.itype_imm();
       if (instr.rs1() == PP) {
         // PP is untagged on RISC-V.
-        ASSERT(Utils::IsAligned(offset, kWordSize));
+        if (!Utils::IsAligned(offset, kWordSize)) {
+          return false;  // Being used as argument register A5.
+        }
         intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
         const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
         if (!pool.IsNull() && (index < pool.Length()) &&

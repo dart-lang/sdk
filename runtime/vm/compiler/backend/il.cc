@@ -6532,7 +6532,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
 
 void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                                   const Register saved_fp,
-                                  const Register temp) {
+                                  const Register temp0,
+                                  const Register temp1) {
   if (compiler::Assembler::EmittingComments()) {
     __ Comment("EmitParamMoves");
   }
@@ -6546,7 +6547,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     const auto& pointer_register =
         pointer_location.IsRegisters()
             ? pointer_location.AsRegisters().reg_at(0)
-            : temp;
+            : temp0;
     __ MoveRegister(pointer_register, SPREG);
     __ AddImmediate(pointer_register, marshaller_.PassByPointerStackOffset(
                                           compiler::ffi::kResultIndex));
@@ -6586,7 +6587,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
               ? arg_target.AsPointerToMemory().pointer_location()
               : /*arg_target.IsStack()*/ arg_target.Split(zone_, num_defs, i);
 
-      ConstantTemporaryAllocator temp_alloc(temp);
+      ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         // Can't occur because we currently don't inline FFI trampolines (see
         // http://dartbug.com/45055), which means all incomming arguments
@@ -6610,11 +6611,11 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       // TypedData/Pointer data pointed to in temp.
       const auto& dst = compiler::ffi::NativeRegistersLocation(
           zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp);
+          temp0);
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
-      __ LoadField(temp,
+      __ LoadField(temp0,
                    compiler::FieldAddress(
-                       temp, compiler::target::PointerBase::data_offset()));
+                       temp0, compiler::target::PointerBase::data_offset()));
 
       // Copy chuncks.
       const intptr_t sp_offset =
@@ -6624,16 +6625,16 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       // space on the stack.
       for (intptr_t i = 0; i < arg_target.payload_type().SizeInBytes();
            i += compiler::target::kWordSize) {
-        __ LoadMemoryValue(TMP, temp, i);
-        __ StoreMemoryValue(TMP, SPREG, i + sp_offset);
+        __ LoadMemoryValue(temp1, temp0, i);
+        __ StoreMemoryValue(temp1, SPREG, i + sp_offset);
       }
 
       // Store the stack address in the argument location.
-      __ MoveRegister(temp, SPREG);
-      __ AddImmediate(temp, sp_offset);
+      __ MoveRegister(temp0, SPREG);
+      __ AddImmediate(temp0, sp_offset);
       const auto& src = compiler::ffi::NativeRegistersLocation(
           zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp);
+          temp0);
       compiler->EmitNativeMove(pointer_loc, src, &temp_alloc);
     }
   }
