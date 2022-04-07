@@ -30,9 +30,9 @@ class Class extends core::Object /*hasConstConstructor*/  {
   const constructor named({core::List<self::Const> constants = const <self::Const>[const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<core::String>()]}) → self::Class
     : self::Class::constants = constants, super core::Object::•()
     ;
-  static method _#new#tearOff({core::List<self::Const> constants}) → self::Class
+  static method _#new#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class
     return new self::Class::•(constants: constants);
-  static method _#named#tearOff({core::List<self::Const> constants}) → self::Class
+  static method _#named#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class
     return new self::Class::named(constants: constants);
 }
 abstract class Const extends core::Object {

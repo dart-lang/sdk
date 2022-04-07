@@ -33,7 +33,7 @@ class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z
   static const field self::E2<core::int, core::String, core::double> one = #C15;
   static const field self::E2<core::String, core::int, core::double> two = #C17;
   static const field self::E2<core::double, core::bool, dynamic> three = #C21;
-  const constructor •(core::int index, core::String name = #C9, self::E2::X% foo, {required self::E2::Y% bar = #C9, self::E2::Z? baz = #C9}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
+  const constructor •(core::int index, core::String name = #C9, self::E2::X% foo, {required self::E2::Y% bar = #C9, has-declared-initializer self::E2::Z? baz = #C9}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
     : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(index, name)
     ;
   method toString() → core::String

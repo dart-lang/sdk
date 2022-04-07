@@ -44,7 +44,7 @@ static const field core::bool f4_is_t1 = self::f4 is{ForNonNullableByDefault} (c
 static const field core::bool f5_is_t1 = self::f5 is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
 static method f({required core::int i}) → core::int
   ;
-static method g({core::int i}) → core::int
+static method g({has-declared-initializer core::int i}) → core::int
   ;
 static method f1(core::int i, self::B b, core::Map<core::int, core::num> m, dynamic x, {required dynamic extraParam, required core::bool obool, required dynamic ox, required self::D ob, required core::List<core::num>? ol}) → self::B
   ;

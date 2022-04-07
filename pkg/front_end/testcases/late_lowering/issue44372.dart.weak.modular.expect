@@ -12,7 +12,7 @@ static method main(core::List<core::String> args) → dynamic {
     #recursiveInitLocal#isSet = true;
     return #recursiveInitLocal = recursiveInitLocal#param;
   }
-  lowered final core::int? #local;
+  lowered final has-declared-initializer core::int? #local;
   lowered core::bool #local#isSet = false;
   function #local#get() → core::int {
     if(!#local#isSet) {

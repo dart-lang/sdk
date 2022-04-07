@@ -26,19 +26,19 @@ extension Extension on self::Class* {
   method method4 = self::Extension|method4;
   tearoff method4 = self::Extension|get#method4;
 }
-static method Extension|method1(lowered final self::Class* #this, {core::bool* b, core::String* s}) → void
+static method Extension|method1(lowered final self::Class* #this, {has-declared-initializer core::bool* b, has-declared-initializer core::String* s}) → void
   ;
 static method Extension|get#method1(lowered final self::Class* #this) → ({b: core::bool*, s: core::String*}) →* void
   return ({core::bool* b, core::String* s}) → void => self::Extension|method1(#this, b: b, s: s);
-static method Extension|method2(lowered final self::Class* #this, [core::bool* b, core::String* s]) → void
+static method Extension|method2(lowered final self::Class* #this, [has-declared-initializer core::bool* b, has-declared-initializer core::String* s]) → void
   ;
 static method Extension|get#method2(lowered final self::Class* #this) → ([core::bool*, core::String*]) →* void
   return ([core::bool* b, core::String* s]) → void => self::Extension|method2(#this, b, s);
-static method Extension|method3(lowered final self::Class* #this, core::int* i, {core::bool* b, core::String* s}) → void
+static method Extension|method3(lowered final self::Class* #this, core::int* i, {has-declared-initializer core::bool* b, has-declared-initializer core::String* s}) → void
   ;
 static method Extension|get#method3(lowered final self::Class* #this) → (core::int*, {b: core::bool*, s: core::String*}) →* void
   return (core::int* i, {core::bool* b, core::String* s}) → void => self::Extension|method3(#this, i, b: b, s: s);
-static method Extension|method4(lowered final self::Class* #this, core::int* i, [core::bool* b, core::String* s]) → void
+static method Extension|method4(lowered final self::Class* #this, core::int* i, [has-declared-initializer core::bool* b, has-declared-initializer core::String* s]) → void
   ;
 static method Extension|get#method4(lowered final self::Class* #this) → (core::int*, [core::bool*, core::String*]) →* void
   return (core::int* i, [core::bool* b, core::String* s]) → void => self::Extension|method4(#this, i, b, s);

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method f() → dynamic {
   core::int* a = 0;
-  dynamic b = null;
+  has-declared-initializer dynamic b = null;
   dynamic c = throw "foo";
   () →* core::int* d = () → core::int* => 0;
   () →* Null e = () → Null => null;

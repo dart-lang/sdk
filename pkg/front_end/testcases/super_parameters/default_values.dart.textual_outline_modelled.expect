@@ -75,6 +75,10 @@ class CC9 extends C9 {
   int cc;
 }
 
+class D6 extends C6 {
+  D6([int super.x]);
+}
+
 class S1 {
   S1([int x = 0]) : s = x - 1;
   int s;

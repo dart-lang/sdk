@@ -15,7 +15,7 @@ import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 static method main() → dynamic
   return self::test();
 static method test() → dynamic {
-  invalid-type x = null;
+  has-declared-initializer invalid-type x = null;
 }
 
 library /*isNonNullableByDefault*/;

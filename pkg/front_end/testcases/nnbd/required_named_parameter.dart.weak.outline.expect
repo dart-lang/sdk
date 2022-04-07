@@ -19,7 +19,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method foo({required core::int parameter}) → dynamic
+static method foo({required has-declared-initializer core::int parameter}) → dynamic
   ;
 static method foo2({core::int parameter}) → dynamic
   ;
@@ -27,9 +27,9 @@ static method foo3([core::int parameter]) → dynamic
   ;
 static method bar({required core::int parameter}) → dynamic
   ;
-static method bar2({core::int parameter}) → dynamic
+static method bar2({has-declared-initializer core::int parameter}) → dynamic
   ;
-static method bar3([core::int parameter]) → dynamic
+static method bar3([has-declared-initializer core::int parameter]) → dynamic
   ;
 static method main() → dynamic
   ;

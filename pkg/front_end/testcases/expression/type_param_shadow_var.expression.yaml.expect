@@ -2,5 +2,5 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>(dynamic x) → dynamic
   return () → Null {
-    #lib1::A::debugExpr::T? x = null;
+    has-declared-initializer #lib1::A::debugExpr::T? x = null;
   };

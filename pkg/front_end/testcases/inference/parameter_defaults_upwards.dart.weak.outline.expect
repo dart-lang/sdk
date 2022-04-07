@@ -18,9 +18,9 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static method optional_toplevel([dynamic x]) → void
+static method optional_toplevel([has-declared-initializer dynamic x]) → void
   ;
-static method named_toplevel({dynamic x}) → void
+static method named_toplevel({has-declared-initializer dynamic x}) → void
   ;
 static method main() → dynamic
   ;

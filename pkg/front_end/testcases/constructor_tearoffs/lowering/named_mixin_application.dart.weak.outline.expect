@@ -16,7 +16,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object implements s
     ;
   constructor redirectingGenerative(core::int field) → self::Class<self::Class::T%>
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>([core::int field]) → self::Class<self::Class::_#new#tearOff::T%>
+  static method _#new#tearOff<T extends core::Object? = dynamic>([has-declared-initializer core::int field]) → self::Class<self::Class::_#new#tearOff::T%>
     return new self::Class::•<self::Class::_#new#tearOff::T%>(field);
   static method _#named#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#named#tearOff::T%>
     return new self::Class::named<self::Class::_#named#tearOff::T%>(field);
@@ -43,7 +43,7 @@ class NamedMixinApplication<T extends core::Object? = dynamic, S extends core::O
   synthetic constructor redirectingGenerative(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
     : super self::Class::redirectingGenerative(field)
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic>([core::int field]) → self::NamedMixinApplication<self::NamedMixinApplication::_#new#tearOff::T%, self::NamedMixinApplication::_#new#tearOff::S%>
+  static method _#new#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic>([has-declared-initializer core::int field]) → self::NamedMixinApplication<self::NamedMixinApplication::_#new#tearOff::T%, self::NamedMixinApplication::_#new#tearOff::S%>
     return new self::NamedMixinApplication::•<self::NamedMixinApplication::_#new#tearOff::T%, self::NamedMixinApplication::_#new#tearOff::S%>(field);
   static method _#named#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::_#named#tearOff::T%, self::NamedMixinApplication::_#named#tearOff::S%>
     return new self::NamedMixinApplication::named<self::NamedMixinApplication::_#named#tearOff::T%, self::NamedMixinApplication::_#named#tearOff::S%>(field);

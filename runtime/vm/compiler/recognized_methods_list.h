@@ -44,7 +44,7 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x2359f8d2)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x38c6295a)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x5ce9025b)              \
-  V(ByteData, ., ByteDataFactory, 0x8a8b07a8)                                  \
+  V(ByteData, ., ByteDataFactory, 0x91f05424)                                  \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x60cef22c)   \
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0xb9d15ffa)          \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x60cef22c) \
@@ -81,8 +81,8 @@ namespace dart {
   V(Float64x2List, ., TypedData_Float64x2Array_factory, 0xeccaff6a)            \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x00fc4650)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
-    CopyRangeFromUint8ListToOneByteString, 0x0df019c5)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0xfc28bc84)              \
+    CopyRangeFromUint8ListToOneByteString, 0x19a1bf41)                         \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0x7da2a580)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \
@@ -96,10 +96,10 @@ namespace dart {
   V(_Double, roundToDouble, DoubleRoundToDouble, 0x5649ca00)                   \
   V(_Double, toInt, DoubleToInteger, 0x676f20a9)                               \
   V(_Double, truncateToDouble, DoubleTruncateToDouble, 0x62d48659)             \
-  V(::, min, MathMin, 0x504a28df)                                              \
-  V(::, max, MathMax, 0xead7161a)                                              \
+  V(::, min, MathMin, 0xc2021a5b)                                              \
+  V(::, max, MathMax, 0xe45b2596)                                              \
   V(::, _doublePow, MathDoublePow, 0x989f3334)                                 \
-  V(::, _intPow, MathIntPow, 0x68b6021e)                                       \
+  V(::, _intPow, MathIntPow, 0xb9afc09a)                                       \
   V(::, _sin, MathSin, 0x17daca03)                                             \
   V(::, _cos, MathCos, 0xf4947d45)                                             \
   V(::, _tan, MathTan, 0xeb1a5537)                                             \
@@ -261,10 +261,10 @@ namespace dart {
   V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40cdd9e1)  \
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
-  V(::, _asyncThenWrapperHelper, AsyncThenWrapperHelper, 0xd9974c34)           \
-  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x037e7601)                          \
-  V(_Future, timeout, FutureTimeout, 0x73041520)                               \
-  V(Future, wait, FutureWait, 0x495c83cd)                                      \
+  V(::, _asyncThenWrapperHelper, AsyncThenWrapperHelper, 0x0c17f838)           \
+  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xf296c901)                          \
+  V(_Future, timeout, FutureTimeout, 0xa7cb3294)                               \
+  V(Future, wait, FutureWait, 0xb0b596bd)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
@@ -273,15 +273,15 @@ namespace dart {
 // (class-name, function-name, intrinsification method, fingerprint).
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, get:bitLength, Smi_bitLength, 0x7ab50ceb)                            \
-  V(_BigIntImpl, _lsh, Bigint_lsh, 0x5de6ab16)                                 \
-  V(_BigIntImpl, _rsh, Bigint_rsh, 0xa8090d4f)                                 \
-  V(_BigIntImpl, _absAdd, Bigint_absAdd, 0xdc2a8a75)                           \
-  V(_BigIntImpl, _absSub, Bigint_absSub, 0x23653a4f)                           \
-  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0x08fc5919)                           \
-  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0xd1b6bf41)                           \
+  V(_BigIntImpl, _lsh, Bigint_lsh, 0x7a954122)                                 \
+  V(_BigIntImpl, _rsh, Bigint_rsh, 0xb1f1cc5f)                                 \
+  V(_BigIntImpl, _absAdd, Bigint_absAdd, 0x967b4d71)                           \
+  V(_BigIntImpl, _absSub, Bigint_absSub, 0x1cb6b94b)                           \
+  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0xdc3298bd)                           \
+  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x6936f745)                           \
   V(_BigIntImpl, _estimateQuotientDigit, Bigint_estimateQuotientDigit,         \
-    0x3b2a5ba4)                                                                \
-  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0xc1c66bf4)        \
+    0xa5ad65a8)                                                                \
+  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0x9bcfdaf4)        \
   V(_Double, >, Double_greaterThan, 0x9872cc67)                                \
   V(_Double, >=, Double_greaterEqualThan, 0xfecba6b3)                          \
   V(_Double, <, Double_lessThan, 0xf07a87d4)                                   \
@@ -306,7 +306,7 @@ namespace dart {
   V(_StringBase, get:hashCode, String_getHashCode, 0x75e0d454)                 \
   V(_StringBase, get:_identityHashCode, String_identityHash, 0x47a56912)       \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 0xfecd3cf3)                   \
-  V(_StringBase, _substringMatches, StringBaseSubstringMatches, 0x87094a2a)    \
+  V(_StringBase, _substringMatches, StringBaseSubstringMatches, 0x74e77732)    \
   V(_StringBase, [], StringBaseCharAt, 0xd06fc6bf)                             \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 0x75e0d454)       \
   V(_OneByteString, _substringUncheckedNative,                                 \
@@ -473,14 +473,14 @@ namespace dart {
 //  result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, _List, ., kArrayCid, 0xd693eee6)                             \
-  V(_ListFilledFactory, _List, .filled, kArrayCid, 0x7f29060d)                 \
-  V(_ListGenerateFactory, _List, .generate, kArrayCid, 0x95feb438)             \
+  V(_ListFilledFactory, _List, .filled, kArrayCid, 0x7ffc3415)                 \
+  V(_ListGenerateFactory, _List, .generate, kArrayCid, 0xc85f10b8)             \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
-    0xc1b55e71)                                                                \
+    0x3bff5c79)                                                                \
   V(_GrowableListFilledFactory, _GrowableList, .filled,                        \
-    kGrowableObjectArrayCid, 0x37d0dc65)                                       \
+    kGrowableObjectArrayCid, 0x38a40a6d)                                       \
   V(_GrowableListGenerateFactory, _GrowableList, .generate,                    \
-    kGrowableObjectArrayCid, 0x52f61890)                                       \
+    kGrowableObjectArrayCid, 0x85567510)                                       \
   V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0xa32d060b)                                                                \
   V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x660dd888)        \

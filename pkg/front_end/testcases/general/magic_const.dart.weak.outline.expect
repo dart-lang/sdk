@@ -11,7 +11,7 @@ class NotConstant extends core::Object {
   synthetic constructor •() → self::NotConstant
     ;
 }
-static method foo({dynamic a, dynamic b, dynamic c}) → dynamic
+static method foo({has-declared-initializer dynamic a, has-declared-initializer dynamic b, has-declared-initializer dynamic c}) → dynamic
   ;
 static method test() → dynamic
   ;

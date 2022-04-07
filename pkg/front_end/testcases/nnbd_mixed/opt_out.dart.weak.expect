@@ -31,7 +31,7 @@ static method method(() →? void f, {required core::int a = #C1}) → void {}
 static method main() → dynamic {}
 static method noErrors() → dynamic {
   late core::int local = 42;
-  core::String? s = null;
+  has-declared-initializer core::String? s = null;
   dynamic c;
   let final dynamic #t1 = c in #t1 == null ?{dynamic} null : block {
     #t1{dynamic}.f;
@@ -165,8 +165,8 @@ static field core::int* field = 42;
 static method method(() →* void f, {core::int* a = #C1}) → void {}
 static method errors() → dynamic {
   core::int* local = 42;
-  core::List<core::String?>* l = null;
-  core::String? s = null;
+  has-declared-initializer core::List<core::String?>* l = null;
+  has-declared-initializer core::String? s = null;
   core::String* t = s!;
   dynamic c;
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.

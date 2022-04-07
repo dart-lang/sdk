@@ -18,7 +18,7 @@ class Class extends core::Object {
     return new self::Class::positional(a, b);
   static factory redirect5a([core::int a, core::int b]) → self::Class
     return new self::Class::positional(a, b);
-  static factory redirect6a([core::int a, core::int b]) → self::Class
+  static factory redirect6a([core::int a, has-declared-initializer core::int b]) → self::Class
     return new self::Class::positional(a, b);
   static factory redirect1b() → self::Class
     return new self::Class::named();
@@ -30,7 +30,7 @@ class Class extends core::Object {
     return new self::Class::named(a: a, b: b);
   static factory redirect5b({core::int b, core::int a}) → self::Class
     return new self::Class::named(b: b, a: a);
-  static factory redirect6b({core::int a, core::int b}) → self::Class
+  static factory redirect6b({has-declared-initializer core::int a, core::int b}) → self::Class
     return new self::Class::named(a: a, b: b);
 }
 static method main() → dynamic

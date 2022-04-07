@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 77;
+  UInt32 formatVersion = 78;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1390,8 +1390,9 @@ type VariableDeclarationPlain {
 
   List<Expression> annotations;
 
-  Byte flags (isFinal, isConst, isInitializingFormal, isCovariantByDeclaration,
-              isCovariantByClass, isLate, isRequired, isLowered);
+  UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
+              isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
+              isLowered);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.

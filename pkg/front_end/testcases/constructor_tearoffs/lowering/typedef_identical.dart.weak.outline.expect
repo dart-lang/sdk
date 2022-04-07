@@ -22,7 +22,7 @@ static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H
   return new typ::A::•<self::_#H#new#tearOff::Y%>();
 static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → typ::A<self::_#H#named#tearOff::Y%>
   return new typ::A::named<self::_#H#named#tearOff::Y%>(a, b);
-static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → typ::A<self::_#H#fact#tearOff::Y%>
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<self::_#H#fact#tearOff::Y%>
   return typ::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
 static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
@@ -43,9 +43,9 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     return new typ::A::•<typ::A::_#new#tearOff::T%>();
   static method _#named#tearOff<T extends core::Object? = dynamic>(typ::A::_#named#tearOff::T% a, [core::int? b]) → typ::A<typ::A::_#named#tearOff::T%>
     return new typ::A::named<typ::A::_#named#tearOff::T%>(a, b);
-  static factory fact<T extends core::Object? = dynamic>(typ::A::fact::T% a, {core::int? b, core::int c}) → typ::A<typ::A::fact::T%>
+  static factory fact<T extends core::Object? = dynamic>(typ::A::fact::T% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::A::fact::T%>
     ;
-  static method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b, core::int c}) → typ::A<typ::A::_#fact#tearOff::T%>
+  static method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::A::_#fact#tearOff::T%>
     return typ::A::fact<typ::A::_#fact#tearOff::T%>(a, b: b, c: c);
   static factory redirect<T extends core::Object? = dynamic>() → typ::A<typ::A::redirect::T%>
     return new typ::A::•<typ::A::redirect::T%>();
@@ -64,7 +64,7 @@ static method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y ext
   return new typ::A::•<typ::_#F#new#tearOff::Y%>();
 static method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#named#tearOff::Y% a, [core::int? b]) → typ::A<typ::_#F#named#tearOff::Y%>
   return new typ::A::named<typ::_#F#named#tearOff::Y%>(a, b);
-static method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#fact#tearOff::Y% a, {core::int? b, core::int c}) → typ::A<typ::_#F#fact#tearOff::Y%>
+static method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::_#F#fact#tearOff::Y%>
   return typ::A::fact<typ::_#F#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#F#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<typ::_#F#redirect#tearOff::Y%>();
@@ -72,7 +72,7 @@ static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic, Y ext
   return new typ::A::•<typ::_#G#new#tearOff::Y%>();
 static method _#G#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#named#tearOff::Y% a, [core::int? b]) → typ::A<typ::_#G#named#tearOff::Y%>
   return new typ::A::named<typ::_#G#named#tearOff::Y%>(a, b);
-static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#fact#tearOff::Y% a, {core::int? b, core::int c}) → typ::A<typ::_#G#fact#tearOff::Y%>
+static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::_#G#fact#tearOff::Y%>
   return typ::A::fact<typ::_#G#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<typ::_#G#redirect#tearOff::Y%>();

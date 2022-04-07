@@ -19,7 +19,7 @@ static method test() → dynamic {
     return let final core::int? #t3 = #nullableTopLevelLocalWithInitializer in _in::isSentinel(#t3) ?{core::int?} #nullableTopLevelLocalWithInitializer = null : #t3{core::int?};
   function #nullableTopLevelLocalWithInitializer#set(core::int? nullableTopLevelLocalWithInitializer#param) → dynamic
     return #nullableTopLevelLocalWithInitializer = nullableTopLevelLocalWithInitializer#param;
-  lowered core::int? #nonNullableTopLevelLocalWithInitializer;
+  lowered has-declared-initializer core::int? #nonNullableTopLevelLocalWithInitializer;
   function #nonNullableTopLevelLocalWithInitializer#get() → core::int
     return let final core::int? #t4 = #nonNullableTopLevelLocalWithInitializer in #t4 == null ?{core::int} #nonNullableTopLevelLocalWithInitializer = 0 : #t4{core::int};
   function #nonNullableTopLevelLocalWithInitializer#set(core::int nonNullableTopLevelLocalWithInitializer#param) → dynamic
@@ -42,8 +42,8 @@ static method test() → dynamic {
       throw new _in::LateError::localAI("nonNullableFinalTopLevelLocal");
   lowered final core::int? #nullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
   function #nullableFinalTopLevelLocalWithInitializer#get() → core::int?
-    return let final core::int? #t7 = #nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t7) ?{core::int?} let final core::int? #t8 = null in _in::isSentinel(#nullableFinalTopLevelLocalWithInitializer) ?{core::int?} #nullableFinalTopLevelLocalWithInitializer = #t8 : throw new _in::LateError::localADI("nullableFinalTopLevelLocalWithInitializer") : #t7;
-  lowered final core::int? #nonNullableFinalTopLevelLocalWithInitializer;
+    return let final core::int? #t7 = #nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t7) ?{core::int?} let final has-declared-initializer core::int? #t8 = null in _in::isSentinel(#nullableFinalTopLevelLocalWithInitializer) ?{core::int?} #nullableFinalTopLevelLocalWithInitializer = #t8 : throw new _in::LateError::localADI("nullableFinalTopLevelLocalWithInitializer") : #t7;
+  lowered final has-declared-initializer core::int? #nonNullableFinalTopLevelLocalWithInitializer;
   function #nonNullableFinalTopLevelLocalWithInitializer#get() → core::int
     return let final core::int? #t9 = #nonNullableFinalTopLevelLocalWithInitializer in #t9 == null ?{core::int} let final core::int #t10 = 0 in #nonNullableFinalTopLevelLocalWithInitializer == null ?{core::int} #nonNullableFinalTopLevelLocalWithInitializer = #t10 : throw new _in::LateError::localADI("nonNullableFinalTopLevelLocalWithInitializer") : #t9{core::int};
   lowered Null #neverLocal;

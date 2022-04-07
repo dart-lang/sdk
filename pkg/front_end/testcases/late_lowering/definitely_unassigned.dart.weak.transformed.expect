@@ -124,7 +124,7 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
     #local6#isSet = true;
     return #local6 = local6#param;
   }
-  lowered T? #local7;
+  lowered has-declared-initializer T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → T% {
     if(!#local7#isSet) {
@@ -185,7 +185,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
     #local6#isSet = true;
     return #local6 = local6#param;
   }
-  lowered T? #local7;
+  lowered has-declared-initializer T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → T% {
     if(!#local7#isSet) {
@@ -266,7 +266,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
     #local6#isSet = true;
     return #local6 = local6#param;
   }
-  lowered self::methodDirect::T? #local7;
+  lowered has-declared-initializer self::methodDirect::T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → self::methodDirect::T% {
     if(!#local7#isSet) {
@@ -327,7 +327,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
     #local6#isSet = true;
     return #local6 = local6#param;
   }
-  lowered self::methodConditional::T? #local7;
+  lowered has-declared-initializer self::methodConditional::T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → self::methodConditional::T% {
     if(!#local7#isSet) {

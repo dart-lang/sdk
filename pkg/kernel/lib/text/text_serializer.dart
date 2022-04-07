@@ -1257,6 +1257,7 @@ const Map<int, String> variableDeclarationFlagToName = const {
   VariableDeclaration.FlagLate: "late",
   VariableDeclaration.FlagRequired: "required",
   VariableDeclaration.FlagLowered: "lowered",
+  VariableDeclaration.FlagHasDeclaredInitializer: "has-declared-initializer",
 };
 
 class VariableDeclarationFlagTagger implements Tagger<int> {

@@ -147,7 +147,7 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
   } =>#t15;
   core::Map<Never, Never> m1 = block {
     final core::Map<Never, Never> #t17 = <Never, Never>{};
-    for (final core::MapEntry<Never, Never> #t18 in n1.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
+    for (final has-declared-initializer core::MapEntry<Never, Never> #t18 in n1.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
       #t17.{core::Map::[]=}{Invariant}(#t18.{core::MapEntry::key}{Never}, #t18.{core::MapEntry::value}{Never}){(Never, Never) → void};
     #t17.{core::Map::[]=}{Invariant}(n1, n1){(Never, Never) → void};
   } =>#t17;
@@ -155,7 +155,7 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::Map<Never, Never> #t19 = <Never, Never>{};
     final core::Map<Never, Never>? #t20 = n1;
     if(!(#t20 == null))
-      for (final core::MapEntry<Never, Never> #t21 in #t20{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
+      for (final has-declared-initializer core::MapEntry<Never, Never> #t21 in #t20{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
         #t19.{core::Map::[]=}{Invariant}(#t21.{core::MapEntry::key}{Never}, #t21.{core::MapEntry::value}{Never}){(Never, Never) → void};
     #t19.{core::Map::[]=}{Invariant}(n1, n1){(Never, Never) → void};
   } =>#t19;
@@ -166,7 +166,7 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::Map<Never, Never> #t22 = <Never, Never>{};
     final core::Map<Never, Never>? #t23 = n2;
     if(!(#t23 == null))
-      for (final core::MapEntry<Never, Never> #t24 in #t23{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
+      for (final has-declared-initializer core::MapEntry<Never, Never> #t24 in #t23{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
         #t22.{core::Map::[]=}{Invariant}(#t24.{core::MapEntry::key}{Never}, #t24.{core::MapEntry::value}{Never}){(Never, Never) → void};
     #t22.{core::Map::[]=}{Invariant}(n1, n1){(Never, Never) → void};
   } =>#t22;
@@ -177,7 +177,7 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::Map<Never, Never> #t25 = <Never, Never>{};
     final core::Map<Never, Never>? #t26 = n3;
     if(!(#t26 == null))
-      for (final core::MapEntry<Never, Never> #t27 in #t26{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
+      for (final has-declared-initializer core::MapEntry<Never, Never> #t27 in #t26{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>})
         #t25.{core::Map::[]=}{Invariant}(#t27.{core::MapEntry::key}{Never}, #t27.{core::MapEntry::value}{Never}){(Never, Never) → void};
     #t25.{core::Map::[]=}{Invariant}(n1, n1){(Never, Never) → void};
   } =>#t25;
@@ -251,7 +251,7 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
   } =>#t42;
   core::Map<self::test2::N1, self::test2::N1> m1 = block {
     final core::Map<self::test2::N1, self::test2::N1> #t44 = <self::test2::N1, self::test2::N1>{};
-    for (final core::MapEntry<self::test2::N1, self::test2::N1> #t45 in n1.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
+    for (final has-declared-initializer core::MapEntry<self::test2::N1, self::test2::N1> #t45 in n1.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
       #t44.{core::Map::[]=}{Invariant}(#t45.{core::MapEntry::key}{self::test2::N1}, #t45.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
     #t44.{core::Map::[]=}{Invariant}(n1, n1){(self::test2::N1, self::test2::N1) → void};
   } =>#t44;
@@ -259,7 +259,7 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
     final core::Map<self::test2::N1, self::test2::N1> #t46 = <self::test2::N1, self::test2::N1>{};
     final core::Map<self::test2::N1, self::test2::N1>? #t47 = n1;
     if(!(#t47 == null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t48 in #t47{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
+      for (final has-declared-initializer core::MapEntry<self::test2::N1, self::test2::N1> #t48 in #t47{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
         #t46.{core::Map::[]=}{Invariant}(#t48.{core::MapEntry::key}{self::test2::N1}, #t48.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
     #t46.{core::Map::[]=}{Invariant}(n1, n1){(self::test2::N1, self::test2::N1) → void};
   } =>#t46;
@@ -270,7 +270,7 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
     final core::Map<self::test2::N1, self::test2::N1> #t49 = <self::test2::N1, self::test2::N1>{};
     final core::Map<self::test2::N1, self::test2::N1>? #t50 = n2;
     if(!(#t50 == null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t51 in #t50{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
+      for (final has-declared-initializer core::MapEntry<self::test2::N1, self::test2::N1> #t51 in #t50{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
         #t49.{core::Map::[]=}{Invariant}(#t51.{core::MapEntry::key}{self::test2::N1}, #t51.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
     #t49.{core::Map::[]=}{Invariant}(n1, n1){(self::test2::N1, self::test2::N1) → void};
   } =>#t49;
@@ -281,7 +281,7 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
     final core::Map<self::test2::N1, self::test2::N1> #t52 = <self::test2::N1, self::test2::N1>{};
     final core::Map<self::test2::N1, self::test2::N1>? #t53 = n3;
     if(!(#t53 == null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t54 in #t53{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
+      for (final has-declared-initializer core::MapEntry<self::test2::N1, self::test2::N1> #t54 in #t53{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>})
         #t52.{core::Map::[]=}{Invariant}(#t54.{core::MapEntry::key}{self::test2::N1}, #t54.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
     #t52.{core::Map::[]=}{Invariant}(n1, n1){(self::test2::N1, self::test2::N1) → void};
   } =>#t52;

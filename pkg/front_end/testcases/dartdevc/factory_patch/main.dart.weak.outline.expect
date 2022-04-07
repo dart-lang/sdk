@@ -20,14 +20,14 @@ class Class extends core::Object {
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
   @_js::patch
-  external static factory fact({core::bool defaultValue}) → self2::Class;
-  static method _#fact#tearOff({core::bool defaultValue}) → self2::Class
+  external static factory fact({has-declared-initializer core::bool defaultValue}) → self2::Class;
+  static method _#fact#tearOff({has-declared-initializer core::bool defaultValue}) → self2::Class
     return self2::Class::fact(defaultValue: defaultValue);
   @_js::patch
   external static factory constFact({core::bool defaultValue = true}) → self2::Class;
-  static method _#constFact#tearOff({core::bool defaultValue}) → self2::Class
+  static method _#constFact#tearOff({has-declared-initializer core::bool defaultValue}) → self2::Class
     return self2::Class::constFact(defaultValue: defaultValue);
-  static method /* from org-dartlang-testcase:///patch_lib.dart */ _#_internal#tearOff({core::bool defaultValue}) → self2::Class
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ _#_internal#tearOff({has-declared-initializer core::bool defaultValue}) → self2::Class
     return new self2::Class::_internal(defaultValue: defaultValue);
 }
 

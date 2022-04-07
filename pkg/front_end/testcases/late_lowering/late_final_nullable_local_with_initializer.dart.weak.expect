@@ -8,7 +8,7 @@ static method main() → dynamic {
   function initLateLocal(core::int? value) → core::int? {
     return lateLocalInit = value;
   }
-  lowered final core::int? #lateLocal;
+  lowered final has-declared-initializer core::int? #lateLocal;
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int? {
     if(!#lateLocal#isSet) {
@@ -28,7 +28,7 @@ static method main() → dynamic {
     function initLateGenericLocal(T? value) → T? {
       return lateGenericLocalInit = value;
     }
-    lowered final T? #lateGenericLocal;
+    lowered final has-declared-initializer T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T? {
       if(!#lateGenericLocal#isSet) {
