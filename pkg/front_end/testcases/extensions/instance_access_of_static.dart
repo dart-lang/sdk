@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class1 {
 }
 
@@ -10,8 +10,9 @@ extension Extension1 on Class1 {
     print('Extension1.staticMethod()');
   }
 
-  static get staticProperty {
+  static int get staticProperty {
     print('Extension1.staticProperty()');
+    return 0;
   }
   static set staticProperty(int value) {
     print('Extension1.staticProperty($value)');

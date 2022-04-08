@@ -1,18 +1,18 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class A1 {
-  Object field;
+  Object? field;
   void method1() {}
 }
 
 extension A2 on A1 {
   void method2() => method1();
 
-  Object method3() => field;
+  Object? method3() => field;
 
-  void method4(Object o) {
+  void method4(Object? o) {
     field = o;
   }
 }

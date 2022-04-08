@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class<T extends num> {
   T field1;
   T field2;
@@ -10,7 +10,7 @@ class Class<T extends num> {
 }
 
 extension Extension1<T extends num> on Class<T> {
-  static String latestType;
+  static String? latestType;
   T get field {
     latestType = '$T';
     return field1;
@@ -25,7 +25,7 @@ extension Extension1<T extends num> on Class<T> {
   }
   T genericMethod<S extends num>(S t) {
     latestType = '$T:$S';
-    return field1 + t;
+    return (field1 + t) as T;
   }
 }
 
@@ -35,7 +35,7 @@ extension Extension2<T extends num> on Class<T> {
     field2 = value;
   }
   T method() => field2;
-  T genericMethod<S extends num>(S t) => field2 + t;
+  T genericMethod<S extends num>(S t) => (field2 + t) as T;
 }
 
 main() {

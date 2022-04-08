@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class1 {
   int field;
   Class1(this.field);
@@ -13,12 +12,12 @@ class Class2 {
 
 extension Extension1 on Class1 {
   int method() {}
-  int genericMethod<T extends num>(T t) {}
+  num genericMethod<T extends num>(T t) {}
 }
 
 extension Extension2 on Class2 {
   int method() {}
-  int genericMethod<T extends num>(T t) {}
+  num genericMethod<T extends num>(T t) {}
 }
 
 main() {}

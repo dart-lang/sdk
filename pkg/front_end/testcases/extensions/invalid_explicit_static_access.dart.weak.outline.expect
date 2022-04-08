@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-extension Extension on core::String* {
+extension Extension on core::String {
   static method method = self::Extension|method;
   static get getter = get self::Extension|getter;
   static get property = get self::Extension|property;

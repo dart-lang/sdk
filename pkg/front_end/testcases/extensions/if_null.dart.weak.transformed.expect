@@ -50,10 +50,10 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: Let @ org-dartlang-testcase:///if_null.dart:21:20 -> IntConstant(42)
-Evaluated: Let @ org-dartlang-testcase:///if_null.dart:22:31 -> IntConstant(42)
-Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
-Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
-Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
-Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:23:20 -> IntConstant(42)
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:24:31 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:25:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:25:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:26:29 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:26:29 -> IntConstant(42)
 Extra constant evaluation: evaluated: 122, effectively constant: 6

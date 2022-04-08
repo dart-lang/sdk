@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class {
   @pragma('dart2js:noInline')
   instanceMethod() {}

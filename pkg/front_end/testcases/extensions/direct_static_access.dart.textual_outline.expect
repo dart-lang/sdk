@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class<T> {
   static var field;
 }
@@ -12,8 +11,8 @@ extension Extension<T> on Class<T> {
   static writeSetterOptional([value]) {}
   static writeSetterNamed({value}) {}
   static genericWriteSetterRequired<S>(S value) {}
-  static genericWriteSetterOptional<S>([S value]) {}
-  static genericWriteSetterNamed<S>({S value}) {}
+  static genericWriteSetterOptional<S>([S? value]) {}
+  static genericWriteSetterNamed<S>({S? value}) {}
   static get tearOffGetterNoArgs => readGetter;
   static get tearOffGetterRequired => writeSetterRequired;
   static get tearOffGetterOptional => writeSetterOptional;

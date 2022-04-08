@@ -1,13 +1,12 @@
-// @dart = 2.9
 class A1 {
-  Object field;
+  Object? field;
   void method1() {}
 }
 
 extension A2 on A1 {
-  Object method3() => field;
+  Object? method3() => field;
   void method2() => method1();
-  void method4(Object o) {}
+  void method4(Object? o) {}
 }
 
 main() {}

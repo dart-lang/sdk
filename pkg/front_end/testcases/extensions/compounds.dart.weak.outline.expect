@@ -1,90 +1,63 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Number extends core::Object {
-  final field core::int* value;
-  constructor •(core::int* value) → self::Number*
+  final field core::int value;
+  constructor •(core::int value) → self::Number
     ;
-  get hashCode() → core::int*
+  get hashCode() → core::int
     ;
-  operator ==(core::Object* other) → core::bool*
+  operator ==(core::Object other) → core::bool
     ;
-  method toString() → core::String*
+  method toString() → core::String
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class extends core::Object {
-  field self::Number* field;
-  constructor •(self::Number* field) → self::Class*
+  field self::Number field;
+  constructor •(self::Number field) → self::Class
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class IntClass extends core::Object {
-  field core::int* field;
-  constructor •(core::int* field) → self::IntClass*
+  field core::int field;
+  constructor •(core::int field) → self::IntClass
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension NumberExtension on self::Number* {
+extension NumberExtension on self::Number {
   operator + = self::NumberExtension|+;
   operator - = self::NumberExtension|-;
 }
-extension ClassExtension on self::Class* {
+extension ClassExtension on self::Class {
   get property = self::ClassExtension|get#property;
   method testImplicitProperties = self::ClassExtension|testImplicitProperties;
   tearoff testImplicitProperties = self::ClassExtension|get#testImplicitProperties;
   set property = self::ClassExtension|set#property;
 }
-extension IntClassExtension on self::IntClass* {
+extension IntClassExtension on self::IntClass {
   get property = self::IntClassExtension|get#property;
   method testImplicitProperties = self::IntClassExtension|testImplicitProperties;
   tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
   set property = self::IntClassExtension|set#property;
 }
-static method NumberExtension|+(lowered final self::Number* #this, core::Object* other) → self::Number*
+static method NumberExtension|+(lowered final self::Number #this, core::Object other) → self::Number
   ;
-static method NumberExtension|-(lowered final self::Number* #this, core::Object* other) → self::Number*
+static method NumberExtension|-(lowered final self::Number #this, core::Object other) → self::Number
   ;
-static method ClassExtension|get#property(lowered final self::Class* #this) → self::Number*
+static method ClassExtension|get#property(lowered final self::Class #this) → self::Number
   ;
-static method ClassExtension|set#property(lowered final self::Class* #this, self::Number* value) → void
+static method ClassExtension|set#property(lowered final self::Class #this, self::Number value) → void
   ;
-static method ClassExtension|testImplicitProperties(lowered final self::Class* #this) → dynamic
+static method ClassExtension|testImplicitProperties(lowered final self::Class #this) → dynamic
   ;
-static method ClassExtension|get#testImplicitProperties(lowered final self::Class* #this) → () →* dynamic
+static method ClassExtension|get#testImplicitProperties(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::ClassExtension|testImplicitProperties(#this);
-static method IntClassExtension|get#property(lowered final self::IntClass* #this) → core::int*
+static method IntClassExtension|get#property(lowered final self::IntClass #this) → core::int
   ;
-static method IntClassExtension|set#property(lowered final self::IntClass* #this, core::int* value) → void
+static method IntClassExtension|set#property(lowered final self::IntClass #this, core::int value) → void
   ;
-static method IntClassExtension|testImplicitProperties(lowered final self::IntClass* #this) → dynamic
+static method IntClassExtension|testImplicitProperties(lowered final self::IntClass #this) → dynamic
   ;
-static method IntClassExtension|get#testImplicitProperties(lowered final self::IntClass* #this) → () →* dynamic
+static method IntClassExtension|get#testImplicitProperties(lowered final self::IntClass #this) → () → dynamic
   return () → dynamic => self::IntClassExtension|testImplicitProperties(#this);
 static method main() → dynamic
   ;
@@ -98,9 +71,9 @@ static method testExplicitProperties() → dynamic
   ;
 static method testExplicitIntProperties() → dynamic
   ;
-static method testExplicitNullAwareProperties(self::Class* v) → dynamic
+static method testExplicitNullAwareProperties(self::Class? v) → dynamic
   ;
-static method testExplicitNullAwareIntProperties(self::IntClass* v) → dynamic
+static method testExplicitNullAwareIntProperties(self::IntClass? v) → dynamic
   ;
 static method expect(dynamic expected, dynamic actual, [has-declared-initializer dynamic expectNull]) → dynamic
   ;

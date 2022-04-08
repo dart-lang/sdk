@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "deferred_explicit_access_lib.dart" as def;
 import "dart:core" as core;
@@ -16,15 +16,15 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
   self::expect(87, let final dynamic #t7 = CheckLibraryIsLoaded(prefix) in def::topLevelMethod());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as def;
 import "dart:core" as core;
 
-extension Extension on core::int* {
+extension Extension on core::int {
   static field staticField = def::Extension|staticField;
   static get staticProperty = get def::Extension|staticProperty;
   static method staticMethod = def::Extension|staticMethod;
@@ -34,27 +34,27 @@ extension Extension on core::int* {
   static set staticProperty = set def::Extension|staticProperty;
   set property = def::Extension|set#property;
 }
-static field core::int* Extension|staticField = 0;
-static field core::int* topLevelField = def::Extension|staticField;
-static get Extension|staticProperty() → core::int*
+static field core::int Extension|staticField = 0;
+static field core::int topLevelField = def::Extension|staticField;
+static get Extension|staticProperty() → core::int
   return def::Extension|staticField;
-static set Extension|staticProperty(core::int* value) → void {
+static set Extension|staticProperty(core::int value) → void {
   def::Extension|staticField = value;
 }
-static method Extension|staticMethod() → core::int*
+static method Extension|staticMethod() → core::int
   return def::Extension|staticField;
-static method Extension|get#property(lowered final core::int* #this) → core::int*
-  return #this.{core::num::+}(def::Extension|staticField){(core::num*) →* core::int*};
-static method Extension|set#property(lowered final core::int* #this, core::int* value) → void {
+static method Extension|get#property(lowered final core::int #this) → core::int
+  return #this.{core::num::+}(def::Extension|staticField){(core::num) → core::int};
+static method Extension|set#property(lowered final core::int #this, core::int value) → void {
   def::Extension|staticField = value;
 }
-static method Extension|method(lowered final core::int* #this) → core::int*
-  return #this.{core::num::+}(def::Extension|staticField){(core::num*) →* core::int*};
-static method Extension|get#method(lowered final core::int* #this) → () →* core::int*
-  return () → core::int* => def::Extension|method(#this);
-static get topLevelProperty() → core::int*
+static method Extension|method(lowered final core::int #this) → core::int
+  return #this.{core::num::+}(def::Extension|staticField){(core::num) → core::int};
+static method Extension|get#method(lowered final core::int #this) → () → core::int
+  return () → core::int => def::Extension|method(#this);
+static get topLevelProperty() → core::int
   return def::Extension|staticField;
-static set topLevelProperty(core::int* value) → void {
+static set topLevelProperty(core::int value) → void {
   def::Extension|staticField = value;
 }
 static method topLevelMethod() → dynamic

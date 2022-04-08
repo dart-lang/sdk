@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension Extension<T> on int {
   int get duplicateInstanceGetter => 0;
   int get duplicateInstanceGetter => 0;

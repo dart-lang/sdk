@@ -1,6 +1,5 @@
-// @dart = 2.9
 class A1 {
-  int _instanceField;
+  int _instanceField = 0;
   int getInstanceField() => _instanceField;
   static int _staticField = 0;
   static int getStaticField() => _staticField;

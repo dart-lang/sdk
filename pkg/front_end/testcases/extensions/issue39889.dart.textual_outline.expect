@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C {}
 
 extension E on C {

@@ -1,0 +1,16 @@
+class Class {
+  int? field;
+}
+
+expect(expected, actual) {}
+
+extension Extension on Class {
+  int? get property => field;
+  int? method() => field;
+  testImplicitThis() {}
+  void set property(int? value) {}
+}
+
+main() {}
+test1(Class? c) {}
+test2(Class? c) {}
