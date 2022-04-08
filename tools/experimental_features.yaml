@@ -103,7 +103,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.17.0'
+current-version: '2.18.0'
 
 features:
   variance:
