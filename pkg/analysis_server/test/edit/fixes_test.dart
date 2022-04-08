@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -13,8 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 import '../src/plugin/plugin_manager_test.dart';
 
 void main() {
@@ -24,11 +23,11 @@ void main() {
 }
 
 @reflectiveTest
-class FixesTest extends AbstractAnalysisTest {
+class FixesTest extends PubPackageAnalysisServerTest {
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    handler = EditDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_fileOutsideRoot() async {
@@ -37,20 +36,19 @@ class FixesTest extends AbstractAnalysisTest {
 
     // Set up the original project, as the code fix code won't run at all
     // if there are no contexts.
-    await createProject();
     await waitForTasksFinished();
 
     var request =
         EditGetFixesParams(convertPath(outsideFile), 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.GET_FIXES_INVALID_FILE),
+      requestId: '0',
+      errorCode: RequestErrorCode.GET_FIXES_INVALID_FILE,
     );
   }
 
   Future<void> test_fixUndefinedClass() async {
-    await createProject();
     addTestFile('''
 main() {
   Completer<String> x = null;
@@ -58,8 +56,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    doAllDeclarationsTrackerWork();
-    var errorFixes = await _getFixesAt('Completer<String>');
+    var errorFixes = await _getFixesAt(testFile, 'Completer<String>');
     expect(errorFixes, hasLength(1));
     var fixes = errorFixes[0].fixes;
     expect(fixes, hasLength(3));
@@ -82,15 +79,13 @@ main() {
       info: Future.value(result.toResponse('-', 1))
     };
 
-    await createProject();
     addTestFile('main() {}');
     await waitForTasksFinished();
-    var errorFixes = await _getFixesAt('in(');
+    var errorFixes = await _getFixesAt(testFile, 'in(');
     expect(errorFixes, hasLength(1));
   }
 
   Future<void> test_hasFixes() async {
-    await createProject();
     addTestFile('''
 foo() {
   print(1)
@@ -102,13 +97,13 @@ bar() {
     await waitForTasksFinished();
     // print(1)
     {
-      var errorFixes = await _getFixesAt('print(1)');
+      var errorFixes = await _getFixesAt(testFile, 'print(1)');
       expect(errorFixes, hasLength(1));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
     }
     // print(10)
     {
-      var errorFixes = await _getFixesAt('print(10)');
+      var errorFixes = await _getFixesAt(testFile, 'print(10)');
       expect(errorFixes, hasLength(2));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
       _isSyntacticErrorWithSingleFix(errorFixes[1]);
@@ -117,72 +112,73 @@ bar() {
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetFixesParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_overlayOnlyFile() async {
-    await createProject();
-    testCode = '''
+    await _addOverlay(testFile.path, '''
 main() {
 print(1)
 }
-''';
-    await _addOverlay(testFile, testCode);
+''');
+
+    var file = server.resourceProvider.getFile(testFile.path);
+
     // ask for fixes
     await waitForTasksFinished();
-    var errorFixes = await _getFixesAt('print(1)');
+    var errorFixes = await _getFixesAt(file, 'print(1)');
     expect(errorFixes, hasLength(1));
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     newPackageConfigJsonFile(
-      '/aaa',
+      '$workspaceRootPath/aaa',
       (PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '/aaa')
-            ..add(name: 'bbb', rootPath: '/bbb'))
+            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
           .toContent(toUriStr: toUriStr),
     );
-    newPubspecYamlFile('/aaa', r'''
+    newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:
   bbb: any
 ''');
 
     newPackageConfigJsonFile(
-      '/bbb',
-      (PackageConfigFileBuilder()..add(name: 'bbb', rootPath: '/bbb'))
+      '$workspaceRootPath/bbb',
+      (PackageConfigFileBuilder()
+            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
           .toContent(toUriStr: toUriStr),
     );
-    newFile2('/bbb/lib/target.dart', 'class Foo() {}');
-    newFile2('/bbb/lib/target.generated.dart', 'class Foo() {}');
-    newFile2('/bbb/lib/target.template.dart', 'class Foo() {}');
-
-    await setRoots(
-        included: [convertPath('/aaa'), convertPath('/bbb')], excluded: []);
+    newFile2('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
+    newFile2(
+        '$workspaceRootPath/bbb/lib/target.generated.dart', 'class Foo() {}');
+    newFile2(
+        '$workspaceRootPath/bbb/lib/target.template.dart', 'class Foo() {}');
 
     // Configure the test file.
-    testFile = convertPath('/aaa/main.dart');
-    testCode = 'main() { new Foo(); }';
-    await _addOverlay(testFile, testCode);
+    final file =
+        newFile2('$workspaceRootPath/aaa/main.dart', 'main() { new Foo(); }');
 
     await waitForTasksFinished();
-    doAllDeclarationsTrackerWork();
 
-    var fixes = (await _getFixesAt('Foo()'))
+    var fixes = (await _getFixesAt(file, 'Foo()'))
         .single
         .fixes
         .map((f) => f.message)
@@ -197,22 +193,23 @@ dependencies:
   }
 
   Future<void> _addOverlay(String name, String contents) async {
-    var request =
-        AnalysisUpdateContentParams({name: AddContentOverlay(contents)})
-            .toRequest('0');
-    await waitResponse(request);
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        name: AddContentOverlay(contents),
+      }).toRequest('0'),
+    );
   }
 
-  Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {
-    var request = EditGetFixesParams(testFile, offset).toRequest('0');
-    var response = await waitResponse(request);
+  Future<List<AnalysisErrorFixes>> _getFixes(File file, int offset) async {
+    var request = EditGetFixesParams(file.path, offset).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = EditGetFixesResult.fromResponse(response);
     return result.fixes;
   }
 
-  Future<List<AnalysisErrorFixes>> _getFixesAt(String search) async {
-    var offset = findOffset(search);
-    return await _getFixes(offset);
+  Future<List<AnalysisErrorFixes>> _getFixesAt(File file, String search) async {
+    var offset = offsetInFile(file, search);
+    return await _getFixes(file, offset);
   }
 
   void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
