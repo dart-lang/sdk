@@ -7688,6 +7688,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the function
    * 1: the expected function type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_FUNCTION =
       CompileTimeErrorCode(
@@ -7700,6 +7702,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the torn-off function expression
    * 1: the expected function type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_FUNCTION_EXPR =
       CompileTimeErrorCode(
@@ -7713,6 +7717,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the literal
    * 1: the expected type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL',
@@ -7723,6 +7729,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the list literal
    * 1: the expected type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_LITERAL_LIST =
       CompileTimeErrorCode(
@@ -7736,6 +7744,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the map literal
    * 1: the expected type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_LITERAL_MAP =
       CompileTimeErrorCode(
@@ -7749,6 +7759,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the set literal
    * 1: the expected type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_LITERAL_SET =
       CompileTimeErrorCode(
@@ -7762,6 +7774,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the torn-off method
    * 1: the expected function type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
     'INVALID_CAST_METHOD',
@@ -7774,6 +7788,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the instantiated object
    * 1: the expected type
+   *
+   * This error is only reported in libraries which are not null safe.
    */
   static const CompileTimeErrorCode INVALID_CAST_NEW_EXPR =
       CompileTimeErrorCode(
