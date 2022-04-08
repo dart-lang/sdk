@@ -652,10 +652,10 @@ static method controlFlow() → dynamic /* futureValueType= dynamic */ /* origin
                       #L16:
                       {
                         [yield] let dynamic #t55 = asy::_awaitHelper(func<asy::Stream<core::int>>(self::intStream()){(asy::Stream<core::int>) → FutureOr<asy::Stream<core::int>>}, :async_op_then, :async_op_error) in null;
-                        :controller.{asy::_AsyncStarStreamController::addStream}(_in::unsafeCast<asy::Stream<core::int>>(:result_or_exception)){(asy::Stream<core::int>) → void};
-                        [yield] null;
-                        if(_in::unsafeCast<core::bool>(:result_or_exception))
+                        if(:controller.{asy::_AsyncStarStreamController::addStream}(_in::unsafeCast<asy::Stream<core::int>>(:result_or_exception)){(asy::Stream<core::int>) → core::bool})
                           return null;
+                        else
+                          [yield] null;
                       }
                       return;
                     }

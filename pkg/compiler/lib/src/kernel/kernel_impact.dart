@@ -348,22 +348,8 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
-    assert(node.isConst);
-    ConstructorEntity constructor = elementMap.getConstructor(node.target);
-    if (commonElements.isSymbolConstructor(constructor)) {
-      ConstantValue value = elementMap.getConstantValue(
-          staticTypeContext, node.arguments.positional.first);
-      if (!value.isString) {
-        // TODO(het): Get the actual span for the Symbol constructor argument
-        reporter.reportErrorMessage(
-            CURRENT_ELEMENT_SPANNABLE,
-            MessageKind.STRING_EXPECTED,
-            {'type': typeToString(value.getType(elementMap.commonElements))});
-        return;
-      }
-      registerBackendImpact(_impacts.constSymbol);
-    }
+  void registerConstSymbolConstructorInvocationNode() {
+    registerBackendImpact(_impacts.constSymbol);
   }
 
   @override

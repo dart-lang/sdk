@@ -63,13 +63,9 @@ ModuleData run(Input input) {
     final scopeModel = ScopeModel.from(member, elementMap.constantEvaluator);
     final annotations = processMemberAnnotations(
         options, reporter, member, computePragmaAnnotationDataFromIr(member));
-    result[member] = computeModularMemberData(member,
-            options: options,
-            typeEnvironment: elementMap.typeEnvironment,
-            classHierarchy: elementMap.classHierarchy,
-            scopeModel: scopeModel,
-            annotations: annotations)
-        .impactBuilderData;
+    result[member] =
+        computeModularMemberData(elementMap, member, scopeModel, annotations)
+            .impactBuilderData;
   }
 
   for (final library in input.component.libraries) {

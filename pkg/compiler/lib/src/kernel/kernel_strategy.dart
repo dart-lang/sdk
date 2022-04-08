@@ -440,12 +440,8 @@ class KernelModularStrategy extends ModularStrategy {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
     return _compilerTask.measureSubtask('worldImpact', () {
-      return computeModularMemberData(node,
-          options: _elementMap.options,
-          typeEnvironment: _elementMap.typeEnvironment,
-          classHierarchy: _elementMap.classHierarchy,
-          scopeModel: scopeModel,
-          annotations: annotations);
+      return computeModularMemberData(
+          _elementMap, node, scopeModel, annotations);
     });
   }
 }

@@ -173,7 +173,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else if (rawType == null || rawType.typeFormals.isEmpty) {
       typeArgumentTypes = const <DartType>[];
     } else {
-      rawType = getFreshTypeParameters(rawType.typeFormals)
+      this.rawType = rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
@@ -193,7 +193,6 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
         _isIdentical ? [] : null;
     var deferredClosures = _visitArguments(
-        rawType: rawType,
         identicalInfo: identicalInfo,
         substitution: substitution,
         inferrer: inferrer);
@@ -206,7 +205,6 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               rawType!.typeFormals, inferrer.partialInfer());
         }
         _resolveDeferredClosures(
-            rawType: rawType,
             deferredClosures: stage,
             identicalInfo: identicalInfo,
             substitution: substitution,
@@ -382,7 +380,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final ResolverVisitor resolver;
   final Node node;
   final ArgumentListImpl argumentList;
-  final FunctionType? rawType;
+  FunctionType? rawType;
   final DartType? contextType;
   final List<WhyNotPromotedGetter> whyNotPromotedList;
 
@@ -403,10 +401,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// Performs type inference on the invocation expression.
   void resolveInvocation() {
-    var deferredClosures = _visitArguments(rawType: rawType);
+    var deferredClosures = _visitArguments();
     if (deferredClosures != null) {
-      _resolveDeferredClosures(
-          rawType: rawType, deferredClosures: deferredClosures);
+      _resolveDeferredClosures(deferredClosures: deferredClosures);
     }
   }
 
@@ -429,8 +426,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// Resolves any closures that were deferred by [_visitArguments].
   void _resolveDeferredClosures(
-      {required FunctionType? rawType,
-      required Iterable<_DeferredClosure> deferredClosures,
+      {required Iterable<_DeferredClosure> deferredClosures,
       List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
@@ -465,8 +461,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
   List<_DeferredClosure>? _visitArguments(
-      {required FunctionType? rawType,
-      List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
+      {List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);

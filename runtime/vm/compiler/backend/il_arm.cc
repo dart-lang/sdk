@@ -1446,7 +1446,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 
   if (compiler::Assembler::EmittingComments()) {
     __ Comment(is_leaf_ ? "Leaf Call" : "Call");

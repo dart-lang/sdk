@@ -10,7 +10,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -130,10 +129,10 @@ static method main() → dynamic {
         try {
           #L3:
           {
-            :controller.{asy::_AsyncStarStreamController::addStream}(asy::Stream::fromIterable<(core::int*) →* core::int*>(core::_GrowableList::_literal1<(core::int*) →* core::int*>((core::int* x) → core::int* => x))){(asy::Stream<(core::int*) →* core::int*>) → void};
-            [yield] null;
-            if(_in::unsafeCast<core::bool>(:result_or_exception))
+            if(:controller.{asy::_AsyncStarStreamController::addStream}(asy::Stream::fromIterable<(core::int*) →* core::int*>(core::_GrowableList::_literal1<(core::int*) →* core::int*>((core::int* x) → core::int* => x))){(asy::Stream<(core::int*) →* core::int*>) → core::bool})
               return null;
+            else
+              [yield] null;
           }
           return;
         }

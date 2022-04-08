@@ -5307,17 +5307,17 @@ class FfiCallInstr : public Definition {
                                                bool is_optimizing,
                                                const RegList temps) const;
 
-  // Clobbers both given registers.
+  // Clobbers the first two given registers.
   // `saved_fp` is used as the frame base to rebase off of.
+  // `temp1` is only used in case of PointerToMemoryLocation.
   void EmitParamMoves(FlowGraphCompiler* compiler,
                       const Register saved_fp,
-                      const Register temp);
+                      const Register temp0,
+                      const Register temp1);
   // Clobbers both given temp registers.
   void EmitReturnMoves(FlowGraphCompiler* compiler,
                        const Register temp0,
                        const Register temp1);
-
-  void EmitCall(FlowGraphCompiler* compiler, Register target);
 
   Zone* const zone_;
   const compiler::ffi::CallMarshaller& marshaller_;

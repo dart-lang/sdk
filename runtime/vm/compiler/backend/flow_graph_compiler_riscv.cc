@@ -868,15 +868,6 @@ static compiler::OperandSize BytesToOperandSize(intptr_t bytes) {
   }
 }
 
-// See FfiCallInstr::MakeLocationSummary.
-static Register WithIntermediateMarshalling(Register r) {
-  if (r == A2) return T2;  // A2=CODE_REG
-  if (r == A3) return T3;  // A3=TMP
-  if (r == A4) return T4;  // A4=TMP2
-  if (r == A5) return T5;  // A5=PP
-  return r;
-}
-
 void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source) {
@@ -894,12 +885,12 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   if (source.IsRegisters()) {
     const auto& src = source.AsRegisters();
     ASSERT(src.num_regs() == 1);
-    const auto src_reg = WithIntermediateMarshalling(src.reg_at(0));
+    const auto src_reg = src.reg_at(0);
 
     if (destination.IsRegisters()) {
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
-      const auto dst_reg = WithIntermediateMarshalling(dst.reg_at(0));
+      const auto dst_reg = dst.reg_at(0);
       if (!sign_or_zero_extend) {
 #if XLEN == 32
         __ MoveRegister(dst_reg, src_reg);
@@ -995,7 +986,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     if (destination.IsRegisters()) {
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
-      const auto dst_reg = WithIntermediateMarshalling(dst.reg_at(0));
+      const auto dst_reg = dst.reg_at(0);
       ASSERT(!sign_or_zero_extend);
       __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
                         BytesToOperandSize(dst_size));
@@ -1015,14 +1006,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
         default:
           UNIMPLEMENTED();
       }
-    } else if (destination.IsStack()) {
-      const auto& dst = destination.AsStack();
-      // TMP=A3, here not remapped to T3.
-      __ LoadFromOffset(TMP, src.base_register(), src.offset_in_bytes(),
-                        BytesToOperandSize(src_size));
-      __ StoreToOffset(TMP, dst.base_register(), dst.offset_in_bytes(),
-                       BytesToOperandSize(dst_size));
     } else {
+      ASSERT(destination.IsStack());
       UNREACHABLE();
     }
   }

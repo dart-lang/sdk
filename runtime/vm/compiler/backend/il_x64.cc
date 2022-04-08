@@ -1226,9 +1226,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
   if (is_leaf_) {
-    EmitParamMoves(compiler, FPREG, saved_fp);
+    EmitParamMoves(compiler, FPREG, saved_fp, TMP);
   } else {
-    EmitParamMoves(compiler, saved_fp, saved_sp);
+    EmitParamMoves(compiler, saved_fp, saved_sp, TMP);
   }
 
   if (compiler::Assembler::EmittingComments()) {
