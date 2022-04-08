@@ -739,8 +739,6 @@ class LibraryAnalyzer {
     for (var directive in directivesToResolve) {
       directive.element = _libraryElement;
     }
-
-    // TODO(scheglov) remove DirectiveResolver class
   }
 
   void _resolveFile(FileState file, CompilationUnit unit) {

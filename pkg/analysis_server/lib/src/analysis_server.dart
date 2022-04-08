@@ -8,8 +8,7 @@ import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_constants.dart'
-    show PROTOCOL_VERSION;
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server_abstract.dart';
@@ -20,7 +19,6 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_analytics.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
-import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/domain_kythe.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
@@ -28,6 +26,12 @@ import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
+import 'package:analysis_server/src/handler/legacy/execution_create_context.dart';
+import 'package:analysis_server/src/handler/legacy/execution_delete_context.dart';
+import 'package:analysis_server/src/handler/legacy/execution_get_suggestions.dart';
+import 'package:analysis_server/src/handler/legacy/execution_map_uri.dart';
+import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -65,11 +69,30 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
+/// A function that can be executed to create a handler for a request.
+typedef HandlerGenerator = LegacyHandler Function(
+    AnalysisServer, Request, CancellationToken);
+
 typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
 /// Instances of the class [AnalysisServer] implement a server that listens on a
 /// [CommunicationChannel] for analysis requests and process them.
 class AnalysisServer extends AbstractAnalysisServer {
+  /// A map from the name of a request to a function used to create a request
+  /// handler.
+  static final Map<String, HandlerGenerator> handlerGenerators = {
+    EXECUTION_REQUEST_CREATE_CONTEXT: (server, request, cancellationToken) =>
+        ExecutionCreateContextHandler(server, request, cancellationToken),
+    EXECUTION_REQUEST_DELETE_CONTEXT: (server, request, cancellationToken) =>
+        ExecutionDeleteContextHandler(server, request, cancellationToken),
+    EXECUTION_REQUEST_GET_SUGGESTIONS: (server, request, cancellationToken) =>
+        ExecutionGetSuggestionsHandler(server, request, cancellationToken),
+    EXECUTION_REQUEST_MAP_URI: (server, request, cancellationToken) =>
+        ExecutionMapUriHandler(server, request, cancellationToken),
+    EXECUTION_REQUEST_SET_SUBSCRIPTIONS: (server, request, cancellationToken) =>
+        ExecutionSetSubscriptionsHandler(server, request, cancellationToken),
+  };
+
   /// The channel from which requests are received and to which responses should
   /// be sent.
   final ServerCommunicationChannel channel;
@@ -225,7 +248,6 @@ class AnalysisServer extends AbstractAnalysisServer {
       EditDomainHandler(this),
       SearchDomainHandler(this),
       CompletionDomainHandler(this),
-      ExecutionDomainHandler(this, executionContext),
       DiagnosticDomainHandler(this),
       AnalyticsDomainHandler(this),
       KytheDomainHandler(this),
@@ -295,33 +317,54 @@ class AnalysisServer extends AbstractAnalysisServer {
     runZonedGuarded(() {
       var cancellationToken = CancelableToken();
       cancellationTokens[request.id] = cancellationToken;
-      var count = handlers.length;
-      for (var i = 0; i < count; i++) {
+      var generator = handlerGenerators[request.method];
+      if (generator != null) {
         try {
-          var response = handlers[i].handleRequest(request, cancellationToken);
-          if (response == Response.DELAYED_RESPONSE) {
-            return;
-          }
-          if (response != null) {
-            sendResponse(response);
-            return;
-          }
+          var handler = generator(this, request, cancellationToken);
+          handler.handle();
         } on InconsistentAnalysisException {
           sendResponse(Response.contentModified(request));
-          return;
         } on RequestFailure catch (exception) {
           sendResponse(exception.response);
-          return;
         } catch (exception, stackTrace) {
           var error =
               RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
           error.stackTrace = stackTrace.toString();
           var response = Response(request.id, error: error);
           sendResponse(response);
-          return;
         }
+      } else {
+        // TODO(brianwilkerson) When all the handlers are in [handlerGenerators]
+        //  remove local variable and for loop below.
+        var count = handlers.length;
+        for (var i = 0; i < count; i++) {
+          try {
+            var response =
+                handlers[i].handleRequest(request, cancellationToken);
+            if (response == Response.DELAYED_RESPONSE) {
+              return;
+            }
+            if (response != null) {
+              sendResponse(response);
+              return;
+            }
+          } on InconsistentAnalysisException {
+            sendResponse(Response.contentModified(request));
+            return;
+          } on RequestFailure catch (exception) {
+            sendResponse(exception.response);
+            return;
+          } catch (exception, stackTrace) {
+            var error = RequestError(
+                RequestErrorCode.SERVER_ERROR, exception.toString());
+            error.stackTrace = stackTrace.toString();
+            var response = Response(request.id, error: error);
+            sendResponse(response);
+            return;
+          }
+        }
+        sendResponse(Response.unknownRequest(request));
       }
-      sendResponse(Response.unknownRequest(request));
     }, (exception, stackTrace) {
       instrumentationService.logException(
         FatalException(
