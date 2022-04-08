@@ -889,7 +889,7 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        var linkResult = await link2.link2(elementFactory, inputLibraries);
+        var linkResult = await link2.link(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;

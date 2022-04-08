@@ -206,9 +206,7 @@ class LibraryContext {
         link2.LinkResult linkResult;
         try {
           timerLinking.start();
-          // TODO(scheglov) Migrate when we are ready to switch to async.
-          // ignore: deprecated_member_use_from_same_package
-          linkResult = await link2.link2(elementFactory, inputLibraries);
+          linkResult = await link2.link(elementFactory, inputLibraries);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
