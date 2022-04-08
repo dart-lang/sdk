@@ -267,7 +267,7 @@ A f() => new A();
   }
 
   Future<EditBulkFixesResult> _getBulkFixes() async {
-    var request = EditBulkFixesParams([workspaceRootPath]).toRequest('0');
+    var request = EditBulkFixesParams([workspaceRoot.path]).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     return EditBulkFixesResult.fromResponse(response);
   }
