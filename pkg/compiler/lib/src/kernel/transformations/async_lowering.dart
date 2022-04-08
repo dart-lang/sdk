@@ -11,6 +11,7 @@ import 'package:kernel/kernel.dart';
 class _FunctionData {
   final List<AwaitExpression> awaits = [];
   final Set<ReturnStatement> returnStatements = {};
+  bool hasAsyncLoop = false;
 
   _FunctionData();
 
@@ -34,7 +35,7 @@ class AsyncLowering {
   AsyncLowering(this._coreTypes);
 
   bool _shouldTryAsyncLowering(FunctionNode node) =>
-      node.asyncMarker == AsyncMarker.Async;
+      node.asyncMarker == AsyncMarker.Async && !_functions.last.hasAsyncLoop;
 
   void enterFunction(FunctionNode node) {
     _functions.add(_FunctionData());
@@ -133,5 +134,11 @@ class AsyncLowering {
 
   void visitReturnStatement(ReturnStatement statement) {
     _functions.last.returnStatements.add(statement);
+  }
+
+  void visitForInStatement(ForInStatement statement) {
+    if (statement.isAsync && _functions.isNotEmpty) {
+      _functions.last.hasAsyncLoop = true;
+    }
   }
 }

@@ -7,5 +7,7 @@ static method foo1() → asy::Future<void> async
   ;
 static method foo2() → asy::Future<core::int> async 
   ;
+static method foo3() → asy::Future<void> async 
+  ;
 static method main() → void
   ;
