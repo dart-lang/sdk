@@ -1,0 +1,63 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int field;
+  field core::int? nullableField;
+  constructor •(core::int field) → self::Class
+    ;
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
+    ;
+}
+extension Extension on self::Class {
+  get simpleSetter = self::Extension|get#simpleSetter;
+  get simpleNullableSetter = self::Extension|get#simpleNullableSetter;
+  get mutatingSetter = self::Extension|get#mutatingSetter;
+  get setterWithReturn = self::Extension|get#setterWithReturn;
+  get setterWithClosure = self::Extension|get#setterWithClosure;
+  method testInternal = self::Extension|testInternal;
+  tearoff testInternal = self::Extension|get#testInternal;
+  set simpleSetter = self::Extension|set#simpleSetter;
+  set simpleNullableSetter = self::Extension|set#simpleNullableSetter;
+  set mutatingSetter = self::Extension|set#mutatingSetter;
+  set setterWithReturn = self::Extension|set#setterWithReturn;
+  set setterWithClosure = self::Extension|set#setterWithClosure;
+}
+extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
+  set setter = self::GenericExtension|set#setter;
+}
+static method Extension|get#simpleSetter(lowered final self::Class #this) → core::int
+  ;
+static method Extension|set#simpleSetter(lowered final self::Class #this, core::int value) → void
+  ;
+static method Extension|get#simpleNullableSetter(lowered final self::Class #this) → core::int?
+  ;
+static method Extension|set#simpleNullableSetter(lowered final self::Class #this, core::int? value) → void
+  ;
+static method Extension|get#mutatingSetter(lowered final self::Class #this) → core::int
+  ;
+static method Extension|set#mutatingSetter(lowered final self::Class #this, core::int value) → void
+  ;
+static method Extension|get#setterWithReturn(lowered final self::Class #this) → core::int
+  ;
+static method Extension|set#setterWithReturn(lowered final self::Class #this, core::int value) → void
+  ;
+static method Extension|get#setterWithClosure(lowered final self::Class #this) → core::int
+  ;
+static method Extension|set#setterWithClosure(lowered final self::Class #this, core::int value) → void
+  ;
+static method Extension|testInternal(lowered final self::Class #this) → dynamic
+  ;
+static method Extension|get#testInternal(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|testInternal(#this);
+static method GenericExtension|set#setter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T%> #this, self::GenericExtension|set#setter::T% value) → void
+  ;
+static method main() → dynamic
+  ;
+static method test(self::Class c, self::Class? cn) → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

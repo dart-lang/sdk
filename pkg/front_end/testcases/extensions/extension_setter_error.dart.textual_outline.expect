@@ -1,9 +1,9 @@
-// @dart = 2.9
 class GenericClass<T> {}
 
 extension GenericExtension<T> on GenericClass<T> {
-  set setter(T value) {}
+  set setter(T? value) {}
 }
 
+main() {}
 error() {}
 expect(expected, actual) {}

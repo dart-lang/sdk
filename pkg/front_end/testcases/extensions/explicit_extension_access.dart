@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class {
   int field1 = 42;
   int field2 = 87;
@@ -13,7 +13,7 @@ extension Extension1 on Class {
     field1 = value;
   }
   int method() => field1;
-  int genericMethod<T extends num>(T t) => field1 + t;
+  num genericMethod<T extends num>(T t) => field1 + t;
 }
 
 extension Extension2 on Class {
@@ -22,7 +22,7 @@ extension Extension2 on Class {
     field2 = value;
   }
   int method() => field2;
-  int genericMethod<T extends num>(T t) => field2 + t;
+  num genericMethod<T extends num>(T t) => field2 + t;
 }
 
 main() {

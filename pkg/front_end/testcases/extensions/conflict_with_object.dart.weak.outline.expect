@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -7,7 +7,7 @@ library;
 //           ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/extensions/conflict_with_object.dart:8:7: Error: This extension member conflicts with Object member 'runtimeType'.
-//   int runtimeType() {}
+//   int runtimeType() => 0;
 //       ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/extensions/conflict_with_object.dart:9:12: Error: This extension member conflicts with Object member '=='.
@@ -25,7 +25,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension Extension on core::String* {
+extension Extension on core::String {
   get noSuchMethod = self::Extension|get#noSuchMethod;
   method runtimeType = self::Extension|runtimeType;
   tearoff runtimeType = self::Extension|get#runtimeType;
@@ -33,17 +33,17 @@ extension Extension on core::String* {
   static method toString = self::Extension|toString;
   set hashCode = self::Extension|set#hashCode;
 }
-static method Extension|get#noSuchMethod(lowered final core::String* #this) → core::int*
+static method Extension|get#noSuchMethod(lowered final core::String #this) → core::int
   ;
-static method Extension|set#hashCode(lowered final core::String* #this, core::int* value) → void
+static method Extension|set#hashCode(lowered final core::String #this, core::int value) → void
   ;
-static method Extension|runtimeType(lowered final core::String* #this) → core::int*
+static method Extension|runtimeType(lowered final core::String #this) → core::int
   ;
-static method Extension|get#runtimeType(lowered final core::String* #this) → () →* core::int*
-  return () → core::int* => self::Extension|runtimeType(#this);
-static method Extension|==(lowered final core::String* #this, dynamic other) → dynamic
+static method Extension|get#runtimeType(lowered final core::String #this) → () → core::int
+  return () → core::int => self::Extension|runtimeType(#this);
+static method Extension|==(lowered final core::String #this, dynamic other) → dynamic
   ;
-static method Extension|toString() → core::String*
+static method Extension|toString() → core::String
   ;
 static method main() → dynamic
   ;

@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'deferred_explicit_access_lib.dart' deferred as prefix hide Extension;
 
 main() async {}

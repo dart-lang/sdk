@@ -24,6 +24,8 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import '../fasta_codes.dart' show codeNativeClauseShouldBeAnnotation;
+
 import '../messages.dart' show Message;
 
 abstract class _Chunk implements Comparable<_Chunk> {
@@ -884,6 +886,10 @@ class TextualOutlineListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
+    // We ignore this message, as done by stack_listener.dart.
+    if (message.code == codeNativeClauseShouldBeAnnotation) {
+      return;
+    }
     gotError = true;
   }
 }

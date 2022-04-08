@@ -1,19 +1,19 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class {
-  int field;
+  int? field;
 }
 
 extension on Class {
-  int get property1 => property2;
-  void set property1(int value) => field = value;
+  int? get property1 => property2;
+  void set property1(int? value) => field = value;
 }
 
 extension on Class {
-  int get property2 => field;
-  void set property2(int value) => property1 = value;
+  int? get property2 => field;
+  void set property2(int? value) => property1 = value;
 }
 
 main() {

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "main_lib2.dart" as mai;
 import "dart:core" as core;
@@ -16,7 +16,7 @@ static method main() → dynamic {
   #C2;
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "main_lib2.dart" as mai;
 additionalExports = (mai::Extension)
@@ -24,11 +24,11 @@ additionalExports = (mai::Extension)
 export "org-dartlang-testcase:///main_lib2.dart";
 
 
-library;
+library /*isNonNullableByDefault*/;
 import self as mai;
 import "dart:core" as core;
 
-extension Extension on core::int* {
+extension Extension on core::int {
   get instanceProperty = mai::Extension|get#instanceProperty;
   method instanceMethod = mai::Extension|instanceMethod;
   tearoff instanceMethod = mai::Extension|get#instanceMethod;
@@ -40,18 +40,18 @@ extension Extension on core::int* {
   set instanceProperty = mai::Extension|set#instanceProperty;
   static set staticProperty = set mai::Extension|staticProperty;
 }
-static field core::int* Extension|staticField = 42;
-static final field core::int* Extension|staticFinalField = 42;
-static const field core::int* Extension|staticConstField = #C1;
-static method Extension|get#instanceProperty(lowered final core::int* #this) → core::int*
+static field core::int Extension|staticField = 42;
+static final field core::int Extension|staticFinalField = 42;
+static const field core::int Extension|staticConstField = #C1;
+static method Extension|get#instanceProperty(lowered final core::int #this) → core::int
   return 42;
-static method Extension|set#instanceProperty(lowered final core::int* #this, core::int* value) → void {}
-static method Extension|instanceMethod(lowered final core::int* #this) → void {}
-static method Extension|get#instanceMethod(lowered final core::int* #this) → () →* void
+static method Extension|set#instanceProperty(lowered final core::int #this, core::int value) → void {}
+static method Extension|instanceMethod(lowered final core::int #this) → void {}
+static method Extension|get#instanceMethod(lowered final core::int #this) → () → void
   return () → void => mai::Extension|instanceMethod(#this);
-static get Extension|staticProperty() → core::int*
+static get Extension|staticProperty() → core::int
   return 42;
-static set Extension|staticProperty(core::int* value) → void {}
+static set Extension|staticProperty(core::int value) → void {}
 static method Extension|staticMethod() → void {}
 
 constants  {

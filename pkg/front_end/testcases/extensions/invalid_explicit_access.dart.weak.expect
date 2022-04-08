@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -125,52 +125,32 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class GenericClass<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension on self::Class* {
+extension Extension on self::Class {
   method method = self::Extension|method;
   tearoff method = self::Extension|get#method;
 }
-extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
+extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
   method method = self::GenericExtension|method;
   tearoff method = self::GenericExtension|get#method;
 }
-static method Extension|method(lowered final self::Class* #this, dynamic a) → dynamic {}
-static method Extension|get#method(lowered final self::Class* #this) → (dynamic) →* dynamic
+static method Extension|method(lowered final self::Class #this, dynamic a) → dynamic {}
+static method Extension|get#method(lowered final self::Class #this) → (dynamic) → dynamic
   return (dynamic a) → dynamic => self::Extension|method(#this, a);
-static method GenericExtension|method<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T*>* #this) → dynamic {}
-static method GenericExtension|get#method<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T*>* #this) → () →* dynamic
-  return () → dynamic => self::GenericExtension|method<self::GenericExtension|get#method::T*>(#this);
+static method GenericExtension|method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T%> #this) → dynamic {}
+static method GenericExtension|get#method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T%> #this) → () → dynamic
+  return () → dynamic => self::GenericExtension|method<self::GenericExtension|get#method::T%>(#this);
 static method main() → dynamic {
-  core::String* s = "";
-  self::Class* c1 = new self::Class::•();
+  core::String s = "";
+  self::Class c1 = new self::Class::•();
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:23:3: Error: Explicit extension application requires exactly 1 positional argument.
   Extension().method(null);
   ^^^^^^^^^"{dynamic}.method(null);
@@ -189,7 +169,7 @@ static method main() → dynamic {
   self::Extension|method(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   Extension(s).method(null);
-            ^" in s as{TypeError} self::Class*, null);
+            ^" in s as{TypeError,ForNonNullableByDefault} self::Class, null);
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Member not found: 'foo'.
   Extension(c1).foo;
                 ^^^";
@@ -215,7 +195,7 @@ Try removing the extra positional arguments.
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:17: Error: Expected 0 type arguments.
   Extension(c1).method<int>(null);
                 ^";
-  self::GenericClass<core::int*>* c2 = new self::GenericClass::•<core::int*>();
+  self::GenericClass<core::int> c2 = new self::GenericClass::•<core::int>();
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:42:3: Error: Explicit extension application requires exactly 1 positional argument.
   GenericExtension().method();
   ^^^^^^^^^^^^^^^^"{dynamic}.method();
@@ -246,9 +226,9 @@ Try removing the extra positional arguments.
   self::GenericExtension|method<dynamic>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   GenericExtension(s).method();
-                   ^" in s as{TypeError} self::GenericClass<dynamic>*);
-  self::GenericExtension|method<core::int*>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
+                   ^" in s as{TypeError,ForNonNullableByDefault} self::GenericClass<dynamic>);
+  self::GenericExtension|method<core::int>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   GenericExtension<int>(s).method();
-                        ^" in s as{TypeError} self::GenericClass<core::int*>*);
+                        ^" in s as{TypeError,ForNonNullableByDefault} self::GenericClass<core::int>);
 }

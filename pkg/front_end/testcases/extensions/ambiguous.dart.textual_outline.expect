@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension A on C {
   void method() {}
   int get getter => 42;

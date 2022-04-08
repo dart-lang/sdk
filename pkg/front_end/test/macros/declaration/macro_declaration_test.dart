@@ -198,11 +198,12 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
       Features features, List<MacroApplication>? macroApplications) {
     if (macroApplications != null) {
       for (MacroApplication application in macroApplications) {
-        String className = application.classBuilder.name;
-        String constructorName =
-            constructorNameToString(application.constructorName);
-        features.addElement(
-            Tags.appliedMacros, '${className}.${constructorName}');
+        StringBuffer sb = new StringBuffer();
+        sb.write(application.classBuilder.name);
+        sb.write('.');
+        sb.write(constructorNameToString(application.constructorName));
+        sb.write(application.arguments.toText());
+        features.addElement(Tags.appliedMacros, sb.toString());
       }
     }
   }
@@ -347,7 +348,8 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
   _MacroInstanceIdentifier(
       this.library, this.name, this.constructor, this.arguments);
 
-  String toText() => '${importUriToString(library)}/${name}/${constructor}()';
+  String toText() => '${importUriToString(library)}/${name}/'
+      '${constructor}${arguments.toText()}';
 
   @override
   void serialize(Serializer serializer) => throw UnimplementedError();
@@ -372,5 +374,27 @@ class _MacroExecutionResult implements MacroExecutionResult {
   @override
   void serialize(Serializer serializer) {
     throw UnimplementedError();
+  }
+}
+
+extension on Arguments {
+  String toText() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('(');
+    String comma = '';
+    for (Object? positional in positional) {
+      sb.write(comma);
+      sb.write(positional);
+      comma = ',';
+    }
+    for (MapEntry<String, Object?> named in named.entries) {
+      sb.write(comma);
+      sb.write(named.key);
+      sb.write(':');
+      sb.write(named.value);
+      comma = ',';
+    }
+    sb.write(')');
+    return sb.toString();
   }
 }

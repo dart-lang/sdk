@@ -10,6 +10,6 @@
 
 import 'package:precompiled_macro/precompiled_macro.dart';
 
-/*member: main:appliedMacros=[PrecompiledMacro.new]*/
+/*member: main:appliedMacros=[PrecompiledMacro.new()]*/
 @PrecompiledMacro()
 void main() {}

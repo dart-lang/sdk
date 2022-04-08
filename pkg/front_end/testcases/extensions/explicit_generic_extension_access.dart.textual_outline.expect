@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class<T extends num> {
   T field1;
   T field2;
@@ -6,7 +5,7 @@ class Class<T extends num> {
 }
 
 extension Extension1<T extends num> on Class<T> {
-  static String latestType;
+  static String? latestType;
   T get field {}
   void set field(T value) {}
   T method() {}
@@ -17,7 +16,7 @@ extension Extension2<T extends num> on Class<T> {
   T get field => field2;
   void set field(T value) {}
   T method() => field2;
-  T genericMethod<S extends num>(S t) => field2 + t;
+  T genericMethod<S extends num>(S t) => (field2 + t) as T;
 }
 
 main() {}

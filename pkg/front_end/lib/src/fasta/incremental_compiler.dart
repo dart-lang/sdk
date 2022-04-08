@@ -251,6 +251,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   IncrementalKernelTarget? get kernelTargetForTesting => _lastGoodKernelTarget;
 
+  bool get skipExperimentalInvalidationChecksForTesting => false;
+
   /// Returns the [Package] used for the package [packageName] in the most
   /// recent compilation.
   Package? getPackageForPackageName(String packageName) =>
@@ -1245,52 +1247,54 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // procedures, if the changed file is used as a mixin anywhere else
     // we can't only recompile the changed file.
     // TODO(jensj): Check for mixins in a smarter and faster way.
-    for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      if (missingSources!.contains(builder.fileUri)) {
-        continue;
-      }
-      Library lib = builder.library;
-      for (Class c in lib.classes) {
-        if (!c.isAnonymousMixin && !c.isEliminatedMixin) {
+    if (!skipExperimentalInvalidationChecksForTesting) {
+      for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+        if (missingSources!.contains(builder.fileUri)) {
           continue;
         }
-        for (Supertype supertype in c.implementedTypes) {
-          if (missingSources.contains(supertype.classNode.fileUri)) {
-            // This is probably a mixin from one of the libraries we want
-            // to rebuild only the body of.
-            // TODO(jensj): We can probably add this to the rebuildBodies
-            // list and just rebuild that library too.
-            // print("Usage of mixin in ${lib.importUri}");
-            return null;
+        Library lib = builder.library;
+        for (Class c in lib.classes) {
+          if (!c.isAnonymousMixin && !c.isEliminatedMixin) {
+            continue;
+          }
+          for (Supertype supertype in c.implementedTypes) {
+            if (missingSources.contains(supertype.classNode.fileUri)) {
+              // This is probably a mixin from one of the libraries we want
+              // to rebuild only the body of.
+              // TODO(jensj): We can probably add this to the rebuildBodies
+              // list and just rebuild that library too.
+              // print("Usage of mixin in ${lib.importUri}");
+              return null;
+            }
           }
         }
       }
-    }
 
-    // Special case FFI: Because the VM ffi transformation inlines
-    // size and position, if the changed file contains ffi structs
-    // we can't only recompile the changed file.
-    // TODO(jensj): Come up with something smarter for this. E.g. we might
-    // check if the FFI-classes are used in other libraries, or as actual nested
-    // structures in other FFI-classes etc.
-    // Alternatively (https://github.com/dart-lang/sdk/issues/45899) we might
-    // do something else entirely that doesn't require special handling.
-    if (_importsFfi()) {
-      for (LibraryBuilder builder in rebuildBodies!) {
-        Library lib = builder.library;
-        for (LibraryDependency dependency in lib.dependencies) {
-          Library importLibrary = dependency.targetLibrary;
-          if (importLibrary.importUri == dartFfiUri) {
-            // Explicitly imports dart:ffi.
-            return null;
-          }
-          for (Reference exportReference in importLibrary.additionalExports) {
-            NamedNode? export = exportReference.node;
-            if (export is Class) {
-              Class c = export;
-              if (c.enclosingLibrary.importUri == dartFfiUri) {
-                // Implicitly imports a dart:ffi class.
-                return null;
+      // Special case FFI: Because the VM ffi transformation inlines
+      // size and position, if the changed file contains ffi structs
+      // we can't only recompile the changed file.
+      // TODO(jensj): Come up with something smarter for this. E.g. we might
+      // check if the FFI-classes are used in other libraries, or as actual
+      // nested structures in other FFI-classes etc.
+      // Alternatively (https://github.com/dart-lang/sdk/issues/45899) we might
+      // do something else entirely that doesn't require special handling.
+      if (_importsFfi()) {
+        for (LibraryBuilder builder in rebuildBodies!) {
+          Library lib = builder.library;
+          for (LibraryDependency dependency in lib.dependencies) {
+            Library importLibrary = dependency.targetLibrary;
+            if (importLibrary.importUri == dartFfiUri) {
+              // Explicitly imports dart:ffi.
+              return null;
+            }
+            for (Reference exportReference in importLibrary.additionalExports) {
+              NamedNode? export = exportReference.node;
+              if (export is Class) {
+                Class c = export;
+                if (c.enclosingLibrary.importUri == dartFfiUri) {
+                  // Implicitly imports a dart:ffi class.
+                  return null;
+                }
               }
             }
           }

@@ -11,15 +11,15 @@
   package:precompiled_macro/precompiled_macro.dart/PrecompiledMacro/()],
  macrosAreApplied,
  macrosAreAvailable,
- neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)]
+ neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)|Macro4(new)]
 */
 
 import 'package:precompiled_macro/precompiled_macro.dart';
 import 'package:macro/macro.dart';
 
 /*member: main:appliedMacros=[
-  Macro1.new,
-  PrecompiledMacro.new]*/
+  Macro1.new(),
+  PrecompiledMacro.new()]*/
 @PrecompiledMacro()
 @Macro1()
 void main() {}

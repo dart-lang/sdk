@@ -19,19 +19,19 @@
 
 import 'macro_lib.dart';
 
-/*member: main:appliedMacros=[Macro1.new]*/
+/*member: main:appliedMacros=[Macro1.new()]*/
 @Macro1()
 void main() {}
 
 /*class: Class1:
- appliedMacros=[Macro2.new],
+ appliedMacros=[Macro2.new()],
  macrosAreApplied
 */
 @Macro2()
 class Class1 {
   /*member: Class1.method:appliedMacros=[
-    Macro1.new,
-    Macro2.new]*/
+    Macro1.new(),
+    Macro2.new()]*/
   @Macro1()
   @Macro2()
   void method() {}
@@ -42,7 +42,7 @@ class Class2 {}
 
 /*class: Class3:macrosAreApplied*/
 class Class3 {
-  /*member: Class3.field:appliedMacros=[Macro1.new]*/
+  /*member: Class3.field:appliedMacros=[Macro1.new()]*/
   @Macro1()
   var field;
 }

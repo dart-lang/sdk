@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class<T> {
   static var field;
 }
@@ -36,11 +36,11 @@ extension Extension<T> on Class<T> {
     property = value;
   }
 
-  static genericWriteSetterOptional<S>([S value]) {
+  static genericWriteSetterOptional<S>([S? value]) {
     property = value;
   }
 
-  static genericWriteSetterNamed<S>({S value}) {
+  static genericWriteSetterNamed<S>({S? value}) {
     property = value;
   }
 
