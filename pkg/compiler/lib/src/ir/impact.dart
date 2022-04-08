@@ -177,10 +177,8 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
-  // invocation encoding is no longer used.
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType);
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType);
 
   void registerConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);

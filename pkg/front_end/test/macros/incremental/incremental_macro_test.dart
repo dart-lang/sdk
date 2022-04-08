@@ -102,12 +102,12 @@ Future<void> main(List<String> args) async {
 
   await CompilerContext.runWithOptions(processedOptions,
       (CompilerContext context) async {
-    IncrementalCompiler compiler = new IncrementalCompiler(context);
     for (Test test in tests.values) {
       if (args.isNotEmpty && !args.contains(test.name)) {
         print('Skipped ${test.name}');
         continue;
       }
+      IncrementalCompiler compiler = new IncrementalCompiler(context);
       Uri entryPoint = test.entryPoint;
       for (TestUpdate update in test.updates) {
         print('Running ${test.name} update ${update.index}');

@@ -6771,48 +6771,64 @@ CompileTimeErrorCode:
       Parameters:
       0: the type of the function
       1: the expected function type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_FUNCTION_EXPR:
     problemMessage: "The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s)."
     comment: |-
       Parameters:
       0: the type of the torn-off function expression
       1: the expected function type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL:
     problemMessage: "The literal '{0}' with type '{1}' isn't of expected type '{2}'."
     comment: |-
       Parameters:
       0: the type of the literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_LIST:
     problemMessage: "The list literal type '{0}' isn't of expected type '{1}'. The list's type can be changed with an explicit generic type argument or by changing the element types."
     comment: |-
       Parameters:
       0: the type of the list literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_MAP:
     problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     comment: |-
       Parameters:
       0: the type of the map literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_SET:
     problemMessage: "The set literal type '{0}' isn't of expected type '{1}'. The set's type can be changed with an explicit generic type argument or by changing the element types."
     comment: |-
       Parameters:
       0: the type of the set literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_METHOD:
     problemMessage: "The method tear-off '{0}' has type '{1}' that isn't of expected type '{2}'. This means its parameter or return type doesn't match what is expected."
     comment: |-
       Parameters:
       0: the type of the torn-off method
       1: the expected function type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_NEW_EXPR:
     problemMessage: "The constructor returns type '{0}' that isn't of expected type '{1}'."
     comment: |-
       Parameters:
       0: the type of the instantiated object
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CONSTANT:
     problemMessage: Invalid constant value.
     comment: |-

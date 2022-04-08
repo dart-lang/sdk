@@ -4,13 +4,11 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,14 +17,13 @@ void main() {
 }
 
 @reflectiveTest
-class PostfixCompletionTest extends AbstractAnalysisTest {
+class PostfixCompletionTest extends PubPackageAnalysisServerTest {
   late SourceChange change;
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_for() async {
@@ -49,10 +46,11 @@ main() {
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request =
         EditGetPostfixCompletionParams('test.dart', '.for', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -60,10 +58,11 @@ main() {
     var request = EditGetPostfixCompletionParams(
             convertPath('/foo/../bar/test.dart'), '.for', 0)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -71,7 +70,7 @@ main() {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode =
-            SourceEdit.applySequence(testCode, change.edits[0].edits);
+            SourceEdit.applySequence(testFileContent, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
       }
       return;
@@ -81,24 +80,24 @@ main() {
 
   Future<void> _prepareCompletion(String key) async {
     var offset = findOffset(key);
-    var src = testCode.replaceFirst(key, '', offset);
+    var src = testFileContent.replaceFirst(key, '', offset);
     modifyTestFile(src);
     await _prepareCompletionAt(offset, key);
   }
 
   Future<void> _prepareCompletionAt(int offset, String key) async {
-    var params = EditGetPostfixCompletionParams(testFile, key, offset);
+    var params = EditGetPostfixCompletionParams(testFile.path, key, offset);
     var request =
         Request('0', 'edit.isPostfixCompletionApplicable', params.toJson());
-    var response = await waitResponse(request, throwOnError: false);
+    var response = await handleSuccessfulRequest(request);
     var isApplicable =
         EditIsPostfixCompletionApplicableResult.fromResponse(response);
     if (!isApplicable.value) {
       fail('Postfix completion not applicable at given location');
     }
-    request =
-        EditGetPostfixCompletionParams(testFile, key, offset).toRequest('1');
-    response = await waitResponse(request, throwOnError: false);
+    request = EditGetPostfixCompletionParams(testFile.path, key, offset)
+        .toRequest('1');
+    response = await handleSuccessfulRequest(request);
     var result = EditGetPostfixCompletionResult.fromResponse(response);
     change = result.change;
   }

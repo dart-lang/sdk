@@ -3127,6 +3127,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   bool get isConst => _parameter.isConst;
 
   @override
+  bool get isExplicitlyTyped => _parameter.isExplicitlyTyped;
+
+  @override
   bool get isFinal => _parameter.isFinal;
 
   @override
@@ -4438,6 +4441,9 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
+  bool get isExplicitlyTyped => _parameters != null || _type != null;
+
+  @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
@@ -5632,6 +5638,9 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   bool get isConst => false;
+
+  @override
+  bool get isExplicitlyTyped => true;
 
   @override
   bool get isFinal => false;
@@ -9524,6 +9533,9 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
+  bool get isExplicitlyTyped => _type != null;
+
+  @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
@@ -10347,6 +10359,9 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
+
+  @override
+  bool get isExplicitlyTyped => _parameters != null || _type != null;
 
   @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;

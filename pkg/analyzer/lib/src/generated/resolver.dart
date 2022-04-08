@@ -73,6 +73,7 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
 
@@ -2488,6 +2489,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           isLate: parent.isLate,
           isImplicitlyTyped: declaredType == null);
     }
+    _checkTopLevelCycle(node);
   }
 
   @override
@@ -2535,6 +2537,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitYieldStatement(YieldStatement node) {
     _yieldStatementResolver.resolve(node);
+  }
+
+  void _checkTopLevelCycle(VariableDeclaration node) {
+    var element = node.declaredElement;
+    if (element is! PropertyInducingElementImpl) {
+      return;
+    }
+    // Errors on const are reported separately with
+    // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
+    if (element.isConst) {
+      return;
+    }
+    var error = element.typeInferenceError;
+    if (error == null) {
+      return;
+    }
+    if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
+      var argumentsText = error.arguments.join(', ');
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+          node.name, [node.name.name, argumentsText]);
+    }
   }
 
   /// Creates a union of `T | Future<T>`, unless `T` is already a

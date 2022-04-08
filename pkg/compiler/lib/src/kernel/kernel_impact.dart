@@ -633,28 +633,12 @@ class KernelImpactConverter implements ImpactRegistry {
         const <DartType>[]));
   }
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
   @override
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType) {
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType) {
     DartType receiverDartType = elementMap.getDartType(receiverType);
     DartType argumentDartType =
         argumentType == null ? null : elementMap.getDartType(argumentType);
-
-    if (_options.omitImplicitChecks) {
-      switch (kind) {
-        case RuntimeTypeUseKind.string:
-          if (!_options.laxRuntimeTypeToString) {
-            reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
-                MessageKind.RUNTIME_TYPE_TO_STRING);
-          }
-          break;
-        case RuntimeTypeUseKind.equals:
-        case RuntimeTypeUseKind.unknown:
-          break;
-      }
-    }
 
     // Enable runtime type support if we discover a getter called
     // runtimeType. We have to enable runtime type before hitting the

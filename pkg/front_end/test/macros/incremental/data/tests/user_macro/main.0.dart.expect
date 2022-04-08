@@ -49,5 +49,5 @@ static method generateBody() → core::String {
 
 constants  {
   #C1 = mac::MethodMacro {}
-  #C2 = dart.core::_Override {}
+  #C2 = core::_Override {}
 }

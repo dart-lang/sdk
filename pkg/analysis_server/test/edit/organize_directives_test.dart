@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,14 +16,13 @@ void main() {
 }
 
 @reflectiveTest
-class OrganizeDirectivesTest extends AbstractAnalysisTest {
+class OrganizeDirectivesTest extends PubPackageAnalysisServerTest {
   late SourceFileEdit fileEdit;
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   @failingTest
@@ -34,9 +31,12 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
     var request =
         EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
             .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-        response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
+    var response = await handleRequest(request);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FILE_NOT_ANALYZED,
+    );
   }
 
   Future test_BAD_hasParseError() async {
@@ -45,27 +45,34 @@ import 'dart:async'
 
 main() {}
 ''');
-    var request = EditOrganizeDirectivesParams(testFile).toRequest('0');
-    var response = await waitResponse(request);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR));
+    var request = EditOrganizeDirectivesParams(testFile.path).toRequest('0');
+    var response = await handleRequest(request);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR,
+    );
   }
 
   Future test_BAD_notDartFile() async {
     var request = EditOrganizeDirectivesParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
-        response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
+    var response = await handleRequest(request);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FILE_NOT_ANALYZED,
+    );
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditOrganizeDirectivesParams('test.dart').toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -73,10 +80,11 @@ main() {}
     var request =
         EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
             .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -147,13 +155,13 @@ main() {
 
   Future _assertOrganized(String expectedCode) async {
     await _requestOrganize();
-    var resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    var resultCode = SourceEdit.applySequence(testFileContent, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
   Future _requestOrganize() async {
-    var request = EditOrganizeDirectivesParams(testFile).toRequest('0');
-    var response = await waitResponse(request);
+    var request = EditOrganizeDirectivesParams(testFile.path).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = EditOrganizeDirectivesResult.fromResponse(response);
     fileEdit = result.edit;
   }
