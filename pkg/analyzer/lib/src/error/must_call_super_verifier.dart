@@ -5,9 +5,9 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 
 class MustCallSuperVerifier {
@@ -133,62 +133,12 @@ class MustCallSuperVerifier {
 
   void _verifySuperIsCalled(MethodDeclaration node, String methodName,
       String? overriddenEnclosingName) {
-    _SuperCallVerifier verifier = _SuperCallVerifier(methodName);
-    node.accept(verifier);
-    if (!verifier.superIsCalled) {
+    if (!node.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _errorReporter.reportErrorForNode(
           HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
     }
     return;
-  }
-}
-
-/// Recursively visits an AST, looking for method invocations.
-class _SuperCallVerifier extends RecursiveAstVisitor<void> {
-  bool superIsCalled = false;
-
-  final String name;
-
-  _SuperCallVerifier(this.name);
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var lhs = node.leftHandSide;
-    if (lhs is PropertyAccess) {
-      if (lhs.target is SuperExpression && lhs.propertyName.name == name) {
-        superIsCalled = true;
-        return;
-      }
-    }
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
-      superIsCalled = true;
-      return;
-    }
-    super.visitBinaryExpression(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.target is SuperExpression && node.methodName.name == name) {
-      superIsCalled = true;
-      return;
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (node.target is SuperExpression && node.propertyName.name == name) {
-      superIsCalled = true;
-      return;
-    }
-    super.visitPropertyAccess(node);
   }
 }

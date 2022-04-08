@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:collection/collection.dart';
@@ -140,6 +141,7 @@ class _UnitApiSignatureComputer {
     );
     signature.addBool(node.body is EmptyFunctionBody);
     _addFunctionBodyModifiers(node.body);
+    signature.addBool(node.invokesSuperSelf);
   }
 
   void _addNode(AstNode? node) {

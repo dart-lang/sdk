@@ -457,6 +457,83 @@ static const int a = 2;
 ''');
   }
 
+  test_classLike_method_body_block_invokesSuperSelf_false_differentName() {
+    _assertSameSignature_classLike(r'''
+void foo() {
+  super.bar();
+}
+''', r'''
+void foo() {
+  super.bar2();
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_falseToTrue() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {}
+''', r'''
+void foo() {
+  super.foo();
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_assignmentExpression() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo = 0;
+}
+''', r'''
+void foo() {}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_binaryExpression() {
+    _assertNotSameSignature_classLike(r'''
+int operator +() {
+  super + 2;
+  return 0;
+}
+''', r'''
+int operator +() {
+  return 0;
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_differentName() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo();
+}
+''', r'''
+void foo() {
+  super.bar();
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_methodInvocation() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo();
+}
+''', r'''
+void foo() {}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_propertyAccess() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo;
+}
+''', r'''
+void foo() {}
+''');
+  }
+
   test_classLike_method_body_block_to_empty() {
     _assertNotSameSignature_classLike(r'''
 void foo() {}
@@ -478,6 +555,14 @@ void foo() {}
 int foo();
 ''', r'''
 int foo() => 0;
+''');
+  }
+
+  test_classLike_method_body_expression_invokesSuperSelf_trueToFalse_methodInvocation() {
+    _assertNotSameSignature_classLike(r'''
+void foo() => super.foo();
+''', r'''
+void foo() => 0;
 ''');
   }
 
