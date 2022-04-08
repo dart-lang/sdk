@@ -490,6 +490,7 @@ portions
 pp
 preliminary
 prematurely
+prerequisite
 press
 pretends
 printouts
@@ -514,6 +515,7 @@ quot
 quux
 quuz
 reality
+recompilation
 recompiles
 redir
 redirections
@@ -620,6 +622,7 @@ sup
 supermixin
 supplement
 suspension
+swallow
 t\b\f\u
 t\u
 ta
