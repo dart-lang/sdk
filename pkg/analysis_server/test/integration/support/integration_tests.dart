@@ -622,9 +622,8 @@ class Server {
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
 
-    // The integration tests run 3x faster when run from snapshots (you need to
-    // run test.py with --use-sdk).
-    var useSnapshot = true;
+    // Prevent flow analysis from marking code below as being dead.
+    const useSnapshot = 1 > 0;
     String serverPath;
 
     if (useSnapshot) {

@@ -85,33 +85,21 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
   static final Map<String, HandlerGenerator> handlerGenerators = {
-    ANALYTICS_REQUEST_IS_ENABLED: (server, request, cancellationToken) =>
-        AnalyticsIsEnabledHandler(server, request, cancellationToken),
-    ANALYTICS_REQUEST_ENABLE: (server, request, cancellationToken) =>
-        AnalyticsEnableHandler(server, request, cancellationToken),
-    ANALYTICS_REQUEST_SEND_EVENT: (server, request, cancellationToken) =>
-        AnalyticsSendEventHandler(server, request, cancellationToken),
-    ANALYTICS_REQUEST_SEND_TIMING: (server, request, cancellationToken) =>
-        AnalyticsSendTimingHandler(server, request, cancellationToken),
+    ANALYTICS_REQUEST_IS_ENABLED: AnalyticsIsEnabledHandler.new,
+    ANALYTICS_REQUEST_ENABLE: AnalyticsEnableHandler.new,
+    ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
+    ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
     //
-    DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: (server, request, cancellationToken) =>
-        DiagnosticGetDiagnosticsHandler(server, request, cancellationToken),
-    DIAGNOSTIC_REQUEST_GET_SERVER_PORT: (server, request, cancellationToken) =>
-        DiagnosticGetServerPortHandler(server, request, cancellationToken),
+    DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
+    DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
     //
-    EXECUTION_REQUEST_CREATE_CONTEXT: (server, request, cancellationToken) =>
-        ExecutionCreateContextHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_DELETE_CONTEXT: (server, request, cancellationToken) =>
-        ExecutionDeleteContextHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_GET_SUGGESTIONS: (server, request, cancellationToken) =>
-        ExecutionGetSuggestionsHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_MAP_URI: (server, request, cancellationToken) =>
-        ExecutionMapUriHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_SET_SUBSCRIPTIONS: (server, request, cancellationToken) =>
-        ExecutionSetSubscriptionsHandler(server, request, cancellationToken),
+    EXECUTION_REQUEST_CREATE_CONTEXT: ExecutionCreateContextHandler.new,
+    EXECUTION_REQUEST_DELETE_CONTEXT: ExecutionDeleteContextHandler.new,
+    EXECUTION_REQUEST_GET_SUGGESTIONS: ExecutionGetSuggestionsHandler.new,
+    EXECUTION_REQUEST_MAP_URI: ExecutionMapUriHandler.new,
+    EXECUTION_REQUEST_SET_SUBSCRIPTIONS: ExecutionSetSubscriptionsHandler.new,
     //
-    KYTHE_REQUEST_GET_KYTHE_ENTRIES: (server, request, cancellationToken) =>
-        KytheGetKytheEntriesHandler(server, request, cancellationToken),
+    KYTHE_REQUEST_GET_KYTHE_ENTRIES: KytheGetKytheEntriesHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
