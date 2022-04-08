@@ -70,7 +70,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if defined(USING_THREAD_SANITIZER)
+#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
   const Register kTsanUtilsReg = RAX;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -138,17 +138,17 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // pushed old [Thread::tsan_utils_->setjmp_buffer_].
   __ Bind(&do_native_call);
   __ MoveRegister(kSavedRspReg, RSP);
-#endif  // defined(USING_THREAD_SANITIZER)
+#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
 
   fun();
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
   __ MoveRegister(RSP, kSavedRspReg);
   __ AddImmediate(RSP, Immediate(kJumpBufferSize));
   const Register kTsanUtilsReg2 = kSavedRspReg;
   __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
   __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
-#endif  // defined(USING_THREAD_SANITIZER)
+#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
 }
 
 // Input parameters:

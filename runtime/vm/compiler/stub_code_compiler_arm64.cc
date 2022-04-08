@@ -52,6 +52,101 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ Bind(&done);
 }
 
+// In TSAN mode the runtime will throw an exception using an intermediary
+// longjmp() call to unwind the C frames in a way that TSAN can understand.
+//
+// This wrapper will setup a [jmp_buf] on the stack and initialize it to be a
+// target for a possible longjmp(). In the exceptional case we'll forward
+// control of execution to the usual JumpToFrame stub.
+//
+// In non-TSAN mode this will do nothing and the runtime will call the
+// JumpToFrame stub directly.
+//
+// The callback [fun] may be invoked with a modified [RSP] due to allocating
+// a [jmp_buf] allocating structure on the stack (as well as the saved old
+// [Thread::tsan_utils_->setjmp_buffer_]).
+static void WithExceptionCatchingTrampoline(Assembler* assembler,
+                                            std::function<void()> fun) {
+#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+  const Register kTsanUtilsReg = R3;
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  const intptr_t kJumpBufferSize = sizeof(jmp_buf);
+  // Save & Restore the volatile CPU registers across the setjmp() call.
+  const RegisterSet volatile_registers(
+      kAbiVolatileCpuRegs & ~(1 << R0) & ~(1 << SP),
+      /*fpu_registers=*/0);
+
+  const Register kSavedRspReg = R20;
+  COMPILE_ASSERT(IsCalleeSavedRegister(kSavedRspReg));
+  // We rely on THR being preserved across the setjmp() call.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+
+  Label do_native_call;
+
+  // Save old jmp_buf.
+  __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+  __ ldr(TMP,
+         Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+  __ Push(TMP);
+
+  // Allocate jmp_buf struct on stack & remember pointer to it on the
+  // [Thread::tsan_utils_->setjmp_buffer] (which exceptions.cc will longjmp()
+  // to)
+  __ AddImmediate(SP, -kJumpBufferSize);
+  __ str(SP, Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+
+  // Call setjmp() with a pointer to the allocated jmp_buf struct.
+  __ MoveRegister(R0, SP);
+  __ PushRegisters(volatile_registers);
+  __ EnterCFrame(0);
+  __ mov(R25, CSP);
+  __ mov(CSP, SP);
+  __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+  __ CallCFunction(
+      Address(kTsanUtilsReg, target::TsanUtils::setjmp_function_offset()));
+  __ mov(SP, CSP);
+  __ mov(CSP, R25);
+  __ LeaveCFrame();
+  __ PopRegisters(volatile_registers);
+
+  // We are the target of a longjmp() iff setjmp() returns non-0.
+  __ cbz(&do_native_call, R0);
+
+  // We are the target of a longjmp: Cleanup the stack and tail-call the
+  // JumpToFrame stub which will take care of unwinding the stack and hand
+  // execution to the catch entry.
+  __ AddImmediate(SP, kJumpBufferSize);
+  __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+  __ Pop(TMP);
+  __ str(TMP,
+         Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+
+  __ ldr(R0, Address(kTsanUtilsReg, target::TsanUtils::exception_pc_offset()));
+  __ ldr(R1, Address(kTsanUtilsReg, target::TsanUtils::exception_sp_offset()));
+  __ ldr(R2, Address(kTsanUtilsReg, target::TsanUtils::exception_fp_offset()));
+  __ MoveRegister(R3, THR);
+  __ Jump(Address(THR, target::Thread::jump_to_frame_entry_point_offset()));
+
+  // We leave the created [jump_buf] structure on the stack as well as the
+  // pushed old [Thread::tsan_utils_->setjmp_buffer_].
+  __ Bind(&do_native_call);
+  __ MoveRegister(kSavedRspReg, SP);
+#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+
+  fun();
+
+#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+  __ MoveRegister(SP, kSavedRspReg);
+  __ AddImmediate(SP, kJumpBufferSize);
+  const Register kTsanUtilsReg2 = kSavedRspReg;
+  __ ldr(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
+  __ Pop(TMP);
+  __ str(TMP,
+         Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
+#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+}
+
 // Input parameters:
 //   LR : return address.
 //   SP : address of last argument in argument array.
@@ -93,73 +188,75 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Mark that the thread is executing VM code.
   __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
 
-  // Reserve space for arguments and align frame before entering C++ world.
-  // target::NativeArguments are passed in registers.
-  __ Comment("align stack");
-  // Reserve space for arguments.
-  ASSERT(target::NativeArguments::StructSize() == 4 * target::kWordSize);
-  __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
+  WithExceptionCatchingTrampoline(assembler, [&]() {
+    // Reserve space for arguments and align frame before entering C++ world.
+    // target::NativeArguments are passed in registers.
+    __ Comment("align stack");
+    // Reserve space for arguments.
+    ASSERT(target::NativeArguments::StructSize() == 4 * target::kWordSize);
+    __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
 
-  // Pass target::NativeArguments structure by value and call runtime.
-  // Registers R0, R1, R2, and R3 are used.
+    // Pass target::NativeArguments structure by value and call runtime.
+    // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(thread_offset == 0 * target::kWordSize);
-  // Set thread in NativeArgs.
-  __ mov(R0, THR);
+    ASSERT(thread_offset == 0 * target::kWordSize);
+    // Set thread in NativeArgs.
+    __ mov(R0, THR);
 
-  // There are no runtime calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  ASSERT(argc_tag_offset == 1 * target::kWordSize);
-  __ mov(R1, R4);  // Set argc in target::NativeArguments.
+    // There are no runtime calls to closures, so we do not need to set the tag
+    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+    ASSERT(argc_tag_offset == 1 * target::kWordSize);
+    __ mov(R1, R4);  // Set argc in target::NativeArguments.
 
-  ASSERT(argv_offset == 2 * target::kWordSize);
-  __ add(R2, ZR, Operand(R4, LSL, 3));
-  __ add(R2, FP, Operand(R2));  // Compute argv.
-  // Set argv in target::NativeArguments.
-  __ AddImmediate(R2,
-                  target::frame_layout.param_end_from_fp * target::kWordSize);
+    ASSERT(argv_offset == 2 * target::kWordSize);
+    __ add(R2, ZR, Operand(R4, LSL, 3));
+    __ add(R2, FP, Operand(R2));  // Compute argv.
+    // Set argv in target::NativeArguments.
+    __ AddImmediate(R2,
+                    target::frame_layout.param_end_from_fp * target::kWordSize);
 
-  ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(R3, R2, target::kWordSize);
+    ASSERT(retval_offset == 3 * target::kWordSize);
+    __ AddImmediate(R3, R2, target::kWordSize);
 
-  __ StoreToOffset(R0, SP, thread_offset);
-  __ StoreToOffset(R1, SP, argc_tag_offset);
-  __ StoreToOffset(R2, SP, argv_offset);
-  __ StoreToOffset(R3, SP, retval_offset);
-  __ mov(R0, SP);  // Pass the pointer to the target::NativeArguments.
+    __ StoreToOffset(R0, SP, thread_offset);
+    __ StoreToOffset(R1, SP, argc_tag_offset);
+    __ StoreToOffset(R2, SP, argv_offset);
+    __ StoreToOffset(R3, SP, retval_offset);
+    __ mov(R0, SP);  // Pass the pointer to the target::NativeArguments.
 
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in a callee-saved register.
-  __ mov(R25, CSP);
-  __ mov(CSP, SP);
+    // We are entering runtime code, so the C stack pointer must be restored
+    // from the stack limit to the top of the stack. We cache the stack limit
+    // address in a callee-saved register.
+    __ mov(R25, CSP);
+    __ mov(CSP, SP);
 
-  __ blr(R5);
-  __ Comment("CallToRuntimeStub return");
+    __ blr(R5);
+    __ Comment("CallToRuntimeStub return");
 
-  // Restore SP and CSP.
-  __ mov(SP, CSP);
-  __ mov(CSP, R25);
+    // Restore SP and CSP.
+    __ mov(SP, CSP);
+    __ mov(CSP, R25);
 
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
+    // Refresh pinned registers (write barrier mask, null, dispatch table, etc).
+    __ RestorePinnedRegisters();
 
-  // Retval is next to 1st argument.
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
+    // Retval is next to 1st argument.
+    // Mark that the thread is executing Dart code.
+    __ LoadImmediate(R2, VMTag::kDartTagId);
+    __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
-  // Mark that the thread has not exited generated Dart code.
-  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
+    // Mark that the thread has not exited generated Dart code.
+    __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
 
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
+    // Reset exit frame information in Isolate's mutator thread structure.
+    __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
 
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode) {
-    __ SetupGlobalPoolAndDispatchTable();
-  }
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode) {
+      __ SetupGlobalPoolAndDispatchTable();
+    }
+  });
 
   __ LeaveStubFrame();
 
@@ -678,73 +775,76 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Mark that the thread is executing native code.
   __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
 
-  // Reserve space for the native arguments structure passed on the stack (the
-  // outgoing pointer parameter to the native arguments structure is passed in
-  // R0) and align frame before entering the C++ world.
-  __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
+  WithExceptionCatchingTrampoline(assembler, [&]() {
+    // Reserve space for the native arguments structure passed on the stack (the
+    // outgoing pointer parameter to the native arguments structure is passed in
+    // R0) and align frame before entering the C++ world.
+    __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
 
-  // Initialize target::NativeArguments structure and call native function.
-  // Registers R0, R1, R2, and R3 are used.
+    // Initialize target::NativeArguments structure and call native function.
+    // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(thread_offset == 0 * target::kWordSize);
-  // Set thread in NativeArgs.
-  __ mov(R0, THR);
+    ASSERT(thread_offset == 0 * target::kWordSize);
+    // Set thread in NativeArgs.
+    __ mov(R0, THR);
 
-  // There are no native calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  ASSERT(argc_tag_offset == 1 * target::kWordSize);
-  // Set argc in target::NativeArguments: R1 already contains argc.
+    // There are no native calls to closures, so we do not need to set the tag
+    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+    ASSERT(argc_tag_offset == 1 * target::kWordSize);
+    // Set argc in target::NativeArguments: R1 already contains argc.
 
-  ASSERT(argv_offset == 2 * target::kWordSize);
-  // Set argv in target::NativeArguments: R2 already contains argv.
+    ASSERT(argv_offset == 2 * target::kWordSize);
+    // Set argv in target::NativeArguments: R2 already contains argv.
 
-  // Set retval in NativeArgs.
-  ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(
-      R3, FP, (target::frame_layout.param_end_from_fp + 1) * target::kWordSize);
+    // Set retval in NativeArgs.
+    ASSERT(retval_offset == 3 * target::kWordSize);
+    __ AddImmediate(
+        R3, FP,
+        (target::frame_layout.param_end_from_fp + 1) * target::kWordSize);
 
-  // Passing the structure by value as in runtime calls would require changing
-  // Dart API for native functions.
-  // For now, space is reserved on the stack and we pass a pointer to it.
-  __ StoreToOffset(R0, SP, thread_offset);
-  __ StoreToOffset(R1, SP, argc_tag_offset);
-  __ StoreToOffset(R2, SP, argv_offset);
-  __ StoreToOffset(R3, SP, retval_offset);
-  __ mov(R0, SP);  // Pass the pointer to the target::NativeArguments.
+    // Passing the structure by value as in runtime calls would require changing
+    // Dart API for native functions.
+    // For now, space is reserved on the stack and we pass a pointer to it.
+    __ StoreToOffset(R0, SP, thread_offset);
+    __ StoreToOffset(R1, SP, argc_tag_offset);
+    __ StoreToOffset(R2, SP, argv_offset);
+    __ StoreToOffset(R3, SP, retval_offset);
+    __ mov(R0, SP);  // Pass the pointer to the target::NativeArguments.
 
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R25, CSP);
-  __ mov(CSP, SP);
+    // We are entering runtime code, so the C stack pointer must be restored
+    // from the stack limit to the top of the stack. We cache the stack limit
+    // address in the Dart SP register, which is callee-saved in the C ABI.
+    __ mov(R25, CSP);
+    __ mov(CSP, SP);
 
-  __ mov(R1, R5);  // Pass the function entrypoint to call.
+    __ mov(R1, R5);  // Pass the function entrypoint to call.
 
-  // Call native function invocation wrapper or redirection via simulator.
-  __ Call(wrapper);
+    // Call native function invocation wrapper or redirection via simulator.
+    __ Call(wrapper);
 
-  // Restore SP and CSP.
-  __ mov(SP, CSP);
-  __ mov(CSP, R25);
+    // Restore SP and CSP.
+    __ mov(SP, CSP);
+    __ mov(CSP, R25);
 
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
+    // Refresh pinned registers (write barrier mask, null, dispatch table, etc).
+    __ RestorePinnedRegisters();
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
+    // Mark that the thread is executing Dart code.
+    __ LoadImmediate(R2, VMTag::kDartTagId);
+    __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
-  // Mark that the thread has not exited generated Dart code.
-  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
+    // Mark that the thread has not exited generated Dart code.
+    __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
 
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
+    // Reset exit frame information in Isolate's mutator thread structure.
+    __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
 
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode) {
-    __ SetupGlobalPoolAndDispatchTable();
-  }
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode) {
+      __ SetupGlobalPoolAndDispatchTable();
+    }
+  });
 
   __ LeaveStubFrame();
   __ ret();
@@ -1393,7 +1493,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ mov(THR, R3);
   }
 
-  // Refresh pinned registers values (inc. write barrier mask and null object).
+  // Refresh pinned registers (write barrier mask, null, dispatch table, etc).
   __ RestorePinnedRegisters();
 
   // Save the current VMTag on the stack.
@@ -3125,7 +3225,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
                                  /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
-  // Refresh pinned registers values (inc. write barrier mask and null object).
+  // Refresh pinned registers (write barrier mask, null, dispatch table, etc).
   __ RestorePinnedRegisters();
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
