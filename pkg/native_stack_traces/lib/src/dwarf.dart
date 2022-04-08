@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -1204,7 +1205,64 @@ class PCOffset {
 }
 
 /// The DWARF debugging information for a Dart snapshot.
-class Dwarf {
+abstract class Dwarf {
+  /// Attempts to load the DWARF debugging information from the reader.
+  ///
+  /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
+  static Dwarf? fromReader(Reader reader) => DwarfElf.fromReader(reader);
+
+  /// Attempts to load the DWARF debugging information from the given bytes.
+  ///
+  /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
+  static Dwarf? fromBytes(Uint8List bytes) => DwarfElf.fromBytes(bytes);
+
+  /// Attempts to load the DWARF debugging information from the file at [path].
+  ///
+  /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
+  static Dwarf? fromFile(String path) => path.endsWith('dSYM')
+      ? DwarfDsym.fromFile(path)
+      : DwarfElf.fromFile(path);
+
+  /// Virtual address of the start of the VM instructions section in the DWARF
+  /// information.
+  int get vmStartAddress;
+
+  /// Virtual address of the start of the isolate instructions section in the
+  /// DWARF information.
+  int get isolateStartAddress;
+
+  /// The call information for the given virtual address. There may be
+  /// multiple [CallInfo] objects returned for a single virtual address when
+  /// code has been inlined.
+  ///
+  /// Returns null if the given address is invalid for the DWARF information.
+  ///
+  /// If [includeInternalFrames] is false, then only information corresponding
+  /// to user or library code is returned.
+  Iterable<CallInfo>? callInfoFor(int address,
+      {bool includeInternalFrames = false});
+
+  /// The virtual address in this DWARF information for the given [PCOffset].
+  int virtualAddressOf(PCOffset pcOffset) {
+    switch (pcOffset.section) {
+      case InstructionsSection.none:
+        // This address is already virtualized, so we don't need to change it.
+        return pcOffset.offset;
+      case InstructionsSection.vm:
+        return pcOffset.offset + vmStartAddress;
+      case InstructionsSection.isolate:
+        return pcOffset.offset + isolateStartAddress;
+      default:
+        throw 'Unexpected value for instructions section';
+    }
+  }
+
+  /// Dump all the parsed information from the debugging file
+  String dumpFileInfo();
+}
+
+/// The DWARF debugging information for a Dart snapshot.
+class DwarfElf extends Dwarf {
   final Elf _elf;
   final Map<int, _AbbreviationsTable> _abbreviationsTables;
   final DebugInfo _debugInfo;
@@ -1212,38 +1270,40 @@ class Dwarf {
 
   /// Virtual address of the start of the VM instructions section in the DWARF
   /// information.
+  @override
   final int vmStartAddress;
 
   /// Virtual address of the start of the isolate instructions section in the
   /// DWARF information.
+  @override
   final int isolateStartAddress;
 
-  Dwarf._(this._elf, this._abbreviationsTables, this._debugInfo,
+  DwarfElf._(this._elf, this._abbreviationsTables, this._debugInfo,
       this._lineNumberInfo, this.vmStartAddress, this.isolateStartAddress);
 
   /// Attempts to load the DWARF debugging information from the reader.
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  static Dwarf? fromReader(Reader reader) {
+  static DwarfElf? fromReader(Reader reader) {
     // Currently, the only DWARF-containing format we recognize is ELF.
     final elf = Elf.fromReader(reader);
     if (elf == null) return null;
-    return Dwarf._loadSectionsFromElf(reader, elf);
+    return DwarfElf._loadSectionsFromElf(reader, elf);
   }
 
   /// Attempts to load the DWARF debugging information from the given bytes.
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  static Dwarf? fromBytes(Uint8List bytes) =>
-      Dwarf.fromReader(Reader.fromTypedData(bytes));
+  static DwarfElf? fromBytes(Uint8List bytes) =>
+      DwarfElf.fromReader(Reader.fromTypedData(bytes));
 
   /// Attempts to load the DWARF debugging information from the file at [path].
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  static Dwarf? fromFile(String path) =>
-      Dwarf.fromReader(Reader.fromFile(path));
+  static DwarfElf? fromFile(String path) =>
+      DwarfElf.fromReader(Reader.fromFile(path));
 
-  static Dwarf _loadSectionsFromElf(Reader reader, Elf elf) {
+  static DwarfElf _loadSectionsFromElf(Reader reader, Elf elf) {
     final abbrevSection = elf.namedSections('.debug_abbrev').single;
     final abbrevReader = abbrevSection.refocusedCopy(reader);
     final abbreviationsTables = Map.fromEntries(
@@ -1272,7 +1332,7 @@ class Dwarf {
     }
     final isolateStartAddress = isolateStartSymbol.value;
 
-    return Dwarf._(elf, abbreviationsTables, debugInfo, lineNumberInfo,
+    return DwarfElf._(elf, abbreviationsTables, debugInfo, lineNumberInfo,
         vmStartAddress, isolateStartAddress);
   }
 
@@ -1298,6 +1358,7 @@ class Dwarf {
   ///
   /// If [includeInternalFrames] is false, then only information corresponding
   /// to user or library code is returned.
+  @override
   Iterable<CallInfo>? callInfoFor(int address,
       {bool includeInternalFrames = false}) {
     var calls = _debugInfo.callInfo(_lineNumberInfo, address);
@@ -1314,22 +1375,7 @@ class Dwarf {
     return calls;
   }
 
-  /// The virtual address in this DWARF information for the given [PCOffset].
-  int virtualAddressOf(PCOffset pcOffset) {
-    switch (pcOffset.section) {
-      case InstructionsSection.none:
-        // This address is already virtualized, so we don't need to change it.
-        return pcOffset.offset;
-      case InstructionsSection.vm:
-        return pcOffset.offset + vmStartAddress;
-      case InstructionsSection.isolate:
-        return pcOffset.offset + isolateStartAddress;
-      default:
-        throw 'Unexpected value for instructions section';
-    }
-  }
-
-  void writeToStringBuffer(StringBuffer buffer) {
+  void _writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..writeln('----------------------------------------')
       ..writeln('         Abbreviation tables')
@@ -1356,18 +1402,125 @@ class Dwarf {
     _lineNumberInfo.writeToStringBuffer(buffer);
   }
 
+  @override
   String dumpFileInfo() {
     final buffer = StringBuffer();
     _elf.writeToStringBuffer(buffer);
     buffer.writeln();
-    writeToStringBuffer(buffer);
+    _writeToStringBuffer(buffer);
     return buffer.toString();
   }
 
   @override
   String toString() {
     final buffer = StringBuffer();
-    writeToStringBuffer(buffer);
+    _writeToStringBuffer(buffer);
     return buffer.toString();
+  }
+}
+
+/// The Apple dSYM DWARF debugging information for a Dart snapshot.
+/// This acts as a wrapper for the `atos` command-line app.
+class DwarfDsym extends Dwarf {
+  final String _path;
+
+  DwarfDsym._(this._path);
+
+  /// Load the DWARF debugging information from the dSYM containeer at [path].
+  static DwarfDsym? fromFile(String path) => DwarfDsym._(path);
+
+  int? _isolateStartAddress;
+  int? _vmStartAddress;
+  int? _isolateBaseAddress;
+  int? _vmBaseAddress;
+
+  static final _atosRE = RegExp(r'(?<name>[^(]+) (\(?(?<location>.*)\)? )?'
+      r'(\(?(?<source>.+):(?<line>[0-9]+)\)?)');
+
+  @override
+  int get isolateStartAddress {
+    if (_isolateStartAddress != null) return _isolateStartAddress!;
+    throw UnsupportedError(
+        "Isolate start address must be provided explicitly for dSYM debug file.");
+  }
+
+  @override
+  int get vmStartAddress {
+    if (_vmStartAddress != null) return _vmStartAddress!;
+    throw UnsupportedError(
+        "VM start address must be provided explicitly for dSYM debug file.");
+  }
+
+  // TODO how can we get these from dSYM? Couldn't find the same symbols
+  //     (see constants.dart) that are read from the android dwarf file.
+  void setStartAddresses(int isolate, int vm) {
+    _isolateStartAddress = isolate;
+    _vmStartAddress = vm;
+  }
+
+  // TODO how can we get these from dSYM?
+  void setBaseAddresses(int isolate, int vm) {
+    _isolateBaseAddress = isolate;
+    _vmBaseAddress = vm;
+  }
+
+  String _atos(List<String> args) {
+    final runResult = Process.runSync('atos', ['-o', _path, ...args]);
+    if (runResult.exitCode != 0) {
+      throw Exception(
+          "Error running `atos` command:\n${runResult.stdout}\n${runResult.stderr}");
+    }
+    return (runResult.stdout as String).trim();
+  }
+
+  @override
+  Iterable<CallInfo>? callInfoFor(int address,
+      {bool includeInternalFrames = false}) {
+    // The current API is not ideal... we need to pass the "loadAddress" to
+    // `atos` but we don't know whether the given address is from VM or isolate.
+    // Not sure if we can change the public APIs so significantly...
+    if (_isolateBaseAddress! != _vmBaseAddress!) {
+      throw Exception("Cannot run find callInfoFor() a given address in dSYM"
+          " if VM and isolate base addresses don't match.");
+    }
+    // final offsetToVM = assert(isolateBaseAddress >= vmStartAddress);
+    // final loadAddr =
+    //     (address >= isolateStartAddress) ? isolateStartAddress : vmStartAddress;
+    // final offset = address - loadAddr;
+    final info = _atos([
+      '-i', // display inlined
+      '-fullPath',
+      '-l', // The load address of the binary image. Value:
+      '0x${_isolateBaseAddress!.toRadixString(16)}',
+      // symbol address
+      '0x${address.toRadixString(16)}'
+    ]);
+
+    var result = <CallInfo>[];
+    final lines = info.split("\n");
+    for (var line in lines) {
+      final match = _atosRE.firstMatch(line.trim());
+      if (match != null) {
+        var file = match.namedGroup('source')!;
+        if (file.startsWith('/dart:') || file.startsWith('/package:')) {
+          file = file.substring(1);
+        }
+        result.add(DartCallInfo(
+          function: match.namedGroup('name')!,
+          // TODO not sure exactly how `atos` output looks for inlined symbols.
+          inlined: lines.length != 1,
+          // internal: isArtificial,
+          filename: file,
+          line: int.parse(match.namedGroup('line')!),
+          column: 0,
+        ));
+      }
+    }
+    return result.isEmpty ? null : result;
+  }
+
+  @override
+  String dumpFileInfo() {
+    throw UnimplementedError('File dump not implemented for dSYM');
   }
 }

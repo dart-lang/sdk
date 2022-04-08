@@ -13,26 +13,49 @@ String _stackTracePiece(CallInfo call, int depth) =>
 
 // A pattern matching the last line of the non-symbolic stack trace header.
 //
-// Currently, this happens to include the only pieces of information from the
-// stack trace header we need: the absolute addresses during program
-// execution of the start of the isolate and VM instructions.
+// This includes the information we need - the absolute addresses during program
+// execution of the:
+//   - isolate base address (only needed for dSYM),
+//   - VM base address (only needed for dSYM),
+//   - start of the isolate instructions,
+//   - start of the VM instructions,
 //
-// This RegExp has been adjusted to parse the header line found in
+// These RegExps have been adjusted to parse the header line found in
 // non-symbolic stack traces and the modified version in signal handler stack
 // traces.
-final _headerEndRE = RegExp(r'isolate_instructions(?:=|: )([\da-f]+),? '
+final _baseHeaderRE = RegExp(r'isolate_dso_base(?:=|: )([\da-f]+),? '
+    r'vm_dso_base(?:=|: )([\da-f]+)');
+final _stackTraceHeaderRE = RegExp(r'isolate_instructions(?:=|: )([\da-f]+),? '
     r'vm_instructions(?:=|: )([\da-f]+)');
 
 // Parses instructions section information into a new [StackTraceHeader].
 //
-// Returns a new [StackTraceHeader] if [line] contains the needed header
-// information, otherwise returns `null`.
-StackTraceHeader? _parseInstructionsLine(String line) {
-  final match = _headerEndRE.firstMatch(line);
-  if (match == null) return null;
-  final isolateAddr = int.parse(match[1]!, radix: 16);
-  final vmAddr = int.parse(match[2]!, radix: 16);
-  return StackTraceHeader(isolateAddr, vmAddr);
+// Calls the given callback with a new [StackTraceHeader] and returns true
+// if [line] contains the needed header information, otherwise returns false.
+bool _tryParseStackTraceHeader(
+    String line, void Function(StackTraceHeader element) callback) {
+  final match = _stackTraceHeaderRE.firstMatch(line);
+  if (match != null) {
+    final isolateAddr = int.parse(match[1]!, radix: 16);
+    final vmAddr = int.parse(match[2]!, radix: 16);
+    callback(StackTraceHeader(isolateAddr, vmAddr));
+  }
+  return match != null;
+}
+
+// Parses instructions section information.
+//
+// Calls the given callback with the parsed addresses and returns true
+// if [line] contains the needed header information, otherwise returns false.
+bool _tryParseBaseAddresses(
+    String line, void Function(int isolateBase, int vmBase) callback) {
+  final match = _baseHeaderRE.firstMatch(line);
+  if (match != null) {
+    final isolateAddr = int.parse(match[1]!, radix: 16);
+    final vmAddr = int.parse(match[2]!, radix: 16);
+    callback(isolateAddr, vmAddr);
+  }
+  return match != null;
 }
 
 /// Header information for a non-symbolic Dart stack trace.
@@ -140,11 +163,7 @@ PCOffset? _retrievePCOffset(StackTraceHeader? header, RegExpMatch? match) {
 Iterable<PCOffset> collectPCOffsets(Iterable<String> lines) sync* {
   StackTraceHeader? header;
   for (var line in lines) {
-    final parsedHeader = _parseInstructionsLine(line);
-    if (parsedHeader != null) {
-      header = parsedHeader;
-      continue;
-    }
+    if (_tryParseStackTraceHeader(line, (h) => header = h)) continue;
     final match = _traceLineRE.firstMatch(line);
     final offset = _retrievePCOffset(header, match);
     if (offset != null) yield offset;
@@ -187,9 +206,18 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
     var depth = 0;
     StackTraceHeader? header;
     await for (final line in stream) {
-      final parsedHeader = _parseInstructionsLine(line);
-      if (parsedHeader != null) {
-        header = parsedHeader;
+      if (_dwarf is DwarfDsym) {
+        if (_tryParseBaseAddresses(
+            line, (_dwarf as DwarfDsym).setBaseAddresses)) {
+          yield line;
+          continue;
+        }
+      }
+      if (_tryParseStackTraceHeader(line, (h) => header = h)) {
+        if (_dwarf is DwarfDsym) {
+          (_dwarf as DwarfDsym)
+              .setStartAddresses(header!._isolateStart, header!._vmStart);
+        }
         depth = 0;
         yield line;
         continue;

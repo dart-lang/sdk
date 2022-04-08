@@ -162,7 +162,9 @@ Dwarf? _loadFromFile(String? original, Function(String) usageError) {
     return null;
   }
   final filename = path.canonicalize(path.normalize(original));
-  if (!io.File(filename).existsSync()) {
+  if (filename.endsWith('dSYM')
+      ? !io.Directory(filename).existsSync()
+      : !io.File(filename).existsSync()) {
     usageError('debug file "$original" does not exist');
     return null;
   }
@@ -207,7 +209,7 @@ void find(ArgResults options) {
     return usageError('need both VM start and isolate start');
   }
 
-  var vmStart = dwarf.vmStartAddress;
+  late final int vmStart;
   if (options['vm_start'] != null) {
     final address = tryParseIntAddress(options['vm_start']);
     if (address == null) {
@@ -215,9 +217,11 @@ void find(ArgResults options) {
           '${options['vm_start']}');
     }
     vmStart = address;
+  } else {
+    vmStart = dwarf.vmStartAddress;
   }
 
-  var isolateStart = dwarf.isolateStartAddress;
+  late final int isolateStart;
   if (options['isolate_start'] != null) {
     final address = tryParseIntAddress(options['isolate_start']);
     if (address == null) {
@@ -225,6 +229,8 @@ void find(ArgResults options) {
           '${options['isolate_start']}');
     }
     isolateStart = address;
+  } else {
+    isolateStart = dwarf.isolateStartAddress;
   }
 
   final header = StackTraceHeader(isolateStart, vmStart);
