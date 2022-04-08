@@ -21,7 +21,7 @@
   package:macro/macro.dart/Macro3/named()],
  macrosAreApplied,
  macrosAreAvailable,
- neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)]
+ neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)|Macro4(new)]
 */
 
 import 'package:macro/macro.dart';
@@ -29,10 +29,10 @@ import 'package:macro/macro.dart' as prefix;
 
 /*class: Class:
  appliedMacros=[
-  Macro1.new,
-  Macro2.named,
-  Macro2.new,
-  Macro3.named],
+  Macro1.new(),
+  Macro2.named(),
+  Macro2.new(),
+  Macro3.named()],
  macrosAreApplied
 */
 @Macro2.named()
@@ -41,31 +41,31 @@ import 'package:macro/macro.dart' as prefix;
 @Macro1()
 class Class {
   /*member: Class.:appliedMacros=[
-    Macro1.named,
-    Macro1.new,
-    Macro2.named,
-    Macro3.new]*/
+    Macro1.named(),
+    Macro1.new(),
+    Macro2.named(),
+    Macro3.new()]*/
   @Macro1.named()
   @prefix.Macro1()
   @prefix.Macro2.named()
   @Macro3()
   Class();
 
-  /*member: Class.method:appliedMacros=[Macro3.named]*/
+  /*member: Class.method:appliedMacros=[Macro3.named()]*/
   @Macro3.named()
   void method() {}
 
-  /*member: Class.field:appliedMacros=[Macro3.new]*/
+  /*member: Class.field:appliedMacros=[Macro3.new()]*/
   @prefix.Macro3()
   var field;
 }
 
-/*member: method:appliedMacros=[Macro2.named]*/
+/*member: method:appliedMacros=[Macro2.named()]*/
 @Macro2.named()
 void method() {}
 
 @Macro3()
-/*member: field:appliedMacros=[Macro3.new]*/
+/*member: field:appliedMacros=[Macro3.new()]*/
 var field;
 
 main() {}

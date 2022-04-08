@@ -22,9 +22,9 @@ import 'macro_lib2a.dart';
 import 'macro_lib2b.dart';
 
 /*member: main:appliedMacros=[
-  Macro1.new,
-  Macro2a.new,
-  Macro2b.new]*/
+  Macro1.new(),
+  Macro2a.new(),
+  Macro2b.new()]*/
 @Macro1()
 @Macro2a()
 @Macro2b()

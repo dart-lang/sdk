@@ -65,10 +65,11 @@ class MacroDeclarationData {
 class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
+  final macro.Arguments arguments;
 
   // TODO(johnniwinther): Add support for arguments.
 
-  MacroApplication(this.classBuilder, this.constructorName);
+  MacroApplication(this.classBuilder, this.constructorName, this.arguments);
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
 
@@ -152,8 +153,7 @@ class MacroApplications {
                       libraryUri,
                       macroClassName,
                       application.constructorName,
-                      // TODO(johnniwinther): Support macro arguments.
-                      new macro.Arguments([], {}));
+                      application.arguments);
               benchmarker?.endSubdivide();
             } catch (e) {
               throw "Error instantiating macro `${application}`: $e";

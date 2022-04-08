@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
@@ -15,7 +17,6 @@ import '../../builder/prefix_builder.dart';
 import '../../scope.dart';
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
-
 import 'macro.dart';
 
 List<MacroApplication>? prebuildAnnotations(
@@ -78,7 +79,35 @@ class _NoArgumentsNode implements _Node {
 }
 
 class _ArgumentsNode implements _Node {
-  _ArgumentsNode();
+  final List<Object?> positionalArguments;
+  final Map<String, Object?> namedArguments;
+
+  _ArgumentsNode(this.positionalArguments, this.namedArguments);
+}
+
+class _PrimitiveValueNode implements _Node {
+  final Object? value;
+
+  _PrimitiveValueNode(this.value);
+}
+
+class _TokenNode implements _Node {
+  final Token token;
+
+  _TokenNode(this.token);
+}
+
+class _NamedArgumentIdentifierNode implements _Node {
+  final String name;
+
+  _NamedArgumentIdentifierNode(this.name);
+}
+
+class _NamedArgumentNode implements _Node {
+  final String name;
+  final Object? value;
+
+  _NamedArgumentNode(this.name, this.value);
 }
 
 class _MacroListener implements Listener {
@@ -154,8 +183,11 @@ class _MacroListener implements Listener {
       if (macroClass != null &&
           constructorName != null &&
           argumentsNode is _ArgumentsNode) {
-        push(new _MacroApplicationNode(
-            new MacroApplication(macroClass, constructorName)));
+        push(new _MacroApplicationNode(new MacroApplication(
+            macroClass,
+            constructorName,
+            new macro.Arguments(argumentsNode.positionalArguments,
+                argumentsNode.namedArguments))));
         return;
       }
     }
@@ -211,6 +243,9 @@ class _MacroListener implements Listener {
           pushUnsupported();
         }
         break;
+      case IdentifierContext.namedArgumentReference:
+        push(new _NamedArgumentIdentifierNode(token.lexeme));
+        break;
       default:
         pushUnsupported();
         break;
@@ -224,11 +259,27 @@ class _MacroListener implements Listener {
 
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
-    if (count == 0) {
-      push(new _ArgumentsNode());
-    } else {
-      // TODO(johnniwinther): Handle arguments.
+    if (unrecognized) {
       pushUnsupported();
+      return;
+    }
+    List<Object?> positionalArguments = [];
+    Map<String, Object?> namedArguments = {};
+    for (int i = 0; i < count; i++) {
+      _Node node = pop();
+      if (node is _PrimitiveValueNode) {
+        positionalArguments.add(node.value);
+      } else if (node is _NamedArgumentNode &&
+          !namedArguments.containsKey(node.name)) {
+        namedArguments[node.name] = node.value;
+      } else {
+        _unsupported();
+      }
+    }
+    if (unrecognized) {
+      pushUnsupported();
+    } else {
+      push(new _ArgumentsNode(positionalArguments, namedArguments));
     }
   }
 
@@ -246,6 +297,99 @@ class _MacroListener implements Listener {
   void handleQualified(Token period) {
     // Do nothing. Supported qualified names are handled through the identifier
     // context.
+  }
+
+  @override
+  void handleNamedArgument(Token colon) {
+    if (unrecognized) {
+      pushUnsupported();
+    } else {
+      _Node value = pop();
+      _Node name = pop();
+      if (name is _NamedArgumentIdentifierNode &&
+          value is _PrimitiveValueNode) {
+        push(new _NamedArgumentNode(name.name, value.value));
+      } else {
+        pushUnsupported();
+      }
+    }
+  }
+
+  @override
+  void handleLiteralNull(Token token) {
+    push(new _PrimitiveValueNode(null));
+  }
+
+  @override
+  void handleLiteralBool(Token token) {
+    push(new _PrimitiveValueNode(token.lexeme == 'true'));
+  }
+
+  @override
+  void handleLiteralDouble(Token token) {
+    push(new _PrimitiveValueNode(double.parse(token.lexeme)));
+  }
+
+  @override
+  void handleLiteralInt(Token token) {
+    push(new _PrimitiveValueNode(int.parse(token.lexeme)));
+  }
+
+  @override
+  void beginLiteralString(Token token) {
+    push(new _TokenNode(token));
+  }
+
+  @override
+  void endLiteralString(int interpolationCount, Token endToken) {
+    if (unrecognized) {
+      pushUnsupported();
+      return;
+    }
+    if (interpolationCount == 0) {
+      _Node node = pop();
+      if (node is _TokenNode) {
+        String text = unescapeString(node.token.lexeme, node.token, this);
+        if (unrecognized) {
+          pushUnsupported();
+        } else {
+          push(new _PrimitiveValueNode(text));
+        }
+      } else {
+        pushUnsupported();
+      }
+    } else {
+      // TODO(johnniwinther): Should we support this?
+      pushUnsupported();
+    }
+  }
+
+  @override
+  void handleStringPart(Token token) {
+    // TODO(johnniwinther): Should we support this?
+    _unhandled();
+  }
+
+  @override
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
+    if (unrecognized) {
+      pushUnsupported();
+    } else {
+      List<String> values = [];
+      for (int i = 0; i < literalCount; i++) {
+        _Node node = pop();
+        if (node is _PrimitiveValueNode && node.value is String) {
+          values.add(node.value as String);
+        } else {
+          _unsupported();
+        }
+      }
+      if (unrecognized) {
+        pushUnsupported();
+      } else {
+        push(new _PrimitiveValueNode(values.reversed.join()));
+      }
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -550,11 +694,6 @@ class _MacroListener implements Listener {
   @override
   void beginLibraryName(Token token) {
     _unexpected();
-  }
-
-  @override
-  void beginLiteralString(Token token) {
-    _unhandled();
   }
 
   @override
@@ -1126,11 +1265,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endLiteralString(int interpolationCount, Token endToken) {
-    _unhandled();
-  }
-
-  @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     _unhandled();
   }
@@ -1637,21 +1771,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleLiteralBool(Token token) {
-    _unhandled();
-  }
-
-  @override
-  void handleLiteralDouble(Token token) {
-    _unhandled();
-  }
-
-  @override
-  void handleLiteralInt(Token token) {
-    _unhandled();
-  }
-
-  @override
   void handleLiteralList(
       int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     _unhandled();
@@ -1659,11 +1778,6 @@ class _MacroListener implements Listener {
 
   @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
-    _unhandled();
-  }
-
-  @override
-  void handleLiteralNull(Token token) {
     _unhandled();
   }
 
@@ -1681,11 +1795,6 @@ class _MacroListener implements Listener {
   @override
   void handleMixinOn(Token? onKeyword, int typeCount) {
     _unexpected();
-  }
-
-  @override
-  void handleNamedArgument(Token colon) {
-    _unhandled();
   }
 
   @override
@@ -1837,16 +1946,6 @@ class _MacroListener implements Listener {
   @override
   void handleSpreadExpression(Token spreadToken) {
     _unsupported();
-  }
-
-  @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    _unhandled();
-  }
-
-  @override
-  void handleStringPart(Token token) {
-    _unhandled();
   }
 
   @override
