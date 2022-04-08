@@ -102,7 +102,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       Reference.root(),
     );
 
-    var sdkLinkResult = await link2(elementFactory, inputLibraries);
+    var sdkLinkResult = await link(elementFactory, inputLibraries);
 
     return _sdkBundle = _SdkBundle(
       resolutionBytes: sdkLinkResult.resolutionBytes,
@@ -160,7 +160,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       ),
     );
 
-    var linkResult = await link2(elementFactory, inputLibraries);
+    var linkResult = await link(elementFactory, inputLibraries);
 
     if (!keepLinkingLibraries) {
       elementFactory.removeBundle(

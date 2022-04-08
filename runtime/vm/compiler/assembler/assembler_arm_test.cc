@@ -75,7 +75,7 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MoveNegated, assembler) {
-  __ mvn(R0, Operand(42));
+  __ mvn_(R0, Operand(42));
   __ Ret();
 }
 
@@ -988,7 +988,7 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ clz(R2, R2);
   __ cmp(R2, Operand(26));
   __ b(&error, NE);
-  __ mvn(R0, Operand(0));
+  __ mvn_(R0, Operand(0));
   __ clz(R1, R0);
   __ cmp(R1, Operand(0));
   __ b(&error, NE);

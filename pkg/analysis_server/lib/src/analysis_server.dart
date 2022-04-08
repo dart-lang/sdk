@@ -16,21 +16,25 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_analytics.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_diagnostic.dart';
-import 'package:analysis_server/src/domain_kythe.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
+import 'package:analysis_server/src/handler/legacy/analytics_enable.dart';
+import 'package:analysis_server/src/handler/legacy/analytics_is_enabled.dart';
+import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
+import 'package:analysis_server/src/handler/legacy/analytics_send_timing.dart';
+import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
+import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
 import 'package:analysis_server/src/handler/legacy/execution_create_context.dart';
 import 'package:analysis_server/src/handler/legacy/execution_delete_context.dart';
 import 'package:analysis_server/src/handler/legacy/execution_get_suggestions.dart';
 import 'package:analysis_server/src/handler/legacy/execution_map_uri.dart';
 import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/kythe_get_kythe_entries.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -81,16 +85,21 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
   static final Map<String, HandlerGenerator> handlerGenerators = {
-    EXECUTION_REQUEST_CREATE_CONTEXT: (server, request, cancellationToken) =>
-        ExecutionCreateContextHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_DELETE_CONTEXT: (server, request, cancellationToken) =>
-        ExecutionDeleteContextHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_GET_SUGGESTIONS: (server, request, cancellationToken) =>
-        ExecutionGetSuggestionsHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_MAP_URI: (server, request, cancellationToken) =>
-        ExecutionMapUriHandler(server, request, cancellationToken),
-    EXECUTION_REQUEST_SET_SUBSCRIPTIONS: (server, request, cancellationToken) =>
-        ExecutionSetSubscriptionsHandler(server, request, cancellationToken),
+    ANALYTICS_REQUEST_IS_ENABLED: AnalyticsIsEnabledHandler.new,
+    ANALYTICS_REQUEST_ENABLE: AnalyticsEnableHandler.new,
+    ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
+    ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
+    //
+    DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
+    DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
+    //
+    EXECUTION_REQUEST_CREATE_CONTEXT: ExecutionCreateContextHandler.new,
+    EXECUTION_REQUEST_DELETE_CONTEXT: ExecutionDeleteContextHandler.new,
+    EXECUTION_REQUEST_GET_SUGGESTIONS: ExecutionGetSuggestionsHandler.new,
+    EXECUTION_REQUEST_MAP_URI: ExecutionMapUriHandler.new,
+    EXECUTION_REQUEST_SET_SUBSCRIPTIONS: ExecutionSetSubscriptionsHandler.new,
+    //
+    KYTHE_REQUEST_GET_KYTHE_ENTRIES: KytheGetKytheEntriesHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -248,9 +257,6 @@ class AnalysisServer extends AbstractAnalysisServer {
       EditDomainHandler(this),
       SearchDomainHandler(this),
       CompletionDomainHandler(this),
-      DiagnosticDomainHandler(this),
-      AnalyticsDomainHandler(this),
-      KytheDomainHandler(this),
       FlutterDomainHandler(this)
     ];
   }

@@ -5786,7 +5786,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kBIT_NOT:
-      __ mvn(result, compiler::Operand(value));
+      __ mvn_(result, compiler::Operand(value));
       // Remove inverted smi-tag.
       __ bic(result, result, compiler::Operand(kSmiTagMask));
       break;
@@ -7071,8 +7071,8 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   switch (op_kind()) {
     case Token::kBIT_NOT:
-      __ mvn(out_lo, compiler::Operand(left_lo));
-      __ mvn(out_hi, compiler::Operand(left_hi));
+      __ mvn_(out_lo, compiler::Operand(left_lo));
+      __ mvn_(out_hi, compiler::Operand(left_hi));
       break;
     case Token::kNEGATE:
       __ rsbs(out_lo, left_lo, compiler::Operand(0));
@@ -7143,7 +7143,7 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(op_kind() == Token::kBIT_NOT);
 
-  __ mvn(out, compiler::Operand(left));
+  __ mvn_(out, compiler::Operand(left));
 }
 
 LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,

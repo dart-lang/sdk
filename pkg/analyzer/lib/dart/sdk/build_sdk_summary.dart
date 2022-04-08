@@ -106,7 +106,7 @@ class _Builder {
       Reference.root(),
     );
 
-    var linkResult = await link2(elementFactory, inputLibraries);
+    var linkResult = await link(elementFactory, inputLibraries);
 
     var bundleBuilder = PackageBundleBuilder();
     for (var library in inputLibraries) {

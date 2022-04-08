@@ -395,6 +395,9 @@ const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
+const RegList kAbiVolatileCpuRegs =
+    kAbiArgumentCpuRegs | R(R8) | R(R9) | R(R10) | R(R11) | R(R12) | R(R13) |
+    R(R14) | R(R15) | R(R16) | R(R17);
 #if defined(DART_TARGET_OS_FUCHSIA)
 // We rely on R18 not being touched by Dart generated assembly or stubs at all.
 // We rely on that any calls into C++ also preserve R18.

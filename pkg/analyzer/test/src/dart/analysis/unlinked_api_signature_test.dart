@@ -304,6 +304,14 @@ class C {
 ''');
   }
 
+  test_class_field_withType_final_noConstConstructor() {
+    _assertSameSignature(r'''
+final int a = 1;
+''', r'''
+final int a = 2;
+''');
+  }
+
   test_class_field_withType_hasConstConstructor() {
     _assertSameSignature(r'''
 class C {
@@ -449,11 +457,80 @@ static const int a = 2;
 ''');
   }
 
-  test_classLike_field_withType_final_noConstConstructor() {
+  test_classLike_method_body_block_invokesSuperSelf_false_differentName() {
     _assertSameSignature_classLike(r'''
-final int a = 1;
+void foo() {
+  super.bar();
+}
 ''', r'''
-final int a = 2;
+void foo() {
+  super.bar2();
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_falseToTrue() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {}
+''', r'''
+void foo() {
+  super.foo();
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_assignmentExpression() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo = 0;
+}
+''', r'''
+void foo() {}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_binaryExpression() {
+    _assertNotSameSignature_classLike(r'''
+int operator +() {
+  super + 2;
+  return 0;
+}
+''', r'''
+int operator +() {
+  return 0;
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_differentName() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo();
+}
+''', r'''
+void foo() {
+  super.bar();
+}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_methodInvocation() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo();
+}
+''', r'''
+void foo() {}
+''');
+  }
+
+  test_classLike_method_body_block_invokesSuperSelf_trueToFalse_propertyAccess() {
+    _assertNotSameSignature_classLike(r'''
+void foo() {
+  super.foo;
+}
+''', r'''
+void foo() {}
 ''');
   }
 
@@ -478,6 +555,14 @@ void foo() {}
 int foo();
 ''', r'''
 int foo() => 0;
+''');
+  }
+
+  test_classLike_method_body_expression_invokesSuperSelf_trueToFalse_methodInvocation() {
+    _assertNotSameSignature_classLike(r'''
+void foo() => super.foo();
+''', r'''
+void foo() => 0;
 ''');
   }
 
@@ -616,6 +701,249 @@ library foo;
 class A {}
 ''', r'''
 class A {}
+''');
+  }
+
+  test_enum_enumConstants_add() {
+    _assertNotSameSignature(r'''
+enum E {
+  v
+}
+''', r'''
+enum E {
+  v, v2
+}
+''');
+  }
+
+  test_enum_enumConstants_add_hasMethod() {
+    _assertNotSameSignature(r'''
+enum E {
+  v;
+  void foo() {}
+}
+''', r'''
+enum E {
+  v, v2;
+  void foo() {}
+}
+''');
+  }
+
+  test_enum_enumConstants_constructorArguments_add() {
+    _assertNotSameSignature(r'''
+enum E {
+  v;
+  E({int? a});
+}
+''', r'''
+enum E {
+  v(a: 0);
+  E({int? a});
+}
+''');
+  }
+
+  test_enum_enumConstants_constructorArguments_change() {
+    _assertNotSameSignature(r'''
+enum E {
+  v(0);
+  E(int a);
+}
+''', r'''
+enum E {
+  v(1);
+  E(int a);
+}
+''');
+  }
+
+  test_enum_enumConstants_constructorArguments_remove() {
+    _assertNotSameSignature(r'''
+enum E {
+  v(a: 0);
+  E({int? a});
+}
+''', r'''
+enum E {
+  v;
+  E({int? a});
+}
+''');
+  }
+
+  test_enum_enumConstants_remove() {
+    _assertNotSameSignature(r'''
+enum E {
+  v, v2
+}
+''', r'''
+enum E {
+  v
+}
+''');
+  }
+
+  test_enum_enumConstants_rename() {
+    _assertNotSameSignature(r'''
+enum E {
+  v
+}
+''', r'''
+enum E {
+  v2
+}
+''');
+  }
+
+  test_enum_field_withType_final() {
+    _assertNotSameSignature(r'''
+enum E {
+  v;
+  final int a = 1;
+}
+''', r'''
+enum E {
+  v;
+  final int a = 2;
+}
+''');
+  }
+
+  test_enum_implements_add() {
+    _assertNotSameSignature(r'''
+class A {}
+enum E {
+  v
+}
+''', r'''
+class A {}
+enum E implements A {
+  v
+}
+''');
+  }
+
+  test_enum_implements_change() {
+    _assertNotSameSignature(r'''
+class A {}
+class B {}
+enum E implements A {
+  v
+}
+''', r'''
+class A {}
+class B {}
+enum E implements B {
+  v
+}
+''');
+  }
+
+  test_enum_implements_remove() {
+    _assertNotSameSignature(r'''
+class A {}
+enum E implements A {
+  v
+}
+''', r'''
+class A {}
+enum E {
+  v
+}
+''');
+  }
+
+  test_enum_metadata_add() {
+    _assertNotSameSignature(r'''
+enum E {
+  v
+}
+''', r'''
+@a
+enum E {
+  v
+}
+''');
+  }
+
+  test_enum_typeParameters_add() {
+    _assertNotSameSignature(r'''
+enum E {
+  v
+}
+''', r'''
+enum E<T> {
+  v
+}
+''');
+  }
+
+  test_enum_typeParameters_remove() {
+    _assertNotSameSignature(r'''
+enum E<T> {
+  v
+}
+''', r'''
+enum E {
+  v
+}
+''');
+  }
+
+  test_enum_typeParameters_rename() {
+    _assertNotSameSignature(r'''
+enum E<T> {
+  v
+}
+''', r'''
+enum E<U> {
+  v
+}
+''');
+  }
+
+  test_enum_with_add() {
+    _assertNotSameSignature(r'''
+mixin M {}
+enum E {
+  v
+}
+''', r'''
+mixin M {}
+enum E with M {
+  v
+}
+''');
+  }
+
+  test_enum_with_change() {
+    _assertNotSameSignature(r'''
+mixin M1 {}
+mixin M2 {}
+enum E with M1 {
+  v
+}
+''', r'''
+mixin M1 {}
+mixin M2 {}
+enum E with M2 {
+  v
+}
+''');
+  }
+
+  test_enum_with_remove() {
+    _assertNotSameSignature(r'''
+mixin M {}
+enum E with M {
+  v
+}
+''', r'''
+mixin M {}
+enum E {
+  v
+}
 ''');
   }
 
@@ -805,6 +1133,38 @@ void foo() {}
 void foo<T>() {}
 ''', r'''
 void foo<U>() {}
+''');
+  }
+
+  test_extension_on() {
+    _assertNotSameSignature(r'''
+extension E on int {}
+''', r'''
+extension E on num {}
+''');
+  }
+
+  test_extension_typeParameter_add() {
+    _assertNotSameSignature(r'''
+extension E on int {}
+''', r'''
+extension E<T> on int {}
+''');
+  }
+
+  test_extension_typeParameter_remove() {
+    _assertNotSameSignature(r'''
+extension E<T> on int {}
+''', r'''
+extension E on int {}
+''');
+  }
+
+  test_extension_typeParameter_rename() {
+    _assertNotSameSignature(r'''
+extension E<T> on int {}
+''', r'''
+extension E<U> on int {}
 ''');
   }
 
@@ -1064,11 +1424,33 @@ $newCode
 ''', same: same);
 
     _assertSignature('''
+extension on int {
+$oldCode
+}
+''', '''
+extension on int {
+$newCode
+}
+''', same: same);
+
+    _assertSignature('''
 mixin M {
 $oldCode
 }
 ''', '''
 mixin M {
+$newCode
+}
+''', same: same);
+
+    _assertSignature('''
+enum E {
+  v;
+$oldCode
+}
+''', '''
+enum E {
+  v;
 $newCode
 }
 ''', same: same);

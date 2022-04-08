@@ -30,7 +30,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/link.dart' as link2;
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -844,11 +844,11 @@ class _LibraryContext {
         librariesLinkedTimer.start();
 
         inputsTimer.start();
-        var inputLibraries = <link2.LinkInputLibrary>[];
+        var inputLibraries = <LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
 
-          var inputUnits = <link2.LinkInputUnit>[];
+          var inputUnits = <LinkInputUnit>[];
           var partIndex = -1;
           for (var file in libraryFile.files().ofLibrary) {
             var isSynthetic = !file.exists;
@@ -869,7 +869,7 @@ class _LibraryContext {
             partIndex++;
 
             inputUnits.add(
-              link2.LinkInputUnit(
+              LinkInputUnit(
                 // TODO(scheglov) bad, group part data
                 partDirectiveIndex: partIndex - 1,
                 partUriStr: partUriStr,
@@ -881,7 +881,7 @@ class _LibraryContext {
           }
 
           inputLibraries.add(
-            link2.LinkInputLibrary(
+            LinkInputLibrary(
               source: librarySource,
               units: inputUnits,
             ),
@@ -889,7 +889,7 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        var linkResult = await link2.link2(elementFactory, inputLibraries);
+        var linkResult = await link(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;

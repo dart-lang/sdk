@@ -14,15 +14,12 @@
 #include "vm/object.h"
 #include "vm/simulator.h"
 
-#if defined(DART_HOST_OS_IOS)
+#if !defined(TARGET_HOST_MISMATCH)
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
 #elif defined(DART_HOST_OS_WINDOWS)
 #include <processthreadsapi.h>
 #endif
-
-#if !defined(TARGET_HOST_MISMATCH)
-#include <sys/syscall.h> /* NOLINT */
-#include <unistd.h>      /* NOLINT */
 #endif
 
 // ARM version differences.

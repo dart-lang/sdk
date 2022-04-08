@@ -271,7 +271,7 @@ void Assembler::bics(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 1, rn, rd, o);
 }
 
-void Assembler::mvn(Register rd, Operand o, Condition cond) {
+void Assembler::mvn_(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 0, R0, rd, o);
 }
 
@@ -2779,7 +2779,7 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   if (Operand::CanHold(value, &o)) {
     mov(rd, o, cond);
   } else if (Operand::CanHold(~value, &o)) {
-    mvn(rd, o, cond);
+    mvn_(rd, o, cond);
   } else {
     LoadDecodableImmediate(rd, value, cond);
   }
@@ -3072,10 +3072,10 @@ void Assembler::AddImmediate(Register rd,
   } else {
     ASSERT(rn != IP);
     if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       add(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       sub(rd, rn, Operand(IP), cond);
     } else if (value > 0) {
       LoadDecodableImmediate(IP, value, cond);
@@ -3101,11 +3101,11 @@ void Assembler::AddImmediateSetFlags(Register rd,
   } else {
     ASSERT(rn != IP);
     if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
       ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
@@ -3135,11 +3135,11 @@ void Assembler::SubImmediateSetFlags(Register rd,
   } else {
     ASSERT(rn != IP);
     if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
       ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);

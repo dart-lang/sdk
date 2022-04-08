@@ -26,7 +26,7 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
-Future<LinkResult> link2(
+Future<LinkResult> link(
   LinkedElementFactory elementFactory,
   List<LinkInputLibrary> inputLibraries,
 ) async {
@@ -35,6 +35,15 @@ Future<LinkResult> link2(
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
   );
+}
+
+/// Note that AST units and tokens of [inputLibraries] will be damaged.
+@Deprecated('Use link() instead')
+Future<LinkResult> link2(
+  LinkedElementFactory elementFactory,
+  List<LinkInputLibrary> inputLibraries,
+) async {
+  return link(elementFactory, inputLibraries);
 }
 
 class Linker {

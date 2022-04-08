@@ -150,7 +150,8 @@ class LspServerClient {
 
     var dartBinary = join(dartSdkPath, 'bin', 'dart');
 
-    var useSnapshot = true;
+    // Prevent flow analysis from marking code below as being dead.
+    const useSnapshot = 1 > 0;
     String serverPath;
 
     if (useSnapshot) {

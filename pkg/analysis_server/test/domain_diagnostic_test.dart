@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,13 +16,6 @@ void main() {
 
 @reflectiveTest
 class DiagnosticDomainTest extends AbstractAnalysisTest {
-  @override
-  void setUp() {
-    super.setUp();
-    handler = DiagnosticDomainHandler(server);
-    server.handlers = [handler];
-  }
-
   Future<void> test_getDiagnostics() async {
     newPubspecYamlFile('/project', 'name: project');
     newFile2('/project/bin/test.dart', 'main() {}');

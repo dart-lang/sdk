@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/link.dart' as link2;
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -164,11 +164,11 @@ class LibraryContext {
 
         timerInputLibraries.start();
         inputsTimer.start();
-        var inputLibraries = <link2.LinkInputLibrary>[];
+        var inputLibraries = <LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
 
-          var inputUnits = <link2.LinkInputUnit>[];
+          var inputUnits = <LinkInputUnit>[];
           var partIndex = -1;
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
@@ -181,7 +181,7 @@ class LibraryContext {
             partIndex++;
 
             inputUnits.add(
-              link2.LinkInputUnit(
+              LinkInputUnit(
                 // TODO(scheglov) bad, group part data
                 partDirectiveIndex: partIndex - 1,
                 partUriStr: partUriStr,
@@ -194,7 +194,7 @@ class LibraryContext {
           }
 
           inputLibraries.add(
-            link2.LinkInputLibrary(
+            LinkInputLibrary(
               source: librarySource,
               units: inputUnits,
             ),
@@ -203,12 +203,10 @@ class LibraryContext {
         inputsTimer.stop();
         timerInputLibraries.stop();
 
-        link2.LinkResult linkResult;
+        LinkResult linkResult;
         try {
           timerLinking.start();
-          // TODO(scheglov) Migrate when we are ready to switch to async.
-          // ignore: deprecated_member_use_from_same_package
-          linkResult = await link2.link2(elementFactory, inputLibraries);
+          linkResult = await link(elementFactory, inputLibraries);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
