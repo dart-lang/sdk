@@ -55,17 +55,17 @@ class ExperimentalFlag {
           name: 'alternative-invalidation-strategy',
           isEnabledByDefault: false,
           isExpired: false,
-          enabledVersion: const Version(2, 17),
-          experimentEnabledVersion: const Version(2, 17),
-          experimentReleasedVersion: const Version(2, 17));
+          enabledVersion: const Version(2, 18),
+          experimentEnabledVersion: const Version(2, 18),
+          experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag constFunctions = const ExperimentalFlag(
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag constantUpdate2018 = const ExperimentalFlag(
       name: 'constant-update-2018',
@@ -111,9 +111,9 @@ class ExperimentalFlag {
       name: 'extension-types',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag genericMetadata = const ExperimentalFlag(
       name: 'generic-metadata',
@@ -127,17 +127,17 @@ class ExperimentalFlag {
       name: 'inference-update-1',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
@@ -191,9 +191,9 @@ class ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag tripleShift = const ExperimentalFlag(
       name: 'triple-shift',
@@ -207,17 +207,17 @@ class ExperimentalFlag {
       name: 'value-class',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 }
 
 /// Interface for accessing the global state of experimental features.
