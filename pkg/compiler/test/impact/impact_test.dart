@@ -94,8 +94,8 @@ class ImpactDataGoldener implements ImpactRegistry {
   ImpactDataGoldener(this.elementMap, this.features);
 
   @override
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType) {
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType) {
     final runtimeTypeUse = RuntimeTypeUse(
         kind,
         elementMap.getDartType(receiverType),

@@ -14,6 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
 import '../kernel/element_map.dart';
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
@@ -56,6 +57,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   String _typeToString(DartType type) =>
       type.toStructuredText(_elementMap.types, _elementMap.options);
+
+  CompilerOptions get _options => _elementMap.options;
 
   /// Return the named arguments names as a list of strings.
   List<String> _getNamedArguments(ir.Arguments arguments) =>
@@ -551,12 +554,23 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     return super.visitSwitchStatement(node);
   }
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
   @override
   void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
-    registerRuntimeTypeUse(node, kind, receiverType, argumentType);
+    if (_options.omitImplicitChecks) {
+      switch (kind) {
+        case RuntimeTypeUseKind.string:
+          if (!_options.laxRuntimeTypeToString) {
+            _reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
+                MessageKind.RUNTIME_TYPE_TO_STRING);
+          }
+          break;
+        case RuntimeTypeUseKind.equals:
+        case RuntimeTypeUseKind.unknown:
+          break;
+      }
+    }
+    registerRuntimeTypeUse(kind, receiverType, argumentType);
   }
 
   @override
@@ -952,14 +966,12 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     _data._intLiterals.add(value);
   }
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
   @override
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType) {
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType) {
     _data._runtimeTypeUses ??= [];
     _data._runtimeTypeUses
-        .add(_RuntimeTypeUse(node, kind, receiverType, argumentType));
+        .add(_RuntimeTypeUse(kind, receiverType, argumentType));
   }
 
   @override
@@ -1520,7 +1532,7 @@ class ImpactData {
     if (_runtimeTypeUses != null) {
       for (_RuntimeTypeUse data in _runtimeTypeUses) {
         registry.registerRuntimeTypeUse(
-            data.node, data.kind, data.receiverType, data.argumentType);
+            data.kind, data.receiverType, data.argumentType);
       }
     }
     if (_forInData != null) {
@@ -2094,28 +2106,23 @@ class _ContainerLiteral {
 class _RuntimeTypeUse {
   static const String tag = '_RuntimeTypeUse';
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
-  final ir.Expression node;
   final RuntimeTypeUseKind kind;
   final ir.DartType receiverType;
   final ir.DartType argumentType;
 
-  _RuntimeTypeUse(this.node, this.kind, this.receiverType, this.argumentType);
+  _RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
 
   factory _RuntimeTypeUse.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.TreeNode node = source.readTreeNode();
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
     ir.DartType receiverType = source.readDartTypeNode();
     ir.DartType argumentType = source.readDartTypeNode(allowNull: true);
     source.end(tag);
-    return _RuntimeTypeUse(node, kind, receiverType, argumentType);
+    return _RuntimeTypeUse(kind, receiverType, argumentType);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeTreeNode(node);
     sink.writeEnum(kind);
     sink.writeDartTypeNode(receiverType);
     sink.writeDartTypeNode(argumentType, allowNull: true);
