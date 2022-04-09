@@ -183,7 +183,7 @@
       "name": "compiler",
       "rootUri": "../pkg/compiler",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.16"
     },
     {
       "name": "convert",
