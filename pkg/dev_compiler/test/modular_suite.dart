@@ -9,11 +9,11 @@
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:io';
 
+import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/suite.dart';
-import 'package:package_config/package_config.dart';
 
 String packageConfigJsonPath = '.dart_tool/package_config.json';
 Uri sdkRoot = Platform.script.resolve('../../../');
@@ -22,13 +22,8 @@ Options _options;
 String _dartdevcScript;
 String _kernelWorkerScript;
 
-// TODO(joshualitt): Figure out a way to support package configs in
-// tests/modular.
-PackageConfig _packageConfig;
-
 void main(List<String> args) async {
   _options = Options.parse(args);
-  _packageConfig = await loadPackageConfigUri(packageConfigUri);
   await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
@@ -44,17 +39,6 @@ void main(List<String> args) async {
 const dillId = DataId('dill');
 const jsId = DataId('js');
 const txtId = DataId('txt');
-
-String _packageConfigEntry(String name, Uri root,
-    {Uri packageRoot, LanguageVersion version}) {
-  var fields = [
-    '"name": "$name"',
-    '"rootUri": "$root"',
-    if (packageRoot != null) '"packageUri": "$packageRoot"',
-    if (version != null) '"languageVersion": "$version"'
-  ];
-  return '{${fields.join(',')}}';
-}
 
 class SourceToSummaryDillStep implements IOModularStep {
   @override
@@ -96,7 +80,7 @@ class SourceToSummaryDillStep implements IOModularStep {
         _sourceToImportUri(module, rootScheme, relativeUri);
 
     var transitiveDependencies = computeTransitiveDependencies(module);
-    await _createPackagesFile(module, root, transitiveDependencies);
+    await writePackageConfig(module, transitiveDependencies, root);
 
     List<String> sources;
     List<String> extraArgs;
@@ -180,7 +164,7 @@ class DDCStep implements IOModularStep {
     if (_options.verbose) print('\nstep: ddc on $module');
 
     var transitiveDependencies = computeTransitiveDependencies(module);
-    await _createPackagesFile(module, root, transitiveDependencies);
+    await writePackageConfig(module, transitiveDependencies, root);
 
     var rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
     List<String> sources;
@@ -331,57 +315,6 @@ String get _d8executable {
     return 'third_party/d8/macos/d8';
   }
   throw UnsupportedError('Unsupported platform.');
-}
-
-Future<void> _createPackagesFile(
-    Module module, Uri root, Set<Module> transitiveDependencies) async {
-  // We create both a .packages and package_config.json file which defines
-  // the location of this module if it is a package.  The CFE requires that
-  // if a `package:` URI of a dependency is used in an import, then we need
-  // that package entry in the associated file. However, after it checks that
-  // the definition exists, the CFE will not actually use the resolved URI if
-  // a library for the import URI is already found in one of the provide
-  // .dill files of the dependencies. For that reason, and to ensure that
-  // a step only has access to the files provided in a module, we generate a
-  // config file with invalid folders for other packages.
-  // TODO(sigmund): follow up with the CFE to see if we can remove the need
-  // for these dummy entries..
-  // TODO(joshualitt): Generate just the json file.
-  var packagesJson = [];
-  var packagesContents = StringBuffer();
-  if (module.isPackage) {
-    packagesContents.write('${module.name}:${module.packageBase}\n');
-    packagesJson.add(_packageConfigEntry(
-        module.name, Uri.parse('../${module.packageBase}')));
-  }
-  var unusedNum = 0;
-  for (var dependency in transitiveDependencies) {
-    if (dependency.isPackage) {
-      // rootUri should be ignored for dependent modules, so we pass in a
-      // bogus value.
-      var rootUri = Uri.parse('unused$unusedNum');
-      unusedNum++;
-      var dependentPackage = _packageConfig[dependency.name];
-      var packageJson = dependentPackage == null
-          ? _packageConfigEntry(dependency.name, rootUri)
-          : _packageConfigEntry(dependentPackage.name, rootUri,
-              version: dependentPackage.languageVersion);
-      packagesJson.add(packageJson);
-      packagesContents.write('${dependency.name}:$rootUri\n');
-    }
-  }
-
-  if (module.isPackage) {
-    await File.fromUri(root.resolve(packageConfigJsonPath))
-        .create(recursive: true);
-    await File.fromUri(root.resolve(packageConfigJsonPath)).writeAsString('{'
-        '  "configVersion": ${_packageConfig.version},'
-        '  "packages": [ ${packagesJson.join(',')} ]'
-        '}');
-  }
-
-  await File.fromUri(root.resolve('.packages'))
-      .writeAsString('$packagesContents');
 }
 
 String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {

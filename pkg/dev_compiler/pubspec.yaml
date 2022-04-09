@@ -33,7 +33,6 @@ dev_dependencies:
   lints: any
   modular_test:
     path: ../modular_test
-  package_config: any
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any

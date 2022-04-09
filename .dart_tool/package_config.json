@@ -463,7 +463,7 @@
       "name": "modular_test",
       "rootUri": "../pkg/modular_test",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "native_stack_traces",
