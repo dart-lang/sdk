@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 library dart2js.src.options;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
