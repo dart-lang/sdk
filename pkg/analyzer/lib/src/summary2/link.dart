@@ -241,10 +241,7 @@ class Linker {
     );
 
     for (var builder in builders.values) {
-      bundleWriter.writeLibraryElement(
-        builder.element,
-        builder.exports,
-      );
+      bundleWriter.writeLibraryElement(builder.element);
     }
 
     var writeWriterResult = bundleWriter.finish();

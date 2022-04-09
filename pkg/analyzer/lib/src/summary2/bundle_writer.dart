@@ -91,10 +91,7 @@ class BundleWriter {
     );
   }
 
-  void writeLibraryElement(
-    LibraryElementImpl libraryElement,
-    List<Reference> exports,
-  ) {
+  void writeLibraryElement(LibraryElementImpl libraryElement) {
     var libraryOffset = _sink.offset;
     _classMembersLengths = <int>[];
 
@@ -111,7 +108,7 @@ class BundleWriter {
     for (var unitElement in libraryElement.units) {
       _writeUnitElement(unitElement);
     }
-    _writeReferences(exports);
+    _writeReferences(libraryElement.exportedReferences);
 
     _libraries.add(
       _Library(

@@ -16,7 +16,6 @@ class LinkedElementFactory {
   AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<String, LibraryReader> _libraryReaders = {};
-  final Map<String, List<Reference>> _exportsOfLibrary = {};
 
   bool isApplyingInformativeData = false;
 
@@ -41,10 +40,9 @@ class LinkedElementFactory {
     _libraryReaders.addAll(libraries);
   }
 
-  Namespace buildExportNamespace(Uri uri) {
+  Namespace buildExportNamespace(Uri uri, List<Reference> exportedReferences) {
     var exportedNames = <String, Element>{};
 
-    var exportedReferences = exportsOfLibrary('$uri');
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference);
       // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
@@ -146,17 +144,6 @@ class LinkedElementFactory {
     return element;
   }
 
-  List<Reference> exportsOfLibrary(String uriStr) {
-    var exports = _exportsOfLibrary[uriStr];
-    if (exports != null) return exports;
-
-    // TODO(scheglov) Use [setExportsOfLibrary] instead
-    var library = _libraryReaders[uriStr];
-    if (library == null) return const [];
-
-    return library.exports;
-  }
-
   bool hasLibrary(String uriStr) {
     // We already have the element, linked or read.
     if (rootReference[uriStr]?.element is LibraryElementImpl) {
@@ -196,7 +183,6 @@ class LinkedElementFactory {
   /// any session level caches.
   void removeLibraries(Set<String> uriStrSet) {
     for (var uriStr in uriStrSet) {
-      _exportsOfLibrary.remove(uriStr);
       _libraryReaders.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
@@ -231,12 +217,6 @@ class LinkedElementFactory {
         libraryElement.session = newSession;
       }
     }
-  }
-
-  /// Set exports of the library with [uriStr], after building exports during
-  /// linking, or after reading a linked bundle.
-  void setExportsOfLibrary(String uriStr, List<Reference> exports) {
-    _exportsOfLibrary[uriStr] = exports;
   }
 
   void setLibraryTypeSystem(LibraryElementImpl libraryElement) {

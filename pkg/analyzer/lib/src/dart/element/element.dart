@@ -3622,6 +3622,8 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
+  late final List<Reference> exportedReferences;
+
   LibraryElementLinkedData? linkedData;
 
   @override
@@ -3724,7 +3726,10 @@ class LibraryElementImpl extends _ExistingElementImpl
     final linkedData = this.linkedData;
     if (linkedData != null) {
       var elements = linkedData.elementFactory;
-      return _exportNamespace = elements.buildExportNamespace(source.uri);
+      return _exportNamespace = elements.buildExportNamespace(
+        source.uri,
+        exportedReferences,
+      );
     }
 
     return _exportNamespace!;

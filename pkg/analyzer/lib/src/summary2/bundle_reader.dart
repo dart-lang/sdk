@@ -409,8 +409,6 @@ class LibraryReader {
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
 
-  late List<Reference> exports;
-
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
@@ -464,7 +462,7 @@ class LibraryReader {
     }
 
     var exportsIndexList = _reader.readUInt30List();
-    exports = exportsIndexList
+    libraryElement.exportedReferences = exportsIndexList
         .map((index) => _referenceReader.referenceOfIndex(index))
         .toList();
 

@@ -48,7 +48,6 @@ class LibraryBuilder {
   final Scope exportScope = Scope.top();
 
   final List<Export> exporters = [];
-  late final List<Reference> exports;
 
   LibraryBuilder._({
     required this.linker,
@@ -82,13 +81,16 @@ class LibraryBuilder {
       if (exportedBuilder != null) {
         exportedBuilder.exporters.add(export);
       } else {
-        var references = linker.elementFactory.exportsOfLibrary('$exportedUri');
-        for (var reference in references) {
-          var name = reference.name;
-          if (reference.isSetter) {
-            export.addToExportScope('$name=', reference);
-          } else {
-            export.addToExportScope(name, reference);
+        var exported = linker.elementFactory.libraryOfUri('$exportedUri');
+        if (exported != null) {
+          var exportedReferences = exported.exportedReferences;
+          for (var reference in exportedReferences) {
+            var name = reference.name;
+            if (reference.isSetter) {
+              export.addToExportScope('$name=', reference);
+            } else {
+              export.addToExportScope(name, reference);
+            }
           }
         }
       }
@@ -190,8 +192,7 @@ class LibraryBuilder {
   }
 
   void storeExportScope() {
-    exports = exportScope.map.values.toList();
-    linker.elementFactory.setExportsOfLibrary('$uri', exports);
+    element.exportedReferences = exportScope.map.values.toList();
 
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
