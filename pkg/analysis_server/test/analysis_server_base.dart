@@ -112,6 +112,8 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get testPackageTestPath => '$testPackageRootPath/test';
 
+  Folder get workspaceRoot => getFolder(workspaceRootPath);
+
   String get workspaceRootPath => '/home';
 
   Future<void> addAnalysisSubscription(
