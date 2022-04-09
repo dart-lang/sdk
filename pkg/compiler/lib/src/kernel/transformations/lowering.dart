@@ -107,4 +107,11 @@ class _Lowering extends Transformer {
     statement.transformChildren(this);
     return statement;
   }
+
+  @override
+  TreeNode visitForInStatement(ForInStatement statement) {
+    _asyncLowering?.visitForInStatement(statement);
+    statement.transformChildren(this);
+    return statement;
+  }
 }

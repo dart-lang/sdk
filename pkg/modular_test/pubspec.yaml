@@ -6,7 +6,7 @@ description: >
  This is used within the Dart SDK to define and validate modular tests, and to
  execute them using the modular pipeline of different SDK tools.
 environment:
-  sdk: ">=2.2.1 <3.0.0"
+  sdk: ">=2.10.0 <3.0.0"
 
 dependencies:
   args: any

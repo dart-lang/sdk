@@ -14,11 +14,11 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
-import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
-import 'package:package_config/package_config.dart';
+import 'package:modular_test/src/suite.dart';
 
 String packageConfigJsonPath = ".dart_tool/package_config.json";
 Uri sdkRoot = Platform.script.resolve("../../../");
@@ -41,17 +41,6 @@ const codeId1 = ShardDataId(codeId, 1);
 const jsId = DataId("js");
 const txtId = DataId("txt");
 const fakeRoot = 'dev-dart-app:/';
-
-String _packageConfigEntry(String name, Uri root,
-    {Uri packageRoot, LanguageVersion version}) {
-  var fields = [
-    '"name": "${name}"',
-    '"rootUri": "$root"',
-    if (packageRoot != null) '"packageUri": "$packageRoot"',
-    if (version != null) '"languageVersion": "$version"'
-  ];
-  return '{${fields.join(',')}}';
-}
 
 String getRootScheme(Module module) {
   // We use non file-URI schemes for representeing source locations in a
@@ -81,63 +70,6 @@ List<String> getSources(Module module) {
   return module.sources.map((uri) => sourceToImportUri(module, uri)).toList();
 }
 
-void writePackageConfig(
-    Module module, Set<Module> transitiveDependencies, Uri root) async {
-  // TODO(joshualitt): Figure out a way to support package configs in
-  // tests/modular.
-  var packageConfig = await loadPackageConfigUri(packageConfigUri);
-
-  // We create both a .packages and package_config.json file which defines
-  // the location of this module if it is a package.  The CFE requires that
-  // if a `package:` URI of a dependency is used in an import, then we need
-  // that package entry in the associated file. However, after it checks that
-  // the definition exists, the CFE will not actually use the resolved URI if
-  // a library for the import URI is already found in one of the provide
-  // .dill files of the dependencies. For that reason, and to ensure that
-  // a step only has access to the files provided in a module, we generate a
-  // config file with invalid folders for other packages.
-  // TODO(sigmund): follow up with the CFE to see if we can remove the need
-  // for these dummy entries..
-  // TODO(joshualitt): Generate just the json file.
-  var packagesJson = [];
-  var packagesContents = StringBuffer();
-  if (module.isPackage) {
-    packagesContents.write('${module.name}:${module.packageBase}\n');
-    packagesJson.add(_packageConfigEntry(
-        module.name, Uri.parse('../${module.packageBase}')));
-  }
-
-  int unusedNum = 0;
-  for (Module dependency in transitiveDependencies) {
-    if (dependency.isPackage) {
-      // rootUri should be ignored for dependent modules, so we pass in a
-      // bogus value.
-      var rootUri = Uri.parse('unused$unusedNum');
-      unusedNum++;
-
-      var dependentPackage = packageConfig[dependency.name];
-      var packageJson = dependentPackage == null
-          ? _packageConfigEntry(dependency.name, rootUri)
-          : _packageConfigEntry(dependentPackage.name, rootUri,
-              version: dependentPackage.languageVersion);
-      packagesJson.add(packageJson);
-      packagesContents.write('${dependency.name}:$rootUri\n');
-    }
-  }
-
-  if (module.isPackage) {
-    await File.fromUri(root.resolve(packageConfigJsonPath))
-        .create(recursive: true);
-    await File.fromUri(root.resolve(packageConfigJsonPath)).writeAsString('{'
-        '  "configVersion": ${packageConfig.version},'
-        '  "packages": [ ${packagesJson.join(',')} ]'
-        '}');
-  }
-
-  await File.fromUri(root.resolve('.packages'))
-      .writeAsString('$packagesContents');
-}
-
 abstract class CFEStep extends IOModularStep {
   final String stepName;
 
@@ -158,11 +90,14 @@ abstract class CFEStep extends IOModularStep {
     if (_options.verbose) print("\nstep: $stepName on $module");
 
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    writePackageConfig(module, transitiveDependencies, root);
+    await writePackageConfig(module, transitiveDependencies, root);
 
     String rootScheme = getRootScheme(module);
     List<String> sources;
-    List<String> extraArgs = ['--packages-file', '$rootScheme:/.packages'];
+    List<String> extraArgs = [
+      '--packages-file',
+      '$rootScheme:/$packageConfigJsonPath'
+    ];
     if (module.isSdk) {
       // When no flags are passed, we can skip compilation and reuse the
       // platform.dill created by build.py.
@@ -318,21 +253,21 @@ class ModularAnalysisStep extends IOModularStep {
     List<String> sources = [];
     List<String> extraArgs = [];
     if (!module.isSdk) {
-      writePackageConfig(module, transitiveDependencies, root);
+      await writePackageConfig(module, transitiveDependencies, root);
       String rootScheme = getRootScheme(module);
       sources = getSources(module);
       dillDependencies = transitiveDependencies
           .map((m) => '${toUri(m, dillSummaryId)}')
           .toList();
       extraArgs = [
-        '--packages=${root.resolve('.packages')}',
+        '--packages=${root.resolve(packageConfigJsonPath)}',
         '--multi-root=$root',
         '--multi-root-scheme=$rootScheme',
       ];
     }
 
     List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       '--no-sound-null-safety',
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
@@ -400,7 +335,7 @@ class ConcatenateDillsStep extends IOModularStep {
         .toList();
     dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
@@ -461,7 +396,7 @@ class ComputeClosedWorldStep extends IOModularStep {
         .toList();
     dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
@@ -508,7 +443,7 @@ class GlobalAnalysisStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js global analysis on $module");
     List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
@@ -562,7 +497,7 @@ class Dart2jsCodegenStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js backend on $module");
     List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
@@ -615,7 +550,7 @@ class Dart2jsEmissionStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("step: dart2js backend on $module");
     List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
