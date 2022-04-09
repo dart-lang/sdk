@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -844,6 +845,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       executableElement = element;
     }
     executableElement.hasImplicitReturnType = node.returnType == null;
+    executableElement.invokesSuperSelf = node.invokesSuperSelf;
     executableElement.isAsynchronous = node.body.isAsynchronous;
     executableElement.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;

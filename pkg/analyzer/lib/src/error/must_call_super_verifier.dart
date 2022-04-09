@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 
 class MustCallSuperVerifier {
@@ -133,7 +133,8 @@ class MustCallSuperVerifier {
 
   void _verifySuperIsCalled(MethodDeclaration node, String methodName,
       String? overriddenEnclosingName) {
-    if (!node.invokesSuperSelf) {
+    var declaredElement = node.declaredElement as ExecutableElementImpl;
+    if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _errorReporter.reportErrorForNode(

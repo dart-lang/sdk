@@ -481,11 +481,11 @@ void foo() {
 
   test_classLike_method_body_block_invokesSuperSelf_trueToFalse_assignmentExpression() {
     _assertNotSameSignature_classLike(r'''
-void foo() {
+set foo(int _) {
   super.foo = 0;
 }
 ''', r'''
-void foo() {}
+set foo(int _) {}
 ''');
   }
 
