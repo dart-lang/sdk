@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 
@@ -73,8 +74,13 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var element = await analysisDriver.getLibraryByFile(file);
-      if (element == null || importedLibraries.contains(element)) {
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
+        continue;
+      }
+
+      var element = elementResult.element;
+      if (importedLibraries.contains(element)) {
         continue;
       }
 

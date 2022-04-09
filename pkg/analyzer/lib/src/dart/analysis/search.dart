@@ -788,9 +788,9 @@ class _FindDeclarations {
     var filesProcessed = 0;
     try {
       for (var file in knownFiles) {
-        var libraryElement = await driver.getLibraryByFile(file);
-        if (libraryElement != null) {
-          _addUnits(file, libraryElement.units);
+        var elementResult = await driver.getLibraryByUri(file.uriStr);
+        if (elementResult is LibraryElementResult) {
+          _addUnits(file, elementResult.element.units);
         }
 
         // Periodically yield and check cancellation token.

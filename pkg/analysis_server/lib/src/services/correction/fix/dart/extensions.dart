@@ -36,12 +36,12 @@ class Extensions {
         continue;
       }
 
-      var libraryElement = await analysisDriver.getLibraryByFile(file);
-      if (libraryElement == null) {
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
         continue;
       }
 
-      yield libraryElement;
+      yield elementResult.element;
     }
   }
 }

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -83,7 +82,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 213;
+  static const int DATA_VERSION = 214;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -691,22 +690,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
-  }
-
-  /// Return [LibraryElementResult] for the given [file], or `null` if the
-  /// file is a part.
-  Future<LibraryElement?> getLibraryByFile(FileState file) async {
-    if (file.isPart) {
-      return null;
-    }
-
-    var element = libraryContext.getLibraryElementIfReady(file.uriStr);
-    if (element != null) {
-      return element;
-    }
-
-    await libraryContext.load(file);
-    return libraryContext.getLibraryElement(file.uri);
   }
 
   /// Return a [Future] that completes with [LibraryElementResult] for the given
