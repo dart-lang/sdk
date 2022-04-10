@@ -32,7 +32,4 @@ class AddLeadingNewlineToString extends CorrectionProducer {
       builder.addSimpleInsertion(stringLiteral.contentsOffset, eol);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddLeadingNewlineToString newInstance() => AddLeadingNewlineToString();
 }

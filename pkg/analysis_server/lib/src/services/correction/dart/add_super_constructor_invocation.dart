@@ -48,10 +48,6 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddSuperConstructorInvocation newInstance() =>
-      AddSuperConstructorInvocation();
 }
 
 /// A correction processor that can make one of the possible change computed by

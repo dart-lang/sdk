@@ -118,7 +118,4 @@ class RemoveComparison extends CorrectionProducer {
       builder.addDeletion(operatorAndOperand);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveComparison newInstance() => RemoveComparison();
 }

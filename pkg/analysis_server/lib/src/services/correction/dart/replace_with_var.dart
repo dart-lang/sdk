@@ -169,7 +169,4 @@ class ReplaceWithVar extends CorrectionProducer {
     }
     return node.thisOrAncestorOfType<TypeAnnotation>();
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithVar newInstance() => ReplaceWithVar();
 }

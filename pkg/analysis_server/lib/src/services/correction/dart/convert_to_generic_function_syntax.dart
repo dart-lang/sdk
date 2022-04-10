@@ -113,8 +113,4 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(node), replacement);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToGenericFunctionSyntax newInstance() =>
-      ConvertToGenericFunctionSyntax();
 }

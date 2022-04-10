@@ -102,8 +102,4 @@ class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
     }
     return constantNames;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddMissingEnumLikeCaseClauses newInstance() =>
-      AddMissingEnumLikeCaseClauses();
 }

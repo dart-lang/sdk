@@ -38,7 +38,4 @@ class RemoveUnnecessaryNew extends CorrectionProducer {
       builder.addDeletion(range.startStart(newToken, newToken.next!));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryNew newInstance() => RemoveUnnecessaryNew();
 }

@@ -90,7 +90,4 @@ class ConvertIntoForIndex extends CorrectionProducer {
           '$prefix$indent$loopVariable = $listName[$indexName];$eol');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoForIndex newInstance() => ConvertIntoForIndex();
 }

@@ -33,7 +33,4 @@ class RemoveConstructorName extends CorrectionProducer {
       builder.addDeletion(range.startStart(dotToken, identifier.token.next!));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveConstructorName newInstance() => RemoveConstructorName();
 }

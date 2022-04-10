@@ -71,7 +71,4 @@ class ConvertToMapLiteral extends CorrectionProducer {
       element == typeProvider.mapElement ||
       (element.name == 'LinkedHashMap' &&
           element.library.name == 'dart.collection');
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToMapLiteral newInstance() => ConvertToMapLiteral();
 }

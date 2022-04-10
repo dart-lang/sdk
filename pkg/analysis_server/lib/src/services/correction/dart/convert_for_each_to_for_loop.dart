@@ -87,9 +87,6 @@ class ConvertForEachToForLoop extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertForEachToForLoop newInstance() => ConvertForEachToForLoop();
 }
 
 class _ReturnVisitor extends RecursiveAstVisitor<void> {

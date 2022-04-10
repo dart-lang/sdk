@@ -106,8 +106,4 @@ class ConvertToFunctionDeclaration extends CorrectionProducer {
     var i = variables.indexOf(variable);
     return i > 0 ? variables[i - 1] : null;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToFunctionDeclaration newInstance() =>
-      ConvertToFunctionDeclaration();
 }

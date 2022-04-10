@@ -118,7 +118,4 @@ class CreateSetter extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateSetter newInstance() => CreateSetter();
 }

@@ -76,7 +76,7 @@ class AnalysisBenchmark extends Benchmark {
     var stopwatch = Stopwatch()..start();
 
     Future _complete(int offset) async {
-      await test.complete(filePath, offset);
+      await test.complete(filePath, offset, isWarmUp: false);
       completionCount++;
     }
 

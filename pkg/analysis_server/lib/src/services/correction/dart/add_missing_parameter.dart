@@ -36,9 +36,6 @@ class AddMissingParameter extends MultiCorrectionProducer {
       yield _AddMissingOptionalPositionalParameter(context);
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddMissingParameter newInstance() => AddMissingParameter();
 }
 
 /// A correction processor that can make one of the possible change computed by

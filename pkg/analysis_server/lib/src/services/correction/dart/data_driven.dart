@@ -63,9 +63,6 @@ class DataDriven extends MultiCorrectionProducer {
     }
     return transformSets;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static DataDriven newInstance() => DataDriven();
 }
 
 /// A correction processor that can make one of the possible change computed by

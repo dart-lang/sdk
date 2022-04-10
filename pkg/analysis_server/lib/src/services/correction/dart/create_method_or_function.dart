@@ -173,7 +173,4 @@ class CreateMethodOrFunction extends CorrectionProducer {
     _fixKind = DartFixKind.CREATE_METHOD;
     _functionName = name;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateMethodOrFunction newInstance() => CreateMethodOrFunction();
 }

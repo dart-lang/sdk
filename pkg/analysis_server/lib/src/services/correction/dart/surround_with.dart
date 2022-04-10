@@ -68,9 +68,6 @@ class SurroundWith extends MultiCorrectionProducer {
     yield _SurroundWithWhile(
         statementsRange, indentOld, indentNew, indentedCode);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static SurroundWith newInstance() => SurroundWith();
 }
 
 /// A correction processor that can make one of the possible change computed by

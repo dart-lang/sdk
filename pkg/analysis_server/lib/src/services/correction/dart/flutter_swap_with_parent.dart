@@ -27,7 +27,4 @@ class FlutterSwapWithParent extends FlutterParentAndChild {
 
     await swapParentAndChild(builder, expr, child);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterSwapWithParent newInstance() => FlutterSwapWithParent();
 }

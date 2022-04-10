@@ -48,9 +48,6 @@ class ImportAddShow extends CorrectionProducer {
       builder.addSimpleInsertion(importDirective.end - 1, showCombinator);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ImportAddShow newInstance() => ImportAddShow();
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {

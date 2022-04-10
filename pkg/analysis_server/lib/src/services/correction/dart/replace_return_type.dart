@@ -105,7 +105,4 @@ class ReplaceReturnType extends CorrectionProducer {
     }
     return false;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceReturnType newInstance() => ReplaceReturnType();
 }

@@ -49,7 +49,4 @@ class RemoveUnnecessaryLate extends CorrectionProducer {
       builder.addDeletion(range.startStart(lateToken, lateToken.next!));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryLate newInstance() => RemoveUnnecessaryLate();
 }

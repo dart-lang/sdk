@@ -62,7 +62,4 @@ class ConvertIntoGetter extends CorrectionProducer {
       builder.addSimpleReplacement(replacementRange, code);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoGetter newInstance() => ConvertIntoGetter();
 }

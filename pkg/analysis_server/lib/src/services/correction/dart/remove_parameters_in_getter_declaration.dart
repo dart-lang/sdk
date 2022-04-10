@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveParametersInGetterDeclaration extends CorrectionProducer {
+  RemoveParametersInGetterDeclaration();
+
   @override
   FixKind get fixKind => DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION;
 
@@ -30,8 +32,4 @@ class RemoveParametersInGetterDeclaration extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveParametersInGetterDeclaration newInstance() =>
-      RemoveParametersInGetterDeclaration();
 }

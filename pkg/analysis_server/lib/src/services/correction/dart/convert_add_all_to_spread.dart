@@ -135,7 +135,4 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       builder.addDeletion(range.node(invocation));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertAddAllToSpread newInstance() => ConvertAddAllToSpread();
 }
