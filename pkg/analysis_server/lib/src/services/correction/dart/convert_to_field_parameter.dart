@@ -85,9 +85,6 @@ class ConvertToFieldParameter extends CorrectionProducer {
     });
   }
 
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertToFieldParameter newInstance() => ConvertToFieldParameter();
-
   static _Context? _findParameter(AstNode node) {
     var parent = node.parent;
     if (parent is SimpleFormalParameter) {

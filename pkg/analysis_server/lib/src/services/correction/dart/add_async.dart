@@ -16,7 +16,9 @@ class AddAsync extends CorrectionProducer {
   final bool isForMissingReturn;
 
   /// Initialize a newly created producer.
-  AddAsync(this.isForMissingReturn);
+  AddAsync() : isForMissingReturn = false;
+
+  AddAsync.missingReturn() : isForMissingReturn = true;
 
   @override
   // Not predictably the correct action.
@@ -77,12 +79,6 @@ class AddAsync extends CorrectionProducer {
     }
     return false;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddAsync missingReturn() => AddAsync(true);
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddAsync newInstance() => AddAsync(false);
 }
 
 /// An AST visitor used to find return statements in function bodies.

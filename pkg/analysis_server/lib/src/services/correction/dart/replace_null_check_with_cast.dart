@@ -46,7 +46,4 @@ class ReplaceNullCheckWithCast extends CorrectionProducer {
           ' as ${operandType.getDisplayString(withNullability: false)}');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceNullCheckWithCast newInstance() => ReplaceNullCheckWithCast();
 }

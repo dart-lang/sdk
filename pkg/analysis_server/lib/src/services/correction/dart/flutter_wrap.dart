@@ -87,9 +87,6 @@ class FlutterWrap extends MultiCorrectionProducer {
     yield _FlutterWrapColumn(firstWidget, lastWidget);
     yield _FlutterWrapRow(firstWidget, lastWidget);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterWrap newInstance() => FlutterWrap();
 }
 
 /// A correction processor that can make one of the possible change computed by

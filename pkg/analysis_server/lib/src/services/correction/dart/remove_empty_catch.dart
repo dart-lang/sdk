@@ -42,7 +42,4 @@ class RemoveEmptyCatch extends CorrectionProducer {
       builder.addDeletion(utils.getLinesRange(range.node(catchClause)));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveEmptyCatch newInstance() => RemoveEmptyCatch();
 }

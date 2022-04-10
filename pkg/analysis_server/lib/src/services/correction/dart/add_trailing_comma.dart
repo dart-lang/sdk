@@ -38,7 +38,4 @@ class AddTrailingComma extends CorrectionProducer {
       builder.addSimpleInsertion(lastNode.end, ',');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddTrailingComma newInstance() => AddTrailingComma();
 }

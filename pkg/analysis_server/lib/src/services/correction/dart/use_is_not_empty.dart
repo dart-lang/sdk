@@ -47,7 +47,4 @@ class UseIsNotEmpty extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(identifier), 'isNotEmpty');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static UseIsNotEmpty newInstance() => UseIsNotEmpty();
 }

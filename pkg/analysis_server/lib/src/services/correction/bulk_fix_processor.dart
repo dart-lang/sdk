@@ -48,7 +48,7 @@ class BulkFixProcessor {
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     // TODO(brianwilkerson) The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
@@ -61,67 +61,67 @@ class BulkFixProcessor {
     //   DataDriven.newInstance,
     // ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.INVALID_OVERRIDE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
   };
 
@@ -320,15 +320,15 @@ class BulkFixProcessor {
         // apply it first.
         var context = correctionContext(definingUnit, directivesOrderingError);
         if (context != null) {
-          await _generateFix(context, OrganizeImports.newInstance(),
+          await _generateFix(context, OrganizeImports(),
               directivesOrderingError.errorCode.name);
         }
       } else {
         for (var error in unusedImportErrors) {
           var context = correctionContext(definingUnit, error);
           if (context != null) {
-            await _generateFix(context, RemoveUnusedImport.newInstance(),
-                error.errorCode.name);
+            await _generateFix(
+                context, RemoveUnusedImport(), error.errorCode.name);
           }
         }
       }

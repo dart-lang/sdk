@@ -67,9 +67,6 @@ class MakeReturnTypeNullable extends CorrectionProducer {
     });
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static MakeReturnTypeNullable newInstance() => MakeReturnTypeNullable();
-
   static TypeAnnotation? _getReturnTypeNode(FunctionBody body) {
     var function = body.parent;
     if (function is FunctionExpression) {

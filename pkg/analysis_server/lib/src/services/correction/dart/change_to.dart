@@ -23,9 +23,20 @@ class ChangeTo extends CorrectionProducer {
   /// The name to which the undefined name will be changed.
   String _proposedName = '';
 
-  /// Initialize a newly created instance that will propose elements of the
-  /// given [_kind].
-  ChangeTo(this._kind);
+  /// Initialize a newly created instance that will propose classes and mixins.
+  ChangeTo.annotation() : _kind = _ReplacementKind.annotation;
+
+  /// Initialize a newly created instance that will propose classes and mixins.
+  ChangeTo.classOrMixin() : _kind = _ReplacementKind.classOrMixin;
+
+  /// Initialize a newly created instance that will propose functions.
+  ChangeTo.function() : _kind = _ReplacementKind.function;
+
+  /// Initialize a newly created instance that will propose getters and setters.
+  ChangeTo.getterOrSetter() : _kind = _ReplacementKind.getterOrSetter;
+
+  /// Initialize a newly created instance that will propose methods.
+  ChangeTo.method() : _kind = _ReplacementKind.method;
 
   @override
   List<Object> get fixArguments => [_proposedName];
@@ -227,26 +238,6 @@ class ChangeTo extends CorrectionProducer {
       finder._updateList(getExtensionMembers(element));
     }
   }
-
-  /// Return an instance of this class that will propose classes and mixins.
-  /// Used as a tear-off in `FixProcessor`.
-  static ChangeTo annotation() => ChangeTo(_ReplacementKind.annotation);
-
-  /// Return an instance of this class that will propose classes and mixins.
-  /// Used as a tear-off in `FixProcessor`.
-  static ChangeTo classOrMixin() => ChangeTo(_ReplacementKind.classOrMixin);
-
-  /// Return an instance of this class that will propose functions. Used as a
-  /// tear-off in `FixProcessor`.
-  static ChangeTo function() => ChangeTo(_ReplacementKind.function);
-
-  /// Return an instance of this class that will propose getters and setters.
-  /// Used as a tear-off in `FixProcessor`.
-  static ChangeTo getterOrSetter() => ChangeTo(_ReplacementKind.getterOrSetter);
-
-  /// Return an instance of this class that will propose methods. Used as a
-  /// tear-off in `FixProcessor`.
-  static ChangeTo method() => ChangeTo(_ReplacementKind.method);
 }
 
 /// Helper for finding [Element] with name closest to the given.

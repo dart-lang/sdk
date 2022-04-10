@@ -65,9 +65,6 @@ class ConvertClassToEnum extends CorrectionProducer {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertClassToEnum newInstance() => ConvertClassToEnum();
 }
 
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].

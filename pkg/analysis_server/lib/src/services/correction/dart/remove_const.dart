@@ -14,9 +14,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveConst extends _RemoveConst {
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CONST;
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveConst newInstance() => RemoveConst();
 }
 
 class RemoveUnnecessaryConst extends _RemoveConst {
@@ -31,9 +28,6 @@ class RemoveUnnecessaryConst extends _RemoveConst {
 
   @override
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONST_MULTI;
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryConst newInstance() => RemoveUnnecessaryConst();
 }
 
 abstract class _RemoveConst extends CorrectionProducer {

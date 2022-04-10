@@ -45,9 +45,6 @@ class RemoveNameFromCombinator extends CorrectionProducer {
     }
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveNameFromCombinator newInstance() => RemoveNameFromCombinator();
-
   static SourceRange? rangeForCombinator(Combinator combinator) {
     var parent = combinator.parent;
     if (parent is NamespaceDirective) {

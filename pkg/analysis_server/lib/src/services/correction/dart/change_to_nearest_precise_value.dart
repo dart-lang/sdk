@@ -36,8 +36,4 @@ class ChangeToNearestPreciseValue extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(integer), _correction);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ChangeToNearestPreciseValue newInstance() =>
-      ChangeToNearestPreciseValue();
 }

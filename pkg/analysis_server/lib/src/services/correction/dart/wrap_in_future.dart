@@ -40,7 +40,4 @@ class WrapInFuture extends CorrectionProducer {
       );
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static WrapInFuture newInstance() => WrapInFuture();
 }

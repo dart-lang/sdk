@@ -48,10 +48,6 @@ class ReplaceWithConditionalAssignment extends CorrectionProducer {
     }
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithConditionalAssignment newInstance() =>
-      ReplaceWithConditionalAssignment();
-
   static Statement _uniqueStatement(Statement statement) {
     if (statement is Block) {
       return _uniqueStatement(statement.statements.first);

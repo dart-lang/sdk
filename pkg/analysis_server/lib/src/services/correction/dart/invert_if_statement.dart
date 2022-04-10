@@ -37,7 +37,4 @@ class InvertIfStatement extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(elseStatement), thenSource);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static InvertIfStatement newInstance() => InvertIfStatement();
 }

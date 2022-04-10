@@ -33,7 +33,4 @@ class ReplaceBooleanWithBool extends CorrectionProducer {
       builder.addSimpleReplacement(range.error(analysisError), 'bool');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceBooleanWithBool newInstance() => ReplaceBooleanWithBool();
 }

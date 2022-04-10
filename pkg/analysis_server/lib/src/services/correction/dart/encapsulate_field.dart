@@ -112,7 +112,4 @@ class EncapsulateField extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static EncapsulateField newInstance() => EncapsulateField();
 }

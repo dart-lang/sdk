@@ -66,7 +66,4 @@ class RemoveDeadIfNull extends CorrectionProducer {
     }
     return null;
   }
-
-  /// Returns an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveDeadIfNull newInstance() => RemoveDeadIfNull();
 }

@@ -68,7 +68,4 @@ class SplitVariableDeclaration extends CorrectionProducer {
       builder.addSimpleInsertion(variable.name.end, ';' + eol + indent + name);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static SplitVariableDeclaration newInstance() => SplitVariableDeclaration();
 }

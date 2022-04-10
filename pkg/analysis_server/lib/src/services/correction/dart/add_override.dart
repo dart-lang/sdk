@@ -47,7 +47,4 @@ class AddOverride extends CorrectionProducer {
     });
     builder.setSelection(exitPosition);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddOverride newInstance() => AddOverride();
 }

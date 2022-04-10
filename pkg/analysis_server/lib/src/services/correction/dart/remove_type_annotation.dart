@@ -107,7 +107,4 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       builder.addDeletion(range.startStart(type, type.endToken.next!));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveTypeAnnotation newInstance() => RemoveTypeAnnotation();
 }

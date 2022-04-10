@@ -65,8 +65,4 @@ class ReplaceIfElseWithConditional extends CorrectionProducer {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ReplaceIfElseWithConditional newInstance() =>
-      ReplaceIfElseWithConditional();
 }

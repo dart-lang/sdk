@@ -48,7 +48,4 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(node), _replacement);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithEightDigitHex newInstance() => ReplaceWithEightDigitHex();
 }

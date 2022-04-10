@@ -173,8 +173,4 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       builder.write(fieldName);
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateConstructorForFinalFields newInstance() =>
-      CreateConstructorForFinalFields();
 }

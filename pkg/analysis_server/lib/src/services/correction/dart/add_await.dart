@@ -26,7 +26,4 @@ class AddAwait extends CorrectionProducer {
       builder.addSimpleInsertion(node.offset, 'await ');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddAwait newInstance() => AddAwait();
 }

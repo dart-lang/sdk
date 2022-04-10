@@ -43,7 +43,4 @@ class SortConstructorFirst extends CorrectionProducer {
       );
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static SortConstructorFirst newInstance() => SortConstructorFirst();
 }

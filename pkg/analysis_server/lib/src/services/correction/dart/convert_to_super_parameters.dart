@@ -408,9 +408,6 @@ class ConvertToSuperParameters extends CorrectionProducer {
     }
     return null;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertToSuperParameters newInstance() => ConvertToSuperParameters();
 }
 
 /// Information about a single parameter.

@@ -44,9 +44,6 @@ class WrapInText extends CorrectionProducer {
     });
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static WrapInText newInstance() => WrapInText();
-
   static _Context? _extractContextInformation(AstNode node) {
     if (node is Expression) {
       var parent = node.parent;
