@@ -20414,6 +20414,11 @@ HintCode:
         }
       }
       ```
+  UNNECESSARY_FINAL:
+    problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
+    correctionMessage: Try removing the 'final'.
+    hasPublishedDocs: false
+    comment: No parameters.
   UNNECESSARY_IGNORE:
     problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.

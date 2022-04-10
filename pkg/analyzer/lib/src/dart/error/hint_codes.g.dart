@@ -3778,6 +3778,16 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   */
+  static const HintCode UNNECESSARY_FINAL = HintCode(
+    'UNNECESSARY_FINAL',
+    "The keyword 'final' isn't necessary because the parameter is implicitly "
+        "'final'.",
+    correctionMessage: "Try removing the 'final'.",
+  );
+
+  /**
    * Parameters:
    * 0: the name of the diagnostic being ignored
    */

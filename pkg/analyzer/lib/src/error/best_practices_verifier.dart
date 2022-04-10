@@ -488,6 +488,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkFinalParameter(node, node.keyword);
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _checkRequiredParameter(node);
     super.visitFormalParameterList(node);
@@ -776,6 +782,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _checkFinalParameter(node, node.keyword);
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
@@ -854,6 +866,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     return false;
+  }
+
+  void _checkFinalParameter(FormalParameter node, Token? keyword) {
+    if (node.isFinal) {
+      _errorReporter.reportErrorForToken(
+        HintCode.UNNECESSARY_FINAL,
+        keyword!,
+      );
+    }
   }
 
   void _checkForAssignmentOfDoNotStore(Expression? expression) {
