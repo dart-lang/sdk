@@ -82,7 +82,7 @@ class SocketServerTest {
       expect(error.message, equals('mock request exception'));
       expect(error.stackTrace, isNotNull);
       expect(error.stackTrace, isNotEmpty);
-      channel.expectMsgCount(responseCount: 1, notificationCount: 1);
+      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
     });
   }
 
@@ -95,7 +95,7 @@ class SocketServerTest {
     var response = await channel.sendRequest(request, throwOnError: false);
     expect(response.id, equals('0'));
     expect(response.error, isNull);
-    channel.expectMsgCount(responseCount: 1, notificationCount: 2);
+    channel.expectMsgCount(responseCount: 2, notificationCount: 2);
     expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
   }
 

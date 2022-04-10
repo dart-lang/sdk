@@ -320,51 +320,25 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
     performance.logRequestTiming(request.clientRequestTime);
+    // Because we don't `await` the execution of the handlers, we wrap the
+    // execution in order to have one central place to handle exceptions.
     runZonedGuarded(() {
       var cancellationToken = CancelableToken();
       cancellationTokens[request.id] = cancellationToken;
       var generator = handlerGenerators[request.method];
       if (generator != null) {
-        try {
-          var handler = generator(this, request, cancellationToken);
-          handler.handle();
-        } on InconsistentAnalysisException {
-          sendResponse(Response.contentModified(request));
-        } on RequestFailure catch (exception) {
-          sendResponse(exception.response);
-        } catch (exception, stackTrace) {
-          var error =
-              RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
-          error.stackTrace = stackTrace.toString();
-          var response = Response(request.id, error: error);
-          sendResponse(response);
-        }
+        var handler = generator(this, request, cancellationToken);
+        handler.handle();
       } else {
         // TODO(brianwilkerson) When all the handlers are in [handlerGenerators]
         //  remove local variable and for loop below.
         var count = handlers.length;
         for (var i = 0; i < count; i++) {
-          try {
-            var response =
-                handlers[i].handleRequest(request, cancellationToken);
-            if (response == Response.DELAYED_RESPONSE) {
-              return;
-            }
-            if (response != null) {
-              sendResponse(response);
-              return;
-            }
-          } on InconsistentAnalysisException {
-            sendResponse(Response.contentModified(request));
+          var response = handlers[i].handleRequest(request, cancellationToken);
+          if (response == Response.DELAYED_RESPONSE) {
             return;
-          } on RequestFailure catch (exception) {
-            sendResponse(exception.response);
-            return;
-          } catch (exception, stackTrace) {
-            var error = RequestError(
-                RequestErrorCode.SERVER_ERROR, exception.toString());
-            error.stackTrace = stackTrace.toString();
-            var response = Response(request.id, error: error);
+          }
+          if (response != null) {
             sendResponse(response);
             return;
           }
@@ -372,15 +346,28 @@ class AnalysisServer extends AbstractAnalysisServer {
         sendResponse(Response.unknownRequest(request));
       }
     }, (exception, stackTrace) {
-      instrumentationService.logException(
-        FatalException(
-          'Failed to handle request: ${request.method}',
-          exception,
-          stackTrace,
-        ),
-        null,
-        crashReportingAttachmentsBuilder.forException(exception),
-      );
+      if (exception is InconsistentAnalysisException) {
+        sendResponse(Response.contentModified(request));
+      } else if (exception is RequestFailure) {
+        sendResponse(exception.response);
+      } else {
+        // Log the exception.
+        instrumentationService.logException(
+          FatalException(
+            'Failed to handle request: ${request.method}',
+            exception,
+            stackTrace,
+          ),
+          null,
+          crashReportingAttachmentsBuilder.forException(exception),
+        );
+        // Then return an error response to the client.
+        var error =
+            RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+        error.stackTrace = stackTrace.toString();
+        var response = Response(request.id, error: error);
+        sendResponse(response);
+      }
     });
   }
 
