@@ -1,6 +1,6 @@
 ---
 name: Lint proposal
-about: Propose a new lint rule.
+about: Propose a new lint rule or a modification to an existing one.
 title: 'proposal: `<rule_name>`'
 labels: 'lint proposal, status: pending'
 assignees: ''
@@ -37,7 +37,7 @@ assignees: ''
 
 ### Discussion checklist
 
-- [ ] List any existing rules this proposal complements, overlaps or conflict with.
+- [ ] List any existing rules this proposal modifies, complements, overlaps or conflicts with.
 - [ ] List any relevant issues (reported here, the [SDK Tracker], or elsewhere).
 - [ ] If there's any prior art (e.g., in other linters), please add references here.
 - [ ] If this proposal corresponds to [Effective Dart] or [Flutter Style Guide] advice, please call it out. (If there isn’t any corresponding advice, should there be?)
