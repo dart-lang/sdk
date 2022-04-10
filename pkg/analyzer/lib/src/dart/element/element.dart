@@ -2829,6 +2829,14 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitReturnType);
   }
 
+  bool get invokesSuperSelf {
+    return hasModifier(Modifier.INVOKES_SUPER_SELF);
+  }
+
+  set invokesSuperSelf(bool value) {
+    setModifier(Modifier.INVOKES_SUPER_SELF, value);
+  }
+
   @override
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
@@ -4322,29 +4330,32 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
 
+  /// Indicates that the method invokes the super method with the same name.
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 17);
+
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 18);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 18);
+  static const Modifier MACRO = Modifier('MACRO', 19);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 20);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 20);
+  static const Modifier SETTER = Modifier('SETTER', 21);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 21);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 22);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 22);
+  static const Modifier STATIC = Modifier('STATIC', 23);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 23);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 24);
 
   static const List<Modifier> values = [
     ABSTRACT,

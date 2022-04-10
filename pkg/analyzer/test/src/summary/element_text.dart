@@ -263,6 +263,10 @@ class _ElementWriter {
     }
 
     _writeIf(e.isGenerator, '*');
+
+    if (e is ExecutableElementImpl && e.invokesSuperSelf) {
+      buffer.write(' invokesSuperSelf');
+    }
   }
 
   void _writeClassElement(ClassElement e) {
