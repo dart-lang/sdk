@@ -68,11 +68,12 @@ class LibraryMacroApplier {
 
     var macroExecutor = libraryBuilder.linker.macroExecutor;
     if (macroExecutor != null && macroResults.isNotEmpty) {
-      return macroExecutor.buildAugmentationLibrary(
+      var code = macroExecutor.buildAugmentationLibrary(
         macroResults,
         _resolveIdentifier,
         _inferOmittedType,
       );
+      return code.trim();
     }
     return null;
   }

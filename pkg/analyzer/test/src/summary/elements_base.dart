@@ -4,12 +4,15 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -22,10 +25,12 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:path/path.dart' as package_path;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/feature_sets.dart';
@@ -36,6 +41,9 @@ import 'test_strategies.dart';
 abstract class ElementsBaseTest with ResourceProviderMixin {
   /// The shared SDK bundle, computed once and shared among test invocations.
   static _SdkBundle? _sdkBundle;
+
+  MacroKernelBuilder? macroKernelBuilder;
+  macro.MultiMacroExecutor? macroExecutor;
 
   /// The set of features enabled in this test.
   FeatureSet featureSet = FeatureSets.latestWithExperiments;
@@ -113,7 +121,9 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
-  String get testPackageRootPath => '/home/test';
+  String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get workspaceRootPath => '/home';
 
   void addSource(String path, String contents) {
     newFile2(path, contents);
@@ -123,6 +133,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     String text, {
     bool allowErrors = false,
     bool dumpSummaries = false,
+    List<Set<String>>? preBuildSequence,
   }) async {
     var testFile = newFile2(testFilePath, text);
     var testUri = sourceFactory.pathToUri(testFile.path)!;
@@ -160,7 +171,22 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       ),
     );
 
-    var linkResult = await link(elementFactory, inputLibraries);
+    _linkConfiguredLibraries(
+      elementFactory,
+      inputLibraries,
+      preBuildSequence,
+    );
+
+    var linkResult = await link(
+      elementFactory,
+      inputLibraries,
+      macroExecutor: macroExecutor,
+    );
+
+    for (var macroUnit in linkResult.macroGeneratedUnits) {
+      var informativeBytes = writeUnitInformative(macroUnit.unit);
+      unitsInformativeBytes[macroUnit.uri] = informativeBytes;
+    }
 
     if (!keepLinkingLibraries) {
       elementFactory.removeBundle(
@@ -279,12 +305,132 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     }
   }
 
+  /// If there are any [macroLibraries], build the kernel and prepare for
+  /// execution.
+  void _buildMacroLibraries(
+    LinkedElementFactory elementFactory,
+    List<MacroLibrary> macroLibraries,
+  ) {
+    if (macroLibraries.isEmpty) {
+      return;
+    }
+
+    final macroKernelBuilder = this.macroKernelBuilder;
+    if (macroKernelBuilder == null) {
+      return;
+    }
+
+    final macroExecutor = this.macroExecutor;
+    if (macroExecutor == null) {
+      return;
+    }
+
+    var macroKernelBytes = macroKernelBuilder.build(
+      fileSystem: _MacroFileSystem(resourceProvider),
+      libraries: macroLibraries,
+    );
+
+    var bundleMacroExecutor = BundleMacroExecutor(
+      macroExecutor: macroExecutor,
+      kernelBytes: macroKernelBytes,
+      libraries: macroLibraries.map((e) => e.uri).toSet(),
+    );
+
+    for (var macroLibrary in macroLibraries) {
+      var uriStr = macroLibrary.uriStr;
+      var element = elementFactory.libraryOfUri2(uriStr);
+      element.bundleMacroExecutor = bundleMacroExecutor;
+    }
+  }
+
+  /// If there are any libraries in the [uriStrSetList], link these subsets
+  /// of [inputLibraries] (and remove from it), build macro kernels, prepare
+  /// for executing macros.
+  void _linkConfiguredLibraries(
+    LinkedElementFactory elementFactory,
+    List<LinkInputLibrary> inputLibraries,
+    List<Set<String>>? uriStrSetList,
+  ) {
+    if (uriStrSetList == null) {
+      return;
+    }
+
+    for (var uriStrSet in uriStrSetList) {
+      var cycleInputLibraries = <LinkInputLibrary>[];
+      var macroLibraries = <MacroLibrary>[];
+      for (var inputLibrary in inputLibraries) {
+        if (uriStrSet.contains(inputLibrary.uriStr)) {
+          cycleInputLibraries.add(inputLibrary);
+          _addMacroLibrary(macroLibraries, inputLibrary);
+        }
+      }
+
+      link(
+        elementFactory,
+        cycleInputLibraries,
+        macroExecutor: macroExecutor,
+      );
+
+      _buildMacroLibraries(elementFactory, macroLibraries);
+
+      // Remove libraries that we just linked.
+      cycleInputLibraries.forEach(inputLibraries.remove);
+    }
+  }
+
   String _readSafely(String path) {
     try {
       var file = resourceProvider.getFile(path);
       return file.readAsStringSync();
     } catch (_) {
       return '';
+    }
+  }
+
+  /// If there are any macros in the [inputLibrary], add it.
+  static void _addMacroLibrary(
+    List<MacroLibrary> macroLibraries,
+    LinkInputLibrary inputLibrary,
+  ) {
+    var macroClasses = <MacroClass>[];
+    for (var inputUnit in inputLibrary.units) {
+      for (var declaration in inputUnit.unit.declarations) {
+        if (declaration is ClassDeclarationImpl &&
+            declaration.macroKeyword != null) {
+          var constructors =
+              declaration.members.whereType<ConstructorDeclaration>().toList();
+          if (constructors.isEmpty) {
+            macroClasses.add(
+              MacroClass(
+                name: declaration.name.name,
+                constructors: [''],
+              ),
+            );
+          } else {
+            var constructorNames = constructors
+                .map((e) => e.name?.name ?? '')
+                .where((e) => !e.startsWith('_'))
+                .toList();
+            if (constructorNames.isNotEmpty) {
+              macroClasses.add(
+                MacroClass(
+                  name: declaration.name.name,
+                  constructors: constructorNames,
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+    if (macroClasses.isNotEmpty) {
+      macroLibraries.add(
+        MacroLibrary(
+          uri: inputLibrary.uri,
+          path: inputLibrary.source.fullName,
+          classes: macroClasses,
+        ),
+      );
     }
   }
 }
@@ -298,6 +444,35 @@ class _AnalysisSessionForLinking implements AnalysisSessionImpl {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// [MacroFileEntry] adapter for [File].
+class _MacroFileEntry implements MacroFileEntry {
+  final File file;
+
+  _MacroFileEntry(this.file);
+
+  @override
+  String get content => file.readAsStringSync();
+
+  @override
+  bool get exists => file.exists;
+}
+
+/// [MacroFileSystem] adapter for [ResourceProvider].
+class _MacroFileSystem implements MacroFileSystem {
+  final ResourceProvider resourceProvider;
+
+  _MacroFileSystem(this.resourceProvider);
+
+  @override
+  package_path.Context get pathContext => resourceProvider.pathContext;
+
+  @override
+  MacroFileEntry getFile(String path) {
+    var file = resourceProvider.getFile(path);
+    return _MacroFileEntry(file);
+  }
 }
 
 class _SdkBundle {

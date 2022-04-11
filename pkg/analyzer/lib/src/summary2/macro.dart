@@ -129,4 +129,6 @@ class MacroLibrary {
     required this.path,
     required this.classes,
   });
+
+  String get uriStr => uri.toString();
 }

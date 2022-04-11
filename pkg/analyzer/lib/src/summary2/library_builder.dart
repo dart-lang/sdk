@@ -203,7 +203,8 @@ class LibraryBuilder {
       lineInfo: parseResult.lineInfo,
     )
       ..enclosingElement = element
-      ..isSynthetic = true;
+      ..isSynthetic = true
+      ..uri = unitUri.toString();
 
     var unitReference = reference.getChild('@unit').getChild('$unitUri');
     _bindReference(unitReference, unitElement);
@@ -222,6 +223,14 @@ class LibraryBuilder {
         reference: unitReference,
         node: unitNode,
         element: unitElement,
+      ),
+    );
+
+    linker.macroGeneratedUnits.add(
+      LinkMacroGeneratedUnit(
+        uri: unitUri,
+        content: parseResult.content,
+        unit: parseResult.unit,
       ),
     );
   }
