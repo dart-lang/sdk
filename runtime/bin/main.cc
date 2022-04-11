@@ -224,7 +224,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     if (Dart_IsError(result)) goto failed;
 
-    if (isolate_group_data->kernel_buffer().get() != nullptr) {
+    if (isolate_group_data->kernel_buffer() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve
       // relative URIs and perform other related tasks. We need Loader to be
       // initialized for this to work because loading from Kernel binary
