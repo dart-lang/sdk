@@ -2647,7 +2647,7 @@ void Isolate::Shutdown() {
 
   // Post message before LowLevelShutdown that sends onExit message.
   // This ensures that exit message comes last.
-  if (bequest_.get() != nullptr) {
+  if (bequest_ != nullptr) {
     auto beneficiary = bequest_->beneficiary();
     auto handle = bequest_->TakeHandle();
     PortMap::PostMessage(

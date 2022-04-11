@@ -583,8 +583,8 @@ void SSLFilter::MarkAsTrusted(Dart_NativeArguments args) {
                          DartUtils::GetNativeBooleanArgument(args, 2)));
   if (SSL_LOG_STATUS) {
     Syslog::Print("Mark %p as %strusted certificate\n",
-                  certificate_trust_state_.get()->x509(),
-                  certificate_trust_state_.get()->is_trusted() ? "" : "not ");
+                  certificate_trust_state_->x509(),
+                  certificate_trust_state_->is_trusted() ? "" : "not ");
   }
 }
 
