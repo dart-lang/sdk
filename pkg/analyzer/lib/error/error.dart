@@ -507,6 +507,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
+  FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
   FfiCode.CREATION_OF_STRUCT_OR_UNION,
   FfiCode.EMPTY_STRUCT,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
@@ -735,7 +736,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.DUPLICATE_PREFIX,
   ParserErrorCode.DUPLICATED_MODIFIER,
   ParserErrorCode.EMPTY_ENUM_BODY,
-  ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
   ParserErrorCode.ENUM_IN_CLASS,
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   ParserErrorCode.EXPECTED_BODY,
@@ -806,7 +806,10 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.INVALID_SUPER_IN_INITIALIZER,
   ParserErrorCode.INVALID_SYNC,
   ParserErrorCode.INVALID_THIS_IN_INITIALIZER,
-  ParserErrorCode.INVALID_UNICODE_ESCAPE,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED,
   ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
   ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW,
@@ -941,7 +944,7 @@ const List<ErrorCode> errorCodeValues = [
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
 /// instance.
-late final HashMap<String, ErrorCode> _uniqueNameToCodeMap =
+final HashMap<String, ErrorCode> _uniqueNameToCodeMap =
     _computeUniqueNameToCodeMap();
 
 /// Return the [ErrorCode] with the given [uniqueName], or `null` if not

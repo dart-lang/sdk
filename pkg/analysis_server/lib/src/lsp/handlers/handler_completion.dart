@@ -55,8 +55,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+      return serverNotInitializedError;
     }
 
     final triggerCharacter = params.context?.triggerCharacter;
@@ -79,13 +78,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final pathContext = server.resourceProvider.pathContext;
       final fileExtension = pathContext.extension(path.result);
 
+      final maxResults = server.clientConfiguration
+          .forResource(path.result)
+          .maxCompletionItems;
+
+      CompletionPerformance? completionPerformance;
       if (fileExtension == '.dart' && !unit.isError) {
+        final result = unit.result;
+        var performanceOperation = OperationPerformanceImpl('<root>');
+        completionPerformance = CompletionPerformance(
+          operation: performanceOperation,
+          path: result.path,
+          content: result.content,
+          offset: offset,
+        );
+        server.performanceStats.completion.add(completionPerformance);
+
         serverResultsFuture = _getServerDartItems(
           clientCapabilities,
-          unit.result,
+          result,
+          completionPerformance,
+          performanceOperation,
           offset,
           triggerCharacter,
           token,
+          maxResults: maxResults,
         );
       } else if (fileExtension == '.yaml') {
         YamlCompletionGenerator? generator;
@@ -125,14 +142,25 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       if (serverResults.isError) return serverResults;
       if (pluginResults.isError) return pluginResults;
 
+      final untruncatedItems = serverResults.result.items
+          .followedBy(pluginResults.result.items)
+          .toList();
+
+      final truncatedItems = untruncatedItems.length > maxResults
+          ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
+          : untruncatedItems;
+
+      // If we're tracing performance (only Dart), record the number of results
+      // after truncation.
+      completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
+
       return success(CompletionList(
         // If any set of the results is incomplete, the whole batch must be
         // marked as such.
         isIncomplete: serverResults.result.isIncomplete ||
-            pluginResults.result.isIncomplete,
-        items: serverResults.result.items
-            .followedBy(pluginResults.result.items)
-            .toList(),
+            pluginResults.result.isIncomplete ||
+            truncatedItems.length != untruncatedItems.length,
+        items: truncatedItems,
       ));
     });
   }
@@ -233,25 +261,19 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   Future<ErrorOr<CompletionList>> _getServerDartItems(
     LspClientCapabilities capabilities,
     ResolvedUnitResult unit,
+    CompletionPerformance completionPerformance,
+    OperationPerformanceImpl operationPerformance,
     int offset,
     String? triggerCharacter,
-    CancellationToken token,
-  ) async {
+    CancellationToken token, {
+    required int maxResults,
+  }) async {
     final useSuggestionSets =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
 
-    var performance = OperationPerformanceImpl('<root>');
-    return await performance.runAsync(
+    return await operationPerformance.runAsync(
       'request',
       (performance) async {
-        final completionPerformance = CompletionPerformance(
-          operation: performance,
-          path: unit.path,
-          content: unit.content,
-          offset: offset,
-        );
-        server.performanceStats.completion.add(completionPerformance);
-
         final completionRequest = DartCompletionRequest.forResolvedUnit(
           resolvedUnit: unit,
           offset: offset,
@@ -475,7 +497,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
               .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
               .toList();
 
-          completionPerformance.suggestionCount = results.length;
+          // Transmitted count will be set after combining with plugins.
+          completionPerformance.computedSuggestionCount =
+              matchingResults.length;
 
           return success(
               CompletionList(isIncomplete: false, items: matchingResults));
@@ -620,5 +644,38 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     }
 
     return true; // Any other trigger character can be handled always.
+  }
+
+  /// Compares [CompletionItem]s by the `sortText` field, which is derived from
+  /// relevance.
+  ///
+  /// For items with the same relevance, shorter items are sorted first so that
+  /// truncation always removes longer items first (which can be included by
+  /// typing more of their characters).
+  static int sortTextComparer(CompletionItem item1, CompletionItem item2) {
+    // Note: It should never be the case that we produce items without sortText
+    // but if they're null, fall back to label which is what the client would do
+    // when sorting.
+    final item1Text = item1.sortText ?? item1.label;
+    final item2Text = item2.sortText ?? item2.label;
+
+    // If both items have the same text, this means they had the same relevance.
+    // In this case, sort by the length of the name ascending, so that shorter
+    // items are first. This is because longer items can be obtained by typing
+    // additional characters where shorter ones may not.
+    //
+    // For example, with:
+    //   - String aaa1;
+    //   - String aaa2;
+    //   - ...
+    //   - String aaa(N); // up to past the truncation amount
+    //   - String aaa;    // declared last, same prefix
+    //
+    // Typing 'aaa' should not allow 'aaa' to be truncated before 'aaa1'.
+    if (item1Text == item2Text) {
+      return item1.label.length.compareTo(item2.label.length);
+    }
+
+    return item1Text.compareTo(item2Text);
   }
 }

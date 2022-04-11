@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 import "dart:test";
@@ -6,52 +6,32 @@ import "dart:test";
 static method main() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
 import "dart:_internal";
 
-class _ArraySize<T extends core::Object* = dynamic> extends core::Object implements self2::Array<self2::_ArraySize::T*> /*hasConstConstructor*/  { // from org-dartlang-testcase:///patch_lib.dart
-  final field core::int* foo;
-  const constructor •(core::int* foo) → self2::_ArraySize<self2::_ArraySize::T*>*
+class _ArraySize<T extends core::Object? = dynamic> extends core::Object implements self2::Array<self2::_ArraySize::T%> /*hasConstConstructor*/  { // from org-dartlang-testcase:///patch_lib.dart
+  final field core::int foo;
+  const constructor •(core::int foo) → self2::_ArraySize<self2::_ArraySize::T%>
     : self2::_ArraySize::foo = foo, super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 @_in::patch
 @core::pragma::_("vm:entry-point")
-class Array<T extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self2::Array::•];
+class Array<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self2::Array::•]/*isLegacy*/;
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object* = dynamic>(core::int* foo) → self2::Array<self2::Array::•::T*>*
-    return new self2::_ArraySize::•<self2::Array::•::T*>(foo);
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%>
+    return new self2::_ArraySize::•<self2::Array::•::T%>(foo);
 }
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:10:1 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Evaluated: ConstructorInvocation @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const pragma{pragma.name: "vm:entry-point", pragma.options: null})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:14:17 -> InstanceConstant(const _Patch{})
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:6:7 -> ConstructorTearOffConstant(Array.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Array.)
 Extra constant evaluation: evaluated: 8, effectively constant: 4

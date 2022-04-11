@@ -5,10 +5,11 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -17,13 +18,14 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
+class AnalysisNotificationAnalyzedFilesTest
+    extends PubPackageAnalysisServerTest {
   late List<String> analyzedFiles;
   bool analyzedFilesReceived = false;
 
-  void assertHasFile(String filePath) {
+  void assertHasFile(File file) {
     expect(analyzedFilesReceived, isTrue);
-    expect(analyzedFiles, contains(filePath));
+    expect(analyzedFiles, contains(file.path));
   }
 
   void assertHasNoFile(String filePath) {
@@ -32,7 +34,9 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   }
 
   Future<void> prepareAnalyzedFiles() async {
-    addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
+    await addGeneralAnalysisSubscription(
+      GeneralAnalysisService.ANALYZED_FILES,
+    );
     await pumpEventQueue(times: 5000);
   }
 
@@ -48,7 +52,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -69,8 +73,7 @@ class A {}
   }
 
   Future<void> test_beforeAnalysis_excludeYamlFiles() async {
-    var yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
-    yamlFile.writeAsStringSync('');
+    var yamlFile = newFile2('$testPackageRootPath/sample.yaml', '');
     addTestFile('''
 class A {}
 ''');
@@ -111,17 +114,19 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    newFile('/foo.dart', content: 'library foo;');
+    var foo = newFile2('/foo.dart', 'library foo;');
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
     modifyTestFile('import "${toUriStr('/foo.dart')}";');
     await prepareAnalyzedFiles();
-    assertHasFile(convertPath('/foo.dart'));
+    assertHasFile(foo);
   }
 
   void unsubscribeAnalyzedFiles() {
-    removeGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
+    removeGeneralAnalysisSubscription(
+      GeneralAnalysisService.ANALYZED_FILES,
+    );
   }
 }

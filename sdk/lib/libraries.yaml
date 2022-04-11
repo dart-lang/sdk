@@ -185,11 +185,11 @@ wasm:
       - _internal/vm/lib/bool_patch.dart
       - _internal/wasm/lib/date_patch.dart
       - _internal/wasm/lib/double.dart
+      - _internal/wasm/lib/errors_patch.dart
       - _internal/wasm/lib/expando_patch.dart
       - _internal/wasm/lib/function.dart
       - _internal/wasm/lib/growable_list.dart
       - _internal/wasm/lib/identical_patch.dart
-      - _internal/wasm/lib/immutable_map.dart
       - _internal/wasm/lib/int.dart
       - _internal/vm/lib/integers_patch.dart
       - _internal/wasm/lib/list.dart
@@ -204,8 +204,21 @@ wasm:
       uri: developer/developer.dart
       patches:
       - _internal/wasm/lib/developer.dart
+    ffi:
+      uri: "ffi/ffi.dart"
+      patches:
+        - "_internal/vm/lib/ffi_patch.dart"
+        - "_internal/vm/lib/ffi_allocation_patch.dart"
+        - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
+        - "_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_struct_patch.dart"
+    nativewrappers:
+      uri: "html/dartium/nativewrappers.dart"
     isolate:
       uri: isolate/isolate.dart
+    js_util_wasm:
+      uri: js_util/js_util_wasm.dart
+      patches: _internal/wasm/lib/js_util_wasm_patch.dart
     math:
       uri: math/math.dart
       patches: _internal/wasm/lib/math_patch.dart

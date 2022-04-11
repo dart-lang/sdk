@@ -877,6 +877,22 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   context->TrustBuiltinRoots();
 }
 
+void FUNCTION_NAME(SecurityContext_SetAllowTlsRenegotiation)(
+    Dart_NativeArguments args) {
+  SSLCertContext* context = SSLCertContext::GetSecurityContext(args);
+  Dart_Handle allow_tls_handle = ThrowIfError(Dart_GetNativeArgument(args, 1));
+
+  ASSERT(context != NULL);
+  ASSERT(allow_tls_handle != NULL);
+
+  if (!Dart_IsBoolean(allow_tls_handle)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Non-boolean argument passed to SetAllowTlsRenegotiation"));
+  }
+  bool allow = DartUtils::GetBooleanValue(allow_tls_handle);
+  context->set_allow_tls_renegotiation(allow);
+}
+
 void FUNCTION_NAME(X509_Der)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, X509Helper::GetDer(args));
 }

@@ -39,6 +39,7 @@ final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma('vm:entry-point')
+@pragma("wasm:entry-point")
 class Pointer<T extends NativeType> extends NativeType {
   /// Construction from raw integer.
   external factory Pointer.fromAddress(int ptr);

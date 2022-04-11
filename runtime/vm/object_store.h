@@ -55,6 +55,8 @@ class ObjectPointerVisitor;
   LAZY_CORE(Function, _object_to_string_function)                              \
   LAZY_INTERNAL(Class, symbol_class)                                           \
   LAZY_INTERNAL(Field, symbol_name_field)                                      \
+  LAZY_FFI(Function, handle_finalizer_message_function)                        \
+  LAZY_FFI(Function, handle_native_finalizer_message_function)                 \
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
@@ -126,6 +128,9 @@ class ObjectPointerVisitor;
   RW(Class, expando_class)                                                     \
   RW(Class, weak_property_class)                                               \
   RW(Class, weak_reference_class)                                              \
+  RW(Class, finalizer_class)                                                   \
+  RW(Class, finalizer_entry_class)                                             \
+  RW(Class, native_finalizer_class)                                            \
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
@@ -315,8 +320,8 @@ class ObjectPointerVisitor;
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
   RW(UnwindError, preallocated_unwind_error)                                   \
-  RW(Array, dart_args_1)                                                       \
-  RW(Array, dart_args_2)                                                       \
+  R_(Array, dart_args_1)                                                       \
+  R_(Array, dart_args_2)                                                       \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)

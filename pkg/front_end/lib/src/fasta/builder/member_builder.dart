@@ -23,7 +23,7 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   void set parent(Builder? value);
 
-  LibraryBuilder get library;
+  LibraryBuilder get libraryBuilder;
 
   /// The [Member] built by this builder;
   Member get member;
@@ -108,16 +108,16 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
       parent is ClassBuilder ? parent as ClassBuilder : null;
 
   @override
-  LibraryBuilder get library {
+  LibraryBuilder get libraryBuilder {
     if (parent is LibraryBuilder) {
       LibraryBuilder library = parent as LibraryBuilder;
       return library.partOfLibrary ?? library;
     } else if (parent is ExtensionBuilder) {
       ExtensionBuilder extension = parent as ExtensionBuilder;
-      return extension.library;
+      return extension.libraryBuilder;
     } else {
       ClassBuilder cls = parent as ClassBuilder;
-      return cls.library;
+      return cls.libraryBuilder;
     }
   }
 

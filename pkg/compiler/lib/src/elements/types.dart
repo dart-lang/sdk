@@ -24,7 +24,7 @@ import 'entities.dart';
 /// implemented directly but other entity systems, for instance based directly
 /// on kernel ir without the need for [Element].
 
-extension on DataSource {
+extension on DataSourceReader {
   List<DartType> _readDartTypes(
       List<FunctionTypeVariable> functionTypeVariables) {
     int count = readInt();
@@ -36,7 +36,7 @@ extension on DataSource {
   }
 }
 
-extension on DataSink {
+extension on DataSinkWriter {
   void _writeDartTypes(
       List<DartType> types, List<FunctionTypeVariable> functionTypeVariables) {
     writeInt(types.length);
@@ -49,8 +49,8 @@ extension on DataSink {
 abstract class DartType {
   const DartType();
 
-  factory DartType.readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory DartType.readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     DartTypeKind kind = source.readEnum(DartTypeKind.values);
     switch (kind) {
       case DartTypeKind.none:
@@ -86,7 +86,7 @@ abstract class DartType {
   }
 
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables);
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables);
 
   /// Returns the base type if this is a [LegacyType] or [NullableType] and
   /// returns this type otherwise.
@@ -204,8 +204,8 @@ class LegacyType extends DartType {
 
   const LegacyType._(this.baseType);
 
-  factory LegacyType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory LegacyType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     DartType baseType =
         DartType.readFromDataSource(source, functionTypeVariables);
     return LegacyType._(baseType);
@@ -213,7 +213,7 @@ class LegacyType extends DartType {
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.legacyType);
     baseType.writeToDataSink(sink, functionTypeVariables);
   }
@@ -259,8 +259,8 @@ class NullableType extends DartType {
 
   const NullableType._(this.baseType);
 
-  factory NullableType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory NullableType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     DartType baseType =
         DartType.readFromDataSource(source, functionTypeVariables);
     return NullableType._(baseType);
@@ -268,7 +268,7 @@ class NullableType extends DartType {
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.nullableType);
     baseType.writeToDataSink(sink, functionTypeVariables);
   }
@@ -321,8 +321,8 @@ class InterfaceType extends DartType {
     return InterfaceType._allocate(element, typeArguments);
   }
 
-  factory InterfaceType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory InterfaceType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     ClassEntity element = source.readClass();
     List<DartType> typeArguments = source._readDartTypes(functionTypeVariables);
     return InterfaceType._(element, typeArguments);
@@ -330,7 +330,7 @@ class InterfaceType extends DartType {
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.interfaceType);
     sink.writeClass(element);
     sink._writeDartTypes(typeArguments, functionTypeVariables);
@@ -393,15 +393,15 @@ class TypeVariableType extends DartType {
 
   const TypeVariableType._(this.element);
 
-  factory TypeVariableType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory TypeVariableType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     TypeVariableEntity element = source.readTypeVariable();
     return TypeVariableType._(element);
   }
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.typeVariable);
     sink.writeTypeVariable(element);
   }
@@ -449,8 +449,8 @@ class FunctionTypeVariable extends DartType {
 
   FunctionTypeVariable._(this.index);
 
-  factory FunctionTypeVariable._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory FunctionTypeVariable._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     int index = source.readInt();
     assert(0 <= index && index < functionTypeVariables.length);
     return functionTypeVariables[index];
@@ -458,7 +458,7 @@ class FunctionTypeVariable extends DartType {
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     int index = functionTypeVariables.indexOf(this);
     if (index == -1) {
       // TODO(johnniwinther): Avoid free variables.
@@ -498,14 +498,14 @@ class FunctionTypeVariable extends DartType {
 class NeverType extends DartType {
   const NeverType._();
 
-  factory NeverType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory NeverType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     return const NeverType._();
   }
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.neverType);
   }
 
@@ -526,13 +526,13 @@ class NeverType extends DartType {
 class VoidType extends DartType {
   const VoidType._();
 
-  factory VoidType._readFromDataSource(DataSource source,
+  factory VoidType._readFromDataSource(DataSourceReader source,
           List<FunctionTypeVariable> functionTypeVariables) =>
       const VoidType._();
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.voidType);
   }
 
@@ -553,13 +553,13 @@ class VoidType extends DartType {
 class DynamicType extends DartType {
   const DynamicType._();
 
-  factory DynamicType._readFromDataSource(DataSource source,
+  factory DynamicType._readFromDataSource(DataSourceReader source,
           List<FunctionTypeVariable> functionTypeVariables) =>
       const DynamicType._();
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.dynamicType);
   }
 
@@ -580,13 +580,13 @@ class DynamicType extends DartType {
 class ErasedType extends DartType {
   const ErasedType._();
 
-  factory ErasedType._readFromDataSource(DataSource source,
+  factory ErasedType._readFromDataSource(DataSourceReader source,
           List<FunctionTypeVariable> functionTypeVariables) =>
       const ErasedType._();
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.erasedType);
   }
 
@@ -618,13 +618,13 @@ class ErasedType extends DartType {
 class AnyType extends DartType {
   const AnyType._();
 
-  factory AnyType._readFromDataSource(DataSource source,
+  factory AnyType._readFromDataSource(DataSourceReader source,
           List<FunctionTypeVariable> functionTypeVariables) =>
       const AnyType._();
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.anyType);
   }
 
@@ -706,8 +706,8 @@ class FunctionType extends DartType {
         typeVariables);
   }
 
-  factory FunctionType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory FunctionType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     int typeVariableCount = source.readInt();
     List<FunctionTypeVariable> typeVariables =
         List<FunctionTypeVariable>.generate(
@@ -745,7 +745,7 @@ class FunctionType extends DartType {
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.functionType);
     functionTypeVariables = List<FunctionTypeVariable>.of(functionTypeVariables)
       ..addAll(typeVariables);
@@ -851,8 +851,8 @@ class FutureOrType extends DartType {
 
   const FutureOrType._(this.typeArgument);
 
-  factory FutureOrType._readFromDataSource(
-      DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
+  factory FutureOrType._readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
     DartType typeArgument =
         DartType.readFromDataSource(source, functionTypeVariables);
     return FutureOrType._(typeArgument);
@@ -860,7 +860,7 @@ class FutureOrType extends DartType {
 
   @override
   void writeToDataSink(
-      DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.futureOr);
     typeArgument.writeToDataSink(sink, functionTypeVariables);
   }

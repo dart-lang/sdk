@@ -7,32 +7,20 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
-    show HasToJson;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
-import 'domain_completion_test.dart';
+import 'analysis_server_base.dart';
 import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainBazelTest);
     defineReflectiveTests(AnalysisDomainPubTest);
-    defineReflectiveTests(AnalysisDomainHandlerTest);
     defineReflectiveTests(SetSubscriptionsTest);
   });
 }
@@ -48,14 +36,14 @@ class AnalysisDomainBazelTest extends _AnalysisDomainTest {
   @override
   void setUp() {
     super.setUp();
-    newFile('$workspaceRootPath/WORKSPACE');
+    newFile2('$workspaceRootPath/WORKSPACE', '');
   }
 
   Future<void> test_fileSystem_changeFile_buildFile() async {
     // This BUILD file does not enable null safety.
     newBazelBuildFile(myPackageRootPath, '');
 
-    newFile(myPackageTestFilePath, content: '''
+    newFile2(myPackageTestFilePath, '''
 void f(int? a) {}
 ''');
 
@@ -79,272 +67,6 @@ dart_package(null_safety = True)
 }
 
 @reflectiveTest
-class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
-  Future<void> outOfRangeTest(SourceEdit edit) async {
-    var helper = AnalysisTestHelper();
-    await helper.createSingleFileProject('library A;');
-    await helper.onAnalysisComplete;
-    helper.sendContentChange(AddContentOverlay('library B;'));
-    await helper.onAnalysisComplete;
-    var contentChange = ChangeContentOverlay([edit]);
-    var request = AnalysisUpdateContentParams({helper.testFile: contentChange})
-        .toRequest('0');
-    var response = helper.handler.handleRequest(request, NotCancelableToken());
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.INVALID_OVERLAY_CHANGE));
-  }
-
-  Future<void> test_setAnalysisRoots_excludedFolder() async {
-    newFile('/project/aaa/a.dart', content: '// a');
-    newFile('/project/bbb/b.dart', content: '// b');
-    var excludedPath = join(projectPath, 'bbb');
-    var response = await testSetAnalysisRoots([projectPath], [excludedPath]);
-    expect(response, isResponseSuccess('0'));
-  }
-
-  Future<void> test_setAnalysisRoots_included_newFolder() async {
-    newPubspecYamlFile('/project', 'name: project');
-    var file = newFile('/project/bin/test.dart', content: 'main() {}').path;
-    var response = await testSetAnalysisRoots([projectPath], []);
-    var serverRef = server;
-    expect(response, isResponseSuccess('0'));
-    // verify that unit is resolved eventually
-    await server.onAnalysisComplete;
-    var resolvedUnit = await serverRef.getResolvedUnit(file);
-    expect(resolvedUnit, isNotNull);
-  }
-
-  Future<void> test_setAnalysisRoots_included_nonexistentFolder() async {
-    var projectA = convertPath('/project_a');
-    var projectB = convertPath('/project_b');
-    var fileB = newFile('/project_b/b.dart', content: '// b').path;
-    var response = await testSetAnalysisRoots([projectA, projectB], []);
-    var serverRef = server;
-    expect(response, isResponseSuccess('0'));
-    // Non-existence of /project_a should not prevent files in /project_b
-    // from being analyzed.
-    await server.onAnalysisComplete;
-    var resolvedUnit = await serverRef.getResolvedUnit(fileB);
-    expect(resolvedUnit, isNotNull);
-  }
-
-  Future<void> test_setAnalysisRoots_included_notAbsolute() async {
-    var response = await testSetAnalysisRoots(['foo/bar'], []);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
-  }
-
-  Future<void> test_setAnalysisRoots_included_notNormalized() async {
-    var response = await testSetAnalysisRoots(['/foo/../bar'], []);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
-  }
-
-  Future<void> test_setAnalysisRoots_notAbsolute() async {
-    var response = await testSetAnalysisRoots([], ['foo/bar']);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
-  }
-
-  Future<void> test_setAnalysisRoots_notNormalized() async {
-    var response = await testSetAnalysisRoots([], ['/foo/../bar']);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
-  }
-
-  void test_setPriorityFiles_invalid() {
-    var request = AnalysisSetPriorityFilesParams(
-      [convertPath('/project/lib.dart')],
-    ).toRequest('0');
-    var response = handler.handleRequest(request, NotCancelableToken());
-    expect(response, isResponseSuccess('0'));
-  }
-
-  Future<void> test_setPriorityFiles_valid() async {
-    var p1 = convertPath('/p1');
-    var p2 = convertPath('/p2');
-    var aPath = convertPath('/p1/a.dart');
-    var bPath = convertPath('/p2/b.dart');
-    var cPath = convertPath('/p2/c.dart');
-    newFile(aPath, content: 'library a;');
-    newFile(bPath, content: 'library b;');
-    newFile(cPath, content: 'library c;');
-
-    await setRoots(included: [p1, p2], excluded: []);
-
-    void setPriorityFiles(List<String> fileList) {
-      var request = AnalysisSetPriorityFilesParams(fileList).toRequest('0');
-      var response = handler.handleRequest(request, NotCancelableToken());
-      expect(response, isResponseSuccess('0'));
-      // TODO(brianwilkerson) Enable the line below after getPriorityFiles
-      // has been implemented.
-      // expect(server.getPriorityFiles(), unorderedEquals(fileList));
-    }
-
-    setPriorityFiles([aPath, bPath]);
-    setPriorityFiles([bPath, cPath]);
-    setPriorityFiles([]);
-  }
-
-  Future<void> test_updateContent_badType() async {
-    var helper = AnalysisTestHelper();
-    await helper.createSingleFileProject('// empty');
-    await helper.onAnalysisComplete;
-    var request = Request('0', ANALYSIS_REQUEST_UPDATE_CONTENT, {
-      ANALYSIS_REQUEST_UPDATE_CONTENT_FILES: {
-        helper.testFile: {
-          'type': 'foo',
-        }
-      }
-    });
-    var response = helper.handler.handleRequest(request, NotCancelableToken());
-    expect(response, isResponseFailure('0'));
-  }
-
-  Future<void> test_updateContent_changeOnDisk_duringOverride() async {
-    var helper = AnalysisTestHelper();
-    await helper.createSingleFileProject('library A;');
-    await helper.onAnalysisComplete;
-    // update code
-    helper.sendContentChange(AddContentOverlay('library B;'));
-    // There should be no errors
-    await helper.onAnalysisComplete;
-    expect(helper.getTestErrors(), hasLength(0));
-    // Change file on disk, adding a syntax error.
-    helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
-    // There should still be no errors (file should not have been reread).
-    await helper.onAnalysisComplete;
-    expect(helper.getTestErrors(), hasLength(0));
-    // Send a content change with a null content param--file should be
-    // reread from disk.
-    helper.sendContentChange(RemoveContentOverlay());
-    // There should be errors now.
-    await helper.onAnalysisComplete;
-    expect(helper.getTestErrors(), hasLength(1));
-  }
-
-  Future<void> test_updateContent_changeOnDisk_normal() async {
-    var helper = AnalysisTestHelper();
-    await helper.createSingleFileProject('library A;');
-    await helper.onAnalysisComplete;
-    // There should be no errors
-    expect(helper.getTestErrors(), hasLength(0));
-    // Change file on disk, adding a syntax error.
-    helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
-    // There should be errors now.
-    await pumpEventQueue();
-    await helper.onAnalysisComplete;
-    expect(helper.getTestErrors(), hasLength(1));
-  }
-
-  Future<void> test_updateContent_fullContent() async {
-    var helper = AnalysisTestHelper();
-    await helper.createSingleFileProject('// empty');
-    await helper.onAnalysisComplete;
-    // no errors initially
-    var errors = helper.getTestErrors();
-    expect(errors, isEmpty);
-    // update code
-    helper.sendContentChange(AddContentOverlay('library lib'));
-    // wait, there is an error
-    await helper.onAnalysisComplete;
-    errors = helper.getTestErrors();
-    expect(errors, hasLength(1));
-  }
-
-  Future<void> test_updateContent_incremental() async {
-    var helper = AnalysisTestHelper();
-    var initialContent = 'library A;';
-    await helper.createSingleFileProject(initialContent);
-    await helper.onAnalysisComplete;
-    // no errors initially
-    var errors = helper.getTestErrors();
-    expect(errors, isEmpty);
-    // Add the file to the cache
-    helper.sendContentChange(AddContentOverlay(initialContent));
-    // update code
-    helper.sendContentChange(ChangeContentOverlay(
-        [SourceEdit('library '.length, 'A;'.length, 'lib')]));
-    // wait, there is an error
-    await helper.onAnalysisComplete;
-    errors = helper.getTestErrors();
-    expect(errors, hasLength(1));
-  }
-
-  Future<void> test_updateContent_outOfRange_beyondEnd() {
-    return outOfRangeTest(SourceEdit(6, 6, 'foo'));
-  }
-
-  Future<void> test_updateContent_outOfRange_negativeLength() {
-    return outOfRangeTest(SourceEdit(3, -1, 'foo'));
-  }
-
-  Future<void> test_updateContent_outOfRange_negativeOffset() {
-    return outOfRangeTest(SourceEdit(-1, 3, 'foo'));
-  }
-
-  void test_updateOptions_invalid() {
-    var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS, {
-      ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: {'not-an-option': true}
-    });
-    var response = handler.handleRequest(request, NotCancelableToken());
-    // Invalid options should be silently ignored.
-    expect(response, isResponseSuccess('0'));
-  }
-
-  void test_updateOptions_null() {
-    // null is allowed as a synonym for {}.
-    var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS,
-        {ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: null});
-    var response = handler.handleRequest(request, NotCancelableToken());
-    expect(response, isResponseSuccess('0'));
-  }
-
-  Future<Response> testSetAnalysisRoots(
-      List<String> included, List<String> excluded) {
-    return setRoots(
-        included: included, excluded: excluded, validateSuccessResponse: false);
-  }
-
-  Future<void> xtest_getReachableSources_invalidSource() async {
-    // TODO(brianwilkerson) Re-enable this test if we re-enable the
-    // analysis.getReachableSources request.
-    newFile('/project/a.dart', content: 'import "b.dart";');
-    await server.setAnalysisRoots('0', ['/project/'], []);
-
-    await server.onAnalysisComplete;
-
-    var request = AnalysisGetReachableSourcesParams('/does/not/exist.dart')
-        .toRequest('0');
-    var response = handler.handleRequest(request, NotCancelableToken())!;
-    var error = response.error!;
-    expect(error.code, RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
-  }
-
-  Future<void> xtest_getReachableSources_validSources() async {
-    // TODO(brianwilkerson) Re-enable this test if we re-enable the
-    // analysis.getReachableSources request.
-    var fileA = newFile('/project/a.dart', content: 'import "b.dart";').path;
-    newFile('/project/b.dart');
-
-    await server.setAnalysisRoots('0', ['/project/'], []);
-
-    await server.onAnalysisComplete;
-
-    var request = AnalysisGetReachableSourcesParams(fileA).toRequest('0');
-    var response = handler.handleRequest(request, NotCancelableToken())!;
-
-    var json = response.toJson()[Response.RESULT] as Map<String, dynamic>;
-
-    // Sanity checks.
-    expect(json['sources'], hasLength(6));
-    expect(json['sources']['file:///project/a.dart'],
-        unorderedEquals(['dart:core', 'file:///project/b.dart']));
-    expect(json['sources']['file:///project/b.dart'], ['dart:core']);
-  }
-}
-
-@reflectiveTest
 class AnalysisDomainPubTest extends _AnalysisDomainTest {
   Future<void> test_fileSystem_addFile_analysisOptions() async {
     deleteTestPackageAnalysisOptionsFile();
@@ -363,7 +85,7 @@ class AnalysisDomainPubTest extends _AnalysisDomainTest {
     );
 
     // Write the options file that excludes b.dart
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: r'''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -385,7 +107,7 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var options_path = '$testPackageRootPath/analysis_options.yaml';
 
-    newFile(a_path, content: 'error');
+    newFile2(a_path, 'error');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -397,7 +119,7 @@ analyzer:
     );
 
     // Add 'analysis_options.yaml' that has an error.
-    newFile(options_path, content: '''
+    newFile2(options_path, '''
 analyzer:
   error:
 ''');
@@ -414,9 +136,9 @@ analyzer:
   Future<void> test_fileSystem_addFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -424,7 +146,7 @@ analyzer:
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
-    newFile(path, content: '<manifest/>');
+    newFile2(path, '<manifest/>');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -456,7 +178,7 @@ analyzer:
     var a_path = '$testPackageLibPath/.foo/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 import '.foo/a.dart';
 void f(A a) {}
 ''');
@@ -467,7 +189,7 @@ void f(A a) {}
     // We don't have a.dart, so the import cannot be resolved.
     assertHasErrors(b_path);
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -484,13 +206,13 @@ class A {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: r'''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
 ''');
 
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -501,7 +223,7 @@ void f(A a) {}
     // We don't have a.dart, so the import cannot be resolved.
     assertHasErrors(b_path);
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -514,45 +236,10 @@ class A {}
     assertNoErrors(b_path);
   }
 
-  Future<void> test_fileSystem_addFile_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
-
-    // Write `.packages`, recreate analysis contexts.
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
-  }
-
   Future<void> test_fileSystem_addFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -560,7 +247,7 @@ aaa:${toUriStr(aaaLibPath)}
     assertNoErrorsNotification(path);
 
     // Create it, will be analyzed.
-    newFile(path, content: '0: 1');
+    newFile2(path, '0: 1');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -575,11 +262,11 @@ aaa:${toUriStr(aaaLibPath)}
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile(a_path, content: '''
+    newFile2(a_path, '''
 class A {}
 ''');
 
-    newFile(testFilePath, content: '''
+    newFile2(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -610,11 +297,11 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/a.dart';
     var pubspec_path = '$testPackageRootPath/pubspec.yaml';
 
-    newFile(a_path, content: 'error');
+    newFile2(a_path, 'error');
 
     // Write an empty file to force a new analysis context.
     // We look for `pubspec.yaml` files only in analysis context roots.
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: '');
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -626,7 +313,7 @@ void f(A a) {}
     );
 
     // Add a non-Dart file that we know how to analyze.
-    newFile(pubspec_path, content: '''
+    newFile2(pubspec_path, '''
 name: sample
 dependencies: true
 ''');
@@ -644,7 +331,7 @@ dependencies: true
     var a_path = '$testPackageLibPath/a.dart';
     var unrelated_path = '$testPackageRootPath/unrelated.txt';
 
-    newFile(a_path, content: 'error');
+    newFile2(a_path, 'error');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -656,7 +343,7 @@ dependencies: true
     );
 
     // Add an unrelated file, no analysis.
-    newFile(unrelated_path, content: 'anything');
+    newFile2(unrelated_path, 'anything');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -674,7 +361,7 @@ dependencies: true
     _createFilesWithErrors([a_path, b_path, c_path]);
 
     // Exclude b.dart from analysis.
-    newFile(options_path, content: r'''
+    newFile2(options_path, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -690,7 +377,7 @@ analyzer:
     );
 
     // Exclude c.dart from analysis.
-    newFile(options_path, content: r'''
+    newFile2(options_path, r'''
 analyzer:
   exclude:
     - lib/c.dart
@@ -711,12 +398,12 @@ analyzer:
   Future<void> test_fileSystem_changeFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
     // Has an error - no touch screen.
-    newFile(path, content: '<manifest/>');
+    newFile2(path, '<manifest/>');
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -729,7 +416,7 @@ analyzer:
     assertNoErrorsNotification(path);
 
     // Update the file, so analyze it.
-    newFile(path, content: '<manifest/>');
+    newFile2(path, '<manifest/>');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -741,11 +428,11 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class A2 {}
 ''');
 
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -758,7 +445,7 @@ void f(A a) {}
     forgetReceivedErrors();
 
     // Update a.dart so that b.dart has no error.
-    newFile(a_path, content: 'class A {}');
+    newFile2(a_path, 'class A {}');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -771,11 +458,11 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/.foo/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class B {}
 ''');
 
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 import '.foo/a.dart';
 void f(A a) {}
 ''');
@@ -790,7 +477,7 @@ void f(A a) {}
     // We have `B`, not `A`, in a.dart, so has errors.
     assertHasErrors(b_path);
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -807,17 +494,17 @@ class A {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: r'''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
 ''');
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class B {}
 ''');
 
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -832,7 +519,7 @@ void f(A a) {}
     // We have `B`, not `A`, in a.dart, so has errors.
     assertHasErrors(b_path);
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -842,51 +529,13 @@ class A {}
     assertNoErrors(b_path);
   }
 
-  Future<void> test_fileSystem_changeFile_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    // Write `.packages` empty, without `package:aaa`.
-    newDotPackagesFile(testPackageRootPath, content: '');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
-
-    // Write `.packages`, recreate analysis contexts.
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
-  }
-
   Future<void> test_fileSystem_changeFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
     // This file has an error.
-    newFile(path, content: '0: 1');
+    newFile2(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -894,7 +543,7 @@ aaa:${toUriStr(aaaLibPath)}
     assertHasErrors(path);
 
     // Replace with the context that does not have errors.
-    newFile(path, content: r'''
+    newFile2(path, r'''
 version: 1
 transforms: []
 ''');
@@ -908,15 +557,124 @@ transforms: []
     _assertFlushedResults([]);
   }
 
+  Future<void> test_fileSystem_changeFile_hasOverlay_removeOverlay() async {
+    newFile2(testFilePath, '');
+
+    // Add an overlay without errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    // The test file (overlay) is analyzed, no errors.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFile.path],
+      notAnalyzed: [],
+    );
+
+    // Change the file, has errors.
+    newFile2(testFilePath, 'error');
+
+    // But the overlay is still present, so the file is not analyzed.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      notAnalyzed: [testFile.path],
+    );
+
+    // Ask to remove the overlay, still active, start a timer.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: RemoveContentOverlay(),
+      }).toRequest('0'),
+    );
+
+    // Wait for the timer to remove the overlay to fire.
+    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
+
+    // The file has errors.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [testFile.path],
+      noErrors: [],
+      notAnalyzed: [],
+    );
+  }
+
+  Future<void>
+      test_fileSystem_changeFile_hasOverlay_removeOverlay_delayed() async {
+    // Use long delay, so that it does not happen.
+    server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
+
+    newFile2(testFilePath, '');
+
+    // Add an overlay without errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    // The test file (overlay) is analyzed, no errors.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFile.path],
+      notAnalyzed: [],
+    );
+
+    // Change the file, has errors.
+    modifyFile(testFilePath, 'error');
+
+    // But the overlay is still present, so the file is not analyzed.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      notAnalyzed: [testFile.path],
+    );
+
+    // Ask to remove the overlay, still active, start a timer.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: RemoveContentOverlay(),
+      }).toRequest('0'),
+    );
+
+    // Long timer, so still not analyzed.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      notAnalyzed: [testFile.path],
+    );
+
+    // Change the file again, has errors.
+    newFile2(testFilePath, 'error');
+
+    // The timer cancelled on the watch event, and the file analyzed.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [testFile.path],
+      noErrors: [],
+      notAnalyzed: [],
+    );
+  }
+
   Future<void> test_fileSystem_changeFile_packageConfigJsonFile() async {
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile(a_path, content: '''
+    newFile2(a_path, '''
 class A {}
 ''');
 
-    newFile(testFilePath, content: '''
+    newFile2(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -952,7 +710,7 @@ void f(A a) {}
     _createFilesWithErrors([a_path, b_path]);
 
     // Exclude b.dart from analysis.
-    newFile(options_path, content: r'''
+    newFile2(options_path, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -984,12 +742,12 @@ analyzer:
   Future<void> test_fileSystem_deleteFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
     // Has an error - no touch screen.
-    newFile(path, content: '<manifest/>');
+    newFile2(path, '<manifest/>');
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -1032,17 +790,17 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: r'''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
 ''');
 
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 class A {}
 ''');
 
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -1065,50 +823,13 @@ void f(A a) {}
     assertHasErrors(b_path);
   }
 
-  Future<void> test_fileSystem_deleteFile_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
-
-    newFile(a_path, content: '''
-class A {}
-''');
-
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
-
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // Write `.packages`, recreate analysis contexts.
-    deleteFile('$testPackageRootPath/.packages');
-
-    await pumpEventQueue();
-    await server.onAnalysisComplete;
-
-    // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
-  }
-
   Future<void> test_fileSystem_deleteFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
     // This file has an error.
-    newFile(path, content: '0: 1');
+    newFile2(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -1127,7 +848,7 @@ void f(A a) {}
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile(a_path, content: '''
+    newFile2(a_path, '''
 class A {}
 ''');
 
@@ -1137,7 +858,7 @@ class A {}
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    newFile(testFilePath, content: '''
+    newFile2(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -1163,33 +884,188 @@ void f(A a) {}
     assertNoErrorsNotification(a_path);
   }
 
-  Future<void> test_setRoots_dotPackagesFile() async {
-    deleteTestPackageConfigJsonFile();
-    var aaaLibPath = '/packages/aaa/lib';
-    var a_path = '$aaaLibPath/a.dart';
+  /// This test ensures that when an `addOverlay` cancels any pending
+  /// `removeOverlay` timer, it also removes it, so that a subsequent watch
+  /// event does not still try to process it.
+  Future<void>
+      test_fileSystem_removeOverlay_addOverlay_changeFile_changeOverlay() async {
+    // Use long delay, so that it does not happen.
+    server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
 
-    newFile(a_path, content: '''
-class A {}
-''');
+    newFile2(testFilePath, '');
 
-    newDotPackagesFile(testPackageRootPath, content: '''
-aaa:${toUriStr(aaaLibPath)}
-''');
+    // Add an overlay without errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
 
-    newFile(testFilePath, content: '''
-import 'package:aaa/a.dart';
-void f(A a) {}
-''');
-
-    // create project and wait for analysis
     await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
 
-    // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
+    // The test file (overlay) is analyzed, no errors.
+    await _waitAnalysisComplete();
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFile.path],
+      notAnalyzed: [],
+    );
 
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
+    // Ask to remove the overlay, still active, start a timer.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: RemoveContentOverlay(),
+      }).toRequest('0'),
+    );
+
+    // Re-add an overlay. Should cancel the timer and replace the overlay.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    // Change the file to trigger the watcher. Since the request above should
+    // have cancelled (and removed) the timer, this should not do anything
+    // (specifically, it should not remove the new overlay).
+    modifyFile(testFilePath, 'error');
+
+    // The overlay should still be present, so we should be able to change it.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: ChangeContentOverlay(
+          [SourceEdit(0, 0, '//')],
+        ),
+      }).toRequest('0'),
+    );
+  }
+
+  Future<void> test_setPriorityFiles() async {
+    var a = getFile('$workspaceRootPath/foo/lib/a.dart');
+    var b = getFile('$workspaceRootPath/foo/lib/b.dart');
+    var c = getFile('$workspaceRootPath/bar/lib/c.dart');
+    var d = getFile('$workspaceRootPath/bar/lib/d.dart');
+
+    a.writeAsStringSync('');
+    b.writeAsStringSync('');
+    c.writeAsStringSync('');
+    d.writeAsStringSync('');
+
+    await handleSuccessfulRequest(
+      AnalysisSetPriorityFilesParams(
+        [a.path, c.path],
+      ).toRequest('0'),
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    var hasPath = <String>{};
+    for (var notification in analysisErrorsNotifications) {
+      var path = notification.file;
+      if (!hasPath.add(path)) {
+        fail('Duplicate: $path');
+      } else if (path == a.path || path == c.path) {
+        if (hasPath.contains(b.path) || hasPath.contains(d.path)) {
+          fail('Priority after non-priority');
+        }
+      }
+    }
+  }
+
+  Future<void> test_setPriorityFiles_notAbsolute() async {
+    var response = await handleRequest(
+      AnalysisSetPriorityFilesParams(
+        ['a.dart'],
+      ).toRequest('0'),
+    );
+
+    expect(
+      response,
+      isResponseFailure(
+        '0',
+        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+      ),
+    );
+  }
+
+  Future<void> test_setPriorityFiles_withoutRoots() async {
+    await handleSuccessfulRequest(
+      AnalysisSetPriorityFilesParams(
+        [convertPath('$testPackageLibPath/a.dart')],
+      ).toRequest('0'),
+    );
+  }
+
+  Future<void> test_setRoots_excluded_notAbsolute() async {
+    var response = await handleRequest(
+      AnalysisSetAnalysisRootsParams(
+        [workspaceRootPath],
+        ['foo'],
+        packageRoots: {},
+      ).toRequest('0'),
+    );
+
+    expect(
+      response,
+      isResponseFailure(
+        '0',
+        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+      ),
+    );
+  }
+
+  Future<void> test_setRoots_excluded_notNormalized() async {
+    var response = await handleRequest(
+      AnalysisSetAnalysisRootsParams(
+        [workspaceRootPath],
+        [convertPath('/foo/../bar')],
+        packageRoots: {},
+      ).toRequest('0'),
+    );
+
+    expect(
+      response,
+      isResponseFailure(
+        '0',
+        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+      ),
+    );
+  }
+
+  Future<void> test_setRoots_included_notAbsolute() async {
+    var response = await handleRequest(
+      AnalysisSetAnalysisRootsParams(
+        ['foo'],
+        [],
+        packageRoots: {},
+      ).toRequest('0'),
+    );
+
+    expect(
+      response,
+      isResponseFailure(
+        '0',
+        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+      ),
+    );
+  }
+
+  Future<void> test_setRoots_included_notNormalized() async {
+    var response = await handleRequest(
+      AnalysisSetAnalysisRootsParams(
+        [convertPath('/foo/../bar')],
+        [],
+        packageRoots: {},
+      ).toRequest('0'),
+    );
+
+    expect(
+      response,
+      isResponseFailure(
+        '0',
+        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+      ),
+    );
   }
 
   Future<void> test_setRoots_includedFile() async {
@@ -1267,7 +1143,7 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   exclude:
     - "**/b.dart"
@@ -1323,18 +1199,66 @@ analyzer:
     );
   }
 
+  Future<void> test_setRoots_includedFolder_notExisting() async {
+    var existingFolder_path = '$testPackageLibPath/exiting';
+    var notExistingFolder_path = '$testPackageLibPath/notExisting';
+    var existingFile_path = '$existingFolder_path/1.dart';
+    var notExistingFile_path = '$notExistingFolder_path/1.dart';
+
+    _createFilesWithErrors([
+      existingFile_path,
+    ]);
+
+    await setRoots(included: [
+      existingFolder_path,
+      notExistingFolder_path,
+    ], excluded: []);
+    await server.onAnalysisComplete;
+
+    // The not existing root does not prevent analysis of the existing one.
+    _assertAnalyzedFiles(hasErrors: [
+      existingFile_path,
+    ], notAnalyzed: [
+      notExistingFile_path,
+    ]);
+  }
+
+  Future<void> test_setRoots_notDartFile_analysisOptions_excluded() async {
+    deleteTestPackageAnalysisOptionsFile();
+    var a_path = '$testPackageLibPath/a.dart';
+    var options_path = '$testPackageRootPath/analysis_options.yaml';
+
+    newFile2(a_path, 'error');
+
+    // 'analysis_options.yaml' that has an error and excludes itself.
+    newFile2(options_path, '''
+analyzer:
+  exclude:
+    - analysis_options.yaml
+  error:
+''');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    _assertAnalyzedFiles(
+      hasErrors: [a_path],
+      notAnalyzed: [options_path],
+    );
+  }
+
   Future<void> test_setRoots_notDartFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
 
-    newFile(path, content: '<manifest/>');
+    newFile2(path, '<manifest/>');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -1346,18 +1270,47 @@ analyzer:
     var path = '$testPackageLibPath/fix_data.yaml';
 
     // `lib/fix_data.yaml` will be analyzed.
-    newFile(path, content: '0: 1');
+    newFile2(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
     assertHasErrors(path);
   }
 
+  Future<void> test_setRoots_notDartFile_pubspec_excluded() async {
+    deleteTestPackageAnalysisOptionsFile();
+    var a_path = '$testPackageLibPath/a.dart';
+    var pubspec_path = '$testPackageRootPath/pubspec.yaml';
+    var options_path = '$testPackageRootPath/analysis_options.yaml';
+
+    newFile2(a_path, 'error');
+
+    writeTestPackagePubspecYamlFile('''
+name:
+  - error
+''');
+
+    // 'analysis_options.yaml' that excludes pubspec.yaml.
+    newFile2(options_path, '''
+analyzer:
+  exclude:
+    - pubspec.yaml
+''');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    _assertAnalyzedFiles(
+      hasErrors: [a_path],
+      notAnalyzed: [pubspec_path],
+    );
+  }
+
   Future<void> test_setRoots_packageConfigJsonFile() async {
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile(a_path, content: '''
+    newFile2(a_path, '''
 class A {}
 ''');
 
@@ -1366,7 +1319,7 @@ class A {}
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    newFile(testFilePath, content: '''
+    newFile2(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -1381,198 +1334,133 @@ void f(A a) {}
     // errors are not reported for packages
     assertNoErrorsNotification(a_path);
   }
-}
 
-/// A helper to test 'analysis.*' requests.
-class AnalysisTestHelper with ResourceProviderMixin {
-  late MockServerChannel serverChannel;
-  late AnalysisServer server;
-  late AnalysisDomainHandler handler;
+  Future<void> test_updateContent_addOverlay() async {
+    newFile2(testFilePath, 'error');
 
-  Map<AnalysisService, List<String>> analysisSubscriptions = {};
+    await setRoots(included: [workspaceRootPath], excluded: []);
 
-  Map<String, List<AnalysisError>> filesErrors = {};
-  Map<String, List<HighlightRegion>> filesHighlights = {};
-  Map<String, List<NavigationRegion>> filesNavigation = {};
-
-  late String projectPath;
-  late String testFile;
-  late String testCode;
-
-  AnalysisTestHelper() {
-    projectPath = convertPath('/project');
-    testFile = convertPath('/project/bin/test.dart');
-    serverChannel = MockServerChannel();
-
-    // Create an SDK in the mock file system.
-    var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
+    // The file in the file system has errors.
+    await server.onAnalysisComplete;
+    _assertAnalyzedFiles(
+      hasErrors: [testFile.path],
+      noErrors: [],
+      notAnalyzed: [],
     );
 
-    server = AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        AnalysisServerOptions(),
-        DartSdkManager(sdkRoot.path),
-        CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE);
-    handler = AnalysisDomainHandler(server);
-    // listen for notifications
-    serverChannel.notifications.listen((Notification notification) {
-      if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-        var decoded = AnalysisErrorsParams.fromNotification(notification);
-        filesErrors[decoded.file] = decoded.errors;
-      }
-      if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-        var params = AnalysisHighlightsParams.fromNotification(notification);
-        filesHighlights[params.file] = params.regions;
-      }
-      if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
-        var params = AnalysisNavigationParams.fromNotification(notification);
-        filesNavigation[params.file] = params.regions;
-      }
-    });
+    // Add an overlay without errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+
+    // A new errors notification was received, no errors.
+    await server.onAnalysisComplete;
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFile.path],
+      notAnalyzed: [],
+    );
   }
 
-  /// Returns a [Future] that completes when the server's analysis is complete.
-  Future get onAnalysisComplete {
-    return server.onAnalysisComplete;
+  Future<void> test_updateContent_changeOverlay() async {
+    newFile2(testFilePath, '');
+
+    // Add the content with an error.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay('var v = 0'),
+      }).toRequest('0'),
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    // The overlay has an error.
+    await server.onAnalysisComplete;
+    _assertAnalyzedFiles(
+      hasErrors: [testFile.path],
+      noErrors: [],
+      notAnalyzed: [],
+    );
+
+    // Add the missing `;`.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: ChangeContentOverlay([
+          SourceEdit(9, 0, ';'),
+        ]),
+      }).toRequest('0'),
+    );
+
+    // A new errors notification was received, no errors.
+    await server.onAnalysisComplete;
+    _assertAnalyzedFiles(
+      hasErrors: [],
+      noErrors: [testFile.path],
+      notAnalyzed: [],
+    );
   }
 
-  void addAnalysisSubscription(AnalysisService service, String file) {
-    // add file to subscription
-    var files = analysisSubscriptions[service];
-    if (files == null) {
-      files = <String>[];
-      analysisSubscriptions[service] = files;
+  Future<void> test_updateContent_notAbsolute() async {
+    var response = await handleRequest(
+      AnalysisUpdateContentParams({
+        'a.dart': AddContentOverlay(''),
+      }).toRequest('0'),
+    );
+    expect(response, isResponseFailure('0'));
+  }
+
+  Future<void> test_updateContent_outOfRange_beyondEnd() {
+    return _updateContent_outOfRange('012', SourceEdit(0, 5, 'foo'));
+  }
+
+  Future<void> test_updateContent_outOfRange_negativeLength() {
+    return _updateContent_outOfRange('', SourceEdit(3, -1, 'foo'));
+  }
+
+  Future<void> test_updateContent_outOfRange_negativeOffset() {
+    return _updateContent_outOfRange('', SourceEdit(-1, 3, 'foo'));
+  }
+
+  Future<void> _updateContent_outOfRange(
+    String initialContent,
+    SourceEdit edit,
+  ) async {
+    newFile2(testFilePath, initialContent);
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(initialContent),
+      }).toRequest('0'),
+    );
+
+    var response = await handleRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: ChangeContentOverlay([edit]),
+      }).toRequest('0'),
+    );
+
+    expect(
+      response,
+      isResponseFailure(
+        '0',
+        RequestErrorCode.INVALID_OVERLAY_CHANGE,
+      ),
+    );
+  }
+
+  /// Pump the event queue, so that watch events are processed.
+  /// Wait for analysis to complete.
+  /// Repeat a few times, eventually there will be no work to do.
+  Future<void> _waitAnalysisComplete() async {
+    for (var i = 0; i < 128; i++) {
+      pumpEventQueue();
+      await server.onAnalysisComplete;
     }
-    files.add(file);
-    // set subscriptions
-    var request =
-        AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
-  void addAnalysisSubscriptionHighlights(String file) {
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
-  }
-
-  void addAnalysisSubscriptionNavigation(String file) {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, file);
-  }
-
-  /// Creates an empty project `/project`.
-  void createEmptyProject() {
-    newFolder(projectPath);
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
-  /// Creates a project with a single Dart file `/project/bin/test.dart` with
-  /// the given [code].
-  Future<void> createSingleFileProject(code) async {
-    testCode = _getCodeString(code);
-    newFolder(projectPath);
-    newFile(testFile, content: testCode);
-    await setRoots(included: [projectPath], excluded: []);
-  }
-
-  /// Returns the offset of [search] in [testCode].
-  /// Fails if not found.
-  int findOffset(String search) {
-    var offset = testCode.indexOf(search);
-    expect(offset, isNot(-1));
-    return offset;
-  }
-
-  /// Returns [AnalysisError]s recorded for the given [file].
-  /// May be empty, but not `null`.
-  List<AnalysisError> getErrors(String file) {
-    var errors = filesErrors[file];
-    if (errors != null) {
-      return errors;
-    }
-    return <AnalysisError>[];
-  }
-
-  /// Returns highlights recorded for the given [file].
-  /// May be empty, but not `null`.
-  List<HighlightRegion> getHighlights(String file) {
-    var highlights = filesHighlights[file];
-    if (highlights != null) {
-      return highlights;
-    }
-    return [];
-  }
-
-  /// Returns navigation regions recorded for the given [file].
-  /// May be empty, but not `null`.
-  List<NavigationRegion> getNavigation(String file) {
-    var navigation = filesNavigation[file];
-    if (navigation != null) {
-      return navigation;
-    }
-    return [];
-  }
-
-  /// Returns [AnalysisError]s recorded for the [testFile].
-  /// May be empty, but not `null`.
-  List<AnalysisError> getTestErrors() {
-    return getErrors(testFile);
-  }
-
-  /// Returns highlights recorded for the given [testFile].
-  /// May be empty, but not `null`.
-  List<HighlightRegion> getTestHighlights() {
-    return getHighlights(testFile);
-  }
-
-  /// Returns navigation information recorded for the given [testFile].
-  /// May be empty, but not `null`.
-  List<NavigationRegion> getTestNavigation() {
-    return getNavigation(testFile);
-  }
-
-  /// Validates that the given [request] is handled successfully.
-  void handleSuccessfulRequest(Request request) {
-    var response = handler.handleRequest(request, NotCancelableToken());
-    expect(response, isResponseSuccess('0'));
-  }
-
-  /// Send an `updateContent` request for [testFile].
-  void sendContentChange(HasToJson contentChange) {
-    var request =
-        AnalysisUpdateContentParams({testFile: contentChange}).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
-  Future<void> setRoots(
-      {required List<String> included, required List<String> excluded}) async {
-    var request =
-        AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
-    var response = await waitResponse(request);
-    expect(response, isResponseSuccess(request.id));
-  }
-
-  /// Stops the associated server.
-  void stopServer() {
-    server.done();
-  }
-
-  /// Completes with a successful [Response] for the given [request].
-  /// Otherwise fails.
-  Future<Response> waitResponse(Request request) async {
-    return serverChannel.sendRequest(request);
-  }
-
-  static String _getCodeString(code) {
-    if (code is List<String>) {
-      code = code.join('\n');
-    }
-    return code as String;
   }
 }
 
@@ -1598,7 +1486,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[testFile], isNotEmpty);
@@ -1612,18 +1500,23 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[file], isEmpty);
   }
 
   Future<void> test_afterAnalysis_packageFile_external() async {
-    var pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
+    var pkgFile = newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 ''').path;
-    newDotPackagesFile('/project', content: 'pkgA:file:///packages/pkgA/lib');
+    newPackageConfigJsonFile(
+      '/project',
+      (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     //
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -1636,7 +1529,7 @@ main() {
     await waitForTasksFinished();
     expect(filesHighlights[pkgFile], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFile], isNotEmpty);
@@ -1645,11 +1538,11 @@ main() {
   Future<void> test_afterAnalysis_packageFile_inRoot() async {
     var pkgA = convertPath('/pkgA');
     var pkgB = convertPath('/pkgA');
-    var pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
+    var pkgFileA = newFile2('$pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 ''').path;
-    newFile('$pkgA/lib/libB.dart', content: '''
+    newFile2('$pkgA/lib/libB.dart', '''
 import 'package:pkgA/libA.dart';
 main() {
   new A();
@@ -1662,18 +1555,23 @@ main() {
     await waitForTasksFinished();
     expect(filesHighlights[pkgFileA], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFileA);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFileA);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFileA], isNotEmpty);
   }
 
   Future<void> test_afterAnalysis_packageFile_notUsed() async {
-    var pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
+    var pkgFile = newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 ''').path;
-    newDotPackagesFile('/project', content: 'pkgA:/packages/pkgA/lib');
+    newPackageConfigJsonFile(
+      '/project',
+      (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     //
     addTestFile('// no "pkgA" reference');
     await createProject();
@@ -1683,7 +1581,7 @@ class A {}
     // make it a priority file, so make analyzable
     server.setPriorityFiles('0', [pkgFile]);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFile], isNotEmpty);
@@ -1697,7 +1595,7 @@ class A {}
     await waitForTasksFinished();
     expect(filesHighlights[file], isNull);
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
     await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[file], isNotEmpty);
@@ -1707,7 +1605,7 @@ class A {}
     addTestFile('int V = 42;');
     await createProject();
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNotEmpty);
@@ -1717,7 +1615,7 @@ class A {}
     addTestFile('int V = 42;');
     await createProject();
     // subscribe
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
     await waitForTasksFinished();
     var params = pluginManager.analysisSetSubscriptionsParams!;
@@ -1729,6 +1627,7 @@ class A {}
 }
 
 class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
+  final List<AnalysisErrorsParams> analysisErrorsNotifications = [];
   final Map<String, List<AnalysisError>> filesErrors = {};
 
   /// The files for which `analysis.flushResults` was received.
@@ -1762,6 +1661,7 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
     }
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
+      analysisErrorsNotifications.add(decoded);
       filesErrors[decoded.file] = decoded.errors;
     }
   }
@@ -1796,7 +1696,7 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   /// So, when analyzed, these files will satisfy [assertHasErrors].
   void _createFilesWithErrors(List<String> paths) {
     for (var path in paths) {
-      newFile(path, content: 'error');
+      newFile2(path, 'error');
     }
   }
 }

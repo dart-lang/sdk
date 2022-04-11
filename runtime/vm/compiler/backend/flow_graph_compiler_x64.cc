@@ -781,34 +781,6 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
   __ LoadClassId(class_id_reg, RAX);
 }
 
-#undef __
-#define __ assembler->
-
-int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
-                                               compiler::Label* label,
-                                               Register class_id_reg,
-                                               const CidRangeValue& range,
-                                               int bias,
-                                               bool jump_on_miss) {
-  // Note of WARNING: Due to smaller instruction encoding we use the 32-bit
-  // instructions on x64, which means the compare instruction has to be
-  // 32-bit (since the subtraction instruction is as well).
-  intptr_t cid_start = range.cid_start;
-  if (range.IsSingleCid()) {
-    __ cmpl(class_id_reg, compiler::Immediate(cid_start - bias));
-    __ BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);
-  } else {
-    __ addl(class_id_reg, compiler::Immediate(bias - cid_start));
-    bias = cid_start;
-    __ cmpl(class_id_reg, compiler::Immediate(range.Extent()));
-    __ BranchIf(jump_on_miss ? UNSIGNED_GREATER : UNSIGNED_LESS_EQUAL, label);
-  }
-  return bias;
-}
-
-#undef __
-#define __ assembler()->
-
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* tmp) {
@@ -944,7 +916,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
           __ movw(dst_addr, src_reg);
           return;
         case 1:
-          __ movb(dst_addr, src_reg);
+          __ movb(dst_addr, ByteRegisterOf(src_reg));
           return;
         default:
           UNREACHABLE();

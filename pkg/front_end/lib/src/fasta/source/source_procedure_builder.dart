@@ -104,7 +104,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           isExtensionMember: true,
           reference: _tearOffReference,
           fileUri: fileUri)
-        ..isNonNullableByDefault = library.isNonNullableByDefault;
+        ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     }
   }
 
@@ -229,9 +229,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [procedure];
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    Member member = build(library);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    Member member = build();
     if (isExtensionMethod) {
       switch (kind) {
         case ProcedureKind.Method:
@@ -259,8 +258,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  Procedure build(SourceLibraryBuilder libraryBuilder) {
-    buildFunction(libraryBuilder);
+  Procedure build() {
+    buildFunction();
     _procedure.function.fileOffset = charOpenParenOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
     _procedure.isAbstract = isAbstract;
@@ -302,8 +301,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   ///       return (S s, Y y) => E|method<T, S>(#this, s, y);
   ///     }
   ///
-  void _buildExtensionTearOff(
-      SourceLibraryBuilder libraryBuilder, ExtensionBuilder extensionBuilder) {
+  void _buildExtensionTearOff(SourceLibraryBuilder sourceLibraryBuilder,
+      ExtensionBuilder extensionBuilder) {
     assert(
         _extensionTearOff != null, "No extension tear off created for $this.");
 
@@ -418,7 +417,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
-          returnType: closure.function.computeFunctionType(library.nonNullable))
+          returnType:
+              closure.function.computeFunctionType(libraryBuilder.nonNullable))
         ..fileOffset = fileOffset
         ..fileEndOffset = fileEndOffset)
       ..fileUri = fileUri

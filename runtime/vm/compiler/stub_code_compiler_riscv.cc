@@ -43,11 +43,11 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ bnez(TMP2, &done);
 
   {
-    Assembler::CallRuntimeScope scope(
-        assembler, kEnsureRememberedAndMarkingDeferredRuntimeEntry,
-        /*frame_size=*/0, /*preserve_registers=*/preserve_registers);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    // A0 already loaded.
     __ mv(A1, THR);
-    scope.Call(/*argument_count=*/2);
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry,
+            /*argument_count=*/2);
   }
 
   __ Bind(&done);
@@ -216,16 +216,16 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
 
-  __ EnterFrame(0);
   __ PushRegisters(all_registers);
+  __ EnterFrame(0);
 
   __ ReserveAlignedFrameSpace(0);
 
   __ lx(TMP, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ jalr(TMP);
 
-  __ PopRegisters(all_registers);
   __ LeaveFrame();
+  __ PopRegisters(all_registers);
   __ ret();
 }
 
@@ -234,8 +234,8 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
 
-  __ EnterFrame(0);
   __ PushRegisters(all_registers);
+  __ EnterFrame(0);
 
   __ ReserveAlignedFrameSpace(0);
 
@@ -248,8 +248,8 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ lx(TMP, Address(THR, runtime_entry_offset));
   __ jalr(TMP);
 
-  __ PopRegisters(all_registers);
   __ LeaveFrame();
+  __ PopRegisters(all_registers);
   __ ret();
 }
 
@@ -322,10 +322,10 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
          kNativeCallbackTrampolineSize *
              NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
 
+  const intptr_t shared_stub_start = __ CodeSize();
+
   __ Bind(&loaded_callback_id_hi);
   __ srai(T1, T1, 12);
-
-  const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR (callee-saved) and RA. Keeps stack aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
@@ -630,7 +630,8 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Set argv in target::NativeArguments: R2 already contains argv.
   // Set retval in NativeArgs.
   ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(T3, FP, 2 * target::kWordSize);
+  __ AddImmediate(
+      T3, FP, (target::frame_layout.param_end_from_fp + 1) * target::kWordSize);
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
@@ -843,11 +844,11 @@ static void PushArrayOfArguments(Assembler* assembler) {
 //   +------------------+
 //   | PC marker        | <- TOS
 //   +------------------+
-//   | Saved FP         | <- FP of stub
+//   | Saved FP         |
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
-//   | Saved CODE_REG   |
+//   | Saved CODE_REG   | <- FP of stub
 //   +------------------+
 //   | ...              | <- SP of optimized frame
 //
@@ -880,7 +881,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       // Save the original value of CODE_REG pushed before invoking this stub
       // instead of the value used to call this stub.
       COMPILE_ASSERT(TMP > CODE_REG);  // TMP saved first
-      __ lx(TMP, Address(FP, 2 * target::kWordSize));
+      __ lx(TMP, Address(FP, 0 * target::kWordSize));
       __ sx(TMP, Address(SP, i * target::kWordSize));
     } else {
       __ sx(r, Address(SP, i * target::kWordSize));
@@ -893,13 +894,17 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ fsd(freg, Address(SP, i * kFpuRegisterSize));
   }
 
-  __ mv(A0, SP);  // Pass address of saved registers block.
-  bool is_lazy =
-      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-  __ li(A1, is_lazy ? 1 : 0);
-  __ ReserveAlignedFrameSpace(0);
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
-  // Result (A0) is stack-size (FP - SP) in bytes.
+  {
+    __ mv(A0, SP);  // Pass address of saved registers block.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ li(A1, is_lazy ? 1 : 0);
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (A0) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1 temporarily.
@@ -926,9 +931,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ PushRegister(T1);  // Preserve exception as first local.
     __ PushRegister(T2);  // Preserve stacktrace as second local.
   }
-  __ ReserveAlignedFrameSpace(0);
-  __ mv(A0, FP);  // Pass last FP as parameter in R0.
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
+  {
+    __ mv(A0, FP);  // Pass last FP as parameter in R0.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1.
     __ LoadFromOffset(
@@ -1276,7 +1285,6 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  NOT_IN_PRODUCT(__ PushRegister(RA));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1319,10 +1327,13 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
 #if XLEN == 32
-  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -40);
+  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -42);
 #elif XLEN == 64
-  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -28);
+  ASSERT_EQUAL(target::frame_layout.exit_link_slot_from_entry_fp, -30);
 #endif
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
@@ -1396,7 +1407,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  __ NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ ret();
 }
 
@@ -1638,7 +1648,6 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == A0);
 COMPILE_ASSERT(kWriteBarrierValueReg == A1);
 COMPILE_ASSERT(kWriteBarrierSlotReg == A6);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           Address stub_code,
                                            bool cards) {
   Label add_to_mark_stack, remember_card, lost_race;
   __ andi(TMP2, A1, 1 << target::ObjectAlignment::kNewObjectBitPosition);
@@ -1714,11 +1723,10 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ lx(T2, Address(SP, 2 * target::kWordSize));
   __ addi(SP, SP, 3 * target::kWordSize);
   {
-    Assembler::CallRuntimeScope scope(assembler,
-                                      kStoreBufferBlockProcessRuntimeEntry,
-                                      /*frame_size=*/0, stub_code);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                        /*preserve_registers=*/true);
     __ mv(A0, THR);
-    scope.Call(/*argument_count=*/1);
+    rt.Call(kStoreBufferBlockProcessRuntimeEntry, /*argument_count=*/1);
   }
   __ ret();
 
@@ -1768,11 +1776,10 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ lx(T2, Address(SP, 2 * target::kWordSize));
   __ addi(SP, SP, 3 * target::kWordSize);
   {
-    Assembler::CallRuntimeScope scope(assembler,
-                                      kMarkingStackBlockProcessRuntimeEntry,
-                                      /*frame_size=*/0, stub_code);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                        /*preserve_registers=*/true);
     __ mv(A0, THR);
-    scope.Call(/*argument_count=*/1);
+    rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
   }
   __ ret();
 
@@ -1807,26 +1814,22 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
     {
-      Assembler::CallRuntimeScope scope(assembler, kRememberCardRuntimeEntry,
-                                        /*frame_size=*/0, stub_code);
+      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                          /*preserve_registers=*/true);
       __ mv(A0, A0);  // Arg0 = Object
       __ mv(A1, A6);  // Arg1 = Slot
-      scope.Call(/*argument_count=*/2);
+      rt.Call(kRememberCardRuntimeEntry, /*argument_count=*/2);
     }
     __ ret();
   }
 }
 
 void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler, Address(THR, target::Thread::write_barrier_code_offset()),
-      false);
+  GenerateWriteBarrierStubHelper(assembler, false);
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler,
-      Address(THR, target::Thread::array_write_barrier_code_offset()), true);
+  GenerateWriteBarrierStubHelper(assembler, true);
 }
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
@@ -3002,12 +3005,18 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #error Unimplemented
 #endif
   Label exit_through_non_ffi;
-  // Check if we exited generated from FFI. If so do transition.
+  // Check if we exited generated from FFI. If so do transition - this is needed
+  // because normally runtime calls transition back to generated via destructor
+  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
+  // have this boilerplate, don't have this stack resource, have to transition
+  // explicitly.
   __ LoadFromOffset(TMP, THR,
                     compiler::target::Thread::exit_through_ffi_offset());
   __ LoadImmediate(TMP2, target::Thread::exit_through_ffi());
   __ bne(TMP, TMP2, &exit_through_non_ffi);
-  __ Stop("Unimplemented");
+  __ TransitionNativeToGenerated(TMP, /*leave_safepoint=*/true,
+                                 /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
   // Refresh pinned registers values (inc. write barrier mask and null object).

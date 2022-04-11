@@ -776,7 +776,7 @@ class TypeInfoTest {
       'handleType int null',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
-      'endFormalParameter null null ) FormalParameterKind.mandatory '
+      'endFormalParameter null null ) FormalParameterKind.requiredPositional '
           'MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function null',
@@ -802,7 +802,7 @@ class TypeInfoTest {
       'handleType int null',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
-      'endFormalParameter null null ) FormalParameterKind.mandatory'
+      'endFormalParameter null null ) FormalParameterKind.requiredPositional'
           ' MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function null',
@@ -1471,7 +1471,8 @@ class TypeInfoTest {
           'handleType int null',
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
-          'endFormalParameter null null x FormalParameterKind.mandatory '
+          'endFormalParameter null null x '
+              'FormalParameterKind.requiredPositional '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function null',
@@ -1484,7 +1485,8 @@ class TypeInfoTest {
           'handleType int null',
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
-          'endFormalParameter null null x FormalParameterKind.mandatory '
+          'endFormalParameter null null x '
+              'FormalParameterKind.requiredPositional '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function null',
@@ -2422,7 +2424,8 @@ class TypeParamOrArgInfoTest {
           'handleType T null',
           'handleNoName )',
           'handleFormalParameterWithoutValue )',
-          'endFormalParameter null null ) FormalParameterKind.mandatory '
+          'endFormalParameter null null ) '
+              'FormalParameterKind.requiredPositional '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function null',

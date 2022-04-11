@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
+class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
   late List<Override> overridesList;
   late Override overrideObject;
 
@@ -104,8 +105,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     }
   }
 
-  Future prepareOverrides() {
-    addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
+  Future<void> prepareOverrides() async {
+    await addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
     return _resultsAvailable.future;
   }
 
@@ -113,7 +114,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OVERRIDES) {
       var params = AnalysisOverridesParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         overridesList = params.overrides;
         _resultsAvailable.complete();
       }
@@ -123,7 +124,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -221,7 +222,7 @@ class B extends A {
   }
 
   Future<void> test_class_BAD_privateByPrivate_inDifferentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 class A {
   void _m() {}
 }

@@ -23,19 +23,25 @@ import '../executor.dart';
 /// programs spawned must use the corresponding `client` variant.
 ///
 /// This is the only public api exposed by this library.
-Future<MacroExecutor> start(SerializationMode serializationMode) async =>
+Future<MacroExecutor> start(SerializationMode serializationMode,
+        CommunicationChannel communicationChannel) async =>
     new MultiMacroExecutor((Uri library, String name,
         {Uri? precompiledKernelUri}) {
+      // TODO: We actually assume this is a full precompiled AOT binary, and
+      // not a kernel file. We launch it directly using `Process.start`.
       if (precompiledKernelUri == null) {
         throw new UnsupportedError(
             'This environment requires a non-null `precompiledKernelUri` to be '
             'passed when loading macros.');
       }
-
-      // TODO: We actually assume this is a full precompiled AOT binary, and not
-      // a kernel file. We launch it directly using `Process.start`.
-      return _SingleProcessMacroExecutor.start(
-          library, name, serializationMode, precompiledKernelUri.toFilePath());
+      switch (communicationChannel) {
+        case CommunicationChannel.stdio:
+          return _SingleProcessMacroExecutor.startWithStdio(library, name,
+              serializationMode, precompiledKernelUri.toFilePath());
+        case CommunicationChannel.socket:
+          return _SingleProcessMacroExecutor.startWithSocket(library, name,
+              serializationMode, precompiledKernelUri.toFilePath());
+      }
     });
 
 /// Actual implementation of the separate process based macro executor.
@@ -55,8 +61,65 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       : super(
             messageStream: messageStream, serializationMode: serializationMode);
 
-  static Future<_SingleProcessMacroExecutor> start(Uri library, String name,
-      SerializationMode serializationMode, String programPath) async {
+  static Future<_SingleProcessMacroExecutor> startWithSocket(
+      Uri library,
+      String name,
+      SerializationMode serializationMode,
+      String programPath) async {
+    late ServerSocket serverSocket;
+    // Try an ipv6 address loopback first, and fall back on ipv4.
+    try {
+      serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
+    } on SocketException catch (_) {
+      serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    }
+    Process process = await Process.start(programPath, [
+      serverSocket.address.address,
+      serverSocket.port.toString(),
+    ]);
+    process.stderr
+        .transform(const Utf8Decoder())
+        .listen((content) => throw new RemoteException(content));
+    process.stdout.transform(const Utf8Decoder()).listen(
+        (event) => print('Stdout from MacroExecutor at $programPath:\n$event'));
+
+    Completer<Socket> clientCompleter = new Completer();
+    serverSocket.listen((client) {
+      clientCompleter.complete(client);
+    });
+    Socket client = await clientCompleter.future;
+
+    Stream<Object> messageStream;
+
+    if (serializationMode == SerializationMode.byteDataServer) {
+      messageStream = new MessageGrouper(client).messageStream;
+    } else if (serializationMode == SerializationMode.jsonServer) {
+      messageStream = const Utf8Decoder()
+          .bind(client)
+          .transform(const LineSplitter())
+          .map((line) => jsonDecode(line)!);
+    } else {
+      throw new UnsupportedError(
+          'Unsupported serialization mode \$serializationMode for '
+          'ProcessExecutor');
+    }
+
+    return new _SingleProcessMacroExecutor(
+        onClose: () {
+          client.close();
+          serverSocket.close();
+          process.kill();
+        },
+        messageStream: messageStream,
+        outSink: client,
+        serializationMode: serializationMode);
+  }
+
+  static Future<_SingleProcessMacroExecutor> startWithStdio(
+      Uri library,
+      String name,
+      SerializationMode serializationMode,
+      String programPath) async {
     Process process = await Process.start(programPath, []);
     process.stderr
         .transform(const Utf8Decoder())
@@ -114,4 +177,9 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
           'ProcessExecutor');
     }
   }
+}
+
+enum CommunicationChannel {
+  socket,
+  stdio,
 }

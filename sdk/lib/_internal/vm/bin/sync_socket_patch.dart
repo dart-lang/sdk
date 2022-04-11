@@ -177,7 +177,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   static List<_InternetAddress> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY}) {
+      {InternetAddressType type: InternetAddressType.any}) {
     var response = _nativeLookupRequest(host, type._value);
     if (response is OSError) {
       throw response;

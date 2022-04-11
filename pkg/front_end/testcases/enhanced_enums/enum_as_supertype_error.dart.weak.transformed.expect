@@ -14,6 +14,10 @@ library /*isNonNullableByDefault*/;
 // class EnumClass extends EnumInterface { // Error.
 //       ^
 //
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:16:11: Error: 'EnumClass' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//   int get index => 0; // Error
+//           ^^^^^
+//
 // pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:21:7: Error: Non-abstract class 'EnumClass2' has 'Enum' as a superinterface.
 // class EnumClass2 extends AbstractEnumClass {} // Error.
 //       ^

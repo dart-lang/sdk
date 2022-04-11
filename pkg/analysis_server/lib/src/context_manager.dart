@@ -330,10 +330,14 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
-      var packageName = file.parent2.parent2.shortName;
+      var packageName = file.parent.parent.shortName;
       var content = _readFile(path);
       var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(errorListener, file.createSource());
+      var errorReporter = ErrorReporter(
+        errorListener,
+        file.createSource(),
+        isNonNullableByDefault: false,
+      );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
@@ -480,7 +484,9 @@ class ContextManagerImpl implements ContextManager {
           }
 
           var optionsFile = analysisContext.contextRoot.optionsFile;
-          if (optionsFile != null) {
+
+          if (optionsFile != null &&
+              analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
             _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
           }
 
@@ -493,7 +499,8 @@ class ContextManagerImpl implements ContextManager {
 
           var pubspecFile =
               rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
-          if (pubspecFile.exists) {
+          if (pubspecFile.exists &&
+              analysisContext.contextRoot.isAnalyzed(pubspecFile.path)) {
             _analyzePubspecYaml(driver, pubspecFile.path);
           }
         }
@@ -509,7 +516,6 @@ class ContextManagerImpl implements ContextManager {
         return file_paths.isDart(pathContext, path) ||
             file_paths.isAnalysisOptionsYaml(pathContext, path) ||
             file_paths.isPubspecYaml(pathContext, path) ||
-            file_paths.isDotPackages(pathContext, path) ||
             file_paths.isPackageConfigJson(pathContext, path);
       }
 
@@ -671,7 +677,6 @@ class ContextManagerImpl implements ContextManager {
     final isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBazelBuild(pathContext, path) ||
-        file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
         isPubspec ||
         false) {

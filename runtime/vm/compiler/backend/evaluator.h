@@ -38,6 +38,12 @@ class Evaluator : public AllStatic {
                                          Representation representation,
                                          Thread* thread);
 
+  // Evaluates an `int.bitLength` operation and returns a pointer to a
+  // canonicalized RawInteger.
+  static IntegerPtr BitLengthEvaluate(const Object& value,
+                                      Representation representation,
+                                      Thread* thread);
+
   // Evaluates a binary double operation and returns the result.
   static double EvaluateDoubleOp(const double left,
                                  const double right,

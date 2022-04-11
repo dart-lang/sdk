@@ -34,9 +34,10 @@ class AbstractContextTest with ResourceProviderMixin {
     return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
   }
 
-  /// The file system specific `/home/test/analysis_options.yaml` path.
+  /// The file system specific path for `analysis_options.yaml` in
+  /// [testPackageRootPath].
   String get analysisOptionsPath =>
-      convertPath('/home/test/analysis_options.yaml');
+      convertPath('$testPackageRootPath/analysis_options.yaml');
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -49,6 +50,7 @@ class AbstractContextTest with ResourceProviderMixin {
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
         EnableString.enhanced_enums,
+        EnableString.macros,
         EnableString.named_arguments_anywhere,
         EnableString.super_parameters,
       ];
@@ -62,7 +64,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  AnalysisSession get session => contextFor('/home/test').currentSession;
+  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
 
@@ -72,19 +74,21 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get testPackageTestPath => '$testPackageRootPath/test';
 
-  /// The file system specific `/home/test/pubspec.yaml` path.
-  String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
+  /// The file system specific path for `pubspec.yaml` in [testPackageRootPath].
+  String get testPubspecPath =>
+      convertPath('$testPackageRootPath/pubspec.yaml');
 
   String get workspaceRootPath => '/home';
 
   void addSource(String path, String content) {
-    newFile(path, content: content);
+    newFile2(path, content);
   }
 
   Future<void> analyzeTestPackageFiles() async {
     var analysisContext = contextFor(testPackageRootPath);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
+      await analysisContext.applyPendingFileChanges();
       await analysisContext.currentSession.getResolvedUnit(path);
     }
   }
@@ -130,7 +134,7 @@ class AbstractContextTest with ResourceProviderMixin {
       }
     }
 
-    newFile(analysisOptionsPath, content: buffer.toString());
+    newFile2(analysisOptionsPath, buffer.toString());
   }
 
   AnalysisDriver driverFor(String path) {
@@ -154,20 +158,26 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   @override
-  File newFile(String path, {String content = ''}) {
+  File newFile2(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
     path = convertPath(path);
     _addAnalyzedFileToDrivers(path);
-    return super.newFile(path, content: content);
+    return super.newFile2(path, content);
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
     path = convertPath(path);
-    var session = contextFor(path).currentSession;
+    var session = await sessionFor(path);
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
+  }
+
+  Future<AnalysisSession> sessionFor(String path) async {
+    var analysisContext = _contextFor(path);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
   }
 
   @mustCallSuper
@@ -197,15 +207,15 @@ class AbstractContextTest with ResourceProviderMixin {
     AnalysisEngine.instance.clearCaches();
   }
 
-  /// Update `/home/test/pubspec.yaml` and create the driver.
+  /// Update `pubspec.yaml` and create the driver.
   void updateTestPubspecFile(String content) {
-    newFile(testPubspecPath, content: content);
+    newFile2(testPubspecPath, content);
   }
 
   void verifyCreatedCollection() {}
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr: toUriStr));
+    newFile2(path, config.toContent(toUriStr: toUriStr));
   }
 
   void writeTestPackageConfig({
@@ -229,23 +239,23 @@ class AbstractContextTest with ResourceProviderMixin {
 
     if (meta || flutter) {
       var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent2.path);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
     }
 
     if (flutter) {
       {
         var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent2.path);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
       }
       {
         var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent2.path);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
       }
     }
 
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent2.path);
+      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';

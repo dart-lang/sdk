@@ -54,7 +54,7 @@ If you need an unresolved AST, then you can use the following method to access
 the AST:
 
 ```dart
-void processFile(AnalysisSession session, String path) {
+void processFile(AnalysisSession session, String path) async {
   var result = session.getParsedUnit(path);
   if (result is ParsedUnitResult) {
     CompilationUnit unit = result.unit;

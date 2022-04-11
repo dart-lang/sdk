@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_H_
 
-#include "vm/hash_map.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -202,7 +201,9 @@ struct CidRange : public ZoneAllocated {
   CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
 
   bool IsSingleCid() const { return cid_start == cid_end; }
-  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  bool Contains(intptr_t cid) const {
+    return cid_start <= cid && cid <= cid_end;
+  }
   int32_t Extent() const { return cid_end - cid_start; }
 
   // The number of class ids this range covers.
@@ -225,7 +226,9 @@ struct CidRangeValue {
       : cid_start(other.cid_start), cid_end(other.cid_end) {}
 
   bool IsSingleCid() const { return cid_start == cid_end; }
-  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  bool Contains(intptr_t cid) const {
+    return cid_start <= cid && cid <= cid_end;
+  }
   int32_t Extent() const { return cid_end - cid_start; }
 
   // The number of class ids this range covers.
@@ -244,6 +247,18 @@ struct CidRangeValue {
 };
 
 typedef MallocGrowableArray<CidRangeValue> CidRangeVector;
+
+class CidRangeVectorUtils : public AllStatic {
+ public:
+  static bool ContainsCid(const CidRangeVector& ranges, intptr_t cid) {
+    for (const CidRangeValue& range : ranges) {
+      if (range.Contains(cid)) {
+        return true;
+      }
+    }
+    return false;
+  }
+};
 
 class HierarchyInfo : public ThreadStackResource {
  public:
@@ -513,6 +528,7 @@ struct InstrAttrs {
   M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
+  M(LoadThread, kNoGC)                                                         \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -4889,6 +4905,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
   DECLARE_INSTRUCTION(StaticCall)
   virtual CompileType ComputeType() const;
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+  bool Evaluate(FlowGraph* flow_graph, const Object& argument, Object* result);
+  bool Evaluate(FlowGraph* flow_graph,
+                const Object& argument1,
+                const Object& argument2,
+                Object* result);
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
@@ -5284,7 +5305,7 @@ class FfiCallInstr : public Definition {
 
   LocationSummary* MakeLocationSummaryInternal(Zone* zone,
                                                bool is_optimizing,
-                                               const Register temp) const;
+                                               const RegList temps) const;
 
   // Clobbers both given registers.
   // `saved_fp` is used as the frame base to rebase off of.
@@ -5358,6 +5379,14 @@ class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
 };
 
+// Populates the untagged base + offset outside the heap with a tagged value.
+//
+// The store must be outside of the heap, does not emit a store barrier.
+// For stores in the heap, use StoreIndexedInstr, which emits store barriers.
+//
+// Does not have a dual RawLoadFieldInstr, because for loads we do not have to
+// distinguish between loading from within the heap or outside the heap.
+// Use FlowGraphBuilder::RawLoadField.
 class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
@@ -9272,6 +9301,32 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
 };
 
+class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
+ public:
+  LoadThreadInstr() : TemplateDefinition(DeoptId::kNone) {}
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUntagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNREACHABLE();
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+
+  // CSE is allowed. The thread should always be the same value.
+  virtual bool AttributesEqual(const Instruction& other) const {
+    ASSERT(other.IsLoadThread());
+    return true;
+  }
+
+  DECLARE_INSTRUCTION(LoadThread);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LoadThreadInstr);
+};
+
 // SimdOpInstr
 //
 // All SIMD intrinsics and recognized methods are represented via instances
@@ -9832,7 +9887,6 @@ inline bool Value::CanBe(const Object& value) {
   ConstantInstr* constant = definition()->AsConstant();
   return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
-
 
 }  // namespace dart
 

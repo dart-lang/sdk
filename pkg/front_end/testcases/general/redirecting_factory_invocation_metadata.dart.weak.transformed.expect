@@ -3,19 +3,21 @@ library name /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
+@#C1
 import "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart" as self;
+@#C1
 export "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart";
 
 @#C1
 part redirecting_factory_invocation_metadata_lib.dart;
 @#C1
-typedef Typedef1<@#C1 unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(@#C1 self::Class<dynamic> #t1, [@#C1 self::Class<dynamic> #t2]) → dynamic;
+typedef Typedef1<@#C1 unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(self::Class<dynamic>, [self::Class<dynamic>]) → dynamic;
 @#C1
-typedef Typedef2<@#C1 unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(@#C1 self::Class<dynamic> #t3, {@#C1 self::Class<dynamic> o2}) → dynamic;
+typedef Typedef2<@#C1 unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(self::Class<dynamic>, {o2: self::Class<dynamic>}) → dynamic;
 @#C1
-typedef Typedef3<@#C1 unrelated T extends core::Object? = dynamic> = (@#C1 dynamic o1, [@#C1 dynamic o2]) → void;
+typedef Typedef3<@#C1 unrelated T extends core::Object? = dynamic> = (dynamic, [dynamic]) → void;
 @#C1
-typedef Typedef4<@#C1 unrelated T extends core::Object? = dynamic> = (@#C1 dynamic o1, {@#C1 dynamic o2}) → void;
+typedef Typedef4<@#C1 unrelated T extends core::Object? = dynamic> = (dynamic, {o2: dynamic}) → void;
 @#C1
 class Const extends core::Object /*hasConstConstructor*/  {
   static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;

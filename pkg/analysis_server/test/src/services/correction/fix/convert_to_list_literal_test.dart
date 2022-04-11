@@ -13,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToListLiteralBulkTest);
     defineReflectiveTests(ConvertToListLiteralTest);
+    defineReflectiveTests(ConvertToListLiteralWithNullSafetyTest);
   });
 }
 
@@ -77,6 +78,21 @@ var l = List<int>();
 ''');
     await assertHasFix('''
 var l = <int>[];
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToListLiteralWithNullSafetyTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CONVERT_TO_LIST_LITERAL;
+
+  Future<void> test_default() async {
+    await resolveTestCode('''
+final l = List();
+''');
+    await assertHasFix('''
+final l = [];
 ''');
   }
 }

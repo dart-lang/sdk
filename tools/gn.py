@@ -97,13 +97,10 @@ def HostCpuForArch(arch):
     m = platform.machine()
     if m == 'aarch64' or m == 'arm64':
         return 'arm64'
-    if m == 'armv7l' or m == 'armv6l':
+    if m == 'armv7l':
         return 'arm'
 
-    if arch in [
-            'ia32', 'arm', 'armv6', 'simarm', 'simarm_x64', 'riscv32',
-            'simriscv32'
-    ]:
+    if arch in ['ia32', 'arm', 'simarm', 'simarm_x64', 'riscv32', 'simriscv32']:
         return 'x86'
     if arch in [
             'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c',
@@ -239,11 +236,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             gn_args['arm_version'] = 7
             gn_args['arm_float_abi'] = floatabi
             gn_args['arm_use_neon'] = True
-        elif gn_args['target_cpu'] == 'armv6':
-            floatabi = 'softfp' if args.arm_float_abi == '' else args.arm_float_abi
-            gn_args['target_cpu'] = 'arm'
-            gn_args['arm_version'] = 6
-            gn_args['arm_float_abi'] = floatabi
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -282,6 +274,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             'exe.stripped/dart_precompiled_runtime_product')
         gn_args['gen_snapshot_stripped_binary'] = (
             'exe.stripped/gen_snapshot_product')
+        gn_args['analyze_snapshot_binary'] = (
+            'exe.stripped/analyze_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -387,7 +381,6 @@ def ProcessOptions(args):
                     'x64',
                     'arm',
                     'arm_x64',
-                    'armv6',
                     'arm64',
                     'x64c',
                     'arm64c',

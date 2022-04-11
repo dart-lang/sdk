@@ -18,6 +18,7 @@ import 'package:dds/dds.dart';
 ///   - Start DevTools
 ///   - DevTools build directory
 ///   - Enable logging
+///   - Enable service port fallback
 Future<void> main(List<String> args) async {
   if (args.isEmpty) return;
 
@@ -46,6 +47,7 @@ Future<void> main(List<String> args) async {
     devToolsBuildDirectory = Uri.file(args[5]);
   }
   final logRequests = args[6] == 'true';
+  final enableServicePortFallback = args[7] == 'true';
   try {
     // TODO(bkonyi): add retry logic similar to that in vmservice_server.dart
     // See https://github.com/dart-lang/sdk/issues/43192.
@@ -61,6 +63,7 @@ Future<void> main(List<String> args) async {
             )
           : null,
       logRequests: logRequests,
+      enableServicePortFallback: enableServicePortFallback,
     );
     stderr.write(json.encode({
       'state': 'started',

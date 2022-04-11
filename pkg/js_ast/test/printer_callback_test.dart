@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 // Note: This test relies on LF line endings in the source file.
 
 // Test that JS printer callbacks occur when expected.
@@ -166,7 +168,9 @@ function() {
 ];
 
 class FixedName extends Name {
+  @override
   final String name;
+  @override
   String get key => name;
 
   FixedName(this.name);
@@ -207,6 +211,7 @@ class Context extends SimpleJavaScriptPrintingContext {
 
   String tag(int value) => '@$value';
 
+  @override
   void enterNode(Node node, int startPosition) {
     int value = id(node);
     if (mode == TestMode.ENTER) {
@@ -214,6 +219,7 @@ class Context extends SimpleJavaScriptPrintingContext {
     }
   }
 
+  @override
   void exitNode(
       Node node, int startPosition, int endPosition, int delimiterPosition) {
     int value = id(node);
@@ -224,6 +230,7 @@ class Context extends SimpleJavaScriptPrintingContext {
     }
   }
 
+  @override
   String getText() {
     String text = super.getText();
     int offset = 0;

@@ -13,6 +13,12 @@
 #include "bin/file.h"
 #include "bin/platform.h"
 #include "include/dart_api.h"
+#if defined(DART_TARGET_OS_MACOS)
+#include <platform/mach_o.h>
+#endif
+#if defined(DART_TARGET_OS_WINDOWS)
+#include <platform/pe.h>
+#endif
 #include "platform/utils.h"
 
 #define LOG_SECTION_BOUNDARIES false
@@ -22,6 +28,10 @@ namespace bin {
 
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
 static const int64_t kAppSnapshotPageSize = 16 * KB;
+
+static const char kMachOAppSnapshotSegmentName[] DART_UNUSED = "__CUSTOM";
+static const char kMachOAppSnapshotSectionName[] DART_UNUSED =
+    "__dart_app_snap";
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
@@ -233,8 +243,210 @@ static AppSnapshot* TryReadAppSnapshotElf(
   return nullptr;
 }
 
+#if defined(DART_TARGET_OS_MACOS)
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
+    const char* container_path) {
+  File* file = File::Open(NULL, container_path, File::kRead);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  RefCntReleaseScope<File> rs(file);
+
+  // Ensure file is actually MachO-formatted.
+  if (!IsMachOFormattedBinary(container_path)) {
+    Syslog::PrintErr(
+        "Attempted load target was not formatted as expected: "
+        "expected Mach-O binary.\n");
+    return nullptr;
+  }
+
+  // Parse the first 4bytes and extract the magic number.
+  uint32_t magic;
+  file->SetPosition(0);
+  file->ReadFully(&magic, sizeof(uint32_t));
+
+  const bool is64Bit =
+      magic == mach_o::MH_MAGIC_64 || magic == mach_o::MH_CIGAM_64;
+  const bool isByteSwapped =
+      magic == mach_o::MH_CIGAM || magic == mach_o::MH_CIGAM_64;
+
+  if (isByteSwapped) {
+    Syslog::PrintErr(
+        "Dart snapshot contained an unexpected binary file layout. "
+        "Expected non-byte swapped header but found a byte-swapped header.\n");
+    return nullptr;
+  }
+
+  file->SetPosition(0);
+
+  // Read in the Mach-O header, which will contain information about all of the
+  // segments in the binary.
+  //
+  // From the header we determine where our special segment is located. This
+  // segment must be named according to the convention captured by
+  // kMachOAppSnapshotSegmentType and kMachOAppSnapshotSegmentName.
+  if (!is64Bit) {
+    Syslog::PrintErr(
+        "Dart snapshot compiled with 32bit architecture. "
+        "Currently only 64bit architectures are supported.\n");
+    return nullptr;
+  } else {
+    mach_o::mach_header_64 header;
+    file->ReadFully(&header, sizeof(header));
+
+    for (uint32_t i = 0; i < header.ncmds; ++i) {
+      mach_o::load_command command;
+      file->ReadFully(&command, sizeof(mach_o::load_command));
+
+      file->SetPosition(file->Position() - sizeof(command));
+      if (command.cmd != mach_o::LC_SEGMENT &&
+          command.cmd != mach_o::LC_SEGMENT_64) {
+        file->SetPosition(file->Position() + command.cmdsize);
+        continue;
+      }
+
+      mach_o::segment_command_64 segment;
+      file->ReadFully(&segment, sizeof(segment));
+
+      for (uint32_t j = 0; j < segment.nsects; ++j) {
+        mach_o::section_64 section;
+        file->ReadFully(&section, sizeof(section));
+
+        if (segment.cmd == mach_o::LC_SEGMENT_64 &&
+            strcmp(section.segname, kMachOAppSnapshotSegmentName) == 0 &&
+            strcmp(section.sectname, kMachOAppSnapshotSectionName) == 0) {
+          // We have to do the loading "by-hand" because we need to set the
+          // snapshot length to a specific length instead of the "rest of the
+          // file", which is the assumption that TryReadAppSnapshotElf makes.
+          const char* error = nullptr;
+          const uint8_t* vm_data_buffer = nullptr;
+          const uint8_t* vm_instructions_buffer = nullptr;
+          const uint8_t* isolate_data_buffer = nullptr;
+          const uint8_t* isolate_instructions_buffer = nullptr;
+
+          std::unique_ptr<uint8_t[]> snapshot(new uint8_t[section.size]);
+          file->SetPosition(section.offset);
+          file->ReadFully(snapshot.get(), sizeof(uint8_t) * section.size);
+
+          Dart_LoadedElf* handle = Dart_LoadELF_Memory(
+              snapshot.get(), section.size, &error, &vm_data_buffer,
+              &vm_instructions_buffer, &isolate_data_buffer,
+              &isolate_instructions_buffer);
+
+          if (handle == nullptr) {
+            Syslog::PrintErr("Loading failed: %s\n", error);
+            return nullptr;
+          }
+
+          return new ElfAppSnapshot(handle, vm_data_buffer,
+                                    vm_instructions_buffer, isolate_data_buffer,
+                                    isolate_instructions_buffer);
+        }
+      }
+    }
+  }
+
+  return nullptr;
+}
+#endif  // defined(DART_TARGET_OS_MACOS)
+
+#if defined(DART_TARGET_OS_WINDOWS)
+// Keep in sync with CoffSectionTable._snapshotSectionName from
+// pkg/dart2native/lib/dart2native_pe.dart.
+static const char kSnapshotSectionName[] = "snapshot";
+// Ignore the null terminator, as it won't be present if the string length is
+// exactly pe::kCoffSectionNameSize.
+static_assert(sizeof(kSnapshotSectionName) - 1 <= pe::kCoffSectionNameSize,
+              "Section name of snapshot too large");
+
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromPE(
+    const char* container_path) {
+  File* const file = File::Open(NULL, container_path, File::kRead);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  RefCntReleaseScope<File> rs(file);
+
+  // Ensure file is actually PE-formatted.
+  if (!IsPEFormattedBinary(container_path)) {
+    Syslog::PrintErr(
+        "Attempted load target was not formatted as expected: "
+        "expected PE32 or PE32+ image file.\n");
+    return nullptr;
+  }
+
+  // Parse the offset into the PE contents (i.e., skipping the MS-DOS stub).
+  uint32_t pe_offset;
+  file->SetPosition(pe::kPEOffsetOffset);
+  file->ReadFully(&pe_offset, sizeof(pe_offset));
+
+  // Skip past the magic bytes to the COFF file header and COFF optional header.
+  const intptr_t coff_offset = pe_offset + sizeof(pe::kPEMagic);
+  file->SetPosition(coff_offset);
+  pe::coff_file_header file_header;
+  file->ReadFully(&file_header, sizeof(file_header));
+  // The optional header follows directly after the file header.
+  pe::coff_optional_header opt_header;
+  file->ReadFully(&opt_header, sizeof(opt_header));
+
+  // Skip to the section table.
+  const intptr_t coff_symbol_table_offset =
+      coff_offset + sizeof(file_header) + file_header.optional_header_size;
+  file->SetPosition(coff_symbol_table_offset);
+  for (intptr_t i = 0; i < file_header.num_sections; i++) {
+    pe::coff_section_header section_header;
+    file->ReadFully(&section_header, sizeof(section_header));
+    if (strncmp(section_header.name, kSnapshotSectionName,
+                pe::kCoffSectionNameSize) == 0) {
+      // We have to do the loading manually even though currently the snapshot
+      // data is at the end of the file because the file alignment for
+      // PE sections can be less than the page size, and TryReadAppSnapshotElf
+      // won't work if the file offset isn't page-aligned.
+      const char* error = nullptr;
+      const uint8_t* vm_data_buffer = nullptr;
+      const uint8_t* vm_instructions_buffer = nullptr;
+      const uint8_t* isolate_data_buffer = nullptr;
+      const uint8_t* isolate_instructions_buffer = nullptr;
+
+      const intptr_t offset = section_header.file_offset;
+      const intptr_t size = section_header.file_size;
+
+      std::unique_ptr<uint8_t[]> snapshot(new uint8_t[size]);
+      file->SetPosition(offset);
+      file->ReadFully(snapshot.get(), sizeof(uint8_t) * size);
+
+      Dart_LoadedElf* const handle =
+          Dart_LoadELF_Memory(snapshot.get(), size, &error, &vm_data_buffer,
+                              &vm_instructions_buffer, &isolate_data_buffer,
+                              &isolate_instructions_buffer);
+
+      if (handle == nullptr) {
+        Syslog::PrintErr("Loading failed: %s\n", error);
+        return nullptr;
+      }
+
+      return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
+                                isolate_data_buffer,
+                                isolate_instructions_buffer);
+    }
+  }
+
+  return nullptr;
+}
+#endif  // defined(DART_TARGET_OS_WINDOWS)
+
 AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElf(
     const char* container_path) {
+#if defined(DART_TARGET_OS_MACOS)
+  if (IsMachOFormattedBinary(container_path)) {
+    return TryReadAppendedAppSnapshotElfFromMachO(container_path);
+  }
+#elif defined(DART_TARGET_OS_WINDOWS)
+  if (IsPEFormattedBinary(container_path)) {
+    return TryReadAppendedAppSnapshotElfFromPE(container_path);
+  }
+#endif
+
   File* file = File::Open(NULL, container_path, File::kRead);
   if (file == nullptr) {
     return nullptr;
@@ -328,6 +540,80 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 }
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_TARGET_OS_MACOS)
+bool Snapshot::IsMachOFormattedBinary(const char* filename) {
+  File* file = File::Open(NULL, filename, File::kRead);
+  if (file == nullptr) {
+    return false;
+  }
+  RefCntReleaseScope<File> rs(file);
+
+  // Ensure the file is long enough to even contain the magic bytes.
+  if (file->Length() < 4) {
+    return false;
+  }
+
+  // Parse the first 4bytes and check the magic numbers.
+  uint32_t magic;
+  file->SetPosition(0);
+  file->Read(&magic, sizeof(uint32_t));
+
+  return magic == mach_o::MH_MAGIC_64 || magic == mach_o::MH_CIGAM_64 ||
+         magic == mach_o::MH_MAGIC || magic == mach_o::MH_CIGAM;
+}
+#endif  // defined(DART_TARGET_OS_MACOS)
+
+#if defined(DART_TARGET_OS_WINDOWS)
+bool Snapshot::IsPEFormattedBinary(const char* filename) {
+  File* file = File::Open(NULL, filename, File::kRead);
+  if (file == nullptr) {
+    return false;
+  }
+  RefCntReleaseScope<File> rs(file);
+
+  // Parse the PE offset.
+  uint32_t pe_offset;
+  // Ensure the file is long enough to contain the PE offset.
+  if (file->Length() <
+      static_cast<intptr_t>(pe::kPEOffsetOffset + sizeof(pe_offset))) {
+    return false;
+  }
+  file->SetPosition(pe::kPEOffsetOffset);
+  file->Read(&pe_offset, sizeof(pe_offset));
+
+  // Ensure the file is long enough to contain the PE magic bytes.
+  if (file->Length() <
+      static_cast<intptr_t>(pe_offset + sizeof(pe::kPEMagic))) {
+    return false;
+  }
+  // Check the magic bytes.
+  file->SetPosition(pe_offset);
+  for (size_t i = 0; i < sizeof(pe::kPEMagic); i++) {
+    char c;
+    file->Read(&c, sizeof(c));
+    if (c != pe::kPEMagic[i]) {
+      return false;
+    }
+  }
+
+  // Check that there is a coff optional header.
+  pe::coff_file_header file_header;
+  pe::coff_optional_header opt_header;
+  file->Read(&file_header, sizeof(file_header));
+  if (file_header.optional_header_size < sizeof(opt_header)) {
+    return false;
+  }
+  file->Read(&opt_header, sizeof(opt_header));
+  // Check the magic bytes in the coff optional header.
+  if (opt_header.magic != pe::kPE32Magic &&
+      opt_header.magic != pe::kPE32PlusMagic) {
+    return false;
+  }
+
+  return true;
+}
+#endif  // defined(DART_TARGET_OS_WINDOWS)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
                                           bool force_load_elf_from_memory,

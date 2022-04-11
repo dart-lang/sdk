@@ -318,7 +318,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     if (_member != null) {
       return;
     }
-    if (classBuilder.library is! SourceLibraryBuilder) {
+    if (classBuilder.libraryBuilder is! SourceLibraryBuilder) {
       if (_canonicalMember != null) {
         _member = _canonicalMember!.getMember(membersBuilder);
         _covariance = _canonicalMember!.getCovariance(membersBuilder);
@@ -384,7 +384,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         assert(stub != canonicalMember);
         classBuilder.cls.addProcedure(stub);
         SourceLibraryBuilder library =
-            classBuilder.library as SourceLibraryBuilder;
+            classBuilder.libraryBuilder as SourceLibraryBuilder;
         if (canonicalMember is Procedure) {
           library.forwardersOrigins
             ..add(stub)

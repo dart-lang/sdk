@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_ast;
+// @dart=2.15
+
+library js_ast.equivalence_visitor;
+
+import 'nodes.dart';
 
 /// Visitor that computes whether two [Node]s are structurally equivalent.
 class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
@@ -11,17 +15,17 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
   /// Called when [node1] and [node2] are not equivalent.
   ///
   /// Override this to collect or report information on the inequivalent nodes.
-  bool failAt(Node node1, Node node2) => false;
+  bool failAt(Node? node1, Node? node2) => false;
 
   /// Returns whether the non-node values [value1] and [value2] are equivalent.
-  bool testValues(Node node1, Object value1, Node node2, Object value2) =>
+  bool testValues(Node node1, Object? value1, Node node2, Object? value2) =>
       value1 == value2;
 
   /// Returns whether the labels [label1] and [label2] are equivalent.
-  bool testLabels(Node node1, String label1, Node node2, String label2) =>
+  bool testLabels(Node node1, String? label1, Node node2, String? label2) =>
       label1 == label2;
 
-  bool testNodes(Node node1, Node node2) {
+  bool testNodes(Node? node1, Node? node2) {
     if (identical(node1, node2)) return true;
     if (node1 == null || node2 == null) return failAt(node1, node2);
     return node1.accept1(this, node2);

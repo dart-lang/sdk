@@ -1,0 +1,17 @@
+NOTICE: Stream was rewritten by parser!
+
+void main() {
+Function? f = () {
+print(1)
+;};
+f();
+}
+
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Function[KeywordToken]?[SimpleToken] f[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]1[StringToken])[SimpleToken]
+;[SyntheticToken]}[SimpleToken];[SimpleToken]
+f[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

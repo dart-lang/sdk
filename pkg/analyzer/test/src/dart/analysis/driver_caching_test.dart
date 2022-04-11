@@ -35,7 +35,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
       ),
     );
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 dynamic a = 0;
 int b = a;
 ''');
@@ -64,7 +64,10 @@ class A {
 }
 ''');
 
-    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFilePathPlatform);
+    analysisDriver.changeFile(testFilePathPlatform);
+    await analysisDriver.applyPendingFileChanges();
+
     await resolveTestCode(r'''
 class A {
   factory A() =;
@@ -80,7 +83,10 @@ class A {
 }
 ''');
 
-    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFilePathPlatform);
+    analysisDriver.changeFile(testFilePathPlatform);
+    await analysisDriver.applyPendingFileChanges();
+
     await resolveTestCode(r'''
 class A {
   factory A() =
@@ -96,7 +102,10 @@ class A {
 }
 ''');
 
-    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFilePathPlatform);
+    analysisDriver.changeFile(testFilePathPlatform);
+    await analysisDriver.applyPendingFileChanges();
+
     await resolveTestCode(r'''
 class A {
   const
@@ -108,7 +117,7 @@ class A {
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -128,7 +137,7 @@ class A {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -149,7 +158,7 @@ class A {
   test_change_functionBody() async {
     useEmptyByteStore();
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 void f() {
   print(0);
 }
@@ -166,7 +175,7 @@ void f() {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 void f() {
   print(1);
 }
@@ -183,7 +192,7 @@ void f() {
     useEmptyByteStore();
 
     var aaaPackageRootPath = '$packagesRootPath/aaa';
-    newFile('$aaaPackageRootPath/lib/a.dart', content: '');
+    newFile2('$aaaPackageRootPath/lib/a.dart', '');
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
@@ -204,7 +213,7 @@ void f() {
       ),
     );
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
 ''');
@@ -247,7 +256,7 @@ import 'package:aaa/a.dart';
       AnalysisOptionsFileConfig(lints: []),
     );
 
-    newFile(testFilePath, content: r'''
+    newFile2(testFilePath, r'''
 void f() {
   ![0].isEmpty;
 }

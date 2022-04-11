@@ -1361,7 +1361,17 @@ void Elf::InitializeSymbolTables() {
 }
 
 void Elf::FinalizeEhFrame() {
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_X64)
+  // The x86_64 psABI defines the DWARF register numbers, which differ from
+  // the registers' usual encoding within instructions.
+  const intptr_t DWARF_RA = 16;  // No corresponding register.
+  const intptr_t DWARF_FP = 6;   // RBP
+#else
+  const intptr_t DWARF_RA = ConcreteRegister(LINK_REGISTER);
+  const intptr_t DWARF_FP = FP;
+#endif
+
   // No text section added means no .eh_frame.
   TextSection* text_section = nullptr;
   if (auto* const section = section_table_->Find(kTextName)) {
@@ -1391,18 +1401,17 @@ void Elf::FinalizeEhFrame() {
     dwarf_stream.string("zR");             // NOLINT
     dwarf_stream.uleb128(1);               // Code alignment (must be 1).
     dwarf_stream.sleb128(kDataAlignment);  // Data alignment
-    dwarf_stream.u1(
-        ConcreteRegister(LINK_REGISTER));  // Return address register
+    dwarf_stream.u1(DWARF_RA);             // Return address register
     dwarf_stream.uleb128(1);               // Augmentation size
     dwarf_stream.u1(DW_EH_PE_pcrel | DW_EH_PE_sdata4);  // FDE encoding.
     // CFA is caller's SP (FP+kCallerSpSlotFromFp*kWordSize)
     dwarf_stream.u1(Dwarf::DW_CFA_def_cfa);
-    dwarf_stream.uleb128(FP);
+    dwarf_stream.uleb128(DWARF_FP);
     dwarf_stream.uleb128(kCallerSpSlotFromFp * compiler::target::kWordSize);
   });
 
   // Emit rule defining that |reg| value is stored at CFA+offset.
-  const auto cfa_offset = [&](Register reg, intptr_t offset) {
+  const auto cfa_offset = [&](intptr_t reg, intptr_t offset) {
     const intptr_t scaled_offset = offset / kDataAlignment;
     RELEASE_ASSERT(scaled_offset >= 0);
     dwarf_stream.u1(Dwarf::DW_CFA_offset | reg);
@@ -1424,14 +1433,14 @@ void Elf::FinalizeEhFrame() {
       // Caller FP at FP+kSavedCallerPcSlotFromFp*kWordSize,
       // where FP is CFA - kCallerSpSlotFromFp*kWordSize.
       COMPILE_ASSERT((kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) <= 0);
-      cfa_offset(FP,
-                 (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) * kWordSize);
+      cfa_offset(DWARF_FP, (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) *
+                               compiler::target::kWordSize);
 
       // Caller LR at FP+kSavedCallerPcSlotFromFp*kWordSize,
       // where FP is CFA - kCallerSpSlotFromFp*kWordSize
       COMPILE_ASSERT((kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) <= 0);
-      cfa_offset(ConcreteRegister(LINK_REGISTER),
-                 (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) * kWordSize);
+      cfa_offset(DWARF_RA, (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) *
+                               compiler::target::kWordSize);
     });
   }
 
@@ -1442,7 +1451,7 @@ void Elf::FinalizeEhFrame() {
   eh_frame->AddPortion(dwarf_stream.buffer(), dwarf_stream.bytes_written(),
                        dwarf_stream.relocations());
   section_table_->Add(eh_frame, ".eh_frame");
-#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+#endif  // !defined(TARGET_ARCH_IA32)
 }
 
 void Elf::FinalizeDwarfSections() {

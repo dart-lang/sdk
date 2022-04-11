@@ -1129,6 +1129,18 @@ class Assembler : public AssemblerBase {
            (a.type() == Address::PairPreIndex));
     EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
   }
+  void fldp(VRegister rt, VRegister rt2, Address a, OperandSize sz) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreVRegPair(FLDP, rt, rt2, a, sz);
+  }
+  void fstp(VRegister rt, VRegister rt2, Address a, OperandSize sz) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreVRegPair(FSTP, rt, rt2, a, sz);
+  }
 
   void ldxr(Register rt, Register rn, OperandSize size = kEightBytes) {
     // rt = value
@@ -1619,6 +1631,22 @@ class Assembler : public AssemblerBase {
   void PopQuad(VRegister reg) {
     fldrq(reg, Address(SP, 1 * kQuadSize, Address::PostIndex));
   }
+  void PushDoublePair(VRegister low, VRegister high) {
+    fstp(low, high,
+         Address(SP, -2 * kDoubleSize, Address::PairPreIndex, kDWord), kDWord);
+  }
+  void PopDoublePair(VRegister low, VRegister high) {
+    fldp(low, high,
+         Address(SP, 2 * kDoubleSize, Address::PairPostIndex, kDWord), kDWord);
+  }
+  void PushQuadPair(VRegister low, VRegister high) {
+    fstp(low, high, Address(SP, -2 * kQuadSize, Address::PairPreIndex, kQWord),
+         kQWord);
+  }
+  void PopQuadPair(VRegister low, VRegister high) {
+    fldp(low, high, Address(SP, 2 * kQuadSize, Address::PairPostIndex, kQWord),
+         kQWord);
+  }
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP, PP, Operand(kHeapObjectTag));
@@ -1724,7 +1752,6 @@ class Assembler : public AssemblerBase {
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
     BranchLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
   }
-  void BranchLinkToRuntime();
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -2073,50 +2100,8 @@ class Assembler : public AssemblerBase {
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
+  // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
-
-  // Helper method for performing runtime calls from callers requiring manual
-  // register preservation is required (e.g. outside IL instructions marked
-  // as calling).
-  class CallRuntimeScope : public ValueObject {
-   public:
-    CallRuntimeScope(Assembler* assembler,
-                     const RuntimeEntry& entry,
-                     intptr_t frame_size,
-                     bool preserve_registers = true)
-        : CallRuntimeScope(assembler,
-                           entry,
-                           frame_size,
-                           preserve_registers,
-                           /*caller=*/nullptr) {}
-
-    CallRuntimeScope(Assembler* assembler,
-                     const RuntimeEntry& entry,
-                     intptr_t frame_size,
-                     Address caller,
-                     bool preserve_registers = true)
-        : CallRuntimeScope(assembler,
-                           entry,
-                           frame_size,
-                           preserve_registers,
-                           &caller) {}
-
-    void Call(intptr_t argument_count);
-
-    ~CallRuntimeScope();
-
-   private:
-    CallRuntimeScope(Assembler* assembler,
-                     const RuntimeEntry& entry,
-                     intptr_t frame_size,
-                     bool preserve_registers,
-                     const Address* caller);
-
-    Assembler* const assembler_;
-    const RuntimeEntry& entry_;
-    const bool preserve_registers_;
-    const bool restore_code_reg_;
-  };
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
@@ -2744,6 +2729,35 @@ class Assembler : public AssemblerBase {
     Emit(encoding);
   }
 
+  void EmitLoadStoreVRegPair(LoadStoreRegPairOp op,
+                             VRegister rt,
+                             VRegister rt2,
+                             Address a,
+                             OperandSize sz) {
+    ASSERT(op != FLDP || rt != rt2);
+    ASSERT((sz == kSWord) || (sz == kDWord) || (sz == kQWord));
+    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
+    int32_t opc = 0;
+    switch (sz) {
+      case kSWord:
+        opc = 0;
+        break;
+      case kDWord:
+        opc = B30;
+        break;
+      case kQWord:
+        opc = B31;
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+    const int32_t encoding =
+        opc | op | Arm64Encode::Rt(static_cast<Register>(rt)) |
+        Arm64Encode::Rt2(static_cast<Register>(rt2)) | a.encoding();
+    Emit(encoding);
+  }
+
   void EmitPCRelOp(PCRelOp op, Register rd, const Immediate& imm) {
     ASSERT(Utils::IsInt(21, imm.value()));
     ASSERT((rd != R31) && (rd != CSP));
@@ -2898,11 +2912,6 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
-
-  // Note: leaf call sequence uses some abi callee save registers as scratch
-  // so they should be manually preserved.
-  void EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf);
-  void LeaveCallRuntimeFrame(bool is_leaf);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

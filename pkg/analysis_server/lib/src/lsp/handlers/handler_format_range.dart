@@ -20,14 +20,14 @@ class FormatRangeHandler
   LspJsonHandler<DocumentRangeFormattingParams> get jsonHandler =>
       DocumentRangeFormattingParams.jsonHandler;
 
-  ErrorOr<List<TextEdit>?> formatRange(String path, Range range) {
+  Future<ErrorOr<List<TextEdit>?>> formatRange(String path, Range range) async {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(
           ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
     }
 
-    final result = server.getParsedUnit(path);
+    final result = await server.getParsedUnit(path);
     if (result == null || result.errors.isNotEmpty) {
       return success(null);
     }

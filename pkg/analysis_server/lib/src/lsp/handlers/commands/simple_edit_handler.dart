@@ -40,8 +40,7 @@ abstract class SimpleEditCommandHandler
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+      return serverNotInitializedError;
     }
 
     final lineInfo = unit.lineInfo;

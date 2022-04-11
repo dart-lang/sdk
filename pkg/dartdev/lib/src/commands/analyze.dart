@@ -144,7 +144,7 @@ class AnalyzeCommand extends DartdevCommand {
     await server.analysisFinished;
     analysisFinished = true;
 
-    await server.shutdown(timeout: Duration(milliseconds: 100));
+    await server.shutdown(timeout: Duration(seconds: 1));
 
     progress?.finish(showTiming: true);
 

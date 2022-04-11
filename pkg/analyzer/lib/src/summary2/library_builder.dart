@@ -265,11 +265,12 @@ class LibraryBuilder {
     for (var inputUnit in inputLibrary.units) {
       var unitNode = inputUnit.unit as ast.CompilationUnitImpl;
 
-      var unitElement = CompilationUnitElementImpl();
+      var unitElement = CompilationUnitElementImpl(
+        source: inputUnit.source,
+        librarySource: inputLibrary.source,
+        lineInfo: unitNode.lineInfo,
+      );
       unitElement.isSynthetic = inputUnit.isSynthetic;
-      unitElement.librarySource = inputLibrary.source;
-      unitElement.lineInfo = unitNode.lineInfo;
-      unitElement.source = inputUnit.source;
       unitElement.uri = inputUnit.partUriStr;
       unitElement.setCodeRange(0, unitNode.length);
 

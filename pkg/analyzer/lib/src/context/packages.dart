@@ -14,7 +14,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Looks for `.dart_tool/package_config.json` or `.packages` in the given
 /// and parent directories.
 Packages findPackagesFrom(ResourceProvider provider, Resource start) {
-  var startFolder = start is Folder ? start : start.parent2;
+  var startFolder = start is Folder ? start : start.parent;
   for (var current in startFolder.withAncestors) {
     try {
       var jsonFile = current
@@ -122,7 +122,7 @@ Packages parsePackagesFile(ResourceProvider provider, File file) {
     if (isJson) {
       return parsePackageConfigJsonFile(provider, file);
     } else {
-      var relativePackageConfigFile = file.parent2
+      var relativePackageConfigFile = file.parent
           .getChildAssumingFolder('.dart_tool')
           .getChildAssumingFile('package_config.json');
       if (relativePackageConfigFile.exists) {

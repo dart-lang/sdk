@@ -73,24 +73,6 @@ function mixinPropertiesEasy(from, to) {
 // copying properties) on platforms where we know it works well (Chrome / d8).
 var supportsDirectProtoAccess = #directAccessTestExpression;
 
-// Sets the name property of functions, if the JS engine doesn't set the name
-// itself.
-// As of 2018 only IE11 doesn't set the name.
-function setFunctionNamesIfNecessary(holders) {
-  function t(){};
-  if (typeof t.name == "string") return;
-
-  for (var i = 0; i < holders.length; i++) {
-    var holder = holders[i];
-    var keys = Object.keys(holder);
-    for (var j = 0; j < keys.length; j++) {
-      var key = keys[j];
-      var f = holder[key];
-      if (typeof f == "function") f.name = key;
-    }
-  }
-}
-
 // Makes [cls] inherit from [sup].
 // On Chrome, Firefox and recent IEs this happens by updating the internal
 // proto-property of the classes 'prototype' field.
@@ -420,7 +402,6 @@ var #hunkHelpers = (function(){
     lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
-    setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
     updateTypes: updateTypes,
     setOrUpdateInterceptorsByTag: setOrUpdateInterceptorsByTag,
     setOrUpdateLeafTags: setOrUpdateLeafTags,
@@ -443,9 +424,6 @@ if (#isTrackingAllocations) {
 
 // Creates the holders.
 #holders;
-
-// If the name is not set on the functions, do it now.
-hunkHelpers.setFunctionNamesIfNecessary(holders);
 
 // TODO(floitsch): we should build this object as a literal.
 var #staticStateDeclaration = {};

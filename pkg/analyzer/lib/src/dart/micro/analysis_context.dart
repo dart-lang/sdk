@@ -57,12 +57,11 @@ MicroContextObjects createMicroContextObjects({
   analysisContext2.currentSession = analysisSession;
   analysisSession.analysisContext = analysisContext2;
 
-  return MicroContextObjects(
+  return MicroContextObjects._(
     declaredVariables: declaredVariables,
     synchronousSession: synchronousSession,
     analysisSession: analysisSession,
     analysisContext: analysisContext,
-    analysisContext2: analysisContext2,
   );
 }
 
@@ -71,14 +70,12 @@ class MicroContextObjects {
   final SynchronousSession synchronousSession;
   final _MicroAnalysisSessionImpl analysisSession;
   final AnalysisContextImpl analysisContext;
-  final _MicroAnalysisContextImpl analysisContext2;
 
-  MicroContextObjects({
+  MicroContextObjects._({
     required this.declaredVariables,
     required this.synchronousSession,
     required this.analysisSession,
     required this.analysisContext,
-    required this.analysisContext2,
   });
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
@@ -182,18 +179,20 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   Future<SomeLibraryElementResult> getLibraryByUri(String uriStr) async {
-    var element = analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
+    var element = await analysisContext.fileResolver.getLibraryByUri2(
+      uriStr: uriStr,
+    );
     return LibraryElementResultImpl(element);
   }
 
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
-    return analysisContext.fileResolver.resolveLibrary(path: path);
+    return analysisContext.fileResolver.resolveLibrary2(path: path);
   }
 
   @override
   Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
-    return analysisContext.fileResolver.resolve(path: path);
+    return analysisContext.fileResolver.resolve2(path: path);
   }
 
   @override

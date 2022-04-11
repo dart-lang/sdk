@@ -42,12 +42,20 @@ class ModularStep {
   /// Whether this step is only executed on the main module.
   final bool onlyOnMain;
 
+  /// Whether this step is only exceuted on the SDK.
+  final bool onlyOnSdk;
+
+  /// Whether this step is not executed on the SDK.
+  final bool notOnSdk;
+
   ModularStep(
       {this.needsSources: true,
       this.dependencyDataNeeded: const [],
       this.moduleDataNeeded: const [],
       this.resultData,
-      this.onlyOnMain: false});
+      this.onlyOnMain: false,
+      this.onlyOnSdk: false,
+      this.notOnSdk: false});
 
   /// Notifies that the step was not executed, but cached instead.
   void notifyCached(Module module) {}
@@ -77,6 +85,11 @@ abstract class Pipeline<S extends ModularStep> {
   }
 
   void _validate() {
+    // Whether or not two steps run on mutually exclusive input data.
+    bool areMutuallyExclusive(S a, S b) {
+      return (a.onlyOnSdk && b.notOnSdk) || (b.onlyOnSdk && a.notOnSdk);
+    }
+
     // Ensure that steps consume only data that was produced by previous steps
     // or by the same step on a dependency.
     Map<DataId, S> previousKinds = {};
@@ -86,7 +99,8 @@ abstract class Pipeline<S extends ModularStep> {
             "'${step.runtimeType}' needs to declare what data it produces.");
       }
       for (var resultKind in step.resultData) {
-        if (previousKinds.containsKey(resultKind)) {
+        if (previousKinds.containsKey(resultKind) &&
+            !areMutuallyExclusive(step, previousKinds[resultKind])) {
           _validationError("Cannot produce the same data on two modular steps."
               " '$resultKind' was previously produced by "
               "'${previousKinds[resultKind].runtimeType}' but "
@@ -140,7 +154,9 @@ abstract class Pipeline<S extends ModularStep> {
       deps.addAll(transitiveDependencies[dependency]);
     }
 
-    if (step.onlyOnMain && !module.isMain) return;
+    if ((step.onlyOnMain && !module.isMain) ||
+        (step.onlyOnSdk && !module.isSdk) ||
+        (step.notOnSdk && module.isSdk)) return;
     // Include only requested data from transitive dependencies.
     Map<Module, Set<DataId>> visibleData = {};
 

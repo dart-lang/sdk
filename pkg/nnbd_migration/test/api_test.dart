@@ -54,10 +54,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool warnOnWeakCode = false,
       bool allowErrors = false}) async {
     for (var path in migratedInput.keys) {
-      newFile(path, content: migratedInput[path]!);
+      newFile2(path, migratedInput[path]!);
     }
     for (var path in input.keys) {
-      newFile(path, content: input[path]!);
+      newFile2(path, input[path]!);
     }
     var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener,
@@ -9484,12 +9484,6 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
   bool get _usePermissiveMode => true;
-
-  // TODO(danrubel): Remove this once the superclass test has been fixed.
-  // This runs in permissive mode but not when permissive mode is disabled.
-  Future<void> test_instanceCreation_noTypeArguments_noParameters() async {
-    super.test_instanceCreation_noTypeArguments_noParameters();
-  }
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to

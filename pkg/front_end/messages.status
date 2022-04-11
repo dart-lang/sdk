@@ -56,6 +56,8 @@ CannotReadSdkSpecification/example: Fail
 CantDetermineConstness/analyzerCode: Fail
 CantDisambiguateAmbiguousInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
 CantDisambiguateNotEnoughInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
+CantHaveNamedParameters/analyzerCode: Fail
+CantHaveOptionalParameters/analyzerCode: Fail
 CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
@@ -212,23 +214,29 @@ DuplicatedName/example: Fail
 DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
+EnumAbstractMember/analyzerCode: Fail
+EnumAbstractMember/example: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
 EnumConstructorSuperInitializer/analyzerCode: Fail
 EnumConstructorSuperInitializer/example: Fail
 EnumConstructorTearoff/analyzerCode: Fail
 EnumConstructorTearoff/example: Fail
+EnumContainsRestrictedInstanceDeclaration/analyzerCode: Fail
+EnumContainsRestrictedInstanceDeclaration/example: Fail
 EnumContainsValuesDeclaration/analyzerCode: Fail
 EnumContainsValuesDeclaration/example: Fail
 EnumDeclaresConstFactory/analyzerCode: Fail
 EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
-EnumEntryWithTypeArgumentsWithoutArguments/analyzerCode: Fail
-EnumEntryWithTypeArgumentsWithoutArguments/example: Fail
 EnumFactoryRedirectsToConstructor/analyzerCode: Fail
 EnumFactoryRedirectsToConstructor/example: Fail
+EnumImplementerContainsRestrictedInstanceDeclaration/analyzerCode: Fail
+EnumImplementerContainsRestrictedInstanceDeclaration/example: Fail
 EnumImplementerContainsValuesDeclaration/analyzerCode: Fail
 EnumImplementerContainsValuesDeclaration/example: Fail
+EnumInheritsRestricted/analyzerCode: Fail
+EnumInheritsRestricted/example: Fail
 EnumInstantiation/example: Fail
 EnumNonConstConstructor/analyzerCode: Fail
 EnumNonConstConstructor/example: Fail
@@ -270,6 +278,11 @@ ExperimentDisabledInvalidLanguageVersion/example: Fail
 ExperimentNotEnabled/example: Fail
 ExperimentNotEnabledNoFlag/example: Fail
 ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail
+ExperimentNotEnabledOffByDefault/example: Fail
+ExperimentOptOutExplicit/analyzerCode: Fail
+ExperimentOptOutExplicit/example: Fail
+ExperimentOptOutImplicit/analyzerCode: Fail
+ExperimentOptOutImplicit/example: Fail
 ExplicitExtensionArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionArgumentMismatch/example: Fail
 ExplicitExtensionAsExpression/analyzerCode: Fail
@@ -355,6 +368,7 @@ FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiAbiSpecificIntegerInvalid/analyzerCode: Fail
 FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
+FfiCompoundImplementsFinalizable/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
@@ -468,6 +482,7 @@ InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
+InstanceAndSynthesizedStaticConflict/example: Fail
 InstantiationNonGenericFunctionType/analyzerCode: Fail
 InstantiationTooFewArguments/analyzerCode: Fail
 InstantiationTooManyArguments/analyzerCode: Fail
@@ -546,8 +561,6 @@ JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler 
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
-JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
-JsInteropIndexNotSupported/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -558,6 +571,8 @@ JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalConstructor/example: Fail # Web compiler specific
 JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
+JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
+JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
@@ -668,6 +683,11 @@ NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
+NullSafetyDisabledInvalidLanguageVersion/example: Fail
+NullSafetyOptOutExplicit/analyzerCode: Fail
+NullSafetyOptOutExplicit/example: Fail
+NullSafetyOptOutImplicit/analyzerCode: Fail
+NullSafetyOptOutImplicit/example: Fail
 NullableExpressionCallError/analyzerCode: Fail
 NullableExpressionCallError/example: Fail
 NullableExpressionCallWarning/analyzerCode: Fail
@@ -805,6 +825,8 @@ StrongWithWeakDillLibrary/spelling: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
+SuperParameterInitializerOutsideConstructor/analyzerCode: Fail
+SuperParameterInitializerOutsideConstructor/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
 SuperclassHasNoGetter/example: Fail
 SuperclassHasNoMember/example: Fail

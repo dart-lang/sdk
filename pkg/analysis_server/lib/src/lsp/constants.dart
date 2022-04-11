@@ -67,6 +67,7 @@ abstract class Commands {
   static const fixAll = 'edit.fixAll';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
+  static const validateRefactor = 'refactor.validate';
 }
 
 abstract class CustomMethods {

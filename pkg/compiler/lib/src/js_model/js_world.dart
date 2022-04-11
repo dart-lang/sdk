@@ -126,7 +126,7 @@ class JsClosedWorld implements JClosedWorld {
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      DataSource source) {
+      DataSourceReader source) {
     source.begin(tag);
 
     JsKernelToElementMap elementMap = JsKernelToElementMap.readFromDataSource(
@@ -198,7 +198,7 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   /// Serializes this [JsClosedWorld] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     elementMap.writeToDataSink(sink);
     classHierarchy.writeToDataSink(sink);

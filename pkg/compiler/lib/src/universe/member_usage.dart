@@ -839,7 +839,7 @@ class MemberAccess {
 
   MemberAccess(this.reads, this.writes, this.invokes);
 
-  factory MemberAccess.readFromDataSource(DataSource source) {
+  factory MemberAccess.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     EnumSet<Access> reads = EnumSet.fixed(source.readInt());
     EnumSet<Access> writes = EnumSet.fixed(source.readInt());
@@ -848,7 +848,7 @@ class MemberAccess {
     return MemberAccess(reads, writes, invokes);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(reads.value);
     sink.writeInt(writes.value);

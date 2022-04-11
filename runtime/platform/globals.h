@@ -200,10 +200,10 @@ struct simd128_value_t {
 #elif defined(_M_IX86) || defined(__i386__)
 #define HOST_ARCH_IA32 1
 #define ARCH_IS_32_BIT 1
-#elif defined(__ARMEL__)
+#elif defined(_M_ARM) || defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
-#elif defined(__aarch64__)
+#elif defined(_M_ARM64) || defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
 #elif defined(__riscv)
@@ -721,14 +721,17 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 // Undefine math.h definition which clashes with our condition names.
 #undef OVERFLOW
 
-// Include IL printer functionality into non-PRODUCT builds or in all AOT
-// compiler builds or when forced.
+// Include IL printer and disassembler functionality into non-PRODUCT builds,
+// in all AOT compiler builds or when forced.
 #if !defined(PRODUCT) || defined(DART_PRECOMPILER) ||                          \
     defined(FORCE_INCLUDE_DISASSEMBLER)
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(PRODUCT)
 #error Requested to include IL printer into PRODUCT AOT runtime
 #endif
 #define INCLUDE_IL_PRINTER 1
+#if !defined(FORCE_INCLUDE_DISASSEMBLER)
+#define FORCE_INCLUDE_DISASSEMBLER 1
+#endif
 #endif
 
 }  // namespace dart

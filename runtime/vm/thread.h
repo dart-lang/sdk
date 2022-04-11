@@ -92,9 +92,6 @@ class Thread;
   V(TypeParameter)
 
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(CodePtr, write_barrier_code_, StubCode::WriteBarrier().ptr(), nullptr)     \
-  V(CodePtr, array_write_barrier_code_, StubCode::ArrayWriteBarrier().ptr(),   \
-    nullptr)                                                                   \
   V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().ptr(),     \
     nullptr)                                                                   \
   V(CodePtr, fix_allocation_stub_code_,                                        \
@@ -269,7 +266,12 @@ struct TsanUtils {
   // exceptions. This allows triggering the normal TSAN shadow stack unwinding
   // implementation.
   // -> See https://dartbug.com/47472#issuecomment-948235479 for details.
+#if defined(USING_THREAD_SANITIZER)
   void* setjmp_function = reinterpret_cast<void*>(&setjmp);
+#else
+  // MSVC (on Windows) is not happy with getting address of purely intrinsic.
+  void* setjmp_function = nullptr;
+#endif
   jmp_buf* setjmp_buffer = nullptr;
   uword exception_pc = 0;
   uword exception_sp = 0;

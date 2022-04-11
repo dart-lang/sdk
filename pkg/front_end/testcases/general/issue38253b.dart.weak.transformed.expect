@@ -28,7 +28,7 @@ static field () → Null a = () → Null {
     return;
     ^" in null;
   }
-  function f2() → invalid-type /* originally async */ {
+  function f2() → invalid-type /* futureValueType= invalid-type */ /* originally async */ {
     final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     FutureOr<dynamic>? :return_value;

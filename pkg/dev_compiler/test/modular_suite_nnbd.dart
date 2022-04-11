@@ -73,6 +73,12 @@ class SourceToSummaryDillStep implements IOModularStep {
   bool get onlyOnMain => false;
 
   @override
+  bool get onlyOnSdk => false;
+
+  @override
+  bool get notOnSdk => false;
+
+  @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print('\nstep: source-to-dill on $module');
@@ -165,6 +171,12 @@ class DDCStep implements IOModularStep {
   bool get onlyOnMain => false;
 
   @override
+  bool get onlyOnSdk => false;
+
+  @override
+  bool get notOnSdk => false;
+
+  @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print('\nstep: ddc on $module');
@@ -249,6 +261,12 @@ class RunD8 implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
+  bool get onlyOnSdk => false;
+
+  @override
+  bool get notOnSdk => false;
+
+  @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print('\nstep: d8 on $module');
@@ -270,7 +288,7 @@ class RunD8 implements IOModularStep {
     ''';
 
     var wrapper =
-        root.resolveUri(toUri(module, jsId)).toFilePath() + '.wrapper.js';
+        '${root.resolveUri(toUri(module, jsId)).toFilePath()}.wrapper.js';
     await File(wrapper).writeAsString(runjs);
     var d8Args = ['--module', wrapper];
     var result = await _runProcess(

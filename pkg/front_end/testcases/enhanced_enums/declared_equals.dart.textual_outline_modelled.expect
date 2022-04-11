@@ -1,0 +1,19 @@
+abstract class I3 {
+  bool operator ==(Object other);
+}
+
+enum E1 {
+  element;
+
+  bool operator ==(Object other) => true;
+}
+
+enum E2 {
+  element;
+
+  bool operator ==(Object other);
+}
+
+enum E3 implements I3 { element }
+
+main() {}

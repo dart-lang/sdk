@@ -17,7 +17,7 @@ void main() {
 class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
-    newFile(mainFilePath, content: initialContents);
+    newFile(mainFilePath, initialContents);
 
     final initialAnalysis = waitForAnalysisComplete();
 
@@ -39,7 +39,7 @@ class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
 
   Future<void> test_afterInitialize() async {
     const initialContents = 'int a = 1;';
-    newFile(mainFilePath, content: initialContents);
+    newFile(mainFilePath, initialContents);
 
     // To avoid races, set up listeners for the notifications before we initialise
     // and track which event came first to ensure they arrived in the expected

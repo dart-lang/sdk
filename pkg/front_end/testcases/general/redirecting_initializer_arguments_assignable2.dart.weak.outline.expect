@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    ;
+}
+class Foo<T extends self::X> extends core::Object {
+  covariant-by-class field self::Foo::T x;
+  constructor fromX(self::X _init) → self::Foo<self::Foo::T>
+    ;
+  constructor fromT(self::Foo::T _init) → self::Foo<self::Foo::T>
+    ;
+  constructor _internal({required self::Foo::T x}) → self::Foo<self::Foo::T>
+    ;
+}
+static method main() → void
+  ;

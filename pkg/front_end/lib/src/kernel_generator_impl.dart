@@ -23,8 +23,9 @@ import 'fasta/crash.dart' show withCrashReporting;
 import 'fasta/dill/dill_target.dart' show DillTarget;
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 import 'fasta/hybrid_file_system.dart';
+import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases;
 import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import 'fasta/kernel/macro.dart';
+import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 import 'fasta/source/source_loader.dart' show SourceLoader;
@@ -93,21 +94,14 @@ Future<CompilerResult> generateKernelInternal(
       kernelTarget.setEntryPoints(options.inputs);
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
-      if (neededPrecompilations != null) {
-        if (enableMacros) {
-          // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
-          // the compiler options for the precompilation.
-          if (options.rawOptionsForTesting.macroTarget != null) {
-            await _compileMacros(
-                neededPrecompilations, options.rawOptionsForTesting);
-            // TODO(johnniwinther): Assert that some works has been done.
-            // TODO(johnniwinther): Stop in case of compile-time errors.
-            continue;
-          }
-        } else {
-          throw new UnsupportedError('Macro precompilation is not supported');
-        }
+      kernelTarget.benchmarker?.enterPhase(BenchmarkPhases.precompileMacros);
+      if (await precompileMacros(neededPrecompilations, options)) {
+        kernelTarget.benchmarker
+            ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
+        continue;
       }
+      kernelTarget.benchmarker
+          ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
       return _buildInternal(
           options: options,
           kernelTarget: kernelTarget,
@@ -276,6 +270,33 @@ class InternalCompilerResult implements CompilerResult {
 /// compilation below.
 Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 
+/// Compiles the libraries for the macro classes in [neededPrecompilations].
+///
+/// Returns `true` if macro classes were compiled and added to the
+/// [CompilerOptions.precompiledMacroUris] of the provided [options].
+///
+/// Returns `false` if no macro classes needed precompilation or if macro
+/// precompilation is not supported.
+Future<bool> precompileMacros(NeededPrecompilations? neededPrecompilations,
+    ProcessedOptions options) async {
+  if (neededPrecompilations != null) {
+    if (enableMacros) {
+      // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
+      // the compiler options for the precompilation.
+      if (options.rawOptionsForTesting.macroTarget != null) {
+        await _compileMacros(
+            neededPrecompilations, options.rawOptionsForTesting);
+        // TODO(johnniwinther): Assert that some works has been done.
+        // TODO(johnniwinther): Stop in case of compile-time errors.
+        return true;
+      }
+    } else {
+      throw new UnsupportedError('Macro precompilation is not supported');
+    }
+  }
+  return false;
+}
+
 Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
     CompilerOptions options) async {
   assert(options.macroSerializer != null);
@@ -305,17 +326,15 @@ Future<void> _compileMacros(NeededPrecompilations neededPrecompilations,
   fs.entityForUri(uri).writeAsStringSync(bootstrapMacroIsolate(
       macroDeclarations, SerializationMode.byteDataClient));
 
-  precompilationOptions..fileSystem = new HybridFileSystem(fs);
+  precompilationOptions
+    ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
   Uri precompiledUri = await options.macroSerializer!
       .createUriForComponent(compilerResult!.component!);
-  Map<MacroClass, Uri> precompiledMacroUris =
-      options.precompiledMacroUris ??= {};
+  Map<Uri, Uri> precompiledMacroUris = options.precompiledMacroUris ??= {};
   neededPrecompilations.macroDeclarations
       .forEach((Uri uri, Map<String, List<String>> macroClasses) {
-    for (String macroClass in macroClasses.keys) {
-      precompiledMacroUris[new MacroClass(uri, macroClass)] = precompiledUri;
-    }
+    precompiledMacroUris[uri] = precompiledUri;
   });
 }

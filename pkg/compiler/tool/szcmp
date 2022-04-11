@@ -1,0 +1,82 @@
+#!/bin/bash
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# Usage: szcmp files
+#
+# Compare sizes of files as percentages in a table.  Column header is the
+# baseline (i.e. all sizes in the column are in terms of the file in the column
+# header).
+#
+# Example with dart2js workflow:
+#
+#     $ dart2js  ...  --out=v1/m.js
+#     # change dart2js
+#     $ dart2js  ...  --out=v2/m.js
+#     # change dart2js again
+#     $ dart2js  ...  --out=v3/m.js
+#
+#     $ szcmp v?/m.js
+#                       v1/m.js  v2/m.js  v3/m.js
+#     5793879  v1/m.js        =  -4.499%  +4.461%
+#     6066812  v2/m.js  +4.711%        =  +9.382%
+#     5546433  v3/m.js  -4.271%  -8.577%        =
+#
+# The first column of the matrix is usually the most relevant - `v2` is 4.7%
+# larger than `v1` and `v3` is 4.2% smaller than `v1`. The other columns can be
+# useful for understanding the differential changes. Sizes relative to `v2` are
+# in the next column, e.g. the step from `v2` to `v3` was a reduction of
+# 8.6%. Above-diagonal values show the percentage change in the 'undo'
+# direction. While changing from `v2` to `v3` reduces by 8.6%, reverting that
+# change would be an increase of 9.4%.
+
+wc -c "$@" |
+awk '
+$2 == "total" { next; }
+
+{
+  N++
+  r[N,0] = $1;
+  r[N,1] = $2;
+}
+
+END {
+  r[0,0] = ""  # header col 0
+  r[0,1] = ""  # header col 1
+
+  for (i = 1; i <= N; i++) { #skips "total" line
+    r[0, i+1] = r[i,1]  # name header
+
+    for (j = 1; j <= N; j++) {
+      s1 = r[i,0]
+      s2 = r[j,0];
+      if (s1 == s2) {
+        r[i, j+1] = "="
+      } else {
+        x = sprintf("%.3f%%", (s1 - s2) / s2 * 100)
+        if (s1 > s2) x = "+" x
+        r[i, j+1] = x
+      }
+    }
+  }
+
+  # find column widths
+  for (cc = 0; cc <= N+1; cc++) {
+    w[cc] = 0;
+    for (rr = 0; rr <= N; rr++) {
+      if (length(r[rr,cc]) > w[cc]) w[cc] = length(r[rr,cc])
+    }
+  }
+
+  for (rr = 0; rr <= N; rr++) {
+    line = ""
+    sep = ""
+    for (cc = 0; cc <= N+1; cc++) {
+      line = line sep sprintf("%*s", w[cc], r[rr, cc])
+      sep = "  "
+    }
+    print line
+  }
+}
+'

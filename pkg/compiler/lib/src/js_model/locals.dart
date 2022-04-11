@@ -38,7 +38,7 @@ class GlobalLocalsMap {
   /// Deserializes a [GlobalLocalsMap] object from [source].
   factory GlobalLocalsMap.readFromDataSource(
       MemberEntity Function(MemberEntity) localMapKeyLookup,
-      DataSource source) {
+      DataSourceReader source) {
     source.begin(tag);
     Map<MemberEntity, KernelToLocalsMap> _localsMaps = {};
     int mapCount = source.readInt();
@@ -55,7 +55,7 @@ class GlobalLocalsMap {
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     // [KernelToLocalsMap]s are shared between members and their nested
     // closures, so we reverse [_localsMaps] to ensure that [KernelToLocalsMap]s
@@ -107,7 +107,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   KernelToLocalsMapImpl(this._currentMember);
 
   /// Deserializes a [KernelToLocalsMapImpl] object from [source].
-  KernelToLocalsMapImpl.readFromDataSource(DataSource source) {
+  KernelToLocalsMapImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     _currentMember = source.readMember();
     int localsCount = source.readInt();
@@ -143,7 +143,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   /// Serializes this [KernelToLocalsMapImpl] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMember(currentMember);
     sink.writeInt(_locals.size);
@@ -475,7 +475,7 @@ class JJumpTarget extends JumpTarget {
       this.isContinueTarget = false});
 
   /// Deserializes a [JJumpTarget] object from [source].
-  factory JJumpTarget.readFromDataSource(DataSource source) {
+  factory JJumpTarget.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity memberContext = source.readMember();
     int nestingLevel = source.readInt();
@@ -501,7 +501,7 @@ class JJumpTarget extends JumpTarget {
   }
 
   /// Serializes this [JJumpTarget] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMember(memberContext);
     sink.writeInt(nestingLevel);

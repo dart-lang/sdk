@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "error_location_03_lib1.dart" as err;
 import "dart:core" as core;
@@ -13,30 +13,20 @@ static method main() → dynamic {
   core::print(invalid-expression "This assertion failed.");
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as err;
 import "dart:core" as core;
 
 class Foo extends core::Object /*hasConstConstructor*/  {
-  const constructor •(core::int* i) → err::Foo*
-    : assert(i.{core::num::>}(0){(core::num*) →* core::bool*}), super core::Object::•()
+  const constructor •(core::int i) → err::Foo
+    : assert(i.{core::num::>}(0){(core::num) → core::bool}), super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method foo() → dynamic {
   new err::Foo::•(0);
 }
 
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -55,9 +45,9 @@ import "error_location_03_lib1.dart" as err;
 
 import "org-dartlang-testcase:///error_location_03_lib1.dart";
 
-static const field err::Foo* fooField = invalid-expression "This assertion failed.";
+static const field err::Foo fooField = invalid-expression "This assertion failed.";
 
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -76,7 +66,7 @@ import "error_location_03_lib1.dart" as err;
 
 import "org-dartlang-testcase:///error_location_03_lib1.dart";
 
-static const field err::Foo* fooField2 = invalid-expression "This assertion failed.";
+static const field err::Foo fooField2 = invalid-expression "This assertion failed.";
 
 
 

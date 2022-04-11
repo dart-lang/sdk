@@ -9,7 +9,7 @@ import "dart:async";
 static method throwSync() → asy::Future<void> {
   throw "";
 }
-static method allYield() → asy::Future<void> /* originally async */ {
+static method allYield() → asy::Future<void> /* futureValueType= void */ /* originally async */ {
   final asy::_Future<void> :async_future = new asy::_Future::•<void>();
   core::bool* :is_sync = false;
   void :return_value;
@@ -39,7 +39,7 @@ static method allYield() → asy::Future<void> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method allYield2() → asy::Future<void> /* originally async */ {
+static method allYield2() → asy::Future<void> /* futureValueType= void */ /* originally async */ {
   final asy::_Future<void> :async_future = new asy::_Future::•<void>();
   core::bool* :is_sync = false;
   void :return_value;
@@ -69,7 +69,7 @@ static method allYield2() → asy::Future<void> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method allYield3() → asy::Future<void> /* originally async */ {
+static method allYield3() → asy::Future<void> /* futureValueType= void */ /* originally async */ {
   final asy::_Future<void> :async_future = new asy::_Future::•<void>();
   core::bool* :is_sync = false;
   void :return_value;
@@ -98,7 +98,7 @@ static method allYield3() → asy::Future<void> /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method customErrorZone() → asy::Future<void> /* originally async */ {
+static method customErrorZone() → asy::Future<void> /* futureValueType= void */ /* originally async */ {
   final asy::_Future<void> :async_future = new asy::_Future::•<void>();
   core::bool* :is_sync = false;
   FutureOr<void>? :return_value;
@@ -111,7 +111,7 @@ static method customErrorZone() → asy::Future<void> /* originally async */ {
       #L4:
       {
         final asy::Completer<void> completer = asy::Completer::•<void>();
-        asy::runZonedGuarded<asy::Future<Null>>(() → asy::Future<Null> /* originally async */ {
+        asy::runZonedGuarded<asy::Future<Null>>(() → asy::Future<Null> /* futureValueType= Null */ /* originally async */ {
           final asy::_Future<Null> :async_future = new asy::_Future::•<Null>();
           core::bool* :is_sync = false;
           Null :return_value;

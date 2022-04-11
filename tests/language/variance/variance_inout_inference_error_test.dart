@@ -23,6 +23,8 @@ Exactly<T> inferInvContra<T>(Invariant<T> x, Contravariant<T> y) => new Exactly<
 main() {
   // Middle <: T <: Middle and int <: T <: int are not valid constraints.
   inferInvInv(Invariant<Middle>(), Invariant<int>());
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //            ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Object>'.
@@ -32,12 +34,16 @@ main() {
 
   // Middle <: T <: Middle and Upper <: T <: Upper are not valid constraints.
   inferInvInv(Invariant<Middle>(), Invariant<Upper>());
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //            ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Upper>'.
 
   // Middle <: T <: Middle and Lower <: T <: Lower are not valid constraints.
   inferInvInv(Invariant<Middle>(), Invariant<Lower>());
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //                                 ^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Invariant<Lower>' can't be assigned to the parameter type 'Invariant<Middle>'.
@@ -46,6 +52,8 @@ main() {
   // Middle <: T <: Middle
   // Upper <: T <: Middle is not a valid constraint.
   inferInvCov(Invariant<Middle>(), Covariant<Upper>());
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //            ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Upper>'.
@@ -54,6 +62,8 @@ main() {
   // Middle <: T <: Lower
   // Middle <: T <: Lower is not a valid constraint
   inferInvContra(Invariant<Middle>(), Contravariant<Lower>());
+//^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //                                    ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Contravariant<Lower>' can't be assigned to the parameter type 'Contravariant<Middle>'.

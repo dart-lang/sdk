@@ -24,17 +24,23 @@ All submissions, including submissions by project members, require review.  We u
 
 We occasionally take pull requests, e.g., for comment changes, but the main flow is to use the Gerrit review system as explained below.
 
-## Setting up Environment
+## Submitting patches directly from GitHub
 
-In order to submit a patch, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
+This repository uses Gerrit for code reviews, rather than GitHub PRs. However, you may submit a GitHub PR from the GitHub interface, e.g. to edit some API documentation, and it will be automatically converted into a Gerrit CL by copybara. You can find the link to that CL from the GitHub "checks" interface, it will be the "details" of the "copybara" check. The PR will be automatically closed when the CL is reviewed and landed.
+
+## Setting up the environment
+
+In order to submit a patch from a local workspace, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
 
 ## Getting the code
 
-To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `main` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source)
+To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `main` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source). **You must use the `gclient` tool (`fetch`), using `git clone` will not get you a functional environment!**
 
 ## Starting a patch with git
 
-Note: you can be in any branch when you run `git new-branch`
+Create a new branch using `git new-branch` (this is a command added by the aforementioned depot_tools). 
+
+You can be in any branch when you run `git new-branch`.
 
 ```bash
 git new-branch <feature name>
@@ -51,13 +57,13 @@ As you work, and before you send a patch for review, you should
 ensure your branch is merging cleanly to `origin/main`.
 
 There are multiple ways to do this, but we generally recommend
-running:
+using `git rebase-update` (another feature added by depot_tools):
 
 ```bash
 git rebase-update
 ```
 
-Note: you can run this command from any branch.
+You can run this command from any branch.
 
 This command will fetch
 `origin/main`, rebase all your open branches, and delete
@@ -67,7 +73,7 @@ Your local workflow may vary.
 
 ## Uploading the patch for review
 
-Upload the patch for review:
+Upload the patch to Gerrit for review using `git cl upload`:
 
 ```bash
 git cl upload -s
@@ -75,7 +81,7 @@ git cl upload -s
 
 The above command returns a URL for the review. Attach this review to your issue in https://dartbug.com.
 
-To update the cl, just commit your changes and run `git cl upload -s` for your branch.
+To update the cl, just commit your changes and run `git cl upload -s` for your branch again.
 
 If you have commit access, when the review is done and the patch is good to go, submit the patch on https://dart-review.googlesource.com:
 
@@ -92,7 +98,7 @@ If you do not have commit access, a Dart engineer will commit on your behalf, as
 
 More detailed instructions for the `git cl` tools available on https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_creating_uploading_a_cl
 
-## For committers: Merging external contributions
+## For committers: Merging contributions from non-members
 
 If the author of a patch is not a committer, they will need help landing the patch.
 Once a patch gets an LGTM, it's easy for a committer to merge it in.
@@ -109,7 +115,7 @@ The source code of Dart follows the:
 
 You should familiarize yourself with those guidelines.
 
-All files in the Dart project must start with the following header. If you add a new file please also add this. The year should be a single number (not a range; don't use "2011-2012", even if the original code did).  If you edit an existing file you don't have to update the year
+All files in the Dart project must start with the following header. If you add a new file please also add this. The year should be a single number (not a range; don't use "2011-2012", even if the original code did).  If you edit an existing file you don't have to update the year.
 
 ```dart
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file

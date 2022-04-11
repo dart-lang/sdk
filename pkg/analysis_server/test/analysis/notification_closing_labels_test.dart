@@ -10,7 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
+class AnalysisNotificationClosingLabelsTest
+    extends PubPackageAnalysisServerTest {
   static const sampleCode = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -44,7 +45,7 @@ Widget build(BuildContext context) {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
       var params = AnalysisClosingLabelsParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         lastLabels = params.labels;
         _labelsReceived.complete(null);
       }
@@ -57,11 +58,11 @@ Widget build(BuildContext context) {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  void subscribeForLabels() {
-    addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
+  Future<void> subscribeForLabels() async {
+    await addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -69,7 +70,7 @@ Widget build(BuildContext context) {
     await waitForTasksFinished();
     expect(lastLabels, isNull);
 
-    await waitForLabels(() => subscribeForLabels());
+    await waitForLabels(() async => await subscribeForLabels());
 
     expect(lastLabels, expectedResults);
   }
@@ -84,18 +85,18 @@ Widget build(BuildContext context) {
     expect(lastLabels, isNull);
 
     // With no content, there should be zero labels.
-    await waitForLabels(() => subscribeForLabels());
+    await waitForLabels(() async => await subscribeForLabels());
     expect(lastLabels, hasLength(0));
 
     // With sample code there will be labels.
-    await waitForLabels(() => modifyTestFile(sampleCode));
+    await waitForLabels(() async => modifyTestFile(sampleCode));
 
     expect(lastLabels, expectedResults);
   }
 
-  Future waitForLabels(void Function() action) {
+  Future<void> waitForLabels(Future<void> Function() action) async {
     _labelsReceived = Completer();
-    action();
+    await action();
     return _labelsReceived.future;
   }
 }

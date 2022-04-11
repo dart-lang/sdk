@@ -16,13 +16,6 @@ class InternetAddressType {
   static const InternetAddressType unix = const InternetAddressType._(2);
   static const InternetAddressType any = const InternetAddressType._(-1);
 
-  @Deprecated("Use IPv4 instead")
-  static const InternetAddressType IP_V4 = IPv4;
-  @Deprecated("Use IPv6 instead")
-  static const InternetAddressType IP_V6 = IPv6;
-  @Deprecated("Use any instead")
-  static const InternetAddressType ANY = any;
-
   final int _value;
 
   const InternetAddressType._(this._value);
@@ -53,33 +46,25 @@ abstract class InternetAddress {
   ///
   /// Use this address when listening on or connecting
   /// to the loopback adapter using IP version 4 (IPv4).
-  static InternetAddress get loopbackIPv4 => LOOPBACK_IP_V4;
-  @Deprecated("Use loopbackIPv4 instead")
-  external static InternetAddress get LOOPBACK_IP_V4;
+  external static InternetAddress get loopbackIPv4;
 
   /// IP version 6 loopback address.
   ///
   /// Use this address when listening on or connecting to
   /// the loopback adapter using IP version 6 (IPv6).
-  static InternetAddress get loopbackIPv6 => LOOPBACK_IP_V6;
-  @Deprecated("Use loopbackIPv6 instead")
-  external static InternetAddress get LOOPBACK_IP_V6;
+  external static InternetAddress get loopbackIPv6;
 
   /// IP version 4 any address.
   ///
   /// Use this address when listening on the addresses
   /// of all adapters using IP version 4 (IPv4).
-  static InternetAddress get anyIPv4 => ANY_IP_V4;
-  @Deprecated("Use anyIPv4 instead")
-  external static InternetAddress get ANY_IP_V4;
+  external static InternetAddress get anyIPv4;
 
   /// IP version 6 any address.
   ///
   /// Use this address when listening on the addresses
   /// of all adapters using IP version 6 (IPv6).
-  static InternetAddress get anyIPv6 => ANY_IP_V6;
-  @Deprecated("Use anyIPv6 instead")
-  external static InternetAddress get ANY_IP_V6;
+  external static InternetAddress get anyIPv6;
 
   /// The address family of the [InternetAddress].
   InternetAddressType get type;
@@ -349,13 +334,6 @@ class SocketDirection {
   static const SocketDirection send = const SocketDirection._(1);
   static const SocketDirection both = const SocketDirection._(2);
 
-  @Deprecated("Use receive instead")
-  static const SocketDirection RECEIVE = receive;
-  @Deprecated("Use send instead")
-  static const SocketDirection SEND = send;
-  @Deprecated("Use both instead")
-  static const SocketDirection BOTH = both;
-
   final _value;
 
   const SocketDirection._(this._value);
@@ -373,8 +351,6 @@ class SocketOption {
   ///
   /// tcpNoDelay is disabled by default.
   static const SocketOption tcpNoDelay = const SocketOption._(0);
-  @Deprecated("Use tcpNoDelay instead")
-  static const SocketOption TCP_NODELAY = tcpNoDelay;
 
   static const SocketOption _ipMulticastLoop = const SocketOption._(1);
   static const SocketOption _ipMulticastHops = const SocketOption._(2);
@@ -503,15 +479,6 @@ class RawSocketEvent {
 
   /// An event indicates the socket is closed.
   static const RawSocketEvent closed = const RawSocketEvent._(3);
-
-  @Deprecated("Use read instead")
-  static const RawSocketEvent READ = read;
-  @Deprecated("Use write instead")
-  static const RawSocketEvent WRITE = write;
-  @Deprecated("Use readClosed instead")
-  static const RawSocketEvent READ_CLOSED = readClosed;
-  @Deprecated("Use closed instead")
-  static const RawSocketEvent CLOSED = closed;
 
   final int _value;
 

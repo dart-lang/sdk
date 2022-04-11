@@ -45,7 +45,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   final IrToElementMap elementMap;
   final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
       <ir.TypeParameter, DartType>{};
-  bool topLevel = true;
 
   DartTypeConverter(this.elementMap);
 
@@ -62,14 +61,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     }
   }
 
-  DartType convert(ir.DartType type) {
-    topLevel = true;
-    return type.accept(this);
-  }
-
-  /// Visit a inner type.
   DartType visitType(ir.DartType type) {
-    topLevel = false;
     return type.accept(this);
   }
 
@@ -77,7 +69,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       visitInterfaceType(node.asInterfaceType).withoutNullability;
 
   List<DartType> visitTypes(List<ir.DartType> types) {
-    topLevel = false;
     return List.generate(
         types.length, (int index) => types[index].accept(this));
   }

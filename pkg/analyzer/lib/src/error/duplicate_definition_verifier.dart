@@ -93,7 +93,9 @@ class DuplicateDefinitionVerifier {
           member.name,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
-        _checkValuesDeclarationInEnum(member.name);
+        if (!(member.isStatic && member.isSetter)) {
+          _checkValuesDeclarationInEnum(member.name);
+        }
       }
     }
 
@@ -308,7 +310,7 @@ class DuplicateDefinitionVerifier {
       for (TopLevelVariableElement variable in element.topLevelVariables) {
         definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
-          definedGetters[variable.name + '='] = variable;
+          definedGetters['${variable.name}='] = variable;
         }
       }
       for (TypeAliasElement alias in element.typeAliases) {

@@ -369,6 +369,54 @@ extension on DeclarationContext {
         return InstanceTypeVariableAccessState.Invalid;
     }
   }
+
+  /// Returns the kind of type variable created in the current context.
+  TypeVariableKind get typeVariableKind {
+    switch (this) {
+      case DeclarationContext.Class:
+      case DeclarationContext.ClassOrMixinOrNamedMixinApplication:
+      case DeclarationContext.Mixin:
+      case DeclarationContext.NamedMixinApplication:
+        return TypeVariableKind.classMixinOrEnum;
+      case DeclarationContext.Extension:
+      case DeclarationContext.ExtensionBody:
+        return TypeVariableKind.extension;
+      case DeclarationContext.ClassBody:
+      case DeclarationContext.ClassConstructor:
+      case DeclarationContext.ClassFactory:
+      case DeclarationContext.ClassInstanceField:
+      case DeclarationContext.ClassInstanceMethod:
+      case DeclarationContext.ClassStaticField:
+      case DeclarationContext.ClassStaticMethod:
+      case DeclarationContext.Enum:
+      case DeclarationContext.EnumBody:
+      case DeclarationContext.EnumConstructor:
+      case DeclarationContext.EnumFactory:
+      case DeclarationContext.EnumInstanceField:
+      case DeclarationContext.EnumInstanceMethod:
+      case DeclarationContext.EnumStaticField:
+      case DeclarationContext.EnumStaticMethod:
+      case DeclarationContext.ExtensionConstructor:
+      case DeclarationContext.ExtensionExternalInstanceField:
+      case DeclarationContext.ExtensionFactory:
+      case DeclarationContext.ExtensionInstanceField:
+      case DeclarationContext.ExtensionInstanceMethod:
+      case DeclarationContext.ExtensionStaticField:
+      case DeclarationContext.ExtensionStaticMethod:
+      case DeclarationContext.Library:
+      case DeclarationContext.MixinBody:
+      case DeclarationContext.MixinConstructor:
+      case DeclarationContext.MixinFactory:
+      case DeclarationContext.MixinInstanceField:
+      case DeclarationContext.MixinInstanceMethod:
+      case DeclarationContext.MixinStaticField:
+      case DeclarationContext.MixinStaticMethod:
+      case DeclarationContext.TopLevelField:
+      case DeclarationContext.TopLevelMethod:
+      case DeclarationContext.Typedef:
+        return TypeVariableKind.function;
+    }
+  }
 }
 
 class OutlineBuilder extends StackListenerImpl {
@@ -543,16 +591,9 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(importKeyword.charOffset);
     if (prefix is ParserRecovery) return;
 
-    if (!libraryBuilder.enableMacrosInLibrary) {
-      if (augmentToken != null) {
-        // TODO(johnniwinther): We should emit a different message when the
-        // experiment is not released yet. The current message indicates that
-        // changing the sdk version can solve the problem.
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            augmentToken.next!.charOffset,
-            augmentToken.next!.length);
+    if (augmentToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.macros, augmentToken.charOffset,
+          augmentToken.length)) {
         augmentToken = null;
       }
     }
@@ -827,16 +868,9 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
-    if (!libraryBuilder.enableMacrosInLibrary) {
-      if (macroToken != null) {
-        // TODO(johnniwinther): We should emit a different message when the
-        // experiment is not released yet. The current message indicates that
-        // changing the sdk version can solve the problem.
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            macroToken.next!.charOffset,
-            macroToken.next!.length);
+    if (macroToken != null) {
+      if (reportIfNotEnabled(
+          libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
         macroToken = null;
       }
     }
@@ -927,13 +961,9 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
-    if (!libraryBuilder.enableMacrosInLibrary) {
-      if (macroToken != null) {
-        addProblem(
-            templateExperimentNotEnabled.withArguments(
-                'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
-            macroToken.next!.charOffset,
-            macroToken.next!.length);
+    if (macroToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.macros,
+          macroToken.next!.charOffset, macroToken.next!.length)) {
         macroToken = null;
       }
     }
@@ -948,14 +978,10 @@ class OutlineBuilder extends StackListenerImpl {
             .popNonNullable(stack, interfacesCount, dummyTypeBuilder) ??
         NullValue.TypeBuilderList);
 
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary &&
-        implementsKeyword != null &&
+    if (implementsKeyword != null &&
         declarationContext == DeclarationContext.Enum) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          implementsKeyword.charOffset,
-          -1);
+      reportIfNotEnabled(libraryFeatures.enhancedEnums,
+          implementsKeyword.charOffset, implementsKeyword.length);
     }
   }
 
@@ -1031,14 +1057,27 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleRecoverClassHeader() {
     debugEvent("handleRecoverClassHeader");
+    assert(checkState(null, [
+      /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
     // TODO(jensj): Possibly use these instead... E.g. "class A extend B {}"
     // will get here (because it's 'extends' with an 's') and discard the B...
     // Also Analyzer actually merges the information meaning that the two could
     // give different errors (if, say, one later assigns
     // A to a variable of type B).
     pop(NullValue.TypeBuilderList); // Interfaces.
+    pop(NullValue.MixinApplicationBuilder); // Mixin applications.
     pop(); // Supertype offset.
-    pop(); // Supertype.
+    pop(NullValue.TypeBuilder); // Supertype.
   }
 
   @override
@@ -1073,6 +1112,10 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endClassDeclaration");
     assert(checkState(beginToken, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
       /* supertype offset */ ValueKinds.Integer,
       /* supertype */ unionOfKinds([
         ValueKinds.TypeBuilderOrNull,
@@ -1089,6 +1132,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
+    MixinApplicationBuilder? mixinApplication =
+        nullIfParserRecovery(pop(NullValue.MixinApplicationBuilder))
+            as MixinApplicationBuilder?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
@@ -1098,8 +1144,8 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<TypeVariableBuilder>?;
     int nameOffset = popCharOffset();
     Object? name = pop();
-    if (typeVariables != null && supertype is MixinApplicationBuilder) {
-      supertype.typeVariables = typeVariables;
+    if (typeVariables != null && mixinApplication != null) {
+      mixinApplication.typeVariables = typeVariables;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     inAbstractClass = false;
@@ -1115,23 +1161,19 @@ class OutlineBuilder extends StackListenerImpl {
 
       if (libraryBuilder.isNonNullableByDefault) {
         String classNameForErrors = "${name}";
-        TypeBuilder? supertypeForErrors = supertype is MixinApplicationBuilder
-            ? supertype.supertype
-            : supertype;
-        List<TypeBuilder>? mixins =
-            supertype is MixinApplicationBuilder ? supertype.mixins : null;
-        if (supertypeForErrors != null) {
-          if (supertypeForErrors.nullabilityBuilder.build(libraryBuilder) ==
+        if (supertype != null) {
+          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableSuperclassError
-                    .withArguments(supertypeForErrors.fullNameForErrors),
+                    .withArguments(supertype.fullNameForErrors),
                 nameOffset,
                 classNameForErrors.length,
                 uri);
           }
         }
-        if (mixins != null) {
+        if (mixinApplication != null) {
+          List<TypeBuilder>? mixins = mixinApplication.mixins;
           for (TypeBuilder mixin in mixins) {
             if (mixin.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable) {
@@ -1165,6 +1207,7 @@ class OutlineBuilder extends StackListenerImpl {
           name as String,
           typeVariables,
           supertype,
+          mixinApplication,
           interfaces,
           startCharOffset,
           nameOffset,
@@ -1217,19 +1260,6 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       int startOffset =
           metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
-      TypeBuilder? supertype;
-      if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
-        if (supertypeConstraints.length == 1) {
-          supertype = supertypeConstraints.first;
-        } else {
-          supertype = new MixinApplicationBuilder(
-              supertypeConstraints.first,
-              supertypeConstraints.skip(1).toList(),
-              supertypeConstraints.first.fileUri!,
-              supertypeConstraints.first.charOffset!);
-        }
-      }
-
       if (libraryBuilder.isNonNullableByDefault) {
         String classNameForErrors = "${name}";
         if (supertypeConstraints != null) {
@@ -1265,7 +1295,7 @@ class OutlineBuilder extends StackListenerImpl {
           mixinDeclarationMask,
           name as String,
           typeVariables,
-          supertype,
+          supertypeConstraints,
           interfaces,
           startOffset,
           nameOffset,
@@ -1351,11 +1381,8 @@ class OutlineBuilder extends StackListenerImpl {
             hiddenMembersOrTypes: hiddenMembersOrTypes ?? const <String>[],
             hiddenOperators: hiddenOperators ?? const <Operator>[]);
 
-    if (showKeyword != null && !libraryBuilder.enableExtensionTypesInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('extension-types',
-              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
-          showKeyword.charOffset,
+    if (showKeyword != null) {
+      reportIfNotEnabled(libraryFeatures.extensionTypes, showKeyword.charOffset,
           showKeyword.length);
     }
     Object? onType = pop();
@@ -1379,13 +1406,9 @@ class OutlineBuilder extends StackListenerImpl {
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
     bool isExtensionTypeDeclaration = typeKeyword != null;
-    if (!libraryBuilder.enableExtensionTypesInLibrary &&
-        isExtensionTypeDeclaration) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('extension-types',
-              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
-          extensionKeyword.next!.charOffset,
-          extensionKeyword.next!.length);
+    if (isExtensionTypeDeclaration) {
+      reportIfNotEnabled(libraryFeatures.extensionTypes,
+          extensionKeyword.next!.charOffset, extensionKeyword.next!.length);
     }
     libraryBuilder.addExtensionDeclaration(
         metadata,
@@ -1745,7 +1768,7 @@ class OutlineBuilder extends StackListenerImpl {
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
-            if (!formal.isRequired) {
+            if (!formal.isRequiredPositional) {
               addProblem(messageOperatorWithOptionalFormals, formal.charOffset,
                   formal.name.length);
             }
@@ -1838,7 +1861,7 @@ class OutlineBuilder extends StackListenerImpl {
           // names are used to create the scope.
           List<TypeVariableBuilder> synthesizedTypeVariables = libraryBuilder
               .copyTypeVariables(extension.typeVariables!, declarationBuilder,
-                  isExtensionTypeParameter: true);
+                  kind: TypeVariableKind.extensionSynthesized);
           substitution = {};
           for (int i = 0; i < synthesizedTypeVariables.length; i++) {
             substitution[extension.typeVariables![i]] =
@@ -1868,8 +1891,15 @@ class OutlineBuilder extends StackListenerImpl {
           libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
-            null, finalMask, thisType, extensionThisName, null, charOffset,
-            fileUri: uri, isExtensionThis: true));
+            /* metadata = */ null,
+            FormalParameterKind.requiredPositional,
+            finalMask,
+            thisType,
+            extensionThisName,
+            null,
+            charOffset,
+            fileUri: uri,
+            isExtensionThis: true));
         if (formals != null) {
           synthesizedFormals.addAll(formals);
         }
@@ -1880,7 +1910,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (constructorName != null) {
         if (isConst &&
             bodyKind != MethodBody.Abstract &&
-            !libraryBuilder.enableConstFunctionsInLibrary) {
+            !libraryFeatures.constFunctions.isEnabled) {
           addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
           modifiers &= ~constMask;
         }
@@ -1943,16 +1973,33 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     debugEvent("NamedMixinApplicationWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilderListOrNull,
+      ]),
+      /* supertype */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilder,
+      ]),
+    ]));
     Object? mixins = pop();
-    Object? supertype = pop();
     if (mixins is ParserRecovery) {
       push(mixins);
-    } else if (supertype is ParserRecovery) {
-      push(supertype);
     } else {
-      push(libraryBuilder.addMixinApplication(supertype as TypeBuilder?,
+      push(libraryBuilder.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
+    assert(checkState(withKeyword, [
+      /* mixin application */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.MixinApplicationBuilder,
+      ]),
+      /* supertype */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilder,
+      ]),
+    ]));
   }
 
   @override
@@ -1968,8 +2015,15 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endNamedMixinApplication");
     assert(checkState(beginToken, [
       if (implementsKeyword != null)
-        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+        /* interfaces */ unionOfKinds([
+          ValueKinds.ParserRecovery,
+          ValueKinds.TypeBuilderListOrNull,
+        ]),
       /* mixin application */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.MixinApplicationBuilder,
+      ]),
+      /* supertype */ unionOfKinds([
         ValueKinds.ParserRecovery,
         ValueKinds.TypeBuilder,
       ]),
@@ -1983,8 +2037,10 @@ class OutlineBuilder extends StackListenerImpl {
     ]));
 
     List<TypeBuilder>? interfaces =
-        popIfNotNull(implementsKeyword) as List<TypeBuilder>?;
+        nullIfParserRecovery(popIfNotNull(implementsKeyword))
+            as List<TypeBuilder>?;
     Object? mixinApplication = pop();
+    Object? supertype = pop();
     Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
@@ -1994,7 +2050,9 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
-    if (name is ParserRecovery || mixinApplication is ParserRecovery) {
+    if (name is ParserRecovery ||
+        supertype is ParserRecovery ||
+        mixinApplication is ParserRecovery) {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
@@ -2004,9 +2062,8 @@ class OutlineBuilder extends StackListenerImpl {
         String classNameForErrors = "${name}";
         MixinApplicationBuilder mixinApplicationBuilder =
             mixinApplication as MixinApplicationBuilder;
-        TypeBuilder? supertype = mixinApplicationBuilder.supertype;
         List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
-        if (supertype != null && supertype is! MixinApplicationBuilder) {
+        if (supertype is TypeBuilder && supertype is! MixinApplicationBuilder) {
           if (supertype.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
@@ -2050,7 +2107,8 @@ class OutlineBuilder extends StackListenerImpl {
           name as String,
           typeVariables,
           modifiers,
-          mixinApplication as TypeBuilder?,
+          supertype as TypeBuilder?,
+          mixinApplication as MixinApplicationBuilder,
           interfaces,
           startCharOffset,
           charOffset,
@@ -2185,15 +2243,9 @@ class OutlineBuilder extends StackListenerImpl {
       MemberKind memberKind) {
     debugEvent("FormalParameter");
 
-    if (superKeyword != null &&
-        !libraryBuilder.enableSuperParametersInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'super-parameters',
-              libraryBuilder.enableConstructorTearOffsVersionInLibrary
-                  .toText()),
-          superKeyword.charOffset,
-          superKeyword.length);
+    if (superKeyword != null) {
+      reportIfNotEnabled(libraryFeatures.superParameters,
+          superKeyword.charOffset, superKeyword.length);
     }
 
     int charOffset = popCharOffset();
@@ -2206,6 +2258,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       push(libraryBuilder.addFormalParameter(
           metadata,
+          kind,
           modifiers,
           type,
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
@@ -2243,9 +2296,6 @@ class OutlineBuilder extends StackListenerImpl {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterKind kind = optional("{", beginToken)
-        ? FormalParameterKind.optionalNamed
-        : FormalParameterKind.optionalPositional;
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
@@ -2256,9 +2306,6 @@ class OutlineBuilder extends StackListenerImpl {
     if (parameters == null) {
       push(new ParserRecovery(offsetForToken(beginToken)));
     } else {
-      for (FormalParameterBuilder parameter in parameters) {
-        parameter.kind = kind;
-      }
       push(parameters);
     }
   }
@@ -2451,8 +2498,10 @@ class OutlineBuilder extends StackListenerImpl {
 
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
-    List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
-    MixinApplicationBuilder? mixinBuilder = pop() as MixinApplicationBuilder?;
+    List<TypeBuilder>? interfaces =
+        nullIfParserRecovery(pop()) as List<TypeBuilder>?;
+    MixinApplicationBuilder? mixinBuilder =
+        nullIfParserRecovery(pop()) as MixinApplicationBuilder?;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int charOffset = popCharOffset(); // identifier char offset.
@@ -2610,7 +2659,7 @@ class OutlineBuilder extends StackListenerImpl {
         return;
       }
       if (type is FunctionTypeBuilder &&
-          !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
+          !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
             libraryBuilder.isNonNullableByDefault) {
@@ -2635,7 +2684,7 @@ class OutlineBuilder extends StackListenerImpl {
           // of a generic function).
           aliasedType = type;
         }
-      } else if (libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
+      } else if (libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
@@ -2870,7 +2919,8 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       push(libraryBuilder.addTypeVariable(
-          metadata, name as String, null, charOffset, uri));
+          metadata, name as String, null, charOffset, uri,
+          kind: declarationContext.typeVariableKind));
     }
   }
 
@@ -2894,7 +2944,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
-        if (!libraryBuilder.enableVarianceInLibrary) {
+        if (!libraryFeatures.variance.isEnabled) {
           reportVarianceModifierNotEnabled(variance);
         }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);
@@ -2906,13 +2956,9 @@ class OutlineBuilder extends StackListenerImpl {
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("endTypeVariables");
 
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary &&
-        declarationContext == DeclarationContext.Enum) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
+    if (declarationContext == DeclarationContext.Enum) {
+      reportIfNotEnabled(
+          libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
     }
 
     // Peek to leave type parameters on top of stack.
@@ -2960,18 +3006,18 @@ class OutlineBuilder extends StackListenerImpl {
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
             builder.bound = new NamedTypeBuilder(
-                builder.name,
-                const NullabilityBuilder.omitted(),
-                null,
-                uri,
-                builder.charOffset,
+                builder.name, const NullabilityBuilder.omitted(),
+                fileUri: uri,
+                charOffset: builder.charOffset,
                 instanceTypeVariableAccess:
                     //InstanceTypeVariableAccessState.Unexpected
                     declarationContext.instanceTypeVariableAccessState)
-              ..bind(new InvalidTypeDeclarationBuilder(
-                  builder.name,
-                  message.withLocation(
-                      uri, builder.charOffset, builder.name.length)));
+              ..bind(
+                  libraryBuilder,
+                  new InvalidTypeDeclarationBuilder(
+                      builder.name,
+                      message.withLocation(
+                          uri, builder.charOffset, builder.name.length)));
           }
         }
       }
@@ -3020,7 +3066,7 @@ class OutlineBuilder extends StackListenerImpl {
       // omitted only within an enum element declaration.
       if (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
           TypeParameterScopeKind.enumDeclaration) {
-        if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+        if (libraryFeatures.enhancedEnums.isEnabled) {
           push(libraryBuilder.addConstructorReference(
               libraryBuilder.currentTypeParameterScopeBuilder.name,
               typeArguments,
@@ -3030,13 +3076,8 @@ class OutlineBuilder extends StackListenerImpl {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.
           if (typeArguments != null || suffix != null) {
-            addProblem(
-                templateExperimentNotEnabled.withArguments(
-                    'enhanced-enums',
-                    libraryBuilder.enableEnhancedEnumsVersionInLibrary
-                        .toText()),
-                charOffset,
-                -1);
+            libraryBuilder.reportFeatureNotEnabled(
+                libraryFeatures.enhancedEnums, uri, charOffset, noLength);
           }
           push(NullValue.ConstructorReference);
         }
@@ -3145,13 +3186,8 @@ class OutlineBuilder extends StackListenerImpl {
   void endEnumFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("EnumFactoryMethod");
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
 
     _endFactoryMethod(beginToken, factoryKeyword, endToken);
   }
@@ -3159,13 +3195,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
 
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.enumMethod);
@@ -3183,13 +3214,9 @@ class OutlineBuilder extends StackListenerImpl {
       int count,
       Token beginToken,
       Token endToken) {
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
+
     endClassFields(
         abstractToken,
         augmentToken,
@@ -3206,13 +3233,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.enhancedEnums, beginToken.charOffset, noLength);
 
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.enumConstructor);
@@ -3227,7 +3249,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryBuilder.enableConstFunctionsInLibrary) {
+    if (!libraryFeatures.constFunctions.isEnabled) {
       handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
     }
   }
@@ -3289,51 +3311,94 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderList,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
 
     Object? mixins = pop();
     int extendsOffset = popCharOffset();
-    Object? supertype = pop();
+    Object? supertype = peek();
+    push(extendsOffset);
     if (supertype is ParserRecovery || mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      push(libraryBuilder.addMixinApplication(supertype as TypeBuilder?,
+      push(libraryBuilder.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
-    push(extendsOffset);
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
   }
 
   @override
   void handleClassNoWithClause() {
     debugEvent("ClassNoWithClause");
+    assert(checkState(null, [
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
+    push(NullValue.MixinApplicationBuilder);
+    assert(checkState(null, [
+      /* mixins */ ValueKinds.MixinApplicationBuilderOrNull,
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
   }
 
   @override
   void handleEnumWithClause(Token withKeyword) {
     debugEvent("EnumWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
 
-    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          withKeyword.charOffset,
-          -1);
-    }
+    reportIfNotEnabled(libraryFeatures.enhancedEnums, withKeyword.charOffset,
+        withKeyword.length);
 
     Object? mixins = pop();
     if (mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
       push(libraryBuilder.addMixinApplication(
-          libraryBuilder.loader.target.underscoreEnumType,
-          mixins as List<TypeBuilder>,
-          withKeyword.charOffset));
+          mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.MixinApplicationBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
   }
 
   @override
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
-    push(NullValue.TypeBuilder);
+    push(NullValue.MixinApplicationBuilder);
   }
 
   @override
@@ -3381,15 +3446,8 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void handleNewAsIdentifier(Token token) {
-    if (!libraryBuilder.enableConstructorTearOffsInLibrary) {
-      addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'constructor-tearoffs',
-              libraryBuilder.enableConstructorTearOffsVersionInLibrary
-                  .toText()),
-          token.charOffset,
-          token.length);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.constructorTearoffs, token.charOffset, token.length);
   }
 }
 

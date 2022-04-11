@@ -45,7 +45,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -86,7 +86,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -122,7 +122,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     // indicating this is not a valid (Dart) int.
     // https://github.com/dart-lang/sdk/issues/42786
 
-    newFile(mainFilePath);
+    newFile2(mainFilePath, '');
     await initialize();
 
     final request = makeRequest(
@@ -157,7 +157,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -191,7 +191,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -228,7 +228,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -249,7 +249,70 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  Future<void> test_snippetTextEdits_supported() async {
+  Future<void> test_snippetTextEdits_multiEditGroup() async {
+    // As test_snippetTextEdits_singleEditGroup, but uses an assist that
+    // produces multiple linked edit groups.
+
+    const content = '''
+    import 'package:flutter/widgets.dart';
+    build() {
+      return Container(
+        child: Ro^w(
+          children: [
+            Text('111'),
+            Text('222'),
+            Container(),
+          ],
+        ),
+      );
+    }
+    ''';
+
+    const expectedContent = r'''
+    import 'package:flutter/widgets.dart';
+    build() {
+      return Container(
+        child: ${1:widget}(
+          ${2:child}: Row(
+            children: [
+              Text('111'),
+              Text('222'),
+              Container(),
+            ],
+          ),
+        ),
+      );
+    }
+    ''';
+
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final assist = findEditAction(
+        codeActions,
+        CodeActionKind('refactor.flutter.wrap.generic'),
+        'Wrap with widget...')!;
+
+    // Ensure applying the changes will give us the expected content.
+    final edit = assist.edit!;
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, edit.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_snippetTextEdits_singleEditGroup() async {
     // This tests experimental support for including Snippets in TextEdits.
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
     //
@@ -273,8 +336,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     ''';
 
     // For testing, the snippet will be inserted literally into the text, as
-    // this requires some magic on the client. The expected text should therefore
-    // contain the snippets in the standard format.
+    // this requires some magic on the client. The expected text should
+    // therefore contain the snippets in the standard format.
     const expectedContent = r'''
     import 'package:flutter/widgets.dart';
     build() {
@@ -294,7 +357,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -358,7 +421,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -400,7 +463,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     build() => Contai^ner(child: Container());
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -424,6 +487,63 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
         'Remove this widget',
       ]),
     );
+  }
+
+  Future<void> test_surround_editGroupsAndSelection() async {
+    const content = '''
+void f() {
+  [[print(0);]]
+}
+''';
+
+    const expectedContent = r'''
+void f() {
+  if (${1:condition}) {
+    print(0);
+  }$0
+}
+''';
+
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('refactor.surround.if'), "Surround with 'if'")!;
+
+    // Ensure the edit came back, and using documentChanges.
+    final edit = assist.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, edit.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+
+    // Also ensure there was a single edit that was correctly marked
+    // as a SnippetTextEdit.
+    final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .map((edit) => edit.map(
+              (e) => e,
+              (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+              (e) => throw 'Expected SnippetTextEdit, got TextEdit',
+            ))
+        .toList();
+    expect(textEdits, hasLength(1));
+    expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
 
   List<TextDocumentEdit> _extractTextDocumentEdits(

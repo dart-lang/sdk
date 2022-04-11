@@ -32,7 +32,7 @@ flutter:
   }
 
   test_assetFieldNotList_noError() {
-    newFile('/sample/assets/my_icon.png');
+    newFile2('/sample/assets/my_icon.png', '');
     assertNoErrors('''
 name: sample
 flutter:

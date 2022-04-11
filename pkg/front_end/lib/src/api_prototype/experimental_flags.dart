@@ -50,8 +50,6 @@ class AllowedExperimentalFlags {
 bool isExperimentEnabled(ExperimentalFlag flag,
     {Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting}) {
-  assert(defaultExperimentalFlags.containsKey(flag),
-      "No default value for $flag.");
   bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
@@ -59,8 +57,8 @@ bool isExperimentEnabled(ExperimentalFlag flag,
   if (defaultExperimentFlagsForTesting != null) {
     enabled ??= defaultExperimentFlagsForTesting[flag];
   }
-  enabled ??= defaultExperimentalFlags[flag];
-  return enabled!;
+  enabled ??= flag.isEnabledByDefault;
+  return enabled;
 }
 
 /// Returns `true` if [flag] is enabled in the library with the [canonicalUri]
@@ -80,8 +78,6 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
     {Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     AllowedExperimentalFlags? allowedExperimentalFlags}) {
-  assert(defaultExperimentalFlags.containsKey(flag),
-      "No default value for $flag.");
   bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
@@ -89,8 +85,8 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
   if (defaultExperimentFlagsForTesting != null) {
     enabled ??= defaultExperimentFlagsForTesting[flag];
   }
-  enabled ??= defaultExperimentalFlags[flag];
-  if (!enabled!) {
+  enabled ??= flag.isEnabledByDefault;
+  if (!enabled) {
     allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
     Set<ExperimentalFlag>? allowedFlags;
     if (canonicalUri.isScheme('dart')) {
@@ -140,11 +136,11 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
   if (defaultExperimentFlagsForTesting != null) {
     enabledByDefault = defaultExperimentFlagsForTesting[flag];
   }
-  enabledByDefault ??= defaultExperimentalFlags[flag];
+  enabledByDefault ??= flag.isEnabledByDefault;
 
   bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
 
-  if (!enabledByDefault! ||
+  if (!enabledByDefault ||
       enabledExplicitly ||
       (allowedFlags != null && allowedFlags.contains(flag))) {
     // If the feature is not enabled by default or is enabled by the allowed
@@ -152,17 +148,18 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
     if (experimentReleasedVersionForTesting != null) {
       version = experimentReleasedVersionForTesting[flag];
     }
-    version ??= experimentReleasedVersion[flag];
+    version ??= flag.experimentReleasedVersion;
   } else {
     // If the feature is enabled by default and is not enabled by the allowed
     // list use the enabled version.
     if (experimentEnabledVersionForTesting != null) {
       version = experimentEnabledVersionForTesting[flag];
     }
-    version ??= experimentEnabledVersion[flag];
+    version ??= flag.experimentEnabledVersion;
   }
+  // ignore: unnecessary_null_comparison
   assert(version != null, "No version for enabling $flag in $canonicalUri.");
-  return version!;
+  return version;
 }
 
 bool isExperimentEnabledInLibraryByVersion(
@@ -172,14 +169,11 @@ bool isExperimentEnabledInLibraryByVersion(
     AllowedExperimentalFlags? allowedExperimentalFlags,
     Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
     Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting}) {
-  assert(defaultExperimentalFlags.containsKey(flag),
-      "No default value for $flag.");
-
   bool? enabledByDefault;
   if (defaultExperimentFlagsForTesting != null) {
     enabledByDefault = defaultExperimentFlagsForTesting[flag];
   }
-  enabledByDefault ??= defaultExperimentalFlags[flag];
+  enabledByDefault ??= flag.isEnabledByDefault;
 
   bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
 
@@ -203,7 +197,7 @@ bool isExperimentEnabledInLibraryByVersion(
     enabledByAllowed = allowedFlags.contains(flag);
   }
 
-  if (enabledByDefault! || enabledExplicitly || enabledByAllowed) {
+  if (enabledByDefault || enabledExplicitly || enabledByAllowed) {
     // The feature is enabled depending on the library language version.
     Version? enabledVersion;
     if (!enabledByDefault || enabledExplicitly || enabledByAllowed) {
@@ -212,18 +206,58 @@ bool isExperimentEnabledInLibraryByVersion(
       if (experimentReleasedVersionForTesting != null) {
         enabledVersion = experimentReleasedVersionForTesting[flag]!;
       }
-      enabledVersion ??= experimentReleasedVersion[flag];
+      enabledVersion ??= flag.experimentReleasedVersion;
     } else {
       // If the feature is enabled by default and is not enabled by the allowed
       // list use the enabled version.
       if (experimentEnabledVersionForTesting != null) {
         enabledVersion = experimentEnabledVersionForTesting[flag];
       }
-      enabledVersion ??= experimentEnabledVersion[flag];
+      enabledVersion ??= flag.experimentEnabledVersion;
     }
-    return version >= enabledVersion!;
+    return version >= enabledVersion;
   } else {
     // The feature is not enabled, regardless of library language version.
     return false;
   }
+}
+
+/// Common interface for the state of an experimental feature.
+abstract class ExperimentalFeature {
+  /// The flag for the experimental feature.
+  final ExperimentalFlag flag;
+
+  ExperimentalFeature(this.flag);
+
+  /// `true` if this feature is enabled.
+  bool get isEnabled;
+}
+
+/// The global state of an experimental feature.
+class GlobalFeature extends ExperimentalFeature {
+  @override
+  final bool isEnabled;
+
+  GlobalFeature(ExperimentalFlag flag, this.isEnabled) : super(flag);
+}
+
+/// The state of an experimental feature within a specific library.
+class LibraryFeature extends ExperimentalFeature {
+  /// `true` if this feature is supported in the library as defined by the
+  /// default language version for its containing package/sdk.
+  ///
+  /// The feature might still not be enabled if the language version of the
+  /// library itself is below the [enabledVersion] for the feature in the
+  /// containing package/sdk.
+  final bool isSupported;
+
+  @override
+  final bool isEnabled;
+
+  /// The minimum language version for enabling this feature in this library.
+  final Version enabledVersion;
+
+  LibraryFeature(ExperimentalFlag flag, this.isSupported, this.enabledVersion,
+      this.isEnabled)
+      : super(flag);
 }

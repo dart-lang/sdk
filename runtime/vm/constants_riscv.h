@@ -387,8 +387,9 @@ struct DispatchTableNullErrorABI {
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 
-#define R(REG) (1 << REG)
+#define R(reg) (static_cast<RegList>(1) << (reg))
 
 // C++ ABI call registers.
 
@@ -425,16 +426,6 @@ constexpr int kAbiPreservedFpuRegCount = 12;
 constexpr intptr_t kReservedFpuRegisters = 0;
 constexpr intptr_t kNumberOfReservedFpuRegisters = 0;
 
-// Two callee save scratch registers used by leaf runtime call sequence.
-constexpr Register kCallLeafRuntimeCalleeSaveScratch1 = CALLEE_SAVED_TEMP;
-constexpr Register kCallLeafRuntimeCalleeSaveScratch2 = CALLEE_SAVED_TEMP2;
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch1) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch2) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
-
 constexpr int kStoreBufferWrapperSize = 26;
 
 class CallingConventions {
@@ -460,7 +451,7 @@ class CallingConventions {
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
-      kAlignedToValueSize;
+      kAlignedToWordSize;
 
   // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
@@ -1418,6 +1409,11 @@ static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
 
 #undef R
+
+inline Register ConcreteRegister(Register r) {
+  return r;
+}
+#define LINK_REGISTER RA
 
 }  // namespace dart
 

@@ -86,7 +86,7 @@ Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     {List<String> additionalDills: const []}) async {
-  MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
+  MemoryFileSystem fs = createMemoryFileSystem();
   sources.forEach((name, data) {
     MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
     if (data is String) {
@@ -113,6 +113,8 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   }
 }
+
+MemoryFileSystem createMemoryFileSystem() => new MemoryFileSystem(_defaultDir);
 
 const String _testUriScheme = 'org-dartlang-test';
 

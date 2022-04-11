@@ -493,6 +493,17 @@ class ArgumentsImpl extends Arguments {
 
   List<Object?>? argumentsOriginalOrder;
 
+  /// True if the arguments are passed to the super-constructor in a
+  /// super-initializer, and the positional parameters are super-initializer
+  /// parameters. It is true that either all of the positional parameters are
+  /// super-initializer parameters or none of them, so a simple boolean
+  /// accurately reflects the state.
+  bool positionalAreSuperParameters = false;
+
+  /// Names of the named positional parameters. If none of the parameters are
+  /// super-positional, the field is null.
+  Set<String>? namedSuperParameterNames;
+
   ArgumentsImpl.internal(
       {required List<Expression> positional,
       required List<DartType>? types,
@@ -1011,7 +1022,7 @@ Expression? checkWebIntLiteralsErrorIfUnexact(
     TypeInferrerImpl inferrer, int value, String? literal, int charOffset) {
   if (value >= 0 && value <= (1 << 53)) return null;
   if (inferrer.isTopLevel) return null;
-  if (!inferrer.library.loader.target.backendTarget
+  if (!inferrer.libraryBuilder.loader.target.backendTarget
       .errorOnUnexactWebIntLiterals) return null;
   BigInt asInt = new BigInt.from(value).toUnsigned(64);
   BigInt asDouble = new BigInt.from(asInt.toDouble());

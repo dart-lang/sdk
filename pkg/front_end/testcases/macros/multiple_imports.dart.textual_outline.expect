@@ -1,0 +1,5 @@
+@Const(2)
+import 'dart:async';
+@Const(3)
+import augment 'multiple_imports_lib.dart';
+FutureOr<void> main() {}

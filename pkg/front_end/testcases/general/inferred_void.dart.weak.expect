@@ -8,7 +8,7 @@ static field void v2 = self::method();
 static field core::List<void> l1 = <void>[self::method()];
 static field core::List<void> l2 = <void>[self::method()];
 static method method() → void {}
-static method test(core::Iterable<void> iterable, asy::Stream<void> stream) → dynamic async {
+static method test(core::Iterable<void> iterable, asy::Stream<void> stream) → dynamic async /* futureValueType= dynamic */ {
   void v1 = self::method();
   void v2 = self::method();
   for (void v3 in iterable) {

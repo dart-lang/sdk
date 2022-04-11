@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
@@ -4400,15 +4401,15 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The native entry frame has size -kExitLinkSlotFromFp. In order to access
-  // the top of stack from above the entry frame, we add a constant to account
-  // for the two frame pointers and two return addresses of the entry frame.
-  constexpr intptr_t kEntryFramePadding = 4;
-  compiler::ffi::FrameRebase rebase(
-      compiler->zone(),
-      /*old_base=*/SPREG, /*new_base=*/FPREG,
-      (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
-          compiler::target::kWordSize);
+  // There are two frames between SaveArguments and the NativeParameterInstr
+  // moves.
+  constexpr intptr_t delta =
+      kCallerSpSlotFromFp          // second frame FP to exit link slot
+      + -kExitLinkSlotFromEntryFp  // exit link slot to first frame FP
+      + kCallerSpSlotFromFp;       // first frame FP to argument save SP
+  compiler::ffi::FrameRebase rebase(compiler->zone(),
+                                    /*old_base=*/SPREG, /*new_base=*/FPREG,
+                                    delta * compiler::target::kWordSize);
   const auto& location =
       marshaller_.NativeLocationOfNativeParameter(def_index_);
   const auto& src =
@@ -5273,11 +5274,35 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
     return CanonicalizeStringInterpolateSingle(this, flow_graph);
   }
 
+  const auto kind = function().recognized_kind();
+
+  if (kind != MethodRecognizer::kUnknown) {
+    if (ArgumentCount() == 1) {
+      const auto argument = ArgumentValueAt(0);
+      if (argument->BindsToConstant()) {
+        Object& result = Object::Handle();
+        if (Evaluate(flow_graph, argument->BoundConstant(), &result)) {
+          return flow_graph->TryCreateConstantReplacementFor(this, result);
+        }
+      }
+    } else if (ArgumentCount() == 2) {
+      const auto argument1 = ArgumentValueAt(0);
+      const auto argument2 = ArgumentValueAt(1);
+      if (argument1->BindsToConstant() && argument2->BindsToConstant()) {
+        Object& result = Object::Handle();
+        if (Evaluate(flow_graph, argument1->BoundConstant(),
+                     argument2->BoundConstant(), &result)) {
+          return flow_graph->TryCreateConstantReplacementFor(this, result);
+        }
+      }
+    }
+  }
+
   if (!compiler_state.is_aot()) {
     return this;
   }
 
-  if (function().recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
+  if (kind == MethodRecognizer::kObjectRuntimeType) {
     if (input_use_list() == NULL) {
       // This function has only environment uses. In precompiled mode it is
       // fine to remove it - because we will never deoptimize.
@@ -5286,6 +5311,68 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   return this;
+}
+
+bool StaticCallInstr::Evaluate(FlowGraph* flow_graph,
+                               const Object& argument,
+                               Object* result) {
+  const auto kind = function().recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kSmi_bitLength: {
+      ASSERT(FirstArgIndex() == 0);
+      if (argument.IsInteger()) {
+        const Integer& value = Integer::Handle(
+            flow_graph->zone(),
+            Evaluator::BitLengthEvaluate(argument, representation(),
+                                         flow_graph->thread()));
+        if (!value.IsNull()) {
+          *result = value.ptr();
+          return true;
+        }
+      }
+      break;
+    }
+    case MethodRecognizer::kStringBaseLength:
+    case MethodRecognizer::kStringBaseIsEmpty: {
+      ASSERT(FirstArgIndex() == 0);
+      if (argument.IsString()) {
+        const auto& str = String::Cast(argument);
+        if (kind == MethodRecognizer::kStringBaseLength) {
+          *result = Integer::New(str.Length());
+        } else {
+          *result = Bool::Get(str.Length() == 0).ptr();
+          break;
+        }
+        return true;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return false;
+}
+
+bool StaticCallInstr::Evaluate(FlowGraph* flow_graph,
+                               const Object& argument1,
+                               const Object& argument2,
+                               Object* result) {
+  const auto kind = function().recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kOneByteString_equality:
+    case MethodRecognizer::kTwoByteString_equality: {
+      if (argument1.IsString() && argument2.IsString()) {
+        *result =
+            Bool::Get(String::Cast(argument1).Equals(String::Cast(argument2)))
+                .ptr();
+        return true;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return false;
 }
 
 LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
@@ -6407,26 +6494,21 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
 LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     Zone* zone,
     bool is_optimizing,
-    const Register temp) const {
-  // The temporary register needs to be callee-saved and not an argument
-  // register.
-  ASSERT(((1 << CallingConventions::kFfiAnyNonAbiRegister) &
-          CallingConventions::kArgumentRegisters) == 0);
+    const RegList temps) const {
+  auto contains_call =
+      is_leaf_ ? LocationSummary::kNativeLeafCall : LocationSummary::kCall;
 
-  // TODO(dartbug.com/45468): Investigate whether we can avoid spilling
-  // registers across ffi leaf calls by not using `kCall` here.
   LocationSummary* summary = new (zone) LocationSummary(
       zone, /*num_inputs=*/InputCount(),
-      /*num_temps=*/temp == kNoRegister ? 2 : 3, LocationSummary::kCall);
+      /*num_temps=*/Utils::CountOneBitsWord(temps), contains_call);
 
-  const Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
-  const Register temp1 = CallingConventions::kSecondNonArgumentRegister;
-  ASSERT(temp0 != temp1);
-  summary->set_temp(0, Location::RegisterLocation(temp0));
-  summary->set_temp(1, Location::RegisterLocation(temp1));
-
-  if (temp != kNoRegister) {
-    summary->set_temp(2, Location::RegisterLocation(temp));
+  intptr_t reg_i = 0;
+  for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+    if ((temps & (1 << reg)) != 0) {
+      summary->set_temp(reg_i,
+                        Location::RegisterLocation(static_cast<Register>(reg)));
+      reg_i++;
+    }
   }
 
   summary->set_in(TargetAddressIndex(),
@@ -6437,10 +6519,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
   }
 
   if (marshaller_.PassTypedData()) {
-    // The register allocator already preserves this value across the call on
-    // a stack slot, so we'll use the spilled value directly.
-    summary->set_in(TypedDataIndex(), Location::RequiresStackSlot());
-
+    summary->set_in(TypedDataIndex(), Location::Any());
     // We don't care about return location, but we need to pass a register.
     summary->set_out(
         0, Location::RegisterLocation(CallingConventions::kReturnReg));
@@ -6567,13 +6646,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
                                    const Register temp0,
                                    const Register temp1) {
-  __ Comment("EmitReturnMoves");
-
   const auto& returnLocation =
       marshaller_.Location(compiler::ffi::kResultIndex);
   if (returnLocation.payload_type().IsVoid()) {
     return;
   }
+
+  __ Comment("EmitReturnMoves");
 
   NoTemporaryAllocator no_temp;
   if (returnLocation.IsRegisters() || returnLocation.IsFpuRegisters()) {
@@ -6588,14 +6667,20 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
 
     // Get the typed data pointer which we have pinned to a stack slot.
     const Location typed_data_loc = locs()->in(TypedDataIndex());
-    ASSERT(typed_data_loc.IsStackSlot());
-    ASSERT(typed_data_loc.base_reg() == FPREG);
-    // If this is a leaf call there is no extra call frame to step through.
-    if (is_leaf_) {
-      __ LoadMemoryValue(temp0, FPREG, typed_data_loc.ToStackSlotOffset());
+    if (typed_data_loc.IsStackSlot()) {
+      ASSERT(typed_data_loc.base_reg() == FPREG);
+      // If this is a leaf call there is no extra call frame to step through.
+      if (is_leaf_) {
+        __ LoadMemoryValue(temp0, FPREG, typed_data_loc.ToStackSlotOffset());
+      } else {
+        __ LoadMemoryValue(
+            temp0, FPREG,
+            kSavedCallerFpSlotFromFp * compiler::target::kWordSize);
+        __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+      }
     } else {
-      __ LoadMemoryValue(temp0, FPREG, 0);
-      __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+      compiler->EmitMove(Location::RegisterLocation(temp0), typed_data_loc,
+                         &no_temp);
     }
     __ LoadField(temp0,
                  compiler::FieldAddress(
@@ -6863,6 +6948,11 @@ Representation FfiCallInstr::representation() const {
   return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 
+// TODO(http://dartbug.com/48543): integrate with register allocator directly.
+DEFINE_BACKEND(LoadThread, (Register out)) {
+  __ MoveRegister(out, THR);
+}
+
 // SIMD
 
 SimdOpInstr::Kind SimdOpInstr::KindForOperator(MethodRecognizer::Kind kind) {
@@ -7038,12 +7128,10 @@ static const Representation kUnboxedInt8 = kUnboxedInt32;
 
 // Define the metadata array.
 static const SimdOpInfo simd_op_information[] = {
-#define PP_APPLY(M, Args) M Args
 #define CASE(Arity, Mask, Name, Args, Result)                                  \
   {Arity, HAS_##Mask, REP(Result), {PP_APPLY(ENCODE_INPUTS_##Arity, Args)}},
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE
-#undef PP_APPLY
 };
 
 // Undef all auxiliary macros.

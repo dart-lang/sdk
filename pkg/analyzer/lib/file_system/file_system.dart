@@ -156,6 +156,11 @@ abstract class Resource {
 
   /// Return the [Folder] that contains this resource, possibly itself if this
   /// resource is a root folder.
+  Folder get parent;
+
+  /// Return the [Folder] that contains this resource, possibly itself if this
+  /// resource is a root folder.
+  @Deprecated('Use parent instead')
   Folder get parent2;
 
   /// Return the full path to this resource.
@@ -262,7 +267,7 @@ extension FolderExtension on Folder {
       if (current.isRoot) {
         break;
       }
-      current = current.parent2;
+      current = current.parent;
     }
   }
 }

@@ -29,16 +29,13 @@ import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../ir/static_type_cache.dart';
-import '../ir/scope.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
-import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/locals.dart';
-import '../kernel/kernel_strategy.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -58,6 +55,9 @@ class KernelToElementMap implements IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
+  final NativeBasicDataBuilder nativeBasicDataBuilder =
+      NativeBasicDataBuilder();
+  NativeBasicData _nativeBasicData;
   KCommonElements _commonElements;
   KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
@@ -101,12 +101,10 @@ class KernelToElementMap implements IrToElementMap {
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   BehaviorBuilder _nativeBehaviorBuilder;
-  final KernelFrontendStrategy _frontendStrategy;
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 
-  KernelToElementMap(
-      this.reporter, this._environment, this._frontendStrategy, this.options) {
+  KernelToElementMap(this.reporter, this._environment, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
@@ -505,7 +503,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Returns the [DartType] corresponding to [type].
   @override
-  DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+  DartType getDartType(ir.DartType type) => _typeConverter.visitType(type);
 
   /// Returns the [TypeVariableType] corresponding to [type].
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
@@ -521,7 +519,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.convert(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability;
 
   /// Returns the [FunctionType] of the [node].
   @override
@@ -1422,7 +1420,16 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// NativeBasicData is need for computation of the default super class.
-  NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
+  NativeBasicData get nativeBasicData {
+    if (_nativeBasicData == null) {
+      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+      assert(
+          _nativeBasicData != null,
+          failedAt(NO_LOCATION_SPANNABLE,
+              "NativeBasicData has not been computed yet."));
+    }
+    return _nativeBasicData;
+  }
 
   /// Adds libraries in [component] to the set of libraries.
   ///
@@ -1436,49 +1443,27 @@ class KernelToElementMap implements IrToElementMap {
       _nativeBehaviorBuilder ??= BehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(KMember member,
-      VariableScopeModel variableScopeModel, Set<PragmaAnnotation> annotations,
-      {ImpactBuilderData impactBuilderData}) {
+  ResolutionImpact computeWorldImpact(
+      KMember member, ImpactBuilderData impactBuilderData) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
-    if (impactBuilderData != null) {
-      if (impactBuilderData.typeMapsForTesting != null) {
-        typeMapsForTesting ??= {};
-        typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
-      }
-      ImpactData impactData = impactBuilderData.impactData;
-      memberData.staticTypes = impactBuilderData.cachedStaticTypes;
-      KernelImpactConverter converter = KernelImpactConverter(
-          this,
-          member,
-          reporter,
-          options,
-          _constantValuefier,
-          // TODO(johnniwinther): Pull the static type context from the cached
-          // static types.
-          ir.StaticTypeContext(node, typeEnvironment));
-      return converter.convert(impactData);
-    } else {
-      StaticTypeCacheImpl staticTypeCache = StaticTypeCacheImpl();
-      KernelImpactBuilder builder = KernelImpactBuilder(
-          this,
-          member,
-          reporter,
-          options,
-          ir.StaticTypeContext(node, typeEnvironment, cache: staticTypeCache),
-          staticTypeCache,
-          variableScopeModel,
-          annotations,
-          _constantValuefier);
-      if (retainDataForTesting) {
-        typeMapsForTesting ??= {};
-        typeMapsForTesting[member] = builder.typeMapsForTesting = {};
-      }
-      node.accept(builder);
-      memberData.staticTypes = builder.getStaticTypeCache();
-      return builder.impactBuilder;
+    if (impactBuilderData.typeMapsForTesting != null) {
+      typeMapsForTesting ??= {};
+      typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
     }
+    ImpactData impactData = impactBuilderData.impactData;
+    memberData.staticTypes = impactBuilderData.cachedStaticTypes;
+    KernelImpactConverter converter = KernelImpactConverter(
+        this,
+        member,
+        reporter,
+        options,
+        _constantValuefier,
+        // TODO(johnniwinther): Pull the static type context from the cached
+        // static types.
+        ir.StaticTypeContext(node, typeEnvironment));
+    return converter.convert(impactData);
   }
 
   StaticTypeCache getCachedStaticTypes(KMember member) {

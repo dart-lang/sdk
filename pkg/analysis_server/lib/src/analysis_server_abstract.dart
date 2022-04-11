@@ -229,8 +229,13 @@ abstract class AbstractAnalysisServer {
   }
 
   /// The list of current analysis sessions in all contexts.
-  List<AnalysisSession> get currentSessions {
-    return driverMap.values.map((driver) => driver.currentSession).toList();
+  Future<List<AnalysisSession>> get currentSessions async {
+    var sessions = <AnalysisSession>[];
+    for (var driver in driverMap.values) {
+      await driver.applyPendingFileChanges();
+      sessions.add(driver.currentSession);
+    }
+    return sessions;
   }
 
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
@@ -293,6 +298,18 @@ abstract class AbstractAnalysisServer {
           .firstWhereOrNull((driver) => driver.knownFiles.contains(path));
       driver ??= drivers.first;
       return driver;
+    }
+    return null;
+  }
+
+  /// Return an [AnalysisSession] in which the file with the given [path]
+  /// should be analyzed, preferring the one in which it is analyzed, then
+  /// the one where it is referenced, then the first, otherwise `null`.
+  Future<AnalysisSession?> getAnalysisSession(String path) async {
+    var analysisDriver = getAnalysisDriver(path);
+    if (analysisDriver != null) {
+      await analysisDriver.applyPendingFileChanges();
+      return analysisDriver.currentSession;
     }
     return null;
   }
@@ -390,13 +407,20 @@ abstract class AbstractAnalysisServer {
   }
 
   /// Return the unresolved unit for the file with the given [path].
-  ParsedUnitResult? getParsedUnit(String path) {
+  ///
+  /// Callers should handle [InconsistentAnalysisException] exceptions that may
+  /// occur if a file is modified during this operation.
+  Future<ParsedUnitResult?> getParsedUnit(String path) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
-    var session = getAnalysisDriver(path)?.currentSession;
-    var result = session?.getParsedUnit(path);
+    var session = await getAnalysisSession(path);
+    if (session == null) {
+      return null;
+    }
+
+    var result = session.getParsedUnit(path);
     return result is ParsedUnitResult ? result : null;
   }
 
@@ -463,11 +487,11 @@ abstract class AbstractAnalysisServer {
     await contextManager.refresh();
   }
 
-  ResolvedForCompletionResultImpl? resolveForCompletion({
+  Future<ResolvedForCompletionResultImpl?> resolveForCompletion({
     required String path,
     required int offset,
     required OperationPerformanceImpl performance,
-  }) {
+  }) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
@@ -478,6 +502,7 @@ abstract class AbstractAnalysisServer {
     }
 
     try {
+      await driver.applyPendingFileChanges();
       return driver.resolveForCompletion(
         path: path,
         offset: offset,

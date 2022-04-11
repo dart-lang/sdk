@@ -4,52 +4,39 @@
 
 part of 'serialization.dart';
 
-/// [DataSink] that writes to a list of objects, useful for debugging
+/// [DataSinkWriter] that writes to a list of objects, useful for debugging
 /// inconsistencies between serialization and deserialization.
 ///
-/// This data sink works together with [ObjectSource].
-class ObjectSink extends AbstractDataSink {
+/// This data sink writer works together with [ObjectDataSource].
+class ObjectDataSink implements DataSink {
   List<dynamic> _data;
 
-  ObjectSink(this._data,
-      {bool useDataKinds,
-      Map<String, int> tagFrequencyMap,
-      DataSourceIndices importedIndices})
-      : super(
-            useDataKinds: useDataKinds,
-            tagFrequencyMap: tagFrequencyMap,
-            importedIndices: importedIndices);
+  ObjectDataSink(this._data);
 
   @override
-  void _begin(String tag) {
+  void beginTag(String tag) {
     _data.add(Tag('begin:$tag'));
   }
 
   @override
-  void _end(String tag) {
+  void endTag(String tag) {
     _data.add(Tag('end:$tag'));
   }
 
   @override
-  void _writeEnumInternal(dynamic value) {
+  void writeEnum(dynamic value) {
     assert(value != null);
     _data.add(value);
   }
 
   @override
-  void _writeIntInternal(int value) {
+  void writeInt(int value) {
     assert(value != null);
     _data.add(value);
   }
 
   @override
-  void _writeStringInternal(String value) {
-    assert(value != null);
-    _data.add(value);
-  }
-
-  @override
-  void _writeUriInternal(Uri value) {
+  void writeString(String value) {
     assert(value != null);
     _data.add(value);
   }

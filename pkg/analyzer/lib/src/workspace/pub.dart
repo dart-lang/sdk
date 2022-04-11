@@ -7,15 +7,13 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
 /// Information about a Pub workspace.
 class PubWorkspace extends SimpleWorkspace {
-  /// The name of the file that identifies the root of the workspace.
-  static const String _pubspecName = 'pubspec.yaml';
-
   /// The singular package in this workspace.
   ///
   /// Each Pub workspace is itself one package.
@@ -68,7 +66,7 @@ class PubWorkspace extends SimpleWorkspace {
   ) {
     var start = provider.getFolder(filePath);
     for (var current in start.withAncestors) {
-      var pubspec = current.getChildAssumingFile(_pubspecName);
+      var pubspec = current.getChildAssumingFile(file_paths.pubspecYaml);
       if (pubspec.exists) {
         var root = current.path;
         return PubWorkspace._(provider, packageMap, root, pubspec);

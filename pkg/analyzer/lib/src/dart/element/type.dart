@@ -40,7 +40,7 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -82,15 +82,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   final NullabilitySuffix nullabilitySuffix;
 
   FunctionTypeImpl({
-    required List<TypeParameterElement> typeFormals,
+    required this.typeFormals,
     required List<ParameterElement> parameters,
-    required DartType returnType,
-    required NullabilitySuffix nullabilitySuffix,
+    required this.returnType,
+    required this.nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
-  })  : typeFormals = typeFormals,
-        parameters = _sortNamedParameters(parameters),
-        returnType = returnType,
-        nullabilitySuffix = nullabilitySuffix,
+  })  : parameters = _sortNamedParameters(parameters),
         super(null, alias: alias);
 
   @override
@@ -921,7 +918,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   String get name => 'Never';
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -1046,7 +1043,7 @@ abstract class TypeImpl implements DartType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  InterfaceType? asInstanceOf(ClassElement element) => null;
+  InterfaceType? asInstanceOf(ClassElement targetElement) => null;
 
   @override
   String getDisplayString({
@@ -1195,8 +1192,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  InterfaceType? asInstanceOf(ClassElement element) {
-    return bound.asInstanceOf(element);
+  InterfaceType? asInstanceOf(ClassElement targetElement) {
+    return bound.asInstanceOf(targetElement);
   }
 
   @override
@@ -1264,7 +1261,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {

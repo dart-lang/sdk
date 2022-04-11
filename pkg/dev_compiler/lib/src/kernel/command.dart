@@ -177,7 +177,7 @@ Future<CompilerResult> _compile(List<String> args,
 
   Uri toCustomUri(Uri uri) {
     if (!uri.hasScheme) {
-      return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
+      return Uri(scheme: options.multiRootScheme, path: '/${uri.path}');
     }
     return uri;
   }
@@ -381,7 +381,7 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       component.unbindCanonicalNames();
     }
-    var sink = File(p.withoutExtension(outPaths.first) + '.dill').openWrite();
+    var sink = File('${p.withoutExtension(outPaths.first)}.dill').openWrite();
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
@@ -404,7 +404,7 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       compiledLibraries.unbindCanonicalNames();
     }
-    fullDillUri = p.withoutExtension(outPaths.first) + '.full.dill';
+    fullDillUri = '${p.withoutExtension(outPaths.first)}.full.dill';
     var sink = File(fullDillUri).openWrite();
     kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
@@ -418,8 +418,8 @@ Future<CompilerResult> _compile(List<String> args,
     }
     var sb = StringBuffer();
     kernel.Printer(sb).writeComponentFile(component);
-    outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
-    outFiles.add(File(outPaths.first.split('.')[0] + '.ast.xml')
+    outFiles.add(File('${outPaths.first}.txt').writeAsString(sb.toString()));
+    outFiles.add(File('${outPaths.first.split('.')[0]}.ast.xml')
         .writeAsString(DebugPrinter.prettyPrint(compiledLibraries)));
   }
 
@@ -583,7 +583,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri(output + '.map').toString(),
+        mapUrl: p.toUri('$output.map').toString(),
         customScheme: options.multiRootScheme,
         multiRootOutputPath: options.multiRootOutputPath,
         component: component);
@@ -591,7 +591,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
   }
   await Future.wait(outFiles);

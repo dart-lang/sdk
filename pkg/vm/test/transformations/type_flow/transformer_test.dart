@@ -56,7 +56,7 @@ runTestCase(
   if (dependencies.isNotEmpty) {
     for (var lib in dependencies) {
       lib.name ??= lib.importUri.pathSegments.last;
-      actual += kernelLibraryToString(lib);
+      actual += kernelLibraryToString(lib, removeSelectorIds: true);
     }
     // Remove library paths.
     actual = actual.replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');

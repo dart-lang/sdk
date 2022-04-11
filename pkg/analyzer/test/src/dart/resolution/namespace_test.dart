@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ImportResolutionTest extends PubPackageResolutionTest {
   test_overrideCoreType_Never() async {
-    newFile('$testPackageLibPath/declares_never.dart', content: '''
+    newFile2('$testPackageLibPath/declares_never.dart', '''
 class Never {}
 ''');
     await assertNoErrorsInCode(r'''

@@ -55,9 +55,9 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<SomeErrorsResult> getErrors(String path) {
+  Future<SomeErrorsResult> getErrors(String path) async {
     _checkConsistency();
-    return _driver.getErrors(path);
+    return await _driver.getErrors(path);
   }
 
   @override
@@ -67,9 +67,9 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<SomeLibraryElementResult> getLibraryByUri(String uri) {
+  Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
     _checkConsistency();
-    return _driver.getLibraryByUri(uri);
+    return await _driver.getLibraryByUri(uri);
   }
 
   @override
@@ -96,30 +96,28 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
     _checkConsistency();
-    return _driver.getResolvedLibrary(path);
+    return await _driver.getResolvedLibrary(path);
   }
 
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
     LibraryElement element,
-  ) {
+  ) async {
     _checkConsistency();
 
     if (element.session != this) {
-      return Future.value(
-        NotElementOfThisSessionResult(),
-      );
+      return NotElementOfThisSessionResult();
     }
 
-    return _driver.getResolvedLibraryByUri(element.source.uri);
+    return await _driver.getResolvedLibraryByUri(element.source.uri);
   }
 
   @override
-  Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
     _checkConsistency();
-    return _driver.getResult(path);
+    return await _driver.getResult(path);
   }
 
   @override

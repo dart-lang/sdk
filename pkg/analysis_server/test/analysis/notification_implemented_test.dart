@@ -5,11 +5,11 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
+class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
   List<ImplementedClass>? implementedClasses;
   List<ImplementedMember>? implementedMembers;
 
@@ -85,8 +85,8 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   /// Subscribe for `IMPLEMENTED` and wait for the notification.
-  Future prepareImplementedElements() {
-    subscribeForImplemented();
+  Future<void> prepareImplementedElements() async {
+    await subscribeForImplemented();
     return waitForImplementedElements();
   }
 
@@ -94,7 +94,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
       var params = AnalysisImplementedParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         implementedClasses = params.classes;
         implementedMembers = params.members;
       }
@@ -104,12 +104,12 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  void subscribeForImplemented() {
+  Future<void> subscribeForImplemented() async {
     setPriorityFiles([testFile]);
-    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
+    await addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -120,25 +120,6 @@ class B extends A {}
     await waitForTasksFinished();
     await prepareImplementedElements();
     assertHasImplementedClass('A {');
-  }
-
-  Future<void> test_afterIncrementalResolution() async {
-    subscribeForImplemented();
-    addTestFile('''
-class A {}
-class B extends A {}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedClass('A {');
-    // add a space
-    implementedClasses = null;
-    testCode = '''
-class A  {}
-class B extends A {}
-''';
-    server.updateContent('1', {testFile: AddContentOverlay(testCode)});
-    await waitForImplementedElements();
-    assertHasImplementedClass('A  {');
   }
 
   Future<void> test_class_extended() async {
@@ -365,7 +346,7 @@ class C extends A {
   }
 
   Future<void> test_method_withMethod_private_differentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 import 'test.dart';
 class B extends A {
   void _m() {}

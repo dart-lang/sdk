@@ -75,6 +75,34 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(0));
   }
 
+  Future<void> test_constructor() async {
+    final contents = '''
+f() {
+  final a = A^();
+}
+
+class A {
+  [[A]]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_named() async {
+    final contents = '''
+f() {
+  final a = A.named^();
+}
+
+class A {
+  A.[[named]]();
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_fromPlugins() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
@@ -87,7 +115,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     );
     configureTestPlugin(respondWith: pluginResult);
 
-    newFile(pluginAnalyzedFilePath);
+    newFile2(pluginAnalyzedFilePath, '');
     await initialize();
     final res = await getDefinitionAsLocation(
         pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
@@ -100,6 +128,16 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
             start: lsp.Position(line: 0, character: 0),
             end: lsp.Position(line: 0, character: 5))));
     expect(loc.uri, equals(pluginAnalyzedFileUri.toString()));
+  }
+
+  Future<void> test_function() async {
+    final contents = '''
+[[foo]]() {
+  fo^o();
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_locationLink_field() async {
@@ -189,7 +227,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
@@ -248,54 +286,33 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_sameLine() async {
     final contents = '''
-    int plusOne(int [[value]]) => 1 + val^ue;
-    ''';
+int plusOne(int [[value]]) => 1 + val^ue;
+''';
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(contents));
-
-    expect(res, hasLength(1));
-    var loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
+    await testContents(contents);
   }
 
-  Future<void> test_singleFile() async {
+  Future<void> test_type() async {
     final contents = '''
-    [[foo]]() {
-      fo^o();
-    }
-    ''';
+f() {
+  final a = A^;
+}
 
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(contents));
+class [[A]] {}
+''';
 
-    expect(res, hasLength(1));
-    var loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
+    await testContents(contents);
   }
 
   Future<void> test_unopenFile() async {
     final contents = '''
-    [[foo]]() {
-      fo^o();
-    }
-    ''';
+[[foo]]() {
+  fo^o();
+}
+''';
 
-    newFile(mainFilePath, content: withoutMarkers(contents));
-    await initialize();
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(contents));
-
-    expect(res, hasLength(1));
-    var loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
+    newFile2(mainFilePath, withoutMarkers(contents));
+    await testContents(contents, inOpenFile: false);
   }
 
   Future<void> test_varKeyword() async {
@@ -305,8 +322,16 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     class [[MyClass]] {}
     ''';
 
+    await testContents(contents);
+  }
+
+  /// Expects definitions at the location of `^` in [contents] will navigate to
+  /// the range in `[[` brackets `]]` in `[contents].
+  Future<void> testContents(String contents, {bool inOpenFile = true}) async {
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
+    if (inOpenFile) {
+      await openFile(mainFileUri, withoutMarkers(contents));
+    }
     final res = await getDefinitionAsLocation(
         mainFileUri, positionFromMarker(contents));
 

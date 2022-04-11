@@ -1705,43 +1705,64 @@ class Wrong<T> {
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     Expression expression = parseStringLiteral("'\\u{'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 3)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 3)
+    ]);
+  }
+
+  void test_invalidUnicodeEscape_incomplete_noDigits_noBracket() {
+    Expression expression = parseStringLiteral("'\\u'");
+    expectNotNullIfNoErrors(expression);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED, 1, 2)
+    ]);
   }
 
   void test_invalidUnicodeEscape_incomplete_someDigits() {
     Expression expression = parseStringLiteral("'\\u{0A'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 5)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 5)
+    ]);
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
     Expression expression = parseStringLiteral("'\\u0 and some more'");
     expectNotNullIfNoErrors(expression);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET, 1, 3)
+    ]);
+  }
+
+  void test_invalidUnicodeEscape_too_high_number_variable() {
+    Expression expression = parseStringLiteral("'\\u{110000}'");
+    expectNotNullIfNoErrors(expression);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 3)]);
+        [expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 9)]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_fixed() {
     Expression expression = parseStringLiteral("'\\u04'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 4)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET, 1, 4)
+    ]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_variable() {
     Expression expression = parseStringLiteral("'\\u{}'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 4)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 4)
+    ]);
   }
 
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
-    Expression expression = parseStringLiteral("'\\u{12345678}'");
+    Expression expression = parseStringLiteral("'\\u{0000000001}'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 9)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 9)
+    ]);
   }
 
   void test_libraryDirectiveNotFirst() {

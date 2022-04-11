@@ -58,13 +58,13 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   void writeAbstractValueToDataSink(
-      DataSink sink, covariant WrappedAbstractValue value) {
+      DataSinkWriter sink, covariant WrappedAbstractValue value) {
     _abstractValueDomain.writeAbstractValueToDataSink(
         sink, value._abstractValue);
   }
 
   @override
-  AbstractValue readAbstractValueFromDataSource(DataSource source) =>
+  AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>
       WrappedAbstractValue(
           _abstractValueDomain.readAbstractValueFromDataSource(source));
 

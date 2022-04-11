@@ -2,5 +2,5 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return block {
-    final dart.core::List<dart.core::String*>* #t1 = dart.core::List::of<dart.core::String*>(main::listOfStrings);
+    final dart.core::List<dart.core::String> #t1 = dart.core::List::of<dart.core::String>(#lib1::listOfStrings);
   } =>#t1;

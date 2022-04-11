@@ -38,21 +38,19 @@ import '../kernel/no_such_method_resolver.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
+import '../resolution/enqueuer.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
 import 'element_map.dart';
-import 'loader.dart';
+import 'element_map_impl.dart';
 import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
 class KernelFrontendStrategy {
-  final NativeBasicDataBuilder nativeBasicDataBuilder =
-      NativeBasicDataBuilder();
-  NativeBasicData _nativeBasicData;
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
   KernelToElementMap _elementMap;
@@ -84,7 +82,7 @@ class KernelFrontendStrategy {
   KernelFrontendStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
-    _elementMap = KernelToElementMap(reporter, environment, this, _options);
+    _elementMap = KernelToElementMap(reporter, environment, _options);
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     _backendUsageBuilder = BackendUsageBuilderImpl(this);
     noSuchMethodRegistry =
@@ -135,6 +133,7 @@ class KernelFrontendStrategy {
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
     BackendImpacts impacts = BackendImpacts(commonElements, compiler.options);
+    final nativeBasicData = _elementMap.nativeBasicData;
     _nativeResolutionEnqueuer = NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -217,25 +216,14 @@ class KernelFrontendStrategy {
         annotationsData);
   }
 
-  NativeBasicData get nativeBasicData {
-    if (_nativeBasicData == null) {
-      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
-      assert(
-          _nativeBasicData != null,
-          failedAt(NO_LOCATION_SPANNABLE,
-              "NativeBasicData has not been computed yet."));
-    }
-    return _nativeBasicData;
-  }
-
   /// Registers a set of loaded libraries with this strategy.
-  void registerLoadedLibraries(KernelResult kernelResult) {
-    _elementMap.addComponent(kernelResult.component);
+  void registerLoadedLibraries(ir.Component component, List<Uri> libraries) {
+    _elementMap.addComponent(component);
     _irAnnotationData = processAnnotations(
-        ModularCore(kernelResult.component, _elementMap.constantEvaluator));
+        ModularCore(component, _elementMap.constantEvaluator));
     _annotationProcessor = KernelAnnotationProcessor(
-        elementMap, nativeBasicDataBuilder, _irAnnotationData);
-    for (Uri uri in kernelResult.libraries) {
+        elementMap, elementMap.nativeBasicDataBuilder, _irAnnotationData);
+    for (Uri uri in libraries) {
       LibraryEntity library = elementEnvironment.lookupLibrary(uri);
       if (maybeEnableNative(library.canonicalUri)) {
         _annotationProcessor.extractNativeAnnotations(library);
@@ -395,12 +383,8 @@ class KernelWorkItem implements WorkItem {
       }
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
-        ResolutionImpact impact = _elementMap.computeWorldImpact(
-            element,
-            scopeModel.variableScopeModel,
-            Set<PragmaAnnotation>.from(
-                annotations.iterable(PragmaAnnotation.values)),
-            impactBuilderData: impactBuilderData);
+        ResolutionImpact impact =
+            _elementMap.computeWorldImpact(element, impactBuilderData);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (_impactCache != null) {
@@ -414,11 +398,6 @@ class KernelWorkItem implements WorkItem {
   @override
   String toString() => 'KernelWorkItem($element)';
 }
-
-/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
-/// and converted to the K model afterwards. This is a pre-step to modularizing
-/// the world impact computation.
-bool useImpactDataForTesting = false;
 
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
@@ -436,19 +415,14 @@ class KernelModularStrategy extends ModularStrategy {
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
-    if (useImpactDataForTesting) {
-      return _compilerTask.measureSubtask('worldImpact', () {
-        return computeModularMemberData(node,
-            options: _elementMap.options,
-            typeEnvironment: _elementMap.typeEnvironment,
-            classHierarchy: _elementMap.classHierarchy,
-            scopeModel: scopeModel,
-            annotations: annotations);
-      });
-    } else {
-      ImpactBuilderData impactBuilderData;
-      return ModularMemberData(scopeModel, impactBuilderData);
-    }
+    return _compilerTask.measureSubtask('worldImpact', () {
+      return computeModularMemberData(node,
+          options: _elementMap.options,
+          typeEnvironment: _elementMap.typeEnvironment,
+          classHierarchy: _elementMap.classHierarchy,
+          scopeModel: scopeModel,
+          annotations: annotations);
+    });
   }
 }
 

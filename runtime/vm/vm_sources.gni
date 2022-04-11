@@ -210,6 +210,8 @@ vm_sources = [
   "os_macos.cc",
   "os_thread.cc",
   "os_thread.h",
+  "os_thread_absl.cc",
+  "os_thread_absl.h",
   "os_thread_android.cc",
   "os_thread_android.h",
   "os_thread_fuchsia.cc",

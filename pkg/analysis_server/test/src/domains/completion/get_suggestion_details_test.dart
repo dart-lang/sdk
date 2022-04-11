@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class GetSuggestionDetailsTest extends AvailableSuggestionsBase {
   Future<void> test_enum() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 enum MyEnum {
   aaa, bbb
 }
@@ -218,7 +218,7 @@ part of 'test.dart';
 
 main() {} // ref
 ''';
-    var partPath = newFile('/home/test/lib/a.dart', content: partCode).path;
+    var partPath = newFile2('/home/test/lib/a.dart', partCode).path;
     addTestFile(r'''
 part 'a.dart';
 ''');

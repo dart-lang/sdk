@@ -380,7 +380,7 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
-      <field name="libraryUri" experimental="true" optional="true">
+      <field name="libraryUri" optional="true">
         <ref>String</ref>
         <p>
           This field  is omitted if <tt>getSuggestions</tt> was used rather
@@ -403,7 +403,7 @@
           <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
         </p>
       </field>
-      <field name="isNotImported" optional="true" experimental="true">
+      <field name="isNotImported" optional="true">
         <ref>bool</ref>
         <p>
           True if the suggestion is for an element from a not yet imported
@@ -1007,6 +1007,13 @@
       of the positions of the variable name so that if the client wanted to let
       the user edit the variable name after the operation, all occurrences of
       the name could be edited simultaneously.
+    </p>
+    <p>
+      Edit groups may have a length of 0 and function as tabstops where there
+      is no default text, for example, an edit that inserts an <tt>if</tt>
+      statement might provide an empty group between parens where a condition
+      should be typed. For this reason, it's also valid for a group to contain
+      only a single position that is not linked to others.
     </p>
     <object>
       <field name="positions">

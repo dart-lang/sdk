@@ -32,7 +32,7 @@ late T Function<T extends S Function<S>(S)>(T) fun;
   }
 
   test_genericFunction_optOutOfGenericMetadata() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 typedef F = S Function<S>(S);
 ''');
     await assertErrorsInCode('''

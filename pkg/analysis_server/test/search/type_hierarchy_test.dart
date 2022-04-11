@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -163,16 +164,24 @@ class CCC extends BBB implements AAA {}
 
   Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    newFile('/packages/pkgA/lib/libA.dart', content: '''
+    newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
-    newDotPackagesFile('/packages/pkgA',
-        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
+    newPackageConfigJsonFile(
+      '/packages/pkgA',
+      (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     // reference the package from a project
-    newDotPackagesFile(projectPath,
-        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
+    newPackageConfigJsonFile(
+      projectPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
@@ -643,7 +652,7 @@ class D extends C {
   }
 
   Future<void> test_class_member_method_private_differentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+    newFile2(join(testFolder, 'lib.dart'), r'''
 import 'test.dart';
 class A {
   void _m() {}

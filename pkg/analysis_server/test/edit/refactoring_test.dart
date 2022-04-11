@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -269,7 +270,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    newFile(join(testFolder, 'other.dart'), content: r'''
+    newFile2(join(testFolder, 'other.dart'), r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -468,7 +469,7 @@ void f() {
 
   Future<void> test_resetOnAnalysisSetChanged_watch_otherFile() async {
     var otherFile = join(testFolder, 'other.dart');
-    newFile(otherFile, content: '// other 1');
+    newFile2(otherFile, '// other 1');
     addTestFile('''
 void f() {
   foo(1 + 2);
@@ -488,7 +489,7 @@ foo(int myName) {}
     // The refactoring is reset, even though it's a different file. It is up to
     // analyzer to track dependencies and provide resolved units fast when
     // possible.
-    newFile(otherFile, content: '// other 2');
+    newFile2(otherFile, '// other 2');
     await pumpEventQueue();
     expect(test_resetCount, initialResetCount + 1);
   }
@@ -841,11 +842,13 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
-    var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    // Create .packages in the project.
-    newFile(join(projectPath, '.packages'), content: '''
-flutter:${libFolder.toUri()}
-''');
+    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
+    newPackageConfigJsonFile(
+      projectPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
+          .toContent(toUriStr: toUriStr),
+    );
   }
 
   /// Tests that there is refactoring of the given [kind] is available at the
@@ -1088,7 +1091,7 @@ class InlineLocalTest extends _AbstractGetRefactoring_Test {
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     var otherFile = join(testFolder, 'other.dart');
-    newFile(otherFile, content: r'''
+    newFile2(otherFile, r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1156,7 +1159,7 @@ void f() {
   }
 
   Future<void> test_resetOnAnalysisSetChanged() async {
-    newFile(join(testFolder, 'other.dart'), content: '// other 1');
+    newFile2(join(testFolder, 'other.dart'), '// other 1');
     addTestFile('''
 void f() {
   int res = 1 + 2;
@@ -1318,7 +1321,7 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
   late MoveFileOptions options;
 
   Future<void> test_file_OK() {
-    newFile('/project/bin/lib.dart');
+    newFile2('/project/bin/lib.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'lib.dart';
@@ -1333,7 +1336,7 @@ import 'bin/lib.dart';
   }
 
   Future<void> test_folder_cancel() {
-    newFile('/project/bin/original_folder/file.dart');
+    newFile2('/project/bin/original_folder/file.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'original_folder/file.dart';
@@ -1346,7 +1349,7 @@ import 'original_folder/file.dart';
   }
 
   Future<void> test_folder_OK() {
-    newFile('/project/bin/original_folder/file.dart');
+    newFile2('/project/bin/original_folder/file.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'original_folder/file.dart';
@@ -2129,7 +2132,7 @@ library my.new_name;
   }
 
   Future<void> test_library_partOfDirective() {
-    newFile(join(testFolder, 'my_lib.dart'), content: '''
+    newFile2(join(testFolder, 'my_lib.dart'), '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');

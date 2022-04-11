@@ -9,6 +9,44 @@
 /// these C types in this library.
 part of dart.ffi;
 
+/// The C `char` type.
+///
+/// Typically a signed or unsigned 8-bit integer.
+/// For a guaranteed 8-bit integer, use [Int8] with the C `int8_t` type
+/// or [Uint8] with the C `uint8_t` type.
+/// For a specifically `signed` or `unsigned` `char`, use [SignedChar] or
+/// [UnsignedChar].
+///
+/// The [Char] type is a native type, and should not be constructed in
+/// Dart code.
+/// It occurs only in native type signatures and as annotation on [Struct] and
+/// [Union] fields.
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Uint8(),
+  Abi.androidArm64: Uint8(),
+  Abi.androidIA32: Int8(),
+  Abi.androidX64: Int8(),
+  Abi.fuchsiaArm64: Uint8(),
+  Abi.fuchsiaX64: Int8(),
+  Abi.iosArm: Int8(),
+  Abi.iosArm64: Int8(),
+  Abi.iosX64: Int8(),
+  Abi.linuxArm: Uint8(),
+  Abi.linuxArm64: Uint8(),
+  Abi.linuxIA32: Int8(),
+  Abi.linuxX64: Int8(),
+  Abi.linuxRiscv32: Uint8(),
+  Abi.linuxRiscv64: Uint8(),
+  Abi.macosArm64: Int8(),
+  Abi.macosX64: Int8(),
+  Abi.windowsArm64: Int8(),
+  Abi.windowsIA32: Int8(),
+  Abi.windowsX64: Int8(),
+})
+class Char extends AbiSpecificInteger {
+  const Char();
+}
+
 /// The C `signed char` type.
 ///
 /// Typically a signed 8-bit integer.
@@ -490,8 +528,8 @@ class Size extends AbiSpecificInteger {
   Abi.linuxArm64: Uint32(),
   Abi.linuxIA32: Int32(),
   Abi.linuxX64: Int32(),
-  Abi.linuxRiscv32: Uint32(),
-  Abi.linuxRiscv64: Uint32(),
+  Abi.linuxRiscv32: Int32(),
+  Abi.linuxRiscv64: Int32(),
   Abi.macosArm64: Int32(),
   Abi.macosX64: Int32(),
   Abi.windowsArm64: Uint16(),

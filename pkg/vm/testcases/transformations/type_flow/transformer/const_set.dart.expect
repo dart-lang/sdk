@@ -11,7 +11,7 @@ class _Attribute extends core::Object {
     : super core::Object::•()
     ;
   static method fromReader() → self::_Attribute {
-    final core::bool name = [@vm.direct-call.metadata=dart.collection::_CompactImmutableLinkedHashSet.contains] [@vm.inferred-type.metadata=!? (skip check)] #C3.{core::Set::contains}(#C2){(core::Object?) → core::bool};
+    final core::bool name = [@vm.direct-call.metadata=dart.collection::__CompactImmutableLinkedHashSet&_HashVMImmutableBase&SetMixin&_HashBase&_OperatorEqualsAndCanonicalHashCode&_LinkedHashSetMixin&_UnmodifiableSetMixin&_ImmutableLinkedHashSetMixin.contains] [@vm.inferred-type.metadata=!? (skip check)] #C3.{core::Set::contains}(#C2){(core::Object?) → core::bool};
     return let final self::_AttributeName #t1 = #C8.{core::List::[]}(#C2){(core::int) → self::_AttributeName} in new self::_Attribute::_();
   }
 }

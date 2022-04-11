@@ -7,37 +7,27 @@ library fasta.source_type_alias_builder;
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-
-import 'package:kernel/type_algebra.dart'
-    show FreshTypeParameters, getFreshTypeParameters;
-
 import 'package:kernel/type_environment.dart';
-
-import '../fasta_codes.dart'
-    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
-
-import '../problems.dart' show unhandled;
-import '../scope.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/fixed_type_builder.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/type_builder.dart';
 import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-
+import '../fasta_codes.dart'
+    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/kernel_helper.dart';
-
+import '../problems.dart' show unhandled;
+import '../scope.dart';
 import '../util/helpers.dart';
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
@@ -75,7 +65,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         super(metadata, name, parent, charOffset);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   @override
   List<TypeVariableBuilder>? get typeVariables => _typeVariables;
@@ -96,37 +87,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         typeDeclarationBuilder.isNullClass;
   }
 
-  Typedef build(SourceLibraryBuilder libraryBuilder) {
+  Typedef build() {
     typedef.type ??= buildThisType();
 
     TypeBuilder? type = this.type;
-    if (type is FunctionTypeBuilder) {
-      List<TypeParameter> typeParameters = new List<TypeParameter>.generate(
-          type.typeVariables?.length ?? 0,
-          (int i) => type.typeVariables![i].parameter,
-          growable: false);
-      FreshTypeParameters freshTypeParameters =
-          getFreshTypeParameters(typeParameters);
-      for (int i = 0; i < freshTypeParameters.freshTypeParameters.length; i++) {
-        TypeParameter typeParameter =
-            freshTypeParameters.freshTypeParameters[i];
-        typedef.typeParametersOfFunctionType
-            .add(typeParameter..parent = typedef);
-      }
-
-      if (type.formals != null) {
-        for (FormalParameterBuilder formal in type.formals!) {
-          VariableDeclaration parameter = formal.build(libraryBuilder, 0);
-          parameter.type = freshTypeParameters.substitute(parameter.type);
-          if (formal.isNamed) {
-            typedef.namedParameters.add(parameter);
-          } else {
-            typedef.positionalParameters.add(parameter);
-          }
-          parameter.parent = typedef;
-        }
-      }
-    } else if (type is NamedTypeBuilder || type is FixedTypeBuilder) {
+    if (type is FunctionTypeBuilder ||
+        type is NamedTypeBuilder ||
+        type is FixedTypeBuilder) {
       // No error, but also no additional setup work.
       // ignore: unnecessary_null_comparison
     } else if (type != null) {
@@ -141,7 +108,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
         thisType = cyclicTypeAliasMarker;
-        library.addProblem(templateCyclicTypedef.withArguments(name),
+        libraryBuilder.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
         return const InvalidType();
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
@@ -156,14 +123,23 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypeBuilder? type = this.type;
     // ignore: unnecessary_null_comparison
     if (type != null) {
-      DartType builtType =
-          type.build(library, origin: thisTypedefType(typedef, library));
+      DartType builtType = type.build(libraryBuilder);
+      if (builtType is FunctionType) {
+        // Set the `typedefType` if it hasn't already been set. It can already
+        // be set if this type alias is an alias of another typedef, in which
+        // we use the existing value. For instance
+        //
+        //    typedef void F(); // typedefType will be set to `F`.
+        //    typedef G = F; // The typedefType has already been set to `F`.
+        //
+        builtType.typedefType ??= thisTypedefType(typedef, libraryBuilder);
+      }
       // ignore: unnecessary_null_comparison
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables!) {
             // Follow bound in order to find all cycles
-            tv.bound?.build(library);
+            tv.bound?.build(libraryBuilder);
           }
         }
         if (identical(thisType, cyclicTypeAliasMarker)) {
@@ -204,7 +180,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         // At this point, [parent] should be a [SourceLibraryBuilder] because
         // otherwise it's a compiled library loaded from a dill file, and the
         // bounds should have been assigned.
-        library.registerPendingNullability(
+        libraryBuilder.registerPendingNullability(
             _typeVariables![i].fileUri!,
             _typeVariables![i].charOffset,
             asTypeArguments[i] as TypeParameterType);
@@ -248,39 +224,38 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    library.checkBoundsInTypeParameters(
+    libraryBuilder.checkBoundsInTypeParameters(
         typeEnvironment, typedef.typeParameters, fileUri);
-    library.checkBoundsInType(
+    libraryBuilder.checkBoundsInType(
         typedef.type!, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
         allowSuperBounded: false);
   }
 
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    MetadataBuilder.buildAnnotations(
-        typedef, metadata, library, null, null, fileUri, library.scope);
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    MetadataBuilder.buildAnnotations(typedef, metadata, libraryBuilder, null,
+        null, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
-            library,
+            libraryBuilder,
             null,
             null,
             classHierarchy,
             delayedActionPerformers,
-            computeTypeParameterScope(library.scope));
+            computeTypeParameterScope(libraryBuilder.scope));
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
       InterfaceType targetType = typedef.type as InterfaceType;
-      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
           target.function!,
           tearOff.function,
-          libraryBuilder: library));
+          libraryBuilder: libraryBuilder));
     });
   }
 
@@ -318,7 +293,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             target = builder.readTarget!;
           }
           Name targetName =
-              new Name(constructorName, declaration.library.library);
+              new Name(constructorName, declaration.libraryBuilder.library);
           Reference? tearOffReference;
           if (library.referencesFromIndexed != null) {
             tearOffReference = library.referencesFromIndexed!

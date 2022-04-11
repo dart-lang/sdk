@@ -223,7 +223,7 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 }
 
 void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
-  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  // static void _rsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)
 
   // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.

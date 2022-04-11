@@ -5,16 +5,16 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 import '../src/utilities/mock_packages.dart';
 
 void main() {
@@ -24,19 +24,19 @@ void main() {
 }
 
 @reflectiveTest
-class NotificationErrorsTest extends AbstractAnalysisTest {
+class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   late Folder pedanticFolder;
-  Map<String, List<AnalysisError>?> filesErrors = {};
+  Map<File, List<AnalysisError>?> filesErrors = {};
 
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
+      filesErrors[getFile(decoded.file)] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       var decoded = AnalysisFlushResultsParams.fromNotification(notification);
       for (var file in decoded.files) {
-        filesErrors[file] = null;
+        filesErrors[getFile(file)] = null;
       }
     }
   }
@@ -45,80 +45,80 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     registerLintRules();
     super.setUp();
-    server.handlers = [
-      AnalysisDomainHandler(server),
-    ];
+    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     pedanticFolder = MockPackages.instance.addPedantic(resourceProvider);
   }
 
   Future<void> test_analysisOptionsFile() async {
-    var filePath = join(projectPath, 'analysis_options.yaml');
-    var analysisOptionsFile = newFile(filePath, content: '''
+    var analysisOptions = newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 linter:
   rules:
     - invalid_lint_rule_name
-''').path;
+''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
     // Verify the error result.
     //
-    var errors = filesErrors[analysisOptionsFile]!;
+    var errors = filesErrors[analysisOptions]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, analysisOptions.path);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 
   Future<void> test_analysisOptionsFile_packageInclude() async {
-    var filePath = join(projectPath, 'analysis_options.yaml');
-    var analysisOptionsFile = newFile(filePath, content: '''
+    var analysisOptions = newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 include: package:pedantic/analysis_options.yaml
-''').path;
+''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
 
     // Verify there's an error for the import.
-    var errors = filesErrors[analysisOptionsFile]!;
+    var errors = filesErrors[analysisOptions]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, analysisOptions.path);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
 
     // Write a package file that allows resolving the include.
-    newDotPackagesFile(projectPath, content: '''
-pedantic:${pedanticFolder.toUri()}
-''');
+    newPackageConfigJsonFile(
+      testPackageRootPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'pedantic', rootPath: pedanticFolder.parent.path))
+          .toContent(toUriStr: toUriStr),
+    );
 
     // Ensure the errors disappear.
     await waitForTasksFinished();
     await pumpEventQueue();
-    errors = filesErrors[analysisOptionsFile]!;
+    errors = filesErrors[analysisOptions]!;
     expect(errors, hasLength(0));
   }
 
   Future<void> test_androidManifestFile() async {
-    var filePath = join(projectPath, 'android', 'AndroidManifest.xml');
-    var manifestFile = newFile(filePath, content: '''
+    var manifestPath =
+        join(testPackageRootPath, 'android', 'AndroidManifest.xml');
+    var manifestFile = newFile2(manifestPath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
-''').path;
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+''');
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -127,27 +127,28 @@ analyzer:
     var errors = filesErrors[manifestFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, manifestFile.path);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 
   Future<void> test_androidManifestFile_dotDirectoryIgnored() async {
-    var filePath = join(projectPath, 'ios', '.symlinks', 'AndroidManifest.xml');
-    var manifestFile = newFile(filePath, content: '''
+    var manifestPath =
+        join(testPackageRootPath, 'ios', '.symlinks', 'AndroidManifest.xml');
+    var manifestFile = newFile2(manifestPath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -161,23 +162,24 @@ analyzer:
     // Although errors are not generated for dotfolders, their contents should
     // still be analyzed so that code that references them (for example
     // flutter_gen) should still be updated.
-    final configPath = join(projectPath, '.dart_tool/package_config.json');
-    final generatedProject = join(projectPath, '.dart_tool/foo');
+    final configPath =
+        join(testPackageRootPath, '.dart_tool/package_config.json');
+    final generatedProject = join(testPackageRootPath, '.dart_tool/foo');
     final generatedFile = join(generatedProject, 'lib', 'foo.dart');
 
     // Add the generated project into package_config.json.
     final config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
-    newFile(configPath, content: config.toContent(toUriStr: toUriStr));
+    newFile2(configPath, config.toContent(toUriStr: toUriStr));
 
     // Set up project that references the class prior to initial analysis.
-    newFile(generatedFile, content: 'class A {}');
+    newFile2(generatedFile, 'class A {}');
     addTestFile('''
 import 'package:foo/foo.dart';
 A? a;
     ''');
 
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
     expect(filesErrors[testFile], isEmpty);
@@ -192,13 +194,12 @@ A? a;
   }
 
   Future<void> test_dataFile() async {
-    var filePath = join(projectPath, 'lib', 'fix_data.yaml');
-    var dataFile = newFile(filePath, content: '''
+    var dataFile = newFile2('$testPackageLibPath/fix_data.yaml', '''
 version: 1
 transforms:
-''').path;
+''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -207,7 +208,7 @@ transforms:
     var errors = filesErrors[dataFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, dataFile.path);
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
   }
@@ -216,11 +217,10 @@ transforms:
     // Files inside dotFolders should not generate error notifications even
     // if they are added to priority (priority affects only priority, not what
     // is analyzed).
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
     var brokenFile =
-        newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
-            .path;
+        newFile2(join(testPackageRootPath, '.dart_tool/broken.dart'), 'err');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -241,18 +241,19 @@ transforms:
     // them to be opened (such as hovers) should not result in error notifications
     // because there is no event that would flush them and they'd remain in the
     // editor forever.
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
     var brokenFile =
-        newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
-            .path;
+        newFile2('$testPackageRootPath/.dart_tool/broken.dart', 'err');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
     expect(filesErrors[brokenFile], isNull);
 
     // Send a getHover request for the file that will cause it to be read from disk.
-    await waitResponse(AnalysisGetHoverParams(brokenFile, 0).toRequest('0'));
+    await handleSuccessfulRequest(
+      AnalysisGetHoverParams(brokenFile.path, 0).toRequest('0'),
+    );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
@@ -261,14 +262,14 @@ transforms:
   }
 
   Future<void> test_excludedFolder() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 analyzer:
   exclude:
     - excluded/**
 ''');
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     var excludedFile =
-        newFile(join(projectPath, 'excluded/broken.dart'), content: 'err').path;
+        newFile2('$testPackageRootPath/excluded/broken.dart', 'err');
 
     // There should be no errors initially.
     await waitForTasksFinished();
@@ -276,21 +277,24 @@ analyzer:
     expect(filesErrors[excludedFile], isNull);
 
     // Triggering the file to be processed should still generate no errors.
-    await waitResponse(AnalysisGetHoverParams(excludedFile, 0).toRequest('0'));
+    await handleSuccessfulRequest(
+      AnalysisGetHoverParams(excludedFile.path, 0).toRequest('0'),
+    );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
     expect(filesErrors[excludedFile], isNull);
 
     // Opening the file should still generate no errors.
-    await waitResponse(
-        AnalysisSetPriorityFilesParams([excludedFile]).toRequest('0'));
+    await handleSuccessfulRequest(
+      AnalysisSetPriorityFilesParams([excludedFile.path]).toRequest('0'),
+    );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
     expect(filesErrors[excludedFile], isNull);
   }
 
   Future<void> test_importError() async {
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
 
     addTestFile('''
 import 'does_not_exist.dart';
@@ -310,7 +314,7 @@ import 'does_not_exist.dart';
   Future<void> test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -318,11 +322,10 @@ linter:
 
     addTestFile('class a { }');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
-    var testDriver = server.getAnalysisDriver(testFile)!;
-    var lints = testDriver.analysisOptions.lintRules;
+    var lints = testFileAnalysisOptions.lintRules;
 
     // Registry should only contain single lint rule.
     expect(lints, hasLength(1));
@@ -333,15 +336,15 @@ linter:
     var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
+    expect(error.location.file, testFile.path);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
     expect(error.message, lint.description);
   }
 
   Future<void> test_notInAnalysisRoot() async {
-    await createProject();
-    var otherFile = newFile('/other.dart', content: 'UnknownType V;').path;
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    var otherFile = newFile2('/other.dart', 'UnknownType V;');
     addTestFile('''
 import '/other.dart';
 main() {
@@ -355,11 +358,10 @@ main() {
   Future<void> test_overlay_dotFolder() async {
     // Files inside dotFolders should not generate error notifications even
     // if they have overlays added.
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
     var brokenFile =
-        newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
-            .path;
+        newFile2('$testPackageRootPath/.dart_tool/broken.dart', 'err');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -367,9 +369,9 @@ main() {
 
     // Add and overlay and give chance for the file to be analyzed (if
     // it would).
-    await waitResponse(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        brokenFile: AddContentOverlay('err'),
+        brokenFile.path: AddContentOverlay('err'),
       }).toRequest('1'),
     );
     await waitForTasksFinished();
@@ -383,14 +385,14 @@ main() {
     // Overlays added for files that don't exist on disk should still generate
     // error notifications. Removing the overlay if the file is not on disk
     // should clear the errors.
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
-    var brokenFile = convertPath(join(projectPath, 'broken.dart'));
+    var brokenFile = getFile('$testPackageRootPath/broken.dart');
 
     // Add and overlay and give chance for the file to be analyzed.
-    await waitResponse(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        brokenFile: AddContentOverlay('err'),
+        brokenFile.path: AddContentOverlay('err'),
       }).toRequest('0'),
     );
     await waitForTasksFinished();
@@ -400,11 +402,15 @@ main() {
     expect(filesErrors[brokenFile], hasLength(greaterThan(0)));
 
     // Remove the overlay (this file no longer exists anywhere).
-    await waitResponse(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        brokenFile: RemoveContentOverlay(),
+        brokenFile.path: RemoveContentOverlay(),
       }).toRequest('1'),
     );
+
+    // Wait for the timer to remove the overlay to fire.
+    await Future.delayed(server.pendingFilesRemoveOverlayDelay);
+
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
@@ -419,14 +425,14 @@ main() {
     // error notifications. If the file is subsequently saved to disk before the
     // overlay is removed, the errors should not be flushed when the overlay is
     // removed.
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
-    var brokenFile = convertPath(join(projectPath, 'broken.dart'));
+    var brokenFile = getFile('$testPackageRootPath/broken.dart');
 
     // Add and overlay and give chance for the file to be analyzed.
-    await waitResponse(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        brokenFile: AddContentOverlay('err'),
+        brokenFile.path: AddContentOverlay('err'),
       }).toRequest('0'),
     );
     await waitForTasksFinished();
@@ -436,14 +442,14 @@ main() {
     expect(filesErrors[brokenFile], hasLength(greaterThan(0)));
 
     // Write the file to disk.
-    newFile(brokenFile, content: 'err');
+    brokenFile.writeAsStringSync('err');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
     // Remove the overlay.
-    await waitResponse(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        brokenFile: RemoveContentOverlay(),
+        brokenFile.path: RemoveContentOverlay(),
       }).toRequest('1'),
     );
     await waitForTasksFinished();
@@ -455,14 +461,14 @@ main() {
   }
 
   Future<void> test_ParserError() async {
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('library lib');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
     var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
+    expect(error.location.file, testFile.path);
     expect(error.location.offset, isPositive);
     expect(error.location.length, isNonNegative);
     expect(error.severity, AnalysisErrorSeverity.ERROR);
@@ -471,12 +477,11 @@ main() {
   }
 
   Future<void> test_pubspecFile() async {
-    var filePath = join(projectPath, 'pubspec.yaml');
-    var pubspecFile = newFile(filePath, content: '''
+    var pubspecFile = newPubspecYamlFile(testPackageRootPath, '''
 version: 1.3.2
-''').path;
+''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -485,13 +490,13 @@ version: 1.3.2
     var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, pubspecFile.path);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
     //
     // Fix the error and verify the new results.
     //
-    modifyFile(pubspecFile, '''
+    pubspecFile.writeAsStringSync('''
 name: sample
 version: 1.3.2
 ''');
@@ -503,22 +508,21 @@ version: 1.3.2
   }
 
   Future<void> test_pubspecFile_lint() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 linter:
   rules:
     - sort_pub_dependencies
 ''');
 
-    var filePath = join(projectPath, 'pubspec.yaml');
-    var pubspecFile = newFile(filePath, content: '''
+    var pubspecFile = newPubspecYamlFile(testPackageRootPath, '''
 name: sample
 
 dependencies:
   b: any
   a: any
-''').path;
+''');
 
-    await setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -527,13 +531,13 @@ dependencies:
     var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.location.file, filePath);
+    expect(error.location.file, pubspecFile.path);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
     //
     // Fix the error and verify the new results.
     //
-    modifyFile(pubspecFile, '''
+    pubspecFile.writeAsStringSync('''
 name: sample
 
 dependencies:
@@ -548,7 +552,7 @@ dependencies:
   }
 
   Future<void> test_StaticWarning() async {
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('''
 enum E {e1, e2}
 

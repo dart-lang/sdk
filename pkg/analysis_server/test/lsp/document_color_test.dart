@@ -40,7 +40,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     importRange = ranges[0];
     colorRange = ranges[1];
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
@@ -60,7 +60,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final colors = await getColorPresentation(
@@ -71,6 +71,29 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     expect(colors, isEmpty);
   }
 
+  Future<void> test_outsideAnalysisRoot() async {
+    const content = '''
+    import 'package:flutter/material.dart';
+
+    const white = [[Color(0xFFFFFFFF)]];
+    ''';
+    colorRange = rangeFromMarkers(content);
+
+    final outsideRootFilePath = convertPath('/home/other/test.dart');
+    newFile2(outsideRootFilePath, withoutMarkers(content));
+    await initialize();
+
+    final colorPresentations = await getColorPresentation(
+      Uri.file(outsideRootFilePath).toString(),
+      colorRange,
+      Color(alpha: 1, red: 1, green: 0, blue: 0),
+    );
+
+    /// Because this file is not editable (it's outside the analysis roots) an
+    /// empty result will be returned.
+    expect(colorPresentations, isEmpty);
+  }
+
   Future<void> test_simpleColor() async {
     const content = '''
     import 'package:flutter/material.dart';
@@ -79,7 +102,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     ''';
     colorRange = rangeFromMarkers(content);
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
@@ -106,8 +129,11 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     String label, {
     String? colorCode,
     String? importUri,
+    bool withEdits = true,
   }) {
-    final edit = TextEdit(range: colorRange, newText: colorCode ?? label);
+    final edit = withEdits
+        ? TextEdit(range: colorRange, newText: colorCode ?? label)
+        : null;
     final additionalEdits = importUri != null
         ? [TextEdit(range: importRange, newText: "import '$importUri';\n\n")]
         : null;
@@ -129,7 +155,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final colors = await getDocumentColors(pubspecFileUri.toString());
@@ -142,7 +168,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
 
     const red = [[Colors.red]];
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final colors = await getDocumentColors(mainFileUri.toString());

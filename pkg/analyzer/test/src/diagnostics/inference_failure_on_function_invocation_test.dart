@@ -224,7 +224,7 @@ void g() {
   }
 
   test_topLevelFunction_withImportPrefix_noInference() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 void f<T>() {}
 ''');
     await assertErrorsInCode('''
@@ -238,7 +238,7 @@ void g() {
   }
 
   test_topLevelFunction_withImportPrefix_optionalTypeArgs() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 void f<T>() {}

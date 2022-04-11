@@ -1,0 +1,161 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:6:11: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//   int get index => 0; // Error.
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:8:11: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+//   int get hashCode => 1; // Error.
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:7:16: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
+//   bool operator==(Object other) => true; // Error.
+//                ^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:12:11: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//   int get index => 0; // Error.
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:14:11: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+//   int get hashCode => 1; // Error.
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:13:16: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
+//   bool operator==(Object other) => true; // Error.
+//                ^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:40:7: Error: 'A4' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//   int index = 0; // Error.
+//       ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:41:7: Error: 'A4' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+//   int hashCode = 1; // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:45:7: Error: 'M4' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//   int index = 0; // Error.
+//       ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:46:7: Error: 'M4' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+//   int hashCode = 1; // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:51:5: Error: 'A5' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//     index = 2, // Error.
+//     ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:52:5: Error: 'A5' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+//     hashCode = 3; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:57:5: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+//     index = 2, // Error.
+//     ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:58:5: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+//     hashCode = 3; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:18:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'A2.index'.
+//   void set index(String value) {} // Error.
+//            ^^^^^
+// sdk/lib/core/enum.dart:22:11: Context: This is the declaration of the getter 'Enum.index'.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:19:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'double' of the setter 'A2.hashCode'.
+//   void set hashCode(double value) {} // Error.
+//            ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the declaration of the getter 'Object.hashCode'.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:23:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'M2.index'.
+//   void set index(String value) {} // Error.
+//            ^^^^^
+// sdk/lib/core/enum.dart:22:11: Context: This is the declaration of the getter 'Enum.index'.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:24:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'double' of the setter 'M2.hashCode'.
+//   void set hashCode(double value) {} // Error.
+//            ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the declaration of the getter 'Object.hashCode'.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A1 extends core::Object implements core::Enum {
+  synthetic constructor •() → self::A1
+    : super core::Object::•()
+    ;
+  get index() → core::int
+    return 0;
+  operator ==(core::Object other) → core::bool
+    return true;
+  get hashCode() → core::int
+    return 1;
+}
+abstract class M1 extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  get index() → core::int
+    return 0;
+  operator ==(core::Object other) → core::bool
+    return true;
+  get hashCode() → core::int
+    return 1;
+}
+abstract class A2 extends core::Object implements core::Enum {
+  synthetic constructor •() → self::A2
+    : super core::Object::•()
+    ;
+  set index(core::String value) → void {}
+  set hashCode(core::double value) → void {}
+}
+abstract class M2 extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  set index(core::String value) → void {}
+  set hashCode(core::double value) → void {}
+}
+abstract class A3 extends core::Object implements core::Enum {
+  synthetic constructor •() → self::A3
+    : super core::Object::•()
+    ;
+  abstract get index() → core::int;
+  abstract operator ==(core::Object other) → core::bool;
+  abstract get HashCode() → core::int;
+}
+abstract class M3 extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  abstract get index() → core::int;
+  abstract operator ==(core::Object other) → core::bool;
+  abstract get HashCode() → core::int;
+}
+abstract class A4 extends core::Object implements core::Enum {
+  field core::int index = 0;
+  field core::int hashCode = 1;
+  synthetic constructor •() → self::A4
+    : super core::Object::•()
+    ;
+}
+abstract class M4 extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  field core::int index = 0;
+  field core::int hashCode = 1;
+}
+abstract class A5 extends core::Object implements core::Enum {
+  field core::int foo = 0;
+  field core::int bar = 1;
+  field core::int index = 2;
+  field core::int hashCode = 3;
+  synthetic constructor •() → self::A5
+    : super core::Object::•()
+    ;
+}
+abstract class M5 extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  field core::int foo = 0;
+  field core::int bar = 1;
+  field core::int index = 2;
+  field core::int hashCode = 3;
+}
+static method main() → dynamic {}

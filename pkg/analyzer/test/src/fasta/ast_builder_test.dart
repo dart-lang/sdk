@@ -15,6 +15,71 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
+  void test_class_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  name: SimpleIdentifier
+    token: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_class_macro() {
+    var parseResult = parseStringWithErrors(r'''
+macro class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  macroKeyword: macro
+  classKeyword: class
+  name: SimpleIdentifier
+    token: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_classAlias_macro() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M {}
+macro class A = Object with M;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: SimpleIdentifier
+    token: A
+  equals: =
+  macroKeyword: macro
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
   void test_constructor_factory_misnamed() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -78,6 +143,7 @@ enum E {
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 14, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
@@ -102,7 +168,9 @@ enum E {
   v.named;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 13, 5),
+    ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
@@ -127,6 +195,7 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
     ]);
 
@@ -153,9 +222,8 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
-          12, 5),
       error(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
@@ -181,7 +249,6 @@ EnumConstantDeclaration
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48380')
   void test_enum_constant_name_typeArguments_dot_semicolon() {
     var parseResult = parseStringWithErrors(r'''
 enum E {
@@ -189,9 +256,8 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
-          12, 5),
       error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 18, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
@@ -199,23 +265,23 @@ enum E {
         node,
         r'''
 EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
   arguments: EnumConstantArguments
-    argumentList: ArgumentList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
-    constructorSelector: ConstructorSelector
-      name: SimpleIdentifier
-        token: <empty> <synthetic>
-      period: .
     typeArguments: TypeArgumentList
+      leftBracket: <
       arguments
         NamedType
           name: SimpleIdentifier
             token: int
-      leftBracket: <
       rightBracket: >
-  name: SimpleIdentifier
-    token: v
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
 ''',
         withCheckingLinking: true);
   }
@@ -227,8 +293,7 @@ enum E<T> {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
-          15, 5),
+      error(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');

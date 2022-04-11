@@ -100,11 +100,13 @@ enum RemoteInstanceKind {
   namedStaticType,
   methodDeclaration,
   namedTypeAnnotation,
+  omittedTypeAnnotation,
   parameterDeclaration,
   staticType,
   typeAliasDeclaration,
   typeParameterDeclaration,
   typeResolver,
   typeDeclarationResolver,
+  typeInferrer,
   variableDeclaration,
 }

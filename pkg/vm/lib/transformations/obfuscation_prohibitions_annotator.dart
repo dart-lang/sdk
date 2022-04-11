@@ -37,9 +37,16 @@ class ObfuscationProhibitionsVisitor extends RecursiveVisitor {
           metadata.protectedNames.add(name + "=");
         }
         final parent = node.parent;
+        final Library library;
         if (parent is Class) {
           metadata.protectedNames.add(parent.name);
+          library = parent.enclosingLibrary;
+        } else if (parent is Library) {
+          library = parent;
+        } else {
+          throw "Unexpected parent";
         }
+        metadata.protectedNames.add(library.importUri.toString());
         break;
       }
     }

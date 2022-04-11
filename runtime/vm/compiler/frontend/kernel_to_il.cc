@@ -818,6 +818,14 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(ByteDataViewLength, TypedDataBase_length)                                  \
   V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
   V(ByteDataViewTypedData, TypedDataView_typed_data)                           \
+  V(Finalizer_getCallback, Finalizer_callback)                                 \
+  V(FinalizerBase_getAllEntries, FinalizerBase_all_entries)                    \
+  V(FinalizerBase_getDetachments, FinalizerBase_detachments)                   \
+  V(FinalizerEntry_getDetach, FinalizerEntry_detach)                           \
+  V(FinalizerEntry_getNext, FinalizerEntry_next)                               \
+  V(FinalizerEntry_getToken, FinalizerEntry_token)                             \
+  V(FinalizerEntry_getValue, FinalizerEntry_value)                             \
+  V(NativeFinalizer_getCallback, NativeFinalizer_callback)                     \
   V(GrowableArrayLength, GrowableObjectArray_length)                           \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
   V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
@@ -835,6 +843,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(WeakReference_getTarget, WeakReference_target)
 
 #define STORE_NATIVE_FIELD(V)                                                  \
+  V(Finalizer_setCallback, Finalizer_callback)                                 \
+  V(FinalizerBase_setAllEntries, FinalizerBase_all_entries)                    \
+  V(FinalizerBase_setDetachments, FinalizerBase_detachments)                   \
+  V(FinalizerEntry_setToken, FinalizerEntry_token)                             \
+  V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
   V(WeakProperty_setKey, WeakProperty_key)                                     \
@@ -919,6 +932,12 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiAsExternalTypedDataFloat:
     case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+    case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+    case MethodRecognizer::kFinalizerBase_setIsolate:
+    case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+    case MethodRecognizer::kFinalizerEntry_allocate:
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
@@ -1567,6 +1586,77 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += MathUnary(MathUnaryInstr::kSqrt);
     } break;
+    case MethodRecognizer::kFinalizerBase_setIsolate:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadIsolate();
+      body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+      body += StoreNativeField(Slot::FinalizerBase_isolate());
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+      ASSERT_EQUAL(function.NumParameters(), 0);
+      body += LoadIsolate();
+      body += RawLoadField(compiler::target::Isolate::finalizers_offset());
+      break;
+    case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadIsolate();
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += RawStoreField(compiler::target::Isolate::finalizers_offset());
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      ASSERT(this->optimizing_);
+      // This relies on being force-optimized to do an 'atomic' exchange w.r.t.
+      // the GC.
+      // As an alternative design we could introduce an ExchangeNativeFieldInstr
+      // that uses the same machine code as std::atomic::exchange. Or we could
+      // use an FfiNative to do that in C.
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      // No GC from here til StoreNativeField.
+      body += LoadNativeField(Slot::FinalizerBase_entries_collected());
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += NullConstant();
+      body += StoreNativeField(Slot::FinalizerBase_entries_collected());
+      break;
+    case MethodRecognizer::kFinalizerEntry_allocate: {
+      // Object value, Object token, Object detach, FinalizerBase finalizer
+      ASSERT_EQUAL(function.NumParameters(), 4);
+
+      const auto class_table = thread_->isolate_group()->class_table();
+      ASSERT(class_table->HasValidClassAt(kFinalizerEntryCid));
+      const auto& finalizer_entry_class =
+          Class::ZoneHandle(H.zone(), class_table->At(kFinalizerEntryCid));
+
+      body +=
+          AllocateObject(TokenPosition::kNoSource, finalizer_entry_class, 0);
+      LocalVariable* const entry = MakeTemporary("entry");
+      // No GC from here to the end.
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += StoreNativeField(Slot::FinalizerEntry_value());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreNativeField(Slot::FinalizerEntry_token());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(2));
+      body += StoreNativeField(Slot::FinalizerEntry_detach());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(3));
+      body += StoreNativeField(Slot::FinalizerEntry_finalizer());
+      body += LoadLocal(entry);
+      body += UnboxedIntConstant(0, kUnboxedIntPtr);
+      body += StoreNativeField(Slot::FinalizerEntry_external_size());
+      break;
+    }
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::FinalizerEntry_external_size());
+      body += Box(kUnboxedInt64);
+      break;
 #define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \
     ASSERT_EQUAL(function.NumParameters(), 1);                                 \
@@ -3905,6 +3995,13 @@ Fragment FlowGraphBuilder::AllocateHandle(LocalVariable* api_local_scope) {
   return code;
 }
 
+Fragment FlowGraphBuilder::RawLoadField(int32_t offset) {
+  Fragment code;
+  code += UnboxedIntConstant(offset, kUnboxedIntPtr);
+  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
+  return code;
+}
+
 Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
   Fragment code;
   Value* value = Pop();
@@ -3931,9 +4028,7 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
 Fragment FlowGraphBuilder::UnwrapHandle() {
   Fragment code;
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
-  code += IntConstant(compiler::target::LocalHandle::ptr_offset());
-  code += UnboxTruncate(kUnboxedIntPtr);
-  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
+  code += RawLoadField(compiler::target::LocalHandle::ptr_offset());
   return code;
 }
 
@@ -3967,6 +4062,19 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
                                    Instruction::kNotSpeculative);
   Push(unbox);
   return Fragment(unbox);
+}
+
+Fragment FlowGraphBuilder::LoadThread() {
+  LoadThreadInstr* instr = new (Z) LoadThreadInstr();
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment FlowGraphBuilder::LoadIsolate() {
+  Fragment body;
+  body += LoadThread();
+  body += LoadUntagged(compiler::target::Thread::isolate_offset());
+  return body;
 }
 
 // TODO(http://dartbug.com/47487): Support unboxed output value.
@@ -4674,8 +4782,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   if (marshaller.IsPointer(compiler::ffi::kResultIndex) ||
       marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
-    catch_body += IntConstant(0);
-    catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
+    catch_body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
   } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
     catch_body +=

@@ -1,6 +1,5 @@
-// @dart = 2.9
 class Class {
-  const Class({this.length});
+  const Class({this.length: 0});
   final int length;
   method1a() {}
   method1b() {}

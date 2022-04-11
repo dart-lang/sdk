@@ -212,13 +212,15 @@ class SocketStatistic {
 
   /// The time, in microseconds, that this socket was closed.
   @optional
-  final int endTime;
+  final int? endTime;
 
   /// The time, in microseconds, that this socket was last read from.
-  final int lastReadTime;
+  @optional
+  final int? lastReadTime;
 
   /// The time, in microseconds, that this socket was last written to.
-  final int lastWriteTime;
+  @optional
+  final int? lastWriteTime;
 
   /// The address of the socket.
   final String address;

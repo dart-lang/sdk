@@ -1933,7 +1933,7 @@ static method testForElement(dynamic dynVar, core::List<core::int> listInt, core
       #t235.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
   } =>#t235;
 }
-static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic /* originally async */ {
+static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

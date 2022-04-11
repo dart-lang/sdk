@@ -58,7 +58,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
 }
 static method F<T extends core::Object* = dynamic>() → self::F::T*
   return null;
-static method f() → asy::Future<dynamic>* async {
+static method f() → asy::Future<dynamic>* async /* futureValueType= dynamic */ {
   dynamic d;
   core::Object* o;
   for (dynamic x in self::F<core::Iterable<dynamic>*>()) {
@@ -86,7 +86,7 @@ static method f() → asy::Future<dynamic>* async {
     o = #t4;
   }
 }
-static method main() → asy::Future<dynamic>* async {
+static method main() → asy::Future<dynamic>* async /* futureValueType= dynamic */ {
   for (core::int* x in <core::int*>[1, 2, 3]) {
   }
   for (core::num* x in <core::num*>[1, 2, 3]) {

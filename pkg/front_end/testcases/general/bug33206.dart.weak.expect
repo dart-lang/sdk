@@ -20,20 +20,20 @@ class Y extends core::Object {
     ;
   method f(dynamic _) → dynamic {}
 }
-static method f1() → asy::Future<core::List<core::Object>> async {
+static method f1() → asy::Future<core::List<core::Object>> async /* futureValueType= core::List<core::Object> */ {
   return <core::Object>[1];
 }
 static method f2() → core::List<core::Object>
   return <core::Object>[2];
-static method f3() → asy::Future<core::Object> async {
+static method f3() → asy::Future<core::Object> async /* futureValueType= core::Object */ {
   return 3;
 }
-static method foo() → asy::Future<self::X> async {
+static method foo() → asy::Future<self::X> async /* futureValueType= self::X */ {
   return new self::X::•(let final self::Y #t1 = new self::Y::•() in block {
     #t1.{self::Y::f}(await self::f1()){(dynamic) → dynamic};
     #t1.{self::Y::f}(self::f2()){(dynamic) → dynamic};
   } =>#t1, await self::f3());
 }
-static method main() → asy::Future<void> async {
+static method main() → asy::Future<void> async /* futureValueType= void */ {
   core::print(await self::foo());
 }

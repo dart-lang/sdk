@@ -6271,6 +6271,38 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
 #endif
 }
 
+ASSEMBLER_TEST_GENERATE(MoveByteRunTest, assembler) {
+  __ pushq(Immediate(0x1234567887654321));
+  // RAX / AL
+  __ xorq(CallingConventions::kReturnReg, CallingConventions::kReturnReg);
+  __ movb(ByteRegisterOf(CallingConventions::kReturnReg), Address(RSP, 0));
+  // RBX / BH
+  __ pushq(RBX);
+  __ xorq(RBX, RBX);
+  __ movb(BH, Address(RSP, target::kWordSize));
+  __ shrq(RBX, Immediate(8));
+  __ addq(CallingConventions::kReturnReg, RBX);
+  __ popq(RBX);
+  // R8 / R8B
+  ASSERT((CallingConventions::kVolatileCpuRegisters & (1 << R8)) != 0);
+  __ xorq(R8, R8);
+  __ movb(R8B, Address(RSP, 0));
+  __ addq(CallingConventions::kReturnReg, R8);
+  // RDI / DIL
+  __ pushq(RDI);
+  __ xorq(RDI, RDI);
+  __ movb(DIL, Address(RSP, target::kWordSize));
+  __ addq(CallingConventions::kReturnReg, RDI);
+  __ popq(RDI);
+  __ Drop(1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(MoveByteRunTest, test) {
+  intptr_t res = test->InvokeWithCodeAndThread<intptr_t>();
+  EXPECT_EQ(0x21 + 0x21 + 0x21 + 0x21, res);
+}
+
 }  // namespace compiler
 }  // namespace dart
 

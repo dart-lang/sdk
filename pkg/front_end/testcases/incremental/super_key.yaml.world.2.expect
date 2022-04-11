@@ -1,0 +1,44 @@
+main = <No Member>;
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Bar extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → fra::Bar
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class Widget extends fra::Bar /*hasConstConstructor*/  {
+    const constructor •() → fra::Widget
+      : super fra::Bar::•()
+      ;
+  }
+  class Key extends dart.core::Object {
+    synthetic constructor •() → fra::Key
+      : super dart.core::Object::•()
+      ;
+    static method _#new#tearOff() → fra::Key
+      return new fra::Key::•();
+  }
+  class StatefulWidget extends fra::Widget /*hasConstConstructor*/  {
+    final field fra::Key? key;
+    const constructor •({fra::Key? key = #C1}) → fra::StatefulWidget
+      : fra::StatefulWidget::key = key, super fra::Widget::•()
+      ;
+    static method _#new#tearOff({fra::Key? key = #C1}) → fra::StatefulWidget
+      return new fra::StatefulWidget::•(key: key);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:flutter/src/widgets/framework.dart";
+
+  class GalleryApp extends fra::StatefulWidget /*hasConstConstructor*/  {
+    const constructor •({fra::Key? key = #C1}) → main::GalleryApp
+      : super fra::StatefulWidget::•(key: key)
+      ;
+    static method _#new#tearOff({fra::Key? key}) → main::GalleryApp
+      return new main::GalleryApp::•(key: key);
+  }
+}
+constants  {
+  #C1 = null
+}

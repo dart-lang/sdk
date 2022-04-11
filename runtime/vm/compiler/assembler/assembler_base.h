@@ -866,6 +866,35 @@ class AssemblerBase : public StackResource {
   ObjectPoolBuilder* object_pool_builder_;
 };
 
+// For leaf runtime calls. For non-leaf runtime calls, use
+// Assembler::CallRuntime.
+class LeafRuntimeScope : public ValueObject {
+ public:
+  // Enters a frame, saves registers, and aligns the stack according to the C
+  // ABI.
+  //
+  // If [preserve_registers] is false, only registers normally preserved at a
+  // Dart call will be preserved (SP, FP, THR, PP, CODE_REG, RA). Suitable for
+  // use in IL instructions marked with LocationSummary::kCall.
+  // If [preserve registers] is true, all registers allocatable by Dart (roughly
+  // everything but TMP, TMP2) will be preserved. Suitable for non-call IL
+  // instructions like the write barrier.
+  LeafRuntimeScope(Assembler* assembler,
+                   intptr_t frame_size,
+                   bool preserve_registers);
+
+  // Restores registers and leaves the frame.
+  ~LeafRuntimeScope();
+
+  // Sets the current tag, calls the runtime function, and restores the current
+  // tag.
+  void Call(const RuntimeEntry& entry, intptr_t argument_count);
+
+ private:
+  Assembler* const assembler_;
+  const bool preserve_registers_;
+};
+
 }  // namespace compiler
 
 }  // namespace dart

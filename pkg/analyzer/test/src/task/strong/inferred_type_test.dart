@@ -2579,11 +2579,11 @@ var x = new C().f();
   }
 
   test_inferConstsTransitively() async {
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 const b1 = 2;
 ''');
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'test.dart';
 import 'b.dart';
 const a1 = m2;
@@ -2740,7 +2740,7 @@ foo() {
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'test.dart';
 var x = 2; // ok to infer
 ''');
@@ -2759,7 +2759,7 @@ test1() {
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn2() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'test.dart';
 class A { static var x = 2; }
 ''');
@@ -2778,7 +2778,7 @@ test1() {
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 var x = 2;
 ''');
 
@@ -2797,7 +2797,7 @@ test1() {
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag2() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A { static var x = 2; }
 ''');
 
@@ -3352,11 +3352,11 @@ List<String> strings() {
   }
 
   test_inferStaticsTransitively() async {
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 final b1 = 2;
 ''');
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'test.dart';
 import 'b.dart';
 final a1 = m2;
@@ -3396,7 +3396,7 @@ foo() {
   }
 
   test_inferStaticsTransitively3() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 const a1 = 3;
 const a2 = 4;
 class A {
@@ -3426,7 +3426,7 @@ foo() {
   }
 
   test_inferStaticsWithMethodInvocations() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 m3(String a, String b, [a1,a2]) {}
 ''');
 
@@ -3566,7 +3566,7 @@ final z = 42; // should infer `int`
   }
 
   test_inferTypeRegardlessOfDeclarationOrderOrCycles() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'test.dart';
 
 class B extends A { }
@@ -3694,7 +3694,7 @@ foo() {
 
   test_inferTypesOnGenericInstantiationsInLibraryCycle() async {
     // Note: this is a regression test for bug #48.
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'test.dart';
 abstract class I<E> {
   A<E> m(a, String f(v, int e));

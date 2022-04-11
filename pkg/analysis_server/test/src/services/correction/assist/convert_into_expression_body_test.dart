@@ -73,6 +73,96 @@ main() {
 ''');
   }
 
+  Future<void> test_closure_hasBlockComment_afterReturnStatement() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() {
+    return 42;
+    // Comment.
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
+  Future<void> test_closure_hasBlockComment_beforeReturnKeyword() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() {
+    // Comment.
+    return 42;
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
+  Future<void> test_closure_hasBlockComment_multiple() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() {
+    // Comment.
+
+    // Comment 2.
+    return 42;
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
+  Future<void> test_closure_hasInlineComment_beforeBodyKeyword() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() /* Comment. */ async {
+    return 42;
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
+  Future<void> test_closure_hasInlineComment_beforeOpenBrace() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() /* Comment. */ {
+    return 42;
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
+  Future<void> test_closure_hasInlineComment_beforeReturn() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() {
+    /* Comment. */
+    return 42;
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
+  Future<void> test_closure_hasInlineComment_beforeReturnSemicolon() async {
+    await resolveTestCode('''
+setup(x) {}
+main() {
+  setup(() {
+    return  42 /* Comment. */;
+  });
+}
+''');
+    await assertNoAssistAt('return');
+  }
+
   Future<void> test_closure_voidExpression() async {
     await resolveTestCode('''
 setup(x) {}
@@ -156,12 +246,12 @@ main() {
   Future<void> test_method_onBlock() async {
     await resolveTestCode('''
 class A {
-  m() { // marker
+  m() {
     return 42;
   }
 }
 ''');
-    await assertHasAssistAt('{ // marker', '''
+    await assertHasAssistAt('m() {', '''
 class A {
   m() => 42;
 }

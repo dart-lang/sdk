@@ -194,7 +194,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
       _debugCode.write(' ' * _indent);
       var endsInNewLine = code.endsWith('\n');
       if (endsInNewLine) code = code.substring(0, code.length - 1);
-      _debugCode.write(code.replaceAll('\n', '\n' + (' ' * _indent)));
+      _debugCode.write(code.replaceAll('\n', '\n${' ' * _indent}'));
       if (endsInNewLine) _debugCode.write(',\n');
       if (isClosureClass) {
         _indent -= 2;

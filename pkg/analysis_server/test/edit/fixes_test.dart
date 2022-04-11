@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -32,7 +33,7 @@ class FixesTest extends AbstractAnalysisTest {
 
   Future<void> test_fileOutsideRoot() async {
     final outsideFile = '/foo/test.dart';
-    newFile(outsideFile, content: 'bad code to create error');
+    newFile2(outsideFile, 'bad code to create error');
 
     // Set up the original project, as the code fix code won't run at all
     // if there are no contexts.
@@ -140,7 +141,7 @@ main() {
 print(1)
 }
 ''';
-    _addOverlay(testFile, testCode);
+    await _addOverlay(testFile, testCode);
     // ask for fixes
     await waitForTasksFinished();
     var errorFixes = await _getFixesAt('print(1)');
@@ -149,23 +150,26 @@ print(1)
   }
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
-    newFolder('/aaa');
-    newDotPackagesFile('/aaa', content: '''
-aaa:${toUri('/aaa/lib')}
-bbb:${toUri('/bbb/lib')}
-''');
+    newPackageConfigJsonFile(
+      '/aaa',
+      (PackageConfigFileBuilder()
+            ..add(name: 'aaa', rootPath: '/aaa')
+            ..add(name: 'bbb', rootPath: '/bbb'))
+          .toContent(toUriStr: toUriStr),
+    );
     newPubspecYamlFile('/aaa', r'''
 dependencies:
   bbb: any
 ''');
 
-    newFolder('/bbb');
-    newDotPackagesFile('/bbb', content: '''
-bbb:${toUri('/bbb/lib')}
-''');
-    newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
-    newFile('/bbb/lib/target.generated.dart', content: 'class Foo() {}');
-    newFile('/bbb/lib/target.template.dart', content: 'class Foo() {}');
+    newPackageConfigJsonFile(
+      '/bbb',
+      (PackageConfigFileBuilder()..add(name: 'bbb', rootPath: '/bbb'))
+          .toContent(toUriStr: toUriStr),
+    );
+    newFile2('/bbb/lib/target.dart', 'class Foo() {}');
+    newFile2('/bbb/lib/target.generated.dart', 'class Foo() {}');
+    newFile2('/bbb/lib/target.template.dart', 'class Foo() {}');
 
     await setRoots(
         included: [convertPath('/aaa'), convertPath('/bbb')], excluded: []);
@@ -173,7 +177,7 @@ bbb:${toUri('/bbb/lib')}
     // Configure the test file.
     testFile = convertPath('/aaa/main.dart');
     testCode = 'main() { new Foo(); }';
-    _addOverlay(testFile, testCode);
+    await _addOverlay(testFile, testCode);
 
     await waitForTasksFinished();
     doAllDeclarationsTrackerWork();
@@ -192,11 +196,11 @@ bbb:${toUri('/bbb/lib')}
         isFalse);
   }
 
-  void _addOverlay(String name, String contents) {
+  Future<void> _addOverlay(String name, String contents) async {
     var request =
         AnalysisUpdateContentParams({name: AddContentOverlay(contents)})
             .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+    await waitResponse(request);
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {

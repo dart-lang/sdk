@@ -504,6 +504,8 @@ class ChangeContentOverlay implements HasToJson {
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
+///   "libraryUri": optional String
+///   "isNotImported": optional bool
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.

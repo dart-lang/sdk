@@ -8,87 +8,43 @@ part of dart.io;
 class FileMode {
   /// The mode for opening a file only for reading.
   static const read = const FileMode._internal(0);
-  @Deprecated("Use read instead")
-  static const READ = read;
 
   /// Mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const write = const FileMode._internal(1);
-  @Deprecated("Use write instead")
-  static const WRITE = write;
 
   /// Mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
   static const append = const FileMode._internal(2);
-  @Deprecated("Use append instead")
-  static const APPEND = append;
 
   /// Mode for opening a file for writing *only*. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const writeOnly = const FileMode._internal(3);
-  @Deprecated("Use writeOnly instead")
-  static const WRITE_ONLY = writeOnly;
 
   /// Mode for opening a file for writing *only* to the
   /// end of it. The file is created if it does not already exist.
   static const writeOnlyAppend = const FileMode._internal(4);
-  @Deprecated("Use writeOnlyAppend instead")
-  static const WRITE_ONLY_APPEND = writeOnlyAppend;
 
   final int _mode;
 
   const FileMode._internal(this._mode);
 }
 
-/// The mode for opening a file only for reading.
-@Deprecated("Use FileMode.read instead")
-const READ = FileMode.read;
-
-/// The mode for opening a file for reading and writing. The file is
-/// overwritten if it already exists. The file is created if it does not
-/// already exist.
-@Deprecated("Use FileMode.write instead")
-const WRITE = FileMode.write;
-
-/// The mode for opening a file for reading and writing to the
-/// end of it. The file is created if it does not already exist.
-@Deprecated("Use FileMode.append instead")
-const APPEND = FileMode.append;
-
-/// Mode for opening a file for writing *only*. The file is
-/// overwritten if it already exists. The file is created if it does not
-/// already exist.
-@Deprecated("Use FileMode.writeOnly instead")
-const WRITE_ONLY = FileMode.writeOnly;
-
-/// Mode for opening a file for writing *only* to the
-/// end of it. The file is created if it does not already exist.
-@Deprecated("Use FileMode.writeOnlyAppend instead")
-const WRITE_ONLY_APPEND = FileMode.writeOnlyAppend;
-
 /// Type of lock when requesting a lock on a file.
 class FileLock {
   /// Shared file lock.
   static const shared = const FileLock._internal(1);
-  @Deprecated("Use shared instead")
-  static const SHARED = shared;
 
   /// Exclusive file lock.
   static const exclusive = const FileLock._internal(2);
-  @Deprecated("Use exclusive instead")
-  static const EXCLUSIVE = exclusive;
 
   /// Blocking shared file lock.
   static const blockingShared = const FileLock._internal(3);
-  @Deprecated("Use blockingShared instead")
-  static const BLOCKING_SHARED = blockingShared;
 
   /// Blocking exclusive file lock.
   static const blockingExclusive = const FileLock._internal(4);
-  @Deprecated("Use blockingExclusive instead")
-  static const BLOCKING_EXCLUSIVE = blockingExclusive;
 
   final int _type;
 

@@ -1776,6 +1776,29 @@
     },
     {
       "builders": [
+        "vm-kernel-msvc-windows"
+      ],
+      "meta": {
+        "description": "This configuration builds the VM with MSVC."
+      },
+      "steps": [
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=x64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-linux-debug-simarm",
         "vm-kernel-linux-debug-simarm64",
         "vm-kernel-linux-debug-simarm64c",
@@ -2946,7 +2969,8 @@
           "arguments": [
             "-ndart2wasm-hostasserts-linux-x64-d8",
             "language",
-            "corelib"
+            "corelib",
+            "web/wasm"
           ],
           "shards": 30,
           "fileset": "dart2wasm_hostasserts"
@@ -2962,7 +2986,7 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart (clang builds)",
           "script": "tools/build.py",
           "arguments": [
             "--arch=ia32,x64,arm,arm64",
@@ -2972,10 +2996,21 @@
           ]
         },
         {
+          "name": "build dart (gcc builds)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "--arch=riscv64",
+            "--mode=release",
+            "--check-clean",
+            "create_sdk"
+          ]
+        },
+        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "--arch=ia32,x64,arm,arm64"
+            "--arch=ia32,x64,arm,arm64,riscv64"
           ]
         },
         {

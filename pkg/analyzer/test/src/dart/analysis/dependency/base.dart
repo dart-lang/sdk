@@ -60,8 +60,11 @@ class BaseDependencyTest extends PubPackageResolutionTest {
 //      await _addLibraryByUri('dart:_internal');
 //    }
 
-    newFile(path, content: content);
-    driverFor(path).changeFile(path);
+    newFile2(path, content);
+
+    var analysisDriver = driverFor(path);
+    analysisDriver.changeFile(path);
+    await analysisDriver.applyPendingFileChanges();
 
     var units = await _resolveLibrary(path);
     var uri = units.first.declaredElement!.source.uri;

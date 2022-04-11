@@ -27,6 +27,7 @@ import '../../messages.dart'
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
+        messageEnumAbstractMember,
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
@@ -37,6 +38,7 @@ import '../../messages.dart'
         templateCantInferTypeDueToNoCombinedSignature,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
+        templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 import '../../names.dart' show noSuchMethodName;
@@ -70,7 +72,7 @@ class ClassMembersNodeBuilder {
   ClassBuilder get classBuilder => _hierarchyNode.classBuilder;
 
   bool get shouldModifyKernel =>
-      classBuilder.library.loader == hierarchy.loader;
+      classBuilder.libraryBuilder.loader == hierarchy.loader;
 
   ClassMember? checkInheritanceConflict(ClassMember a, ClassMember b) {
     if (a.isStatic || a.isProperty != b.isProperty) {
@@ -373,7 +375,7 @@ class ClassMembersNodeBuilder {
       ClassBuilder classBuilder,
       DartType? inferredType,
       DartType inheritedType) {
-    if (classBuilder.library.isNonNullableByDefault) {
+    if (classBuilder.libraryBuilder.isNonNullableByDefault) {
       if (inferredType == null) {
         return inheritedType;
       } else {
@@ -531,12 +533,23 @@ class ClassMembersNodeBuilder {
         staticMember = b;
         instanceMember = a;
       }
-      classBuilder.library.addProblem(messageStaticAndInstanceConflict,
-          staticMember.charOffset, name.length, staticMember.fileUri,
-          context: <LocatedMessage>[
-            messageStaticAndInstanceConflictCause.withLocation(
-                instanceMember.fileUri, instanceMember.charOffset, name.length)
-          ]);
+      if (!staticMember.isSynthesized) {
+        classBuilder.libraryBuilder.addProblem(messageStaticAndInstanceConflict,
+            staticMember.charOffset, name.length, staticMember.fileUri,
+            context: <LocatedMessage>[
+              messageStaticAndInstanceConflictCause.withLocation(
+                  instanceMember.fileUri,
+                  instanceMember.charOffset,
+                  name.length)
+            ]);
+      } else {
+        classBuilder.libraryBuilder.addProblem(
+            templateInstanceAndSynthesizedStaticConflict
+                .withArguments(staticMember.name.text),
+            instanceMember.charOffset,
+            name.length,
+            instanceMember.fileUri);
+      }
     } else {
       // This message can be reported twice (when merging localMembers with
       // classSetters, or localSetters with classMembers). By ensuring that
@@ -553,7 +566,7 @@ class ClassMembersNodeBuilder {
         existing = b;
         duplicate = a;
       }
-      classBuilder.library.addProblem(
+      classBuilder.libraryBuilder.addProblem(
           templateDuplicatedDeclaration.withArguments(name),
           duplicate.charOffset,
           name.length,
@@ -566,12 +579,12 @@ class ClassMembersNodeBuilder {
   }
 
   ClassMembersNode build() {
-    ClassMembersNode? supernode = _hierarchyNode.supernode != null
-        ? _membersBuilder
-            .getNodeFromClassBuilder(_hierarchyNode.supernode!.classBuilder)
+    ClassMembersNode? supernode = _hierarchyNode.directSuperClassNode != null
+        ? _membersBuilder.getNodeFromClassBuilder(
+            _hierarchyNode.directSuperClassNode!.classBuilder)
         : null;
-    List<TypeBuilder>? directInterfaceBuilders =
-        _hierarchyNode.directInterfaceBuilders;
+    List<ClassHierarchyNode>? interfaceNodes =
+        _hierarchyNode.directInterfaceNodes;
 
     /// Set to `true` if the class needs interfaces, that is, if it has any
     /// members where the interface member is different from its corresponding
@@ -770,18 +783,16 @@ class ClassMembersNodeBuilder {
         implement(supernode.interfaceSetterMap ?? supernode.classSetterMap);
       }
 
-      if (directInterfaceBuilders != null) {
-        for (int i = 0; i < directInterfaceBuilders.length; i++) {
+      if (interfaceNodes != null) {
+        for (int i = 0; i < interfaceNodes.length; i++) {
           ClassMembersNode? interfaceNode = _membersBuilder
-              .getNodeFromTypeBuilder(directInterfaceBuilders[i]);
-          if (interfaceNode != null) {
-            hasInterfaces = true;
+              .getNodeFromClassBuilder(interfaceNodes[i].classBuilder);
+          hasInterfaces = true;
 
-            implement(interfaceNode.interfaceMemberMap ??
-                interfaceNode.classMemberMap);
-            implement(interfaceNode.interfaceSetterMap ??
-                interfaceNode.classSetterMap);
-          }
+          implement(
+              interfaceNode.interfaceMemberMap ?? interfaceNode.classMemberMap);
+          implement(
+              interfaceNode.interfaceSetterMap ?? interfaceNode.classSetterMap);
         }
       }
     }
@@ -939,8 +950,8 @@ class ClassMembersNodeBuilder {
     ///    }
     ///
     bool needsMemberSignatureFor(ClassMember classMember) {
-      return !classBuilder.library.isNonNullableByDefault &&
-          classMember.classBuilder.library.isNonNullableByDefault;
+      return !classBuilder.libraryBuilder.isNonNullableByDefault &&
+          classMember.classBuilder.libraryBuilder.isNonNullableByDefault;
     }
 
     memberMap.forEach((Name name, Tuple tuple) {
@@ -2340,15 +2351,20 @@ class ClassMembersNodeBuilder {
   void reportMissingMembers(List<ClassMember> abstractMembers) {
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
-      if (isNameVisibleIn(declaration.name, classBuilder.library)) {
-        String name = declaration.fullNameForErrors;
-        String className = declaration.classBuilder.fullNameForErrors;
-        String displayName =
-            declaration.isSetter ? "$className.$name=" : "$className.$name";
-        contextMap[displayName] = templateMissingImplementationCause
-            .withArguments(displayName)
-            .withLocation(
-                declaration.fileUri, declaration.charOffset, name.length);
+      if (isNameVisibleIn(declaration.name, classBuilder.libraryBuilder)) {
+        if (classBuilder.isEnum && declaration.classBuilder == classBuilder) {
+          classBuilder.addProblem(messageEnumAbstractMember,
+              declaration.charOffset, declaration.name.text.length);
+        } else {
+          String name = declaration.fullNameForErrors;
+          String className = declaration.classBuilder.fullNameForErrors;
+          String displayName =
+              declaration.isSetter ? "$className.$name=" : "$className.$name";
+          contextMap[displayName] = templateMissingImplementationCause
+              .withArguments(displayName)
+              .withLocation(
+                  declaration.fileUri, declaration.charOffset, name.length);
+        }
       }
     }
     if (contextMap.isEmpty) return;

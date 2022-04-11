@@ -4,13 +4,11 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,123 +17,117 @@ void main() {
 }
 
 @reflectiveTest
-class GetErrorsTest extends AbstractAnalysisTest {
-  static const String requestId = 'test-getError';
+class GetErrorsTest extends PubPackageAnalysisServerTest {
+  static const String _requestId = 'test-getError';
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    server.handlers = [
-      AnalysisDomainHandler(server),
-    ];
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysisComplete() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 main() {
   print(42)
 }
 ''');
+
     await waitForTasksFinished();
-    var errors = await _getErrors(testFile);
+
+    var errors = await _getErrors(testFile.path);
     expect(errors, hasLength(1));
   }
 
   Future<void> test_errorInPart() async {
-    var libPath = join(testFolder, 'main.dart');
-    var partPath = join(testFolder, 'main_part.dart');
-    newFile(libPath, content: r'''
-library main;
-part 'main_part.dart';
+    var libraryFile = newFile2('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
 class A {}
 ''');
-    newFile(partPath, content: r'''
-part of main;
+
+    var partFile = newFile2('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
 class A {}
 ''');
-    await waitForTasksFinished();
+
     {
-      var libErrors = await _getErrors(libPath);
+      var libErrors = await _getErrors(libraryFile.path);
       expect(libErrors, isEmpty);
     }
     {
-      var partErrors = await _getErrors(partPath);
+      var partErrors = await _getErrors(partFile.path);
       expect(partErrors, hasLength(1));
     }
   }
 
-  @failingTest
   Future<void> test_fileWithoutContext() async {
-    // Broken under the new driver.
-    var file = convertPath('/outside.dart');
-    newFile(file, content: '''
-main() {
-  print(42);
-}
-''');
-    await _checkInvalid(file);
+    await setRoots(included: [], excluded: []);
+
+    var request = _createGetErrorsRequest(testFile.path);
+    var response = await serverChannel.sendRequest(request);
+    assertResponseFailure(
+      response,
+      requestId: _requestId,
+      errorCode: RequestErrorCode.GET_ERRORS_INVALID_FILE,
+    );
   }
 
   Future<void> test_hasErrors() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 main() {
   print(42)
 }
 ''');
-    var errors = await _getErrors(testFile);
+
+    var errors = await _getErrors(testFile.path);
     expect(errors, hasLength(1));
     {
       var error = errors[0];
       expect(error.severity, AnalysisErrorSeverity.ERROR);
       expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
-      expect(error.location.file, testFile);
+      expect(error.location.file, testFile.path);
       expect(error.location.startLine, 2);
     }
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = _createGetErrorsRequest('test.dart');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: _requestId,
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = _createGetErrorsRequest(convertPath('/foo/../bar/test.dart'));
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: _requestId,
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_noErrors() async {
-    addTestFile('''
+    newFile2(testFilePath, '''
 main() {
   print(42);
 }
 ''');
-    var errors = await _getErrors(testFile);
+
+    var errors = await _getErrors(testFile.path);
     expect(errors, isEmpty);
   }
 
-  Future<void> _checkInvalid(String file) async {
-    var request = _createGetErrorsRequest(file);
-    var response = await serverChannel.sendRequest(request);
-    expect(response.error, isNotNull);
-    expect(response.error!.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
+  Request _createGetErrorsRequest(String path) {
+    return AnalysisGetErrorsParams(path).toRequest(_requestId);
   }
 
-  Request _createGetErrorsRequest(String file) {
-    return AnalysisGetErrorsParams(file).toRequest(requestId);
-  }
-
-  Future<List<AnalysisError>> _getErrors(String file) async {
-    var request = _createGetErrorsRequest(file);
-    var response = await serverChannel.sendRequest(request);
+  Future<List<AnalysisError>> _getErrors(String path) async {
+    var request = _createGetErrorsRequest(path);
+    var response = await handleSuccessfulRequest(request);
     return AnalysisGetErrorsResult.fromResponse(response).errors;
   }
 }

@@ -26,24 +26,33 @@ library /*isNonNullableByDefault*/;
 //   self.m<String>.applyAndPrint(['three']);
 //                  ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:33:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue46719.dart:33:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   self.A.n<int>.applyAndPrint([2]);
 //           ^
+// pkg/front_end/testcases/general/issue46719.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:34:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue46719.dart:34:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   self.A.n<String>.applyAndPrint(['three']);
 //           ^
+// pkg/front_end/testcases/general/issue46719.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Member not found: 'named'.
 //   A.named.toString();
 //     ^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:36:4: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/issue46719.dart:36:4: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   A<int>.named.toString();
 //    ^
+// pkg/front_end/testcases/general/issue46719.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/issue46719.dart:36:10: Error: Member not found: 'named'.
 //   A<int>.named.toString();

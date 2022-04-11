@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/il_test_helper.h"
 
 #include "vm/compiler/aot/aot_call_specializer.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -16,6 +17,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/dart_api_impl.h"
+#include "vm/flags.h"
 #include "vm/parser.h"
 #include "vm/unit_test.h"
 
@@ -186,6 +188,32 @@ void TestPipeline::RunAdditionalPasses(
   pass_state_->call_specializer = nullptr;
 }
 
+// Keep in sync with CompilerPass::RunForceOptimizedPipeline.
+void TestPipeline::RunForcedOptimizedAfterSSAPasses() {
+  RunAdditionalPasses({
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kBranchSimplify,
+      CompilerPass::kIfConvert,
+      CompilerPass::kConstantPropagation,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations_Final,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kTryCatchOptimization,
+      CompilerPass::kEliminateEnvironments,
+      CompilerPass::kEliminateDeadPhis,
+      CompilerPass::kDCE,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kDelayAllocations,
+      CompilerPass::kEliminateWriteBarriers,
+      CompilerPass::kFinalizeGraph,
+      CompilerPass::kAllocateRegisters,
+      CompilerPass::kReorderBlocks,
+  });
+}
+
 void TestPipeline::CompileGraphAndAttachFunction() {
   Zone* zone = thread_->zone();
   const bool optimized = true;
@@ -248,6 +276,12 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   if (mode_ == CompilerPass::kAOT) {
     EXPECT(deopt_info_array.IsNull() || deopt_info_array.Length() == 0);
   }
+
+#if !defined(PRODUCT)
+  if (FLAG_disassemble_optimized) {
+    Disassembler::DisassembleCode(function_, code, optimized);
+  }
+#endif
 }
 
 bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes,

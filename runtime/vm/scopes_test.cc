@@ -22,9 +22,6 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   const String& c = String::ZoneHandle(Symbols::New(thread, "c"));
   LocalVariable* var_c = new LocalVariable(
       TokenPosition::kNoSource, TokenPosition::kNoSource, c, dynamic_type);
-  const String& L = String::ZoneHandle(Symbols::New(thread, "L"));
-  SourceLabel* label_L =
-      new SourceLabel(TokenPosition::kNoSource, L, SourceLabel::kFor);
 
   LocalScope* outer_scope = new LocalScope(NULL, 0, 0);
   LocalScope* inner_scope1 = new LocalScope(outer_scope, 0, 0);
@@ -51,13 +48,11 @@ ISOLATE_UNIT_TEST_CASE(LocalScope) {
   EXPECT(outer_scope->AddVariable(var_a));
   EXPECT(inner_scope1->AddVariable(var_b));
   EXPECT(inner_scope2->AddVariable(var_c));
-  EXPECT(inner_scope2->AddLabel(label_L));
   EXPECT(!outer_scope->AddVariable(var_a));
 
   // Check the simple layout above.
   EXPECT_EQ(var_a, outer_scope->LocalLookupVariable(a));
   EXPECT_EQ(var_a, inner_scope1->LookupVariable(a, true));
-  EXPECT_EQ(label_L, inner_scope2->LookupLabel(L));
   EXPECT(outer_scope->LocalLookupVariable(b) == NULL);
   EXPECT(inner_scope1->LocalLookupVariable(c) == NULL);
 

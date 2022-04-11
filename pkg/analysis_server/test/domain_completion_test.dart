@@ -4,21 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_utilities/check/check.dart';
@@ -26,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analysis_server_base.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart';
 import 'services/completion/dart/completion_check.dart';
@@ -38,52 +29,6 @@ void main() {
     defineReflectiveTests(CompletionDomainHandlerGetSuggestions2Test);
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
   });
-}
-
-/// TODO(scheglov) this is duplicate
-class AnalysisOptionsFileConfig {
-  final List<String> experiments;
-  final bool implicitCasts;
-  final bool implicitDynamic;
-  final List<String> lints;
-  final bool strictCasts;
-  final bool strictInference;
-  final bool strictRawTypes;
-
-  AnalysisOptionsFileConfig({
-    this.experiments = const [],
-    this.implicitCasts = true,
-    this.implicitDynamic = true,
-    this.lints = const [],
-    this.strictCasts = false,
-    this.strictInference = false,
-    this.strictRawTypes = false,
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    buffer.writeln('analyzer:');
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-    buffer.writeln('  language:');
-    buffer.writeln('    strict-casts: $strictCasts');
-    buffer.writeln('    strict-inference: $strictInference');
-    buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  strong-mode:');
-    buffer.writeln('    implicit-casts: $implicitCasts');
-    buffer.writeln('    implicit-dynamic: $implicitDynamic');
-
-    buffer.writeln('linter:');
-    buffer.writeln('  rules:');
-    for (var lint in lints) {
-      buffer.writeln('    - $lint');
-    }
-
-    return buffer.toString();
-  }
 }
 
 @reflectiveTest
@@ -114,7 +59,7 @@ void f() {
     check(details)
       ..completion.isEqualTo('Random')
       ..change
-          .hasFileEdit(testFilePathPlatform)
+          .hasFileEdit(testFile.path)
           .appliedTo(testFileContent)
           .isEqualTo(r'''
 import 'dart:math';
@@ -133,7 +78,7 @@ dependencies:
 ''');
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
-    newFile('${aaaRoot.path}/lib/f.dart', content: '''
+    newFile2('${aaaRoot.path}/lib/f.dart', '''
 class Test {}
 ''');
 
@@ -152,7 +97,7 @@ void f() {
     check(details)
       ..completion.isEqualTo('Test')
       ..change
-          .hasFileEdit(testFilePathPlatform)
+          .hasFileEdit(testFile.path)
           .appliedTo(testFileContent)
           .isEqualTo(r'''
 import 'package:aaa/a.dart';
@@ -164,7 +109,7 @@ void f() {
   }
 
   Future<void> test_import_package_this() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class Test {}
 ''');
 
@@ -178,7 +123,7 @@ void f() {
     check(details)
       ..completion.isEqualTo('Test')
       ..change
-          .hasFileEdit(testFilePathPlatform)
+          .hasFileEdit(testFile.path)
           .appliedTo(testFileContent)
           .isEqualTo(r'''
 import 'package:test/a.dart';
@@ -193,7 +138,7 @@ void f() {
     await _configureWithWorkspaceRoot();
 
     var request = CompletionGetSuggestionDetails2Params(
-            testFilePathPlatform, 0, 'Random', '[foo]:bar')
+            testFile.path, 0, 'Random', '[foo]:bar')
         .toRequest('0');
 
     var response = await handleRequest(request);
@@ -212,6 +157,11 @@ void f() {
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
   }
 
+  Future<void> _configureWithWorkspaceRoot() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+  }
+
   Future<CompletionGetSuggestionDetails2Result> _getCodeDetails({
     required String path,
     required String content,
@@ -224,8 +174,9 @@ void f() {
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    newFile(path,
-        content: content.substring(0, completionOffset) +
+    newFile2(
+        path,
+        content.substring(0, completionOffset) +
             content.substring(completionOffset + 1));
 
     return await _getDetails(
@@ -249,7 +200,7 @@ void f() {
       libraryUri,
     ).toRequest('0');
 
-    var response = await _handleSuccessfulRequest(request);
+    var response = await handleSuccessfulRequest(request);
     return CompletionGetSuggestionDetails2Result.fromResponse(response);
   }
 
@@ -282,7 +233,7 @@ class CompletionDomainHandlerGetSuggestions2Test
       abortedIdSet.add(request.id);
     });
 
-    newFile(testFilePath, content: '');
+    newFile2(testFilePath, '');
 
     await _configureWithWorkspaceRoot();
 
@@ -320,7 +271,7 @@ class CompletionDomainHandlerGetSuggestions2Test
       abortedIdSet.add(request.id);
     });
 
-    newFile(testFilePath, content: '');
+    newFile2(testFilePath, '');
 
     await _configureWithWorkspaceRoot();
 
@@ -328,9 +279,9 @@ class CompletionDomainHandlerGetSuggestions2Test
     var request = _sendTestCompletionRequest('0', 0);
 
     // Simulate typing in the IDE.
-    await _handleSuccessfulRequest(
+    await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFilePathPlatform: AddContentOverlay('void f() {}'),
+        testFile.path: AddContentOverlay('void f() {}'),
       }).toRequest('1'),
     );
 
@@ -343,14 +294,31 @@ class CompletionDomainHandlerGetSuggestions2Test
       ..suggestions.isEmpty;
   }
 
+  Future<void> test_applyPendingFileChanges() async {
+    await _configureWithWorkspaceRoot();
+
+    // Request with the empty content.
+    await _getTestCodeSuggestions('^');
+
+    // Change the file, and request again.
+    // Should apply pending file changes before resolving.
+    var response = await _getTestCodeSuggestions('Str^');
+
+    check(response).suggestions.includesAll([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('String')
+        ..isClass,
+    ]);
+  }
+
   Future<void> test_isNotImportedFeature_prefixed_classInstanceMethod() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void foo01() {}
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 
 class B extends A {
@@ -424,13 +392,13 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_enumConstant() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 enum E1 {
   foo01
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 enum E2 {
   foo02
 }
@@ -464,13 +432,13 @@ void f() {
   Future<void> test_notImported_lowerRelevance_extension_getter() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 extension E2 on int {
   int get foo02 => 0;
 }
@@ -502,13 +470,13 @@ void f() {
   Future<void> test_notImported_lowerRelevance_extension_method() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   void foo01() {}
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 extension E2 on int {
   void foo02() {}
 }
@@ -540,13 +508,13 @@ void f() {
   Future<void> test_notImported_lowerRelevance_extension_setter() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   set foo01(int _) {}
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 extension E2 on int {
   set foo02(int _) {}
 }
@@ -576,11 +544,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_class() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -610,11 +578,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_getter() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 int get foo01 => 0;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 int get foo02 => 0;
 ''');
 
@@ -644,11 +612,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_setter() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 set foo01(int _) {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 set foo02(int _) {}
 ''');
 
@@ -678,11 +646,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_variable() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 var foo01 = 0;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 var foo02 = 0;
 ''');
 
@@ -721,18 +689,18 @@ dev_dependencies:
 ''');
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
-    newFile('${aaaRoot.path}/lib/f.dart', content: '''
+    newFile2('${aaaRoot.path}/lib/f.dart', '''
 class A01 {}
 ''');
-    newFile('${aaaRoot.path}/lib/src/f.dart', content: '''
+    newFile2('${aaaRoot.path}/lib/src/f.dart', '''
 class A02 {}
 ''');
 
     var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
-    newFile('${bbbRoot.path}/lib/f.dart', content: '''
+    newFile2('${bbbRoot.path}/lib/f.dart', '''
 class A03 {}
 ''');
-    newFile('${bbbRoot.path}/lib/src/f.dart', content: '''
+    newFile2('${bbbRoot.path}/lib/src/f.dart', '''
 class A04 {}
 ''');
 
@@ -771,18 +739,18 @@ dev_dependencies:
 ''');
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
-    newFile('${aaaRoot.path}/lib/f.dart', content: '''
+    newFile2('${aaaRoot.path}/lib/f.dart', '''
 class A01 {}
 ''');
-    newFile('${aaaRoot.path}/lib/src/f.dart', content: '''
+    newFile2('${aaaRoot.path}/lib/src/f.dart', '''
 class A02 {}
 ''');
 
     var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
-    newFile('${bbbRoot.path}/lib/f.dart', content: '''
+    newFile2('${bbbRoot.path}/lib/f.dart', '''
 class A03 {}
 ''');
-    newFile('${bbbRoot.path}/lib/src/f.dart', content: '''
+    newFile2('${bbbRoot.path}/lib/src/f.dart', '''
 class A04 {}
 ''');
 
@@ -819,11 +787,11 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -850,12 +818,12 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_hasImport() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 class A02 {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 class A03 {}
 ''');
 
@@ -887,12 +855,12 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_hasImport_hasShow() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 class A02 {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 class A03 {}
 ''');
 
@@ -932,11 +900,11 @@ void f() {
 name: test
 ''');
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile('$testPackageTestPath/b.dart', content: '''
+    newFile2('$testPackageTestPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -964,11 +932,11 @@ void f() {
 name: test
 ''');
 
-    newFile('$testPackageLibPath/f.dart', content: '''
+    newFile2('$testPackageLibPath/f.dart', '''
 class A01 {}
 ''');
 
-    newFile('$testPackageLibPath/src/f.dart', content: '''
+    newFile2('$testPackageLibPath/src/f.dart', '''
 class A02 {}
 ''');
 
@@ -999,11 +967,11 @@ void f() {
 name: test
 ''');
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', content: '''
+    var b = newFile2('$testPackageTestPath/b.dart', '''
 class A02 {}
 ''');
     var b_uriStr = toUriStr(b.path);
@@ -1039,11 +1007,11 @@ void f() {
 name: test
 ''');
 
-    newFile('$testPackageLibPath/f.dart', content: '''
+    newFile2('$testPackageLibPath/f.dart', '''
 class A01 {}
 ''');
 
-    newFile('$testPackageLibPath/src/f.dart', content: '''
+    newFile2('$testPackageLibPath/src/f.dart', '''
 class A02 {}
 ''');
 
@@ -1132,7 +1100,7 @@ void f() {
   Future<void> test_numResults_topLevelVariables_imported_withPrefix() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 var foo01 = 0;
 var foo02 = 0;
 var foo03 = 0;
@@ -1312,7 +1280,7 @@ void f() {
   Future<void> test_prefixed_expression_extensionGetters_notImported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
   int get bar => 0;
@@ -1353,7 +1321,7 @@ void f() {
       test_prefixed_expression_extensionGetters_notImported_private() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
 }
@@ -1421,7 +1389,7 @@ void f() {
   Future<void> test_prefixed_expression_extensionMethods_notImported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   void foo01() {}
   void bar() {}
@@ -1494,7 +1462,7 @@ void f() {
   Future<void> test_prefixed_expression_extensionSetters_notImported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   set foo01(int _) {}
   set bar(int _) {}
@@ -1535,7 +1503,7 @@ void f() {
       test_prefixed_expression_extensionSetters_notImported_private() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   set foo01(int _) {}
 }
@@ -1570,7 +1538,7 @@ void f() {
   Future<void> test_prefixed_extensionGetters_imported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
   int get foo02 => 0;
@@ -1714,11 +1682,11 @@ void f() {
   Future<void> test_unprefixed_imported_class() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -1752,11 +1720,11 @@ void f() {
   Future<void> test_unprefixed_imported_topLevelVariable() async {
     await _configureWithWorkspaceRoot();
 
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 var foo01 = 0;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: '''
+    newFile2('$testPackageLibPath/b.dart', '''
 var foo02 = 0;
 ''');
 
@@ -1883,6 +1851,9 @@ void f() {
         ..completion.isEqualTo('analyzer: ')
         ..kind.isIdentifier,
       (suggestion) => suggestion
+        ..completion.isEqualTo('code-style: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
         ..completion.isEqualTo('include: ')
         ..kind.isIdentifier,
       (suggestion) => suggestion
@@ -1940,6 +1911,11 @@ void f() {
     ]);
   }
 
+  Future<void> _configureWithWorkspaceRoot() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+  }
+
   Future<CompletionResponseForTesting> _getCodeSuggestions({
     required String path,
     required String content,
@@ -1951,9 +1927,11 @@ void f() {
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    newFile(path,
-        content: content.substring(0, completionOffset) +
-            content.substring(completionOffset + 1));
+    newFile2(
+      path,
+      content.substring(0, completionOffset) +
+          content.substring(completionOffset + 1),
+    );
 
     return await _getSuggestions(
       path: path,
@@ -1973,7 +1951,7 @@ void f() {
       maxResults,
     ).toRequest('0');
 
-    var response = await _handleSuccessfulRequest(request);
+    var response = await handleSuccessfulRequest(request);
     var result = CompletionGetSuggestions2Result.fromResponse(response);
     return CompletionResponseForTesting(
       requestOffset: completionOffset,
@@ -1997,7 +1975,7 @@ void f() {
 
   RequestWithFutureResponse _sendTestCompletionRequest(String id, int offset) {
     var request = CompletionGetSuggestions2Params(
-      testFilePathPlatform,
+      testFile.path,
       0,
       1 << 10,
     ).toRequest(id);
@@ -2281,7 +2259,7 @@ extension MyClassExtension on MyClass {
   Future<void> test_import_uri_with_trailing() {
     final filePath = '/project/bin/testA.dart';
     final incompleteImportText = toUriStr('/project/bin/t');
-    newFile(filePath, content: 'library libA;');
+    newFile2(filePath, 'library libA;');
     addTestFile('''
     import "$incompleteImportText^.dart";
     void f() {}''');
@@ -2578,7 +2556,7 @@ extension MyClassExtension on MyClass {
   }
 
   Future<void> test_inDartDoc_reference1() async {
-    newFile('/testA.dart', content: '''
+    newFile2('/testA.dart', '''
   part of libA;
   foo(bar) => 0;''');
     addTestFile('''
@@ -2731,7 +2709,7 @@ void f() {
   }
 
   Future<void> test_local_override() {
-    newFile('/project/bin/a.dart', content: 'class A {m() {}}');
+    newFile2('/project/bin/a.dart', 'class A {m() {}}');
     addTestFile('''
 import 'a.dart';
 class B extends A {
@@ -2796,7 +2774,7 @@ void f() {
   }
 
   Future<void> test_overrides() {
-    newFile('/project/bin/a.dart', content: 'class A {m() {}}');
+    newFile2('/project/bin/a.dart', 'class A {m() {}}');
     addTestFile('''
 import 'a.dart';
 class B extends A {m() {^}}
@@ -2809,7 +2787,7 @@ class B extends A {m() {^}}
   }
 
   Future<void> test_partFile() {
-    newFile('/project/bin/a.dart', content: '''
+    newFile2('/project/bin/a.dart', '''
       library libA;
       import 'dart:html';
       part 'test.dart';
@@ -2832,7 +2810,7 @@ class B extends A {m() {^}}
   }
 
   Future<void> test_partFile2() {
-    newFile('/project/bin/a.dart', content: '''
+    newFile2('/project/bin/a.dart', '''
       part of libA;
       class A { }''');
     addTestFile('''
@@ -2914,151 +2892,6 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'test');
       assertNoResult('HtmlElement');
     });
-  }
-}
-
-class PubPackageAnalysisServerTest with ResourceProviderMixin {
-  late final MockServerChannel serverChannel;
-  late final AnalysisServer server;
-
-  AnalysisDomainHandler get analysisDomain {
-    return server.handlers.whereType<AnalysisDomainHandler>().single;
-  }
-
-  CompletionDomainHandler get completionDomain {
-    return server.handlers.whereType<CompletionDomainHandler>().single;
-  }
-
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-        EnableString.named_arguments_anywhere,
-        EnableString.super_parameters,
-      ];
-
-  String get testFileContent => getFile(testFilePath).readAsStringSync();
-
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
-  String get testFilePathPlatform => convertPath(testFilePath);
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  Folder get testPackageRoot => getFolder(testPackageRootPath);
-
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get testPackageTestPath => '$testPackageRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
-  void deleteTestPackageAnalysisOptionsFile() {
-    deleteAnalysisOptionsYamlFile(testPackageRootPath);
-  }
-
-  void deleteTestPackageConfigJsonFile() {
-    deletePackageConfigJsonFile(testPackageRootPath);
-  }
-
-  Future<Response> handleRequest(Request request) async {
-    return await serverChannel.sendRequest(request);
-  }
-
-  void processNotification(Notification notification) {}
-
-  Future<void> setRoots({
-    required List<String> included,
-    required List<String> excluded,
-  }) async {
-    var includedConverted = included.map(convertPath).toList();
-    var excludedConverted = excluded.map(convertPath).toList();
-    await _handleSuccessfulRequest(
-      AnalysisSetAnalysisRootsParams(
-        includedConverted,
-        excludedConverted,
-        packageRoots: {},
-      ).toRequest('0'),
-    );
-  }
-
-  @mustCallSuper
-  void setUp() {
-    serverChannel = MockServerChannel();
-
-    var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
-
-    writeTestPackageConfig();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ),
-    );
-
-    serverChannel.notifications.listen(processNotification);
-
-    server = AnalysisServer(
-      serverChannel,
-      resourceProvider,
-      AnalysisServerOptions(),
-      DartSdkManager(sdkRoot.path),
-      CrashReportingAttachmentsBuilder.empty,
-      InstrumentationService.NULL_SERVICE,
-    );
-
-    completionDomain.budgetDuration = const Duration(seconds: 30);
-  }
-
-  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
-    newPackageConfigJsonFile(
-      root.path,
-      content: config.toContent(toUriStr: toUriStr),
-    );
-  }
-
-  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      content: config.toContent(),
-    );
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-      languageVersion: languageVersion,
-    );
-
-    writePackageConfig(testPackageRoot, config);
-  }
-
-  void writeTestPackagePubspecYamlFile(String content) {
-    newPubspecYamlFile(testPackageRootPath, content);
-  }
-
-  Future<void> _configureWithWorkspaceRoot() async {
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-  }
-
-  /// Validates that the given [request] is handled successfully.
-  Future<Response> _handleSuccessfulRequest(Request request) async {
-    var response = await handleRequest(request);
-    expect(response, isResponseSuccess(request.id));
-    return response;
   }
 }
 

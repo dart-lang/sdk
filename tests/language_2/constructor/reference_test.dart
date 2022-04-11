@@ -91,7 +91,7 @@ main() {
   Foo<int>.bar.baz();
   // ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
+  // [cfe] The 'constructor-tearoffs' language feature is disabled for this library.
   //       ^
   // [cfe] Member not found: 'bar'.
   //           ^^^

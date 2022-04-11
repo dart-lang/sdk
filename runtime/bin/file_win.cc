@@ -205,22 +205,37 @@ bool File::VPrint(const char* format, va_list args) {
 
 int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
-  return _lseeki64(handle_->fd(), 0, SEEK_CUR);
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(handle_->fd()));
+  LARGE_INTEGER zero_offset;
+  zero_offset.QuadPart = 0;
+  LARGE_INTEGER position;
+  if (!SetFilePointerEx(handle, zero_offset, &position, FILE_CURRENT)) {
+    return -1L;
+  }
+  return position.QuadPart;
 }
 
 bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
-  return _lseeki64(handle_->fd(), position, SEEK_SET) >= 0;
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(handle_->fd()));
+  LARGE_INTEGER requested_position;
+  requested_position.QuadPart = position;
+  return SetFilePointerEx(handle, requested_position,
+                          /*lpNewFilePointer=*/nullptr, FILE_BEGIN);
 }
 
 bool File::Truncate(int64_t length) {
-  ASSERT(handle_->fd() >= 0);
-  return _chsize_s(handle_->fd(), length) == 0;
+  if (!SetPosition(length)) {
+    return false;
+  }
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(handle_->fd()));
+  return SetEndOfFile(handle);
 }
 
 bool File::Flush() {
   ASSERT(handle_->fd());
-  return _commit(handle_->fd()) != -1;
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(handle_->fd()));
+  return FlushFileBuffers(handle);
 }
 
 bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
@@ -304,6 +319,11 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 
 class StringRAII {
  public:
+  explicit StringRAII(StringRAII& origin) {
+    own_ = origin.own_;
+    s_ = origin.release();
+  }
+
   explicit StringRAII(const char* s) : s_(s), own_(false) {}
   explicit StringRAII(char* s) : s_(s), own_(true) {}
   ~StringRAII() {
@@ -385,9 +405,10 @@ static StringRAII PrefixLongPathIfExceedLimit(
 
   // Long relative path have to be converted to absolute path before prefixing.
   bool is_ok = true;
-  StringRAII absolute_path_raii = File::IsAbsolutePath(path)
-                                      ? StringRAII(path)
-                                      : ConvertToAbsolutePath(path, &is_ok);
+  StringRAII absolute_path_raii(
+      File::IsAbsolutePath(path)
+          ? StringRAII(path)
+          : StringRAII(ConvertToAbsolutePath(path, &is_ok)));
   if (!is_ok) {
     return StringRAII(path);
   }

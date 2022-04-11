@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<invariant X extends core::Object? = dynamic> = <Y extends X% = dynamic>() → void;
+typedef Fcov<X extends core::Object? = dynamic> = () → X%;
+typedef Fcon<contravariant X extends core::Object? = dynamic> = (X%) → dynamic;
+typedef Finv<invariant X extends core::Object? = dynamic> = (X%) → X%;
+typedef FcovBound<X extends core::num> = () → X;
+typedef FconBound<contravariant X extends core::num> = (X) → dynamic;
+typedef FinvBound<invariant X extends core::num> = (X) → X;
+typedef FcovCyclicBound<X extends self::A<X> = self::A<dynamic>> = () → X;
+typedef FconCyclicBound<contravariant X extends self::A<X> = self::A<Never>> = (X) → dynamic;
+typedef FinvCyclicBound<invariant X extends self::A<X> = self::A<dynamic>> = (X) → X;
+typedef FcovCyclicCoBound<X extends (X) → dynamic = (Never) → dynamic> = () → X;
+typedef FconCyclicCoBound<contravariant X extends (X) → dynamic = (dynamic) → dynamic> = (X) → dynamic;
+typedef FinvCyclicCoBound<invariant X extends (X) → dynamic = (dynamic) → dynamic> = (X) → X;
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    ;
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    ;
+}
+static method toF<X extends core::Object? = dynamic>(self::toF::X% x) → <Y extends self::toF::X% = dynamic>() → void
+  ;
+static method testTopLevel(() → dynamic source1, (dynamic) → dynamic source2, (dynamic) → dynamic source3, () → core::num source4, (core::num) → dynamic source5, (core::num) → core::num source6, () → self::A<dynamic> source7, (self::A<Never>) → dynamic source8, () → (Never) → dynamic source10, ((dynamic) → dynamic) → dynamic source11, ((dynamic) → dynamic) → (dynamic) → dynamic source12) → void
+  ;
+static method testNested(self::B<() → dynamic> source1, self::B<(dynamic) → dynamic> source2, self::B<(dynamic) → dynamic> source3, self::B<() → core::num> source4, self::B<(core::num) → dynamic> source5, self::B<(core::num) → core::num> source6, self::B<() → self::A<dynamic>> source7, self::B<(self::A<Never>) → dynamic> source8, self::B<() → (Never) → dynamic> source10, self::B<((dynamic) → dynamic) → dynamic> source11, self::B<((dynamic) → dynamic) → (dynamic) → dynamic> source12) → void
+  ;
+static method main() → dynamic
+  ;

@@ -4,13 +4,13 @@
 
 // @dart = 2.7
 
-/*spec.member: f:deps=[B],direct,explicit=[f.T*],needsArgs,needsInst=[<B.S*>]*/
+/*spec.member: f:deps=[B],explicit=[f.T*],needsArgs,needsInst=[<B.S*>],test*/
 /*prod.member: f:deps=[B]*/
 int f<T>(T a) => null;
 
 typedef int F<R>(R a);
 
-/*spec.class: B:explicit=[int* Function(B.S*)*],implicit=[B.S],indirect,needsArgs*/
+/*spec.class: B:explicit=[int* Function(B.S*)*],implicit=[B.S],needsArgs,test*/
 /*prod.class: B:needsArgs*/
 class B<S> {
   F<S> c;

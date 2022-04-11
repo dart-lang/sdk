@@ -695,7 +695,7 @@ void f() {
   print('test');
 }
 ''';
-    newFile(mainFilePath, content: contents);
+    newFile2(mainFilePath, contents);
     await initialize();
     await expectFormattedContents(mainFileUri, contents, expected);
   }

@@ -1,129 +1,121 @@
 {
+  "pkg/compiler/lib/src/constants/constant_system.dart": {
+    "Dynamic invocation of '%'.": 1,
+    "Dynamic invocation of '&'.": 1,
+    "Dynamic invocation of '*'.": 1,
+    "Dynamic invocation of '+'.": 1,
+    "Dynamic invocation of '-'.": 1,
+    "Dynamic invocation of '/'.": 1,
+    "Dynamic invocation of '<'.": 1,
+    "Dynamic invocation of '<<'.": 1,
+    "Dynamic invocation of '<='.": 1,
+    "Dynamic invocation of '>'.": 1,
+    "Dynamic invocation of '>='.": 1,
+    "Dynamic invocation of '>>'.": 1,
+    "Dynamic invocation of '^'.": 1,
+    "Dynamic invocation of 'codeUnitAt'.": 1,
+    "Dynamic invocation of 'remainder'.": 1,
+    "Dynamic invocation of '|'.": 1,
+    "Dynamic invocation of '~/'.": 1
+  },
   "pkg/compiler/lib/src/dart2js.dart": {
     "Dynamic invocation of 'call'.": 1,
-    "Dynamic invocation of 'resume'.": 1,
-    "Dynamic invocation of 'pause'.": 1
-  },
-  "pkg/compiler/lib/src/util/maplet.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic invocation of '[]'.": 11,
-    "Dynamic invocation of '[]='.": 12,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of 'remove'.": 1,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of 'forEach'.": 1,
-    "Dynamic access of 'keys'.": 1,
-    "Dynamic access of 'iterator'.": 1
-  },
-  "pkg/compiler/lib/src/util/setlet.dart": {
-    "Dynamic access of 'iterator'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'contains'.": 1,
-    "Dynamic invocation of '[]'.": 7,
-    "Dynamic invocation of 'add'.": 1,
-    "Dynamic invocation of '[]='.": 6,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of 'lookup'.": 1,
-    "Dynamic invocation of 'remove'.": 1,
-    "Dynamic invocation of '-'.": 2,
-    "Dynamic invocation of 'removeWhere'.": 1,
-    "Dynamic invocation of 'forEach'.": 1,
-    "Dynamic invocation of 'toSet'.": 1,
-    "Dynamic invocation of 'toList'.": 1
+    "Dynamic invocation of 'pause'.": 1,
+    "Dynamic invocation of 'resume'.": 1
   },
   "pkg/compiler/lib/src/deferred_load/deferred_load.dart": {
     "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },
+  "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
+    "Dynamic access of 'length'.": 2,
+    "Dynamic access of 'named'.": 2,
+    "Dynamic access of 'positional'.": 2,
+    "Dynamic invocation of '[]'.": 2
+  },
+  "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {
+    "Dynamic access of 'type'.": 4,
+    "Dynamic invocation of 'add'.": 1,
+    "Dynamic invocation of 'remove'.": 1
+  },
   "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
-    "Dynamic access of 'isForwarding'.": 1,
-    "Dynamic access of 'forwardTo'.": 1
-  },
-  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
-    "Dynamic access of 'index'.": 1
-  },
-  "pkg/compiler/lib/src/util/enumset.dart": {
-    "Dynamic access of 'index'.": 4
-  },
-  "pkg/compiler/lib/src/constants/constant_system.dart": {
-    "Dynamic invocation of '&'.": 1,
-    "Dynamic invocation of '|'.": 1,
-    "Dynamic invocation of '^'.": 1,
-    "Dynamic invocation of '<<'.": 1,
-    "Dynamic invocation of '>>'.": 1,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of '*'.": 1,
-    "Dynamic invocation of '%'.": 1,
-    "Dynamic invocation of 'remainder'.": 1,
-    "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of '/'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of 'codeUnitAt'.": 1
-  },
-  "pkg/dart2js_info/lib/json_info_codec.dart": {
-    "Dynamic invocation of '[]'.": 12,
-    "Dynamic invocation of 'forEach'.": 2,
-    "Dynamic invocation of 'map'.": 2,
-    "Dynamic invocation of 'compareTo'.": 1
-  },
-  "pkg/dart2js_info/lib/binary_serialization.dart": {
-    "Dynamic invocation of 'cast'.": 1
-  },
-  "pkg/js_ast/lib/src/builder.dart": {
-    "Dynamic invocation of 'call'.": 2
-  },
-  "pkg/js_ast/lib/src/template.dart": {
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'keys'.": 1,
-    "Dynamic invocation of 'where'.": 1,
-    "Dynamic invocation of 'join'.": 1,
-    "Dynamic invocation of 'containsKey'.": 2,
-    "Dynamic invocation of '[]'.": 9,
-    "Dynamic invocation of 'toStatement'.": 3
+    "Dynamic access of 'forwardTo'.": 1,
+    "Dynamic access of 'isForwarding'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1
   },
+  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
+    "Dynamic access of 'needsTearOff'.": 1,
+    "Dynamic access of 'superclass'.": 1
+  },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_merger.dart": {
     "Dynamic invocation of '[]='.": 1
+  },
+  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
+    "Dynamic access of 'index'.": 1
+  },
+  "pkg/compiler/lib/src/ssa/value_range_analyzer.dart": {
+    "Dynamic access of 'isZero'.": 2,
+    "Dynamic invocation of '+'.": 2,
+    "Dynamic invocation of 'max'.": 1,
+    "Dynamic invocation of 'min'.": 1,
+    "Dynamic invocation of 'unary-'.": 1
+  },
+  "pkg/compiler/lib/src/util/enumset.dart": {
+    "Dynamic access of 'index'.": 4
+  },
+  "pkg/compiler/lib/src/util/maplet.dart": {
+    "Dynamic access of 'isEmpty'.": 1,
+    "Dynamic access of 'iterator'.": 1,
+    "Dynamic access of 'keys'.": 1,
+    "Dynamic access of 'length'.": 1,
+    "Dynamic invocation of '+'.": 2,
+    "Dynamic invocation of '-'.": 1,
+    "Dynamic invocation of '<'.": 1,
+    "Dynamic invocation of '[]'.": 11,
+    "Dynamic invocation of '[]='.": 12,
+    "Dynamic invocation of 'containsKey'.": 1,
+    "Dynamic invocation of 'forEach'.": 1,
+    "Dynamic invocation of 'remove'.": 1
+  },
+  "pkg/compiler/lib/src/util/setlet.dart": {
+    "Dynamic access of 'isEmpty'.": 1,
+    "Dynamic access of 'iterator'.": 1,
+    "Dynamic access of 'length'.": 1,
+    "Dynamic invocation of '+'.": 2,
+    "Dynamic invocation of '-'.": 2,
+    "Dynamic invocation of '<'.": 1,
+    "Dynamic invocation of '[]'.": 7,
+    "Dynamic invocation of '[]='.": 6,
+    "Dynamic invocation of 'add'.": 1,
+    "Dynamic invocation of 'contains'.": 1,
+    "Dynamic invocation of 'forEach'.": 1,
+    "Dynamic invocation of 'lookup'.": 1,
+    "Dynamic invocation of 'remove'.": 1,
+    "Dynamic invocation of 'removeWhere'.": 1,
+    "Dynamic invocation of 'toList'.": 1,
+    "Dynamic invocation of 'toSet'.": 1
+  },
+  "pkg/dart2js_info/lib/binary_serialization.dart": {
+    "Dynamic invocation of 'cast'.": 1
+  },
+  "pkg/dart2js_info/lib/json_info_codec.dart": {
+    "Dynamic invocation of '[]'.": 12,
+    "Dynamic invocation of 'compareTo'.": 1,
+    "Dynamic invocation of 'forEach'.": 2,
+    "Dynamic invocation of 'map'.": 2
+  },
+  "pkg/dart2js_info/lib/src/binary/sink.dart": {
+    "Dynamic access of 'index'.": 1
   },
   "pkg/dart2js_info/lib/src/util.dart": {
     "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '-'.": 1
   },
-  "pkg/dart2js_info/lib/src/binary/sink.dart": {
-    "Dynamic access of 'index'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {
-    "Dynamic invocation of 'add'.": 1,
-    "Dynamic invocation of 'remove'.": 1,
-    "Dynamic access of 'type'.": 4
-  },
-  "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
-    "Dynamic access of 'positional'.": 2,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic access of 'named'.": 2,
-    "Dynamic invocation of '[]'.": 2
-  },
-  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
-    "Dynamic access of 'superclass'.": 1,
-    "Dynamic access of 'needsTearOff'.": 1
-  },
-  "pkg/compiler/lib/src/ssa/value_range_analyzer.dart": {
-    "Dynamic access of 'isZero'.": 2,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of 'unary-'.": 1,
-    "Dynamic invocation of 'min'.": 1,
-    "Dynamic invocation of 'max'.": 1
+  "pkg/js_ast/lib/src/template.dart": {
+    "Dynamic invocation of '[]'.": 9,
+    "Dynamic invocation of 'toStatement'.": 1
   }
 }

@@ -75,8 +75,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+      return serverNotInitializedError;
     }
 
     final supportsApplyEdit = clientCapabilities.applyEdit;
@@ -169,12 +168,13 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  CodeAction _createAssistAction(SourceChange change) {
+  CodeAction _createAssistAction(SourceChange change, ResolvedUnitResult unit) {
     return CodeAction(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
-      edit: createWorkspaceEdit(server, change),
+      edit: createWorkspaceEdit(server, change,
+          allowSnippets: true, filePath: unit.path, lineInfo: unit.lineInfo),
     );
   }
 
@@ -182,12 +182,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  CodeAction _createFixAction(SourceChange change, Diagnostic diagnostic) {
+  CodeAction _createFixAction(
+      SourceChange change, Diagnostic diagnostic, ResolvedUnitResult unit) {
     return CodeAction(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
-      edit: createWorkspaceEdit(server, change),
+      edit: createWorkspaceEdit(server, change,
+          allowSnippets: true, filePath: unit.path, lineInfo: unit.lineInfo),
     );
   }
 
@@ -253,7 +255,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     try {
       var context = DartAssistContextImpl(
         server.instrumentationService,
-        DartChangeWorkspace(server.currentSessions),
+        DartChangeWorkspace(
+          await server.currentSessions,
+        ),
         unit,
         offset,
         length,
@@ -267,12 +271,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
       final codeActions = <CodeAction>[];
       codeActions.addAll(assists.map((assist) {
-        final action = _createAssistAction(assist.change);
+        final action = _createAssistAction(assist.change, unit);
         codeActionPriorities[action] = assist.kind.priority;
         return action;
       }));
       codeActions.addAll(pluginChanges.map((change) {
-        final action = _createAssistAction(change.change);
+        final action = _createAssistAction(change.change, unit);
         codeActionPriorities[action] = change.priority;
         return action;
       }));
@@ -344,7 +348,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         if (errorLine < range.start.line || errorLine > range.end.line) {
           continue;
         }
-        var workspace = DartChangeWorkspace(server.currentSessions);
+        var workspace = DartChangeWorkspace(
+          await server.currentSessions,
+        );
         var context = DartFixContextImpl(
             server.instrumentationService, workspace, unit, error);
         final fixes = await fixContributor.computeFixes(context);
@@ -357,7 +363,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           );
           codeActions.addAll(
             fixes.map((fix) {
-              final action = _createFixAction(fix.change, diagnostic);
+              final action = _createFixAction(fix.change, diagnostic, unit);
               codeActionPriorities[action] = fix.kind.priority;
               return action;
             }),
@@ -378,7 +384,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       final pluginFixActions = pluginFixes.expand(
         (fix) => fix.fixes.map((fixChange) {
           final action = _createFixAction(
-              fixChange.change, pluginErrorToDiagnostic(fix.error));
+              fixChange.change, pluginErrorToDiagnostic(fix.error), unit);
           codeActionPriorities[action] = fixChange.priority;
           return action;
         }),

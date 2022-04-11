@@ -1,0 +1,3 @@
+T Function<T extends num>(T) extendsNumReturnArg = <S extends num>(S s) => s;
+functionInvocations() {}
+main() {}

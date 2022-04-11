@@ -73,10 +73,10 @@ void f(A a) {
   }
 
   Future<void> test_importLibrary_withClass() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 class Test {}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -90,10 +90,10 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withEnum() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 enum Test {a, b, c}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -107,12 +107,12 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withExtension() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 extension E on int {
   void foo() {}
 }
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -130,10 +130,10 @@ void f() {
   }
 
   Future<void> test_importLibrary_withFunction() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 void foo() {}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -151,10 +151,10 @@ void f() {
   }
 
   Future<void> test_importLibrary_withMixin() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 mixin Test {}
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -168,10 +168,10 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withTopLevelVariable() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
-    fileResolver.resolve(path: a.path);
+    await fileResolver.resolve2(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -230,7 +230,7 @@ var v = 0;
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content: content);
+    newFile2(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

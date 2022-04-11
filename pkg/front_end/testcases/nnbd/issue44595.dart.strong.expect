@@ -11,7 +11,7 @@ extension _extension#0<T extends core::Object? = dynamic> on T% {
 }
 static method id<T extends core::Object? = dynamic>(self::id::T% value) → self::id::T%
   return value;
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   FutureOr<core::int>x = 1.{core::num::+}(self::id<core::int>(1)){(core::num) → core::int};
   FutureOr<core::int>y = let final core::int #t1 = 1.{core::num::+}(self::id<core::int>(1)){(core::num) → core::int} in block {
     self::_extension#0|checkStaticType<core::int, (core::int) → core::int>(#t1);

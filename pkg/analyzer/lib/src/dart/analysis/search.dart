@@ -259,7 +259,7 @@ class Search {
           try {
             unitElement.accept(
               _FunctionElementVisitor((element) {
-                addDeclaration(unitElement.lineInfo!, element);
+                addDeclaration(unitElement.lineInfo, element);
               }),
             );
           } on _MaxNumberOfDeclarationsError {

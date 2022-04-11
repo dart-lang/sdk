@@ -2,25 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
 import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:meta/meta.dart';
 
-abstract class FlutterSnippetProducer extends SnippetProducer {
+abstract class FlutterSnippetProducer extends DartSnippetProducer {
   final flutter = Flutter.instance;
-  final AnalysisSessionHelper sessionHelper;
 
   late ClassElement? classWidget;
 
-  FlutterSnippetProducer(DartSnippetRequest request)
-      : sessionHelper = AnalysisSessionHelper(request.analysisSession),
-        super(request);
+  FlutterSnippetProducer(DartSnippetRequest request) : super(request);
 
   @override
   @mustCallSuper
@@ -56,7 +53,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
   late ClassElement? classBuildContext;
   late ClassElement? classKey;
 
-  FlutterStatefulWidgetSnippetProducer(DartSnippetRequest request)
+  FlutterStatefulWidgetSnippetProducer._(DartSnippetRequest request)
       : super(request);
 
   @override
@@ -152,7 +149,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
     return Snippet(
       prefix,
       label,
-      'Insert a StatefulWidget',
+      'Insert a Flutter StatefulWidget.',
       builder.sourceChange,
     );
   }
@@ -175,7 +172,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer {
 
   static FlutterStatefulWidgetSnippetProducer newInstance(
           DartSnippetRequest request) =>
-      FlutterStatefulWidgetSnippetProducer(request);
+      FlutterStatefulWidgetSnippetProducer._(request);
 }
 
 /// Produces a [Snippet] that creates a Flutter StatefulWidget with a
@@ -192,7 +189,7 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
   late ClassElement? classAnimationController;
   late ClassElement? classSingleTickerProviderStateMixin;
 
-  FlutterStatefulWidgetWithAnimationControllerSnippetProducer(
+  FlutterStatefulWidgetWithAnimationControllerSnippetProducer._(
       DartSnippetRequest request)
       : super(request);
 
@@ -333,7 +330,7 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
     return Snippet(
       prefix,
       label,
-      'Insert a StatefulWidget with an AnimationController',
+      'Insert a Flutter StatefulWidget with an AnimationController.',
       builder.sourceChange,
     );
   }
@@ -361,7 +358,8 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
 
   static FlutterStatefulWidgetWithAnimationControllerSnippetProducer
       newInstance(DartSnippetRequest request) =>
-          FlutterStatefulWidgetWithAnimationControllerSnippetProducer(request);
+          FlutterStatefulWidgetWithAnimationControllerSnippetProducer._(
+              request);
 }
 
 /// Produces a [Snippet] that creates a Flutter StatelessWidget.
@@ -373,7 +371,7 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
   late ClassElement? classBuildContext;
   late ClassElement? classKey;
 
-  FlutterStatelessWidgetSnippetProducer(DartSnippetRequest request)
+  FlutterStatelessWidgetSnippetProducer._(DartSnippetRequest request)
       : super(request);
 
   @override
@@ -446,7 +444,7 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
     return Snippet(
       prefix,
       label,
-      'Insert a StatelessWidget',
+      'Insert a Flutter StatelessWidget.',
       builder.sourceChange,
     );
   }
@@ -468,5 +466,5 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer {
 
   static FlutterStatelessWidgetSnippetProducer newInstance(
           DartSnippetRequest request) =>
-      FlutterStatelessWidgetSnippetProducer(request);
+      FlutterStatelessWidgetSnippetProducer._(request);
 }

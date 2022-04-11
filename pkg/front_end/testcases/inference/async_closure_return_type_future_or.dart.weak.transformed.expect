@@ -7,7 +7,7 @@ import "dart:async";
 
 static field FutureOr<core::int*>* futureOrInt = null;
 static field () →* FutureOr<core::int*>* f = () → FutureOr<core::int*>* => self::futureOrInt;
-static field () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* /* originally async */ {
+static field () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
   final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
   core::bool* :is_sync = false;
   FutureOr<core::int*>* :return_value;

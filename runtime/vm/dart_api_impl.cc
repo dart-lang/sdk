@@ -1812,7 +1812,16 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
 
 DART_EXPORT void Dart_NotifyLowMemory() {
   API_TIMELINE_BEGIN_END(Thread::Current());
-  Isolate::NotifyLowMemory();
+  SemiSpace::ClearCache();
+  Zone::ClearCache();
+
+  // For each isolate's global variables, we might also clear:
+  //  - RegExp backtracking stack (both bytecode and compiled versions)
+  //  - String -> RegExp cache
+  //  - BigInt division/remainder cache
+  //  - double.toString cache
+  // But cache invalidation code might be larger than the expected size of some
+  // caches.
 }
 
 DART_EXPORT void Dart_ExitIsolate() {
@@ -1852,7 +1861,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   NoBackgroundCompilerScope no_bg_compiler(T);
 
 #if defined(DEBUG)
-  T->isolate_group()->heap()->CollectAllGarbage();
+  T->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   {
     HeapIterationScope iteration(T);
     CheckFunctionTypesVisitor check_canonical(T);
@@ -6985,7 +6994,7 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime() {
 }
 
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(DART_PRECOMPILER)
   Profiler::DumpStackTrace(context);
 #endif
 }

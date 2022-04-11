@@ -2,6 +2,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   core::print(await "Hello, World!");
 }

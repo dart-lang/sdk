@@ -2,8 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
-definitions: ["x"]
+sources: |
+  class Bound {}
+  void hasBound<T extends Bound>() {}
+  class A<T> {}
 position: "main.dart#A"
 expression: |
   hasBound<T>()

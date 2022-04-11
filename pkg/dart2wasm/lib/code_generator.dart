@@ -47,8 +47,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   final Map<VariableDeclaration, w.Local> locals = {};
   w.Local? thisLocal;
   w.Local? preciseThisLocal;
+  w.Local? returnValueLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
-  final List<Statement> finalizers = [];
+  final List<TryBlockFinalizer> finalizers = [];
   final List<w.Label> tryLabels = [];
   final Map<LabeledStatement, w.Label> labels = {};
   final Map<SwitchCase, w.Label> switchLabels = {};
@@ -235,7 +236,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       ClassInfo info = translator.classInfo[cls]!;
       thisLocal = paramLocals[0];
       w.RefType thisType = info.nonNullableType;
-      if (translator.needsConversion(paramLocals[0].type, thisType)) {
+      if (translator.needsConversion(paramLocals[0].type, thisType) &&
+          !(cls == translator.ffiPointerClass ||
+              translator.isFfiCompound(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
         translator.ref_cast(b, info);
@@ -622,9 +625,39 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitTryFinally(TryFinally node) {
-    finalizers.add(node.finalizer);
+    // We lower a [TryFinally] to three nested blocks, and we emit the finalizer
+    // up to three times. Once in a catch, to handle the case where the try
+    // throws. Once outside of the catch, to handle the case where the try does
+    // not throw. Finally, if there is a return within the try block, then we
+    // emit the finalizer one more time along with logic to continue walking up
+    // the stack.
+    w.Label tryFinallyBlock = b.block();
+    w.Label finalizerBlock = b.block();
+    finalizers.add(TryBlockFinalizer(finalizerBlock));
+    w.Label tryBlock = b.try_();
     node.body.accept(this);
-    finalizers.removeLast().accept(this);
+    bool mustHandleReturn = finalizers.removeLast().mustHandleReturn;
+    b.br(tryBlock);
+    b.catch_(translator.exceptionTag);
+    node.finalizer.accept(this);
+    b.rethrow_(tryBlock);
+    b.end(); // end tryBlock.
+    node.finalizer.accept(this);
+    b.br(tryFinallyBlock);
+    b.end(); // end finalizerBlock.
+    if (mustHandleReturn) {
+      node.finalizer.accept(this);
+      if (finalizers.isNotEmpty) {
+        b.br(finalizers.last.label);
+      } else {
+        if (returnValueLocal != null) {
+          b.local_get(returnValueLocal!);
+          translator.convertType(function, returnValueLocal!.type, returnType);
+        }
+        _returnFromFunction();
+      }
+    }
+    b.end(); // end tryFinallyBlock.
   }
 
   @override
@@ -768,6 +801,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     throw "ForInStatement should have been desugared: $node";
   }
 
+  /// Handle the return from this function, either by jumping to [returnLabel]
+  /// in the case this function was inlined or just inserting a return
+  /// instruction.
+  void _returnFromFunction() {
+    if (returnLabel != null) {
+      b.br(returnLabel!);
+    } else {
+      b.return_();
+    }
+  }
+
   @override
   void visitReturnStatement(ReturnStatement node) {
     Expression? expression = node.expression;
@@ -776,13 +820,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       translator.convertType(function, voidMarker, returnType);
     }
-    for (Statement finalizer in finalizers.reversed) {
-      finalizer.accept(this);
-    }
-    if (returnLabel != null) {
-      b.br(returnLabel!);
+
+    // If we are wrapped in a [TryFinally] node then we have to run finalizers
+    // as the stack unwinds. When we get to the top of the finalizer stack, we
+    // will handle the return using [returnValueLocal] if this function returns
+    // a value.
+    if (finalizers.isNotEmpty) {
+      for (TryBlockFinalizer finalizer in finalizers) {
+        finalizer.mustHandleReturn = true;
+      }
+      if (returnType != voidMarker) {
+        returnValueLocal ??= addLocal(returnType);
+        b.local_set(returnValueLocal!);
+      }
+      b.br(finalizers.last.label);
     } else {
-      b.return_();
+      _returnFromFunction();
     }
   }
 
@@ -937,6 +990,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitConstructorInvocation(
       ConstructorInvocation node, w.ValueType expectedType) {
+    w.ValueType? intrinsicResult =
+        intrinsifier.generateConstructorIntrinsic(node);
+    if (intrinsicResult != null) return intrinsicResult;
+
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
     translator.functions.allocateClass(info.classId);
     w.Local temp = addLocal(info.nonNullableType);
@@ -963,6 +1020,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       StaticInvocation node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateStaticIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     _visitArguments(node.arguments, node.targetReference, 0);
     return _call(node.targetReference);
   }
@@ -991,6 +1049,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       InstanceInvocation node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateInstanceIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     Procedure target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       switch (target.name.text) {
@@ -1045,6 +1104,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitEqualsCall(EqualsCall node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateEqualsIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget == translator.coreTypes.objectEquals) {
       // Plain reference comparison
@@ -1121,7 +1181,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    wrap(node.expression, translator.topInfo.nullableType);
+    wrap(node.expression, const w.RefType.any());
     b.ref_is_null();
     return w.NumType.i32;
   }
@@ -1301,6 +1361,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType? intrinsicResult =
         intrinsifier.generateStaticGetterIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
+
     Member target = node.target;
     if (target is Field) {
       return translator.globals.readGlobal(b, target);
@@ -1442,6 +1503,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   w.ValueType _directGet(
       Member target, Expression receiver, w.ValueType? Function() intrinsify) {
+    w.ValueType? intrinsicResult = intrinsify();
+    if (intrinsicResult != null) return intrinsicResult;
+
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
@@ -1453,8 +1517,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       // Instance call of getter
       assert(target is Procedure && target.isGetter);
-      w.ValueType? intrinsicResult = intrinsify();
-      if (intrinsicResult != null) return intrinsicResult;
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
       wrap(receiver, targetFunction.type.inputs.single);
@@ -1661,8 +1723,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitNullCheck(NullCheck node, w.ValueType expectedType) {
-    // TODO(joshualitt): Check and throw exception
-    return wrap(node.operand, expectedType);
+    w.ValueType operandType =
+        translator.translateType(dartTypeOf(node.operand));
+    w.ValueType nonNullOperandType = operandType.withNullability(false);
+    w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
+    wrap(node.operand, operandType);
+
+    // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
+    // null case.
+    b.br_on_non_null(nullCheckBlock);
+    _call(translator.stackTraceCurrent.reference);
+    _call(translator.throwNullCheckError.reference);
+    b.unreachable();
+    b.end();
+    return nonNullOperandType;
   }
 
   void _visitArguments(Arguments node, Reference target, int signatureOffset) {
@@ -2021,4 +2095,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // TODO(joshualitt): Emit type test and throw exception on failure
     return wrap(node.operand, expectedType);
   }
+}
+
+class TryBlockFinalizer {
+  final w.Label label;
+  bool mustHandleReturn = false;
+
+  TryBlockFinalizer(this.label);
 }

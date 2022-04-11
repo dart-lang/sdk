@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.9
 library frontend_server;
 
 import 'dart:async';
@@ -520,7 +521,7 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     if (nullSafety == null &&
-        compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
+        compilerOptions.globalFeatures.nonNullable.isEnabled) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 

@@ -45,16 +45,11 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ BranchIf(NOT_ZERO, &done);
 
-  if (preserve_registers) {
-    __ EnterCallRuntimeFrame(0);
-  } else {
-    __ ReserveAlignedFrameSpace(0);
-  }
-  __ movq(CallingConventions::kArg1Reg, RAX);
-  __ movq(CallingConventions::kArg2Reg, THR);
-  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
-  if (preserve_registers) {
-    __ LeaveCallRuntimeFrame();
+  {
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    __ movq(CallingConventions::kArg1Reg, RAX);
+    __ movq(CallingConventions::kArg2Reg, THR);
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
 
   __ Bind(&done);
@@ -729,15 +724,17 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     }
 
     // Pass target::NativeArguments structure by value and call native function.
-    __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-    __ movq(Address(RSP, argc_tag_offset),
-            R10);  // Set argc in target::NativeArguments.
-    __ movq(Address(RSP, argv_offset),
-            R13);  // Set argv in target::NativeArguments.
-    __ leaq(RAX,
-            Address(RBP, 2 * target::kWordSize));  // Compute return value addr.
-    __ movq(Address(RSP, retval_offset),
-            RAX);  // Set retval in target::NativeArguments.
+    // Set thread in NativeArgs.
+    __ movq(Address(RSP, thread_offset), THR);
+    // Set argc in target::NativeArguments.
+    __ movq(Address(RSP, argc_tag_offset), R10);
+    // Set argv in target::NativeArguments.
+    __ movq(Address(RSP, argv_offset), R13);
+    // Compute return value addr.
+    __ leaq(RAX, Address(RBP, (target::frame_layout.param_end_from_fp + 1) *
+                                  target::kWordSize));
+    // Set retval in target::NativeArguments.
+    __ movq(Address(RSP, retval_offset), RAX);
 
     // Pass the pointer to the target::NativeArguments.
     __ movq(CallingConventions::kArg1Reg, RSP);
@@ -980,14 +977,18 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  // Pass address of saved registers block.
-  __ movq(CallingConventions::kArg1Reg, RSP);
-  bool is_lazy =
-      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-  __ movq(CallingConventions::kArg2Reg, Immediate(is_lazy ? 1 : 0));
-  __ ReserveAlignedFrameSpace(0);  // Ensure stack is aligned before the call.
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
-  // Result (RAX) is stack-size (FP - SP) in bytes.
+  {
+    // Pass address of saved registers block.
+    __ movq(CallingConventions::kArg1Reg, RSP);
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ movq(CallingConventions::kArg2Reg, Immediate(is_lazy ? 1 : 0));
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (RAX) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX temporarily.
@@ -1019,10 +1020,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ pushq(RBX);  // Preserve exception as first local.
     __ pushq(RDX);  // Preserve stacktrace as second local.
   }
-  __ ReserveAlignedFrameSpace(0);
-  // Pass last FP as a parameter.
-  __ movq(CallingConventions::kArg1Reg, RBP);
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
+  {
+    __ movq(CallingConventions::kArg1Reg, RBP);  // Pass last FP as a parameter.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX.
     __ movq(RBX, Address(RBP, target::frame_layout.first_local_from_fp *
@@ -1375,7 +1379,6 @@ static const RegisterSet kCalleeSavedRegisterSet(
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  NOT_IN_PRODUCT(__ pushq(Address(RSP, 0)));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1518,7 +1521,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
-  NOT_IN_PRODUCT(__ popq(RCX));  // Drop profiler marker.
 
   __ ret();
 }
@@ -1771,7 +1773,6 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           Address stub_code,
                                            bool cards) {
   Label add_to_mark_stack, remember_card, lost_race;
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
@@ -1833,14 +1834,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
-  // Setup frame, push callee-saved registers.
-  __ pushq(CODE_REG);
-  __ movq(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg, THR);
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ popq(CODE_REG);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/true);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+  }
   __ ret();
 
   __ Bind(&add_to_mark_stack);
@@ -1875,13 +1875,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ ret();
 
   __ Bind(&marking_overflow);
-  __ pushq(CODE_REG);
-  __ movq(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg, THR);
-  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ popq(CODE_REG);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/true);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+  }
   __ ret();
 
   __ Bind(&lost_race);
@@ -1911,28 +1911,24 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
-    __ pushq(CODE_REG);
-    __ movq(CODE_REG, stub_code);
-    __ EnterCallRuntimeFrame(0);
-    __ movq(CallingConventions::kArg1Reg, RDX);
-    __ movq(CallingConventions::kArg2Reg, R13);
-    __ CallRuntime(kRememberCardRuntimeEntry, 2);
-    __ LeaveCallRuntimeFrame();
-    __ popq(CODE_REG);
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ movq(CallingConventions::kArg1Reg, RDX);
+      __ movq(CallingConventions::kArg2Reg, R13);
+      rt.Call(kRememberCardRuntimeEntry, 2);
+    }
     __ ret();
   }
 }
 
 void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler, Address(THR, target::Thread::write_barrier_code_offset()),
-      false);
+  GenerateWriteBarrierStubHelper(assembler, false);
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler,
-      Address(THR, target::Thread::array_write_barrier_code_offset()), true);
+  GenerateWriteBarrierStubHelper(assembler, true);
 }
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,

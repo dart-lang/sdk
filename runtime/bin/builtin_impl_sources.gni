@@ -45,6 +45,8 @@ builtin_impl_sources = [
   "isolate_data.h",
   "lockers.h",
   "thread.h",
+  "thread_absl.cc",
+  "thread_absl.h",
   "thread_android.cc",
   "thread_android.h",
   "thread_fuchsia.cc",
@@ -72,4 +74,6 @@ builtin_impl_tests = [
   "file_test.cc",
   "hashmap_test.cc",
   "priority_heap_test.cc",
+  "snapshot_utils_test.cc",
+  "test_utils.cc",
 ]

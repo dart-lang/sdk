@@ -121,6 +121,48 @@ class TimelineStream {
 #endif
 };
 
+class RecorderLock : public AllStatic {
+ public:
+  static void EnterLock() {
+    outstanding_event_writes_.fetch_add(1, std::memory_order_acquire);
+  }
+
+  static void ExitLock() {
+    intptr_t count =
+        outstanding_event_writes_.fetch_sub(1, std::memory_order_release);
+    ASSERT(count >= 0);
+  }
+
+  static bool IsShuttingDown() {
+    return shutdown_lock_.load(std::memory_order_relaxed);
+  }
+
+  static void WaitForShutdown() {
+    shutdown_lock_.exchange(true);
+    // Spin waiting for outstanding events to be completed.
+    while (outstanding_event_writes_.load(std::memory_order_relaxed) > 0) {
+    }
+  }
+
+ private:
+  static std::atomic<bool> shutdown_lock_;
+  static std::atomic<intptr_t> outstanding_event_writes_;
+
+  DISALLOW_COPY_AND_ASSIGN(RecorderLock);
+};
+
+class RecorderLockScope {
+ public:
+  RecorderLockScope() { RecorderLock::EnterLock(); }
+
+  ~RecorderLockScope() { RecorderLock::ExitLock(); }
+
+  bool IsShuttingDown() { return RecorderLock::IsShuttingDown(); }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(RecorderLockScope);
+};
+
 class Timeline : public AllStatic {
  public:
   // Initialize timeline system. Not thread safe.
@@ -165,6 +207,8 @@ class Timeline : public AllStatic {
   static TimelineStream stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
+
+  static RecorderLock recorder_lock_;
 
   template <class>
   friend class TimelineRecorderOverride;
@@ -503,7 +547,7 @@ class TimelineEvent {
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
-#endif  // !PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 // See |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {

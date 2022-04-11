@@ -33,8 +33,8 @@ class CreateNoSuchMethod extends CorrectionProducer {
         builder.write('@override');
         builder.write(eol);
         builder.write(prefix);
-        builder.write(
-            'noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);');
+        builder.write('dynamic noSuchMethod(Invocation invocation) => '
+            'super.noSuchMethod(invocation);');
         builder.write(eol);
       });
     });

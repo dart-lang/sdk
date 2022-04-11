@@ -37,7 +37,7 @@ class Divergent<T extends core::Object? = dynamic> extends core::Object implemen
   no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>
     return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 0, #C3, #C12, core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>;
 }
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -53,7 +53,7 @@ static method test() → dynamic /* originally async */ {
  - 'Future' is from 'dart:async'.
  - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
   Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
-                                                                          ^" in (() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> /* originally async */ {
+                                                                          ^" in (() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> /* futureValueType= self::Divergent<self::Divergent<self::Divergent<core::int>>> */ /* originally async */ {
           final asy::_Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> :async_future = new asy::_Future::•<self::Divergent<self::Divergent<self::Divergent<core::int>>>>();
           core::bool* :is_sync = false;
           FutureOr<self::Divergent<self::Divergent<self::Divergent<core::int>>>>? :return_value;

@@ -10,7 +10,7 @@ import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
-static method foo() → dynamic /* originally async */ {
+static method foo() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

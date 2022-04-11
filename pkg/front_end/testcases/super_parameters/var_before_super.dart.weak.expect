@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/var_before_super.dart:10:5: Error: Can't have modifier 'var' here.
+// Try removing 'var'.
+//   B(var super.x);
+//     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •(core::String x) → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •(core::String x) → self::B
+    : super self::A::•(x)
+    ;
+}
+static method main() → dynamic {}

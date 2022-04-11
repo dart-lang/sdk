@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -13,8 +13,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Foo<unrelated T extends core::Object* = dynamic> = invalid-type;
-typedef Bar<unrelated T extends core::Object* = dynamic> = ((invalid-type) →* void) →* void;
-typedef Baz<unrelated T extends core::Object* = dynamic> = (invalid-type) →* void;
+typedef Foo<unrelated T extends core::Object? = dynamic> = invalid-type;
+typedef Bar<unrelated T extends core::Object? = dynamic> = ((invalid-type) → void) → void;
+typedef Baz<unrelated T extends core::Object? = dynamic> = (invalid-type) → void;
 static method main() → dynamic
   ;

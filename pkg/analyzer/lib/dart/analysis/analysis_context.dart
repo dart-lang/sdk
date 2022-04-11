@@ -35,4 +35,32 @@ abstract class AnalysisContext {
   /// Return the workspace for containing the context root.
   @Deprecated('Use contextRoot.workspace instead')
   Workspace get workspace;
+
+  /// Return a [Future] that completes after pending file changes are applied,
+  /// so that [currentSession] can be used to compute results.
+  ///
+  /// The value is the set of all files that are potentially affected by
+  /// the pending changes. This set can be both wider than the set of analyzed
+  /// files (because it may include files imported from other packages, and
+  /// which are on the import path from a changed file to an analyzed file),
+  /// and narrower than the set of analyzed files (because only files that
+  /// were previously accessed are considered to be known and affected).
+  Future<List<String>> applyPendingFileChanges();
+
+  /// Schedules the file with the [path] to be read before producing new
+  /// analysis results.
+  ///
+  /// The file is expected to be a Dart file, reporting non-Dart files, such
+  /// as configuration files `analysis_options.yaml`, `package_config.json`,
+  /// etc will not re-create analysis contexts.
+  ///
+  /// This will invalidate any previously returned [AnalysisSession], to
+  /// get a new analysis session apply pending file changes:
+  /// ```dart
+  /// analysisContext.changeFile(...);
+  /// await analysisContext.applyPendingFileChanges();
+  /// var analysisSession = analysisContext.currentSession;
+  /// var resolvedUnit = analysisSession.getResolvedUnit(...);
+  /// ```
+  void changeFile(String path);
 }

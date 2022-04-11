@@ -197,7 +197,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
-            library.nameOriginBuilder.origin &&
+            libraryBuilder.nameOriginBuilder.origin &&
         name.startsWith("_")) {
       return null;
     }
@@ -216,7 +216,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder.origin !=
-            library.nameOriginBuilder.origin &&
+            libraryBuilder.nameOriginBuilder.origin &&
         name.startsWith("_")) {
       return null;
     }
@@ -270,8 +270,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   InterfaceType get thisType {
-    return _thisType ??= new InterfaceType(cls, library.nonNullable,
-        getAsTypeArguments(cls.typeParameters, library.library));
+    return _thisType ??= new InterfaceType(cls, libraryBuilder.nonNullable,
+        getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
   }
 
   @override
@@ -406,7 +406,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         : hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
     if (isSuper && target == null) {
       if (cls.isMixinDeclaration ||
-          (library.loader.target.backendTarget.enableSuperMixins &&
+          (libraryBuilder.loader.target.backendTarget.enableSuperMixins &&
               this.isAbstract)) {
         target =
             hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);

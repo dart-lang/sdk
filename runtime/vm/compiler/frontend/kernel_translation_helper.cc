@@ -2832,19 +2832,6 @@ void KernelReaderHelper::SkipLibraryPart() {
   SkipStringReference();    // Read part URI index.
 }
 
-void KernelReaderHelper::SkipLibraryTypedef() {
-  SkipCanonicalNameReference();      // read canonical name.
-  ReadUInt();                        // read source_uri_index.
-  ReadPosition();                    // read position.
-  SkipStringReference();             // read name index.
-  SkipListOfExpressions();           // read annotations.
-  SkipTypeParametersList();          // read type parameters.
-  SkipDartType();                    // read type.
-  SkipTypeParametersList();          // read type parameters of function type.
-  SkipListOfVariableDeclarations();  // read positional parameters.
-  SkipListOfVariableDeclarations();  // read named parameters.
-}
-
 TokenPosition KernelReaderHelper::ReadPosition() {
   TokenPosition position = reader_.ReadPosition();
   RecordTokenPosition(position);

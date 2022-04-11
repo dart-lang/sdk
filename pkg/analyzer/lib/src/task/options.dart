@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -120,6 +122,7 @@ class AnalyzerOptions {
   static const String enablePreviewDart2 = 'enablePreviewDart2';
 
   static const String cannotIgnore = 'cannot-ignore';
+  static const String codeStyle = 'code-style';
   static const String enableExperiment = 'enable-experiment';
   static const String errors = 'errors';
   static const String exclude = 'exclude';
@@ -141,6 +144,9 @@ class AnalyzerOptions {
   static const String strictCasts = 'strict-casts';
   static const String strictInference = 'strict-inference';
   static const String strictRawTypes = 'strict-raw-types';
+
+  // Code style options
+  static const String format = 'format';
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = ['ignore', 'false'];
@@ -186,6 +192,11 @@ class AnalyzerOptions {
   /// Supported 'analyzer' optional checks options.
   static const List<String> optionalChecksOptions = [
     chromeOsManifestChecks,
+  ];
+
+  /// Supported 'code-style' options.
+  static const List<String> codeStyleOptions = [
+    format,
   ];
 
   /// Proposed values for a `true` or `false` option.
@@ -265,6 +276,61 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
   }
 }
 
+/// Validates `code-style` options.
+class CodeStyleOptionsValidator extends OptionsValidator {
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var codeStyle = options.valueAt(AnalyzerOptions.codeStyle);
+    if (codeStyle is YamlMap) {
+      codeStyle.nodeMap.forEach((keyNode, valueNode) {
+        var key = keyNode.value;
+        if (key == AnalyzerOptions.format) {
+          _validateFormat(reporter, valueNode);
+        } else {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+              keyNode.span,
+              [AnalyzerOptions.codeStyle, keyNode.toString()]);
+        }
+      });
+    } else if (codeStyle is YamlScalar && codeStyle.value != null) {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          codeStyle.span,
+          [AnalyzerOptions.codeStyle]);
+    } else if (codeStyle is YamlList) {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          codeStyle.span,
+          [AnalyzerOptions.codeStyle]);
+    }
+  }
+
+  void _validateFormat(ErrorReporter reporter, YamlNode format) {
+    if (format is YamlMap) {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          format.span,
+          [AnalyzerOptions.format]);
+    } else if (format is YamlScalar) {
+      var formatValue = toBool(format.value);
+      if (formatValue == null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, format.span, [
+          AnalyzerOptions.format,
+          format.value,
+          AnalyzerOptions.trueOrFalseProposal
+        ]);
+      }
+    } else if (format is YamlList) {
+      reporter.reportErrorForSpan(
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          format.span,
+          [AnalyzerOptions.format]);
+    }
+  }
+}
+
 /// Convenience class for composing validators.
 class CompositeValidator extends OptionsValidator {
   final List<OptionsValidator> validators;
@@ -272,8 +338,11 @@ class CompositeValidator extends OptionsValidator {
   CompositeValidator(this.validators);
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) =>
-      validators.forEach((v) => v.validate(reporter, options));
+  void validate(ErrorReporter reporter, YamlMap options) {
+    for (var validator in validators) {
+      validator.validate(reporter, options);
+    }
+  }
 }
 
 /// Validates `analyzer` language configuration options.
@@ -537,6 +606,7 @@ class OptionsFileValidator {
 
   final List<OptionsValidator> _validators = [
     AnalyzerOptionsValidator(),
+    CodeStyleOptionsValidator(),
     LinterOptionsValidator(),
     LinterRuleOptionsValidator()
   ];
@@ -550,7 +620,9 @@ class OptionsFileValidator {
       source,
       isNonNullableByDefault: false,
     );
-    _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
+    for (var validator in _validators) {
+      validator.validate(reporter, options);
+    }
     return recorder.errors;
   }
 }
@@ -731,6 +803,10 @@ class _OptionsProcessor {
       options.enabledPluginNames = pluginNames;
     }
 
+    // Process the 'code-style' option.
+    var codeStyle = optionMap.valueAt(AnalyzerOptions.codeStyle);
+    options.codeStyleOptions = _buildCodeStyleOptions(options, codeStyle);
+
     var config = parseConfig(optionMap);
     if (config != null) {
       Iterable<LintRule> lintRules = Registry.ruleRegistry.enabled(config);
@@ -864,6 +940,21 @@ class _OptionsProcessor {
       names.addAll(stringValues.map((name) => name.toUpperCase()));
       options.unignorableNames = names;
     }
+  }
+
+  CodeStyleOptions _buildCodeStyleOptions(
+      AnalysisOptionsImpl options, YamlNode? config) {
+    var useFormatter = false;
+    if (config is YamlMap) {
+      var formatNode = config.valueAt(AnalyzerOptions.format);
+      if (formatNode != null) {
+        var formatValue = toBool(formatNode);
+        if (formatValue is bool) {
+          useFormatter = formatValue;
+        }
+      }
+    }
+    return CodeStyleOptionsImpl(options, useFormatter: useFormatter);
   }
 
   String? _toString(YamlNode? node) {

@@ -165,7 +165,7 @@ class _Attribute {
       case _AttributeForm.flag:
         return value.toString();
       case _AttributeForm.address:
-        return '0x' + paddedHex(value as int, unit?.header.addressSize ?? 0);
+        return '0x${paddedHex(value as int, unit?.header.addressSize ?? 0)}';
       case _AttributeForm.sectionOffset:
         return paddedHex(value as int, 4);
       case _AttributeForm.constant:
@@ -274,6 +274,7 @@ class _AbbreviationsTable {
 class DebugInformationEntry {
   // The index of the entry in the abbreviation table for this DIE.
   final int code;
+  // ignore: library_private_types_in_public_api
   final Map<_Attribute, Object> attributes;
   final Map<int, DebugInformationEntry> children;
 
@@ -310,8 +311,10 @@ class DebugInformationEntry {
     return null;
   }
 
+  // ignore: library_private_types_in_public_api
   bool containsKey(_AttributeName name) => _namedAttribute(name) != null;
 
+  // ignore: library_private_types_in_public_api
   Object? operator [](_AttributeName name) => attributes[_namedAttribute(name)];
 
   int? get sectionOffset => this[_AttributeName.statementList] as int?;
@@ -408,7 +411,7 @@ class DebugInformationEntry {
           ..write(' (at offset 0x')
           ..write(paddedHex(offset))
           ..writeln('):');
-        child.writeToStringBuffer(buffer, unit: unit, indent: indent + '  ');
+        child.writeToStringBuffer(buffer, unit: unit, indent: '$indent  ');
       }
     }
   }
@@ -426,13 +429,16 @@ class CompilationUnitHeader {
   final int version;
   final int abbreviationsOffset;
   final int addressSize;
+  // ignore: library_private_types_in_public_api
   final _AbbreviationsTable abbreviations;
 
   CompilationUnitHeader._(this.size, this.version, this.abbreviationsOffset,
       this.addressSize, this.abbreviations);
 
   static CompilationUnitHeader? fromReader(
-      Reader reader, Map<int, _AbbreviationsTable> abbreviationsTables) {
+      Reader reader,
+      // ignore: library_private_types_in_public_api
+      Map<int, _AbbreviationsTable> abbreviationsTables) {
     final size = _initialLengthValue(reader);
     // An empty unit is an ending marker.
     if (size == 0) return null;
@@ -481,7 +487,9 @@ class CompilationUnit {
   CompilationUnit._(this.header, this.referenceTable);
 
   static CompilationUnit? fromReader(
-      Reader reader, Map<int, _AbbreviationsTable> abbreviationsTables) {
+      Reader reader,
+      // ignore: library_private_types_in_public_api
+      Map<int, _AbbreviationsTable> abbreviationsTables) {
     final header =
         CompilationUnitHeader.fromReader(reader, abbreviationsTables);
     if (header == null) return null;
@@ -553,7 +561,9 @@ class DebugInfo {
   DebugInfo._(this.units);
 
   static DebugInfo fromReader(
-      Reader reader, Map<int, _AbbreviationsTable> abbreviationsTable) {
+      Reader reader,
+      // ignore: library_private_types_in_public_api
+      Map<int, _AbbreviationsTable> abbreviationsTable) {
     final units = reader
         .readRepeated(
             (r) => CompilationUnit.fromReader(reader, abbreviationsTable))

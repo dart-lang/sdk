@@ -172,14 +172,13 @@ class NamedTypeResolver {
       if (typeParameters.isEmpty) {
         return element.thisType;
       } else {
-        var typeArguments = typeSystem.inferGenericFunctionOrType(
+        var inferrer = typeSystem.setupGenericTypeInference(
           typeParameters: typeParameters,
-          parameters: const [],
           declaredReturnType: element.thisType,
-          argumentTypes: const [],
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        )!;
+        );
+        var typeArguments = inferrer.upwardsInfer();
         return element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: _noneOrStarSuffix,

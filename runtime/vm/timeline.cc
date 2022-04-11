@@ -91,6 +91,9 @@ DEFINE_FLAG(charp,
 //       |TimelineEventRecorder::lock_|
 //
 
+std::atomic<bool> RecorderLock::shutdown_lock_ = {false};
+std::atomic<intptr_t> RecorderLock::outstanding_event_writes_ = {0};
+
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
   const bool use_endless_recorder =
@@ -223,6 +226,7 @@ void Timeline::Cleanup() {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
   Timeline::Clear();
+  RecorderLock::WaitForShutdown();
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -236,8 +240,9 @@ TimelineEventRecorder* Timeline::recorder() {
 }
 
 void Timeline::ReclaimCachedBlocksFromThreads() {
+  RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL) {
+  if (recorder == NULL || rl.IsShuttingDown()) {
     return;
   }
 
@@ -269,8 +274,9 @@ void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");
+  RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL) {
+  if (recorder == NULL || rl.IsShuttingDown()) {
     obj.AddProperty("recorderName", "null");
   } else {
     obj.AddProperty("recorderName", recorder->name());
@@ -294,8 +300,9 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 #endif
 
 void Timeline::Clear() {
+  RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL) {
+  if (recorder == NULL || rl.IsShuttingDown()) {
     return;
   }
   ReclaimCachedBlocksFromThreads();
@@ -553,9 +560,9 @@ void TimelineEvent::FormatArgument(intptr_t i,
 
 void TimelineEvent::Complete() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder != NULL) {
-    recorder->CompleteEvent(this);
-  }
+  recorder->CompleteEvent(this);
+  // Paired with RecorderLock::EnterLock() in TimelineStream::StartEvent().
+  RecorderLock::ExitLock();
 }
 
 void TimelineEvent::Init(EventType event_type, const char* label) {
@@ -771,15 +778,24 @@ TimelineStream::TimelineStream(const char* name,
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
+  // Paired with RecorderLock::ExitLock() in TimelineEvent::Complete().
+  //
+  // The lock must be held until the event is completed to avoid having the
+  // memory backing the event being freed in the middle of processing the
+  // event.
+  RecorderLock::EnterLock();
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!enabled() || (recorder == NULL)) {
-    return NULL;
+  if (!enabled() || (recorder == nullptr) || RecorderLock::IsShuttingDown()) {
+    RecorderLock::ExitLock();
+    return nullptr;
   }
-  ASSERT(name_ != NULL);
+  ASSERT(name_ != nullptr);
   TimelineEvent* event = recorder->StartEvent();
-  if (event != NULL) {
-    event->StreamInit(this);
+  if (event == nullptr) {
+    RecorderLock::ExitLock();
+    return nullptr;
   }
+  event->StreamInit(this);
   return event;
 }
 

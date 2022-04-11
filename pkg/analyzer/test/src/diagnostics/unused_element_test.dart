@@ -261,6 +261,18 @@ f() => _A.named();
     ]);
   }
 
+  test_parameter_optionalNamed_isUsed_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+
+class B extends _A {
+  B({super.a});
+}
+''');
+  }
+
   test_parameter_optionalPositional_fieldFormal_isUsed_constructorInvocation() async {
     await assertNoErrorsInCode(r'''
 class _A {
@@ -305,6 +317,18 @@ f() => _A.named();
 ''', [
       error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
     ]);
+  }
+
+  test_parameter_optionalPositional_isUsed_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class B extends _A {
+  B([super.a]);
+}
+''');
   }
 
   test_privateEnum_privateConstructor_isUsed_redirect() async {

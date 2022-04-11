@@ -31,31 +31,31 @@ class Class extends core::Object {
 }
 static method returnDynamic() → dynamic
   return new self::Class::•();
-static method returnClass() → self::Class async 
+static method returnClass() → self::Class async /* futureValueType= core::Object? */ 
   return new self::Class::•();
-static method returnFutureClass() → asy::Future<self::Class> async 
+static method returnFutureClass() → asy::Future<self::Class> async /* futureValueType= self::Class */ 
   return new self::Class::•();
-static method returnFutureOrClass() → FutureOr<self::Class> async 
+static method returnFutureOrClass() → FutureOr<self::Class> async /* futureValueType= self::Class */ 
   return new self::Class::•();
-static method returnClassFromDynamic() → self::Class async 
+static method returnClassFromDynamic() → self::Class async /* futureValueType= core::Object? */ 
   return self::returnDynamic();
-static method returnFutureClassDynamic() → asy::Future<self::Class> async 
+static method returnFutureClassDynamic() → asy::Future<self::Class> async /* futureValueType= self::Class */ 
   return self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::Class>;
-static method returnFutureOrClassDynamic() → FutureOr<self::Class> async 
+static method returnFutureOrClassDynamic() → FutureOr<self::Class> async /* futureValueType= self::Class */ 
   return self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::Class>;
-static method returnClassFromFutureClass() → self::Class async 
+static method returnClassFromFutureClass() → self::Class async /* futureValueType= core::Object? */ 
   return self::returnFutureClass();
-static method returnFutureClassFromFutureClass() → asy::Future<self::Class> async 
+static method returnFutureClassFromFutureClass() → asy::Future<self::Class> async /* futureValueType= self::Class */ 
   return self::returnFutureClass();
-static method returnFutureOrClassFromFutureClass() → FutureOr<self::Class> async 
+static method returnFutureOrClassFromFutureClass() → FutureOr<self::Class> async /* futureValueType= self::Class */ 
   return self::returnFutureClass();
-static method returnClassFromFutureOrClass() → self::Class async 
+static method returnClassFromFutureOrClass() → self::Class async /* futureValueType= core::Object? */ 
   return self::returnFutureOrClass();
-static method returnFutureClassFromFutureOrClass() → asy::Future<self::Class> async 
+static method returnFutureClassFromFutureOrClass() → asy::Future<self::Class> async /* futureValueType= self::Class */ 
   return self::returnFutureOrClass();
-static method returnFutureOrClassFromFutureOrClass() → FutureOr<self::Class> async 
+static method returnFutureOrClassFromFutureOrClass() → FutureOr<self::Class> async /* futureValueType= self::Class */ 
   return self::returnFutureOrClass();
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   await self::returnClass();
   await self::returnFutureClass();
   await self::returnFutureOrClass();

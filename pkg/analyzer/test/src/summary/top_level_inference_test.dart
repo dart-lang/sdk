@@ -1246,7 +1246,7 @@ library
   }
 
   test_initializer_extractProperty_explicitlyTyped_differentLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   int f = 0;
 }
@@ -1314,7 +1314,7 @@ library
   }
 
   test_initializer_extractProperty_explicitlyTyped_sameLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   int f = 0;
@@ -1344,7 +1344,7 @@ library
   }
 
   test_initializer_extractProperty_implicitlyTyped_differentLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   var f = 0;
 }
@@ -1412,7 +1412,7 @@ library
   }
 
   test_initializer_extractProperty_implicitlyTyped_sameLibraryCycle() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   var f = 0;
@@ -4689,9 +4689,9 @@ library
         fields
           synthetic x @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                T
+              alias: self::@typeAlias::F
+                typeArguments
+                  T
           synthetic y @-1
             type: List<dynamic Function()>
         constructors
@@ -4699,9 +4699,9 @@ library
         accessors
           get x @41
             returnType: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                T
+              alias: self::@typeAlias::F
+                typeArguments
+                  T
           get y @69
             returnType: List<dynamic Function()>
       class B @89
@@ -4709,9 +4709,9 @@ library
         fields
           synthetic x @-1
             type: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                int
+              alias: self::@typeAlias::F
+                typeArguments
+                  int
           synthetic y @-1
             type: List<dynamic Function()>
         constructors
@@ -4722,9 +4722,9 @@ library
         accessors
           get x @114
             returnType: dynamic Function()
-              aliasElement: self::@typeAlias::F
-              aliasArguments
-                int
+              alias: self::@typeAlias::F
+                typeArguments
+                  int
           get y @131
             returnType: List<dynamic Function()>
     typeAliases
@@ -5979,7 +5979,7 @@ library
   }
 
   test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
-    newFile('$testPackageLibPath/other.dart', content: r'''
+    newFile2('$testPackageLibPath/other.dart', r'''
 import 'test.dart';
 class B extends A2 {}
 ''');
@@ -6163,7 +6163,7 @@ library
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    newFile(testFilePath, content: text);
+    newFile2(testFilePath, text);
 
     var path = convertPath(testFilePath);
     var analysisSession = contextFor(path).currentSession;

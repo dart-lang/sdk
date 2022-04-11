@@ -12,7 +12,7 @@ final _multitestRegExp = RegExp(r"//# \w+:(.*)");
 final _vmOptionsRegExp = RegExp(r"// VMOptions=(.*)");
 final _environmentRegExp = RegExp(r"// Environment=(.*)");
 final _packagesRegExp = RegExp(r"// Packages=(.*)");
-final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z,-]+)$");
+final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z0-9,-]+)$");
 
 List<String> _splitWords(String s) =>
     s.split(' ').where((e) => e != '').toList();

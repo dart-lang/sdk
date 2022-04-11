@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'assists_test.dart' as assists;
 import 'bulk_fixes_test.dart' as bulk_fixes;
 import 'fixes_test.dart' as fixes;
+import 'format_if_enabled_test.dart' as format_if_enabled;
 import 'format_test.dart' as format;
 import 'organize_directives_test.dart' as organize_directives;
 import 'postfix_completion_test.dart' as postfix_completion;
@@ -20,6 +21,7 @@ void main() {
     bulk_fixes.main();
     fixes.main();
     format.main();
+    format_if_enabled.main();
     organize_directives.main();
     postfix_completion.main();
     refactoring.main();

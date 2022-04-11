@@ -134,6 +134,8 @@ class InformativeDataApplier {
           unitInfo.genericTypeAliases,
           _applyToGenericTypeAlias,
         );
+      } else {
+        unitElement.lineInfo = LineInfo([0]);
       }
     }
 

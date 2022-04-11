@@ -55,7 +55,7 @@ class Bar<T extends asy::Stream<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     : super core::Object::•()
     ;
-  method foo(covariant-by-class self::Bar::T* t) → dynamic /* originally async */ {
+  method foo(covariant-by-class self::Bar::T* t) → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     dynamic :return_value;
@@ -124,7 +124,7 @@ class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     : super core::Object::•()
     ;
-  method foo(covariant-by-class self::Baz::S* t) → dynamic /* originally async */ {
+  method foo(covariant-by-class self::Baz::S* t) → dynamic /* futureValueType= dynamic */ /* originally async */ {
     final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
     core::bool* :is_sync = false;
     dynamic :return_value;
@@ -241,7 +241,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature method listen((self::MyStream::T*) →* void onData, {core::Function* onError = #C1, () →* void onDone = #C1, core::bool* cancelOnError = #C1}) → asy::StreamSubscription<self::MyStream::T*>*; -> asy::Stream::listen
 }
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C<T> {
   C(this.field1)
       : field2 = (() => field1),
@@ -11,7 +10,7 @@ class C<T> {
         field9 = ((void Function(T) f) => field1),
         field10 = ((T Function(T) f) {}),
         field11 = ((T Function(T) f) => field1),
-        field12 = <S extends T>() => null,
+        field12 = <S extends T>() => throw '',
         field13 = <S extends T>(S s) {},
         field14 = <S extends T>(S s) => s,
         field15 = ((S Function<S extends T>() f) {});

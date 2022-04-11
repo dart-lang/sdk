@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:dart2native/macho.dart';
+import 'package:dart2native/macho_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -21,6 +23,61 @@ const String unsoundNullSafetyMessage =
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
+
+  if (Platform.isMacOS) {
+    test('Compile exe for MacOS signing', () async {
+      final p = project(mainSrc: '''void main() {}''');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+      var result = await p.run(
+        [
+          'compile',
+          'exe',
+          '-o',
+          outFile,
+          inFile,
+        ],
+      );
+
+      expect(result.stdout, contains(soundNullSafetyMessage));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(outFile).existsSync(), true,
+          reason: 'File not found: $outFile');
+
+      // Ensure the file contains the __CUSTOM segment.
+      final machOFile = MachOFile();
+      await machOFile.loadFromFile(File(outFile));
+
+      // Throws an exception (and thus the test fails) if the segment doesn't
+      // exist.
+      machOFile.commands.where((segment) {
+        if (segment.asType() is MachOSegmentCommand64) {
+          final segmentName = (segment as MachOSegmentCommand64).segname;
+          final segmentNameTrimmed = String.fromCharCodes(
+              segmentName.takeWhile((value) => value != 0));
+          return segmentNameTrimmed == '__CUSTOM';
+        } else {
+          return false;
+        }
+      }).first;
+
+      // Ensure that the exe can be signed.
+      final codeSigningProcess = await Process.start('codesign', [
+        '-o',
+        'runtime',
+        '-s',
+        '-',
+        outFile,
+      ]);
+
+      final signingResult = await codeSigningProcess.exitCode;
+      expect(signingResult, 0);
+    }, skip: isRunningOnIA32);
+  }
+
   // *** NOTE ***: These tests *must* be run with the `--use-sdk` option
   // as they depend on a fully built SDK to resolve various snapshot files
   // used by compilation.
@@ -153,9 +210,9 @@ void defineCompileTests() {
       [],
     );
 
-    expect(result.stdout, contains('I love executables'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(result.stdout, contains('I love executables'));
   }, skip: isRunningOnIA32);
 
   test('Compile to executable disabled on IA32', () async {
@@ -220,9 +277,9 @@ void defineCompileTests() {
       [],
     );
 
-    expect(result.stdout, contains('42'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(result.stdout, contains('42'));
   }, skip: isRunningOnIA32);
 
   test('Compile and run aot snapshot', () async {
@@ -443,9 +500,9 @@ void main() {}
       [],
     );
 
-    expect(result.stdout, contains('sound'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(result.stdout, contains('sound'));
   }, skip: isRunningOnIA32);
 
   test('Compile and run exe with --no-sound-null-safety', () async {

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: A:direct,explicit=[A.T*],needsArgs*/
+/*class: A:explicit=[A.T*],needsArgs,test*/
 class A<T> {
   m(T t) => t is T;
 }

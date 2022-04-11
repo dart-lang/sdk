@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         messageFfiAbiSpecificIntegerMappingInvalid,
         messageFfiPackedAnnotationAlignment,
         messageNonPositiveArrayDimensions,
+        templateFfiCompoundImplementsFinalizable,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
         templateFfiFieldNull,
@@ -319,6 +320,19 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       // Not a struct or union, but extends a struct or union.
       // The error will be emitted by _FfiUseSiteTransformer.
       return null;
+    }
+
+    final finalizableType = FutureOrType(
+        InterfaceType(finalizableClass, Nullability.nullable),
+        Nullability.nullable);
+    if (env.isSubtypeOf(InterfaceType(node, Nullability.nonNullable),
+        finalizableType, SubtypeCheckMode.ignoringNullabilities)) {
+      diagnosticReporter.report(
+          templateFfiCompoundImplementsFinalizable.withArguments(
+              node.superclass!.name, node.name),
+          node.fileOffset,
+          1,
+          node.location!.file);
     }
 
     if (node.superclass == structClass) {

@@ -23,10 +23,10 @@ Current frame  | ...               T| <- SP of current frame
                | first local       T|
                | caller's PP       T|
                | code object       T|    (current frame's code object)
-               | caller's FP        | <- FP of current frame
+               | caller's FP        |
                | caller's RA        |    (PC of caller frame)
                +--------------------+
-Caller frame   | last parameter     | <- SP of caller frame
+Caller frame   | last parameter     | <- SP of caller frame, FP of current frame
                |  ...               |
 
                T against a slot indicates it needs to be traversed during GC.
@@ -35,24 +35,24 @@ Caller frame   | last parameter     | <- SP of caller frame
 static const int kDartFrameFixedSize = 4;  // PP, FP, RA, PC marker.
 static const int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
-static const int kLastFixedObjectSlotFromFp = -2;
+static const int kFirstObjectSlotFromFp = -3;  // Used by GC to traverse stack.
+static const int kLastFixedObjectSlotFromFp = -4;
 
-static const int kFirstLocalSlotFromFp = -3;
-static const int kSavedCallerPpSlotFromFp = -2;
-static const int kPcMarkerSlotFromFp = -1;
-static const int kSavedCallerFpSlotFromFp = 0;
-static const int kSavedCallerPcSlotFromFp = 1;
+static const int kFirstLocalSlotFromFp = -5;
+static const int kSavedCallerPpSlotFromFp = -4;
+static const int kPcMarkerSlotFromFp = -3;
+static const int kSavedCallerFpSlotFromFp = -2;
+static const int kSavedCallerPcSlotFromFp = -1;
 
-static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
-static const int kCallerSpSlotFromFp = 2;
+static const int kParamEndSlotFromFp = -1;  // One slot past last parameter.
+static const int kCallerSpSlotFromFp = 0;
 static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(TARGET_ARCH_RISCV64)
-static const int kExitLinkSlotFromEntryFp = -28;
+static const int kExitLinkSlotFromEntryFp = -30;
 #elif defined(TARGET_ARCH_RISCV32)
-static const int kExitLinkSlotFromEntryFp = -40;
+static const int kExitLinkSlotFromEntryFp = -42;
 #endif
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 11);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 12);

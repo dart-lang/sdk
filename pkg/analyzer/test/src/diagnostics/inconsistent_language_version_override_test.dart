@@ -103,9 +103,9 @@ part of 'a.dart';
     var libraryPath = convertPath('$testPackageLibPath/a.dart');
     var partPath = convertPath('$testPackageLibPath/b.dart');
 
-    newFile(libraryPath, content: libraryContent);
+    newFile2(libraryPath, libraryContent);
 
-    newFile(partPath, content: partContent);
+    newFile2(partPath, partContent);
 
     await assertErrorsInFile2(libraryPath, libraryErrors);
   }

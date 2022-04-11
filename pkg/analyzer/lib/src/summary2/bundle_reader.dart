@@ -186,7 +186,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
   void read(ElementImpl element) {
     if (_offset == -1) {
-      return null;
+      return;
     }
 
     var dataReader = _libraryReader._reader.fork(_offset);
@@ -1180,9 +1180,11 @@ class LibraryReader {
     var unitUri = Uri.parse(unitUriStr);
     var unitSource = sourceFactory.forUri2(unitUri)!;
 
-    var unitElement = CompilationUnitElementImpl();
-    unitElement.source = unitSource;
-    unitElement.librarySource = librarySource;
+    var unitElement = CompilationUnitElementImpl(
+      source: unitSource,
+      librarySource: librarySource,
+      lineInfo: LineInfo([0]),
+    );
 
     var unitReference = unitContainerRef.getChild(unitUriStr);
     unitElement.setLinkedData(

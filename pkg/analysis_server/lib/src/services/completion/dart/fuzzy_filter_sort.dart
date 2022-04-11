@@ -6,6 +6,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 
+final _identifierPattern = RegExp(r'([_a-zA-Z][_a-zA-Z0-9]*)');
+
 /// Filters and scores [suggestions] according to how well they match the
 /// [pattern]. Sorts [suggestions] by the score, relevance, and name.
 List<CompletionSuggestionBuilder> fuzzyFilterSort({
@@ -15,16 +17,18 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
   var matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
 
   double score(CompletionSuggestionBuilder suggestion) {
-    var suggestionTextToMatch = suggestion.completion;
+    var textToMatch = suggestion.completion;
 
-    if (suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
-      var index = suggestionTextToMatch.indexOf(':');
-      if (index != -1) {
-        suggestionTextToMatch = suggestionTextToMatch.substring(0, index);
+    if (suggestion.kind == CompletionSuggestionKind.KEYWORD ||
+        suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
+      var identifier = _identifierPattern.matchAsPrefix(textToMatch)?.group(1);
+      if (identifier == null) {
+        return -1;
       }
+      textToMatch = identifier;
     }
 
-    return matcher.score(suggestionTextToMatch);
+    return matcher.score(textToMatch);
   }
 
   var scored = suggestions

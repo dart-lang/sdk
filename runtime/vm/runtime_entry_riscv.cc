@@ -39,47 +39,6 @@ uword RuntimeEntry::GetEntryPoint() const {
   return entry;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-// Generate code to call into the stub which will call the runtime
-// function. Input for the stub is as follows:
-//   SP : points to the arguments and return value array.
-//   T5 : address of the runtime function to call.
-//   T4 : number of arguments to the call.
-void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
-                                compiler::Assembler* assembler,
-                                intptr_t argument_count) {
-  if (runtime_entry->is_leaf()) {
-    ASSERT(argument_count == runtime_entry->argument_count());
-    COMPILE_ASSERT(!IsAbiPreservedRegister(PP));
-    // PP is a C volatile register.
-    // SP will be aligned to the C stack alignment.
-    __ mv(CALLEE_SAVED_TEMP, PP);
-    __ mv(CALLEE_SAVED_TEMP2, SP);
-    __ lx(TMP2,
-          compiler::Address(THR, Thread::OffsetFromThread(runtime_entry)));
-    __ sx(TMP2, compiler::Address(THR, Thread::vm_tag_offset()));
-    __ ReserveAlignedFrameSpace(0);
-    __ jalr(TMP2);
-    __ LoadImmediate(TMP2, VMTag::kDartTagId);
-    __ sx(TMP2, compiler::Address(THR, Thread::vm_tag_offset()));
-    __ mv(PP, CALLEE_SAVED_TEMP);
-    __ mv(SP, CALLEE_SAVED_TEMP2);
-    // These registers must be preserved by runtime functions, otherwise
-    // we'd need to restore them here.
-    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
-    COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
-    COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_MASK));
-    COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
-  } else {
-    // Argument count is not checked here, but in the runtime entry for a more
-    // informative error message.
-    __ lx(T5, compiler::Address(THR, Thread::OffsetFromThread(runtime_entry)));
-    __ li(T4, argument_count);
-    __ JumpAndLinkToRuntime();
-  }
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_RISCV

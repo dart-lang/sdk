@@ -17,11 +17,11 @@ main() {
 @reflectiveTest
 class DuplicateImportTest extends PubPackageResolutionTest {
   test_duplicateImport() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart';
@@ -34,13 +34,13 @@ A a = A();''');
   }
 
   test_importsHaveIdenticalShowHide() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}
 class B {}
 ''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 library L;
 import 'lib1.dart' as M show A hide B;
 import 'lib1.dart' as M show A hide B;
@@ -54,12 +54,12 @@ M.A a = M.A();
   }
 
   test_oneImportHasHide() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}
 class B {}''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
@@ -71,13 +71,13 @@ B b = B();
   }
 
   test_oneImportHasShow() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}
 class B {}
 ''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' show A; // ignore: unnecessary_import
@@ -90,11 +90,11 @@ B b = B();
   }
 
   test_oneImportUsesAs() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' as one;
@@ -107,11 +107,11 @@ one.A a2 = one.A();
   }
 
   test_twoDuplicateImports() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart';

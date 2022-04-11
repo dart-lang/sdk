@@ -39,6 +39,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_rename,
     Method.textDocument_foldingRange,
     Method.textDocument_selectionRange,
+    Method.textDocument_typeDefinition,
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
@@ -108,6 +109,9 @@ class ClientDynamicRegistrations {
 
   bool get textSync =>
       _capabilities.textDocument?.synchronization?.dynamicRegistration ?? false;
+
+  bool get typeDefinition =>
+      _capabilities.textDocument?.typeDefinition?.dynamicRegistration ?? false;
 
   bool get typeFormatting =>
       _capabilities.textDocument?.onTypeFormatting?.dynamicRegistration ??
@@ -448,6 +452,13 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.definition,
       Method.textDocument_definition,
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
+    );
+    register(
+      dynamicRegistrations.typeDefinition,
+      Method.textDocument_typeDefinition,
+      TextDocumentRegistrationOptions(
+        documentSelector: [dartFiles], // This one is currently Dart-specific
+      ),
     );
     register(
       dynamicRegistrations.implementation,

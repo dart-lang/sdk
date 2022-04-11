@@ -11,6 +11,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details.dart';
+import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details2.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -22,7 +24,6 @@ import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -30,7 +31,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
 
 /// Instances of the class [CompletionDomainHandler] implement a
@@ -43,6 +43,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Duration budgetDuration = CompletionBudget.defaultDuration;
 
   /// The completion services that the client is currently subscribed.
+  // TODO(brianwilkerson) This needs to be moved to some location where multiple
+  //  [LegacyHandler]s can access it, and the tests need to be cleaned up so
+  //  that they no longer depend on creating a new [CompletionDomainHandler] to
+  //  clear subscriptions from previous tests.
   final Set<CompletionService> subscriptions = <CompletionService>{};
 
   /// The next completion response id.
@@ -55,10 +59,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// The current request being processed or `null` if none.
   DartCompletionRequest? _currentRequest;
-
-  /// The identifiers of the latest `getSuggestionDetails` request.
-  /// We use it to abort previous requests.
-  int _latestGetSuggestionDetailsId = 0;
 
   /// Initialize a new request handler for the given [server].
   CompletionDomainHandler(AnalysisServer server) : super(server);
@@ -134,137 +134,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     return const YamlCompletionResults.empty();
   }
 
-  /// Process a `completion.getSuggestionDetails` request.
-  void getSuggestionDetails(Request request) async {
-    var params = CompletionGetSuggestionDetailsParams.fromRequest(request);
-
-    var file = params.file;
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var libraryId = params.id;
-    var declarationsTracker = server.declarationsTracker;
-    if (declarationsTracker == null) {
-      server.sendResponse(Response.unsupportedFeature(
-          request.id, 'Completion is not enabled.'));
-      return;
-    }
-    var library = declarationsTracker.getLibrary(libraryId);
-    if (library == null) {
-      server.sendResponse(Response.invalidParameter(
-        request,
-        'libraryId',
-        'No such library: $libraryId',
-      ));
-      return;
-    }
-
-    // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
-    var requestedName = params.label;
-    if (requestedName.contains('.')) {
-      requestedName = requestedName.substring(
-        0,
-        requestedName.indexOf('.'),
-      );
-    }
-
-    const timeout = Duration(milliseconds: 1000);
-    var timer = Stopwatch()..start();
-    var id = ++_latestGetSuggestionDetailsId;
-    while (id == _latestGetSuggestionDetailsId && timer.elapsed < timeout) {
-      try {
-        var analysisDriver = server.getAnalysisDriver(file);
-        if (analysisDriver == null) {
-          server.sendResponse(Response.fileNotAnalyzed(request, 'libraryId'));
-          return;
-        }
-        var session = analysisDriver.currentSession;
-
-        var completion = params.label;
-        var builder = ChangeBuilder(session: session);
-        await builder.addDartFileEdit(file, (builder) {
-          var result = builder.importLibraryElement(library.uri);
-          if (result.prefix != null) {
-            completion = '${result.prefix}.$completion';
-          }
-        });
-
-        server.sendResponse(
-          CompletionGetSuggestionDetailsResult(
-            completion,
-            change: builder.sourceChange,
-          ).toResponse(request.id),
-        );
-        return;
-      } on InconsistentAnalysisException {
-        // Loop around to try again.
-      }
-    }
-
-    // Timeout or abort, send the empty response.
-    server.sendResponse(
-      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
-    );
-  }
-
-  /// Process a `completion.getSuggestionDetails2` request.
-  void getSuggestionDetails2(Request request) async {
-    var params = CompletionGetSuggestionDetails2Params.fromRequest(request);
-
-    var file = params.file;
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var libraryUri = Uri.tryParse(params.libraryUri);
-    if (libraryUri == null) {
-      server.sendResponse(
-        Response.invalidParameter(request, 'libraryUri', 'Cannot parse'),
-      );
-      return;
-    }
-
-    var budget = CompletionBudget(
-      const Duration(milliseconds: 1000),
-    );
-    var id = ++_latestGetSuggestionDetailsId;
-    while (id == _latestGetSuggestionDetailsId && !budget.isEmpty) {
-      try {
-        var analysisDriver = server.getAnalysisDriver(file);
-        if (analysisDriver == null) {
-          server.sendResponse(Response.fileNotAnalyzed(request, file));
-          return;
-        }
-        var session = analysisDriver.currentSession;
-
-        var completion = params.completion;
-        var builder = ChangeBuilder(session: session);
-        await builder.addDartFileEdit(file, (builder) {
-          var result = builder.importLibraryElement(libraryUri);
-          if (result.prefix != null) {
-            completion = '${result.prefix}.$completion';
-          }
-        });
-
-        server.sendResponse(
-          CompletionGetSuggestionDetails2Result(
-            completion,
-            builder.sourceChange,
-          ).toResponse(request.id),
-        );
-        return;
-      } on InconsistentAnalysisException {
-        // Loop around to try again.
-      }
-    }
-
-    // Timeout or abort, send the empty response.
-    server.sendResponse(
-      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
-    );
-  }
-
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
     var params = CompletionGetSuggestions2Params.fromRequest(request);
@@ -306,7 +175,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     performance.runAsync(
       'request',
       (performance) async {
-        var resolvedUnit = performance.run(
+        var resolvedUnit = await performance.runAsync(
           'resolveForCompletion',
           (performance) {
             return server.resolveForCompletion(
@@ -387,7 +256,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         var lengthRestricted =
             suggestionBuilders.take(params.maxResults).toList();
-        completionPerformance.suggestionCount = lengthRestricted.length;
+        completionPerformance.computedSuggestionCount =
+            suggestionBuilders.length;
+        completionPerformance.transmittedSuggestionCount =
+            lengthRestricted.length;
 
         var suggestions = lengthRestricted.map((e) => e.build()).toList();
 
@@ -423,10 +295,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       var requestName = request.method;
 
       if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS) {
-        getSuggestionDetails(request);
+        CompletionGetSuggestionDetailsHandler(
+                server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2) {
-        getSuggestionDetails2(request);
+        CompletionGetSuggestionDetails2Handler(
+                server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
@@ -604,7 +480,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             );
           });
 
-          completionPerformance.suggestionCount = suggestionBuilders.length;
+          completionPerformance.computedSuggestionCount =
+              suggestionBuilders.length;
+          completionPerformance.transmittedSuggestionCount =
+              suggestionBuilders.length;
         } finally {
           ifMatchesRequestClear(completionRequest);
         }

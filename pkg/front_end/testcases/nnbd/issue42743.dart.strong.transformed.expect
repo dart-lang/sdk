@@ -3,7 +3,7 @@ import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
-static method main() → dynamic /* originally async */ {
+static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -20,7 +20,7 @@ static method main() → dynamic /* originally async */ {
           if(b)
             return 42;
         };
-        (dynamic _) → asy::Future<core::int?> /* originally async */ {
+        (dynamic _) → asy::Future<core::int?> /* futureValueType= core::int? */ /* originally async */ {
           final asy::_Future<core::int?> :async_future = new asy::_Future::•<core::int?>();
           core::bool* :is_sync = false;
           core::int? :return_value;

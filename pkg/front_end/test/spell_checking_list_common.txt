@@ -47,6 +47,7 @@ account
 accounted
 accumulate
 accurate
+accurately
 achieve
 act
 acting
@@ -489,6 +490,7 @@ closure
 closures
 clue
 code
+coerce
 coincides
 coinductively
 collapses
@@ -744,6 +746,8 @@ declaration's
 declarations
 declare
 declared
+declarer
+declarers
 declares
 declaring
 decode
@@ -1201,6 +1205,7 @@ filter
 filtered
 filtering
 final
+finalizable
 finalization
 finalize
 finalized
@@ -2022,6 +2027,7 @@ nullability
 nullable
 num
 number
+numbering
 numbers
 numeric
 object

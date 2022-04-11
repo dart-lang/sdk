@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*spec.class: C:direct,explicit=[C.T*,C<String*>*],needsArgs*/
+/*spec.class: C:explicit=[C.T*,C<String*>*],needsArgs,test*/
 class C<T> {
   T field;
 }

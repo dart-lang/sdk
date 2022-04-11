@@ -166,10 +166,10 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((line) {
-      const kObservatoryListening = 'Observatory listening on ';
-      if (line.startsWith(kObservatoryListening)) {
+      const kDartVMServiceListening = 'The Dart VM service is listening on ';
+      if (line.startsWith(kDartVMServiceListening)) {
         Uri observatoryUri =
-            Uri.parse(line.substring(kObservatoryListening.length));
+            Uri.parse(line.substring(kDartVMServiceListening.length));
         _setupAndRun(observatoryUri).catchError((e, st) {
           // Manually kill the process or it will leak,
           // see http://dartbug.com/42918

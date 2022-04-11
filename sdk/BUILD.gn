@@ -26,6 +26,7 @@ declare_args() {
   dart_stripped_binary = "dart"
   dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
+  analyze_snapshot_binary = "analyze_snapshot_product"
 }
 
 # The directory layout of the SDK is as follows:
@@ -39,7 +40,6 @@ declare_args() {
 # ......dartanalyzer
 # ......dartdevc
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
-# ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
@@ -88,16 +88,12 @@ declare_args() {
 # ......api_readme.md
 
 # Scripts that go under bin/
-_platform_sdk_scripts = [
-  "dartanalyzer",
-  "pub",
-]
+_platform_sdk_scripts = [ "dartanalyzer" ]
 
 _full_sdk_scripts = [
   "dart2js",
   "dartanalyzer",
   "dartdevc",
-  "pub",
 ]
 
 # Snapshots that go under bin/snapshots
@@ -757,8 +753,9 @@ group("create_common_sdk") {
   ]
 
   # We do not support AOT on ia32 and should therefore not add the
-  # dart native compilation files (since there is no AOT compiler/runtime available)
-  if (dart_target_arch != "ia32") {
+  # dart native compilation files since there is no AOT compiler/runtime
+  # available.
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     public_deps += [ ":group_dart2native" ]
   }
 }

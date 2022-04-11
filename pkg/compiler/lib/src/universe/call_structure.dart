@@ -82,7 +82,7 @@ class CallStructure {
   }
 
   /// Deserializes a [CallStructure] object from [source].
-  factory CallStructure.readFromDataSource(DataSource source) {
+  factory CallStructure.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int argumentCount = source.readInt();
     List<String> namedArguments = source.readStrings();
@@ -92,7 +92,7 @@ class CallStructure {
   }
 
   /// Serializes this [CallStructure] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(argumentCount);
     sink.writeStrings(namedArguments);

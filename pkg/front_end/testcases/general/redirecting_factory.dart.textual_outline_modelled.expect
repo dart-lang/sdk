@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class Foo<T> implements FooBase {
   factory Foo(int x) = Bar<String, T>;
 }

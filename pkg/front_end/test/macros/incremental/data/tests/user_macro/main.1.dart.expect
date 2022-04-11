@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "macro.dart" as mac;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-test:///a/b/c/user_macro/macro.dart";
+import "org-dartlang-test:///a/b/c/user_macro/main_lib.dart";
+
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/user_macro/main.dart-0 */ method() → void {}
+  method existingMethod() → void {
+    mai::existingMethodDependency();
+  }
+}
+
+library /*isNonNullableByDefault*/;
+import self as mac;
+import "dart:core" as core;
+import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
+import "macro_dependency.dart" as mac2;
+
+import "dart:async";
+import "package:_fe_analyzer_shared/src/macros/api.dart";
+import "org-dartlang-test:///a/b/c/user_macro/macro_dependency.dart";
+
+macro class MethodMacro extends core::Object implements api::ClassDeclarationsMacro /*hasConstConstructor*/  {
+  const constructor •() → mac::MethodMacro
+    : super core::Object::•()
+    ;
+  @#C2
+  method buildDeclarationsForClass(api::ClassDeclaration clazz, api::ClassMemberDeclarationBuilder builder) → FutureOr<void> async /* futureValueType= void */ {
+    builder.{api::ClassMemberDeclarationBuilder::declareInClass}(new api::DeclarationCode::fromString(mac2::generateBody())){(api::DeclarationCode) → void};
+  }
+}
+
+constants  {
+  #C1 = mac::MethodMacro {}
+  #C2 = dart.core::_Override {}
+}

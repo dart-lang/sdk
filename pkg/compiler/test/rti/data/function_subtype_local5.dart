@@ -17,7 +17,7 @@ typedef int Baz<T>(T a, {String b});
 typedef int Boz<T>(T a);
 typedef int Biz<T>(T a, int b);
 
-/*class: C:direct,explicit=[int* Function(C.T*)*,int* Function(C.T*,[String*])*,int* Function(C.T*,int*)*,int* Function(C.T*,{,b:String*})*],needsArgs*/
+/*class: C:explicit=[int* Function(C.T*)*,int* Function(C.T*,[String*])*,int* Function(C.T*,int*)*,int* Function(C.T*,{,b:String*})*],needsArgs,test*/
 class C<T> {
   void test(String nameOfT, bool expectedResult) {
     // TODO(johnniwinther): Optimize local function type signature need.

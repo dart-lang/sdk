@@ -875,11 +875,6 @@ class TreeShaker {
     if (_usedTypedefs.add(typedef)) {
       typedef.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(typedef.typeParameters, typedef);
-      _pass1.transformTypeParameterList(
-          typedef.typeParametersOfFunctionType, typedef);
-      _pass1.transformVariableDeclarationList(
-          typedef.positionalParameters, typedef);
-      _pass1.transformVariableDeclarationList(typedef.namedParameters, typedef);
       typedef.type?.accept(typeVisitor);
     }
   }

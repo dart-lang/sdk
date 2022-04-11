@@ -142,7 +142,7 @@ static method test7() → core::Iterable<core::bool> /* originally sync* */ {
   }
   return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
 }
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

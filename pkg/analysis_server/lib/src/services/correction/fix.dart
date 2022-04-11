@@ -308,6 +308,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Change '{0}' to '{1}' type annotation",
   );
+  static const CONVERT_CLASS_TO_ENUM = FixKind(
+    'dart.fix.convert.classToEnum',
+    DartFixKindPriority.DEFAULT,
+    'Convert class to an enum',
+  );
+  static const CONVERT_CLASS_TO_ENUM_MULTI = FixKind(
+    'dart.fix.convert.classToEnum.multi',
+    DartFixKindPriority.DEFAULT,
+    'Convert classes to enums in file',
+  );
   static const CONVERT_FLUTTER_CHILD = FixKind(
     'dart.fix.flutter.convert.childToChildren',
     DartFixKindPriority.DEFAULT,
@@ -352,6 +362,11 @@ class DartFixKind {
     'dart.fix.convert.quotes.multi',
     DartFixKindPriority.IN_FILE,
     'Convert the quotes and remove escapes everywhere in file',
+  );
+  static const CONVERT_TO_CASCADE = FixKind(
+    'dart.fix.convert.toCascade',
+    DartFixKindPriority.DEFAULT,
+    'Convert to cascade notation',
   );
   static const CONVERT_TO_CONTAINS = FixKind(
     'dart.fix.convert.toContains',
@@ -557,6 +572,16 @@ class DartFixKind {
     'dart.fix.convert.toSpread.multi',
     DartFixKindPriority.IN_FILE,
     'Convert to spreads everywhere in file',
+  );
+  static const CONVERT_TO_SUPER_PARAMETERS = FixKind(
+    'dart.fix.convert.toSuperParameters',
+    30,
+    'Convert to using super parameters',
+  );
+  static const CONVERT_TO_SUPER_PARAMETERS_MULTI = FixKind(
+    'dart.fix.convert.toSuperParameters.multi',
+    30,
+    'Convert to using super parameters everywhere in file',
   );
   static const CONVERT_TO_WHERE_TYPE = FixKind(
     'dart.fix.convert.toWhereType',
@@ -818,6 +843,16 @@ class DartFixKind {
     'dart.fix.remove.argument.multi',
     DartFixKindPriority.IN_FILE,
     'Remove arguments in file',
+  );
+  static const REMOVE_ASSIGNMENT = FixKind(
+    'dart.fix.remove.assignment',
+    DartFixKindPriority.DEFAULT,
+    'Remove assignment',
+  );
+  static const REMOVE_ASSIGNMENT_MULTI = FixKind(
+    'dart.fix.remove.assignment.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unnecessary assignments everywhere in file',
   );
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',

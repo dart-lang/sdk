@@ -9,7 +9,7 @@ import 'package:compiler/src/util/testing.dart';
 /*member: global#instantiate1:needsArgs*/
 
 class Class {
-  /*spec.member: Class.id:direct,explicit=[id.T*],needsArgs,needsInst=[<int*>]*/
+  /*spec.member: Class.id:explicit=[id.T*],needsArgs,needsInst=[<int*>],test*/
   T id<T>(T t, String s) => t;
 }
 

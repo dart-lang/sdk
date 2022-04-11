@@ -528,7 +528,7 @@ main() {
   }
 
   test_invocation_target_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int max(int x, int y) => 0;
 ''');
     await resolveTestCode('''
@@ -591,7 +591,7 @@ void g(Base x) {
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 dynamic get hashCode => 42;
 ''');
     await assertNoErrorsInCode('''
@@ -612,7 +612,7 @@ main() {
   }
 
   test_objectMethodInference_disabled_for_library_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 dynamic toString = (int x) => x + 42;
 ''');
     await assertNoErrorsInCode('''

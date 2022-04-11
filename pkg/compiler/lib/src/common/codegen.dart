@@ -40,10 +40,10 @@ import '../world.dart';
 class CodegenImpact extends WorldImpact {
   const CodegenImpact();
 
-  factory CodegenImpact.readFromDataSource(DataSource source) =
+  factory CodegenImpact.readFromDataSource(DataSourceReader source) =
       _CodegenImpact.readFromDataSource;
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     throw UnsupportedError('CodegenImpact.writeToDataSink');
   }
 
@@ -105,7 +105,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
       this._oneShotInterceptors)
       : super.internal(dynamicUses, staticUses, typeUses, constantUses);
 
-  factory _CodegenImpact.readFromDataSource(DataSource source) {
+  factory _CodegenImpact.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity member = source.readMember();
     Set<DynamicUse> dynamicUses = source
@@ -165,7 +165,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMember(member);
     sink.writeList(dynamicUses, (DynamicUse use) => use.writeToDataSink(sink),
@@ -502,7 +502,7 @@ class CodegenResult {
   /// deserialization are collected in [modularNames] and [modularExpressions]
   /// to avoid the need for visiting the [code] node post deserialization.
   factory CodegenResult.readFromDataSource(
-      DataSource source,
+      DataSourceReader source,
       List<ModularName> modularNames,
       List<ModularExpression> modularExpressions) {
     source.begin(tag);
@@ -517,7 +517,7 @@ class CodegenResult {
   /// The [modularNames] and [modularExpressions] fields are not directly
   /// serializes because these are embedded in the [code] node and collected
   /// through this during deserialization.
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeJsNodeOrNull(code);
     impact.writeToDataSink(sink);
@@ -635,7 +635,7 @@ class ModularName extends js.Name implements js.AstContainer {
 
   ModularName(this.kind, {this.data, this.set});
 
-  factory ModularName.readFromDataSource(DataSource source) {
+  factory ModularName.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ModularNameKind kind = source.readEnum(ModularNameKind.values);
     Object data;
@@ -678,7 +678,7 @@ class ModularName extends js.Name implements js.AstContainer {
     return ModularName(kind, data: data, set: set);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
     switch (kind) {
@@ -884,7 +884,7 @@ class ModularExpression extends js.DeferredExpression
 
   ModularExpression(this.kind, this.data);
 
-  factory ModularExpression.readFromDataSource(DataSource source) {
+  factory ModularExpression.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ModularExpressionKind kind = source.readEnum(ModularExpressionKind.values);
     Object data;
@@ -900,7 +900,7 @@ class ModularExpression extends js.DeferredExpression
     return ModularExpression(kind, data);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
     switch (kind) {
@@ -1107,13 +1107,13 @@ class JsNodeTags {
   static const String deferredHolderExpression = 'js-deferredHolderExpression';
 }
 
-/// Visitor that serializes a [js.Node] into a [DataSink].
+/// Visitor that serializes a [js.Node] into a [DataSinkWriter].
 class JsNodeSerializer implements js.NodeVisitor<void> {
-  final DataSink sink;
+  final DataSinkWriter sink;
 
   JsNodeSerializer._(this.sink);
 
-  static void writeToDataSink(DataSink sink, js.Node node) {
+  static void writeToDataSink(DataSinkWriter sink, js.Node node) {
     sink.begin(JsNodeTags.tag);
     JsNodeSerializer serializer = JsNodeSerializer._(sink);
     serializer.visit(node);
@@ -1394,7 +1394,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   @override
   void visitArrowFunction(js.ArrowFunction node) {
     sink.writeEnum(JsNodeKind.arrowFunction);
-    sink.begin(JsNodeTags.function);
+    sink.begin(JsNodeTags.arrowFunction);
     visitList(node.params);
     visit(node.body);
     sink.writeEnum(node.asyncModifier);
@@ -1775,19 +1775,19 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 }
 
-/// Helper class that deserializes a [js.Node] from [DataSource].
+/// Helper class that deserializes a [js.Node] from [DataSourceReader].
 ///
 /// Deserialized [ModularName]s and [ModularExpression]s are collected in the
 /// [modularNames] and [modularExpressions] lists.
 class JsNodeDeserializer {
-  final DataSource source;
+  final DataSourceReader source;
   final List<ModularName> modularNames;
   final List<ModularExpression> modularExpressions;
 
   JsNodeDeserializer._(this.source, this.modularNames, this.modularExpressions);
 
   static js.Node readFromDataSource(
-      DataSource source,
+      DataSourceReader source,
       List<ModularName> modularNames,
       List<ModularExpression> modularExpressions) {
     source.begin(JsNodeTags.tag);
@@ -1929,7 +1929,7 @@ class JsNodeDeserializer {
       case JsNodeKind.arrowFunction:
         source.begin(JsNodeTags.arrowFunction);
         List<js.Parameter> params = readList();
-        js.Block body = read();
+        js.Node body = read();
         js.AsyncModifier asyncModifier =
             source.readEnum(js.AsyncModifier.values);
         node = js.ArrowFunction(params, body, asyncModifier: asyncModifier);
@@ -2229,24 +2229,24 @@ class CodegenReaderImpl implements CodegenReader {
       this.closedWorld, this.modularNames, this.modularExpressions);
 
   @override
-  AbstractValue readAbstractValue(DataSource source) {
+  AbstractValue readAbstractValue(DataSourceReader source) {
     return closedWorld.abstractValueDomain
         .readAbstractValueFromDataSource(source);
   }
 
   @override
-  js.Node readJsNode(DataSource source) {
+  js.Node readJsNode(DataSourceReader source) {
     return JsNodeDeserializer.readFromDataSource(
         source, modularNames, modularExpressions);
   }
 
   @override
-  OutputUnit readOutputUnitReference(DataSource source) {
+  OutputUnit readOutputUnitReference(DataSourceReader source) {
     return closedWorld.outputUnitData.outputUnits[source.readInt()];
   }
 
   @override
-  TypeRecipe readTypeRecipe(DataSource source) {
+  TypeRecipe readTypeRecipe(DataSourceReader source) {
     return TypeRecipe.readFromDataSource(source);
   }
 }
@@ -2257,22 +2257,22 @@ class CodegenWriterImpl implements CodegenWriter {
   CodegenWriterImpl(this.closedWorld);
 
   @override
-  void writeAbstractValue(DataSink sink, AbstractValue value) {
+  void writeAbstractValue(DataSinkWriter sink, AbstractValue value) {
     closedWorld.abstractValueDomain.writeAbstractValueToDataSink(sink, value);
   }
 
   @override
-  void writeJsNode(DataSink sink, js.Node node) {
+  void writeJsNode(DataSinkWriter sink, js.Node node) {
     JsNodeSerializer.writeToDataSink(sink, node);
   }
 
   @override
-  void writeOutputUnitReference(DataSink sink, OutputUnit value) {
+  void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value) {
     sink.writeInt(closedWorld.outputUnitData.outputUnits.indexOf(value));
   }
 
   @override
-  void writeTypeRecipe(DataSink sink, TypeRecipe recipe) {
+  void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe) {
     recipe.writeToDataSink(sink);
   }
 }

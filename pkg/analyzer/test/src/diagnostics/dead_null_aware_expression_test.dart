@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class DeadNullAwareExpressionTest extends PubPackageResolutionTest {
   test_assignCompound_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -64,7 +64,7 @@ f(int? x) {
   }
 
   test_binary_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');

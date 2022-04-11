@@ -16,6 +16,8 @@
 
 namespace dart {
 
+#define R(reg) (static_cast<RegList>(1) << (reg))
+
 enum Register {
   RAX = 0,
   RCX = 1,
@@ -345,7 +347,7 @@ const RegList kAllCpuRegistersList = 0xFFFF;
 const RegList kAllFpuRegistersList = 0xFFFF;
 
 const RegList kReservedCpuRegisters =
-    (1 << SPREG) | (1 << FPREG) | (1 << TMP) | (1 << PP) | (1 << THR);
+    R(SPREG) | R(FPREG) | R(TMP) | R(PP) | R(THR);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 5;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
@@ -353,6 +355,20 @@ const RegList kDartAvailableCpuRegs =
 constexpr int kNumberOfDartAvailableCpuRegs =
     kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 constexpr int kStoreBufferWrapperSize = 13;
+
+#if defined(DART_TARGET_OS_WINDOWS)
+const RegList kAbiPreservedCpuRegs =
+    R(RBX) | R(RSI) | R(RDI) | R(R12) | R(R13) | R(R14) | R(R15);
+const RegList kAbiVolatileFpuRegs =
+    R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) | R(XMM5);
+#else
+const RegList kAbiPreservedCpuRegs = R(RBX) | R(R12) | R(R13) | R(R14) | R(R15);
+const RegList kAbiVolatileFpuRegs = kAllFpuRegistersList;
+#endif
+
+// Registers available to Dart that are not preserved by runtime calls.
+const RegList kDartVolatileCpuRegs =
+    kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
 
 enum ScaleFactor {
   TIMES_1 = 0,
@@ -382,8 +398,6 @@ enum ScaleFactor {
 #endif
   TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
-
-#define R(reg) (1 << (reg))
 
 class CallingConventions {
  public:
@@ -422,11 +436,7 @@ class CallingConventions {
   static const intptr_t kVolatileCpuRegisters =
       R(RAX) | R(RCX) | R(RDX) | R(R8) | R(R9) | R(R10) | R(R11);
 
-  static const intptr_t kVolatileXmmRegisters =
-      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) | R(XMM5);
-
-  static const intptr_t kCalleeSaveCpuRegisters =
-      R(RBX) | R(RSI) | R(RDI) | R(R12) | R(R13) | R(R14) | R(R15);
+  static const RegList kVolatileXmmRegisters = kAbiVolatileFpuRegs;
 
   static const intptr_t kCalleeSaveXmmRegisters =
       R(XMM6) | R(XMM7) | R(XMM8) | R(XMM9) | R(XMM10) | R(XMM11) | R(XMM12) |
@@ -490,13 +500,7 @@ class CallingConventions {
                                                 R(RSI) | R(RDI) | R(R8) |
                                                 R(R9) | R(R10) | R(R11);
 
-  static const intptr_t kVolatileXmmRegisters =
-      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) | R(XMM5) | R(XMM6) |
-      R(XMM7) | R(XMM8) | R(XMM9) | R(XMM10) | R(XMM11) | R(XMM12) | R(XMM13) |
-      R(XMM14) | R(XMM15);
-
-  static const intptr_t kCalleeSaveCpuRegisters =
-      R(RBX) | R(R12) | R(R13) | R(R14) | R(R15);
+  static const RegList kVolatileXmmRegisters = kAbiVolatileFpuRegs;
 
   static const intptr_t kCalleeSaveXmmRegisters = 0;
 
@@ -530,6 +534,8 @@ class CallingConventions {
 
 #endif
 
+  static const intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
+
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
 
   static constexpr Register kFfiAnyNonAbiRegister = R12;
@@ -543,9 +549,6 @@ class CallingConventions {
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
        (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
-
-constexpr intptr_t kAbiPreservedCpuRegs =
-    CallingConventions::kCalleeSaveCpuRegisters;
 
 #undef R
 

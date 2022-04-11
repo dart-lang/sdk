@@ -59,9 +59,13 @@ mixin EnumTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_enumConstantName_imported_withPrefix() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
@@ -115,9 +119,13 @@ void f() {
   }
 
   Future<void> test_enumName_imported_withPrefix() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
@@ -147,9 +155,13 @@ void f() {
 
   @FailingTest(reason: 'element.kind is LIBRARY')
   Future<void> test_importPrefix() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix01;
@@ -177,9 +189,13 @@ void f() {
   }
 
   Future<void> test_importPrefix_dot() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
@@ -230,9 +246,13 @@ void f() {
   }
 
   Future<void> test_nothing_imported_withPrefix() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
@@ -284,9 +304,12 @@ void f() {
 
     // imported
     {
-      await addProjectFile('lib/a.dart', '''
+      newFile2('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
+      if (isProtocolVersion1) {
+        await waitForSetWithUri('package:test/a.dart');
+      }
       var response = await getTestCodeSuggestions('''
 import 'a.dart';
 void f() {
@@ -298,9 +321,12 @@ void f() {
 
     // not imported
     {
-      await addProjectFile('lib/a.dart', '''
+      newFile2('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
+      if (isProtocolVersion1) {
+        await waitForSetWithUri('package:test/a.dart');
+      }
       var response = await getTestCodeSuggestions('''
 void f() {
   $codeAtCompletion

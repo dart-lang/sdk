@@ -46,7 +46,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
+  Future<AnalysisSession> get session async => sessionFor(testPackageRootPath);
 
   /// The file system-specific `analysis_options.yaml` path.
   String get testPackageAnalysisOptionsPath =>
@@ -63,7 +63,7 @@ class AbstractContextTest with ResourceProviderMixin {
   String get workspaceRootPath => convertPath('/home');
 
   void addSource(String path, String content) {
-    newFile(path, content: content);
+    newFile2(path, content);
   }
 
   AnalysisContext contextFor(String path) {
@@ -85,21 +85,27 @@ class AbstractContextTest with ResourceProviderMixin {
       }
     }
 
-    newFile(testPackageAnalysisOptionsPath, content: buffer.toString());
+    newFile2(testPackageAnalysisOptionsPath, buffer.toString());
   }
 
   @override
-  File newFile(String path, {String content = ''}) {
+  File newFile2(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    return super.newFile(path, content: content);
+    return super.newFile2(path, content);
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    var session = contextFor(path).currentSession;
+    var session = await sessionFor(path);
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
+  }
+
+  Future<AnalysisSession> sessionFor(String path) async {
+    var analysisContext = contextFor(path);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
   }
 
   void setUp() {
@@ -117,7 +123,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr: toUriStr));
+    newFile2(path, config.toContent(toUriStr: toUriStr));
   }
 
   void writeTestPackageConfig({

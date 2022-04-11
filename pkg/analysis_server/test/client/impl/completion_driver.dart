@@ -13,8 +13,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:matcher/matcher.dart';
 import 'package:meta/meta.dart';
 
+import '../../analysis_server_base.dart';
 import '../../constants.dart';
-import '../../domain_completion_test.dart';
 import 'expect_mixin.dart';
 
 CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
@@ -92,14 +92,16 @@ class CompletionDriver with ExpectMixin {
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
       completionOffset = offset;
-      server.newFile(server.testFilePath, content: content);
+      server.newFile2(server.testFilePath, content);
     } else {
       expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
       var nextOffset = content.indexOf('^', completionOffset + 1);
       expect(nextOffset, equals(-1), reason: 'too many ^');
-      server.newFile(server.testFilePath,
-          content: content.substring(0, completionOffset) +
-              content.substring(completionOffset + 1));
+      server.newFile2(
+        server.testFilePath,
+        content.substring(0, completionOffset) +
+            content.substring(completionOffset + 1),
+      );
     }
   }
 
@@ -279,16 +281,12 @@ class CompletionDriver with ExpectMixin {
     } else if (notification.event == SERVER_NOTIFICATION_CONNECTED) {
       // Ignored.
     } else {
-      print('Unhandled notififcation: ${notification.event}');
+      print('Unhandled notification: ${notification.event}');
     }
   }
 
-  Future<AvailableSuggestionSet> waitForSetWithUri(String uri) async {
-    while (true) {
-      var result = uriToSetMap[uri];
-      if (result != null) {
-        return result;
-      }
+  Future<void> waitForSetWithUri(String uri) async {
+    while (uriToSetMap[uri] == null) {
       await Future.delayed(const Duration(milliseconds: 1));
     }
   }

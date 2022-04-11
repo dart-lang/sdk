@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return this.{main::MiddlewareApi::toString}(){() →* dart.core::String*};
+  return this.{dart.core::Object::toString}(){() → dart.core::String};

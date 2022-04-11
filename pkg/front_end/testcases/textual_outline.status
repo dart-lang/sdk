@@ -28,7 +28,6 @@ constructor_tearoffs/issue47075: FormatterCrash
 constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
-enhanced_enums/entries_with_type_arguments: FormatterCrash
 enhanced_enums/recovery_in_elements: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash
@@ -59,12 +58,14 @@ general/constants/js_semantics/number_folds_opt_out: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
 general/constants/number_folds: FormatterCrash
 general/constants/number_folds_opt_out: FormatterCrash
+general/constants/various2: FormatterCrash
 general/constants/various: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
 general/covariant_generic2: FormatterCrash
 general/duplicated_declarations: FormatterCrash
 general/enum_super_constructor: FormatterCrash
 general/error_recovery/annotations: FormatterCrash
+general/error_recovery/class_header: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_general.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_get.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_return_type.crash: FormatterCrash
@@ -91,7 +92,6 @@ general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
-general/issue47495: FormatterCrash
 general/issue47728_2: FormatterCrash
 general/issue47728_3: FormatterCrash
 general/issue47922: FormatterCrash
@@ -99,12 +99,17 @@ general/issue48487: FormatterCrash
 general/issue48487b: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
+general/many_errors2: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
+general/mixin_inherited_setter_for_mixed_in_field2: FormatterCrash
 general/new_as_selector: FormatterCrash
 general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
+general/type_parameter_type_named_int: FormatterCrash
+general/type_parameter_usage_in_static_method_in_class: FormatterCrash
+general/type_parameter_usage_in_static_method_in_extension: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
@@ -149,6 +154,7 @@ macros/augment_class: FormatterCrash
 macros/class_members: FormatterCrash
 macros/inject_constructor: FormatterCrash
 macros/macro_class: FormatterCrash
+macros/multiple_imports: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/duplicates_instance: FormatterCrash
@@ -211,6 +217,9 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/issue47741: FormatterCrash
 super_parameters/issue47922: FormatterCrash
+super_parameters/issue48714: FormatterCrash
+super_parameters/opt_out: FormatterCrash
+super_parameters/var_before_super: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash

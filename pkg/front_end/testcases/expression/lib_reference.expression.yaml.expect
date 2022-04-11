@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return dart.io::exit(2);
+  return let final Never #t1 = dart.io::exit(2) in throw new dart._internal::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");

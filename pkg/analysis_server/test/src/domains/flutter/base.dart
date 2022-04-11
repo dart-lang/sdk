@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,40 +45,19 @@ class FlutterBase extends AbstractAnalysisTest {
     testFile = convertPath('/home/test/lib/test.dart');
 
     newPubspecYamlFile('/home/test', '');
-    newDotPackagesFile('/home/test', content: '''
-test:${toUri('/home/test/lib')}
-''');
 
-    _addFlutterPackage();
+    var metaLib = MockPackages.instance.addMeta(resourceProvider);
+    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
+    newPackageConfigJsonFile(
+      '/home/test',
+      (PackageConfigFileBuilder()
+            ..add(name: 'test', rootPath: '/home/test')
+            ..add(name: 'meta', rootPath: metaLib.parent.path)
+            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
+          .toContent(toUriStr: toUriStr),
+    );
 
     await createProject();
     handler = server.handlers.whereType<FlutterDomainHandler>().single;
-  }
-
-  void _addFlutterPackage() {
-    _addMetaPackage();
-    var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    _addPackageDependency('flutter', libFolder.parent2.path);
-  }
-
-  void _addMetaPackage() {
-    var libFolder = MockPackages.instance.addMeta(resourceProvider);
-    _addPackageDependency('meta', libFolder.parent2.path);
-  }
-
-  void _addPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('/home/test/.packages');
-    var packagesContent =
-        packagesFile.exists ? packagesFile.readAsStringSync() : '';
-
-    // Ignore if there is already the same package dependency.
-    if (packagesContent.contains('$name:file://')) {
-      return;
-    }
-
-    rootPath = convertPath(rootPath);
-    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
-
-    packagesFile.writeAsStringSync(packagesContent);
   }
 }

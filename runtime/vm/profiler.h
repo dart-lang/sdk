@@ -756,6 +756,8 @@ class SampleBlock : public SampleBuffer {
   virtual Sample* ReserveSampleAndLink(Sample* previous);
 
  protected:
+  bool HasStreamableSamples(const GrowableObjectArray& tag_table, UserTag* tag);
+
   Isolate* owner_ = nullptr;
   bool allocation_block_ = false;
 
@@ -881,6 +883,10 @@ class SampleBlockListProcessor : public ProcessedSampleBufferBuilder {
   virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
       SampleFilter* filter,
       ProcessedSampleBuffer* buffer = nullptr);
+
+  // Returns true when at least one sample in the sample block list has a user
+  // tag with CPU sample streaming enabled.
+  bool HasStreamableSamples(Thread* thread);
 
  private:
   SampleBlock* head_;

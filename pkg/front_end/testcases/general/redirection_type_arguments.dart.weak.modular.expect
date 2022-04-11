@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -6,29 +6,19 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[#C1];
-  const constructor empty() → self::A*
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  const constructor empty() → self::A
     : super core::Object::•()
     ;
-  static factory •() → self::A*
-    return new self::B::•<core::String*>();
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  static factory •() → self::A
+    return new self::B::•<core::String>();
 }
-class B<T extends core::Object* = dynamic> extends self::A /*hasConstConstructor*/  {
-  const constructor •() → self::B<self::B::T*>*
+class B<T extends core::Object? = dynamic> extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B<self::B::T%>
     : super self::A::empty()
     ;
-  method toString() → core::String*
-    return "${self::B::T*}";
+  method toString() → core::String
+    return "${self::B::T%}";
 }
 static method main() → void {
   exp::Expect::equals("${#C2}", "String");

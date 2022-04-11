@@ -105,31 +105,38 @@ Future<void> asyncTest(f()) {
 /// failed test expectation, that error cannot be caught and accepted.
 Future<T> asyncExpectThrows<T extends Object>(Future<void> result,
     [String reason = ""]) {
-  // Handle null being passed in from legacy code while also avoiding producing
-  // an unnecessary null check warning here.
-  if ((reason as dynamic) == null) reason = "";
-
-  var type = "";
-  if (T != dynamic && T != Object) type = "<$T>";
-  var header = "asyncExpectThrows$type(${reason}):";
-
-  if ((result as dynamic) == null) {
-    Expect.testError("$header result Future must not be null.");
+  // Delay computing the header text until the test has failed.
+  // The header computation uses complicated language features,
+  // and language tests should avoid doing complicated things
+  // until after the actual test has had a chance to succeed.
+  String header() {
+    // Handle null being passed in from legacy code
+    // while also avoiding producing an unnecessary null check warning here.
+    if ((reason as dynamic) == null) reason = "";
+    // Only include the type in he message if it's not a top-type.
+    var type = Object() is! T ? "<$T>" : "";
+    return "asyncExpectThrows$type($reason):";
   }
+
+  // Unsound null-safety check.
+  if ((result as dynamic) == null) {
+    Expect.testError("${header()} result Future must not be null.");
+  }
+
   // TODO(rnystrom): It might useful to validate that T is not bound to
   // ExpectException since that won't work.
 
   asyncStart();
   return result.then<T>((_) {
-    throw ExpectException("$header Did not throw.");
+    throw ExpectException("${header()} Did not throw.");
   }, onError: (error, stack) {
-    // A test failure doesn't count as throwing.
+    // A test failure doesn't count as throwing. Rethrow it.
     if (error is ExpectException) throw error;
 
     if (error is! T) {
       // Throws something unexpected.
       throw ExpectException(
-          "$header Unexpected '${Error.safeToString(error)}'\n$stack");
+          "${header()} Unexpected '${Error.safeToString(error)}'\n$stack");
     }
 
     asyncEnd();

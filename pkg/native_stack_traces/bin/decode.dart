@@ -244,9 +244,9 @@ void find(ArgResults options) {
     final addr = dwarf.virtualAddressOf(offset);
     final frames = dwarf
         .callInfoFor(addr, includeInternalFrames: verbose)
-        ?.map((CallInfo c) => '  ' + c.toString());
+        ?.map((CallInfo c) => '  $c');
     final addrString =
-        addr > 0 ? '0x' + addr.toRadixString(16) : addr.toString();
+        addr > 0 ? '0x${addr.toRadixString(16)}' : addr.toString();
     print('For virtual address $addrString:');
     if (frames == null) {
       print('  Invalid virtual address.');
@@ -283,7 +283,7 @@ Future<void> translate(ArgResults options) async {
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .transform(DwarfStackTraceDecoder(dwarf, includeInternalFrames: verbose))
-      .map((s) => s + '\n')
+      .map((s) => '$s\n')
       .transform(utf8.encoder);
 
   await output.addStream(convertedStream);

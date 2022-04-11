@@ -722,7 +722,7 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
   for (intptr_t index = index_; index < deopt_instructions_.length(); index++) {
     DeoptInstr* deopt_instr = deopt_instructions_[index];
     if (deopt_instr->kind() == DeoptInstr::kCallerFp) {
-      return index - num_materializations_;
+      return index - num_materializations_ - kSavedCallerFpSlotFromFp;
     }
   }
   UNREACHABLE();

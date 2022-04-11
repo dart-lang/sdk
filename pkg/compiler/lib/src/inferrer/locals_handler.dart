@@ -221,7 +221,7 @@ class FieldInitializationScope {
     assert(elseScope != null);
 
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
-    // know the code following won'TypeInformation do anything.
+    // know the code following won't do anything.
     if (isThisExposed) return this;
     if (isIndefinite) return this;
 

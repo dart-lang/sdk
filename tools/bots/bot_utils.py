@@ -37,6 +37,22 @@ ARCH_RENAMES = {
     'x64': 'x64',
     'arm': 'arm',
     'arm64': 'arm64',
+    'riscv64': 'riscv64',
+}
+
+SYSTEM_TO_CIPD = {
+    'win32': 'windows',
+    'windows': 'windows',
+    'linux': 'linux',
+    'macos': 'mac',
+}
+
+ARCH_TO_CIPD = {
+    'ia32': '386',
+    'x64': 'amd64',
+    'arm': 'arm6l',
+    'arm64': 'arm64',
+    'riscv64': 'riscv64',
 }
 
 

@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:html/parser.dart' show parse;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -96,7 +97,8 @@ Future<http.Response> _getResponse(String url) async =>
         headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
 
 bool _hasPubspec(FileSystemEntity f) =>
-    f is Directory && File(path.join(f.path, 'pubspec.yaml')).existsSync();
+    f is Directory &&
+    File(path.join(f.path, file_paths.pubspecYaml)).existsSync();
 
 Future<ProcessResult> _runPub(String dir) async =>
     await Process.run('flutter', ['pub', 'get'], workingDirectory: dir);

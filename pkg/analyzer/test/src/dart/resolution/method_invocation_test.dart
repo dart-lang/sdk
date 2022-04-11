@@ -20,7 +20,7 @@ main() {
 class MethodInvocationResolutionTest extends PubPackageResolutionTest
     with MethodInvocationResolutionTestCases {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -3238,10 +3238,10 @@ MethodInvocation
   }
 
   test_error_ambiguousImport_topFunction() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo(int _) {}
 ''');
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 void foo(int _) {}
 ''');
 
@@ -3295,10 +3295,10 @@ MethodInvocation
   }
 
   test_error_ambiguousImport_topFunction_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo(int _) {}
 ''');
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 void foo(int _) {}
 ''');
 
@@ -3687,6 +3687,7 @@ FunctionExpressionInvocation
     token: foo
     staticElement: self::@class::C::@getter::foo
     staticType: double Function(int)
+      alias: self::@typeAlias::MyFunction
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -3696,6 +3697,7 @@ FunctionExpressionInvocation
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: double Function(int)
+    alias: self::@typeAlias::MyFunction
   staticType: double
 ''');
     } else {
@@ -3705,6 +3707,7 @@ FunctionExpressionInvocation
     token: foo
     staticElement: self::@class::C::@getter::foo
     staticType: double* Function(int*)*
+      alias: self::@typeAlias::MyFunction
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -3714,6 +3717,7 @@ FunctionExpressionInvocation
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: double* Function(int*)*
+    alias: self::@typeAlias::MyFunction
   staticType: double*
 ''');
     }
@@ -3963,7 +3967,7 @@ FunctionExpressionInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo() {}
 ''');
 
@@ -4806,7 +4810,7 @@ main(Object o) {
   }
 
   test_error_undefinedMethod_private() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo(int _) {}
 }
@@ -6020,7 +6024,7 @@ MethodInvocation
   }
 
   test_hasReceiver_importPrefix_topFunction() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 T foo<T extends num>(T a, T b) => a;
 ''');
 
@@ -6091,7 +6095,7 @@ MethodInvocation
   }
 
   test_hasReceiver_importPrefix_topGetter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 T Function<T>(T a, T b) get foo => null;
 ''');
 
@@ -6722,7 +6726,7 @@ MethodInvocation
   }
 
   test_hasReceiver_prefixed_class_staticGetter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   static double Function(int) get foo => null;
 }
@@ -6807,7 +6811,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_prefixed_class_staticMethod() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   static void foo(int _) => null;
 }
@@ -7696,11 +7700,13 @@ FunctionExpressionInvocation
     token: a
     staticElement: a@39
     staticType: void Function()
+      alias: self::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: void Function()
+    alias: self::@typeAlias::F
   staticType: void
 ''');
     } else {
@@ -7710,11 +7716,13 @@ FunctionExpressionInvocation
     token: a
     staticElement: a@39
     staticType: void Function()*
+      alias: self::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: void Function()*
+    alias: self::@typeAlias::F
   staticType: void
 ''');
     }

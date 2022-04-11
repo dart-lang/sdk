@@ -33,15 +33,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_bazelWorkspace() async {
     var workspacePath = '/home/user/ws';
     // Make it a Bazel workspace.
-    newFile(convertPath('$workspacePath/WORKSPACE'));
+    newFile2(convertPath('$workspacePath/WORKSPACE'), '');
 
     var packagePath = '$workspacePath/team/project1';
 
     // Make it a Blaze project.
-    newFile(convertPath('$packagePath/BUILD'));
+    newFile2(convertPath('$packagePath/BUILD'), '');
 
     final file1 = convertPath('$packagePath/lib/file1.dart');
-    newFile(file1);
+    newFile2(file1, '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -498,12 +498,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);
-    newFile(file1);
+    newFile2(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
-    newFile(file2);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newFile2(file2, '');
+    newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -533,7 +532,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
+    newFile2(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(allowEmptyRootUri: true);
@@ -548,9 +547,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newFile2(nestedFilePath, '');
+    newPubspecYamlFile(projectFolderPath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(allowEmptyRootUri: true);
@@ -716,8 +714,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonFileScheme_workspaceFolders() async {
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newPubspecYamlFile(projectFolderPath, '');
 
     final rootUri = Uri.parse('vsls://');
     final fileUri = rootUri.replace(path: '/file1.dart');
@@ -739,7 +736,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_nonProjectFiles_basicWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
-    newFile(file1);
+    newFile2(file1, '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -750,10 +747,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_nonProjectFiles_bazelWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
-    newFile(file1);
+    newFile2(file1, '');
 
     // Make /home a bazel workspace.
-    newFile(convertPath('/home/WORKSPACE'));
+    newFile2(convertPath('/home/WORKSPACE'), '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -784,12 +781,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);
-    newFile(file1);
+    newFile2(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
-    newFile(file2);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newFile2(file2, '');
+    newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(
       rootUri: projectFolderUri,
@@ -823,7 +819,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
+    newFile2(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(
@@ -841,9 +837,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
-    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    newFile(pubspecPath);
+    newFile2(nestedFilePath, '');
+    newPubspecYamlFile(projectFolderPath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(

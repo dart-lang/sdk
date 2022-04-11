@@ -1,11 +1,11 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "stub_or_not_lib1.dart" as stu;
 
 import "org-dartlang-testcase:///stub_or_not_lib1.dart";
 
 class ProblemClass extends stu::Foo {
-  synthetic constructor •() → self::ProblemClass*
+  synthetic constructor •() → self::ProblemClass
     : super stu::Foo::•()
     ;
 }

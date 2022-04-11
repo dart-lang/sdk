@@ -44,7 +44,7 @@ class ProgressBar {
       _shouldDrawProgress = true;
       _width = stdout.terminalColumns;
       _innerWidth = stdout.terminalColumns - 2;
-      _logger.write('[' + ' ' * _innerWidth + ']');
+      _logger.write('[${' ' * _innerWidth}]');
     }
   }
 
@@ -54,7 +54,7 @@ class ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    _logger.write('\r' + ' ' * _width + '\r');
+    _logger.write('\r${' ' * _width}\r');
   }
 
   /// Draw the progress bar as complete, and print two newlines.
@@ -62,7 +62,7 @@ class ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    _logger.write('\r[' + '-' * _innerWidth + ']\n\n');
+    _logger.write('\r[${'-' * _innerWidth}]\n\n');
   }
 
   /// Progress the bar by one tick.
@@ -74,10 +74,7 @@ class ProgressBar {
     var fractionComplete =
         max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
     var remaining = _innerWidth - fractionComplete - 1;
-    _logger.write('\r[' + // Bring cursor back to the start of the line.
-        '-' * fractionComplete + // Print complete work.
-        AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
-        ' ' * remaining + // Print remaining work.
-        ']');
+    var spinner = AnsiProgress.kAnimationItems[_tickCount % 4];
+    _logger.write('\r[${'-' * fractionComplete}$spinner${' ' * remaining}]');
   }
 }

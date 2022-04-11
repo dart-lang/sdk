@@ -223,9 +223,9 @@ class FfiTransformer extends Transformer {
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
   final Procedure arrayCheckIndex;
-  final Field arrayNestedDimensionsFlattened;
-  final Field arrayNestedDimensionsFirst;
-  final Field arrayNestedDimensionsRest;
+  final Procedure arrayNestedDimensionsFlattened;
+  final Procedure arrayNestedDimensionsFirst;
+  final Procedure arrayNestedDimensionsRest;
   final Constructor structFromTypedDataBase;
   final Constructor unionFromTypedDataBase;
   final Constructor arrayConstructor;
@@ -364,12 +364,12 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', 'Array', '_nestedDimensions'),
         arrayCheckIndex =
             index.getProcedure('dart:ffi', 'Array', '_checkIndex'),
-        arrayNestedDimensionsFlattened =
-            index.getField('dart:ffi', 'Array', '_nestedDimensionsFlattened'),
-        arrayNestedDimensionsFirst =
-            index.getField('dart:ffi', 'Array', '_nestedDimensionsFirst'),
-        arrayNestedDimensionsRest =
-            index.getField('dart:ffi', 'Array', '_nestedDimensionsRest'),
+        arrayNestedDimensionsFlattened = index.getProcedure(
+            'dart:ffi', 'Array', 'get:_nestedDimensionsFlattened'),
+        arrayNestedDimensionsFirst = index.getProcedure(
+            'dart:ffi', 'Array', 'get:_nestedDimensionsFirst'),
+        arrayNestedDimensionsRest = index.getProcedure(
+            'dart:ffi', 'Array', 'get:_nestedDimensionsRest'),
         structFromTypedDataBase =
             index.getConstructor('dart:ffi', 'Struct', '_fromTypedDataBase'),
         unionFromTypedDataBase =

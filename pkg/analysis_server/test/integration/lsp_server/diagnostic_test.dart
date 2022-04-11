@@ -23,7 +23,7 @@ void f() {
   print(x);
 }
 ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
@@ -45,7 +45,7 @@ void f() {
   }
 
   Future<void> test_initialAnalysis() async {
-    newFile(mainFilePath, content: 'String a = 1;');
+    newFile(mainFilePath, 'String a = 1;');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
@@ -60,8 +60,8 @@ void f() {
   }
 
   Future<void> test_lints() async {
-    newFile(mainFilePath, content: '''main() async => await 1;''');
-    newFile(analysisOptionsPath, content: '''
+    newFile(mainFilePath, '''main() async => await 1;''');
+    newFile(analysisOptionsPath, '''
 linter:
   rules:
     - await_only_futures

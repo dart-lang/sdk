@@ -1,4 +1,3 @@
-// @dart = 2.9
 main() {}
 
 class W {
@@ -21,5 +20,5 @@ class Y2 extends Y1 {
 
 class Z {
   set native(String s) => f = s;
-  String f;
+  String? f;
 }

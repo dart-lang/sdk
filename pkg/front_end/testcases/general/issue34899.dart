@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Foo<T> {
   final Future<dynamic> Function() quux;
   T t;
@@ -12,12 +12,12 @@ class Foo<T> {
 }
 
 class Bar {
-  Foo<Baz> qux;
+  Foo<Baz> qux = throw '';
 
   Future<void> quuz() =>
       qux().then((baz) => corge(baz)).then((grault) => garply(grault));
 
-  Grault corge(Baz baz) => null;
+  Grault corge(Baz baz) => throw '';
 
   void garply(Grault grault) {}
 }

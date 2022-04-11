@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+
+import "package:macro/macro.dart";
+
+@#C1
+class Class extends core::Object {
+  final field core::int field;
+  constructor •(core::int field) → self::Class
+    : self::Class::field = field, super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/in_body_change.dart-0 */ toString() → core::String {
+    return "Class(field=${this.{self::Class::field}{core::int}})";
+  }
+  method method() → void {}
+}
+
+constants  {
+  #C1 = #lib1::ToStringMacro {}
+}

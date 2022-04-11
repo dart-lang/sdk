@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -328,7 +328,7 @@ part "my_part.dart";
 void f() {
   var part = 42;
 }''');
-    newFile('/project/bin/my_part.dart', content: 'part of lib;');
+    newFile2('/project/bin/my_part.dart', 'part of lib;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
@@ -1041,6 +1041,19 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  Future<void> test_KEYWORD_const_constructor() async {
+    addTestFile('''
+class A {
+  const A(); // 1
+}
+const a = const A(); // 2
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const A(); // 1');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const a =');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const A(); // 2');
+  }
+
   Future<void> test_KEYWORD_const_list() async {
     addTestFile('''
 var v = const [];
@@ -1580,7 +1593,7 @@ class A {
   }
 }
 
-class HighlightsTestSupport extends AbstractAnalysisTest {
+class HighlightsTestSupport extends PubPackageAnalysisServerTest {
   late List<HighlightRegion> regions;
 
   final Completer<void> _resultsAvailable = Completer();
@@ -1649,8 +1662,8 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     return length;
   }
 
-  Future prepareHighlights() {
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+  Future<void> prepareHighlights() async {
+    await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     return _resultsAvailable.future;
   }
 
@@ -1663,7 +1676,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         regions = params.regions;
         _resultsAvailable.complete();
       }
@@ -1673,11 +1686,11 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   void _addLibraryForTestPart() {
-    newFile(join(testFolder, 'my_lib.dart'), content: '''
+    newFile2('$testPackageLibPath/my_lib.dart', '''
 library lib;
 part 'test.dart';
     ''');

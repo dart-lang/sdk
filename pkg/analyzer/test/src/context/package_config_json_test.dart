@@ -24,7 +24,7 @@ class PackageConfigJsonTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    newFile('/test/lib/test.dart', content: '');
+    newFile2('/test/lib/test.dart', '');
   }
 
   test_configVersion_2() {
@@ -301,7 +301,7 @@ class PackageConfigJsonTest with ResourceProviderMixin {
 
   PackageConfigJson _parse(String content) {
     var path = '/test/.dart_tool/package_config.json';
-    newFile(path, content: content);
+    newFile2(path, content);
 
     var uri = toUri(path);
     return parsePackageConfigJson(uri, content);

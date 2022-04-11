@@ -19,7 +19,7 @@ void setup() {
   map['x'] = new C<B>();
 }
 
-/*member: lookup:direct,explicit=[C<lookup.T*>*],needsArgs*/
+/*member: lookup:explicit=[C<lookup.T*>*],needsArgs,test*/
 C<T> lookup<T>(String key) {
   final value = map[key];
   if (value != null && value is C<T>) {

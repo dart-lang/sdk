@@ -1134,8 +1134,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass).asInterfaceType;
       var mixinName =
-          getLocalClassName(superclass) + '_' + getLocalClassName(mixinClass);
-      var mixinId = _emitTemporaryId(mixinName + '\$');
+          '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
+      var mixinId = _emitTemporaryId('$mixinName\$');
       // Collect all forwarding stub setters from anonymous mixins classes.
       // These will contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1246,7 +1246,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           case 'Future':
           case 'Stream':
           case 'StreamSubscription':
-            return runtimeCall('is' + interface.name);
+            return runtimeCall('is${interface.name}');
         }
       }
       return null;
@@ -1327,23 +1327,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fields = c.fields
         .where((f) => f.isStatic && !isRedirectingFactoryField(f))
         .toList();
-    if (c.isEnum) {
-      // We know enum fields can be safely emitted as const fields, as long
-      // as the `values` field is emitted last.
-      var classRef = _emitTopLevelName(c);
-      var valueField = fields.firstWhere((f) => f.name.text == 'values');
-      fields.remove(valueField);
-      fields.add(valueField);
-      for (var f in fields) {
-        assert(f.isConst);
-        body.add(defineValueOnClass(
-                c,
-                classRef,
-                _emitStaticMemberName(f.name.text),
-                _visitInitializer(f.initializer, f.annotations))
-            .toStatement());
-      }
-    } else if (fields.isNotEmpty) {
+    if (fields.isNotEmpty) {
       body.add(_emitLazyFields(_emitTopLevelName(c), fields,
           (n) => _emitStaticMemberName(n.name.text)));
     }
@@ -2635,7 +2619,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.PropertyAccess _emitFutureOrNameNoInterop({String suffix = ''}) {
     return js_ast.PropertyAccess(emitLibraryName(_coreTypes.asyncLibrary),
-        propertyName('FutureOr' + suffix));
+        propertyName('FutureOr$suffix'));
   }
 
   /// Emits the member name portion of a top-level member.
@@ -3018,7 +3002,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (type.nullability == Nullability.undetermined) {
-      throw UnsupportedError('Undetermined Nullability');
+      _undeterminedNullabilityError(type);
     }
 
     // Emit non-nullable version directly.
@@ -3053,7 +3037,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     typeRep ??= _emitFutureOrNameNoInterop();
 
     if (type.declaredNullability == Nullability.undetermined) {
-      throw UnsupportedError('Undetermined Nullability');
+      _undeterminedNullabilityError(type);
     }
 
     // Emit non-nullable version directly.
@@ -3066,6 +3050,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // use it everywhere it appears.
     return _typeTable.nameType(type, typeRep);
   }
+
+  void /* Never */ _undeterminedNullabilityError(DartType type) =>
+      throw UnsupportedError(
+          'Undetermined Nullability encounted while compiling '
+          '${currentLibrary.fileUri}, which contains the type: $type.');
 
   /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
   ///
@@ -4279,7 +4268,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var previous = _inLabeledContinueSwitch;
     _inLabeledContinueSwitch = hasLabeledContinue(node);
 
-    var cases = <js_ast.SwitchCase>[];
+    var cases = <js_ast.SwitchClause>[];
 
     if (_inLabeledContinueSwitch) {
       var labelState = _emitTemporaryId('labelState');
@@ -4320,13 +4309,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Helper for visiting a SwitchCase statement.
   ///
-  /// lastSwitchCase is only used when the current switch statement contains
+  /// [lastSwitchCase] is only used when the current switch statement contains
   /// labeled continues. Dart permits the final case to implicitly break, but
   /// switch statements with labeled continues must explicitly break/continue
   /// to escape the surrounding infinite loop.
-  List<js_ast.SwitchCase> _visitSwitchCase(SwitchCase node,
+  List<js_ast.SwitchClause> _visitSwitchCase(SwitchCase node,
       {bool lastSwitchCase = false}) {
-    var cases = <js_ast.SwitchCase>[];
+    var cases = <js_ast.SwitchClause>[];
     var emptyBlock = js_ast.Block.empty();
     // TODO(jmesserly): make sure we are statically checking fall through
     var body = _visitStatement(node.body).toBlock();
@@ -4335,10 +4324,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         expressions.isNotEmpty && !node.isDefault ? expressions.last : null;
     for (var e in expressions) {
       var jsExpr = _visitExpression(e);
-      cases.add(js_ast.SwitchCase(jsExpr, e == lastExpr ? body : emptyBlock));
+      cases.add(js_ast.Case(jsExpr, e == lastExpr ? body : emptyBlock));
     }
     if (node.isDefault) {
-      cases.add(js_ast.SwitchCase.defaultCase(body));
+      cases.add(js_ast.Default(body));
     }
     // Switch statements with continue labels must explicitly break from their
     // last case to escape the additional loop around the switch.
@@ -4347,7 +4336,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       assert(_switchLabelStates.containsKey(node.parent));
       var breakStmt = js_ast.Break(_switchLabelStates[node.parent].label);
       var switchBody = js_ast.Block(cases.last.body.statements..add(breakStmt));
-      var updatedSwitch = js_ast.SwitchCase(cases.last.expression, switchBody);
+      var lastCase = cases.last;
+      var updatedSwitch = lastCase is js_ast.Case
+          ? js_ast.Case(lastCase.expression, switchBody)
+          : js_ast.Default(switchBody);
       cases.removeLast();
       cases.add(updatedSwitch);
     }
@@ -4376,8 +4368,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Statement visitIfStatement(IfStatement node) {
-    return js_ast.If(_visitTest(node.condition), _visitScope(node.then),
-        _visitScope(node.otherwise));
+    var condition = _visitTest(node.condition);
+    var then = _visitScope(node.then);
+    if (node.otherwise != null) {
+      return js_ast.If(condition, then, _visitScope(node.otherwise));
+    }
+    return js_ast.If.noElse(condition, then);
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope
@@ -6450,11 +6446,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the constant as an integer, if possible.
     if (value.isFinite) {
       var intValue = value.toInt();
-      const _MIN_INT32 = -0x80000000;
-      const _MAX_INT32 = 0x7FFFFFFF;
+      const minInt32 = -0x80000000;
+      const maxInt32 = 0x7FFFFFFF;
       if (intValue.toDouble() == value &&
-          intValue >= _MIN_INT32 &&
-          intValue <= _MAX_INT32) {
+          intValue >= minInt32 &&
+          intValue <= maxInt32) {
         return js.number(intValue);
       }
     }
@@ -6474,7 +6470,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitStringConstant(StringConstant node) =>
       js.escapedString(node.value, '"');
 
-  // DDC does not currently use the non-primivite constant nodes; rather these
+  // DDC does not currently use the non-primitive constant nodes; rather these
   // are emitted via their normal expression nodes.
   @override
   js_ast.Expression defaultConstant(Constant node) => _emitInvalidNode(node);

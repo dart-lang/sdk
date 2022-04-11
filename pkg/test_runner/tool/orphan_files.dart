@@ -15,10 +15,7 @@ import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-
 import 'package:test_runner/src/path.dart';
-
-AnalysisContext _analysisContext;
 
 void main(List<String> arguments) {
   _initAnalysisContext();
@@ -34,14 +31,7 @@ void main(List<String> arguments) {
   }
 }
 
-void _initAnalysisContext() {
-  var roots = ContextLocator().locateRoots(includedPaths: ['test']);
-  if (roots.length != 1) {
-    throw StateError('Expected to find exactly one context root, got $roots');
-  }
-
-  _analysisContext = ContextBuilder().createContext(contextRoot: roots[0]);
-}
+AnalysisContext _analysisContext;
 
 void _checkTestDirectory(Directory directory) {
   print('-- ${directory.path} --');
@@ -72,9 +62,19 @@ void _checkTestDirectory(Directory directory) {
   if (!hasOrphan) print('No orphans :)');
 }
 
+void _initAnalysisContext() {
+  var roots = ContextLocator().locateRoots(includedPaths: ['test']);
+  if (roots.length != 1) {
+    throw StateError('Expected to find exactly one context root, got $roots');
+  }
+
+  _analysisContext = ContextBuilder().createContext(contextRoot: roots[0]);
+}
+
 void _parseReferences(Set<String> importedPaths, String filePath) {
   var absolute = Path(filePath).absolute.toNativePath();
-  var parseResult = _analysisContext.currentSession.getParsedUnit(absolute);
+  var analysisSession = _analysisContext.currentSession;
+  var parseResult = analysisSession.getParsedUnit(absolute);
   var unit = (parseResult as ParsedUnitResult).unit;
 
   void add(String importPath) {

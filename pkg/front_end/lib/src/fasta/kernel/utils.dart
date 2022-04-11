@@ -6,6 +6,7 @@ import 'dart:io' show BytesBuilder, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
@@ -96,6 +97,20 @@ Uint8List serializeComponent(Component component,
 
 const String kDebugClassName = "#DebugClass";
 
+class _CollectLibraryDependencies extends RecursiveVisitor {
+  Set<LibraryDependency> foundLibraryDependencies = {};
+
+  @override
+  void visitLoadLibrary(LoadLibrary node) {
+    foundLibraryDependencies.add(node.import);
+  }
+
+  @override
+  void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    foundLibraryDependencies.add(node.import);
+  }
+}
+
 Component createExpressionEvaluationComponent(Procedure procedure) {
   Library realLibrary = procedure.enclosingLibrary;
 
@@ -105,6 +120,17 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
     ..nonNullableByDefaultCompiledMode =
         realLibrary.nonNullableByDefaultCompiledMode;
+
+  // Add deferred library dependencies. They are needed for serializing
+  // references to deferred libraries. We can just claim ownership of the ones
+  // we find as they were created when doing the expression compilation.
+  _CollectLibraryDependencies collectLibraryDependencies =
+      new _CollectLibraryDependencies();
+  procedure.accept(collectLibraryDependencies);
+  for (LibraryDependency libraryDependency
+      in collectLibraryDependencies.foundLibraryDependencies) {
+    fakeLibrary.addDependency(libraryDependency);
+  }
 
   TreeNode? realClass = procedure.parent;
   if (realClass is Class) {
@@ -206,9 +232,12 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilder(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
-    new FormalParameterBuilder(null, 0, null, '', null, -1, fileUri: dummyUri);
-final TypeVariableBuilder dummyTypeVariableBuilder =
-    new TypeVariableBuilder(TypeVariableBuilder.noNameSentinel, null, -1, null);
+    new FormalParameterBuilder(
+        null, FormalParameterKind.requiredPositional, 0, null, '', null, -1,
+        fileUri: dummyUri);
+final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
+    TypeVariableBuilder.noNameSentinel, null, -1, null,
+    kind: TypeVariableKind.function);
 final Label dummyLabel = new Label('', -1);
 final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');

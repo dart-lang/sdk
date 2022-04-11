@@ -35,6 +35,10 @@
   V(ExceptionHandlers)                                                         \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
+  V(Finalizer)                                                                 \
+  V(FinalizerBase)                                                             \
+  V(FinalizerEntry)                                                            \
+  V(NativeFinalizer)                                                           \
   V(Function)                                                                  \
   V(FunctionType)                                                              \
   V(FutureOr)                                                                  \
@@ -585,13 +589,23 @@ class ObjectCopyBase {
                         Class::Handle(class_table_->At(cid)).ToCString());
         return false;
       }
+      const bool implements_finalizable =
+          Class::ImplementsFinalizable(class_table_->At(cid));
+      if (implements_finalizable) {
+        exception_msg_ = OS::SCreate(
+            zone_,
+            "Illegal argument in isolate message: (object implements "
+            "Finalizable - %s)",
+            Class::Handle(class_table_->At(cid)).ToCString());
+        return false;
+      }
       return true;
     }
 #define HANDLE_ILLEGAL_CASE(Type)                                              \
   case k##Type##Cid: {                                                         \
     exception_msg_ =                                                           \
         "Illegal argument in isolate message: "                                \
-        "(object is a" #Type ")";                                              \
+        "(object is a " #Type ")";                                             \
     return false;                                                              \
   }
 
@@ -600,6 +614,8 @@ class ObjectCopyBase {
       // those are the only non-abstract classes (so we avoid checking more cids
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
+      HANDLE_ILLEGAL_CASE(Finalizer)
+      HANDLE_ILLEGAL_CASE(NativeFinalizer)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
@@ -1362,8 +1378,8 @@ class ObjectCopy : public Base {
         Object::null());
     // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
     Base::StoreCompressedPointerNoBarrier(
-        Types::GetWeakPropertyPtr(to), OFFSET_OF(UntaggedWeakProperty, next_),
-        Object::null());
+        Types::GetWeakPropertyPtr(to),
+        OFFSET_OF(UntaggedWeakProperty, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakProperty(from);
   }
 
@@ -1380,8 +1396,8 @@ class ObjectCopy : public Base {
         from, to, OFFSET_OF(UntaggedWeakReference, type_arguments_));
     // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
     Base::StoreCompressedPointerNoBarrier(
-        Types::GetWeakReferencePtr(to), OFFSET_OF(UntaggedWeakReference, next_),
-        Object::null());
+        Types::GetWeakReferencePtr(to),
+        OFFSET_OF(UntaggedWeakReference, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakReference(from);
   }
 
@@ -1812,10 +1828,10 @@ class ObjectGraphCopier {
       }
 
       if (FLAG_gc_on_foc_slow_path) {
-        // We use kLowMemory to force the GC to compact, which is more likely to
-        // discover untracked pointers (and other issues, like incorrect class
-        // table).
-        thread_->heap()->CollectAllGarbage(GCReason::kLowMemory);
+        // We force the GC to compact, which is more likely to discover
+        // untracked pointers (and other issues, like incorrect class table).
+        thread_->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                           /*compact=*/true);
       }
 
       // Fast copy failed due to

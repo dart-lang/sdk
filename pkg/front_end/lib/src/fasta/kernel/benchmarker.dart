@@ -15,15 +15,37 @@ class Benchmarker {
 
   BenchmarkPhases _currentPhase = BenchmarkPhases.implicitInitialization;
   BenchmarkSubdivides? _subdivide;
+  int _subdivideLayer = 0;
+
+  void reset() {
+    _totalStopwatch.start();
+    _totalStopwatch.reset();
+    _phaseStopwatch.start();
+    _phaseStopwatch.reset();
+    _subdivideStopwatch.start();
+    _subdivideStopwatch.reset();
+    for (int i = 0; i < _phaseTimings.length; i++) {
+      assert(BenchmarkPhases.values[i].index == i);
+      _phaseTimings[i] = new PhaseTiming(BenchmarkPhases.values[i]);
+    }
+    _currentPhase = BenchmarkPhases.implicitInitialization;
+    _subdivide = null;
+    _subdivideLayer = 0;
+  }
 
   void beginSubdivide(final BenchmarkSubdivides phase) {
+    _subdivideLayer++;
+    if (_subdivideLayer != 1) return;
     BenchmarkSubdivides? subdivide = _subdivide;
-    if (subdivide != null) throw "Can't subdivide a subdivide";
+    assert(subdivide == null);
     _subdivideStopwatch.reset();
     _subdivide = phase;
   }
 
   void endSubdivide() {
+    _subdivideLayer--;
+    assert(_subdivideLayer >= 0);
+    if (_subdivideLayer != 0) return;
     BenchmarkSubdivides? subdivide = _subdivide;
     if (subdivide == null) throw "Can't end a nonexistent subdivide";
     _phaseTimings[_currentPhase.index]
@@ -173,10 +195,36 @@ enum BenchmarkPhases {
   omitPlatform,
   writeComponent,
   benchmarkAstVisit,
+
+  incremental_setupPackages,
+  incremental_ensurePlatform,
+  incremental_invalidate,
+  incremental_experimentalInvalidation,
+  incremental_invalidatePrecompiledMacros,
+  incremental_cleanup,
+  incremental_loadEnsureLoadedComponents,
+  incremental_setupInLoop,
+  incremental_precompileMacros,
+  incremental_experimentalInvalidationPatchUpScopes,
+  incremental_hierarchy,
+  incremental_performDillUsageTracking,
+  incremental_releaseAncillaryResources,
+  incremental_experimentalCompilationPostCompilePatchup,
+  incremental_calculateOutputLibrariesAndIssueLibraryProblems,
+  incremental_convertSourceLibraryBuildersToDill,
+  incremental_end,
+
+  precompileMacros,
+
   // add more here
   //
   end,
   unknown,
+  unknownDillTarget,
+  unknownComputeNeededPrecompilations,
+  unknownBuildOutlines,
+  unknownBuildComponent,
+  unknownGenerateKernelInternal,
 }
 
 enum BenchmarkSubdivides {
@@ -198,4 +246,8 @@ enum BenchmarkSubdivides {
 
   buildOutlineExpressions,
   delayedActionPerformer,
+
+  computeMacroApplications_macroExecutorProvider,
+  macroApplications_macroExecutorLoadMacro,
+  macroApplications_macroExecutorInstantiateMacro,
 }

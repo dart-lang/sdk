@@ -65,6 +65,15 @@ class ReplacedBy extends Change<_Data> {
           // We shouldn't get here.
           return null;
         }
+      } else if (parent is NamedType) {
+        var grandparent = parent.parent;
+        if (grandparent is ConstructorName &&
+            grandparent.name?.name == components[0]) {
+          // TODO(brianwilkerson) This doesn't correctly handle constructor
+          //  invocations with type arguments. We really need to replace the
+          //  class and constructor names separately.
+          return _Data(range.node(grandparent));
+        }
       } else if (parent is PrefixedIdentifier) {
         if (parent.prefix.staticElement is PrefixElement) {
           // We have a '<prefix>.<topLevel>' pattern so we leave the prefix

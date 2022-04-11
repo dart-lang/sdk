@@ -16,6 +16,8 @@
 
 #if defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
+#elif defined(DART_HOST_OS_WINDOWS)
+#include <processthreadsapi.h>
 #endif
 
 #if !defined(TARGET_HOST_MISMATCH)
@@ -88,6 +90,10 @@ void CPU::FlushICache(uword start, uword size) {
   __builtin___clear_cache(beg, end);
 #elif defined(DART_HOST_OS_ANDROID)
   cacheflush(start, start + size, 0);
+#elif defined(DART_HOST_OS_WINDOWS)
+  BOOL result = FlushInstructionCache(
+      GetCurrentProcess(), reinterpret_cast<const void*>(start), size);
+  ASSERT(result != 0);
 #else
 #error FlushICache only tested/supported on Linux, Android and iOS
 #endif
@@ -122,6 +128,16 @@ void HostCPUFeatures::Init() {
   integer_division_supported_ = FLAG_use_integer_division;
   neon_supported_ = FLAG_use_neon;
   hardfp_supported_ = false;
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+#elif DART_HOST_OS_WINDOWS
+void HostCPUFeatures::Init() {
+  hardware_ = "";
+  integer_division_supported_ = true;
+  neon_supported_ = true;
+  hardfp_supported_ = true;
 #if defined(DEBUG)
   initialized_ = true;
 #endif

@@ -5,6 +5,7 @@
 library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:front_end/src/fasta/source/source_enum_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -13,6 +14,7 @@ import 'package:kernel/src/printer.dart';
 import '../constant_context.dart';
 import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;
+import '../builder/builder.dart';
 import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
@@ -105,7 +107,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   @override
   DartType computeType() {
     if (isStarted) {
-      fieldBuilder.library.addProblem(
+      fieldBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity
               .withArguments(fieldBuilder.name),
           fieldBuilder.charOffset,
@@ -115,10 +117,11 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
     }
     isStarted = true;
     DartType? inferredType;
+    Builder? parent = fieldBuilder.parent;
     if (_overriddenFields != null) {
       for (ImplicitFieldType overridden in _overriddenFields!) {
         DartType overriddenType = overridden.inferType();
-        if (!fieldBuilder.library.isNonNullableByDefault) {
+        if (!fieldBuilder.libraryBuilder.isNonNullableByDefault) {
           overriddenType = legacyErasure(overriddenType);
         }
         if (inferredType == null) {
@@ -128,20 +131,24 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
         }
       }
       return inferredType!;
+    } else if (parent is SourceEnumBuilder &&
+        parent.elementBuilders.contains(fieldBuilder)) {
+      inferredType = parent.buildElement(
+          fieldBuilder, parent.libraryBuilder.loader.coreTypes);
     } else if (initializerToken != null) {
       InterfaceType? enclosingClassThisType = fieldBuilder.classBuilder == null
           ? null
-          : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
+          : fieldBuilder.libraryBuilder.loader.typeInferenceEngine.coreTypes
               .thisInterfaceType(fieldBuilder.classBuilder!.cls,
-                  fieldBuilder.library.library.nonNullable);
+                  fieldBuilder.libraryBuilder.library.nonNullable);
       TypeInferrer typeInferrer = fieldBuilder
-          .library.loader.typeInferenceEngine
+          .libraryBuilder.loader.typeInferenceEngine
           .createTopLevelTypeInferrer(
               fieldBuilder.fileUri,
               enclosingClassThisType,
-              fieldBuilder.library,
+              fieldBuilder.libraryBuilder,
               fieldBuilder.dataForTesting?.inferenceData);
-      BodyBuilder bodyBuilder = fieldBuilder.library.loader
+      BodyBuilder bodyBuilder = fieldBuilder.libraryBuilder.loader
           .createBodyBuilderForField(fieldBuilder, typeInferrer);
       bodyBuilder.constantContext = fieldBuilder.isConst
           ? ConstantContext.inferred
@@ -172,7 +179,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
     if (_overriddenFields != null) {
       for (ImplicitFieldType overridden in _overriddenFields!) {
         DartType overriddenType = overridden.inferType();
-        if (!fieldBuilder.library.isNonNullableByDefault) {
+        if (!fieldBuilder.libraryBuilder.isNonNullableByDefault) {
           overriddenType = legacyErasure(overriddenType);
         }
         if (type != overriddenType) {

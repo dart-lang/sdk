@@ -17,7 +17,8 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
-import '../../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../../api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, GlobalFeatures;
 import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
 import '../../base/processed_options.dart' show ProcessedOptions;
@@ -82,7 +83,7 @@ import 'constant_evaluator.dart' as constants
         ConstantEvaluationData;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
-import 'macro.dart';
+import 'macro/macro.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -102,56 +103,32 @@ class KernelTarget extends TargetImplementation {
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final TypeBuilder dynamicType = new NamedTypeBuilder(
-      "dynamic",
-      const NullabilityBuilder.inherent(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+  final NamedTypeBuilder dynamicType = new NamedTypeBuilder(
+      "dynamic", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilder(
-      "Object",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+      "Object", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
-  final TypeBuilder nullType = new NamedTypeBuilder(
-      "Null",
-      const NullabilityBuilder.inherent(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+  final NamedTypeBuilder nullType = new NamedTypeBuilder(
+      "Null", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final TypeBuilder bottomType = new NamedTypeBuilder(
-      "Never",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+  final NamedTypeBuilder bottomType = new NamedTypeBuilder(
+      "Never", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder enumType = new NamedTypeBuilder(
-      "Enum",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+      "Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilder(
-      "_Enum",
-      const NullabilityBuilder.omitted(),
-      /* arguments = */ null,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
+      "_Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
@@ -162,8 +139,8 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<SynthesizedFunctionNode> synthesizedFunctionNodes =
-      <SynthesizedFunctionNode>[];
+  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners =
+      <DelayedDefaultValueCloner>[];
 
   final UriTranslator uriTranslator;
 
@@ -195,9 +172,7 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
-  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
-    return _options.isExperimentEnabledInLibrary(flag, importUri);
-  }
+  GlobalFeatures get globalFeatures => _options.globalFeatures;
 
   Version getExperimentEnabledVersionInLibrary(
       ExperimentalFlag flag, Uri importUri) {
@@ -208,20 +183,6 @@ class KernelTarget extends TargetImplementation {
       ExperimentalFlag flag, Uri importUri, Version version) {
     return _options.isExperimentEnabledInLibraryByVersion(
         flag, importUri, version);
-  }
-
-  /// Returns `true` if the [flag] is enabled by default.
-  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
-    return _options.isExperimentEnabledByDefault(flag);
-  }
-
-  /// Returns `true` if the [flag] is enabled globally.
-  ///
-  /// This is `true` either if the [flag] is passed through an explicit
-  /// `--enable-experiment` option or if the [flag] is expired and on by
-  /// default.
-  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
-    return _options.isExperimentEnabledGlobally(flag);
   }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
@@ -385,14 +346,9 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertypeBuilder = new NamedTypeBuilder(
-        "Object",
-        const NullabilityBuilder.omitted(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(objectClassBuilder);
+    builder.supertypeBuilder = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+        objectClassBuilder, const NullabilityBuilder.omitted(),
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     builder.interfaceBuilders = null;
     builder.mixedInTypeBuilder = null;
   }
@@ -417,7 +373,8 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result = loader.computeMacroDeclarations();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
       return result;
     }, () => loader.currentUriForCrashReporting);
   }
@@ -538,7 +495,8 @@ class KernelTarget extends TargetImplementation {
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(sourceClassBuilders, enumClass);
+      loader.checkSupertypes(
+          sourceClassBuilders, enumClass, underscoreEnumClass);
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
@@ -587,7 +545,7 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
       loader.buildOutlineExpressions(
-          loader.hierarchy, synthesizedFunctionNodes);
+          loader.hierarchy, _delayedDefaultValueCloners);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
@@ -608,7 +566,7 @@ class KernelTarget extends TargetImplementation {
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildOutlines);
 
       // For whatever reason sourceClassBuilders is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -689,7 +647,7 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknown);
+      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildComponent);
 
       // For whatever reason sourceClasses is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -731,7 +689,7 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
     NonNullableByDefaultCompiledMode? compiledMode = null;
-    if (isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+    if (globalFeatures.nonNullable.isEnabled) {
       switch (loader.nnbdMode) {
         case NnbdMode.Weak:
           compiledMode = NonNullableByDefaultCompiledMode.Weak;
@@ -883,6 +841,11 @@ class KernelTarget extends TargetImplementation {
 
   Class get enumClass => enumClassBuilder.cls;
 
+  ClassBuilder get underscoreEnumBuilder =>
+      underscoreEnumType.declaration as ClassBuilder;
+
+  Class get underscoreEnumClass => underscoreEnumBuilder.cls;
+
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
     assert(!builder.isMixinApplication);
@@ -915,7 +878,7 @@ class KernelTarget extends TargetImplementation {
 
   void installForwardingConstructors(SourceClassBuilder builder) {
     assert(builder.isMixinApplication);
-    if (builder.library.loader != loader) return;
+    if (builder.libraryBuilder.loader != loader) return;
     if (builder.cls.constructors.isNotEmpty) {
       // These were installed by a subclass in the recursive call below.
       return;
@@ -1084,18 +1047,18 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
-    SynthesizedFunctionNode synthesizedFunctionNode =
-        new SynthesizedFunctionNode(
+    DelayedDefaultValueCloner delayedDefaultValueCloner =
+        new DelayedDefaultValueCloner(
             substitutionMap, superConstructor.function, function,
-            libraryBuilder: classBuilder.library);
+            libraryBuilder: classBuilder.libraryBuilder);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
       // [SyntheticConstructorBuilder] below.
       //
       // For non-constant constructors default values are cloned as part of the
-      // full compilation using [synthesizedFunctionNodes].
-      synthesizedFunctionNodes.add(synthesizedFunctionNode);
+      // full compilation using [_delayedDefaultValueCloners].
+      _delayedDefaultValueCloners.add(delayedDefaultValueCloner);
     }
     Constructor constructor = new Constructor(function,
         name: superConstructor.name,
@@ -1110,16 +1073,16 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
 
+    TypeDependency? typeDependency;
     if (hasTypeDependency) {
-      loader.registerTypeDependency(
-          constructor,
-          new TypeDependency(constructor, superConstructor, substitution,
-              copyReturnType: false));
+      typeDependency = new TypeDependency(
+          constructor, superConstructor, substitution,
+          copyReturnType: false);
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         superConstructor.name.text,
-        classBuilder.library,
+        classBuilder.libraryBuilder,
         cls.fileUri,
         cls.fileOffset,
         tearOffReference,
@@ -1127,29 +1090,33 @@ class KernelTarget extends TargetImplementation {
 
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.library);
+          classBuilder.cls, classBuilder.libraryBuilder);
     }
-    return new SyntheticSourceConstructorBuilder(
-        classBuilder, constructor, constructorTearOff,
-        // We pass on the original constructor and the cloned function nodes to
-        // ensure that the default values are computed and cloned for the
-        // outline. It is needed to make the default values a part of the
-        // outline for const constructors, and additionally it is required for
-        // a potential subclass using super initializing parameters that will
-        // required the cloning of the default values.
-        origin: superConstructorBuilder,
-        synthesizedFunctionNode: synthesizedFunctionNode);
+    SyntheticSourceConstructorBuilder constructorBuilder =
+        new SyntheticSourceConstructorBuilder(
+            classBuilder, constructor, constructorTearOff,
+            // We pass on the original constructor and the cloned function nodes
+            // to ensure that the default values are computed and cloned for the
+            // outline. It is needed to make the default values a part of the
+            // outline for const constructors, and additionally it is required
+            // for a potential subclass using super initializing parameters that
+            // will required the cloning of the default values.
+            definingConstructor: superConstructorBuilder,
+            delayedDefaultValueCloner: delayedDefaultValueCloner,
+            typeDependency: typeDependency);
+    loader.registerConstructorToBeInferred(constructor, constructorBuilder);
+    return constructorBuilder;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
-    for (SynthesizedFunctionNode synthesizedFunctionNode
-        in synthesizedFunctionNodes) {
-      if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
-        synthesizedFunctionNode.cloneDefaultValues(loader.typeEnvironment);
+    for (DelayedDefaultValueCloner delayedDefaultValueCloner
+        in _delayedDefaultValueCloners) {
+      if (!forOutline || delayedDefaultValueCloner.isOutlineNode) {
+        delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
       }
     }
     if (!forOutline) {
-      synthesizedFunctionNodes.clear();
+      _delayedDefaultValueCloners.clear();
     }
     ticker.logMs("Cloned default values of formals");
   }
@@ -1174,7 +1141,7 @@ class KernelTarget extends TargetImplementation {
           enclosingClass.enclosingLibrary.isNonNullableByDefault;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         '',
-        classBuilder.library,
+        classBuilder.libraryBuilder,
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
         tearOffReference,
@@ -1182,7 +1149,7 @@ class KernelTarget extends TargetImplementation {
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.library);
+          classBuilder.cls, classBuilder.libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);
@@ -1201,20 +1168,29 @@ class KernelTarget extends TargetImplementation {
   }
 
   void setupTopAndBottomTypes() {
-    objectType.bind(loader.coreLibrary
-        .lookupLocalMember("Object", required: true) as TypeDeclarationBuilder);
+    objectType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("Object", required: true)
+            as TypeDeclarationBuilder);
     dynamicType.bind(
+        loader.coreLibrary,
         loader.coreLibrary.lookupLocalMember("dynamic", required: true)
             as TypeDeclarationBuilder);
     ClassBuilder nullClassBuilder = loader.coreLibrary
         .lookupLocalMember("Null", required: true) as ClassBuilder;
-    nullType.bind(nullClassBuilder..isNullClass = true);
-    bottomType.bind(loader.coreLibrary
-        .lookupLocalMember("Never", required: true) as TypeDeclarationBuilder);
-    enumType.bind(loader.coreLibrary.lookupLocalMember("Enum", required: true)
-        as TypeDeclarationBuilder);
-    underscoreEnumType.bind(loader.coreLibrary
-        .lookupLocalMember("_Enum", required: true) as TypeDeclarationBuilder);
+    nullType.bind(loader.coreLibrary, nullClassBuilder..isNullClass = true);
+    bottomType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("Never", required: true)
+            as TypeDeclarationBuilder);
+    enumType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("Enum", required: true)
+            as TypeDeclarationBuilder);
+    underscoreEnumType.bind(
+        loader.coreLibrary,
+        loader.coreLibrary.lookupLocalMember("_Enum", required: true)
+            as TypeDeclarationBuilder);
   }
 
   void computeCoreTypes() {
@@ -1389,7 +1365,7 @@ class KernelTarget extends TargetImplementation {
                   .toList());
           nonFinalFields.clear();
         }
-        SourceLibraryBuilder library = builder.library;
+        SourceLibraryBuilder library = builder.libraryBuilder;
         if (library.isNonNullableByDefault) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
             for (FieldBuilder field in lateFinalFields) {
@@ -1452,7 +1428,7 @@ class KernelTarget extends TargetImplementation {
         if (!fieldBuilder.isLate) {
           if (fieldBuilder.isFinal &&
               uninitializedFinalOrNonNullableFieldIsError) {
-            String uri = '${fieldBuilder.library.importUri}';
+            String uri = '${fieldBuilder.libraryBuilder.importUri}';
             String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
                 uri == 'dart:svg' ||
@@ -1461,7 +1437,7 @@ class KernelTarget extends TargetImplementation {
               // TODO(johnniwinther): Use external getters instead of final
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
-              builder.library.addProblem(
+              builder.libraryBuilder.addProblem(
                   templateFinalFieldNotInitialized
                       .withArguments(fieldBuilder.name),
                   fieldBuilder.charOffset,
@@ -1471,7 +1447,7 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable &&
               uninitializedFinalOrNonNullableFieldIsError) {
-            SourceLibraryBuilder library = builder.library;
+            SourceLibraryBuilder library = builder.libraryBuilder;
             if (library.isNonNullableByDefault) {
               library.addProblem(
                   templateFieldNonNullableWithoutInitializerError.withArguments(
@@ -1500,7 +1476,7 @@ class KernelTarget extends TargetImplementation {
           initializer.parent = constructorBuilder.constructor;
           constructorBuilder.constructor.initializers.insert(0, initializer);
           if (fieldBuilder.isFinal) {
-            builder.library.addProblem(
+            builder.libraryBuilder.addProblem(
                 templateFinalFieldNotInitializedByConstructor
                     .withArguments(fieldBuilder.name),
                 constructorBuilder.charOffset,
@@ -1515,7 +1491,7 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.field.type.isPotentiallyNonNullable) {
-            SourceLibraryBuilder library = builder.library;
+            SourceLibraryBuilder library = builder.libraryBuilder;
             if (library.isNonNullableByDefault) {
               library.addProblem(
                   templateFieldNonNullableNotInitializedByConstructorError
@@ -1604,12 +1580,10 @@ class KernelTarget extends TargetImplementation {
             new KernelConstantErrorReporter(loader),
             evaluationMode,
             evaluateAnnotations: true,
-            enableTripleShift:
-                isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-            enableConstFunctions:
-                isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-            enableConstructorTearOff: isExperimentEnabledGlobally(
-                ExperimentalFlag.constructorTearoffs),
+            enableTripleShift: globalFeatures.tripleShift.isEnabled,
+            enableConstFunctions: globalFeatures.constFunctions.isEnabled,
+            enableConstructorTearOff:
+                globalFeatures.constructorTearoffs.isEnabled,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
@@ -1626,8 +1600,7 @@ class KernelTarget extends TargetImplementation {
     });
     ticker.logMs("Added constant coverage");
 
-    if (loader.target.context.options
-        .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
+    if (loader.target.context.options.globalFeatures.valueClass.isEnabled) {
       valueClass.transformComponent(component!, loader.coreTypes,
           loader.hierarchy, loader.referenceFromIndex, environment);
       ticker.logMs("Lowered value classes");
@@ -1661,12 +1634,9 @@ class KernelTarget extends TargetImplementation {
       new KernelConstantErrorReporter(loader),
       evaluationMode,
       evaluateAnnotations: true,
-      enableTripleShift:
-          isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-      enableConstFunctions:
-          isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-      enableConstructorTearOff:
-          isExperimentEnabledGlobally(ExperimentalFlag.constructorTearoffs),
+      enableTripleShift: globalFeatures.tripleShift.isEnabled,
+      enableConstFunctions: globalFeatures.constFunctions.isEnabled,
+      enableConstructorTearOff: globalFeatures.constructorTearoffs.isEnabled,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
     );
     ticker.logMs("Evaluated constants");
@@ -1685,7 +1655,7 @@ class KernelTarget extends TargetImplementation {
     // because the SDK might be agnostic and therefore needs to be weakened
     // for legacy mode.
     assert(
-        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
+        globalFeatures.nonNullable.isEnabled ||
             loader.nnbdMode == NnbdMode.Weak,
         "Non-weak nnbd mode found without experiment enabled: "
         "${loader.nnbdMode}.");

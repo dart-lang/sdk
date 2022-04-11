@@ -48,6 +48,7 @@ import 'change_to_nearest_precise_value_test.dart'
 import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
+import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
@@ -57,6 +58,7 @@ import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
+import 'convert_to_cascade_test.dart' as convert_to_cascade;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
@@ -81,6 +83,7 @@ import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
@@ -128,6 +131,7 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
+import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
@@ -262,6 +266,7 @@ void main() {
     change_to_nearest_precise_value.main();
     change_to_static_access.main();
     change_type_annotation.main();
+    convert_class_to_enum.main();
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
@@ -270,6 +275,7 @@ void main() {
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();
+    convert_to_cascade.main();
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();
@@ -290,6 +296,7 @@ void main() {
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
+    convert_to_super_parameters.main();
     convert_to_where_type.main();
     create_class.main();
     create_constructor_for_final_field.main();
@@ -335,6 +342,7 @@ void main() {
     remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
+    remove_assignment.main();
     remove_await.main();
     remove_comparison.main();
     remove_const.main();

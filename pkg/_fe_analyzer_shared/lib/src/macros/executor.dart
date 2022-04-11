@@ -66,15 +66,30 @@ abstract class MacroExecutor {
       IdentifierResolver identifierResolver,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
-      TypeDeclarationResolver typeDeclarationResolver);
+      TypeDeclarationResolver typeDeclarationResolver,
+      TypeInferrer typeInferrer);
 
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
   ///
   /// The [resolveIdentifier] argument should return the import uri to be used
   /// for that identifier.
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      ResolvedIdentifier Function(Identifier) resolveIdentifier);
+  ///
+  /// The [inferOmittedType] argument is used to get the inferred type for a
+  /// given [OmittedTypeAnnotation].
+  ///
+  /// If [omittedTypes] is provided, [inferOmittedType] is allowed to return
+  /// `null` for types that have not yet been inferred. In this case a fresh
+  /// name will be used for the omitted type in the generated library code and
+  /// the omitted type will be mapped to the fresh name in [omittedTypes].
+  ///
+  /// The generated library files content must be deterministic, including the
+  /// generation of fresh names for import prefixes and omitted types.
+  String buildAugmentationLibrary(
+      Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier,
+      TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
+      {Map<OmittedTypeAnnotation, String>? omittedTypes});
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.

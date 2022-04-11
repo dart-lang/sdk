@@ -286,13 +286,22 @@ ExperimentNotEnabled:
   correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
+ExperimentNotEnabledOffByDefault:
+  problemMessage: "This requires the experimental '#string' language feature to be enabled."
+  correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."
   correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
-ExperimentDisabledInvalidLanguageVersion:
+NullSafetyDisabledInvalidLanguageVersion:
   problemMessage: "This requires the null safety language feature, which requires language version of #string2 or higher."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentDisabledInvalidLanguageVersion:
+  problemMessage: "This requires the '#string' language feature, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
@@ -1308,16 +1317,40 @@ InvalidHexEscape:
     - "'\\x0'"
     - "'\\x0y'"
 
-InvalidUnicodeEscape:
+InvalidUnicodeEscapeUStarted:
   index: 38
   problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
-  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED
   expression:
     - "'\\u'"
+
+InvalidUnicodeEscapeUNoBracket:
+  index: 124
+  problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits."
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET
+  expression:
     - "'\\u0F'"
+
+InvalidUnicodeEscapeUBracket:
+  index: 125
+  problemMessage: "An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'."
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET
+  expression:
     - "'\\u{'"
     - "'\\u{03'"
     - "'\\u{0Z}'"
+    - "'\\u{0000003}'"
+
+InvalidEscapeStarted:
+  index: 126
+  problemMessage: "The string '\\' can't stand alone."
+  correctionMessage: "Try adding another backslash (\\) to escape the '\\'."
+  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED
+  exampleAllowMoreCodes: true
+  expression:
+    - |
+      print('Hello, World!\
+      ');
 
 UnexpectedDollarInString:
   problemMessage: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
@@ -1729,6 +1762,10 @@ FieldInitializerOutsideConstructor:
   hasPublishedDocs: true
   script:
     - "class C { void m(this.x); }"
+
+SuperParameterInitializerOutsideConstructor:
+  problemMessage: "Super-initializer formal parameters can only be used in generative constructors."
+  correctionMessage: "Try removing 'super.'."
 
 RedirectionTargetNotFound:
   problemMessage: "Redirection constructor target not found: '#name'"
@@ -4569,6 +4606,10 @@ StaticAndInstanceConflictCause:
   problemMessage: "This is the instance member."
   severity: CONTEXT
 
+InstanceAndSynthesizedStaticConflict:
+  problemMessage: "This instance member conflicts with the synthesized static member called '#name'."
+  analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
+
 FfiAbiSpecificIntegerInvalid:
   # Used by dart:ffi
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
@@ -4662,6 +4703,12 @@ FfiStructGeneric:
   problemMessage: "#string '#name' should not be generic."
   external: test/ffi_test.dart
 
+FfiCompoundImplementsFinalizable:
+  # Used by dart:ffi
+  problemMessage: "#string '#name' can't implement Finalizable."
+  correctionMessage: "Try removing the implements clause from '#name'."
+  external: test/ffi_test.dart
+
 FfiDartTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected '#type' to be a subtype of '#type2'."
@@ -4735,6 +4782,16 @@ SpreadTypeMismatch:
         int Function() a = () => 42;
         var b = [...a];
       }
+
+CantHaveNamedParameters:
+  # Used by dart:ffi
+  problemMessage: "'#name' can't be declared with named parameters."
+  external: test/ffi_test.dart
+
+CantHaveOptionalParameters:
+  # Used by dart:ffi
+  problemMessage: "'#name' can't be declared with optional parameters."
+  external: test/ffi_test.dart
 
 SpreadElementTypeMismatch:
   problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
@@ -5048,16 +5105,28 @@ FieldNonNullableWithoutInitializerError:
 FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
-NonNullableOptOutExplicit:
+NullSafetyOptOutExplicit:
   problemMessage: "Null safety features are disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
 
-NonNullableOptOutImplicit:
+ExperimentOptOutExplicit:
+  problemMessage: "The '#string' language feature is disabled for this library."
+  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
+
+NullSafetyOptOutImplicit:
   problemMessage: "Null safety features are disabled for this library."
   correctionMessage: "Try removing the package language version or setting the language version to #string or higher."
 
-NonNullableOptOutComment:
+NullSafetyOptOutComment:
   problemMessage: "This is the annotation that opts out this library from null safety features."
+  severity: CONTEXT
+
+ExperimentOptOutImplicit:
+  problemMessage: "The '#string' language feature is disabled for this library."
+  correctionMessage: "Try removing the package language version or setting the language version to #string2 or higher."
+
+ExperimentOptOutComment:
+  problemMessage: "This is the annotation that opts out this library from the '#string' language feature."
   severity: CONTEXT
 
 AwaitInLateLocalInitializer:
@@ -5096,18 +5165,6 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
-JsInteropIndexNotSupported:
-  problemMessage: "JS interop classes do not support [] and []= operator methods."
-  correctionMessage: "Try replacing with a normal method."
-
-JsInteropStaticInteropWithInstanceMembers:
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
-  correctionMessage: "Try moving the instance member to a static extension."
-
-JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
-  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -5127,6 +5184,18 @@ JsInteropNonExternalConstructor:
 JsInteropNonExternalMember:
   problemMessage: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
   correctionMessage: "Try annotating the member with `external`."
+
+JsInteropOperatorsNotSupported:
+  problemMessage: "JS interop classes do not support operator methods."
+  correctionMessage: "Try replacing this with a normal method."
+
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 DefaultListConstructorError:
   problemMessage: "Can't use the default List constructor."
@@ -5480,9 +5549,6 @@ SuperInitializerParameter:
 EnumSupertypeOfNonAbstractClass:
   problemMessage: "Non-abstract class '#name' has 'Enum' as a superinterface."
 
-EnumEntryWithTypeArgumentsWithoutArguments:
-  problemMessage: "Missing arguments in enum constructor invocation."
-
 EnumNonConstConstructor:
   problemMessage: "Generative enum constructors must be marked as 'const'."
 
@@ -5496,10 +5562,17 @@ EnumFactoryRedirectsToConstructor:
   problemMessage: "Enum factory constructors can't redirect to generative constructors."
 
 EnumContainsValuesDeclaration:
-  problemMessage: "Enums can't contain declarations of members with the name 'values'."
+  problemMessage: "An enum can't declare a member named 'values'."
 
 EnumImplementerContainsValuesDeclaration:
   problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
+
+EnumInheritsRestricted:
+  problemMessage: "An enum can't inherit a member named '#name'."
+
+EnumInheritsRestrictedMember:
+  problemMessage: "This is the inherited member"
+  severity: CONTEXT
 
 MacroClassNotDeclaredMacro:
   problemMessage: "Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class."
@@ -5519,3 +5592,12 @@ NonAugmentationClassMemberConflictCause:
 
 OptionalSuperParameterWithoutInitializer:
   problemMessage: "Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
+
+EnumContainsRestrictedInstanceDeclaration:
+  problemMessage: "An enum can't declare a non-abstract member named '#name'."
+
+EnumImplementerContainsRestrictedInstanceDeclaration:
+  problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'."
+
+EnumAbstractMember:
+  problemMessage: "Enums can't declare abstract members."

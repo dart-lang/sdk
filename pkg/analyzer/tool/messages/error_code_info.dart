@@ -474,18 +474,15 @@ abstract class ErrorCodeInfo {
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     final placeholderToIndexMap = computePlaceholderToIndexMap();
     var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);
-    out.writeln(_splitText(messageAsCode,
-                maxWidth: maxWidth, firstLineWidth: maxWidth + 4)
-            .map(json.encode)
-            .join('\n') +
-        ',');
+    var messageLines = _splitText(messageAsCode,
+        maxWidth: maxWidth, firstLineWidth: maxWidth + 4);
+    out.writeln('${messageLines.map(json.encode).join('\n')},');
     final correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
       out.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
-      out.writeln(
-          _splitText(code, maxWidth: maxWidth).map(json.encode).join('\n') +
-              ',');
+      var codeLines = _splitText(code, maxWidth: maxWidth);
+      out.writeln('${codeLines.map(json.encode).join('\n')},');
     }
     if (hasPublishedDocs) {
       out.writeln('hasPublishedDocs:true,');

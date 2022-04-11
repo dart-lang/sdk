@@ -16,10 +16,10 @@ main() {
 @reflectiveTest
 class DuplicatePartTest extends PubPackageResolutionTest {
   test_no_duplicates() async {
-    newFile('$testPackageLibPath/part1.dart', content: '''
+    newFile2('$testPackageLibPath/part1.dart', '''
 part of lib;
 ''');
-    newFile('$testPackageLibPath/part2.dart', content: '''
+    newFile2('$testPackageLibPath/part2.dart', '''
 part of lib;
 ''');
     await assertNoErrorsInCode(r'''
@@ -30,7 +30,7 @@ part 'part2.dart';
   }
 
   test_sameSource() async {
-    newFile('$testPackageLibPath/part.dart', content: 'part of lib;');
+    newFile2('$testPackageLibPath/part.dart', 'part of lib;');
     await assertErrorsInCode(r'''
 library lib;
 part 'part.dart';
@@ -41,7 +41,7 @@ part 'foo/../part.dart';
   }
 
   test_sameUri() async {
-    newFile('$testPackageLibPath/part.dart', content: 'part of lib;');
+    newFile2('$testPackageLibPath/part.dart', 'part of lib;');
     await assertErrorsInCode(r'''
 library lib;
 part 'part.dart';

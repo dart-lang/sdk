@@ -42,7 +42,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   void addTestFile(String content, {bool priority = false}) {
     testCode = content;
-    newFile(testFile, content: content);
+    newFile2(testFile, content);
     driver.addFile(testFile);
     if (priority) {
       driver.priorityFiles = [testFile];
@@ -95,7 +95,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..useFastaParser = true
     ..contextFeatures = FeatureSet.latestLanguageVersion();
 
   int findOffset(String search) {

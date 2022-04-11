@@ -2,8 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
-definitions: []
-position: "main.dart#MiddlewareApi"
+sources: |
+  abstract class Built<V extends Built<V, B>, B extends Builder<V, B>> {}
+  abstract class Builder<V extends Built<V, B>, B extends Builder<V, B>> {}
+  class MiddlewareApi<State extends Built<State, StateBuilder>,
+      StateBuilder extends Builder<State, StateBuilder>> {}
+position: "#MiddlewareApi"
 expression: |
   toString()

@@ -60,25 +60,8 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ArgumentListImpl,
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ConstructorNameImpl,
-        ConstructorSelectorImpl,
-        EnumConstantArgumentsImpl,
-        EnumConstantDeclarationImpl,
-        EnumDeclarationImpl,
-        ExtensionDeclarationImpl,
-        ImportDirectiveImpl,
-        MethodInvocationImpl,
-        MixinDeclarationImpl,
-        SimpleIdentifierImpl,
-        TypeArgumentListImpl,
-        TypeParameterImpl;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -586,13 +569,13 @@ class AstBuilder extends StackListener {
   void checkFieldFormalParameters(FormalParameterList? parameterList) {
     var parameters = parameterList?.parameters;
     if (parameters != null) {
-      parameters.forEach((FormalParameter param) {
-        if (param is FieldFormalParameter) {
+      for (var parameter in parameters) {
+        if (parameter is FieldFormalParameter) {
           // This error is reported in the BodyBuilder.endFormalParameter.
           handleRecoverableError(messageFieldInitializerOutsideConstructor,
-              param.thisKeyword, param.thisKeyword);
+              parameter.thisKeyword, parameter.thisKeyword);
         }
-      });
+      }
     }
   }
 
@@ -740,10 +723,16 @@ class AstBuilder extends StackListener {
         identical("?..", operatorToken.stringValue)) {
       doDotExpression(operatorToken);
     } else {
-      var right = pop() as Expression;
-      var left = pop() as Expression;
+      var right = pop() as ExpressionImpl;
+      var left = pop() as ExpressionImpl;
       reportErrorIfSuper(right);
-      push(ast.binaryExpression(left, operatorToken, right));
+      push(
+        BinaryExpressionImpl(
+          leftOperand: left,
+          operator: operatorToken,
+          rightOperand: right,
+        ),
+      );
       if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
         var feature = ExperimentalFeatures.triple_shift;
         handleRecoverableError(
@@ -1632,8 +1621,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    ParameterKind analyzerKind =
-        _toAnalyzerParameterKind(kind, requiredKeyword);
+    ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
     FormalParameter parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
       parameter = ast.defaultFormalParameter(
@@ -2147,8 +2135,8 @@ class AstBuilder extends StackListener {
     }
     var withClause = pop(NullValue.WithClause) as WithClause;
     var superclass = pop() as NamedType;
-    var macroKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2751,8 +2739,8 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
-    var macroKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2914,18 +2902,6 @@ class AstBuilder extends StackListener {
           period: constructorNamePeriod,
           name: constructorNameId,
         );
-      }
-      // enum E { v<int> }
-      if (typeArguments != null && argumentList == null) {
-        errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.ENUM_CONSTANT_WITH_TYPE_ARGUMENTS_WITHOUT_ARGUMENTS,
-          typeArguments,
-        );
-        argumentList = _syntheticArgumentList(typeArguments.endToken);
-      }
-      // enum E { v.^ }
-      if (constructorSelector != null) {
-        argumentList ??= _syntheticArgumentList(constructorSelector.endToken);
       }
     }
 
@@ -4359,17 +4335,16 @@ class AstBuilder extends StackListener {
     );
   }
 
-  ParameterKind _toAnalyzerParameterKind(
-      FormalParameterKind type, Token? requiredKeyword) {
-    if (type == FormalParameterKind.optionalPositional) {
-      return ParameterKind.POSITIONAL;
-    } else if (type == FormalParameterKind.optionalNamed) {
-      if (requiredKeyword != null) {
+  ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
+    switch (type) {
+      case FormalParameterKind.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case FormalParameterKind.requiredNamed:
         return ParameterKind.NAMED_REQUIRED;
-      }
-      return ParameterKind.NAMED;
-    } else {
-      return ParameterKind.REQUIRED;
+      case FormalParameterKind.optionalNamed:
+        return ParameterKind.NAMED;
+      case FormalParameterKind.optionalPositional:
+        return ParameterKind.POSITIONAL;
     }
   }
 

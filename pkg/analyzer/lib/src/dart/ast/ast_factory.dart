@@ -15,8 +15,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 /// The instance of [AstFactoryImpl].
 final AstFactoryImpl astFactory = AstFactoryImpl();
 
-/// Concrete implementation of [AstFactory] based on the standard AST
-/// implementation.
+// ignore: deprecated_member_use_from_same_package
 class AstFactoryImpl extends AstFactory {
   @override
   AdjacentStringsImpl adjacentStrings(List<StringLiteral> strings) =>
@@ -94,11 +93,15 @@ class AstFactoryImpl extends AstFactory {
           Token awaitKeyword, Expression expression) =>
       AwaitExpressionImpl(awaitKeyword, expression as ExpressionImpl);
 
+  @Deprecated('Use the constructor instead.')
   @override
   BinaryExpressionImpl binaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
-      BinaryExpressionImpl(leftOperand as ExpressionImpl, operator,
-          rightOperand as ExpressionImpl);
+      BinaryExpressionImpl(
+        leftOperand: leftOperand as ExpressionImpl,
+        operator: operator,
+        rightOperand: rightOperand as ExpressionImpl,
+      );
 
   @override
   BlockImpl block(

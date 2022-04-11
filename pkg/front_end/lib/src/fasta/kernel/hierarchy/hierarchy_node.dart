@@ -51,10 +51,11 @@ class ClassHierarchyNodeBuilder {
     List<Supertype> interfacesList;
     int maxInheritancePath;
 
-    List<TypeBuilder>? directInterfaceBuilders;
+    ClassHierarchyNode? mixedInNode;
+    List<ClassHierarchyNode>? interfaceNodes;
 
     if (classBuilder.isMixinApplication) {
-      inferMixinApplication();
+      mixedInNode = inferMixinApplication();
     }
 
     if (supernode == null) {
@@ -67,8 +68,8 @@ class ClassHierarchyNodeBuilder {
 
       superclasses = new List<Supertype>.filled(
           supernode.superclasses.length + 1, dummySupertype);
-      Supertype? supertype = classBuilder.supertypeBuilder!.buildSupertype(
-          classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
+      Supertype? supertype = classBuilder.supertypeBuilder!
+          .buildSupertype(classBuilder.libraryBuilder);
       if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
         // A similar normalization is performed on [supernode] above.
@@ -78,14 +79,15 @@ class ClassHierarchyNodeBuilder {
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(supertype, supernode.superclasses));
       superclasses[superclasses.length - 1] = supertype;
-      if (!classBuilder.library.isNonNullableByDefault &&
-          supernode.classBuilder.library.isNonNullableByDefault) {
+      if (!classBuilder.libraryBuilder.isNonNullableByDefault &&
+          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
         for (int i = 0; i < superclasses.length; i++) {
           superclasses[i] = legacyErasureSupertype(superclasses[i]);
         }
       }
 
-      directInterfaceBuilders = ignoreFunction(classBuilder.interfaceBuilders);
+      List<TypeBuilder>? directInterfaceBuilders =
+          ignoreFunction(classBuilder.interfaceBuilders);
       if (classBuilder.isMixinApplication) {
         if (directInterfaceBuilders == null) {
           directInterfaceBuilders = <TypeBuilder>[
@@ -99,15 +101,13 @@ class ClassHierarchyNodeBuilder {
       }
 
       List<Supertype> superclassInterfaces = supernode.interfaces;
-      // ignore: unnecessary_null_comparison
-      if (superclassInterfaces != null) {
+      if (superclassInterfaces.isNotEmpty) {
         superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
       }
 
       if (directInterfaceBuilders != null) {
         Map<Class, Supertype> interfaces = {};
-        // ignore: unnecessary_null_comparison
-        if (superclassInterfaces != null) {
+        if (superclassInterfaces.isNotEmpty) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
           }
@@ -115,39 +115,35 @@ class ClassHierarchyNodeBuilder {
 
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
           Supertype? directInterface = directInterfaceBuilders[i]
-              .buildSupertype(classBuilder.library, classBuilder.charOffset,
-                  classBuilder.fileUri);
+              .buildSupertype(classBuilder.libraryBuilder);
           if (directInterface != null) {
             addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =
                 hierarchy.getNodeFromClass(directInterface.classNode);
-            // ignore: unnecessary_null_comparison
-            if (interfaceNode != null) {
-              if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
-                maxInheritancePath = interfaceNode.maxInheritancePath + 1;
-              }
+            (interfaceNodes ??= []).add(interfaceNode);
 
+            if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
+              maxInheritancePath = interfaceNode.maxInheritancePath + 1;
+            }
+
+            List<Supertype> types =
+                substSupertypes(directInterface, interfaceNode.superclasses);
+            for (int i = 0; i < types.length; i++) {
+              addInterface(interfaces, superclasses, types[i]);
+            }
+            if (interfaceNode.interfaces.isNotEmpty) {
               List<Supertype> types =
-                  substSupertypes(directInterface, interfaceNode.superclasses);
+                  substSupertypes(directInterface, interfaceNode.interfaces);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
-              }
-              // ignore: unnecessary_null_comparison
-              if (interfaceNode.interfaces != null) {
-                List<Supertype> types =
-                    substSupertypes(directInterface, interfaceNode.interfaces);
-                for (int i = 0; i < types.length; i++) {
-                  addInterface(interfaces, superclasses, types[i]);
-                }
               }
             }
           }
         }
         interfacesList = interfaces.values.toList();
-        // ignore: unnecessary_null_comparison
-      } else if (superclassInterfaces != null &&
-          !classBuilder.library.isNonNullableByDefault &&
-          supernode.classBuilder.library.isNonNullableByDefault) {
+      } else if (superclassInterfaces.isNotEmpty &&
+          !classBuilder.libraryBuilder.isNonNullableByDefault &&
+          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
         Map<Class, Supertype> interfaces = {};
         for (int i = 0; i < superclassInterfaces.length; i++) {
           addInterface(interfaces, superclasses, superclassInterfaces[i]);
@@ -168,13 +164,8 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    return new ClassHierarchyNode(
-        classBuilder,
-        supernode,
-        directInterfaceBuilders,
-        superclasses,
-        interfacesList,
-        maxInheritancePath);
+    return new ClassHierarchyNode(classBuilder, supernode, mixedInNode,
+        interfaceNodes, superclasses, interfacesList, maxInheritancePath);
   }
 
   Supertype recordSupertype(Supertype supertype) {
@@ -235,7 +226,7 @@ class ClassHierarchyNodeBuilder {
       List<Supertype> superclasses, Supertype type) {
     // ignore: unnecessary_null_comparison
     if (type == null) return null;
-    if (!classBuilder.library.isNonNullableByDefault) {
+    if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
       type = legacyErasureSupertype(type);
     }
     ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
@@ -246,7 +237,7 @@ class ClassHierarchyNodeBuilder {
     Supertype? superclass = depth < myDepth ? superclasses[depth] : null;
     if (superclass != null && superclass.classNode == type.classNode) {
       // This is a potential conflict.
-      if (classBuilder.library.isNonNullableByDefault) {
+      if (classBuilder.libraryBuilder.isNonNullableByDefault) {
         superclass = nnbdTopMergeSupertype(
             hierarchy.coreTypes,
             normSupertype(hierarchy.coreTypes, superclass),
@@ -265,7 +256,7 @@ class ClassHierarchyNodeBuilder {
       Supertype? interface = interfaces[type.classNode];
       if (interface != null) {
         // This is a potential conflict.
-        if (classBuilder.library.isNonNullableByDefault) {
+        if (classBuilder.libraryBuilder.isNonNullableByDefault) {
           interface = nnbdTopMergeSupertype(
               hierarchy.coreTypes,
               normSupertype(hierarchy.coreTypes, interface),
@@ -284,12 +275,16 @@ class ClassHierarchyNodeBuilder {
     interfaces[type.classNode] = type;
   }
 
-  void inferMixinApplication() {
+  ClassHierarchyNode? inferMixinApplication() {
     Class cls = classBuilder.cls;
     Supertype? mixedInType = cls.mixedInType;
-    if (mixedInType == null) return;
+    if (mixedInType == null) return null;
+    ClassHierarchyNode? mixinNode =
+        hierarchy.getNodeFromClass(mixedInType.classNode);
     List<DartType> typeArguments = mixedInType.typeArguments;
-    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
+    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
+      return mixinNode;
+    }
     new BuilderMixinInferrer(
             classBuilder,
             hierarchy.coreTypes,
@@ -303,6 +298,7 @@ class ClassHierarchyNodeBuilder {
     NamedTypeBuilder mixedInTypeBuilder =
         classBuilder.mixedInTypeBuilder as NamedTypeBuilder;
     mixedInTypeBuilder.arguments = inferredArguments;
+    return mixinNode;
   }
 
   /// The class Function from dart:core is supposed to be ignored when used as
@@ -329,9 +325,17 @@ class ClassHierarchyNode {
   /// The class corresponding to this hierarchy node.
   final ClassBuilder classBuilder;
 
-  final ClassHierarchyNode? supernode;
+  /// The [ClassHierarchyNode] for the direct super class of [classBuilder], or
+  /// `null` if this is `Object`.
+  final ClassHierarchyNode? directSuperClassNode;
 
-  final List<TypeBuilder>? directInterfaceBuilders;
+  /// The [ClassHierarchyNode] for the mixed in class, if [classBuilder] is a
+  /// mixin application, or `null` otherwise;
+  final ClassHierarchyNode? mixedInNode;
+
+  /// The [ClassHierarchyNode]s for the direct super interfaces of
+  /// [classBuilder].
+  final List<ClassHierarchyNode>? directInterfaceNodes;
 
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
@@ -348,11 +352,17 @@ class ClassHierarchyNode {
 
   ClassHierarchyNode(
       this.classBuilder,
-      this.supernode,
-      this.directInterfaceBuilders,
+      this.directSuperClassNode,
+      this.mixedInNode,
+      this.directInterfaceNodes,
       this.superclasses,
       this.interfaces,
       this.maxInheritancePath);
+
+  /// Returns `true` if [classBuilder] is a mixin application.
+  ///
+  /// If `true`, [mixedInNode] is non-null.
+  bool get isMixinApplication => mixedInNode != null;
 
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
@@ -390,8 +400,7 @@ class ClassHierarchyNode {
       sb.writeln();
       depth++;
     }
-    // ignore: unnecessary_null_comparison
-    if (interfaces != null) {
+    if (interfaces.isNotEmpty) {
       sb.write("  interfaces:");
       bool first = true;
       for (Supertype i in interfaces) {

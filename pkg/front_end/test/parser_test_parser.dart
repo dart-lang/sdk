@@ -1321,15 +1321,14 @@ class TestParser extends Parser {
   @override
   Token parseConstructorReference(
       Token token, ConstructorReferenceContext constructorReferenceContext,
-      [TypeParamOrArgInfo? typeArg, bool isImplicitTypeName = false]) {
+      [TypeParamOrArgInfo? typeArg]) {
     doPrint('parseConstructorReference('
         '$token, '
         '$constructorReferenceContext, '
-        '$typeArg, '
-        '$isImplicitTypeName)');
+        '$typeArg)');
     indent++;
-    var result = super.parseConstructorReference(
-        token, constructorReferenceContext, typeArg, isImplicitTypeName);
+    var result = super
+        .parseConstructorReference(token, constructorReferenceContext, typeArg);
     indent--;
     return result;
   }

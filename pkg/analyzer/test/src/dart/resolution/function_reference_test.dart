@@ -363,6 +363,7 @@ FunctionReference
     token: f
     staticElement: f@61
     staticType: void Function<U>(U)
+      alias: self::@typeAlias::Fn
   staticType: void Function(int)
   typeArgumentTypes
     int
@@ -1015,7 +1016,7 @@ FunctionReference
   }
 
   test_extension_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 extension E<T> on String {}
 ''');
     await assertErrorsInCode('''
@@ -1801,7 +1802,7 @@ void foo() {
   }
 
   test_implicitCallTearoff_prefix_class_staticGetter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   static const v = C();
   const C();
@@ -1857,7 +1858,7 @@ ImplicitCallReference
   }
 
   test_implicitCallTearoff_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class C {
   T call<T>(T t) => t;
 }
@@ -2596,7 +2597,7 @@ FunctionReference
   }
 
   test_instanceMethod_explicitReceiver_topLevelVariable_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   void foo<T>(T a) {}
 }
@@ -2651,7 +2652,7 @@ FunctionReference
   }
 
   test_instanceMethod_explicitReceiver_topLevelVariable_prefix_unknown() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {}
 var a = A();
 ''');
@@ -3379,7 +3380,7 @@ FunctionReference
   }
 
   test_staticMethod_explicitReceiver_importPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   static void foo<T>(T a) {}
 }
@@ -3434,7 +3435,7 @@ FunctionReference
   }
 
   test_staticMethod_explicitReceiver_prefix_typeAlias() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   static void foo<T>(T a) {}
 }
@@ -3533,7 +3534,7 @@ FunctionReference
   }
 
   test_staticMethod_explicitReciver_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class A {
   static void foo<T>(T a) {}
 }
@@ -3700,7 +3701,7 @@ FunctionReference
   }
 
   test_topLevelFunction_importPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 void foo<T>(T arg) {}
 ''');
     await assertNoErrorsInCode('''
@@ -3744,7 +3745,7 @@ FunctionReference
   }
 
   test_topLevelFunction_importPrefix_asTargetOfFunctionCall() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 void foo<T>(T arg) {}
 ''');
     await assertNoErrorsInCode('''
@@ -3895,7 +3896,7 @@ FunctionReference
   }
 
   test_topLevelVariable_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 void Function<T>(T) foo = <T>(T arg) {}
 ''');
     await assertNoErrorsInCode('''
@@ -3939,7 +3940,7 @@ FunctionReference
   }
 
   test_topLevelVariable_prefix_unknownIdentifier() async {
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
     await assertErrorsInCode('''
 import 'a.dart' as prefix;
 
@@ -4134,7 +4135,7 @@ FunctionReference
   }
 
   test_unknownIdentifier_importPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '');
+    newFile2('$testPackageLibPath/a.dart', '');
     await assertErrorsInCode('''
 import 'a.dart' as a;
 

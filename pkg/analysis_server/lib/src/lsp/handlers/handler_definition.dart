@@ -61,7 +61,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       computeDartNavigation(
           server.resourceProvider, collector, unit, offset, 0);
       if (supportsLocationLink) {
-        _updateTargetsWithCodeLocations(collector);
+        await _updateTargetsWithCodeLocations(collector);
       }
       collector.createRegions();
     }
@@ -76,8 +76,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+      return serverNotInitializedError;
     }
 
     final supportsLocationLink = clientCapabilities.definitionLocationLink;
@@ -180,7 +179,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   }
 
   /// Get the location of the code (excluding leading doc comments) for this element.
-  protocol.Location? _getCodeLocation(Element element) {
+  Future<protocol.Location?> _getCodeLocation(Element element) async {
     var codeElement = element;
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
@@ -206,7 +205,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     // Read the declaration so we can get the offset after the doc comments.
     // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
     // a better solution.
-    final declaration = _parsedDeclaration(codeElement);
+    final declaration = await _parsedDeclaration(codeElement);
     var node = declaration?.node;
     if (node is VariableDeclaration) {
       node = node.parent;
@@ -244,9 +243,11 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
         : null;
   }
 
-  void _updateTargetsWithCodeLocations(NavigationCollectorImpl collector) {
+  Future<void> _updateTargetsWithCodeLocations(
+    NavigationCollectorImpl collector,
+  ) async {
     for (var targetToUpdate in collector.targetsToUpdate) {
-      var codeLocation = _getCodeLocation(targetToUpdate.element);
+      var codeLocation = await _getCodeLocation(targetToUpdate.element);
       if (codeLocation != null) {
         targetToUpdate.target
           ..codeOffset = codeLocation.offset
@@ -255,7 +256,9 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     }
   }
 
-  static ElementDeclarationResult? _parsedDeclaration(Element element) {
+  static Future<ElementDeclarationResult?> _parsedDeclaration(
+    Element element,
+  ) async {
     var session = element.session;
     if (session == null) {
       return null;

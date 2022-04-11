@@ -26,17 +26,15 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
 
   @override
-  SourceLibraryBuilder get library;
+  SourceLibraryBuilder get libraryBuilder;
 
   /// Builds the core AST structures for this member as needed for the outline.
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
+  void buildMembers(void Function(Member, BuiltMemberKind) f);
 
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
@@ -62,8 +60,7 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
       retainDataForTesting ? new MemberDataForTesting() : null;
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 
@@ -91,7 +88,8 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
         super(parent, charOffset, fileUri);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   bool get isRedirectingGenerativeConstructor => false;
 
@@ -131,10 +129,9 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {}
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override
   StringBuffer printOn(StringBuffer buffer) {

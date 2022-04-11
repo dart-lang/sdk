@@ -79,7 +79,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     if (debug) {
       vmServiceInfoFile = generateVmServiceInfoFile();
       unawaited(waitForVmServiceInfoFile(logger, vmServiceInfoFile)
-          .then((uri) => connectDebugger(uri, resumeIfStarting: true)));
+          .then((uri) => connectDebugger(uri)));
     }
 
     final vmArgs = <String>[

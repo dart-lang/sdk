@@ -13,7 +13,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
 
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   await LoadLibrary(prefix);
   self::expect(0, let final dynamic #t1 = CheckLibraryIsLoaded(prefix) in def::Extension|staticField);
   self::expect(0, let final dynamic #t2 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(0));

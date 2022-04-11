@@ -4,9 +4,9 @@
 
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
-import "dart:_internal" show patch;
-import 'dart:typed_data';
+import 'dart:_internal';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 @pragma("vm:external-name", "Ffi_dl_open")
 external DynamicLibrary _open(String path);

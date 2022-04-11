@@ -57,7 +57,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
   test_new_analysisOptions_includes() {
     var rootFolder = newFolder('/home/test');
     var fooFolder = newFolder('/home/packages/foo');
-    newFile('${fooFolder.path}/lib/included.yaml', content: r'''
+    newFile2('${fooFolder.path}/lib/included.yaml', r'''
 linter:
   rules:
     - empty_statements
@@ -67,10 +67,10 @@ linter:
       ..add(name: 'foo', rootPath: fooFolder.path);
     newPackageConfigJsonFile(
       rootFolder.path,
-      content: packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
     );
 
-    newAnalysisOptionsYamlFile(rootFolder.path, content: r'''
+    newAnalysisOptionsYamlFile2(rootFolder.path, r'''
 include: package:foo/included.yaml
 
 linter:
@@ -90,7 +90,7 @@ linter:
 
   test_new_analysisOptions_lintRules() {
     var rootFolder = newFolder('/home/test');
-    newAnalysisOptionsYamlFile(rootFolder.path, content: r'''
+    newAnalysisOptionsYamlFile2(rootFolder.path, r'''
 linter:
   rules:
     - non_existent_lint_rule
@@ -124,11 +124,11 @@ linter:
 
   test_new_outer_inner() {
     var outerFolder = newFolder('/test/outer');
-    newFile('/test/outer/lib/outer.dart');
+    newFile2('/test/outer/lib/outer.dart', '');
 
     var innerFolder = newFolder('/test/outer/inner');
-    newAnalysisOptionsYamlFile('/test/outer/inner');
-    newFile('/test/outer/inner/inner.dart');
+    newAnalysisOptionsYamlFile2('/test/outer/inner', '');
+    newFile2('/test/outer/inner/inner.dart', '');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
 

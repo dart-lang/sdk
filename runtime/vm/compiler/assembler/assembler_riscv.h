@@ -916,7 +916,6 @@ class Assembler : public MicroAssembler {
                             CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
     JumpAndLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
   }
-  void JumpAndLinkToRuntime();
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -1023,16 +1022,30 @@ class Assembler : public MicroAssembler {
     StoreDToOffset(src, base, offset - kHeapObjectTag);
   }
 
-  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset);
-  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset);
-  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src);
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    LoadDFromOffset(dst, base, offset);
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset);
+  }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    fmvd(dst, src);
+  }
 
-  void LoadCompressed(Register dest, const Address& slot);
-  void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressed(Register dest, const Address& slot) {
+    lx(dest, slot);
+  }
+  void LoadCompressedFromOffset(Register dest, Register base, int32_t offset) {
+    LoadFromOffset(dest, base, offset);
+  }
+  void LoadCompressedSmi(Register dest, const Address& slot) {
+    lx(dest, slot);
+  }
   void LoadCompressedSmiFromOffset(Register dest,
                                    Register base,
-                                   int32_t offset);
+                                   int32_t offset) {
+    LoadFromOffset(dest, base, offset);
+  }
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -1201,12 +1214,15 @@ class Assembler : public MicroAssembler {
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void TransitionNativeToGenerated(Register scratch,
+                                   bool exit_safepoint,
+                                   bool ignore_unwind_in_progress = false);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
   void CheckCodePointer();
   void RestoreCodePointer();
+  void RestorePoolPointer();
 
   // Restores the values of the registers that are blocked to cache some values
   // e.g. BARRIER_MASK and NULL_REG.
@@ -1218,50 +1234,8 @@ class Assembler : public MicroAssembler {
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
+  // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
-
-  // Helper method for performing runtime calls from callers requiring manual
-  // register preservation is required (e.g. outside IL instructions marked
-  // as calling).
-  class CallRuntimeScope : public ValueObject {
-   public:
-    CallRuntimeScope(Assembler* assembler,
-                     const RuntimeEntry& entry,
-                     intptr_t frame_size,
-                     bool preserve_registers = true)
-        : CallRuntimeScope(assembler,
-                           entry,
-                           frame_size,
-                           preserve_registers,
-                           /*caller=*/nullptr) {}
-
-    CallRuntimeScope(Assembler* assembler,
-                     const RuntimeEntry& entry,
-                     intptr_t frame_size,
-                     Address caller,
-                     bool preserve_registers = true)
-        : CallRuntimeScope(assembler,
-                           entry,
-                           frame_size,
-                           preserve_registers,
-                           &caller) {}
-
-    void Call(intptr_t argument_count);
-
-    ~CallRuntimeScope();
-
-   private:
-    CallRuntimeScope(Assembler* assembler,
-                     const RuntimeEntry& entry,
-                     intptr_t frame_size,
-                     bool preserve_registers,
-                     const Address* caller);
-
-    Assembler* const assembler_;
-    const RuntimeEntry& entry_;
-    const bool preserve_registers_;
-    const bool restore_code_reg_;
-  };
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
@@ -1437,11 +1411,6 @@ class Assembler : public MicroAssembler {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
-
-  // Note: leaf call sequence uses some abi callee save registers as scratch
-  // so they should be manually preserved.
-  void EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf);
-  void LeaveCallRuntimeFrame(bool is_leaf);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

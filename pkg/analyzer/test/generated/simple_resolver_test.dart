@@ -422,7 +422,7 @@ void f() {
   }
 
   test_entryPoint_exported() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 main() {}
 ''');
 
@@ -457,7 +457,7 @@ main() {}
   }
 
   test_enum_externalLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum EEE {A, B, C}
 ''');
     await assertNoErrorsInCode(r'''
@@ -590,11 +590,11 @@ void main() {
   }
 
   test_import_hide() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 set foo(value) {}
 class A {}''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 set foo(value) {}''');
 
     await assertNoErrorsInCode(r'''
@@ -609,7 +609,7 @@ A a = A();''');
   }
 
   test_import_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 f(int x) {
   return x * x;
 }''');
@@ -678,7 +678,7 @@ class H extends D<W> {
   }
 
   test_import_spaceInUri() async {
-    newFile('$testPackageLibPath/sub folder/a.dart', content: r'''
+    newFile2('$testPackageLibPath/sub folder/a.dart', r'''
 foo() {}''');
 
     await assertNoErrorsInCode(r'''

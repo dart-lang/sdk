@@ -293,7 +293,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
-      this._environment, ir.Component component, DataSource source) {
+      this._environment, ir.Component component, DataSourceReader source) {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
@@ -430,7 +430,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   /// Serializes this [JsToElementMap] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
 
     // Serialize the entities before serializing the data.
@@ -847,7 +847,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   FieldEntity getField(ir.Field node) => getFieldInternal(node);
 
   @override
-  DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+  DartType getDartType(ir.DartType type) => _typeConverter.visitType(type);
 
   @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
@@ -864,7 +864,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.convert(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability;
 
   @override
   FunctionType getFunctionType(ir.FunctionNode node) {
@@ -2629,7 +2629,7 @@ class ClosedEntityReader extends EntityReader {
 
   @override
   IndexedMember readMemberFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     int index = source.readInt();
     if (index == 0) {
       return _readLateMemberFromDataSource(source, entityLookup);
@@ -2639,7 +2639,7 @@ class ClosedEntityReader extends EntityReader {
   }
 
   IndexedMember _readLateMemberFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     LateMemberKind kind = source.readEnum(LateMemberKind.values);
     switch (kind) {
       case LateMemberKind.constructorBody:
@@ -2664,7 +2664,7 @@ class ClosedEntityWriter extends EntityWriter {
   ClosedEntityWriter(this._earlyMemberIndexLimit);
 
   @override
-  void writeMemberToDataSink(DataSink sink, IndexedMember value) {
+  void writeMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
     if (value.memberIndex >= _earlyMemberIndexLimit) {
       sink.writeInt(0);
       _writeLateMemberToDataSink(sink, value);
@@ -2673,7 +2673,7 @@ class ClosedEntityWriter extends EntityWriter {
     }
   }
 
-  void _writeLateMemberToDataSink(DataSink sink, IndexedMember value) {
+  void _writeLateMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
     if (value is JConstructorBody) {
       sink.writeEnum(LateMemberKind.constructorBody);
       sink.writeMember(value.constructor);

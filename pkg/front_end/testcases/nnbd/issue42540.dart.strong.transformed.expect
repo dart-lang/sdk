@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 static method getNull() → dynamic
   return null;
-static method fn() → asy::Future<core::Object> /* originally async */ {
+static method fn() → asy::Future<core::Object> /* futureValueType= core::Object */ /* originally async */ {
   final asy::_Future<core::Object> :async_future = new asy::_Future::•<core::Object>();
   core::bool* :is_sync = false;
   FutureOr<core::Object>? :return_value;

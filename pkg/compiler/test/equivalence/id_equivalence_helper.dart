@@ -149,7 +149,7 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
       diagnosticHandler: diagnosticCollector,
       options: options,
       beforeRun: (compiler) {
-        compiler.stopAfterTypeInference =
+        compiler.stopAfterGlobalTypeInferenceForTesting =
             options.contains(stopAfterTypeInference);
       },
       packageConfig: packageConfig,

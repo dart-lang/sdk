@@ -81,6 +81,10 @@ class FeatureOptions {
   /// Whether to emit JavaScript encoded as UTF-8.
   FeatureOption writeUtf8 = FeatureOption('utf8');
 
+  /// Experimental instrumentation to add tree shaking information to
+  /// dump-info's output.
+  FeatureOption newDumpInfo = FeatureOption('new-dump-info');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [
     newHolders,
@@ -93,9 +97,7 @@ class FeatureOptions {
   ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [
-    writeUtf8,
-  ];
+  late final List<FeatureOption> canary = [writeUtf8, newDumpInfo];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
@@ -169,10 +171,9 @@ class CompilerOptions implements DiagnosticOptions {
   Uri? get compilationTarget => inputDillUri ?? entryUri;
 
   bool get fromDill {
+    if (sources != null) return false;
     var targetPath = compilationTarget!.path;
-    return targetPath.endsWith('.dill') ||
-        targetPath.endsWith('.gdill') ||
-        targetPath.endsWith('.mdill');
+    return targetPath.endsWith('.dill');
   }
 
   /// Location of the package configuration file.
@@ -190,6 +191,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// use a list of outline files for modular compiles, and only use full kernel
   /// files for linking.
   List<Uri>? dillDependencies;
+
+  /// A list of sources to compile, only used for modular analysis.
+  List<Uri>? sources;
 
   Uri? writeModularAnalysisUri;
 
@@ -676,6 +680,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
+      ..sources = _extractUriListOption(options, '${Flags.sources}')
       ..readProgramSplit =
           _extractUriOption(options, '${Flags.readProgramSplit}=')
       ..writeModularAnalysisUri =

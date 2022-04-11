@@ -11,7 +11,9 @@ import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as processExecutor;
+    as processExecutor show start;
+import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
+    hide start;
 
 import 'package:test/test.dart';
 
@@ -26,11 +28,15 @@ void main() {
   late File simpleMacroFile;
   late Directory tmpDir;
 
-  for (var executorKind in ['Isolated', 'Process']) {
+  for (var executorKind in [
+    'Isolated',
+    'ProcessSocket',
+    'ProcessStdio',
+  ]) {
     group('$executorKind executor', () {
       for (var mode in [
         SerializationMode.byteDataServer,
-        SerializationMode.jsonServer
+        SerializationMode.jsonServer,
       ]) {
         final clientMode = mode == SerializationMode.byteDataServer
             ? SerializationMode.byteDataClient
@@ -42,7 +48,12 @@ void main() {
                 File(Platform.script.resolve('simple_macro.dart').toFilePath());
             executor = executorKind == 'Isolated'
                 ? await isolatedExecutor.start(mode)
-                : await processExecutor.start(mode);
+                : executorKind == 'ProcessSocket'
+                    ? await processExecutor.start(
+                        mode, CommunicationChannel.socket)
+                    : await processExecutor.start(
+                        mode, CommunicationChannel.stdio);
+
             tmpDir = Directory.systemTemp.createTempSync('executor_test');
             macroUri = simpleMacroFile.absolute.uri;
 
@@ -271,7 +282,7 @@ void main() {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
-                String get delegate_myVariable => _myVariable;'''));
+                /*inferred*/String get delegate_myVariable => _myVariable;'''));
               });
 
               test('on fields', () async {
@@ -319,7 +330,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -341,7 +353,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .classAugmentations['MyClass']!
@@ -359,7 +372,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
                     definitionResult.classAugmentations['MyClass']!.first
@@ -376,7 +390,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -398,7 +413,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -421,14 +437,15 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations
                         .map((a) => a.debugString().toString()),
                     unorderedEquals([
                       equalsIgnoringWhitespace('''
-                augment String get _myVariable {
+                augment /*inferred*/String get _myVariable {
                   print('parentClass: ');
                   print('isExternal: false');
                   print('isFinal: true');
@@ -436,11 +453,11 @@ void main() {
                   return augment super;
                 }'''),
                       equalsIgnoringWhitespace('''
-                augment set _myVariable(String value) {
+                augment set _myVariable(/*inferred*/String value) {
                   augment super = value;
                 }'''),
                       equalsIgnoringWhitespace('''
-                augment final String _myVariable = 'new initial value' + augment super;
+                augment final /*inferred*/String _myVariable = 'new initial value' + augment super;
                 '''),
                     ]));
               });
@@ -452,7 +469,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
                     definitionResult.classAugmentations['MyClass']!
@@ -468,7 +486,8 @@ void main() {
                     FakeIdentifierResolver(),
                     Fixtures.testTypeResolver,
                     Fixtures.testClassIntrospector,
-                    Fixtures.testTypeDeclarationResolver);
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .classAugmentations['MyClass']!
@@ -491,7 +510,7 @@ void main() {
 }
 
 final constructorDefinitionMatcher = equalsIgnoringWhitespace('''
-augment MyClass.myConstructor() {
+augment MyClass.myConstructor(/*inferred*/String myField, ) {
   print('definingClass: MyClass');
   print('isFactory: false');
   print('isAbstract: false');
@@ -499,6 +518,7 @@ augment MyClass.myConstructor() {
   print('isGetter: false');
   print('isSetter: false');
   print('returnType: MyClass');
+  print('positionalParam: String (inferred) myField');
   return augment super();
 }''');
 

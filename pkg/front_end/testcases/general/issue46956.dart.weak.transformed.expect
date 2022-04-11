@@ -14,7 +14,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
 static method foo<X extends core::Object?>(self::A<self::foo::X%> x) → asy::Future<self::foo::X?>
   return throw 42;
 static method bar(core::String? y) → dynamic {}
-static method test(self::A<core::String> a) → dynamic /* originally async */ {
+static method test(self::A<core::String> a) → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;
@@ -27,7 +27,7 @@ static method test(self::A<core::String> a) → dynamic /* originally async */ {
     try {
       #L1:
       {
-        [yield] let dynamic #t1 = asy::_awaitHelper((() → asy::Future<core::String?> /* originally async */ {
+        [yield] let dynamic #t1 = asy::_awaitHelper((() → asy::Future<core::String?> /* futureValueType= core::String? */ /* originally async */ {
           final asy::_Future<core::String?> :async_future = new asy::_Future::•<core::String?>();
           core::bool* :is_sync = false;
           FutureOr<core::String?>? :return_value;
@@ -69,7 +69,7 @@ static method test(self::A<core::String> a) → dynamic /* originally async */ {
   :is_sync = true;
   return :async_future;
 }
-static method test2(self::A<core::String> a) → dynamic /* originally async */ {
+static method test2(self::A<core::String> a) → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>? :return_value;

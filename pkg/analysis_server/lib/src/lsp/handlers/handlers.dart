@@ -44,6 +44,9 @@ mixin Handler<P, R> {
   final fileModifiedError = error<R>(ErrorCodes.ContentModified,
       'Document was modified before operation completed', null);
 
+  final serverNotInitializedError = error<R>(ErrorCodes.ServerNotInitialized,
+      'Request not valid before server is initialized');
+
   LspAnalysisServer get server;
 
   bool fileHasBeenModified(String path, num? clientVersion) {
@@ -83,8 +86,8 @@ mixin Handler<P, R> {
     return success(result);
   }
 
-  ErrorOr<ParsedUnitResult> requireUnresolvedUnit(String path) {
-    final result = server.getParsedUnit(path);
+  Future<ErrorOr<ParsedUnitResult>> requireUnresolvedUnit(String path) async {
+    final result = await server.getParsedUnit(path);
     if (result == null) {
       if (server.isAnalyzed(path)) {
         // If the file was being analyzed and we got a null result, that usually

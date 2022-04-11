@@ -140,7 +140,7 @@ class X0 {
                                 var5[-5],
                                 (-(((var1 ? false : true) ? var5[-87] : par2)))
                               } ??
-                              {FileSystemEvent.MODIFY, 31, var2})))) +
+                              {FileSystemEvent.modify, 31, var2})))) +
               var2),
           (((++par2)).isEven
               ? foo1(
@@ -237,7 +237,7 @@ class X0 {
                       -13,
                       par2,
                       -83,
-                      ZLibOption.DEFAULT_MEM_LEVEL,
+                      ZLibOption.defaultMemLevel,
                       (var2++)
                     })))))
         });

@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {}
 
 class AB1 extends A implements B {}

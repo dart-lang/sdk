@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -206,22 +206,12 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → self::Foo*
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  self::Foo* foo = new self::Foo::•();
+  self::Foo foo = new self::Foo::•();
   core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The operator '<' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
@@ -242,7 +232,7 @@ Try correcting the operator to an existing operator, or defining a '<=' operator
 Try correcting the operator to an existing operator, or defining a '>=' operator.
   print(foo >= 2);
             ^^" in foo{<unresolved>}.>=(2));
-  core::print(foo =={self::Foo::==}{(dynamic) →* core::bool*} 2);
+  core::print(foo =={core::Object::==}{(core::Object) → core::bool} 2);
   core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The operator '-' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
@@ -298,7 +288,7 @@ Try correcting the operator to an existing operator, or defining a '<<' operator
 Try correcting the operator to an existing operator, or defining a '>>' operator.
   print(foo >> 2);
             ^^" in foo{<unresolved>}.>>(2));
-  core::print(let final self::Foo* #t1 = foo in let final core::int* #t2 = 2 in let final core::int* #t3 = 2 in let final void #t4 = invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The operator '[]=' isn't defined for the class 'Foo'.
+  core::print(let final self::Foo #t1 = foo in let final core::int #t2 = 2 in let final core::int #t3 = 2 in let final void #t4 = invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The operator '[]=' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
 Try correcting the operator to an existing operator, or defining a '[]=' operator.
   print(foo[2] = 2);
@@ -330,7 +320,7 @@ Try correcting the operator to an existing operator, or defining a 'unary-' oper
         ^"{<invalid>}.>=(foo));
   core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:40:9: Error: This couldn't be parsed.
   print(==foo);
-        ^" =={core::Object::==}{(core::Object*) →* core::bool*} foo);
+        ^" =={core::Object::==}{(core::Object) → core::bool} foo);
   core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:41:9: Error: This couldn't be parsed.
   print(+foo);
         ^"{<invalid>}.+(foo));

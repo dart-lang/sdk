@@ -343,18 +343,16 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(_typeSystem, typeParameters);
+      var inferrer = GenericInferrer(_typeSystem, typeParameters,
+          errorReporter: _errorReporter,
+          errorNode: node.extensionName,
+          genericMetadataIsEnabled: _genericMetadataIsEnabled);
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
         'extendedType',
       );
-      return inferrer.infer(
-        typeParameters,
-        errorReporter: _errorReporter,
-        errorNode: node.extensionName,
-        genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      );
+      return inferrer.upwardsInfer();
     }
   }
 

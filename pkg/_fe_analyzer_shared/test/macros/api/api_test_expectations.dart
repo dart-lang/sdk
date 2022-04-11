@@ -5,10 +5,50 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 const Map<String, ClassData> expectedClassData = {
-  'Class1': ClassData(superclassOf: 'Object'),
+  'Class1': ClassData(
+      superclassOf: 'Object', fieldsOf: ['field1'], constructorsOf: ['']),
   'Class2': ClassData(isAbstract: true, superclassOf: 'Object'),
-  'Class3': ClassData(superclassOf: 'Class2', superSuperclassOf: 'Object'),
-  'Class4': ClassData(superclassOf: 'Class1', superSuperclassOf: 'Object'),
+  'Class3': ClassData(
+      superclassOf: 'Class2',
+      superSuperclassOf: 'Object',
+      interfacesOf: [
+        'Interface1'
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      fieldsOf: [
+        'field1',
+        'field2',
+        'staticField1',
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      methodsOf: [
+        'method1',
+        'method2',
+        'getter1',
+        'property1',
+        'staticMethod1',
+        'setter1',
+        'property1',
+      ],
+      // TODO(johnniwinther): Should we require a specific order?
+      constructorsOf: [
+        // TODO(johnniwinther): Should we normalize no-name constructor names?
+        '',
+        'named',
+        'fact',
+        'redirect',
+      ]),
+  'Class4': ClassData(
+      superclassOf: 'Class1',
+      superSuperclassOf: 'Object',
+      mixinsOf: ['Mixin1']),
+  'Class5': ClassData(
+      superclassOf: 'Class2',
+      superSuperclassOf: 'Object',
+      mixinsOf: ['Mixin1', 'Mixin2'],
+      interfacesOf: ['Interface1', 'Interface2']),
+  'Interface1': ClassData(isAbstract: true, superclassOf: 'Object'),
+  'Interface2': ClassData(isAbstract: true, superclassOf: 'Object'),
 };
 
 const Map<String, FunctionData> expectedFunctionData = {
@@ -44,10 +84,17 @@ expect(expected, actual, property) {
   }
 }
 
-Future<void> throws(Future<void> Function() f, property) async {
+Future<void> throws(Future<void> Function() f, property,
+    {String? Function(Object)? expectedError}) async {
   try {
     await f();
-  } catch (_) {
+  } catch (e) {
+    if (expectedError != null) {
+      String? errorMessage = expectedError(e);
+      if (errorMessage != null) {
+        throw 'Unexpected exception on $property: $errorMessage';
+      }
+    }
     return;
   }
   throw 'Expected throws on $property';
@@ -89,6 +136,49 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
             await classIntrospector.superclassOf(superclassOf);
         expect(expected.superSuperclassOf, superSuperclassOf?.identifier.name,
             '$name.superSuperclassOf');
+      }
+      List<ClassDeclaration> mixinsOf =
+          await classIntrospector.mixinsOf(declaration);
+      expect(
+          expected.mixinsOf.length, mixinsOf.length, '$name.mixinsOf.length');
+      for (int i = 0; i < mixinsOf.length; i++) {
+        expect(expected.mixinsOf[i], mixinsOf[i].identifier.name,
+            '$name.mixinsOf[$i]');
+      }
+      List<ClassDeclaration> interfacesOf =
+          await classIntrospector.interfacesOf(declaration);
+      expect(expected.interfacesOf.length, interfacesOf.length,
+          '$name.interfacesOf.length');
+      for (int i = 0; i < interfacesOf.length; i++) {
+        expect(expected.interfacesOf[i], interfacesOf[i].identifier.name,
+            '$name.interfacesOf[$i]');
+      }
+
+      List<FieldDeclaration> fieldsOf =
+          await classIntrospector.fieldsOf(declaration);
+      expect(
+          expected.fieldsOf.length, fieldsOf.length, '$name.fieldsOf.length');
+      for (int i = 0; i < fieldsOf.length; i++) {
+        expect(expected.fieldsOf[i], fieldsOf[i].identifier.name,
+            '$name.fieldsOf[$i]');
+      }
+
+      List<MethodDeclaration> methodsOf =
+          await classIntrospector.methodsOf(declaration);
+      expect(expected.methodsOf.length, methodsOf.length,
+          '$name.methodsOf.length');
+      for (int i = 0; i < methodsOf.length; i++) {
+        expect(expected.methodsOf[i], methodsOf[i].identifier.name,
+            '$name.methodsOf[$i]');
+      }
+
+      List<ConstructorDeclaration> constructorsOf =
+          await classIntrospector.constructorsOf(declaration);
+      expect(expected.constructorsOf.length, constructorsOf.length,
+          '$name.constructorsOf.length');
+      for (int i = 0; i < constructorsOf.length; i++) {
+        expect(expected.constructorsOf[i], constructorsOf[i].identifier.name,
+            '$name.constructorsOf[$i]');
       }
     }
     // TODO(johnniwinther): Test more properties when there are supported.
@@ -161,17 +251,52 @@ Future<void> checkIdentifierResolver(
   await check(macroApiData, 'field=', expectThrows: true);
 }
 
+Future<void> checkTypeDeclarationResolver(
+    TypeDeclarationResolver typeDeclarationResolver,
+    Map<Identifier, String?> test) async {
+  Future<void> check(Identifier identifier, String name,
+      {bool expectThrows: false}) async {
+    if (expectThrows) {
+      await throws(() async {
+        await typeDeclarationResolver.declarationOf(identifier);
+      }, '$name from $identifier',
+          expectedError: (e) => e is! ArgumentError
+              ? 'Expected ArgumentError, got ${e.runtimeType}: $e'
+              : null);
+    } else {
+      TypeDeclaration result =
+          await typeDeclarationResolver.declarationOf(identifier);
+      expect(name, result.identifier.name, '$name from $identifier');
+    }
+  }
+
+  test.forEach((Identifier identifier, String? expectedName) {
+    check(identifier, expectedName ?? identifier.name,
+        expectThrows: expectedName == null);
+  });
+}
+
 class ClassData {
   final bool isAbstract;
   final bool isExternal;
   final String superclassOf;
   final String? superSuperclassOf;
+  final List<String> interfacesOf;
+  final List<String> mixinsOf;
+  final List<String> fieldsOf;
+  final List<String> methodsOf;
+  final List<String> constructorsOf;
 
   const ClassData(
       {this.isAbstract: false,
       this.isExternal: false,
       required this.superclassOf,
-      this.superSuperclassOf});
+      this.superSuperclassOf,
+      this.interfacesOf: const [],
+      this.mixinsOf: const [],
+      this.fieldsOf: const [],
+      this.methodsOf: const [],
+      this.constructorsOf: const []});
 }
 
 class FunctionData {

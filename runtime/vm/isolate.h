@@ -604,8 +604,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return deferred_marking_stack_;
   }
 
-  void NotifyLowMemory();
-
   // Runs the given [function] on every isolate in the isolate group.
   //
   // During the duration of this function, no new isolates can be added or
@@ -970,9 +968,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     // Internal message ids.
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
-    kLowMemoryMsg = 12,     // Run compactor, etc.
-    kDrainServiceExtensionsMsg = 13,  // Invoke pending service extensions
-    kCheckForReload = 14,  // Participate in other isolate group reload.
+    kDrainServiceExtensionsMsg = 12,  // Invoke pending service extensions
+    kCheckForReload = 13,  // Participate in other isolate group reload.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -1067,6 +1064,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
+
+  void set_finalizers(const GrowableObjectArray& value);
+  static intptr_t finalizers_offset() {
+    return OFFSET_OF(Isolate, finalizers_);
+  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines* native_callback_trampolines() {
@@ -1446,8 +1448,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   WeakTable* forward_table_old() { return forward_table_old_.get(); }
   void set_forward_table_old(WeakTable* table);
 
-  static void NotifyLowMemory();
-
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -1545,6 +1545,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   UserTagPtr default_tag_;
   CodePtr ic_miss_code_;
   FieldTable* field_table_ = nullptr;
+  // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
+  // shutdown to prevent usage of dangling pointers.
+  GrowableObjectArrayPtr finalizers_;
   bool single_step_ = false;
   bool is_system_isolate_ = false;
   // End accessed from generated code.
@@ -1656,7 +1659,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Dart_EnvironmentCallback environment_callback_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;
-  Mutex mutex_;                            // Protects compiler stats.
+  Mutex mutex_;  // Protects compiler stats.
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
@@ -1732,7 +1735,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
-  friend class IsolateGroup;   // reload_context_
+  friend class IsolateGroup;  // reload_context_
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

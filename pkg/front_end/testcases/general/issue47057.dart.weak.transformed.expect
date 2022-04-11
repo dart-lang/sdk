@@ -5,7 +5,7 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-static method foo<X extends core::Object?>(self::foo::X% x) → asy::Future<core::int> /* originally async */ {
+static method foo<X extends core::Object?>(self::foo::X% x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ {
   final asy::_Future<core::int> :async_future = new asy::_Future::•<core::int>();
   core::bool* :is_sync = false;
   FutureOr<core::int>? :return_value;

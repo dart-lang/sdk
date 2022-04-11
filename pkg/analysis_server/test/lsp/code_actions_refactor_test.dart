@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
@@ -44,7 +45,7 @@ main() {
   var b = test();
 }
 ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -76,7 +77,7 @@ main() {
   var b = test;
 }
 ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -144,7 +145,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -173,7 +174,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -241,7 +242,7 @@ main() {
   [[print('Test!');]]
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
         emptyTextDocumentClientCapabilities,
@@ -301,7 +302,7 @@ Object text() => Text('Test!');
 Object Container(Object text) => null;
 Object Text(Object text) => null;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -319,7 +320,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    newFile(mainFilePath, content: content);
+    newFile2(mainFilePath, content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -345,7 +346,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
@@ -381,7 +382,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     var didGetProgressNotifications = false;
@@ -417,7 +418,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
@@ -432,6 +433,82 @@ void newMethod() {
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_validLocation_failsInitialValidation() async {
+    const content = '''
+f() {
+  var a = 0;
+  doFoo([[() => print(a)]]);
+  print(a);
+}
+
+void doFoo(void Function() a) => a();
+
+    ''';
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Call the `refactor.validate` command with the same arguments.
+    // Clients that want validation behaviour will need to implement this
+    // themselves (via middleware).
+    final response = await executeCommand(
+      Command(
+          title: command.title,
+          command: Commands.validateRefactor,
+          arguments: command.arguments),
+      decoder: ValidateRefactorResult.fromJson,
+    );
+
+    expect(response.valid, isFalse);
+    expect(response.message, contains('Cannot extract closure as method'));
+  }
+
+  Future<void> test_validLocation_passesInitialValidation() async {
+    const content = '''
+f() {
+  doFoo([[() => print(1)]]);
+}
+
+void doFoo(void Function() a) => a();
+
+    ''';
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Call the `Commands.validateRefactor` command with the same arguments.
+    // Clients that want validation behaviour will need to implement this
+    // themselves (via middleware).
+    final response = await executeCommand(
+      Command(
+          title: command.title,
+          command: Commands.validateRefactor,
+          arguments: command.arguments),
+      decoder: ValidateRefactorResult.fromJson,
+    );
+
+    expect(response.valid, isTrue);
+    expect(response.message, isNull);
   }
 }
 
@@ -455,7 +532,7 @@ main() {
 
 void foo(int arg) {}
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -485,7 +562,7 @@ main() {
 
 void foo(int arg) {}
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -565,7 +642,7 @@ class NewWidget extends StatelessWidget {
   }
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -583,7 +660,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    newFile(mainFilePath, content: content);
+    newFile2(mainFilePath, content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -614,7 +691,7 @@ void main() {
   print(1);
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -658,7 +735,7 @@ void bar() {
   print('test');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -693,7 +770,7 @@ void foo2() {
   print('test');
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),

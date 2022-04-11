@@ -56,6 +56,16 @@ class IsolateManager {
   /// [debugExternalPackageLibraries] in one step.
   bool debugExternalPackageLibraries = true;
 
+  /// Whether to automatically resume new isolates after configuring them.
+  ///
+  /// This setting is almost always `true` because isolates are paused only so
+  /// we can configure them (send breakpoints, pause-on-exceptions,
+  /// setLibraryDebuggables) without races. It is set to `false` during the
+  /// initial connection of an `attachRequest` to allow paused isolates to
+  /// remain paused. In this case, it will be automatically re-set to `true` the
+  /// first time the user resumes.
+  bool autoResumeStartingIsolates = true;
+
   /// The root of the Dart SDK containing the VM running the debug adapter.
   late final String sdkRoot;
 
@@ -138,13 +148,7 @@ class IsolateManager {
   ThreadInfo? getThread(int threadId) => _threadsByThreadId[threadId];
 
   /// Handles Isolate and Debug events.
-  ///
-  /// If [resumeIfStarting] is `true`, PauseStart/PausePostStart events will be
-  /// automatically resumed from.
-  Future<void> handleEvent(
-    vm.Event event, {
-    bool resumeIfStarting = true,
-  }) async {
+  Future<void> handleEvent(vm.Event event) async {
     final isolateId = event.isolate?.id!;
 
     final eventKind = event.kind;
@@ -163,7 +167,7 @@ class IsolateManager {
     if (eventKind == vm.EventKind.kIsolateExit) {
       _handleExit(event);
     } else if (eventKind?.startsWith('Pause') ?? false) {
-      await _handlePause(event, resumeIfStarting: resumeIfStarting);
+      await _handlePause(event);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
     }
@@ -236,6 +240,11 @@ class IsolateManager {
   /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
+    // The first time a user resumes a thread is our signal that the app is now
+    // "running" and future isolates can be auto-resumed. This only affects
+    // attach, as it's already `true` for launch requests.
+    autoResumeStartingIsolates = true;
+
     final thread = _threadsByThreadId[threadId];
     if (thread == null) {
       throw DebugAdapterException('Thread $threadId was not found');
@@ -408,21 +417,18 @@ class IsolateManager {
   ///
   /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the
   /// isolate will be re-configured (pause-exception behaviour, debuggable
-  /// libraries, breakpoints) and then (if [resumeIfStarting] is `true`)
-  /// resumed.
+  /// libraries, breakpoints) and then (if [autoResumeStartingIsolates] is
+  /// `true`) resumed.
   ///
-  /// For [vm.EventKind.kPauseStart] and [resumeIfStarting] is `true`, the
-  /// isolate will be resumed.
+  /// For [vm.EventKind.kPauseStart] and [autoResumeStartingIsolates] is `true`,
+  /// the isolate will be resumed.
   ///
   /// For breakpoints with conditions that are not met and for logpoints, the
   /// isolate will be automatically resumed.
   ///
   /// For all other pause types, the isolate will remain paused and a
   /// corresponding "Stopped" event sent to the editor.
-  Future<void> _handlePause(
-    vm.Event event, {
-    bool resumeIfStarting = true,
-  }) async {
+  Future<void> _handlePause(vm.Event event) async {
     final eventKind = event.kind;
     final isolate = event.isolate!;
     final thread = _threadsByIsolateId[isolate.id!];
@@ -439,7 +445,7 @@ class IsolateManager {
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(thread);
-      if (resumeIfStarting) {
+      if (autoResumeStartingIsolates) {
         await resumeThread(thread.threadId);
       }
     } else if (eventKind == vm.EventKind.kPauseStart) {
@@ -449,7 +455,7 @@ class IsolateManager {
         thread.startupHandled = true;
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
-        if (resumeIfStarting) {
+        if (autoResumeStartingIsolates) {
           await resumeThread(thread.threadId);
         } else {
           sendStoppedOnEntryEvent(thread.threadId);

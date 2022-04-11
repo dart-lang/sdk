@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,9 +33,9 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     workspaceFolder2Uri = Uri.file(workspaceFolder2Path);
     workspaceFolder3Uri = Uri.file(workspaceFolder3Path);
 
-    newFile(join(workspaceFolder1Path, 'pubspec.yaml'));
-    newFile(join(workspaceFolder2Path, 'pubspec.yaml'));
-    newFile(join(workspaceFolder3Path, 'pubspec.yaml'));
+    newPubspecYamlFile(workspaceFolder1Path, '');
+    newPubspecYamlFile(workspaceFolder2Path, '');
+    newPubspecYamlFile(workspaceFolder3Path, '');
   }
 
   Future<void> test_changeWorkspaceFolders_add() async {
@@ -73,7 +74,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
+    newFile2(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -110,7 +111,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
+    newFile2(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -148,7 +149,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
+    newFile2(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -183,7 +184,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
+    newFile2(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -219,9 +220,15 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile(nestedFilePath);
-    deleteFile(join(
-        workspaceFolder1Path, 'pubspec.yaml')); // Ensure no pubspecs in tree.
+    newFile2(nestedFilePath, '');
+
+    // Ensure no pubspecs in tree.
+    deleteFile(
+      join(
+        workspaceFolder1Path,
+        file_paths.pubspecYaml,
+      ),
+    );
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -249,10 +256,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     // analysis driver will be used (see [AbstractAnalysisServer.getAnalysisDriver])
     // and no new root will be created.
     final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
-    newFile(workspace1FilePath);
+    newFile2(workspace1FilePath, '');
     final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
     final workspace2FileUri = Uri.file(workspace2FilePath);
-    newFile(workspace2FilePath);
+    newFile2(workspace2FilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -302,7 +309,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
     // Generate an error in the test project.
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    newFile(mainFilePath, content: 'String a = 1;');
+    newFile2(mainFilePath, 'String a = 1;');
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
 

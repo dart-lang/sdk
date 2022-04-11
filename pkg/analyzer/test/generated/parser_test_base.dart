@@ -555,7 +555,7 @@ class FastaParserTestCase
       Token? token, String? typeArgumentsCode, String code) {
     String sc = '';
     if (token != null) {
-      sc += token.lexeme + ' ';
+      sc += '${token.lexeme} ';
     }
     if (typeArgumentsCode != null) {
       sc += typeArgumentsCode;
@@ -585,7 +585,7 @@ class FastaParserTestCase
       Token? token, String? typeArgumentsCode, String code) {
     String sc = '';
     if (token != null) {
-      sc += token.lexeme + ' ';
+      sc += '${token.lexeme} ';
     }
     if (typeArgumentsCode != null) {
       sc += typeArgumentsCode;
@@ -1338,7 +1338,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       Token? token, String? typeArgumentsCode, String code) {
     String sc = '';
     if (token != null) {
-      sc += token.lexeme + ' ';
+      sc += '${token.lexeme} ';
     }
     if (typeArgumentsCode != null) {
       sc += typeArgumentsCode;
@@ -1372,7 +1372,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       Token? token, String? typeArgumentsCode, String code) {
     String sc = '';
     if (token != null) {
-      sc += token.lexeme + ' ';
+      sc += '${token.lexeme} ';
     }
     if (typeArgumentsCode != null) {
       sc += typeArgumentsCode;

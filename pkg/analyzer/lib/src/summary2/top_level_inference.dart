@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+    show DependencyWalker, Node;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,8 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/summary/link.dart' as graph
-    show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
@@ -140,7 +140,7 @@ class _BaseConstructor {
 
 class _ConstructorInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
-  final ConstructorElement _constructor;
+  final ConstructorElementImpl _constructor;
   final List<_FieldFormalParameter> _fieldParameters = [];
   final List<_SuperFormalParameter> _superParameters = [];
 
@@ -199,10 +199,13 @@ class _ConstructorInferenceNode extends _InferenceNode {
   List<_InferenceNode> computeDependencies() {
     var dependencies = [
       ..._fieldParameters.map((e) => _walker.getNode(e.field)).whereNotNull(),
-      ..._superParameters
-          .map((e) => _walker.getNode(e.superParameter))
-          .whereNotNull(),
     ];
+
+    if (_superParameters.isNotEmpty) {
+      dependencies.addIfNotNull(
+        _walker.getNode(_constructor.superConstructor?.declaration),
+      );
+    }
 
     dependencies.addIfNotNull(
       _walker.getNode(_baseConstructor?.element),
@@ -224,12 +227,11 @@ class _ConstructorInferenceNode extends _InferenceNode {
     // Update types of a mixin application constructor formal parameters.
     var baseConstructor = _baseConstructor;
     if (baseConstructor != null) {
-      var constructor = _constructor as ConstructorElementImpl;
       var substitution = Substitution.fromInterfaceType(
         baseConstructor.superType,
       );
       forCorrespondingPairs<ParameterElement, ParameterElement>(
-        constructor.parameters,
+        _constructor.parameters,
         baseConstructor.element.parameters,
         (parameter, baseParameter) {
           var type = substitution.substituteType(baseParameter.type);
@@ -239,10 +241,10 @@ class _ConstructorInferenceNode extends _InferenceNode {
       // Update arguments of `SuperConstructorInvocation` to have the types
       // (which we have just set) of the corresponding formal parameters.
       // MixinApp(x, y) : super(x, y);
-      var initializers = constructor.constantInitializers;
+      var initializers = _constructor.constantInitializers;
       var initializer = initializers.single as SuperConstructorInvocation;
       forCorrespondingPairs<ParameterElement, Expression>(
-        constructor.parameters,
+        _constructor.parameters,
         initializer.argumentList.arguments,
         (parameter, argument) {
           (argument as SimpleIdentifierImpl).staticType = parameter.type;
@@ -329,9 +331,7 @@ class _InferenceWalker extends graph.DependencyWalker<_InferenceNode> {
 
   void walkNodes() {
     for (var node in _nodes.values) {
-      if (!node.isEvaluated) {
-        walk(node);
-      }
+      walk(node);
     }
   }
 }
@@ -370,6 +370,7 @@ class _InitializerInference {
 
   void _addClassConstructorFieldFormals(ClassElement class_) {
     for (var constructor in class_.constructors) {
+      constructor as ConstructorElementImpl;
       var inferenceNode = _ConstructorInferenceNode(_walker, constructor);
       _walker._nodes[constructor] = inferenceNode;
     }
@@ -421,9 +422,7 @@ class _PropertyInducingElementTypeInference
 
   @override
   void perform() {
-    if (!_node.isEvaluated) {
-      _node._walker.walk(_node);
-    }
+    _node._walker.walk(_node);
   }
 }
 

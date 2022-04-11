@@ -4,7 +4,8 @@
 
 // @dart = 2.9
 
-// ignore_for_file: always_declare_return_types, omit_local_variable_types
+// ignore_for_file: always_declare_return_types
+// ignore_for_file: omit_local_variable_types
 
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -36,60 +36,50 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Key extends core::Object {
-  field core::int* foo;
-  field core::int* bar;
-  constructor •(core::int* x, core::int* y) → self::Key*
+  field core::int foo;
+  field core::int bar;
+  constructor •(core::int x, core::int y) → self::Key
     ;
-  constructor NotDuplicate(core::int* x, core::int* y) → self::Key*
+  constructor NotDuplicate(core::int x, core::int y) → self::Key
     ;
-  get a() → core::int*
+  get a() → core::int
     ;
-  get b() → core::int*
+  get b() → core::int
     ;
-  get c() → core::int*
+  get c() → core::int
     ;
-  get d() → core::int*
+  get d() → core::int
     ;
-  get e() → core::int*
+  get e() → core::int
     ;
-  get f() → core::int*
+  get f() → core::int
     ;
-  get g() → core::int*
+  get g() → core::int
     ;
-  get h() → core::int*
+  get h() → core::int
     ;
-  method i(core::int* x, core::int* y) → core::int*
+  method i(core::int x, core::int y) → core::int
     ;
-  method j(core::int* x, core::int* y) → core::int*
+  method j(core::int x, core::int y) → core::int
     ;
-  method k(core::int* x, core::int* y) → core::int*
+  method k(core::int x, core::int y) → core::int
     ;
-  method l(core::int* x, core::int* y) → core::int*
+  method l(core::int x, core::int y) → core::int
     ;
-  method m(core::int* x, core::int* y) → core::int*
+  method m(core::int x, core::int y) → core::int
     ;
-  method n(core::int* x, core::int* y) → core::int*
+  method n(core::int x, core::int y) → core::int
     ;
-  method o(core::int* x, core::int* y) → core::int*
+  method o(core::int x, core::int y) → core::int
     ;
-  method p(core::int* x, core::int* y) → core::int*
+  method p(core::int x, core::int y) → core::int
     ;
-  method q(core::int* x, core::int* y) → core::int*
+  method q(core::int x, core::int y) → core::int
     ;
-  method r(core::int* x, core::int* y) → core::int*
+  method r(core::int x, core::int y) → core::int
     ;
-  method s(core::int* x, core::int* y) → dynamic
+  method s(core::int x, core::int y) → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic
   ;

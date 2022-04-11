@@ -8,6 +8,7 @@ part of dart.ffi;
 ///
 /// FFI struct types should extend [Struct]. For more information see the
 /// documentation on this class.
+@pragma("wasm:entry-point")
 abstract class _Compound extends NativeType {
   @pragma("vm:entry-point")
   final Object _typedDataBase;

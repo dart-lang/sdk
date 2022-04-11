@@ -208,9 +208,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           var parentPath =
               _computeParentWithExamplesAPI(node, resourceProvider);
           if (parentPath != null) {
+            var start = token.offset + startIndex;
+            var end = token.offset + endIndex;
             computer.collector.addRegion(
-                token.offset + startIndex,
-                token.offset + endIndex,
+                start,
+                end - start,
                 protocol.ElementKind.LIBRARY,
                 protocol.Location(
                     resourceProvider.pathContext.join(parentPath, pathSnippet),
@@ -497,14 +499,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (!file.exists) {
       return null;
     }
-    var parent = file.parent2;
-    while (parent != parent.parent2) {
+    var parent = file.parent;
+    while (parent != parent.parent) {
       var examplesFolder = parent.getChildAssumingFolder('examples');
       if (examplesFolder.exists &&
           examplesFolder.getChildAssumingFolder('api').exists) {
         return parent.path;
       }
-      parent = parent.parent2;
+      parent = parent.parent;
     }
     return null;
   }

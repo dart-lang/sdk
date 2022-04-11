@@ -74,7 +74,7 @@ abstract class X implements A, B {}
   }
 
   test_class_instance_private_getter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
@@ -91,12 +91,12 @@ class B extends A {
   }
 
   test_class_instance_private_interfaces() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
 ''');
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 class B {
   set _foo(String _) {}
 }
@@ -110,7 +110,7 @@ class X implements A, B {}
   }
 
   test_class_instance_private_interfaces2() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
@@ -127,7 +127,7 @@ class X implements A, B {}
   }
 
   test_class_instance_private_setter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   set _foo(String _) {}
 }
@@ -323,6 +323,17 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 11, 3),
+    ]);
+  }
+
+  test_enum_static_generatedGetter_thisSetter_index() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  static set values(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 5, 1),
     ]);
   }
 

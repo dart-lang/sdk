@@ -61,7 +61,7 @@ class B {}
   }
 
   test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   static void foo<T2>() {}
 }
@@ -162,7 +162,7 @@ extension E on Object {
   }
 
   test_extensionOverrideInAnnotationContext_importedWithPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 extension E on Object {
   int f() => 0;
 }
@@ -399,6 +399,19 @@ C<int Function()> c;
     await _assertCanBeAnalyzed('''
 part of a;
 part 'test.dart';
+''');
+  }
+
+  test_issue_48688() async {
+    // During parsing we recover as `<synthetic>.bar.baz()`.
+    // So, we have a synthetic empty identifier.
+    // There was a bug - we considered it a reference to the unnamed extension.
+    await _assertCanBeAnalyzed(r'''
+void f() {
+  final foo.bar.baz();
+}
+
+extension on int {}
 ''');
   }
 

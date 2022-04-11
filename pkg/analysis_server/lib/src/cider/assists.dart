@@ -21,7 +21,7 @@ class CiderAssistsComputer {
   Future<List<Assist>> compute(
       String path, int lineNumber, int colNumber, int length) async {
     var result = <Assist>[];
-    var resolvedUnit = _fileResolver.resolve(path: path);
+    var resolvedUnit = await _fileResolver.resolve2(path: path);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(lineNumber) + colNumber;
 

@@ -808,31 +808,6 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
   __ LoadClassId(class_id_reg, EAX);
 }
 
-#undef __
-#define __ assembler->
-
-int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
-                                               compiler::Label* label,
-                                               Register class_id_reg,
-                                               const CidRangeValue& range,
-                                               int bias,
-                                               bool jump_on_miss) {
-  intptr_t cid_start = range.cid_start;
-  if (range.IsSingleCid()) {
-    __ cmpl(class_id_reg, compiler::Immediate(cid_start - bias));
-    __ j(jump_on_miss ? NOT_EQUAL : EQUAL, label);
-  } else {
-    __ addl(class_id_reg, compiler::Immediate(bias - cid_start));
-    bias = cid_start;
-    __ cmpl(class_id_reg, compiler::Immediate(range.Extent()));
-    __ j(jump_on_miss ? ABOVE : BELOW_EQUAL, label);  // Unsigned higher.
-  }
-  return bias;
-}
-
-#undef __
-#define __ assembler()->
-
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* tmp) {
@@ -936,16 +911,16 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       } else {
         switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
-            __ movsxb(dst_reg, ByteRegisterOf(src_reg));
+            __ ExtendValue(dst_reg, src_reg, compiler::kByte);
             return;
           case compiler::ffi::kInt16:
-            __ movsxw(dst_reg, src_reg);
+            __ ExtendValue(dst_reg, src_reg, compiler::kTwoBytes);
             return;
           case compiler::ffi::kUint8:  // Zero extend operand.
-            __ movzxb(dst_reg, ByteRegisterOf(src_reg));
+            __ ExtendValue(dst_reg, src_reg, compiler::kUnsignedByte);
             return;
           case compiler::ffi::kUint16:
-            __ movzxw(dst_reg, src_reg);
+            __ ExtendValue(dst_reg, src_reg, compiler::kUnsignedTwoBytes);
             return;
           default:
             // 32 to 64 bit is covered in IL by Representation conversions.

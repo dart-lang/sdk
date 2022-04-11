@@ -227,33 +227,37 @@ class GatheringErrorListener implements AnalysisErrorListener {
     if (buffer.isNotEmpty) {
       errors.sort((first, second) => first.offset.compareTo(second.offset));
       buffer.writeln();
-      buffer.writeln('To accept the current state, expect:');
-      for (AnalysisError actual in errors) {
-        List<DiagnosticMessage> contextMessages = actual.contextMessages;
-        buffer.write('  error(');
-        buffer.write(actual.errorCode);
-        buffer.write(', ');
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        if (contextMessages.isNotEmpty) {
-          buffer.write(', contextMessages: [');
-          for (int i = 0; i < contextMessages.length; i++) {
-            DiagnosticMessage message = contextMessages[i];
-            if (i > 0) {
+      if (errors.isEmpty) {
+        buffer.writeln('To accept the current state, expect no errors.');
+      } else {
+        buffer.writeln('To accept the current state, expect:');
+        for (AnalysisError actual in errors) {
+          List<DiagnosticMessage> contextMessages = actual.contextMessages;
+          buffer.write('  error(');
+          buffer.write(actual.errorCode);
+          buffer.write(', ');
+          buffer.write(actual.offset);
+          buffer.write(', ');
+          buffer.write(actual.length);
+          if (contextMessages.isNotEmpty) {
+            buffer.write(', contextMessages: [');
+            for (int i = 0; i < contextMessages.length; i++) {
+              DiagnosticMessage message = contextMessages[i];
+              if (i > 0) {
+                buffer.write(', ');
+              }
+              buffer.write('message(\'');
+              buffer.write(message.filePath);
+              buffer.write('\', ');
+              buffer.write(message.offset);
               buffer.write(', ');
+              buffer.write(message.length);
+              buffer.write(')');
             }
-            buffer.write('message(\'');
-            buffer.write(message.filePath);
-            buffer.write('\', ');
-            buffer.write(message.offset);
-            buffer.write(', ');
-            buffer.write(message.length);
-            buffer.write(')');
+            buffer.write(']');
           }
-          buffer.write(']');
+          buffer.writeln('),');
         }
-        buffer.writeln('),');
       }
       fail(buffer.toString());
     }
@@ -447,7 +451,7 @@ class TestSource extends Source {
   TimestampedData<String> get contents {
     readCount++;
     if (generateExceptionOnRead) {
-      String msg = "I/O Exception while getting the contents of " + _name;
+      String msg = "I/O Exception while getting the contents of $_name";
       throw Exception(msg);
     }
     return TimestampedData<String>(0, _contents);
@@ -512,7 +516,7 @@ class TestSource extends Source {
   }
 
   @override
-  String toString() => '$_name';
+  String toString() => _name;
 }
 
 class TestSourceWithUri extends TestSource {

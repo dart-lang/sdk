@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return super.{main::HasPrivate::_priv} = 0;
+  return super.{#lib1::A::_priv} = 0;

@@ -326,7 +326,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
 
   ILMatcher cursor(flow_graph, entry, true);
   // clang-format off
-  RELEASE_ASSERT(cursor.TryMatch({
+  std::initializer_list<MatchCode> expected = {
     kMatchAndMoveFunctionEntry,
     kMatchAndMoveCheckStackOverflow,
     kMoveDebugStepChecks,
@@ -339,7 +339,8 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
     kMatchAndMoveClosureCall,
     kMoveDebugStepChecks,
     kMatchReturn,
-  }));
+  };
+  RELEASE_ASSERT(cursor.TryMatch(expected));
   // clang-format on
 }
 

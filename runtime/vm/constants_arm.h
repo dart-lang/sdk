@@ -30,6 +30,8 @@ namespace dart {
 // to compare LR register code.
 #define LR LR_DO_NOT_USE_DIRECTLY
 
+#define R(reg) (static_cast<RegList>(1) << (reg))
+
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
 #if defined(__ARM_ARCH_7A__)
@@ -47,7 +49,7 @@ namespace dart {
 // The Linux/Android ABI and the iOS ABI differ in their choice of frame
 // pointer, their treatment of R9, and the interprocedural stack alignment.
 
-// EABI (Linux, Android)
+// EABI (Linux, Android, Windows)
 // See "Procedure Call Standard for the ARM Architecture".
 // R0-R1:  Argument / result / volatile
 // R2-R3:  Argument / volatile
@@ -59,9 +61,10 @@ namespace dart {
 // R15:    Program counter
 // Stack alignment: 4 bytes always, 8 bytes at public interfaces
 
-// Linux (Debian armhf) and Android also differ in whether floating point
-// arguments are passed in floating point registers. Linux uses hardfp and
-// Android uses softfp. See TargetCPUFeatures::hardfp_supported().
+// Linux (Debian armhf), Windows and Android also differ in whether floating
+// point arguments are passed in floating point registers. Linux and Windows
+// use hardfp and Android uses softfp. See
+// TargetCPUFeatures::hardfp_supported().
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
@@ -90,7 +93,7 @@ enum Register {
   R8 = 8,
   R9 = 9,
   R10 = 10,  // THR
-  R11 = 11,  // Linux FP
+  R11 = 11,  // Linux/Android/Windows FP
   R12 = 12,  // IP aka TMP
   R13 = 13,  // SP
   R14 = 14,  // LR
@@ -209,6 +212,9 @@ enum DRegister {
   D31 = 31,
   kNumberOfDRegisters = 32,
 #endif
+  // Number of D registers that overlap S registers.
+  // One D register overlaps two S registers, so regardless of the numbers of D
+  // registers, there are only 32 S registers that are overlapped.
   kNumberOfOverlappingDRegisters = 16,
 };
 
@@ -243,6 +249,10 @@ enum QRegister {
   Q15 = 15,
   kNumberOfQRegisters = 16,
 #endif
+  // Number of Q registers that overlap S registers.
+  // One Q register overlaps four S registers, so regardless of the numbers of Q
+  // registers, there are only 32 S registers that are overlapped.
+  kNumberOfOverlappingQRegisters = 8,
 };
 
 static inline DRegister EvenDRegisterOf(QRegister q) {
@@ -256,7 +266,7 @@ static inline DRegister OddDRegisterOf(QRegister q) {
 static inline SRegister EvenSRegisterOf(DRegister d) {
 #if defined(VFPv3_D32)
   // When we have 32 D registers, the S registers only overlap the first 16.
-  // That is, there are only 32 S registers.
+  // That is, there are only ever 32 S registers in any extension.
   ASSERT(d < D16);
 #endif
   return static_cast<SRegister>(d * 2);
@@ -535,6 +545,7 @@ struct DispatchTableNullErrorABI {
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllFpuRegistersList = (1 << kNumberOfFpuRegisters) - 1;
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
@@ -571,11 +582,12 @@ const int kDartVolatileCpuRegCount = 6;
 #else
 const int kDartVolatileCpuRegCount = 5;
 #endif
-const QRegister kDartFirstVolatileFpuReg = Q0;
-const QRegister kDartLastVolatileFpuReg = Q3;
-const int kDartVolatileFpuRegCount = 4;
 
-#define R(REG) (1 << REG)
+const RegList kAbiVolatileFpuRegs = R(Q0) | R(Q1) | R(Q2) | R(Q3);
+
+const RegList kFpuRegistersWithoutSOverlap =
+    kAllFpuRegistersList &
+    ~((1 << QRegister::kNumberOfOverlappingQRegisters) - 1);
 
 class CallingConventions {
  public:

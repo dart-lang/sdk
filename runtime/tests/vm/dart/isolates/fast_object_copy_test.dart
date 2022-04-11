@@ -18,6 +18,7 @@
 // inserting an object that cannot be allocated in new space.
 
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:nativewrappers';
@@ -245,6 +246,10 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     await testWeakProperty();
     await testWeakReference();
+    await testFinalizer();
+    await testNativeFinalizer();
+    await testFinalizable();
+    await testPointer();
 
     await testForbiddenClosures();
   }
@@ -756,6 +761,35 @@ class SendReceiveTest extends SendReceiveTestBase {
     }
   }
 
+  Future testFinalizer() async {
+    print('testFinalizer');
+
+    void callback(Object token) {}
+    final finalizer = Finalizer<Object>(callback);
+    Expect.throwsArgumentError(() => sendPort.send(finalizer));
+  }
+
+  Future testNativeFinalizer() async {
+    print('testNativeFinalizer');
+
+    final finalizer = NativeFinalizer(nullptr);
+    Expect.throwsArgumentError(() => sendPort.send(finalizer));
+  }
+
+  Future testFinalizable() async {
+    print('testFinalizable');
+
+    final finalizable = MyFinalizable();
+    Expect.throwsArgumentError(() => sendPort.send(finalizable));
+  }
+
+  Future testPointer() async {
+    print('testPointer');
+
+    final pointer = Pointer<Int8>.fromAddress(0xdeadbeef);
+    Expect.throwsArgumentError(() => sendPort.send(pointer));
+  }
+
   Future testForbiddenClosures() async {
     print('testForbiddenClosures');
     for (final closure in nonCopyableClosures) {
@@ -778,6 +812,8 @@ class Nonce {
 
   String toString() => 'Nonce($value)';
 }
+
+class MyFinalizable implements Finalizable {}
 
 main() async {
   await SendReceiveTest().run();

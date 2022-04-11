@@ -31,10 +31,6 @@ library;
 // <foo<
 //  ^^^
 //
-// pkg/front_end/testcases/regress/issue_34850.dart:5:2: Error: Expected 0 type arguments.
-// <foo<
-//  ^
-//
 // pkg/front_end/testcases/regress/issue_34850.dart:11:1: Error: Type 'foo' not found.
 // foo
 // ^^^
@@ -46,10 +42,6 @@ library;
 // Future<List<int>> f2() async => null;
 // ^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_34850.dart:14:1: Error: Expected 0 type arguments.
-// Future<List<>> f3() async {
-// ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -57,12 +49,12 @@ static method f1() → invalid-type {
   return null;
 }
 static method Future<List extends core::Object* = dynamic>() → invalid-type {}
-static method f2() → dynamic async 
+static method f2() → dynamic async /* futureValueType= dynamic */ 
   return null;
-static method f3() → invalid-type async {
+static method f3() → invalid-type async /* futureValueType= invalid-type */ {
   return null;
 }
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   core::print(self::f1());
   core::print(await self::f2());
   core::print(await self::f3());

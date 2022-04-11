@@ -475,12 +475,12 @@ void f() {
     var a = convertPath('$testPackageLibPath/a.dart');
     var b = convertPath('$testPackageLibPath/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {
   A({test});
 }
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 import 'a.dart';
 
 void f() {

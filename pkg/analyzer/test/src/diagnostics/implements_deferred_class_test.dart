@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ImplementsDeferredClassTest extends PubPackageResolutionTest {
   test_class_implements() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 ''');
@@ -30,7 +30,7 @@ class B implements a.A {}
   }
 
   test_class_implements_interfaceTypeTypedef() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 typedef B = A;
@@ -45,7 +45,7 @@ class C implements a.B {}
   }
 
   test_classTypeAlias() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 ''');

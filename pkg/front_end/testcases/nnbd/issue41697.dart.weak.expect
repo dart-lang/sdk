@@ -33,7 +33,7 @@ static method test1(self::C<core::num> c) → dynamic {
   <S extends core::num>(S) → core::num f1 = c.{self::C::field1} = <S extends core::num>(S s) → core::num {
     return s.{core::num::+}(1){(core::num) → core::num};
   };
-  <S extends FutureOr<core::num>>(S, FutureOr<core::num>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num>>(S s, FutureOr<core::num>t) → asy::Future<core::num> async {
+  <S extends FutureOr<core::num>>(S, FutureOr<core::num>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num>>(S s, FutureOr<core::num>t) → asy::Future<core::num> async /* futureValueType= core::num */ {
     return (await t).{core::num::+}(1){(core::num) → core::num};
   };
 }
@@ -43,7 +43,7 @@ static method test2(self::C<core::num?> c) → dynamic {
     return s + 1; // error
              ^" in s.{core::num::+}(1){(core::num) → core::num};
   };
-  <S extends FutureOr<core::num?>>(S%, FutureOr<core::num?>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num?>>(S% s, FutureOr<core::num?>t) → asy::Future<core::num> async {
+  <S extends FutureOr<core::num?>>(S%, FutureOr<core::num?>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num?>>(S% s, FutureOr<core::num?>t) → asy::Future<core::num> async /* futureValueType= core::num */ {
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41697.dart:36:22: Error: Operator '+' cannot be called on 'num?' because it is potentially null.
     return (await t) + 1; // error
                      ^" in (await t).{core::num::+}(1){(core::num) → core::num};

@@ -6,7 +6,7 @@ import "deferred_explicit_access_lib.dart" as def;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix hide Extension;
 
-static method main() → dynamic /* originally async */ {
+static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   dynamic :return_value;

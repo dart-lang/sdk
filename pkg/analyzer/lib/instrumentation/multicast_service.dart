@@ -13,7 +13,9 @@ class MulticastInstrumentationService implements InstrumentationService {
 
   @override
   void logError(String message) {
-    _services.forEach((s) => s.logError(message));
+    for (var service in _services) {
+      service.logError(message);
+    }
   }
 
   @override
@@ -22,81 +24,105 @@ class MulticastInstrumentationService implements InstrumentationService {
     StackTrace? stackTrace,
     List<InstrumentationServiceAttachment>? attachments,
   ]) {
-    _services
-        .forEach((s) => s.logException(exception, stackTrace, attachments));
+    for (var service in _services) {
+      service.logException(exception, stackTrace, attachments);
+    }
   }
 
   @override
   void logInfo(String message, [dynamic exception]) {
-    _services.forEach((s) => s.logInfo(message, exception));
+    for (var service in _services) {
+      service.logInfo(message, exception);
+    }
   }
 
   @override
   void logLogEntry(String level, DateTime time, String message,
       Object exception, StackTrace stackTrace) {
-    _services.forEach(
-        (s) => s.logLogEntry(level, time, message, exception, stackTrace));
+    for (var service in _services) {
+      service.logLogEntry(level, time, message, exception, stackTrace);
+    }
   }
 
   @override
   void logNotification(String notification) {
-    _services.forEach((s) => s.logNotification(notification));
+    for (var service in _services) {
+      service.logNotification(notification);
+    }
   }
 
   @override
   void logPluginError(
       PluginData plugin, String code, String message, String stackTrace) {
-    _services
-        .forEach((s) => s.logPluginError(plugin, code, message, stackTrace));
+    for (var service in _services) {
+      service.logPluginError(plugin, code, message, stackTrace);
+    }
   }
 
   @override
   void logPluginException(
       PluginData plugin, Object exception, StackTrace? stackTrace) {
-    _services
-        .forEach((s) => s.logPluginException(plugin, exception, stackTrace));
+    for (var service in _services) {
+      service.logPluginException(plugin, exception, stackTrace);
+    }
   }
 
   @override
   void logPluginNotification(String pluginId, String notification) {
-    _services.forEach((s) => s.logPluginNotification(pluginId, notification));
+    for (var service in _services) {
+      service.logPluginNotification(pluginId, notification);
+    }
   }
 
   @override
   void logPluginRequest(String pluginId, String request) {
-    _services.forEach((s) => s.logPluginRequest(pluginId, request));
+    for (var service in _services) {
+      service.logPluginRequest(pluginId, request);
+    }
   }
 
   @override
   void logPluginResponse(String pluginId, String response) {
-    _services.forEach((s) => s.logPluginResponse(pluginId, response));
+    for (var service in _services) {
+      service.logPluginResponse(pluginId, response);
+    }
   }
 
   @override
   void logPluginTimeout(PluginData plugin, String request) {
-    _services.forEach((s) => s.logPluginTimeout(plugin, request));
+    for (var service in _services) {
+      service.logPluginTimeout(plugin, request);
+    }
   }
 
   @override
   void logRequest(String request) {
-    _services.forEach((s) => s.logRequest(request));
+    for (var service in _services) {
+      service.logRequest(request);
+    }
   }
 
   @override
   void logResponse(String response) {
-    _services.forEach((s) => s.logResponse(response));
+    for (var service in _services) {
+      service.logResponse(response);
+    }
   }
 
   @override
   void logVersion(String uuid, String clientId, String clientVersion,
       String serverVersion, String sdkVersion) {
-    _services.forEach((s) =>
-        s.logVersion(uuid, clientId, clientVersion, serverVersion, sdkVersion));
+    for (var service in _services) {
+      service.logVersion(
+          uuid, clientId, clientVersion, serverVersion, sdkVersion);
+    }
   }
 
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
-    _services.forEach((s) => s.logWatchEvent(folderPath, filePath, changeType));
+    for (var service in _services) {
+      service.logWatchEvent(folderPath, filePath, changeType);
+    }
   }
 
   @override

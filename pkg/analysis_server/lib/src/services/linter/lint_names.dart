@@ -45,6 +45,7 @@ class LintNames {
       'avoid_unnecessary_containers';
   static const String avoid_void_async = 'avoid_void_async';
   static const String await_only_futures = 'await_only_futures';
+  static const String cascade_invocations = 'cascade_invocations';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =
@@ -136,6 +137,8 @@ class LintNames {
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_late = 'unnecessary_late';
   static const String unnecessary_new = 'unnecessary_new';
+  static const String unnecessary_null_aware_assignments =
+      'unnecessary_null_aware_assignments';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
   static const String unnecessary_nullable_for_final_variable_declarations =
@@ -147,6 +150,7 @@ class LintNames {
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';
   static const String use_function_type_syntax_for_parameters =
@@ -155,4 +159,5 @@ class LintNames {
       'use_key_in_widget_constructors';
   static const String use_raw_strings = 'use_raw_strings';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
+  static const String use_super_parameters = 'use_super_parameters';
 }

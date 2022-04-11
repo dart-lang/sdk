@@ -11,18 +11,55 @@ get getter => null;
 set setter(_) => null;
 
 @ClassMacro()
-class Class1 {}
+class Class1 {
+  var field1;
+
+  Class1();
+}
 
 @ClassMacro()
 abstract class Class2 {}
 
 @ClassMacro()
-class Class3 extends Class2 {}
+class Class3 extends Class2 implements Interface1 {
+  var field1;
+  var field2;
 
-mixin Mixin {}
+  Class3.new();
+  Class3.named();
+  factory Class3.fact() => Class3.named();
+  factory Class3.redirect() = Class3.named;
+
+  void method1() {}
+  void method2() {}
+
+  get getter1 => null;
+  set setter1(_) {}
+
+  get property1 => null;
+  set property1(_) {}
+
+  static var staticField1;
+  static void staticMethod1() {}
+}
 
 @ClassMacro()
-class Class4 extends Class1 with Mixin {}
+class Class4 extends Class1 with Mixin1 {}
+
+@ClassMacro()
+class Class5 extends Class2
+    with Mixin1, Mixin2
+    implements Interface1, Interface2 {}
+
+mixin Mixin1 {}
+
+mixin Mixin2 {}
+
+@ClassMacro()
+abstract class Interface1 {}
+
+@ClassMacro()
+abstract class Interface2 {}
 
 @FunctionMacro()
 void topLevelFunction1(Class1 a, {Class1? b, required Class2? c}) {}

@@ -1,0 +1,49 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+type: newworld
+target: DDC
+trackWidgetCreation: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'package:flutter/src/widgets/framework.dart';
+      flutter/lib/src/widgets/framework.dart: |
+        abstract class Bar {
+          const Bar();
+        }
+        abstract class Widget extends Bar {
+          const Widget();
+        }
+        class Key {}
+        class StatefulWidget extends Widget {
+          final Key? key;
+        
+          const StatefulWidget({this.key});
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import 'package:flutter/src/widgets/framework.dart';
+        class GalleryApp extends StatefulWidget {
+          const GalleryApp({super.key});
+        }
+    expectedLibraryCount: 2

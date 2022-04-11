@@ -320,6 +320,10 @@ bool RuntimeEntry::is_leaf() const {
   return runtime_entry_->is_leaf();
 }
 
+intptr_t RuntimeEntry::argument_count() const {
+  return runtime_entry_->argument_count();
+}
+
 namespace target {
 
 const word kOldPageSize = dart::kOldPageSize;
@@ -439,6 +443,12 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return WeakProperty::InstanceSize();
     case kWeakReferenceCid:
       return WeakReference::InstanceSize();
+    case kFinalizerCid:
+      return Finalizer::InstanceSize();
+    case kFinalizerEntryCid:
+      return FinalizerEntry::InstanceSize();
+    case kNativeFinalizerCid:
+      return NativeFinalizer::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kPointerCid:

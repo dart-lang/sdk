@@ -666,10 +666,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   modified_libs_transitive_ = nullptr;
 
   if (FLAG_gc_during_reload) {
-    // We use kLowMemory to force the GC to compact, which is more likely to
-    // discover untracked pointers (and other issues, like incorrect class
-    // table).
-    heap->CollectAllGarbage(GCReason::kLowMemory);
+    // We force the GC to compact, which is more likely to discover untracked
+    // pointers (and other issues, like incorrect class table).
+    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
   }
 
   // Copy the size table for isolate group & class tables for each isolate.
@@ -680,10 +679,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   }
 
   if (FLAG_gc_during_reload) {
-    // We use kLowMemory to force the GC to compact, which is more likely to
-    // discover untracked pointers (and other issues, like incorrect class
-    // table).
-    heap->CollectAllGarbage(GCReason::kLowMemory);
+    // We force the GC to compact, which is more likely to discover untracked
+    // pointers (and other issues, like incorrect class table).
+    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
   }
 
   // We synchronously load the hot-reload kernel diff (which includes changed
@@ -711,10 +709,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     IG->program_reload_context()->ReloadPhase3FinalizeLoading();
 
     if (FLAG_gc_during_reload) {
-      // We use kLowMemory to force the GC to compact, which is more likely to
-      // discover untracked pointers (and other issues, like incorrect class
-      // table).
-      heap->CollectAllGarbage(GCReason::kLowMemory);
+      // We force the GC to compact, which is more likely to discover untracked
+      // pointers (and other issues, like incorrect class table).
+      heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
     }
 
     // If we use the CFE and performed a compilation, we need to notify that
@@ -742,10 +739,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
         // We are still using the old class table at this point.
         if (FLAG_gc_during_reload) {
-          // We use kLowMemory to force the GC to compact, which is more likely
-          // to discover untracked pointers (and other issues, like incorrect
-          // class table).
-          heap->CollectAllGarbage(GCReason::kLowMemory);
+          // We force the GC to compact, which is more likely to discover
+          // untracked pointers (and other issues, like incorrect class table).
+          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
         }
         const intptr_t count = locator.count();
         if (count > 0) {
@@ -783,10 +779,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         }
         // We are using the new class table now.
         if (FLAG_gc_during_reload) {
-          // We use kLowMemory to force the GC to compact, which is more likely
-          // to discover untracked pointers (and other issues, like incorrect
-          // class table).
-          heap->CollectAllGarbage(GCReason::kLowMemory);
+          // We force the GC to compact, which is more likely to discover
+          // untracked pointers (and other issues, like incorrect class table).
+          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
         }
       }
       if (discard_class_tables) {

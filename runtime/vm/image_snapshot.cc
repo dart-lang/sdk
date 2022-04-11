@@ -23,6 +23,7 @@
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
 #include "vm/type_testing_stubs.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/code_statistics.h"
@@ -1056,48 +1057,81 @@ void AssemblyImageWriter::Finalize() {
   }
 }
 
-static void EnsureAssemblerIdentifier(char* label) {
+static void AddAssemblerIdentifier(ZoneTextBuffer* printer, const char* label) {
+  ASSERT(label[0] != '.');
   for (char c = *label; c != '\0'; c = *++label) {
+#define OP(dart_name, asm_name)                                                \
+  if (strncmp(label, dart_name, strlen(dart_name)) == 0) {                     \
+    printer->AddString(asm_name);                                              \
+    label += (strlen(dart_name) - 1);                                          \
+    continue;                                                                  \
+  }
+
+    OP("+", "operator_add")
+    OP("-", "operator_sub")
+    OP("*", "operator_mul")
+    OP("/", "operator_div")
+    OP("~/", "operator_truncdiv")
+    OP("%", "operator_mod")
+    OP("~", "operator_not")
+    OP("&", "operator_and")
+    OP("|", "operator_or")
+    OP("^", "operator_xor")
+    OP("<<", "operator_sll")
+    OP(">>>", "operator_srl")
+    OP(">>", "operator_sra")
+    OP("[]=", "operator_set")
+    OP("[]", "operator_get")
+    OP("unary-", "operator_neg")
+    OP("==", "operator_eq")
+    OP("<anonymous closure>", "anonymous_closure")
+    OP("<=", "operator_le")
+    OP("<", "operator_lt")
+    OP(">=", "operator_ge")
+    OP(">", "operator_gt")
+#undef OP
+
     if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
-        ((c >= '0') && (c <= '9'))) {
+        ((c >= '0') && (c <= '9')) || (c == '.')) {
+      printer->AddChar(c);
       continue;
     }
-    *label = '_';
+    printer->AddChar('_');
   }
 }
 
 const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
                                                      const Code& code) {
   ASSERT(!code.IsNull());
-  const char* prefix = FLAG_precompiled_mode ? "Precompiled_" : "";
   owner_ = code.owner();
   if (owner_.IsNull()) {
     insns_ = code.instructions();
     const char* name = StubCode::NameOfStub(insns_.EntryPoint());
     ASSERT(name != nullptr);
-    return OS::SCreate(zone_, "%sStub_%s", prefix, name);
+    return OS::SCreate(zone_, "Stub_%s", name);
   }
   // The weak reference to the Code's owner should never have been removed via
   // an intermediate serialization, since WSRs are only introduced during
   // precompilation.
   owner_ = WeakSerializationReference::Unwrap(owner_);
   ASSERT(!owner_.IsNull());
+  ZoneTextBuffer printer(zone_);
   if (owner_.IsClass()) {
-    string_ = Class::Cast(owner_).Name();
-    const char* name = string_.ToCString();
-    EnsureAssemblerIdentifier(const_cast<char*>(name));
-    return OS::SCreate(zone_, "%sAllocationStub_%s_%" Pd, prefix, name,
-                       code_index);
+    const char* name = Class::Cast(owner_).ScrubbedNameCString();
+    printer.AddString("AllocationStub_");
+    AddAssemblerIdentifier(&printer, name);
   } else if (owner_.IsAbstractType()) {
     const char* name = namer_.StubNameForType(AbstractType::Cast(owner_));
-    return OS::SCreate(zone_, "%s%s_%" Pd, prefix, name, code_index);
+    printer.AddString(name);
   } else if (owner_.IsFunction()) {
-    const char* name = Function::Cast(owner_).ToQualifiedCString();
-    EnsureAssemblerIdentifier(const_cast<char*>(name));
-    return OS::SCreate(zone_, "%s%s_%" Pd, prefix, name, code_index);
+    const char* name = Function::Cast(owner_).QualifiedScrubbedNameCString();
+    AddAssemblerIdentifier(&printer, name);
   } else {
     UNREACHABLE();
   }
+
+  printer.Printf("_%" Pd, code_index);
+  return printer.buffer();
 }
 
 const char* SnapshotTextObjectNamer::SnapshotNameFor(
@@ -1298,7 +1332,9 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // tells unwinder that caller's value of register R is stored at address
   // CFA+offs.
 
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#elif defined(TARGET_ARCH_X64)
   assembly_stream_->WriteString(".cfi_def_cfa rbp, 16\n");
   assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
   assembly_stream_->WriteString(".cfi_offset rip, -8\n");
@@ -1319,7 +1355,6 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".cfi_offset r11, -8\n");
 #endif
   assembly_stream_->WriteString(".cfi_offset lr, -4\n");
-
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
@@ -1327,6 +1362,16 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".save {r11, lr}\n");
   assembly_stream_->WriteString(".setfp r11, sp, #0\n");
 #endif
+#elif defined(TARGET_ARCH_RISCV32)
+  assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
+  assembly_stream_->WriteString(".cfi_offset ra, -4\n");
+#elif defined(TARGET_ARCH_RISCV64)
+  assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
+  assembly_stream_->WriteString(".cfi_offset ra, -8\n");
+#else
+#error Unexpected architecture.
 #endif
 }
 

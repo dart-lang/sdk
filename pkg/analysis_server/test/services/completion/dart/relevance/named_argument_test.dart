@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -34,11 +35,10 @@ mixin NamedArgumentTestCases on CompletionRelevanceTest {
   Future<void> setUp() async {
     var metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
 
-    // TODO(scheglov) Use `writeTestPackageConfig` instead
-    newDotPackagesFile(testPackageRootPath, content: '''
-meta:${metaLibFolder.toUri()}
-project:${toUri(testPackageLibPath)}
-''');
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'meta', rootPath: metaLibFolder.parent.path),
+    );
 
     await super.setUp();
   }

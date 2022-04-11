@@ -63,9 +63,9 @@ class C6<A>
     extends A<int>
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
-    // [cfe] Can't use type arguments with type variable 'A'.
     //      ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    // [cfe] Can't use type arguments with type variable 'A'.
     {
 }
 
@@ -73,9 +73,9 @@ class C7<A>
     extends A<Unresolved>
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
-    // [cfe] Can't use type arguments with type variable 'A'.
     //      ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    // [cfe] Can't use type arguments with type variable 'A'.
     //        ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
     // [cfe] Type 'Unresolved' not found.
@@ -88,9 +88,9 @@ class C8<A>
     extends Object with A<int>
     //                  ^
     // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
-    // [cfe] Can't use type arguments with type variable 'A'.
     //                  ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    // [cfe] Can't use type arguments with type variable 'A'.
     {
 }
 
@@ -100,9 +100,9 @@ class C9<A>
     extends Object with A<Unresolved>
     //                  ^
     // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
-    // [cfe] Can't use type arguments with type variable 'A'.
     //                  ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    // [cfe] Can't use type arguments with type variable 'A'.
     //                    ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
     // [cfe] Type 'Unresolved' not found.
@@ -113,9 +113,9 @@ class C10<A>
     implements A<int>
     //         ^
     // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
-    // [cfe] Can't use type arguments with type variable 'A'.
     //         ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    // [cfe] Can't use type arguments with type variable 'A'.
     {
 }
 
@@ -123,9 +123,9 @@ class C11<A>
     implements A<Unresolved>
     //         ^
     // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
-    // [cfe] Can't use type arguments with type variable 'A'.
     //         ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    // [cfe] Can't use type arguments with type variable 'A'.
     //           ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
     // [cfe] Type 'Unresolved' not found.

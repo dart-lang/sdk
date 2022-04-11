@@ -29,7 +29,7 @@ class SetTypeMask extends AllocationTypeMask {
 
   /// Deserializes a [SetTypeMask] object from [source].
   factory SetTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
@@ -42,7 +42,7 @@ class SetTypeMask extends AllocationTypeMask {
 
   /// Serializes this [SetTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.set);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);

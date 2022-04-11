@@ -8,7 +8,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 
-static method foo() → dynamic async {
+static method foo() → dynamic async /* futureValueType= dynamic */ {
   invalid-type x;
   for (dynamic y in x{<invalid>}.z) {
   }

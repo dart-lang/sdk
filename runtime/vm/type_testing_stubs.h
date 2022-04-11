@@ -71,7 +71,7 @@ class TypeTestingStubGenerator {
       const Type& type,
       const Class& type_class);
 
-  static void BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
+  static bool BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
                                               const CidRangeVector& ranges,
                                               Register class_id_reg,
                                               compiler::Label* check_succeeded,

@@ -43,7 +43,7 @@ int 42
   }
 
   test_location_partDirective() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -66,11 +66,11 @@ int 42
   }
 
   test_location_partOfDirective() async {
-    var libPath = newFile('$testPackageLibPath/lib.dart', content: r'''
+    var libPath = newFile2('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 ''').path;
 
-    var partPath = newFile('$testPackageLibPath/part.dart', content: r'''
+    var partPath = newFile2('$testPackageLibPath/part.dart', r'''
 @foo
 part of 'lib.dart';
 const foo = 42;
@@ -212,7 +212,7 @@ A
   }
 
   test_optIn_fromOptOut_class() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
 }
@@ -239,7 +239,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_class_constructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
   const A.named(this.a);
@@ -273,7 +273,7 @@ A*
   }
 
   test_optIn_fromOptOut_class_constructor_withDefault() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
   const A.named({this.a = 42});
@@ -307,7 +307,7 @@ A*
   }
 
   test_optIn_fromOptOut_class_getter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
 }
@@ -339,7 +339,7 @@ int 42
   }
 
   test_optIn_fromOptOut_getter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
 
@@ -364,7 +364,7 @@ int 42
   }
 
   test_optIn_fromOptOut_prefix_class() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
 }
@@ -391,7 +391,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_class_constructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named(int a);
 }
@@ -418,7 +418,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_class_getter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 0;
 }
@@ -445,7 +445,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_getter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const foo = 0;
 ''');
 
@@ -1338,7 +1338,7 @@ B<int>
   }
 
   test_value_otherLibrary_implicitConst() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final int f;
   const A(this.f);
@@ -1369,14 +1369,14 @@ B
   }
 
   test_value_otherLibrary_namedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final int f;
   const A.named(this.f);
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 @A.named(42)
@@ -1398,14 +1398,14 @@ A
   }
 
   test_value_otherLibrary_unnamedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final int f;
   const A(this.f);
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', content: r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 @A(42)
@@ -1427,7 +1427,7 @@ A
   }
 
   test_value_prefix_typeAlias_class_staticConstField() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static const int foo = 42;
 }
@@ -1470,7 +1470,7 @@ int 42
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -1532,7 +1532,7 @@ A<int>
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -1587,7 +1587,7 @@ A<int>
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -1659,7 +1659,7 @@ A<int>
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A(this.f);

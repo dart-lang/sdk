@@ -55,22 +55,22 @@ static method main() → void {
   (core::int) → core::String x6 = (core::int v) → Never {
     return self::throwing();
   };
-  (core::int) → asy::Future<core::String> y1 = (core::int v) → asy::Future<Never> async => throw v;
-  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<Never> async {
+  (core::int) → asy::Future<core::String> y1 = (core::int v) → asy::Future<Never> async /* futureValueType= Never */ => throw v;
+  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<Never> async /* futureValueType= Never */ {
     throw v;
   };
-  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<Never> async {
+  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<Never> async /* futureValueType= Never */ {
     return throw v;
   };
-  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> async => self::throwing();
-  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<Never> async {
+  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> async /* futureValueType= Never */ => self::throwing();
+  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<Never> async /* futureValueType= Never */ {
     self::throwing();
   };
-  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<Never> async {
+  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<Never> async /* futureValueType= Never */ {
     return self::throwing();
   };
 }
-static method errors() → void async {
+static method errors() → void async /* futureValueType= void */ {
   (core::int) → core::String x2 = (core::int v) → core::String {
     try {
       throw v;
@@ -111,7 +111,7 @@ static method errors() → void async {
   String Function(int) x6 = (int v) /* error */ {
                             ^" in null;
   };
-  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<core::String> async {
+  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<core::String> async /* futureValueType= core::String */ {
     try {
       throw v;
     }
@@ -121,7 +121,7 @@ static method errors() → void async {
   Future<String> Function(int) y2 = (int v) async /* error */ {
                                     ^" in null;
   };
-  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<core::String> async {
+  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<core::String> async /* futureValueType= core::String */ {
     try {
       return throw v;
     }
@@ -131,7 +131,7 @@ static method errors() → void async {
   Future<String> Function(int) y3 = (int v) async /* error */ {
                                     ^" in null;
   };
-  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<core::String> async {
+  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<core::String> async /* futureValueType= core::String */ {
     try {
       self::throwing();
     }
@@ -141,7 +141,7 @@ static method errors() → void async {
   Future<String> Function(int) y5 = (int v) async /* error */ {
                                     ^" in null;
   };
-  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<core::String> async {
+  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<core::String> async /* futureValueType= core::String */ {
     try {
       return self::throwing();
     }

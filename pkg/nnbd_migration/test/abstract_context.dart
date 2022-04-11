@@ -109,7 +109,7 @@ class Required {
   File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
     knownPackages.add(packageName);
-    return newFile('$packagePath/lib/$pathInLib', content: content);
+    return newFile2('$packagePath/lib/$pathInLib', content);
   }
 
   /// Add the quiver package and a library with URI,
@@ -125,11 +125,8 @@ T checkNotNull<T>(T reference, {dynamic message}) => T;
   }
 
   Source addSource(String path, String content, [Uri? uri]) {
-    File file = newFile(path, content: content);
-    Source source = file.createSource(uri);
-    driver!.addFile(file.path);
-    driver!.changeFile(file.path);
-    return source;
+    File file = newFile2(path, content);
+    return file.createSource(uri);
   }
 
   /// Add the test_core package and a library with URI,
@@ -174,13 +171,13 @@ export 'package:test_core/test_core.dart';
     );
 
     newFolder(testsPath);
-    newFile('$testsPath/.packages', content: '''
+    newFile2('$testsPath/.packages', '''
 tests:file://$testsPath/lib
 ''');
     var pubspecPath = '$testsPath/pubspec.yaml';
     // Subclasses may write out a different file first.
     if (!getFile(pubspecPath).exists) {
-      newFile(pubspecPath, content: '''
+      newFile2(pubspecPath, '''
 name: tests
 version: 1.0.0
 environment:
@@ -218,8 +215,8 @@ environment:
       'generator': 'pub',
       'generatorVersion': '2.10.0'
     };
-    newFile('$testsPath/.dart_tool/package_config.json',
-        content: JsonEncoder.withIndent('  ').convert(packageConfigJson));
+    newFile2('$testsPath/.dart_tool/package_config.json',
+        JsonEncoder.withIndent('  ').convert(packageConfigJson));
     _analysisContextCollection = AnalysisContextCollectionImpl(
       includedPaths: [convertPath(homePath)],
       enableIndex: true,

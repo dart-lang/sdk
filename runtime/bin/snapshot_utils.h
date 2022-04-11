@@ -38,6 +38,13 @@ class Snapshot {
   // an ELF binary). May report false negatives.
   static bool IsAOTSnapshot(const char* snapshot_filename);
 
+#if defined(DART_TARGET_OS_MACOS)
+  static bool IsMachOFormattedBinary(const char* container_path);
+#endif
+#if defined(DART_TARGET_OS_WINDOWS)
+  static bool IsPEFormattedBinary(const char* container_path);
+#endif
+
   static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
   static AppSnapshot* TryReadAppSnapshot(
       const char* script_uri,
@@ -54,6 +61,15 @@ class Snapshot {
                                intptr_t isolate_instructions_size);
 
  private:
+#if defined(DART_TARGET_OS_MACOS)
+  static AppSnapshot* TryReadAppendedAppSnapshotElfFromMachO(
+      const char* container_path);
+#endif
+#if defined(DART_TARGET_OS_WINDOWS)
+  static AppSnapshot* TryReadAppendedAppSnapshotElfFromPE(
+      const char* container_path);
+#endif
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Snapshot);
 };

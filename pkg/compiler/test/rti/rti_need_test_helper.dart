@@ -46,8 +46,7 @@ class Tags {
   static const String dependencies = 'deps';
   static const String explicitTypeCheck = 'explicit';
   static const String implicitTypeCheck = 'implicit';
-  static const String directTypeArgumentTest = 'direct';
-  static const String indirectTypeArgumentTest = 'indirect';
+  static const String typeArgumentTest = 'test';
   static const String typeLiteral = 'exp';
   static const String selectors = 'selectors';
   static const String instantiationsNeedTypeArguments = 'needsInst';
@@ -109,12 +108,9 @@ abstract class ComputeValueMixin {
         .contains(frontendClass)) {
       features.add(Tags.typeLiteral);
     }
-    if (rtiNeedBuilder.typeVariableTestsForTesting.directClassTestsForTesting
+    if (rtiNeedBuilder.typeVariableTestsForTesting.classTestsForTesting
         .contains(frontendClass)) {
-      features.add(Tags.directTypeArgumentTest);
-    } else if (rtiNeedBuilder.typeVariableTestsForTesting.classTestsForTesting
-        .contains(frontendClass)) {
-      features.add(Tags.indirectTypeArgumentTest);
+      features.add(Tags.typeArgumentTest);
     }
     findChecks(features, Tags.explicitTypeCheck, frontendClass,
         rtiNeedBuilder.typeVariableTestsForTesting.explicitIsChecks);
@@ -139,14 +135,9 @@ abstract class ComputeValueMixin {
 
       void addFrontendData(Entity entity) {
         findDependencies(features, entity);
-        if (rtiNeedBuilder
-            .typeVariableTestsForTesting.directMethodTestsForTesting
+        if (rtiNeedBuilder.typeVariableTestsForTesting.methodTestsForTesting
             .contains(entity)) {
-          features.add(Tags.directTypeArgumentTest);
-        } else if (rtiNeedBuilder
-            .typeVariableTestsForTesting.methodTestsForTesting
-            .contains(entity)) {
-          features.add(Tags.indirectTypeArgumentTest);
+          features.add(Tags.typeArgumentTest);
         }
         findChecks(features, Tags.explicitTypeCheck, entity,
             rtiNeedBuilder.typeVariableTestsForTesting.explicitIsChecks);

@@ -151,6 +151,14 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
 /// known editors allow per-file configuration and it allows us to keep the
 /// settings cached, invalidated only when WorkspaceFolders change.
 class LspResourceClientConfiguration {
+  /// The maximum number of completions to return for completion requests by
+  /// default.
+  ///
+  /// This has been set fairly high initially to avoid changing behaviour too
+  /// much. The Dart-Code extension will override this default with its own
+  /// to gather feedback and then this can be adjusted accordingly.
+  static const defaultMaxCompletions = 2000;
+
   final Map<String, Object?> _settings;
   final LspResourceClientConfiguration? _fallback;
 
@@ -166,22 +174,35 @@ class LspResourceClientConfiguration {
       true;
 
   /// Whether to include Snippets in code completion results.
-  bool get enableSnippets =>
-      // TODO(dantup): Change this setting to `enableSnippets`
-      //    and default to `true`
-      //    and remove `initializeWithSnippetSupportAndPreviewFlag` from tests
-      //    once all snippets are implemented and VS Code has shipped a
-      //    version that maps `enableServerSnippets` to `enableSnippets` in
-      //    middleware to avoid dupes.
-      _settings['previewEnableSnippets'] as bool? ??
-      _fallback?.enableSnippets ??
-      false;
+  bool get enableSnippets {
+    // Versions of Dart-Code earlier than v3.36 (1 Mar 2022) send
+    // enableServerSnippets=false to opt-out of snippets. Later versions map
+    // this version to the documented 'enableSnippets' setting in middleware.
+    // Once the number of users on < 3.36 is insignificant, this check can be
+    // removed. At 24 Mar 2022, approx 9% of users are on < 3.36.
+    if (_settings['enableServerSnippets'] == false /* explicit false */) {
+      return false;
+    }
+
+    return _settings['enableSnippets'] as bool? ??
+        _fallback?.enableSnippets ??
+        true;
+  }
 
   /// The line length used when formatting documents.
   ///
   /// If null, the formatters default will be used.
   int? get lineLength =>
       _settings['lineLength'] as int? ?? _fallback?.lineLength;
+
+  /// Maximum number of CompletionItems per completion request.
+  ///
+  /// If more than this are available, the list is truncated and isIncomplete
+  /// is set to true.
+  int get maxCompletionItems =>
+      _settings['maxCompletionItems'] as int? ??
+      _fallback?.maxCompletionItems ??
+      defaultMaxCompletions;
 
   /// Whether to rename files when renaming classes inside them where the file
   /// and class name match.

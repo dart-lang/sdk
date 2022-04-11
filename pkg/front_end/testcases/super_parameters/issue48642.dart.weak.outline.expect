@@ -1,0 +1,165 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:69:38: Error: New expression is not a constant expression.
+//   const B7.foo({super.x}) : super(y: new Test.foo()); // Error.
+//                                      ^^^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:70:38: Error: New expression is not a constant expression.
+//   const B7.bar({super.x}) : super(y: new Test.bar()); // Error.
+//                                      ^^^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:78:36: Error: New expression is not a constant expression.
+//   const B8.foo(super.x) : super(y: new Test.foo()); // Error.
+//                                    ^^^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:79:36: Error: New expression is not a constant expression.
+//   const B8.bar(super.x) : super(y: new Test.bar()); // Error.
+//                                    ^^^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:87:35: Error: New expression is not a constant expression.
+//   const B9.foo({super.y}) : super(new Test.foo()); // Error.
+//                                   ^^^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:88:35: Error: New expression is not a constant expression.
+//   const B9.bar({super.y}) : super(new Test.bar()); // Error.
+//                                   ^^^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:70:42: Error: Cannot invoke a non-'const' factory where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const B7.bar({super.x}) : super(y: new Test.bar()); // Error.
+//                                          ^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:79:40: Error: Cannot invoke a non-'const' factory where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const B8.bar(super.x) : super(y: new Test.bar()); // Error.
+//                                        ^
+//
+// pkg/front_end/testcases/super_parameters/issue48642.dart:88:39: Error: Cannot invoke a non-'const' factory where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const B9.bar({super.y}) : super(new Test.bar()); // Error.
+//                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Test extends core::Object {
+  constructor foo() → self::Test
+    ;
+  static factory bar() → self::Test
+    ;
+}
+class A1 extends core::Object {
+  constructor •({dynamic x, dynamic y}) → self::A1
+    ;
+}
+class B1 extends self::A1 {
+  constructor foo({dynamic x}) → self::B1
+    ;
+  constructor bar({dynamic x}) → self::B1
+    ;
+}
+class A2 extends core::Object {
+  constructor •(dynamic x, {dynamic y}) → self::A2
+    ;
+}
+class B2 extends self::A2 {
+  constructor foo(dynamic x) → self::B2
+    ;
+  constructor bar(dynamic x) → self::B2
+    ;
+}
+class A3 extends core::Object {
+  constructor •(dynamic x, {dynamic y}) → self::A3
+    ;
+}
+class B3 extends self::A3 {
+  constructor foo({dynamic y}) → self::B3
+    ;
+  constructor bar({dynamic y}) → self::B3
+    ;
+}
+class A4 extends core::Object /*hasConstConstructor*/  {
+  const constructor •({dynamic x, dynamic y}) → self::A4
+    : super core::Object::•()
+    ;
+}
+class B4 extends self::A4 {
+  constructor foo({dynamic x}) → self::B4
+    ;
+  constructor bar({dynamic x}) → self::B4
+    ;
+}
+class A5 extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic x, {dynamic y}) → self::A5
+    : super core::Object::•()
+    ;
+}
+class B5 extends self::A5 {
+  constructor foo(dynamic x) → self::B5
+    ;
+  constructor bar(dynamic x) → self::B5
+    ;
+}
+class A6 extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic x, {dynamic y}) → self::A6
+    : super core::Object::•()
+    ;
+}
+class B6 extends self::A6 {
+  constructor foo({dynamic y}) → self::B6
+    ;
+  constructor bar({dynamic y}) → self::B6
+    ;
+}
+class A7 extends core::Object /*hasConstConstructor*/  {
+  const constructor •({dynamic x, dynamic y}) → self::A7
+    : super core::Object::•()
+    ;
+}
+class B7 extends self::A7 /*hasConstConstructor*/  {
+  const constructor foo({dynamic x}) → self::B7
+    : super self::A7::•(y: new self::Test::foo(), x: x)
+    ;
+  const constructor bar({dynamic x}) → self::B7
+    : super self::A7::•(y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:70:42: Error: Cannot invoke a non-'const' factory where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const B7.bar({super.x}) : super(y: new Test.bar()); // Error.
+                                         ^", x: x)
+    ;
+}
+class A8 extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic x, {dynamic y}) → self::A8
+    : super core::Object::•()
+    ;
+}
+class B8 extends self::A8 /*hasConstConstructor*/  {
+  const constructor foo(dynamic x) → self::B8
+    : super self::A8::•(x, y: new self::Test::foo())
+    ;
+  const constructor bar(dynamic x) → self::B8
+    : super self::A8::•(x, y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:79:40: Error: Cannot invoke a non-'const' factory where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const B8.bar(super.x) : super(y: new Test.bar()); // Error.
+                                       ^")
+    ;
+}
+class A9 extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic x, {dynamic y}) → self::A9
+    : super core::Object::•()
+    ;
+}
+class B9 extends self::A9 /*hasConstConstructor*/  {
+  const constructor foo({dynamic y}) → self::B9
+    : super self::A9::•(new self::Test::foo(), y: y)
+    ;
+  const constructor bar({dynamic y}) → self::B9
+    : super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:88:39: Error: Cannot invoke a non-'const' factory where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const B9.bar({super.y}) : super(new Test.bar()); // Error.
+                                      ^", y: y)
+    ;
+}
+static method main() → dynamic
+  ;

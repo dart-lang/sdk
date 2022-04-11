@@ -1205,9 +1205,9 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
   if (!ServiceIsolate::IsRunning()) {
     OS::PrintErr("  Start the vm-service to debug.\n");
   } else if (ServiceIsolate::server_address() == NULL) {
-    OS::PrintErr("  Connect to Observatory to debug.\n");
+    OS::PrintErr("  Connect to the Dart VM service to debug.\n");
   } else {
-    OS::PrintErr("  Connect to Observatory at %s to debug.\n",
+    OS::PrintErr("  Connect to the Dart VM service at %s to debug.\n",
                  ServiceIsolate::server_address());
   }
   const Error& err = Error::Handle(Thread::Current()->sticky_error());
@@ -4389,7 +4389,7 @@ static void GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
   bool include_code_samples =
       BoolParameter::Parse(js->LookupParam("_code"), false);
 #if defined(DEBUG)
-  IsolateGroup::Current()->heap()->CollectAllGarbage();
+  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
 #endif
   if (CheckNativeAllocationProfilerDisabled(thread, js)) {
     return;
@@ -4435,7 +4435,7 @@ static void GetAllocationProfileImpl(Thread* thread,
   }
   if (should_collect) {
     isolate_group->UpdateLastAllocationProfileGCTimestamp();
-    isolate_group->heap()->CollectAllGarbage();
+    isolate_group->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   isolate_group->class_table()->AllocationProfilePrintJSON(js, internal);
 }

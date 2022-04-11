@@ -75,7 +75,7 @@ var v = const A(null);
   }
 
   test_notGeneric_null_forNonNullable_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class C {
   final int f;
   const C(a) : f = a;

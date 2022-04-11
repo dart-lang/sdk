@@ -901,162 +901,6 @@ Stream<Event> onEvent(String streamId) => _getEventController(streamId).stream;
     types.where((t) => !t!.skip).forEach((t) => t!.generate(gen));
   }
 
-  void generateAsserts(DartGenerator gen) {
-    gen.out(r'''
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// This is a generated file.
-
-/// A library for asserting correct responses from the VM Service.
-
-import 'package:vm_service/vm_service.dart' as vms;
-
-dynamic assertNotNull(dynamic obj) {
-  if (obj == null) throw 'assert failed';
-  return obj;
-}
-
-bool assertBool(bool obj) {
-  return obj;
-}
-
-int assertInt(int obj) {
-  return obj;
-}
-
-double assertDouble(double obj) {
-  return obj;
-}
-
-dynamic assertDynamic(dynamic obj) {
-  assertNotNull(obj);
-  return obj;
-}
-
-List<dynamic> assertListOfDynamic(List<dynamic> list) {
-  return list;
-}
-
-List<int> assertListOfInt(List<int> list) {
-  for (int elem in list) {
-    assertInt(elem);
-  }
-  return list;
-}
-
-List<String> assertListOfString(List<String> list) {
-  for (String elem in list) {
-    assertString(elem);
-  }
-  return list;
-}
-
-List<vms.IsolateFlag> assertListOfIsolateFlag(List<vms.IsolateFlag> list) {
-  for (vms.IsolateFlag elem in list) {
-    assertIsolateFlag(elem);
-  }
-  return list;
-}
-
-String assertString(String obj) {
-  if (obj.isEmpty) throw 'expected non-zero length string';
-  return obj;
-}
-
-vms.Success assertSuccess(vms.Success obj) {
-  if (obj.type != 'Success') throw 'expected Success';
-  return obj;
-}
-
-/// Assert PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
-/// PauseException, Resume, BreakpointAdded, BreakpointResolved,
-/// BreakpointRemoved, and Inspect events.
-vms.Event assertDebugEvent(vms.Event event) {
-  assertEvent(event);
-  if (event.kind == vms.EventKind.kPauseBreakpoint ||
-      event.kind == vms.EventKind.kBreakpointAdded ||
-      event.kind == vms.EventKind.kBreakpointRemoved ||
-      event.kind == vms.EventKind.kBreakpointResolved) {
-    assertBreakpoint(event.breakpoint!);
-  }
-  if (event.kind == vms.EventKind.kPauseBreakpoint) {
-    for (vms.Breakpoint elem in event.pauseBreakpoints!) {
-      assertBreakpoint(elem);
-    }
-  }
-  if (event.kind == vms.EventKind.kPauseBreakpoint ||
-      event.kind == vms.EventKind.kPauseInterrupted ||
-      event.kind == vms.EventKind.kPauseException ||
-      event.kind == vms.EventKind.kResume) {
-    // For PauseInterrupted events, there will be no top frame if the isolate is
-    // idle (waiting in the message loop).
-    // For the Resume event, the top frame is provided at all times except for
-    // the initial resume event that is delivered when an isolate begins
-    // execution.
-    if (event.topFrame != null ||
-        (event.kind != vms.EventKind.kPauseInterrupted &&
-            event.kind != vms.EventKind.kResume)) {
-      assertFrame(event.topFrame!);
-    }
-  }
-  if (event.kind == vms.EventKind.kPauseException) {
-    assertInstanceRef(event.exception!);
-  }
-  if (event.kind == vms.EventKind.kPauseBreakpoint ||
-      event.kind == vms.EventKind.kPauseInterrupted) {
-    assertBool(event.atAsyncSuspension!);
-  }
-  if (event.kind == vms.EventKind.kInspect) {
-    assertInstanceRef(event.inspectee!);
-  }
-  return event;
-}
-
-/// Assert IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate,
-/// and ServiceExtensionAdded events.
-vms.Event assertIsolateEvent(vms.Event event) {
-  assertEvent(event);
-  if (event.kind == vms.EventKind.kServiceExtensionAdded) {
-    assertString(event.extensionRPC!);
-  }
-  return event;
-}
-
-''');
-    for (Enum e in enums) {
-      e.generateAssert(gen);
-    }
-    for (Type? type in types) {
-      if (type!.name == 'Success') continue;
-      type.generateAssert(gen);
-      if (type.name!.endsWith('Ref') ||
-          [
-            'BoundVariable',
-            'Breakpoint',
-            'ClassHeapStats',
-            'CodeRegion',
-            'ContextElement',
-            'CpuSample',
-            'Flag',
-            'Frame',
-            'InboundReference',
-            'LibraryDependency',
-            'Message',
-            'ProcessMemoryItem',
-            'ProfileFunction',
-            'ProcessMemoryItem',
-            'Protocol',
-            'RetainingObject',
-            'SourceReportRange',
-            'TimelineEvent',
-          ].contains(type.name)) {
-        type.generateListAssert(gen);
-      }
-    }
-  }
-
   void setDefaultValue(String typeName, String fieldName, String defaultValue) {
     types
         .firstWhere((t) => t!.name == typeName)!
@@ -1247,16 +1091,30 @@ class MemberType extends Member {
     // foo|bar[]|baz
     // (@Instance|Sentinel)[]
     bool loop = true;
+    bool nullable = false;
     this.isReturnType = isReturnType;
 
+    final unionTypes = <String>[];
     while (loop) {
       if (parser.consume('(')) {
         while (parser.peek()!.text != ')') {
-          // @Instance | Sentinel
-          parser.advance();
+          if (parser.consume('Null')) {
+            nullable = true;
+          } else {
+            // @Instance | Sentinel
+            final token = parser.advance()!;
+            if (token.isName) {
+              unionTypes.add(_coerceRefType(token.text)!);
+            }
+          }
         }
         parser.consume(')');
-        TypeRef ref = TypeRef('dynamic');
+        TypeRef ref;
+        if (unionTypes.length == 1) {
+          ref = TypeRef(unionTypes.first)..nullable = nullable;
+        } else {
+          ref = TypeRef('dynamic');
+        }
         while (parser.consume('[')) {
           parser.expect(']');
           ref.arrayDepth++;
@@ -1304,15 +1162,16 @@ class MemberType extends Member {
 class TypeRef {
   String? name;
   int arrayDepth = 0;
+  bool nullable = false;
   List<TypeRef>? genericTypes;
 
   TypeRef(this.name);
 
   String get ref {
     if (arrayDepth == 2) {
-      return 'List<List<${name}>>';
+      return 'List<List<${name}${nullable ? "?" : ""}>>';
     } else if (arrayDepth == 1) {
-      return 'List<${name}>';
+      return 'List<${name}${nullable ? "?" : ""}>';
     } else if (genericTypes != null) {
       return '$name<${genericTypes!.join(', ')}>';
     } else {
@@ -1324,13 +1183,15 @@ class TypeRef {
     assert(arrayDepth == 1);
 
     if (isListTypeSimple) {
-      return 'List<$name>';
+      return 'List<$name${nullable ? "?" : ""}>';
     } else {
       return 'List<String>';
     }
   }
 
-  String? get listTypeArg => arrayDepth == 2 ? 'List<$name>' : name;
+  String? get listTypeArg => arrayDepth == 2
+      ? 'List<$name${nullable ? "?" : ""}>'
+      : '$name${nullable ? "?" : ""}';
 
   bool get isArray => arrayDepth > 0;
 

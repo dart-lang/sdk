@@ -542,6 +542,20 @@ public interface AnalysisServer {
   public void edit_format(String file, int selectionOffset, int selectionLength, int lineLength, FormatConsumer consumer);
 
   /**
+   * {@code edit.formatIfEnabled}
+   *
+   * Format the contents of the files in one or more directories, but only if the analysis options
+   * file for those files has enabled the 'format' option.
+   *
+   * If any of the specified directories does not exist, that directory will be ignored. If any of
+   * the files that are eligible for being formatted cannot be formatted because of a syntax error in
+   * the file, that file will be ignored.
+   *
+   * @param directories The paths of the directories containing the code to be formatted.
+   */
+  public void edit_formatIfEnabled(List<String> directories, FormatIfEnabledConsumer consumer);
+
+  /**
    * {@code edit.getAssists}
    *
    * Return the set of assists that are available at the given location. An assist is distinguished

@@ -17,7 +17,7 @@ main() {
 class ImportDeferredLibraryWithLoadFunctionTest
     extends PubPackageResolutionTest {
   test_deferredImport_withLoadLibraryFunction() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void loadLibrary() {}
 void f() {}
 ''');
@@ -33,7 +33,7 @@ void main() {
   }
 
   test_deferredImport_withLoadLibraryFunction_hide() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void loadLibrary() {}
 void f() {}
 ''');
@@ -47,7 +47,7 @@ void main() {
   }
 
   test_deferredImport_withLoadLibraryFunction_hide2() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void loadLibrary() {}
 void f() {}
 void f2() {}
@@ -64,7 +64,7 @@ void main() {
   }
 
   test_deferredImport_withLoadLibraryFunction_show() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void loadLibrary() {}
 void f() {}
 ''');
@@ -78,7 +78,7 @@ void main() {
   }
 
   test_deferredImport_withoutLoadLibraryFunction() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void f() {}
 ''');
 
@@ -91,7 +91,7 @@ void main() {
   }
 
   test_nonDeferredImport_withLoadLibraryFunction() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void loadLibrary() {}
 void f() {}
 ''');

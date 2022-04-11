@@ -1052,7 +1052,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       var uri = Uri.parse(url!);
       await assertPreviewServerResponsive(
-          uri.replace(path: uri.path + '/').toString());
+          uri.replace(path: '${uri.path}/').toString());
     });
   }
 
@@ -2196,7 +2196,7 @@ dependencies:
           makePackageEntry(entry.key, entry.value)
       ]
     };
-    return JsonEncoder.withIndent('  ').convert(json) + '\n';
+    return '${JsonEncoder.withIndent('  ').convert(json)}\n';
   }
 
   ArgResults _parseArgs(List<String> args) {

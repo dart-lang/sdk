@@ -44,6 +44,7 @@ import 'language_version_test.dart' as language_version;
 import 'library_element_test.dart' as library_element;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
+import 'macro_test.dart' as macro;
 import 'metadata_test.dart' as metadata;
 import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
@@ -66,6 +67,7 @@ import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
+import 'variance_test.dart' as variance_test;
 import 'yield_statement_test.dart' as yield_statement;
 
 main() {
@@ -107,6 +109,7 @@ main() {
     library_element.main();
     local_function.main();
     local_variable.main();
+    macro.main();
     metadata.main();
     method_declaration.main();
     method_invocation.main();
@@ -128,6 +131,7 @@ main() {
     type_inference.main();
     type_literal.main();
     type_name.main();
+    variance_test.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'resolution');

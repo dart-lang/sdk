@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+import "dart:math" as math;
+import "dart:convert" as con;
+
+import "package:macro/macro.dart";
+import "dart:async";
+import "dart:math";
+import "dart:convert";
+
+@#C1
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ function(core::int i, FutureOr<math::Random>f, con::JsonCodec c) → void {
+  core::Type prefix = #C2;
+  core::Type prefix0 = #C3;
+  core::Type prefix10 = #C4;
+}
+
+constants  {
+  #C1 = mac::ImportConflictMacro {}
+  #C2 = TypeLiteralConstant(core::int*)
+  #C3 = TypeLiteralConstant(FutureOr<math::Random*>*)
+  #C4 = TypeLiteralConstant(con::JsonCodec*)
+}

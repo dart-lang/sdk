@@ -70,8 +70,10 @@ class Dart2jsTarget extends Target {
   final String name;
 
   final CompilerOptions? options;
+  final bool canPerformGlobalTransforms;
 
-  Dart2jsTarget(this.name, this.flags, {this.options});
+  Dart2jsTarget(this.name, this.flags,
+      {this.options, this.canPerformGlobalTransforms = true});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -157,8 +159,10 @@ class Dart2jsTarget extends Target {
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
-    transformMixins.transformLibraries(libraries);
-    logger?.call("Mixin transformations performed");
+    if (canPerformGlobalTransforms) {
+      transformMixins.transformLibraries(libraries);
+      logger?.call("Mixin transformations performed");
+    }
   }
 
   @override

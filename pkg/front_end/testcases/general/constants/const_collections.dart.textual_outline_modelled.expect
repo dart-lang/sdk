@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'dart:collection';
 
 List<String> get barAsGetter => const [...foo, "!"];
@@ -30,18 +29,19 @@ class CustomMap implements Map<String, String> {
   @override
   Map<RK, RV> cast<RK, RV>() => throw new UnimplementedError();
   @override
-  String operator [](Object key) => throw new UnimplementedError();
+  String operator [](Object? key) => throw new UnimplementedError();
   @override
   String putIfAbsent(String key, String ifAbsent()) =>
       throw new UnimplementedError();
   @override
-  String remove(Object key) => throw new UnimplementedError();
-  String update(String key, String update(String value), {String ifAbsent()}) =>
+  String remove(Object? key) => throw new UnimplementedError();
+  String update(String key, String update(String value),
+          {String ifAbsent()?}) =>
       throw new UnimplementedError();
   @override
-  bool containsKey(Object key) => throw new UnimplementedError();
+  bool containsKey(Object? key) => throw new UnimplementedError();
   @override
-  bool containsValue(Object value) => throw new UnimplementedError();
+  bool containsValue(Object? value) => throw new UnimplementedError();
   @override
   bool get isEmpty => throw new UnimplementedError();
   @override
@@ -75,6 +75,7 @@ class WithEquals {
   operator ==(Object o) {}
 }
 
+const List<String>? nullList = null;
 const List<String> bar = [...foo, "!"];
 const List<String> barWithCustomIterableSpread1 = [
   ...bar,
@@ -85,27 +86,26 @@ const List<String> barWithCustomIterableSpread3 = [...bar, ...customIterable];
 const List<String> barWithIntDynamicSpread = [...foo, ...fortyTwoAsDynamic];
 const List<String> barWithIntSpread = [...foo, ...fortyTwo];
 const List<String> barWithMapSpread = [...foo, ...quux];
-const List<String> barWithNullSpread = [...foo, ...nullList];
+const List<String> barWithNullSpread = [...foo, ...?nullList];
 const List<String> foo = ["hello", "world"];
 const List<String> listConcat = ["Hello"] + ["World"];
-const List<String> nullList = null;
+const Map<String, String>? nullMap = null;
 const Map<String, String> customMap = const CustomMap();
 const Map<String, String> mapWithCustomMap1 = {...const CustomMap()};
 const Map<String, String> mapWithCustomMap2 = {...CustomMap()};
 const Map<String, String> mapWithCustomMap3 = {...customMap};
 const Map<String, String> mapWithSetSpread = {...baz};
-const Map<String, String> nullMap = null;
 const Map<String, String> quux = {"hello": "world"};
 const Map<String, String> quuz = {...quux, "!": "bye!"};
 const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
-const Map<String, String> quuzWithNullSpread = {...quux, ...nullMap};
+const Map<String, String> quuzWithNullSpread = {...quux, ...?nullMap};
 const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
 const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
   const WithEquals(42): 42
 };
 const Map<int, int> mapWithDuplicates = {42: 42, 42: 42};
+const Set<String>? nullSet = null;
 const Set<String> baz = {"hello", "world"};
-const Set<String> nullSet = null;
 const Set<String> qux = {...baz, "!"};
 const Set<String> quxWithCustomIterableSpread1 = {
   ...baz,
@@ -115,7 +115,7 @@ const Set<String> quxWithCustomIterableSpread2 = {...baz, ...CustomIterable()};
 const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
 const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
 const Set<String> quxWithMapSpread = {...baz, ...quux};
-const Set<String> quxWithNullSpread = {...baz, ...nullSet};
+const Set<String> quxWithNullSpread = {...baz, ...?nullSet};
 const Set<dynamic> setWithDuplicates = {42, 42};
 const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
 const customIterable = const CustomIterable();

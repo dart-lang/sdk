@@ -13,7 +13,7 @@ A tag of 1 has no penalty on heap object access because removing the tag can be 
 Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment (address % double-word == 0), and objects in new-space are kept offset from double-word alignment (address % double-word == word). This allows checking an object's age without comparing to a boundary address, avoiding restrictions on heap placement and avoiding loading the boundary from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
 
 | Pointer    | Referent                                |
-| ---        | ---                                     |
+| ---------- | --------------------------------------- |
 | 0x00000002 | Small integer 1                         |
 | 0xFFFFFFFE | Small integer -1                        |
 | 0x00A00001 | Heap object at 0x00A00000, in old-space |
@@ -75,7 +75,7 @@ The Dart VM includes a sliding compactor. The forwarding table is compactly repr
 
 ## Concurrent Marking
 
-To reduce the time the mutator is paused for old-space GCs, we allow the mutator to continue running during most of the marking work. 
+To reduce the time the mutator is paused for old-space GCs, we allow the mutator to continue running during most of the marking work.
 
 ### Barrier
 
@@ -204,3 +204,39 @@ container <- AllocateObject
 <instructions that cannot directly call Dart functions>
 StoreInstanceField(container, value, NoBarrier)
 ```
+
+## Finalizers
+
+The GC is aware of two types of objects for the purposes of running finalizers.
+
+1) `FinalizerEntry`
+2) `Finalizer` (`FinalizerBase`, `_FinalizerImpl`, `_NativeFinalizer`)
+
+A `FinalizerEntry` contains the `value`, the optional `detach` key, and the `token`, a reference to the `finalizer`, and an `external_size`.
+An entry only holds on weakly to the value, detach key, and finalizer. (Similar to how `WeakReference` only holds on weakly to target).
+
+A `Finalizer` contains all entries, a list of entries of which the value is collected, and a reference to the isolate.
+
+When the value of an entry is GCed, the entry is added over to the collected list.
+If any entry is moved to the collected list, a message is sent that invokes the finalizer to call the callback on all entries in that list.
+For native finalizers, the native callback is immediately invoked in the GC.
+However, we still send a message to the native finalizer to clean up the entries from all entries and the detachments.
+
+When a finalizer is detached by the user, the entry token is set to the entry itself and is removed from the all entries set.
+This ensures that if the entry was already moved to the collected list, the finalizer is not executed.
+
+To speed up detaching, we use a weak map from detach keys to list of entries. This ensures entries can be GCed.
+
+Both the scavenger and marker can process finalizer entries in parallel.
+Parallel tasks use an atomic exchange on the head of the collected entries list, ensuring no entries get lost.
+Mutator threads are guaranteed to be stopped when processing entries.
+This ensures that we do not need barriers for moving entries into the finalizers collected list.
+Dart reads and replaces the collected entries list also with an atomic exchange, ensuring the GC doesn't run in between a load/store.
+
+When a finalizer gets posted a message to process finalized objects, it is being kept alive by the message.
+An alternative design would be to pre-allocate a `WeakReference` in the finalizer pointing to the finalizer, and send that itself.
+This would be at the cost of an extra object.
+
+If the finalizer object itself is GCed, the callback is not run for any of the attachments.
+
+On Isolate shutdown, native finalizers are run, but regular finalizers are not.

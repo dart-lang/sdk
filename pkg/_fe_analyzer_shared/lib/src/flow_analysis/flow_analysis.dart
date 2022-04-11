@@ -344,6 +344,28 @@ class DemoteViaExplicitWrite<Variable extends Object>
   String toString() => 'DemoteViaExplicitWrite($node)';
 }
 
+/// Information gathered by flow analysis about an argument to either
+/// `identical` or `operator ==`.
+class EqualityInfo<Variable extends Object, Type extends Object> {
+  /// The [ExpressionInfo] for the expression.  This is used to determine
+  /// whether the expression is a `null` literal.
+  final ExpressionInfo<Variable, Type>? _expressionInfo;
+
+  /// The type of the expression on the LHS of `==` or `!=`.
+  final Type _type;
+
+  /// If the LHS of `==` or `!=` is a reference, the thing being referred to.
+  /// Otherwise `null`.
+  final ReferenceWithType<Variable, Type>? _reference;
+
+  EqualityInfo._(this._expressionInfo, this._type, this._reference);
+
+  @override
+  String toString() =>
+      'EqualityInfo(expressionInfo: $_expressionInfo, type: $_type, reference: '
+      '$_reference)';
+}
+
 /// A collection of flow models representing the possible outcomes of evaluating
 /// an expression that are relevant to flow analysis.
 class ExpressionInfo<Variable extends Object, Type extends Object> {
@@ -479,14 +501,27 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [condition] should be the condition of the loop.
   void doStatement_end(Expression condition);
 
-  /// Call this method just after visiting a binary `==` or `!=` expression.
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
-      {bool notEqual = false});
+  /// Call this method just after visiting either side of a binary `==` or `!=`
+  /// expression, or an argument to `identical`.
+  ///
+  /// Returns information about the expression that will later be needed by
+  /// [equalityOperation_end].
+  ///
+  /// Note: the return type is nullable because legacy type promotion doesn't
+  /// need to record information about equality operands.
+  EqualityInfo<Variable, Type>? equalityOperand_end(
+      Expression operand, Type type);
 
-  /// Call this method just after visiting the left hand side of a binary `==`
-  /// or `!=` expression.
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType);
+  /// Call this method just after visiting the operands of a binary `==` or `!=`
+  /// expression, or an invocation of `identical`.
+  ///
+  /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
+  /// [equalityOperand_end].
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
+      {bool notEqual = false});
 
   /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
   /// return `null` if (a) no info is associated with [target], or (b) another
@@ -1106,21 +1141,24 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
-      {bool notEqual = false}) {
-    _wrap(
-        'equalityOp_end($wholeExpression, $rightOperand, $rightOperandType, '
-        'notEqual: $notEqual)',
-        () => _wrapped.equalityOp_end(
-            wholeExpression, rightOperand, rightOperandType,
-            notEqual: notEqual));
-  }
+  EqualityInfo<Variable, Type>? equalityOperand_end(
+          Expression operand, Type type) =>
+      _wrap('equalityOperand_end($operand, $type)',
+          () => _wrapped.equalityOperand_end(operand, type),
+          isQuery: true);
 
   @override
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
-    _wrap('equalityOp_rightBegin($leftOperand, $leftOperandType)',
-        () => _wrapped.equalityOp_rightBegin(leftOperand, leftOperandType));
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
+      {bool notEqual = false}) {
+    _wrap(
+        'equalityOperation_end($wholeExpression, $leftOperandInfo, '
+        '$rightOperandInfo, notEqual: $notEqual)',
+        () => _wrapped.equalityOperation_end(
+            wholeExpression, leftOperandInfo, rightOperandInfo,
+            notEqual: notEqual));
   }
 
   @override
@@ -3408,26 +3446,6 @@ class _DemotionResult<Type extends Object> {
   _DemotionResult(this.promotedTypes, this.nonPromotionHistory);
 }
 
-/// [_FlowContext] representing an equality comparison using `==` or `!=`.
-class _EqualityOpContext<Variable extends Object, Type extends Object>
-    extends _BranchContext<Variable, Type> {
-  /// The type of the expression on the LHS of `==` or `!=`.
-  final Type _leftOperandType;
-
-  /// If the LHS of `==` or `!=` is a reference, the thing being referred to.
-  /// Otherwise `null`.
-  final ReferenceWithType<Variable, Type>? _leftOperandReference;
-
-  _EqualityOpContext(ExpressionInfo<Variable, Type>? conditionInfo,
-      this._leftOperandType, this._leftOperandReference)
-      : super(conditionInfo);
-
-  @override
-  String toString() =>
-      '_EqualityOpContext(conditionInfo: $_conditionInfo, lhsType: '
-      '$_leftOperandType)';
-}
-
 class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
@@ -3464,8 +3482,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// If [_expressionVariable] is not `null`, the reference corresponding to it.
   /// Otherwise `null`.
   ReferenceWithType<Variable, Type>? _expressionReference;
-
-  int _functionNestingLevel = 0;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
@@ -3602,22 +3618,30 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
+  EqualityInfo<Variable, Type> equalityOperand_end(
+          Expression operand, Type type) =>
+      new EqualityInfo<Variable, Type>._(
+          _getExpressionInfo(operand), type, _getExpressionReference(operand));
+
+  @override
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
       {bool notEqual = false}) {
-    _EqualityOpContext<Variable, Type> context =
-        _stack.removeLast() as _EqualityOpContext<Variable, Type>;
-    ExpressionInfo<Variable, Type>? lhsInfo = context._conditionInfo;
+    // Note: leftOperandInfo and rightOperandInfo are nullable in the base class
+    // to account for the fact that legacy type promotion doesn't record
+    // information about legacy operands.  But since we are currently in full
+    // (post null safety) flow analysis logic, we can safely assume that they
+    // are not null.
     ReferenceWithType<Variable, Type>? lhsReference =
-        context._leftOperandReference;
-    Type leftOperandType = context._leftOperandType;
-    ExpressionInfo<Variable, Type>? rhsInfo = _getExpressionInfo(rightOperand);
+        leftOperandInfo!._reference;
     ReferenceWithType<Variable, Type>? rhsReference =
-        _getExpressionReference(rightOperand);
+        rightOperandInfo!._reference;
     TypeClassification leftOperandTypeClassification =
-        typeOperations.classifyType(leftOperandType);
+        typeOperations.classifyType(leftOperandInfo._type);
     TypeClassification rightOperandTypeClassification =
-        typeOperations.classifyType(rightOperandType);
+        typeOperations.classifyType(rightOperandInfo._type);
     if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
         rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
       booleanLiteral(wholeExpression, !notEqual);
@@ -3631,25 +3655,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // but weak mode it might produce an "equal" result.  We don't want flow
       // analysis behavior to depend on mode, so we conservatively assume that
       // either result is possible.
-    } else if (lhsInfo is _NullInfo<Variable, Type> && rhsReference != null) {
+    } else if (leftOperandInfo._expressionInfo is _NullInfo<Variable, Type> &&
+        rhsReference != null) {
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, rhsReference);
       _storeExpressionInfo(
           wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
-    } else if (rhsInfo is _NullInfo<Variable, Type> && lhsReference != null) {
+    } else if (rightOperandInfo._expressionInfo is _NullInfo<Variable, Type> &&
+        lhsReference != null) {
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, lhsReference);
       _storeExpressionInfo(
           wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
     }
-  }
-
-  @override
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
-    _stack.add(new _EqualityOpContext<Variable, Type>(
-        _getExpressionInfo(leftOperand),
-        leftOperandType,
-        _getExpressionReference(leftOperand)));
   }
 
   @override
@@ -3734,7 +3752,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    ++_functionNestingLevel;
     _current = _current.conservativeJoin(const [], info._written);
     _stack.add(new _FunctionExpressionContext(_current));
     _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
@@ -3743,8 +3760,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void functionExpression_end() {
-    --_functionNestingLevel;
-    assert(_functionNestingLevel >= 0);
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _FunctionExpressionContext<Variable, Type>;
     _current = context._previous;
@@ -4501,12 +4516,16 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void doStatement_end(Expression condition) {}
 
   @override
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
-      {bool notEqual = false}) {}
+  EqualityInfo<Variable, Type>? equalityOperand_end(
+          Expression operand, Type type) =>
+      null;
 
   @override
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {}
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
+      {bool notEqual = false}) {}
 
   @override
   ExpressionInfo<Variable, Type>? expressionInfoForTesting(Expression target) {

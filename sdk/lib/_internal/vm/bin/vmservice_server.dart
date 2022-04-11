@@ -4,10 +4,12 @@
 
 part of vmservice_io;
 
+// TODO(48602): deprecate SILENT_OBSERVATORY in favor of SILENT_VM_SERVICE
 bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
+bool silentVMService = bool.fromEnvironment('SILENT_VM_SERVICE');
 
 void serverPrint(String s) {
-  if (silentObservatory) {
+  if (silentObservatory || silentVMService) {
     // We've been requested to be silent.
     return;
   }
@@ -409,11 +411,8 @@ class Server {
       // Already running.
       return this;
     }
-
     // Startup HTTP server.
-    var pollError;
-    var pollStack;
-    Future<bool> poll() async {
+    Future<bool> startServer() async {
       try {
         var address;
         var addresses = await InternetAddress.lookup(_ip);
@@ -423,35 +422,29 @@ class Server {
           if (address.type == InternetAddressType.IPv4) break;
         }
         _server = await HttpServer.bind(address, _port);
-        return true;
       } catch (e, st) {
-        pollError = e;
-        pollStack = st;
-        return false;
+        if (_port != 0 && _enableServicePortFallback) {
+          serverPrint(
+              'Failed to bind Dart VM service HTTP server to port $_port. '
+              'Falling back to automatic port selection');
+          _port = 0;
+          return await startServer();
+        } else {
+          serverPrint('Could not start Dart VM service HTTP server:\n'
+              '$e\n$st');
+          _notifyServerState('');
+          onServerAddressChange(null);
+          return false;
+        }
       }
+      return true;
     }
 
-    // poll for the network for ~10 seconds.
-    int attempts = 0;
-    final maxAttempts = 10;
-    while (!await poll()) {
-      attempts++;
-      serverPrint('Observatory server failed to start after $attempts tries');
-      if (attempts > maxAttempts) {
-        serverPrint('Could not start Observatory HTTP server:\n'
-            '$pollError\n$pollStack\n');
-        _notifyServerState('');
-        onServerAddressChange(null);
-        return this;
-      }
-      if (_port != 0 && _enableServicePortFallback && attempts >= 3) {
-        _port = 0;
-        serverPrint('Falling back to automatic port selection');
-      }
-      await Future<void>.delayed(const Duration(seconds: 1));
+    if (!(await startServer())) {
+      return this;
     }
     if (_service.isExiting) {
-      serverPrint('Observatory HTTP server exiting before listening as '
+      serverPrint('Dart VM service HTTP server exiting before listening as '
           'vm service has received exit request\n');
       await shutdown(true);
       return this;
@@ -468,7 +461,7 @@ class Server {
   }
 
   Future<void> outputConnectionInformation() async {
-    serverPrint('Observatory listening on $serverAddress');
+    serverPrint('The Dart VM service is listening on $serverAddress');
     if (Platform.isFuchsia) {
       // Create a file with the port number.
       final tmp = Directory.systemTemp.path;
@@ -507,14 +500,14 @@ class Server {
     // Shutdown HTTP server and subscription.
     Uri oldServerAddress = serverAddress!;
     return cleanup(forced).then((_) {
-      serverPrint('Observatory no longer listening on $oldServerAddress');
+      serverPrint('Dart VM service no longer listening on $oldServerAddress');
       _server = null;
       _notifyServerState('');
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
-      serverPrint('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
+      serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
       _notifyServerState('');
       onServerAddressChange(null);
       return this;

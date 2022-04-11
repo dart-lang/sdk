@@ -168,10 +168,17 @@ config("dart_config") {
   # flags.
   if (is_win) {
     if (dart_debug) {
-      cflags = [
-        "/O${dart_debug_optimization_level}",
-        "/Oy-",
-      ]
+      if (is_clang && dart_debug_optimization_level != "2") {
+        cflags = [
+          "-d${dart_debug_optimization_level}",
+          "/Oy-",
+        ]
+      } else {
+        cflags = [
+          "/O${dart_debug_optimization_level}",
+          "/Oy-",
+        ]
+      }
     } else {
       cflags = [
         "/O2",
@@ -198,7 +205,11 @@ config("dart_config") {
       "-fno-exceptions",
     ]
     if (is_clang) {
-      cflags += [ "-Wimplicit-fallthrough" ]
+      cflags += [
+        "-Wimplicit-fallthrough",
+        "-fno-strict-vtable-pointers",  # Handle assignment updates vtable
+                                        # pointers.
+      ]
     } else {
       cflags += [ "-Wno-cast-function-type" ]
     }
@@ -242,6 +253,7 @@ config("dart_libfuzzer_config") {
 source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
+    "include/analyze_snapshot_api.h",
     "include/dart_api.h",
     "include/dart_api_dl.c",
     "include/dart_api_dl.h",
@@ -289,9 +301,11 @@ library_for_all_configs("libdart") {
   public_configs = [ ":dart_public_config" ]
   sources = [
     "$target_gen_dir/version.cc",
+    "include/analyze_snapshot_api.h",
     "include/dart_api.h",
     "include/dart_native_api.h",
     "include/dart_tools_api.h",
+    "vm/analyze_snapshot_api_impl.cc",
     "vm/dart_api_impl.cc",
     "vm/native_api_impl.cc",
     "vm/version.h",

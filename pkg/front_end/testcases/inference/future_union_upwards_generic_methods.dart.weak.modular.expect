@@ -30,7 +30,7 @@ class C extends self::A {
     : super self::A::•()
     ;
 }
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   asy::Future<self::B*>* b = asy::Future::value<self::B*>(new self::B::•());
   asy::Future<self::C*>* c = asy::Future::value<self::C*>(new self::C::•());
   core::List<asy::Future<self::A*>*>* lll = <asy::Future<self::A*>*>[b, c];

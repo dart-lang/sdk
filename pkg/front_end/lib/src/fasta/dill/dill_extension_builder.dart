@@ -3,20 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/extension_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
-import '../kernel/kernel_helper.dart';
-
 import '../scope.dart';
-
-import '../util/helpers.dart';
-
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
 
@@ -101,22 +94,14 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   List<TypeVariableBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
       _typeParameters =
-          computeTypeVariableBuilders(library, extension.typeParameters);
+          computeTypeVariableBuilders(libraryBuilder, extension.typeParameters);
     }
     return _typeParameters;
   }
 
   @override
   TypeBuilder get onType {
-    return _onType ??= library.loader.computeTypeBuilder(extension.onType);
-  }
-
-  @override
-  void buildOutlineExpressions(
-      LibraryBuilder library,
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    // TODO(johnniwinther): Remove the need for this.
+    return _onType ??=
+        libraryBuilder.loader.computeTypeBuilder(extension.onType);
   }
 }

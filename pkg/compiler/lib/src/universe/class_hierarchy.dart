@@ -15,11 +15,11 @@ import 'class_set.dart';
 abstract class ClassHierarchy {
   /// Deserializes a [ClassHierarchy] object from [source].
   factory ClassHierarchy.readFromDataSource(
-          DataSource source, CommonElements commonElements) =
+          DataSourceReader source, CommonElements commonElements) =
       ClassHierarchyImpl.readFromDataSource;
 
   /// Serializes this [ClassHierarchy] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
@@ -170,7 +170,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       this._commonElements, this._classHierarchyNodes, this._classSets);
 
   factory ClassHierarchyImpl.readFromDataSource(
-      DataSource source, CommonElements commonElements) {
+      DataSourceReader source, CommonElements commonElements) {
     source.begin(tag);
     Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
         ClassHierarchyNodesMap();
@@ -192,7 +192,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(_classSets.length);
     ClassHierarchyNode node =

@@ -1605,12 +1605,59 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a concrete class indirectly has
+  // the class `Enum` as a superinterface.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the concrete class `B`
+  // has `Enum` as a superinterface as a result of implementing `A`:
+  //
+  // ```dart
+  // abstract class A implements Enum {}
+  //
+  // class [!B!] implements A {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the implemented class isn't the class you intend to implement, then
+  // change it:
+  //
+  // ```dart
+  // abstract class A implements Enum {}
+  //
+  // class B implements C {}
+  //
+  // class C {}
+  // ```
+  //
+  // If the implemented class can be changed to not implement `Enum`, then do
+  // so:
+  //
+  // ```dart
+  // abstract class A {}
+  //
+  // class B implements A {}
+  // ```
+  //
+  // If the implemented class can't be changed to not implement `Enum`, then
+  // remove it from the `implements` clause:
+  //
+  // ```dart
+  // abstract class A implements Enum {}
+  //
+  // class B {}
+  // ```
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
       CompileTimeErrorCode(
     'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
     "Concrete classes can't have 'Enum' as a superinterface.",
     correctionMessage:
         "Try specifying a different interface, or remove it from the list.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3767,11 +3814,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an enum constant is being
+  // created using either a factory constructor or a generative constructor
+  // that isn't marked as being `const`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the enum constant `e`
+  // is being initialized by a factory constructor:
+  //
+  // ```dart
+  // enum E {
+  //   [!e!]();
+  //
+  //   factory E() => e;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Use a generative constructor marked as `const`:
+  //
+  // ```dart
+  // enum E {
+  //   e._();
+  //
+  //   factory E() => e;
+  //
+  //   const E._();
+  // }
+  // ```
   static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
-    "The invoked constructor isn't a const constructor.",
-    correctionMessage: "Try invoking a const generative constructor.",
+    "The invoked constructor isn't a 'const' constructor.",
+    correctionMessage: "Try invoking a 'const' generative constructor.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode
@@ -3781,11 +3861,56 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try using different bounds for type parameters.",
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a mixin that's applied to an
+  // enum declares one or more instance variables. This isn't allowed because
+  // the enum constants are constant, and there isn't any way for the
+  // constructor in the enum to initialize any of the mixin's fields.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the mixin `M` defines
+  // the instance field `x`:
+  //
+  // ```dart
+  // mixin M {
+  //   int x = 0;
+  // }
+  //
+  // enum E with [!M!] {
+  //   a
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you need to apply the mixin, then change all instance fields into
+  // getter and setter pairs and implement them in the enum if necessary:
+  //
+  // ```dart
+  // mixin M {
+  //   int get x => 0;
+  // }
+  //
+  // enum E with M {
+  //   a
+  // }
+  // ```
+  //
+  // If you don't need to apply the mixin, then remove it:
+  //
+  // ```dart
+  // enum E {
+  //   a
+  // }
+  // ```
   static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
       CompileTimeErrorCode(
     'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
     "Mixins applied to enums can't have instance variables.",
     correctionMessage: "Try replacing the instance variables with getters.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -3793,18 +3918,70 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the abstract method
    * 1: the name of the enclosing enum
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member of an enum is found
+  // that doesn't have a concrete implementation. Enums aren't allowed to
+  // contain abstract members.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `m` is an abstract
+  // method and `E` is an enum:
+  //
+  // ```dart
+  // enum E {
+  //   e;
+  //
+  //   [!void m();!]
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Provide an implementation for the member:
+  //
+  // ```dart
+  // enum E {
+  //   e;
+  //
+  //   void m() {}
+  // }
+  // ```
   static const CompileTimeErrorCode ENUM_WITH_ABSTRACT_MEMBER =
       CompileTimeErrorCode(
     'ENUM_WITH_ABSTRACT_MEMBER',
     "'{0}' must have a method body because '{1}' is an enum.",
     correctionMessage: "Try adding a body to '{0}'.",
+    hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an enum is declared to have the
+  // name `values`. This isn't allowed because the enum has an implicit static
+  // field named `values`, and the two would collide.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because there's an enum
+  // declaration that has the name `values`:
+  //
+  // ```dart
+  // enum [!values!] {
+  //   c
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename the enum to something other than `values`.
   static const CompileTimeErrorCode ENUM_WITH_NAME_VALUES =
       CompileTimeErrorCode(
     'ENUM_WITH_NAME_VALUES',
     "The name 'values' is not a valid name for an enum.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -5943,12 +6120,74 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of member that cannot be declared
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when either an enum declaration, a
+  // class that implements `Enum`, or a mixin with a superclass constraint of
+  // `Enum`, declares or inherits a concrete instance member named either
+  // `index`, `hashCode`, or `==`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the enum `E` declares
+  // an instance getter named `index`:
+  //
+  // ```dart
+  // enum E {
+  //   v;
+  //
+  //   int get [!index!] => 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the class `C`, which
+  // implements `Enum`, declares an instance field named `hashCode`:
+  //
+  // ```dart
+  // abstract class C implements Enum {
+  //   int [!hashCode!] = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the class `C`, which
+  // indirectly implements `Enum` through the class `A`, declares an instance
+  // getter named `hashCode`:
+  //
+  // ```dart
+  // abstract class A implements Enum {}
+  //
+  // abstract class C implements A {
+  //   int get [!hashCode!] => 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the mixin `M`, which
+  // has `Enum` in the `on` clause, declares an explicit operator named `==`:
+  //
+  // ```dart
+  // mixin M on Enum {
+  //   bool operator [!==!](Object? other) => false;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename the conflicting member:
+  //
+  // ```dart
+  // enum E {
+  //   v;
+  //
+  //   int get getIndex => 0;
+  // }
+  // ```
   static const CompileTimeErrorCode ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION =
       CompileTimeErrorCode(
     'ILLEGAL_CONCRETE_ENUM_MEMBER',
     "A concrete instance member named '{0}' can't be declared in a class that "
         "implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
   );
 
@@ -5963,15 +6202,54 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when either a class that implements
+  // `Enum` or a mixin with a superclass constraint of `Enum` has an instance
+  // member named `values`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the class `C`, which
+  // implements `Enum`, declares an instance field named `values`:
+  //
+  // ```dart
+  // abstract class C implements Enum {
+  //   int get [!values!] => 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the class `B`, which
+  // implements `Enum`, inherits an instance method named `values` from `A`:
+  //
+  // ```dart
+  // abstract class A {
+  //   int values() => 0;
+  // }
+  //
+  // abstract class [!B!] extends A implements Enum {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the name of the conflicting member:
+  //
+  // ```dart
+  // abstract class C implements Enum {
+  //   int get value => 0;
+  // }
+  // ```
   static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_DECLARATION =
       CompileTimeErrorCode(
     'ILLEGAL_ENUM_VALUES',
     "An instance member named 'values' can't be declared in a class that "
         "implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
   );
 
@@ -5985,6 +6263,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "An instance member named 'values' can't be inherited from '{0}' in a "
         "class that implements 'Enum'.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
     uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
   );
 
@@ -6209,13 +6488,93 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the superclass
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor implicitly
+  // invokes the unnamed constructor from the superclass, the unnamed
+  // constructor of the superclass has a required parameter, and there's no
+  // super parameter corresponding to the required parameter.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the unnamed
+  // constructor in the class `B` implicitly invokes the unnamed constructor in
+  // the class `A`, but the constructor in `A` has a required positional
+  // parameter named `x`:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   [!B!]();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the unnamed
+  // constructor in the class `B` implicitly invokes the unnamed constructor in
+  // the class `A`, but the constructor in `A` has a required named parameter
+  // named `x`:
+  //
+  // ```dart
+  // class A {
+  //   A({required int x});
+  // }
+  //
+  // class B extends A {
+  //   [!B!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you can add a parameter to the constructor in the subclass, then add a
+  // super parameter corresponding to the required parameter in the superclass'
+  // constructor. The new parameter can either be required:
+  //
+  // ```dart
+  // class A {
+  //   A({required int x});
+  // }
+  //
+  // class B extends A {
+  //   B({required super.x});
+  // }
+  // ```
+  //
+  // or it can be optional:
+  //
+  // ```dart
+  // class A {
+  //   A({required int x});
+  // }
+  //
+  // class B extends A {
+  //   B({super.x = 0});
+  // }
+  // ```
+  //
+  // If you can't add a parameter to the constructor in the subclass, then add
+  // an explicit super constructor invocation with the required argument:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B() : super(0);
+  // }
+  // ```
   static const CompileTimeErrorCode
       IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS = CompileTimeErrorCode(
     'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
     "The implicitly invoked unnamed constructor from '{0}' has required "
         "parameters.",
     correctionMessage:
-        "Try adding an explicit super initializer with the required arguments.",
+        "Try adding an explicit super parameter with the required arguments.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -7860,11 +8219,63 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a generative constructor
+  // defined on an enum is used anywhere other than to create one of the enum
+  // constants or as the target of a redirection from another constructor in
+  // the same enum.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor for
+  // `E` is being used to create an instance in the function `f`:
+  //
+  // ```dart
+  // enum E {
+  //   a(0);
+  //
+  //   const E(int x);
+  // }
+  //
+  // E f() => const [!E!](2);
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If there's an enum constant with the same value, or if you add such a
+  // constant, then reference the constant directly:
+  //
+  // ```dart
+  // enum E {
+  //   a(0), b(2);
+  //
+  //   const E(int x);
+  // }
+  //
+  // E f() => E.b;
+  // ```
+  //
+  // If you need to use a constructor invocation, then use a factory
+  // constructor:
+  //
+  // ```dart
+  // enum E {
+  //   a(0);
+  //
+  //   const E(int x);
+  //
+  //   factory E.c(int x) => a;
+  // }
+  //
+  // E f() => E.c(2);
+  // ```
   static const CompileTimeErrorCode
       INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR = CompileTimeErrorCode(
     'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
     "Generative enum constructors can only be used as targets of redirection.",
-    correctionMessage: "Try using a factory constructor, or an enum constant.",
+    correctionMessage: "Try using an enum constant, or a factory constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -7909,14 +8320,94 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the super modifier
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a super parameter is used
+  // anywhere other than a non-redirecting generative constructor.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the super parameter
+  // `x` is in a redirecting generative constructor:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B.b([!super!].x) : this._();
+  //   B._() : super(0);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the super parameter
+  // `x` isn't in a generative constructor:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class C extends A {
+  //   factory C.c([!super!].x) => C._();
+  //   C._() : super(0);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the super parameter
+  // `x` is in a method:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class D extends A {
+  //   D() : super(0);
+  //
+  //   void m([!super!].x) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function containing the super parameter can be changed to be a
+  // non-redirecting generative constructor, then do so:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B.b(super.x);
+  // }
+  // ```
+  //
+  // If the function containing the super parameter can't be changed to be a
+  // non-redirecting generative constructor, then remove the `super`:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class D extends A {
+  //   D() : super(0);
+  //
+  //   void m(int x) {}
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_SUPER_FORMAL_PARAMETER_LOCATION =
       CompileTimeErrorCode(
     'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
-    "Super-formal parameters can only be used in non-redirecting generative "
+    "Super parameters can only be used in non-redirecting generative "
         "constructors.",
     correctionMessage:
         "Try removing the 'super' modifier, or changing the constructor to be "
         "non-redirecting and generative.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -10682,11 +11173,41 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an enum declaration contains a
+  // generative constructor that isn't marked as `const`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor in `E`
+  // isn't marked as being `const`:
+  //
+  // ```dart
+  // enum E {
+  //   e;
+  //
+  //   [!E!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add the `const` keyword before the constructor:
+  //
+  // ```dart
+  // enum E {
+  //   e;
+  //
+  //   const E();
+  // }
+  // ```
   static const CompileTimeErrorCode NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR =
       CompileTimeErrorCode(
     'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
     "Generative enum constructors must be 'const'.",
     correctionMessage: "Try adding the keyword 'const'.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -10704,11 +11225,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an instance field in an enum
+  // isn't marked as `final`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field `f` isn't a
+  // final field:
+  //
+  // ```dart
+  // enum E {
+  //   c;
+  //
+  //   int [!f!] = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field must be defined for the enum, then mark the field as being
+  // `final`:
+  //
+  // ```dart
+  // enum E {
+  //   c;
+  //
+  //   final int f = 0;
+  // }
+  // ```
+  //
+  // If the field can be removed, then remove it:
+  //
+  // ```dart
+  // enum E {
+  //   c
+  // }
+  // ```
   static const CompileTimeErrorCode NON_FINAL_FIELD_IN_ENUM =
       CompileTimeErrorCode(
     'NON_FINAL_FIELD_IN_ENUM',
-    "Enum can only declare final fields.",
+    "Enums can only declare final fields.",
     correctionMessage: "Try making the field final.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -12165,15 +12725,74 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when some, but not all, of the
+  // positional parameters provided to the constructor of the superclass are
+  // using a super parameter.
+  //
+  // Positional super parameters are associated with positional parameters in
+  // the super constructor by their index. That is, the first super parameter
+  // is associated with the first positional parameter in the super
+  // constructor, the second with the second, and so on. The same is true for
+  // positional arguments. Having both positional super parameters and
+  // positional arguments means that there are two values associated with the
+  // same parameter in the superclass's constructor, and hence isn't allowed.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor
+  // `B.new` is using a super parameter to pass one of the required positional
+  // parameters to the super constructor in `A`, but is explicitly passing the
+  // other in the super constructor invocation:
+  //
+  // ```dart
+  // class A {
+  //   A(int x, int y);
+  // }
+  //
+  // class B extends A {
+  //   B(int x, super.[!y!]) : super(x);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If all the positional parameters can be super parameters, then convert the
+  // normal positional parameters to be super parameters:
+  //
+  // ```dart
+  // class A {
+  //   A(int x, int y);
+  // }
+  //
+  // class B extends A {
+  //   B(super.x, super.y);
+  // }
+  // ```
+  //
+  // If some positional parameters can't be super parameters, then convert the
+  // super parameters to be normal parameters:
+  //
+  // ```dart
+  // class A {
+  //   A(int x, int y);
+  // }
+  //
+  // class B extends A {
+  //   B(int x, int y) : super(x, y);
+  // }
+  // ```
   static const CompileTimeErrorCode
       POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT =
       CompileTimeErrorCode(
     'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-    "Positional super-formal parameters can't be used when the "
-        "super-constructor invocation has a positional argument.",
+    "Positional super parameters can't be used when the super constructor "
+        "invocation has a positional argument.",
     correctionMessage:
-        "Try removing the 'super' modifier, or changing the super-constructor "
-        "to use named parameters.",
+        "Try making all the positional parameters passed to the super "
+        "constructor be either all super parameters or all normal parameters.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -13832,38 +14451,240 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the type of super-parameter
    * 1: the type of associated super-constructor parameter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of a super parameter
+  // isn't a subtype of the corresponding parameter from the super constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type of the super
+  // parameter `x` in the constructor for `B` isn't a subtype of the parameter
+  // `x` in the constructor for `A`:
+  //
+  // ```dart
+  // class A {
+  //   A(num x);
+  // }
+  //
+  // class B extends A {
+  //   B(String super.[!x!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the super parameter can be the same as the parameter from
+  // the super constructor, then remove the type annotation from the super
+  // parameter (if the type is implicit, it is inferred from the type in the
+  // super constructor):
+  //
+  // ```dart
+  // class A {
+  //   A(num x);
+  // }
+  //
+  // class B extends A {
+  //   B(super.x);
+  // }
+  // ```
+  //
+  // If the type of the super parameter can be a subtype of the corresponding
+  // parameter's type, then change the type of the super parameter:
+  //
+  // ```dart
+  // class A {
+  //   A(num x);
+  // }
+  //
+  // class B extends A {
+  //   B(int super.x);
+  // }
+  // ```
+  //
+  // If the type of the super parameter can't be changed, then use a normal
+  // parameter instead of a super parameter:
+  //
+  // ```dart
+  // class A {
+  //   A(num x);
+  // }
+  //
+  // class B extends A {
+  //   B(String x) : super(x.length);
+  // }
+  // ```
   static const CompileTimeErrorCode
       SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED =
       CompileTimeErrorCode(
     'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
-    "The type '{0}' of this parameter is not a subtype of the type '{1}' of "
-        "the associated super-constructor parameter.",
+    "The type '{0}' of this parameter isn't a subtype of the type '{1}' of the "
+        "associated super constructor parameter.",
     correctionMessage:
         "Try removing the explicit type annotation from the parameter.",
+    hasPublishedDocs: true,
   );
 
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there's a named super parameter
+  // in a constructor and the implicitly or explicitly invoked super
+  // constructor doesn't have a named parameter with the same name.
+  //
+  // Named super parameters are associated by name with named parameters in the
+  // super constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor in `A`
+  // doesn't have a parameter named `y`:
+  //
+  // ```dart
+  // class A {
+  //   A({int? x});
+  // }
+  //
+  // class B extends A {
+  //   B({super.[!y!]});
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the super parameter should be associated with an existing parameter
+  // from the super constructor, then change the name to match the name of the
+  // corresponding parameter:
+  //
+  // ```dart
+  // class A {
+  //   A({int? x});
+  // }
+  //
+  // class B extends A {
+  //   B({super.x});
+  // }
+  // ```
+  //
+  // If the super parameter should be associated with a parameter that hasn't
+  // yet been added to the super constructor, then add it:
+  //
+  // ```dart
+  // class A {
+  //   A({int? x, int? y});
+  // }
+  //
+  // class B extends A {
+  //   B({super.y});
+  // }
+  // ```
+  //
+  // If the super parameter doesn't correspond to a named parameter from the
+  // super constructor, then change it to be a normal parameter:
+  //
+  // ```dart
+  // class A {
+  //   A({int? x});
+  // }
+  //
+  // class B extends A {
+  //   B({int? y});
+  // }
+  // ```
   static const CompileTimeErrorCode
       SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED = CompileTimeErrorCode(
     'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
-    "No associated named super-constructor parameter.",
-    correctionMessage: "Try changing the name to the name of an existing named "
-        "super-constructor parameter, or creating such named parameter.",
+    "No associated named super constructor parameter.",
+    correctionMessage:
+        "Try changing the name to the name of an existing named super "
+        "constructor parameter, or creating such named parameter.",
+    hasPublishedDocs: true,
   );
 
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there's a positional super
+  // parameter in a constructor and the implicitly or explicitly invoked super
+  // constructor doesn't have a positional parameter at the corresponding
+  // index.
+  //
+  // Positional super parameters are associated with positional parameters in
+  // the super constructor by their index. That is, the first super parameter
+  // is associated with the first positional parameter in the super
+  // constructor, the second with the second, and so on.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the constructor in `B`
+  // has a positional super parameter, but there's no positional parameter in
+  // the super constructor in `A`:
+  //
+  // ```dart
+  // class A {
+  //   A({int? x});
+  // }
+  //
+  // class B extends A {
+  //   B(super.[!x!]);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the constructor in `B`
+  // has two positional super parameters, but there's only one positional
+  // parameter in the super constructor in `A`, which means that there's no
+  // corresponding parameter for `y`:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B(super.x, super.[!y!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the super constructor should have a positional parameter corresponding
+  // to the super parameter, then update the super constructor appropriately:
+  //
+  // ```dart
+  // class A {
+  //   A(int x, int y);
+  // }
+  //
+  // class B extends A {
+  //   B(super.x, super.y);
+  // }
+  // ```
+  //
+  // If the super constructor is correct, or can't be changed, then convert the
+  // super parameter into a normal parameter:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B(super.x, int y);
+  // }
+  // ```
   static const CompileTimeErrorCode
       SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL =
       CompileTimeErrorCode(
     'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
-    "No associated positional super-constructor parameter.",
+    "No associated positional super constructor parameter.",
     correctionMessage:
-        "Try using named parameters instead, or adding more positional "
-        "parameters to the super-constructor.",
+        "Try using a normal parameter, or adding more positional parameters to "
+        "the super constructor.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -13923,11 +14744,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the initializer list in a
+  // constructor in an enum contains an invocation of a super constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor in
+  // the enum `E` has a super constructor invocation in the initializer list:
+  //
+  // ```dart
+  // enum E {
+  //   e;
+  //
+  //   const E() : [!super!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the super constructor invocation:
+  //
+  // ```dart
+  // enum E {
+  //   e;
+  //
+  //   const E();
+  // }
+  // ```
   static const CompileTimeErrorCode SUPER_IN_ENUM_CONSTRUCTOR =
       CompileTimeErrorCode(
     'SUPER_IN_ENUM_CONSTRUCTOR',
     "The enum constructor can't have a 'super' initializer.",
     correctionMessage: "Try removing the 'super' invocation.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -14991,6 +15845,88 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the constructor that is undefined
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the constructor invoked to
+  // initialize an enum constant doesn't exist.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the enum constant `c`
+  // is being initialized by the unnamed constructor, but there's no unnamed
+  // constructor defined in `E`:
+  //
+  // ```dart
+  // enum E {
+  //   [!c!]();
+  //
+  //   const E.x();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the enum constant `c`
+  // is being initialized by the constructor named `x`, but there's no
+  // constructor named `x` defined in `E`:
+  //
+  // ```dart
+  // enum E {
+  //   c.[!x!]();
+  //
+  //   const E.y();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the enum constant is being initialized by the unnamed constructor and
+  // one of the named constructors should have been used, then add the name of
+  // the constructor:
+  //
+  // ```dart
+  // enum E {
+  //   c.x();
+  //
+  //   const E.x();
+  // }
+  // ```
+  //
+  // If the enum constant is being initialized by the unnamed constructor and
+  // none of the named constructors are appropriate, then define the unnamed
+  // constructor:
+  //
+  // ```dart
+  // enum E {
+  //   c();
+  //
+  //   const E();
+  // }
+  // ```
+  //
+  // If the enum constant is being initialized by a named constructor and one
+  // of the existing constructors should have been used, then change the name
+  // of the constructor being invoked (or remove it if the unnamed constructor
+  // should be used):
+  //
+  // ```dart
+  // enum E {
+  //   c.y();
+  //
+  //   const E();
+  //   const E.y();
+  // }
+  // ```
+  //
+  // If the enum constant is being initialized by a named constructor and none
+  // of the existing constructors should have been used, then define a
+  // constructor with the name that was used:
+  //
+  // ```dart
+  // enum E {
+  //   c.x();
+  //
+  //   const E.x();
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_NAMED =
       CompileTimeErrorCode(
     'UNDEFINED_ENUM_CONSTRUCTOR',
@@ -14998,6 +15934,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try correcting the name to the name of an existing constructor, or "
         "defining constructor with the name '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
   );
 
@@ -15008,6 +15945,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try adding the name of an existing constructor, or defining an "
         "unnamed constructor.",
+    hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
   );
 
@@ -16240,11 +17178,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an enum declaration defines a
+  // member named `values`, whether the member is an enum constant, an instance
+  // member, or a static member.
+  //
+  // Any such member conflicts with the implicit declaration of the static
+  // getter named `values` that returns a list containing all the enum
+  // constants.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the enum `E` defines
+  // an instance member named `values`:
+  //
+  // ```dart
+  // enum E {
+  //   v;
+  //   void [!values!]() {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the name of the conflicting member:
+  //
+  // ```dart
+  // enum E {
+  //   v;
+  //   void getValues() {}
+  // }
+  // ```
   static const CompileTimeErrorCode VALUES_DECLARATION_IN_ENUM =
       CompileTimeErrorCode(
     'VALUES_DECLARATION_IN_ENUM',
     "A member named 'values' can't be declared in an enum.",
     correctionMessage: "Try using a different name.",
+    hasPublishedDocs: true,
   );
 
   /**
@@ -16562,12 +17533,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the number of type parameters that were declared
    * 1: the number of type arguments provided
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an enum constant in an enum
+  // that has type parameters is instantiated and type arguments are provided,
+  // but the number of type arguments isn't the same as the number of type
+  // parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the enum constant `c`
+  // provides one type argument even though the enum `E` is declared to have
+  // two type parameters:
+  //
+  // ```dart
+  // enum E<T, U> {
+  //   c[!<int>!]()
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the number of type parameters is correct, then change the number of
+  // type arguments to match the number of type parameters:
+  //
+  // ```dart
+  // enum E<T, U> {
+  //   c<int, String>()
+  // }
+  // ```
+  //
+  // If the number of type arguments is correct, then change the number of type
+  // parameters to match the number of type arguments:
+  //
+  // ```dart
+  // enum E<T> {
+  //   c<int>()
+  // }
+  // ```
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
       CompileTimeErrorCode(
     'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
     "The enum is declared with {0} type parameters, but {1} type arguments "
         "were given.",
     correctionMessage: "Try adjusting the number of type arguments.",
+    hasPublishedDocs: true,
   );
 
   /**

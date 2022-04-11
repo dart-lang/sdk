@@ -7,7 +7,7 @@ import "dart:async";
 
 static field asy::Future<core::int*>* futureInt = null;
 static field () →* asy::Future<core::int*>* f = () → asy::Future<core::int*>* => self::futureInt;
-static field () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* async => self::futureInt;
+static field () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* async /* futureValueType= core::int* */ => self::futureInt;
 static method main() → dynamic {
   self::f;
   self::g;

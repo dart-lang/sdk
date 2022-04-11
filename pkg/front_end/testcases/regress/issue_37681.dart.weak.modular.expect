@@ -18,8 +18,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method main() → dynamic async {
-  function f_async() → core::int* async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
+  function f_async() → core::int* async /* futureValueType= core::int* */ {
     return 42;
   }
   core::print(await f_async(){() →* core::int*});

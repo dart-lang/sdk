@@ -114,6 +114,21 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               response.serialize(serializer);
               sendResult(serializer);
               break;
+            case MessageType.inferTypeRequest:
+              InferTypeRequest request =
+                  new InferTypeRequest.deserialize(deserializer, zoneId);
+              TypeAnnotationImpl inferredType =
+                  await (request.typeInferrer.instance as TypeInferrer)
+                      .inferType(request.omittedType) as TypeAnnotationImpl;
+              SerializableResponse response = new SerializableResponse(
+                  response: inferredType,
+                  requestId: request.id,
+                  responseType: MessageType.remoteInstance,
+                  serializationZoneId: zoneId);
+              Serializer serializer = serializerFactory();
+              response.serialize(serializer);
+              sendResult(serializer);
+              break;
             case MessageType.isExactlyTypeRequest:
               IsExactlyTypeRequest request =
                   new IsExactlyTypeRequest.deserialize(deserializer, zoneId);
@@ -147,15 +162,35 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
             case MessageType.declarationOfRequest:
               DeclarationOfRequest request =
                   new DeclarationOfRequest.deserialize(deserializer, zoneId);
-              TypeDeclarationResolver resolver = request
-                  .typeDeclarationResolver.instance as TypeDeclarationResolver;
-              SerializableResponse response = new SerializableResponse(
-                  requestId: request.id,
-                  responseType: MessageType.remoteInstance,
-                  response: (await resolver.declarationOf(request.identifier)
-                      // TODO: Consider refactoring to avoid the need for this.
-                      as TypeDeclarationImpl),
-                  serializationZoneId: zoneId);
+              SerializableResponse response;
+              try {
+                TypeDeclarationResolver resolver = request
+                    .typeDeclarationResolver
+                    .instance as TypeDeclarationResolver;
+                response = new SerializableResponse(
+                    requestId: request.id,
+                    responseType: MessageType.remoteInstance,
+                    response: (await resolver.declarationOf(request.identifier)
+                        // TODO: Consider refactoring to avoid the need for
+                        //  this.
+                        as TypeDeclarationImpl),
+                    serializationZoneId: zoneId);
+              } on ArgumentError catch (error) {
+                response = new SerializableResponse(
+                    error: '$error',
+                    requestId: request.id,
+                    responseType: MessageType.argumentError,
+                    serializationZoneId: zoneId);
+              } catch (error, stackTrace) {
+                // TODO(johnniwinther,jakemac): How should we handle errors in
+                // general?
+                response = new SerializableResponse(
+                    error: '$error',
+                    stackTrace: '$stackTrace',
+                    requestId: request.id,
+                    responseType: MessageType.error,
+                    serializationZoneId: zoneId);
+              }
               Serializer serializer = serializerFactory();
               response.serialize(serializer);
               sendResult(serializer);
@@ -278,8 +313,11 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
 
   /// These calls are handled by the higher level executor.
   @override
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-          ResolvedIdentifier Function(Identifier) resolveIdentifier) =>
+  String buildAugmentationLibrary(
+          Iterable<MacroExecutionResult> macroResults,
+          ResolvedIdentifier Function(Identifier) resolveIdentifier,
+          TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
+          {Map<OmittedTypeAnnotation, String>? omittedTypes}) =>
       throw new StateError('Unreachable');
 
   @override
@@ -313,7 +351,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           IdentifierResolver identifierResolver,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
-          TypeDeclarationResolver typeDeclarationResolver) =>
+          TypeDeclarationResolver typeDeclarationResolver,
+          TypeInferrer typeInferrer) =>
       _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(
           macro,
           declaration,
@@ -333,6 +372,10 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               instance: typeDeclarationResolver,
               id: RemoteInstance.uniqueId,
               kind: RemoteInstanceKind.typeDeclarationResolver),
+          new RemoteInstanceImpl(
+              instance: typeInferrer,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeInferrer),
           serializationZoneId: zoneId));
 
   @override

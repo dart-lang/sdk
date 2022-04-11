@@ -11,6 +11,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
+dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/data_uri_import_test/none: SkipByDesign
@@ -25,6 +26,7 @@ dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
+dart_2/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/byte_array_optimized_test: Pass, Slow
 dart_2/data_uri_import_test/none: SkipByDesign
@@ -65,6 +67,7 @@ dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 
 [ $builder_tag == tsan ]
+dart/analyze_snapshot_binary_test: SkipSlow
 dart/appjit_cha_deopt_test: SkipSlow
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
@@ -72,6 +75,7 @@ dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, a
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
+dart_2/analyze_snapshot_binary_test: SkipSlow
 dart_2/appjit_cha_deopt_test: SkipSlow
 dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart_2/regress_40462_test: SkipSlow
@@ -104,6 +108,7 @@ dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
 [ $compiler == dartkp ]
 dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # Isolate.spawnUri is not supported in AOT.
 dart/redirection_type_shuffling_test: SkipByDesign # Uses dart:mirrors.
 dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
@@ -253,12 +258,14 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/appjit*: SkipSlow # DFE too slow
 dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
+dart/isolates/fast_object_copy_test*: Slow # issue 46740
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/snapshot_version_test: RuntimeError # Please triage.
 dart_2/appjit*: SkipSlow # DFE too slow
 dart_2/b162922506_test: SkipSlow # Generates large input file
 dart_2/data_uri_spawn_test: Skip # Please triage.
+dart_2/isolates/fast_object_copy_test*: Slow # issue 46740
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/snapshot_version_test: RuntimeError # Please triage.
@@ -324,6 +331,11 @@ cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/
 [ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
+
+# Currently this is only supported on 64-bit linux systems with precompilation
+[ $arch == ia32 || $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $compiler != dartk || $system == fuchsia || $system != linux ]
+dart/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
+dart_2/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures
 
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
@@ -431,9 +443,11 @@ dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
 [ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart_2/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart_2/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart_2/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart_2/issue32950_test: SkipByDesign # uses spawnUri.
 

@@ -142,7 +142,7 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
         continue;
       }
       var relativePath = pathContext.relative(path, from: testDirPath);
-      test(relativePath, () {
+      test(relativePath, () async {
         var result = session.getParsedUnit(path);
         if (result is! ParsedUnitResult) {
           fail('Could not parse $path');

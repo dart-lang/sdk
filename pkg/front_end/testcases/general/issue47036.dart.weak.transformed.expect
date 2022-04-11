@@ -10,17 +10,17 @@ class Default extends core::Object /*hasConstConstructor*/  {
 }
 class Settings extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
-  static factory •({@#C3 self::Sidebar sidebar = #C4}) → self::Settings
+  static factory •({@#C3 self::Sidebar sidebar = #C2}) → self::Settings
     return self::_SSettings::•(sidebar: sidebar);
 }
 class Sidebar extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C5]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
   static factory •() → self::Sidebar
     return self::_SSidebar::•();
 }
 abstract class _SSettings extends core::Object implements self::Settings {
-  static final field dynamic _redirecting# = <dynamic>[#C6]/*isLegacy*/;
-  static factory •({self::Sidebar sidebar = #C4}) → self::_SSettings
+  static final field dynamic _redirecting# = <dynamic>[#C5]/*isLegacy*/;
+  static factory •({self::Sidebar sidebar = #C2}) → self::_SSettings
     return new self::_$_SSettings::•(sidebar: sidebar);
 }
 class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {
@@ -30,7 +30,7 @@ class _$_SSettings extends core::Object implements self::_SSettings /*hasConstCo
     ;
 }
 abstract class _SSidebar extends core::Object implements self::Sidebar {
-  static final field dynamic _redirecting# = <dynamic>[#C7]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C6]/*isLegacy*/;
   static factory •() → self::_SSidebar
     return new self::_$_SSidebar::•();
 }
@@ -45,10 +45,9 @@ constants  {
   #C1 = constructor-tearoff self::Settings::•
   #C2 = self::_$_SSidebar {}
   #C3 = self::Default {defaultValue:#C2}
-  #C4 = null
-  #C5 = constructor-tearoff self::Sidebar::•
-  #C6 = constructor-tearoff self::_SSettings::•
-  #C7 = constructor-tearoff self::_SSidebar::•
+  #C4 = constructor-tearoff self::Sidebar::•
+  #C5 = constructor-tearoff self::_SSettings::•
+  #C6 = constructor-tearoff self::_SSidebar::•
 }
 
 

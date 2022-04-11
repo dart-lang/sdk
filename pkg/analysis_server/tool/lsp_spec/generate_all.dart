@@ -286,6 +286,14 @@ List<AstNode> getCustomClasses() {
       ],
       baseType: 'TextEdit',
     ),
+    // Return type for refactor.validate command.
+    interface(
+      'ValidateRefactorResult',
+      [
+        field('valid', type: 'boolean'),
+        field('message', type: 'string', canBeUndefined: true),
+      ],
+    ),
     TypeAlias(
       null,
       Token.identifier('TextDocumentEditEdits'),

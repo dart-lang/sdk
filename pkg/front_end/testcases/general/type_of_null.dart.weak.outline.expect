@@ -1,12 +1,14 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method map<T extends core::Object* = dynamic>(() →* self::map::T* f1, () →* self::map::T* f2) → self::map::T*
+static method map<T extends core::Object? = dynamic>(() → self::map::T% f1, () → self::map::T% f2) → self::map::T%
   ;
-static method id<T extends core::Object* = dynamic>(self::id::T* t) → dynamic
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → dynamic
   ;
 static method foo() → Null
+  ;
+static method test() → dynamic
   ;
 static method main() → dynamic
   ;

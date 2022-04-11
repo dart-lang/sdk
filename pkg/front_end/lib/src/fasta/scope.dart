@@ -805,7 +805,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  SourceLibraryBuilder get library {
+  SourceLibraryBuilder get libraryBuilder {
     throw new UnsupportedError('AmbiguousMemberBuilder.library');
   }
 
@@ -815,17 +815,15 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 

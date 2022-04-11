@@ -434,7 +434,11 @@ class LibraryAnalyzer {
   ErrorReporter _getErrorReporter(FileState file) {
     return _errorReporters.putIfAbsent(file, () {
       RecordingErrorListener listener = _getErrorListener(file);
-      return ErrorReporter(listener, file.source);
+      return ErrorReporter(
+        listener,
+        file.source,
+        isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
+      );
     });
   }
 

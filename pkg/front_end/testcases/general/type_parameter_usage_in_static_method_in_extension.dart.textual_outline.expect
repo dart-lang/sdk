@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension Foo<U> on List {
   static U foo1() {}
   static List<U> foo1Prime() {}
@@ -16,10 +15,13 @@ extension Foo<U> on List {
   static void foo12Prime(void Function(List<U>) b) {}
   static void foo13(void Function(U b)) {}
   static void foo13Prime(void Function(List<U> b)) {}
-  static U foo14 = null;
-  static List<U> foo14Prime = null;
-  static U Function(U) foo15 = null;
-  static List<U> Function(List<U>) foo15Prime = null;
+  static late U ;
+  foo14;
+  static late List<U> (){}
+  foo14Prime;
+  static late U ;
+  Function(U) foo15;
+  static late List<U> (){}
+  Function(List<U>) foo15Prime;
 }
-
 main() {}

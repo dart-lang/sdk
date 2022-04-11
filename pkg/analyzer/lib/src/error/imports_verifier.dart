@@ -12,14 +12,14 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// A visitor that visits ASTs and fills [UsedImportedElements].
-class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
+class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
   final LibraryElement library;
   final UsedImportedElements usedElements = UsedImportedElements();
 
   GatherUsedImportedElementsVisitor(this.library);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     _recordAssignmentTarget(node, node.leftHandSide);
     return super.visitAssignmentExpression(node);
   }
@@ -58,7 +58,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     _recordAssignmentTarget(node, node.operand);
     return super.visitPostfixExpression(node);
   }

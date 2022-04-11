@@ -178,7 +178,7 @@ extension E<T extends Object> on T {
   }
 
   test_visibility_hidden() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on C {
   int a = 1;
@@ -196,7 +196,7 @@ f(C c) {
   }
 
   test_visibility_notShown() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on C {
   int a = 1;
@@ -214,7 +214,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byClass() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -235,12 +235,12 @@ f(C c) {
   }
 
   test_visibility_shadowed_byImport() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+    newFile2('$testPackageLibPath/lib1.dart', '''
 extension E on Object {
   int get a => 1;
 }
 ''');
-    newFile('$testPackageLibPath/lib2.dart', content: '''
+    newFile2('$testPackageLibPath/lib2.dart', '''
 class E {}
 class A {}
 ''');
@@ -259,7 +259,7 @@ f(Object o, A a) {
   }
 
   test_visibility_shadowed_byLocal_imported() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -300,7 +300,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byTopLevelVariable() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -321,7 +321,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_platformByNonPlatform() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 extension E on Object {
   int get a => 1;
 }
@@ -338,7 +338,7 @@ f(Object o, A a, B b) {
   }
 
   test_visibility_withPrefix() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -546,13 +546,25 @@ f(Never a) {
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
       error(HintCode.DEAD_CODE, 62, 3),
     ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'Never',
-    );
+
+    var node = findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@50
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
   }
 
   test_instance_method_fromInstance_nullable() async {
@@ -1539,7 +1551,7 @@ f(C c) => c.a;
   }
 
   test_static_field_importedWithPrefix() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 
 extension E on C {
@@ -1577,7 +1589,7 @@ f() {
   }
 
   test_static_getter_importedWithPrefix() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 
 extension E on C {
@@ -1615,7 +1627,7 @@ f() {
   }
 
   test_static_method_importedWithPrefix() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 
 extension E on C {
@@ -1653,7 +1665,7 @@ f() {
   }
 
   test_static_setter_importedWithPrefix() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class C {}
 
 extension E on C {

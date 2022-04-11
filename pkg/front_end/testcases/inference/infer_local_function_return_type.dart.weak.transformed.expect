@@ -6,7 +6,7 @@ import "dart:async" as asy;
 static method test() → dynamic {
   function f0() → core::int*
     return 42;
-  function f1() → asy::Future<core::int*>* /* originally async */ {
+  function f1() → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
     final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
     core::bool* :is_sync = false;
     core::int? :return_value;
@@ -36,7 +36,7 @@ static method test() → dynamic {
   function f2() → core::int* {
     return 42;
   }
-  function f3() → asy::Future<core::int*>* /* originally async */ {
+  function f3() → asy::Future<core::int*>* /* futureValueType= core::int* */ /* originally async */ {
     final asy::_Future<core::int*>* :async_future = new asy::_Future::•<core::int*>();
     core::bool* :is_sync = false;
     core::int? :return_value;

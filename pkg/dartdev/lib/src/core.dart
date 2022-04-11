@@ -171,8 +171,8 @@ class PackageConfig {
   PackageConfig(this.contents);
 
   List<Map<String, dynamic>?> get packages {
-    List<dynamic> _packages = contents['packages'];
-    return _packages.map<Map<String, dynamic>?>(castStringKeyedMap).toList();
+    List<dynamic> packages = contents['packages'];
+    return packages.map<Map<String, dynamic>?>(castStringKeyedMap).toList();
   }
 
   bool hasDependency(String packageName) =>

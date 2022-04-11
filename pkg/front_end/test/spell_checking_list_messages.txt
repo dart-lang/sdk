@@ -50,6 +50,7 @@ list.filled
 loadlibrary
 macro
 migrate
+n
 name.#name
 name.stack
 nameokempty
@@ -68,11 +69,13 @@ part(s)
 patch(es)
 placing
 pubspec.yaml
+r
 re
 sdksummary
 size
 solutions
 stacktrace
+stand
 staticinterop
 stringokempty
 struct<#name
@@ -80,6 +83,7 @@ structs
 super.namedconstructor
 superinterface
 supermixin
+t
 team
 this.namedconstructor
 this.x

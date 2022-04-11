@@ -57,15 +57,16 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
-  File newFile(String path, {String content = ''}) {
+  File newFile2(String path, String content) {
     if (useLineEndingsForPlatform) {
       content = normalizeNewlinesForPlatform(content);
     }
-    return super.newFile(path, content: content);
+    return super.newFile2(path, content);
   }
 
   Future<void> resolveFile2(String path) async {
-    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
+    var result =
+        await (await session).getResolvedUnit(path) as ResolvedUnitResult;
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;

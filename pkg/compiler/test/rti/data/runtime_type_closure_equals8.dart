@@ -15,7 +15,7 @@ class Class1<S> {
   /*member: Class1.method1b:*/
   T method1b<T>() => null;
 
-  /*spec.member: Class1.method2:direct,explicit=[method2.T*],needsArgs*/
+  /*spec.member: Class1.method2:explicit=[method2.T*],needsArgs,test*/
   T method2<T>(T t, String s) => t;
 }
 

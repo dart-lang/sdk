@@ -316,7 +316,7 @@ Type: `String`
     String [[a^bc]];
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);

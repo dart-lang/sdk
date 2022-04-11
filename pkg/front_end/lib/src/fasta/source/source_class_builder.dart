@@ -66,12 +66,17 @@ Class initializeClass(
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    IndexedClass? referencesFrom) {
+    IndexedClass? referencesFrom,
+    {required bool isAugmentation}) {
   cls ??= new Class(
       name: name,
       typeParameters:
           TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
-      reference: referencesFrom?.cls.reference,
+      // If the class is an augmentation class it shouldn't use the reference
+      // from index even when available.
+      // TODO(johnniwinther): Avoid creating [Class] so early in the builder
+      // that we end up creating unneeded nodes.
+      reference: isAugmentation ? null : referencesFrom?.cls.reference,
       fileUri: parent.fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -129,7 +134,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isMacro = false,
       this.isAugmentation = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
+            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
+            isAugmentation: isAugmentation),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
@@ -146,10 +152,11 @@ class SourceClassBuilder extends ClassBuilderImpl
   Class get cls => origin.actualCls;
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
-  Class build(SourceLibraryBuilder library, LibraryBuilder coreLibrary) {
-    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+  Class build(LibraryBuilder coreLibrary) {
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
         // These checks are performed as part of the class hierarchy
         // computation.
         checkForInstanceVsStaticConflict: false,
@@ -172,8 +179,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder.buildMembers(library,
-              (Member member, BuiltMemberKind memberKind) {
+          memberBuilder
+              .buildMembers((Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
             if (!memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
@@ -206,13 +213,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
-    Supertype? supertype =
-        supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
+    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
     if (supertype != null) {
       Class superclass = supertype.classNode;
       if (superclass.name == 'Function' &&
           superclass.enclosingLibrary == coreLibrary.library) {
-        library.addProblem(
+        libraryBuilder.addProblem(
             messageExtendFunction, charOffset, noLength, fileUri);
         supertype = null;
         supertypeBuilder = null;
@@ -225,7 +231,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // cannot be extended.  However, a mixin declaration with a single
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
-      library.addProblem(
+      libraryBuilder.addProblem(
           templateSupertypeIsIllegal.withArguments(actualCls.superclass!.name),
           charOffset,
           noLength,
@@ -241,9 +247,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       mixedInTypeBuilder = _checkSupertype(mixedInTypeBuilder!);
     }
     Supertype? mixedInType =
-        mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
+        mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
     if (_isFunction(mixedInType, coreLibrary)) {
-      library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
+      libraryBuilder.addProblem(
+          messageMixinFunction, charOffset, noLength, fileUri);
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -263,10 +270,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
         Supertype? supertype =
-            interfaceBuilders![i].buildSupertype(library, charOffset, fileUri);
+            interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
           if (_isFunction(supertype, coreLibrary)) {
-            library.addProblem(
+            libraryBuilder.addProblem(
                 messageImplementFunction, charOffset, noLength, fileUri);
             continue;
           }
@@ -331,21 +338,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+      member.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
-        library, this, null, fileUri, library.scope);
+        libraryBuilder, this, null, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(library, this, null,
+        typeVariables![i].buildOutlineExpressions(libraryBuilder, this, null,
             classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
@@ -616,7 +622,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               originMember.applyPatch(patchMember);
             } else {
               patchMember.isConflictingAugmentationMember = true;
-              library.addProblem(
+              libraryBuilder.addProblem(
                   templateNonAugmentationClassMemberConflict
                       .withArguments(name),
                   patchMember.charOffset,
@@ -631,7 +637,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             }
           } else {
             if (patchMember.isAugmentation) {
-              library.addProblem(
+              libraryBuilder.addProblem(
                   templateUnmatchedAugmentationClassMember.withArguments(name),
                   patchMember.charOffset,
                   name.length,
@@ -701,8 +707,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     } else {
-      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-          noLength, patch.fileUri, context: [
+      libraryBuilder.addProblem(messagePatchDeclarationMismatch,
+          patch.charOffset, noLength, patch.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);
@@ -713,6 +719,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       CoreTypes coreTypes,
       ClassHierarchyBuilder hierarchyBuilder,
       Class enumClass,
+      Class underscoreEnumClass,
       Class? macroClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
@@ -720,7 +727,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
-    if (library.enableEnhancedEnumsInLibrary) {
+    if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
       bool hasEnumSuperinterface = false;
       List<Supertype> interfaces =
           hierarchyBuilder.getNodeFromClass(cls).superclasses;
@@ -740,7 +747,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             charOffset, noLength);
       }
 
-      if (hasEnumSuperinterface) {
+      if (hasEnumSuperinterface && cls != underscoreEnumClass) {
+        // Instance members named `values` are restricted.
         Builder? customValuesDeclaration =
             scope.lookupLocalMember("values", setter: false);
         if (customValuesDeclaration != null &&
@@ -749,7 +757,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           while (customValuesDeclaration?.next != null) {
             customValuesDeclaration = customValuesDeclaration?.next;
           }
-          library.addProblem(
+          libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
               customValuesDeclaration!.charOffset,
@@ -764,12 +772,27 @@ class SourceClassBuilder extends ClassBuilderImpl
           while (customValuesDeclaration?.next != null) {
             customValuesDeclaration = customValuesDeclaration?.next;
           }
-          library.addProblem(
+          libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
               customValuesDeclaration!.charOffset,
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
+        }
+
+        // Non-setter concrete instance members named `index` and hashCode and
+        // operator == are restricted.
+        for (String restrictedMemberName in const ["index", "hashCode", "=="]) {
+          Builder? member =
+              scope.lookupLocalMember(restrictedMemberName, setter: false);
+          if (member is MemberBuilder && !member.isAbstract) {
+            libraryBuilder.addProblem(
+                templateEnumImplementerContainsRestrictedInstanceDeclaration
+                    .withArguments(this.name, restrictedMemberName),
+                member.charOffset,
+                member.fullNameForErrors.length,
+                fileUri);
+          }
         }
       }
     }
@@ -799,11 +822,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         TypeAliasBuilder? aliasBuilder) {
       int nameOffset = target.nameOffset;
       int nameLength = target.nameLength;
-      // TODO(eernst): nameOffset not fully implemented; use backup.
-      if (nameOffset == -1) {
-        nameOffset = this.charOffset;
-        nameLength = noLength;
-      }
       if (aliasBuilder != null) {
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
@@ -911,20 +929,20 @@ class SourceClassBuilder extends ClassBuilderImpl
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode, library.library);
+          supertype, requiredInterface.classNode, libraryBuilder.library);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,
               requiredInterface,
-              library.isNonNullableByDefault
+              libraryBuilder.isNonNullableByDefault
                   ? SubtypeCheckMode.withNullabilities
                   : SubtypeCheckMode.ignoringNullabilities)) {
-        library.addProblem(
+        libraryBuilder.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype,
                 requiredInterface,
                 cls.mixedInType!.asInterfaceType,
-                library.isNonNullableByDefault),
+                libraryBuilder.isNonNullableByDefault),
             cls.fileOffset,
             noLength,
             cls.fileUri);
@@ -955,7 +973,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     List<DartType>? typeArguments = factory.getTypeArguments();
     FunctionType targetFunctionType =
-        targetNode.computeFunctionType(library.nonNullable);
+        targetNode.computeFunctionType(libraryBuilder.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
@@ -988,18 +1006,18 @@ class SourceClassBuilder extends ClassBuilderImpl
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument,
                   typeParameterBound,
-                  library.isNonNullableByDefault),
+                  libraryBuilder.isNonNullableByDefault),
               redirectionTarget.charOffset,
               noLength);
           hasProblem = true;
-        } else if (library.isNonNullableByDefault) {
+        } else if (libraryBuilder.isNonNullableByDefault) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
             _addProblemForRedirectingFactory(
                 factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound,
-                        library.isNonNullableByDefault),
+                        libraryBuilder.isNonNullableByDefault),
                 redirectionTarget.charOffset,
                 noLength);
             hasProblem = true;
@@ -1068,7 +1086,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void _addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
       Message message, int charOffset, int length) {
     addProblem(message, charOffset, length);
-    String text = library.loader.target.context
+    String text = libraryBuilder.loader.target.context
         .format(
             message.withLocation(fileUri, charOffset, length), Severity.error)
         .plain;
@@ -1093,7 +1111,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
     FunctionType factoryType = factory.function
-        .computeThisFunctionType(library.nonNullable)
+        .computeThisFunctionType(libraryBuilder.nonNullable)
         .withoutTypeParameters;
     FunctionType? redirecteeType =
         _computeRedirecteeType(factory, typeEnvironment);
@@ -1114,16 +1132,20 @@ class SourceClassBuilder extends ClassBuilderImpl
         _addProblemForRedirectingFactory(
             factory,
             templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType, factoryType, library.isNonNullableByDefault),
+                redirecteeType,
+                factoryType,
+                libraryBuilder.isNonNullableByDefault),
             factory.redirectionTarget.charOffset,
             noLength);
-      } else if (library.isNonNullableByDefault) {
+      } else if (libraryBuilder.isNonNullableByDefault) {
         if (!typeEnvironment.isSubtypeOf(
             redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
           _addProblemForRedirectingFactory(
               factory,
               templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType, factoryType, library.isNonNullableByDefault),
+                  redirecteeType,
+                  factoryType,
+                  libraryBuilder.isNonNullableByDefault),
               factory.redirectionTarget.charOffset,
               noLength);
         }
@@ -1168,7 +1190,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (int i = 0; i < typeVariables!.length; ++i) {
       TypeVariableBuilder typeVariableBuilder = typeVariables![i];
       int variance = computeTypeVariableBuilderVariance(
-          typeVariableBuilder, supertype, library);
+          typeVariableBuilder, supertype, libraryBuilder);
       if (!Variance.greaterThanOrEqual(variance, typeVariables![i].variance)) {
         if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
@@ -1183,20 +1205,20 @@ class SourceClassBuilder extends ClassBuilderImpl
                   Variance.keywordString(variance),
                   supertype.name as String);
         }
-        library.addProblem(message, charOffset, noLength, fileUri);
+        libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
       }
     }
     if (message != null) {
       return new NamedTypeBuilder(
-          supertype.name as String,
-          const NullabilityBuilder.omitted(),
-          /* arguments = */ null,
-          fileUri,
-          charOffset,
+          supertype.name as String, const NullabilityBuilder.omitted(),
+          fileUri: fileUri,
+          charOffset: charOffset,
           instanceTypeVariableAccess:
               InstanceTypeVariableAccessState.Unexpected)
-        ..bind(new InvalidTypeDeclarationBuilder(supertype.name as String,
-            message.withLocation(fileUri, charOffset, noLength)));
+        ..bind(
+            libraryBuilder,
+            new InvalidTypeDeclarationBuilder(supertype.name as String,
+                message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;
   }
@@ -1279,7 +1301,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void reportVariancePositionIfInvalid(
       int variance, TypeParameter typeParameter, Uri fileUri, int fileOffset,
       {bool isReturnType: false}) {
-    SourceLibraryBuilder library = this.library;
+    SourceLibraryBuilder library = this.libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
         !Variance.greaterThanOrEqual(variance, typeParameter.variance)) {
       Message message;
@@ -1300,7 +1322,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkBoundsInSupertype(
       Supertype supertype, TypeEnvironment typeEnvironment) {
-    SourceLibraryBuilder libraryBuilder = this.library;
     Library library = libraryBuilder.library;
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
@@ -1313,7 +1334,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         allowSuperBounded: false,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed:
-            libraryBuilder.enableGenericMetadataInLibrary);
+            libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
@@ -1375,7 +1396,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    library.checkBoundsInTypeParameters(
+    libraryBuilder.checkBoundsInTypeParameters(
         typeEnvironment, cls.typeParameters, fileUri);
 
     // Check in supers.
@@ -1395,7 +1416,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     forEach((String name, Builder builder) {
       if (builder is SourceMemberBuilder) {
         builder.checkVariance(this, typeEnvironment);
-        builder.checkTypes(library, typeEnvironment);
+        builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(
             false,
@@ -1406,7 +1427,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     forEachConstructor((String name, MemberBuilder builder) {
       if (builder is SourceMemberBuilder) {
-        builder.checkTypes(library, typeEnvironment);
+        builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(false,
             "Unexpected constructor builder $builder (${builder.runtimeType})");
@@ -1601,8 +1622,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             memberSignature.parent = cls;
 
             if (member is Procedure) {
-              library.forwardersOrigins.add(memberSignature);
-              library.forwardersOrigins.add(member);
+              libraryBuilder.forwardersOrigins.add(memberSignature);
+              libraryBuilder.forwardersOrigins.add(member);
             }
           }
           changed = true;
@@ -1714,7 +1735,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         target.loader.coreTypes,
         new ThisExpression(),
         invocationName,
-        new Arguments.forwarded(procedure.function, library.library),
+        new Arguments.forwarded(procedure.function, libraryBuilder.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
     Expression result = new InstanceInvocation(InstanceAccessKind.Instance,
@@ -1726,7 +1747,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       result = new AsExpression(result, procedure.function.returnType)
         ..isTypeError = true
         ..isForDynamic = true
-        ..isForNonNullableByDefault = library.isNonNullableByDefault
+        ..isForNonNullableByDefault = libraryBuilder.isNonNullableByDefault
         ..fileOffset = procedure.fileOffset;
     }
     procedure.function.body = new ReturnStatement(result)
@@ -2035,10 +2056,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       bool isValid = types.isSubtypeOf(
           getterType,
           setterType,
-          library.isNonNullableByDefault
+          libraryBuilder.isNonNullableByDefault
               ? SubtypeCheckMode.withNullabilities
               : SubtypeCheckMode.ignoringNullabilities);
-      if (!isValid && !library.isNonNullableByDefault) {
+      if (!isValid && !libraryBuilder.isNonNullableByDefault) {
         // Allow assignability in legacy libraries.
         isValid = types.isSubtypeOf(
             setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
@@ -2053,12 +2074,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (getterOrigin.enclosingClass == cls &&
             setterOrigin.enclosingClass == cls) {
           Template<Message Function(DartType, String, DartType, String, bool)>
-              template = library.isNonNullableByDefault
+              template = libraryBuilder.isNonNullableByDefault
                   ? templateInvalidGetterSetterType
                   : templateInvalidGetterSetterTypeLegacy;
-          library.addProblem(
+          libraryBuilder.addProblem(
               template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, library.isNonNullableByDefault),
+                  setterMemberName, libraryBuilder.isNonNullableByDefault),
               getterOrigin.fileOffset,
               getterOrigin.name.text.length,
               getterOrigin.fileUri,
@@ -2070,17 +2091,17 @@ class SourceClassBuilder extends ClassBuilderImpl
               ]);
         } else if (getterOrigin.enclosingClass == cls) {
           Template<Message Function(DartType, String, DartType, String, bool)>
-              template = library.isNonNullableByDefault
+              template = libraryBuilder.isNonNullableByDefault
                   ? templateInvalidGetterSetterTypeSetterInheritedGetter
                   : templateInvalidGetterSetterTypeSetterInheritedGetterLegacy;
           if (getterOrigin is Field) {
-            template = library.isNonNullableByDefault
+            template = libraryBuilder.isNonNullableByDefault
                 ? templateInvalidGetterSetterTypeSetterInheritedField
                 : templateInvalidGetterSetterTypeSetterInheritedFieldLegacy;
           }
-          library.addProblem(
+          libraryBuilder.addProblem(
               template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, library.isNonNullableByDefault),
+                  setterMemberName, libraryBuilder.isNonNullableByDefault),
               getterOrigin.fileOffset,
               getterOrigin.name.text.length,
               getterOrigin.fileUri,
@@ -2092,20 +2113,20 @@ class SourceClassBuilder extends ClassBuilderImpl
               ]);
         } else if (setterOrigin.enclosingClass == cls) {
           Template<Message Function(DartType, String, DartType, String, bool)>
-              template = library.isNonNullableByDefault
+              template = libraryBuilder.isNonNullableByDefault
                   ? templateInvalidGetterSetterTypeGetterInherited
                   : templateInvalidGetterSetterTypeGetterInheritedLegacy;
           Template<Message Function(String)> context =
               templateInvalidGetterSetterTypeGetterContext;
           if (getterOrigin is Field) {
-            template = library.isNonNullableByDefault
+            template = libraryBuilder.isNonNullableByDefault
                 ? templateInvalidGetterSetterTypeFieldInherited
                 : templateInvalidGetterSetterTypeFieldInheritedLegacy;
             context = templateInvalidGetterSetterTypeFieldContext;
           }
-          library.addProblem(
+          libraryBuilder.addProblem(
               template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, library.isNonNullableByDefault),
+                  setterMemberName, libraryBuilder.isNonNullableByDefault),
               setterOrigin.fileOffset,
               setterOrigin.name.text.length,
               setterOrigin.fileUri,
@@ -2117,20 +2138,20 @@ class SourceClassBuilder extends ClassBuilderImpl
               ]);
         } else {
           Template<Message Function(DartType, String, DartType, String, bool)>
-              template = library.isNonNullableByDefault
+              template = libraryBuilder.isNonNullableByDefault
                   ? templateInvalidGetterSetterTypeBothInheritedGetter
                   : templateInvalidGetterSetterTypeBothInheritedGetterLegacy;
           Template<Message Function(String)> context =
               templateInvalidGetterSetterTypeGetterContext;
           if (getterOrigin is Field) {
-            template = library.isNonNullableByDefault
+            template = libraryBuilder.isNonNullableByDefault
                 ? templateInvalidGetterSetterTypeBothInheritedField
                 : templateInvalidGetterSetterTypeBothInheritedFieldLegacy;
             context = templateInvalidGetterSetterTypeFieldContext;
           }
-          library.addProblem(
+          libraryBuilder.addProblem(
               template.withArguments(getterType, getterMemberName, setterType,
-                  setterMemberName, library.isNonNullableByDefault),
+                  setterMemberName, libraryBuilder.isNonNullableByDefault),
               charOffset,
               noLength,
               fileUri,
@@ -2233,7 +2254,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 interfaceSubstitution.substituteType(interfaceBound);
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
-          if (!library.isNonNullableByDefault) {
+          if (!libraryBuilder.isNonNullableByDefault) {
             computedBound = legacyErasure(computedBound);
           }
           if (declaredNeedsLegacyErasure) {
@@ -2254,7 +2275,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                     computedBound,
                     "${interfaceMemberOrigin.enclosingClass!.name}."
                         "${interfaceMemberOrigin.name.text}",
-                    library.isNonNullableByDefault),
+                    libraryBuilder.isNonNullableByDefault),
                 declaredMember.fileOffset,
                 noLength,
                 context: [
@@ -2340,7 +2361,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           (!isCovariantByDeclaration ||
               !types.isSubtypeOf(
                   supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
-      if (isErrorInNnbdOptedOutMode || library.isNonNullableByDefault) {
+      if (isErrorInNnbdOptedOutMode || libraryBuilder.isNonNullableByDefault) {
         String declaredMemberName = '${declaredMember.enclosingClass!.name}'
             '.${declaredMember.name.text}';
         String interfaceMemberName =
@@ -2356,14 +2377,14 @@ class SourceClassBuilder extends ClassBuilderImpl
                 declaredType,
                 interfaceType,
                 interfaceMemberName,
-                library.isNonNullableByDefault);
+                libraryBuilder.isNonNullableByDefault);
           } else {
             message = templateOverrideTypeMismatchReturnType.withArguments(
                 declaredMemberName,
                 declaredType,
                 interfaceType,
                 interfaceMemberName,
-                library.isNonNullableByDefault);
+                libraryBuilder.isNonNullableByDefault);
           }
           fileOffset = declaredMember.fileOffset;
         } else {
@@ -2373,7 +2394,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               declaredType,
               interfaceType,
               interfaceMemberName,
-              library.isNonNullableByDefault);
+              libraryBuilder.isNonNullableByDefault);
           fileOffset = declaredParameter.fileOffset;
         }
         reportInvalidOverride(
@@ -2731,7 +2752,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     if (declaredMember.enclosingClass == cls) {
       // Ordinary override
-      library.addProblem(message, fileOffset, length, declaredMember.fileUri,
+      libraryBuilder.addProblem(
+          message, fileOffset, length, declaredMember.fileUri,
           context: context);
     } else {
       context = [
@@ -2740,7 +2762,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       ];
       if (isInterfaceCheck) {
         // Interface check
-        library.addProblem(
+        libraryBuilder.addProblem(
             templateInterfaceCheck.withArguments(
                 declaredMember.name.text, cls.name),
             cls.fileOffset,
@@ -2753,7 +2775,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           String baseName = cls.superclass!.demangledName;
           String mixinName = cls.mixedInClass!.name;
           int classNameLength = cls.nameAsMixinApplicationSubclass.length;
-          library.addProblem(
+          libraryBuilder.addProblem(
               templateImplicitMixinOverride.withArguments(
                   mixinName, baseName, declaredMember.name.text),
               cls.fileOffset,
@@ -2762,7 +2784,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               context: context);
         } else {
           // Named mixin application class
-          library.addProblem(
+          libraryBuilder.addProblem(
               templateNamedMixinOverride.withArguments(
                   cls.name, declaredMember.name.text),
               cls.fileOffset,
@@ -2793,7 +2815,7 @@ bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
 /// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
 /// in `dart:js` that implement both `ListMixin` and `JsObject`.
 int? getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
-  String uri = '${classBuilder.library.importUri}';
+  String uri = '${classBuilder.libraryBuilder.importUri}';
   if (uri == 'dart:js' && classBuilder.fileUri.pathSegments.last == 'js.dart') {
     return 0;
   } else if (uri == 'dart:_interceptors' &&
@@ -2809,14 +2831,14 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
       : super(field, parent);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     // Do nothing.
   }
 

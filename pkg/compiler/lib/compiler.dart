@@ -247,7 +247,6 @@ Future<CompilationResult> compile(
   return compiler.run().then((bool success) {
     return new CompilationResult(compiler,
         isSuccess: success,
-        kernelInitializedCompilerState:
-            compiler.kernelLoader.initializedCompilerState);
+        kernelInitializedCompilerState: compiler.initializedCompilerState);
   });
 }

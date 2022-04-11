@@ -479,9 +479,6 @@ class ConstantsTransformer extends RemovingTransformer {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformTypeParameterList(node.typeParameters, node);
-      transformTypeParameterList(node.typeParametersOfFunctionType, node);
-      transformVariableDeclarationList(node.positionalParameters, node);
-      transformVariableDeclarationList(node.namedParameters, node);
     });
     return node;
   }

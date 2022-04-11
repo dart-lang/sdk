@@ -72,7 +72,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         super(metadata, modifiers, name, parent, nameOffset, scope);
 
   @override
-  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+  SourceLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as SourceLibraryBuilder;
 
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
@@ -88,14 +89,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   /// another library member. In this case, the extension member should not be
   /// added to the library to avoid name clashes with other members in the
   /// library.
-  Extension build(
-      SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
+  Extension build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     _extension.onType = onType.build(libraryBuilder);
     extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
         _extension, libraryBuilder);
 
-    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
         checkForInstanceVsStaticConflict: true,
         checkForMethodVsSetterConflict: true);
 
@@ -123,8 +123,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
           }
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder.buildMembers(libraryBuilder,
-              (Member member, BuiltMemberKind memberKind) {
+          memberBuilder
+              .buildMembers((Member member, BuiltMemberKind memberKind) {
             if (addMembersToLibrary &&
                 !memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
@@ -221,8 +221,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       // TODO(johnniwinther): Check that type parameters and on-type match
       // with origin declaration.
     } else {
-      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-          noLength, patch.fileUri, context: [
+      libraryBuilder.addProblem(messagePatchDeclarationMismatch,
+          patch.charOffset, noLength, patch.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);
@@ -241,28 +241,28 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    library.checkBoundsInTypeParameters(
+    libraryBuilder.checkBoundsInTypeParameters(
         typeEnvironment, extension.typeParameters, fileUri);
 
     // Check on clause.
     // ignore: unnecessary_null_comparison
     if (_extension.onType != null) {
-      library.checkBoundsInType(_extension.onType, typeEnvironment,
+      libraryBuilder.checkBoundsInType(_extension.onType, typeEnvironment,
           onType.fileUri!, onType.charOffset!);
     }
 
     forEach((String name, Builder builder) {
       if (builder is SourceFieldBuilder) {
         // Check fields.
-        library.checkTypesInField(builder, typeEnvironment);
+        libraryBuilder.checkTypesInField(builder, typeEnvironment);
       } else if (builder is SourceProcedureBuilder) {
         // Check procedures
-        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
+        libraryBuilder.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(builder.name, setter: true);
           if (setterDeclaration != null) {
-            library.checkGetterSetterTypes(builder,
+            libraryBuilder.checkGetterSetterTypes(builder,
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
@@ -272,25 +272,23 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     });
   }
 
-  @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
-        metadata, library, this, null, fileUri, library.scope);
+        metadata, libraryBuilder, this, null, fileUri, libraryBuilder.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(library, this, null,
+        typeParameters![i].buildOutlineExpressions(libraryBuilder, this, null,
             classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
 
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+      member.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
     scope.forEach(build);
@@ -323,14 +321,10 @@ class ExtensionTypeShowHideClauseBuilder {
       required this.hiddenOperators});
 
   void buildAndStoreTypes(Extension extension, LibraryBuilder libraryBuilder) {
-    List<Supertype> builtShownSupertypes = shownSupertypes
-        .map(
-            (t) => t.buildSupertype(libraryBuilder, t.charOffset!, t.fileUri!)!)
-        .toList();
-    List<Supertype> builtHiddenSupertypes = hiddenSupertypes
-        .map(
-            (t) => t.buildSupertype(libraryBuilder, t.charOffset!, t.fileUri!)!)
-        .toList();
+    List<Supertype> builtShownSupertypes =
+        shownSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
+    List<Supertype> builtHiddenSupertypes =
+        hiddenSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
     ExtensionTypeShowHideClause showHideClause =
         extension.showHideClause ?? new ExtensionTypeShowHideClause();
     showHideClause.shownSupertypes.addAll(builtShownSupertypes);

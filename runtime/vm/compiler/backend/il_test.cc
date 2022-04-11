@@ -679,4 +679,570 @@ ISOLATE_UNIT_TEST_CASE(IRTest_DoubleEqualsSmi) {
   }));
 }
 
+#ifdef DART_TARGET_OS_WINDOWS
+const char* pointer_prefix = "0x";
+#else
+const char* pointer_prefix = "";
+#endif
+
+ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
+  InstancePtr ptr = Smi::New(100);
+  OS::Print("&ptr %p\n", &ptr);
+
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    import 'dart:ffi';
+
+    void myFunction() {
+      final pointer = Pointer<IntPtr>.fromAddress(%s%p);
+      anotherFunction();
+    }
+
+    void anotherFunction() {}
+  )", pointer_prefix, &ptr), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), ptr);
+
+  const auto& my_function =
+      Function::Handle(GetFunction(root_library, "myFunction"));
+
+  TestPipeline pipeline(my_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  Zone* const zone = Thread::Current()->zone();
+
+  StaticCallInstr* pointer = nullptr;
+  StaticCallInstr* another_function_call = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchAndMoveStaticCall, &pointer},
+        {kMatchAndMoveStaticCall, &another_function_call},
+    }));
+  }
+  auto pointer_value = Value(pointer);
+  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
+      &pointer_value, compiler::target::PointerBase::data_offset());
+  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+                           FlowGraph::kValue);
+  auto load_untagged_value = Value(load_untagged_instr);
+  auto pointer_value2 = Value(pointer);
+  auto* const raw_store_field_instr =
+      new (zone) RawStoreFieldInstr(&load_untagged_value, &pointer_value2, 0);
+  flow_graph->InsertBefore(another_function_call, raw_store_field_instr,
+                           nullptr, FlowGraph::kEffect);
+  another_function_call->RemoveFromGraph();
+
+  {
+    // Check we constructed the right graph.
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveStaticCall,
+        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveRawStoreField,
+    }));
+  }
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  // Ensure we can successfully invoke the function.
+  Invoke(root_library, "myFunction");
+
+  // Might be garbage if we ran a GC, but should never be a Smi.
+  EXPECT(!ptr.IsSmi());
+}
+
+// We do not have a RawLoadFieldInstr, instead we just use LoadIndexed for
+// loading from outside the heap.
+//
+// This test constructs to instructions from FlowGraphBuilder::RawLoadField
+// and exercises them to do a load from outside the heap.
+ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
+  InstancePtr ptr = Smi::New(100);
+  intptr_t ptr2 = 100;
+  OS::Print("&ptr %p &ptr2 %p\n", &ptr, &ptr2);
+
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    import 'dart:ffi';
+
+    void myFunction() {
+      final pointer = Pointer<IntPtr>.fromAddress(%s%p);
+      anotherFunction();
+      final pointer2 = Pointer<IntPtr>.fromAddress(%s%p);
+      pointer2.value = 3;
+    }
+
+    void anotherFunction() {}
+  )", pointer_prefix, &ptr, pointer_prefix, &ptr2), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), ptr);
+  EXPECT_EQ(3, ptr2);
+
+  const auto& my_function =
+      Function::Handle(GetFunction(root_library, "myFunction"));
+
+  TestPipeline pipeline(my_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  Zone* const zone = Thread::Current()->zone();
+
+  StaticCallInstr* pointer = nullptr;
+  StaticCallInstr* another_function_call = nullptr;
+  StaticCallInstr* pointer2 = nullptr;
+  StaticCallInstr* pointer2_store = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchAndMoveStaticCall, &pointer},
+        {kMatchAndMoveStaticCall, &another_function_call},
+        {kMatchAndMoveStaticCall, &pointer2},
+        {kMatchAndMoveStaticCall, &pointer2_store},
+    }));
+  }
+  auto pointer_value = Value(pointer);
+  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
+      &pointer_value, compiler::target::PointerBase::data_offset());
+  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+                           FlowGraph::kValue);
+  auto load_untagged_value = Value(load_untagged_instr);
+  auto* const constant_instr = new (zone) UnboxedConstantInstr(
+      Integer::ZoneHandle(zone, Integer::New(0, Heap::kOld)), kUnboxedIntPtr);
+  flow_graph->InsertBefore(another_function_call, constant_instr, nullptr,
+                           FlowGraph::kValue);
+  auto constant_value = Value(constant_instr);
+  auto* const load_indexed_instr = new (zone)
+      LoadIndexedInstr(&load_untagged_value, &constant_value,
+                       /*index_unboxed=*/true, /*index_scale=*/1, kArrayCid,
+                       kAlignedAccess, DeoptId::kNone, InstructionSource());
+  flow_graph->InsertBefore(another_function_call, load_indexed_instr, nullptr,
+                           FlowGraph::kValue);
+
+  another_function_call->RemoveFromGraph();
+  pointer2_store->InputAt(2)->definition()->ReplaceUsesWith(load_indexed_instr);
+
+  {
+    // Check we constructed the right graph.
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveStaticCall,
+        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveUnboxedConstant,
+        kMatchAndMoveLoadIndexed,
+        kMatchAndMoveStaticCall,
+        kMatchAndMoveStaticCall,
+    }));
+  }
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  // Ensure we can successfully invoke the function.
+  Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), ptr);
+  EXPECT_EQ(100, ptr2);
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
+  // clang-format off
+  auto kScript = R"(
+    import 'dart:ffi';
+
+    int myFunction() {
+      return 100;
+    }
+
+    void anotherFunction() {}
+  )";
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Zone* const zone = Thread::Current()->zone();
+  auto& invoke_result = Instance::Handle(zone);
+  invoke_result ^= Invoke(root_library, "myFunction");
+  EXPECT_EQ(Smi::New(100), invoke_result.ptr());
+
+  const auto& my_function =
+      Function::Handle(GetFunction(root_library, "myFunction"));
+
+  TestPipeline pipeline(my_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  ReturnInstr* return_instr = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchReturn, &return_instr},
+    }));
+  }
+
+  auto* const load_thread_instr = new (zone) LoadThreadInstr();
+  flow_graph->InsertBefore(return_instr, load_thread_instr, nullptr,
+                           FlowGraph::kValue);
+  auto load_thread_value = Value(load_thread_instr);
+
+  auto* const convert_instr = new (zone) IntConverterInstr(
+      kUntagged, kUnboxedFfiIntPtr, &load_thread_value, DeoptId::kNone);
+  flow_graph->InsertBefore(return_instr, convert_instr, nullptr,
+                           FlowGraph::kValue);
+  auto convert_value = Value(convert_instr);
+
+  auto* const box_instr = BoxInstr::Create(kUnboxedFfiIntPtr, &convert_value);
+  flow_graph->InsertBefore(return_instr, box_instr, nullptr, FlowGraph::kValue);
+
+  return_instr->InputAt(0)->definition()->ReplaceUsesWith(box_instr);
+
+  {
+    // Check we constructed the right graph.
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveLoadThread,
+        kMatchAndMoveIntConverter,
+        kMatchAndMoveBox,
+        kMatchReturn,
+    }));
+  }
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  // Ensure we can successfully invoke the function.
+  invoke_result ^= Invoke(root_library, "myFunction");
+  intptr_t result_int = Integer::Cast(invoke_result).AsInt64Value();
+  EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
+}
+
+// Helper to set up an inlined FfiCall by replacing a StaticCall.
+FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
+                             Zone* zone,
+                             const compiler::ffi::CallMarshaller& marshaller,
+                             uword native_entry,
+                             bool is_leaf) {
+  FlowGraph* flow_graph = pipeline->RunPasses({CompilerPass::kComputeSSA});
+
+  // Make an FfiCall based on ffi_trampoline that calls our native function.
+  auto ffi_call = new FfiCallInstr(zone, DeoptId::kNone, marshaller, is_leaf);
+  RELEASE_ASSERT(ffi_call->InputCount() == 1);
+  // TargetAddress is the function pointer called.
+  const Representation address_repr =
+      compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
+  ffi_call->SetInputAt(
+      ffi_call->TargetAddressIndex(),
+      new Value(flow_graph->GetConstant(
+          Integer::Handle(Integer::NewCanonical(native_entry)), address_repr)));
+
+  // Replace the placeholder StaticCall with an FfiCall to our native function.
+  {
+    StaticCallInstr* static_call = nullptr;
+    {
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry(),
+                       /*trace=*/false);
+      cursor.TryMatch({kMoveGlob, {kMatchStaticCall, &static_call}});
+    }
+    RELEASE_ASSERT(static_call != nullptr);
+
+    flow_graph->InsertBefore(static_call, ffi_call, /*env=*/nullptr,
+                             FlowGraph::kEffect);
+    static_call->RemoveFromGraph(/*return_previous=*/false);
+  }
+
+  // Run remaining relevant compiler passes.
+  pipeline->RunAdditionalPasses({
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      // Skipping passes that don't seem to do anything for this test.
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations,
+      // Skipping passes that don't seem to do anything for this test.
+      CompilerPass::kTypePropagation,
+      CompilerPass::kRangeAnalysis,
+      // Skipping passes that don't seem to do anything for this test.
+      CompilerPass::kFinalizeGraph,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kAllocateRegisters,
+      CompilerPass::kReorderBlocks,
+  });
+
+  return flow_graph;
+}
+
+// Test that FFI calls spill all live values to the stack, and that FFI leaf
+// calls are free to use available ABI callee-save registers to avoid spilling.
+// Additionally test that register allocation is done correctly by clobbering
+// all volatile registers in the native function being called.
+ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
+  SetFlagScope<int> sfs(&FLAG_sound_null_safety, kNullSafetyOptionStrong);
+
+  const char* kScript = R"(
+    import 'dart:ffi';
+
+    // This is purely a placeholder and is never called.
+    void placeholder() {}
+
+    // Will call the "doFfiCall" and exercise its code.
+    bool invokeDoFfiCall() {
+      final double result = doFfiCall(1, 2, 3, 1.0, 2.0, 3.0);
+      if (result != (2 + 3 + 4 + 2.0 + 3.0 + 4.0)) {
+        throw 'Failed. Result was $result.';
+      }
+      return true;
+    }
+
+    // Will perform a "C" call while having live values in registers
+    // across the FfiCall.
+    double doFfiCall(int a, int b, int c, double x, double y, double z) {
+      // Ensure there is at least one live value in a register.
+      a += 1;
+      b += 1;
+      c += 1;
+      x += 1.0;
+      y += 1.0;
+      z += 1.0;
+      // We'll replace this StaticCall with an FfiCall.
+      placeholder();
+      // Use the live value.
+      return (a + b + c + x + y + z);
+    }
+
+    // FFI trampoline function.
+    typedef NT = Void Function();
+    typedef DT = void Function();
+    Pointer<NativeFunction<NT>> ptr = Pointer.fromAddress(0);
+    DT getFfiTrampolineClosure() => ptr.asFunction(isLeaf:true);
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+
+  // Build a "C" function that we can actually invoke.
+  auto& c_function = Instructions::Handle(
+      BuildInstructions([](compiler::Assembler* assembler) {
+        // Clobber all volatile registers to make sure caller doesn't rely on
+        // any non-callee-save register.
+        for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
+          if ((kAbiVolatileFpuRegs & (1 << reg)) != 0) {
+#if defined(TARGET_ARCH_ARM)
+            // On ARM we need an extra scratch register for LoadDImmediate.
+            assembler->LoadDImmediate(static_cast<DRegister>(reg), 0.0, R3);
+#else
+            assembler->LoadDImmediate(static_cast<FpuRegister>(reg), 0.0);
+#endif
+          }
+        }
+        for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+          if ((kDartVolatileCpuRegs & (1 << reg)) != 0) {
+            assembler->LoadImmediate(static_cast<Register>(reg), 0xDEADBEEF);
+          }
+        }
+        assembler->Ret();
+      }));
+  uword native_entry = c_function.EntryPoint();
+
+  // Get initial compilation done.
+  Invoke(root_library, "invokeDoFfiCall");
+
+  const Function& do_ffi_call =
+      Function::Handle(GetFunction(root_library, "doFfiCall"));
+  RELEASE_ASSERT(!do_ffi_call.IsNull());
+
+  const auto& value = Closure::Handle(
+      Closure::RawCast(Invoke(root_library, "getFfiTrampolineClosure")));
+  RELEASE_ASSERT(value.IsClosure());
+  const auto& ffi_trampoline =
+      Function::ZoneHandle(Closure::Cast(value).function());
+  RELEASE_ASSERT(!ffi_trampoline.IsNull());
+
+  // Construct the FFICallInstr from the trampoline matching our native
+  // function.
+  const char* error = nullptr;
+  const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
+      thread->zone(), ffi_trampoline, &error);
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
+
+  const auto& compile_and_run =
+      [&](bool is_leaf, std::function<void(ParallelMoveInstr*)> verify) {
+        // Build the SSA graph for "doFfiCall"
+        TestPipeline pipeline(do_ffi_call, CompilerPass::kJIT);
+        FlowGraph* flow_graph = SetupFfiFlowgraph(
+            &pipeline, thread->zone(), marshaller, native_entry, is_leaf);
+
+        {
+          ParallelMoveInstr* parallel_move = nullptr;
+          ILMatcher cursor(flow_graph,
+                           flow_graph->graph_entry()->normal_entry(),
+                           /*trace=*/false);
+          while (cursor.TryMatch(
+              {kMoveGlob, {kMatchAndMoveParallelMove, &parallel_move}})) {
+            verify(parallel_move);
+          }
+        }
+
+        // Finish the compilation and attach code so we can run it.
+        pipeline.CompileGraphAndAttachFunction();
+
+        // Ensure we can successfully invoke the FFI call.
+        auto& result = Object::Handle(Invoke(root_library, "invokeDoFfiCall"));
+        RELEASE_ASSERT(result.IsBool());
+        EXPECT(Bool::Cast(result).value());
+      };
+
+  intptr_t num_cpu_reg_to_stack_nonleaf = 0;
+  intptr_t num_cpu_reg_to_stack_leaf = 0;
+  intptr_t num_fpu_reg_to_stack_nonleaf = 0;
+  intptr_t num_fpu_reg_to_stack_leaf = 0;
+
+  // Test non-leaf spills live values.
+  compile_and_run(/*is_leaf=*/false, [&](ParallelMoveInstr* parallel_move) {
+    // TargetAddress is passed in register, live values are all spilled.
+    for (int i = 0; i < parallel_move->NumMoves(); i++) {
+      auto move = parallel_move->moves()[i];
+      if (move->src_slot()->IsRegister() && move->dest_slot()->IsStackSlot()) {
+        num_cpu_reg_to_stack_nonleaf++;
+      } else if (move->src_slot()->IsFpuRegister() &&
+                 move->dest_slot()->IsDoubleStackSlot()) {
+        num_fpu_reg_to_stack_nonleaf++;
+      }
+    }
+  });
+
+  // Test leaf calls do not cause spills of live values.
+  compile_and_run(/*is_leaf=*/true, [&](ParallelMoveInstr* parallel_move) {
+    // TargetAddress is passed in registers, live values are not spilled and
+    // remains in callee-save registers.
+    for (int i = 0; i < parallel_move->NumMoves(); i++) {
+      auto move = parallel_move->moves()[i];
+      if (move->src_slot()->IsRegister() && move->dest_slot()->IsStackSlot()) {
+        num_cpu_reg_to_stack_leaf++;
+      } else if (move->src_slot()->IsFpuRegister() &&
+                 move->dest_slot()->IsDoubleStackSlot()) {
+        num_fpu_reg_to_stack_leaf++;
+      }
+    }
+  });
+
+  // We should have less moves to the stack (i.e. spilling) in leaf calls.
+  EXPECT_LT(num_cpu_reg_to_stack_leaf, num_cpu_reg_to_stack_nonleaf);
+  // We don't have volatile FPU registers on all platforms.
+  const bool has_callee_save_fpu_regs =
+      Utils::CountOneBitsWord(kAbiVolatileFpuRegs) <
+      Utils::CountOneBitsWord(kAllFpuRegistersList);
+  EXPECT(!has_callee_save_fpu_regs ||
+         num_fpu_reg_to_stack_leaf < num_fpu_reg_to_stack_nonleaf);
+}
+
+static void TestConstantFoldToSmi(const Library& root_library,
+                                  const char* function_name,
+                                  CompilerPass::PipelineMode mode,
+                                  intptr_t expected_value) {
+  const auto& function =
+      Function::Handle(GetFunction(root_library, function_name));
+
+  TestPipeline pipeline(function, mode);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ReturnInstr* ret = nullptr;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchReturn, &ret},
+  }));
+
+  ConstantInstr* constant = ret->value()->definition()->AsConstant();
+  EXPECT(constant != nullptr);
+  if (constant != nullptr) {
+    const Object& value = constant->value();
+    EXPECT(value.IsSmi());
+    if (value.IsSmi()) {
+      const intptr_t int_value = Smi::Cast(value).Value();
+      EXPECT_EQ(expected_value, int_value);
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(ConstantFold_bitLength) {
+  // clang-format off
+  auto kScript = R"(
+      b0() => 0. bitLength;  // 0...00000
+      b1() => 1. bitLength;  // 0...00001
+      b100() => 100. bitLength;
+      b200() => 200. bitLength;
+      bffff() => 0xffff. bitLength;
+      m1() => (-1).bitLength;  // 1...11111
+      m2() => (-2).bitLength;  // 1...11110
+
+      main() {
+        b0();
+        b1();
+        b100();
+        b200();
+        bffff();
+        m1();
+        m2();
+      }
+    )";
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+
+  auto test = [&](const char* function, intptr_t expected) {
+    TestConstantFoldToSmi(root_library, function, CompilerPass::kJIT, expected);
+    TestConstantFoldToSmi(root_library, function, CompilerPass::kAOT, expected);
+  };
+
+  test("b0", 0);
+  test("b1", 1);
+  test("b100", 7);
+  test("b200", 8);
+  test("bffff", 16);
+  test("m1", 0);
+  test("m2", 1);
+}
 }  // namespace dart

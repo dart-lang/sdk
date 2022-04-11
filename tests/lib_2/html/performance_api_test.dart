@@ -1,4 +1,3 @@
-
 // @dart = 2.9
 import 'dart:html';
 
@@ -27,6 +26,13 @@ main() {
 
         var loadEventStart = window.performance.timing.loadEventStart;
       }, expectation);
+    });
+    test('markAndMeasure', () {
+      window.performance.mark('mark1');
+      window.performance.mark('mark2', {'detail': 'metadata'});
+      window.performance.measure('measure1');
+      window.performance.measure('measure2', 'mark1');
+      window.performance.measure('measure3', 'mark1', 'mark2');
     });
   });
 }

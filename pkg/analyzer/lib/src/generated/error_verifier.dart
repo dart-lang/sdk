@@ -1250,7 +1250,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _checkForFinalNotInitialized(node.variables);
-    _checkForNotInitializedNonNullableVariable(node.variables);
+    _checkForNotInitializedNonNullableVariable(node.variables, true);
 
     for (var declaration in node.variables.variables) {
       _checkForMainFunction(declaration.name);
@@ -2451,7 +2451,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             errorReporter: errorReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
-          )!;
+          );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
           }
@@ -3789,18 +3789,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!node.isStatic) {
       return;
     }
-    _checkForNotInitializedNonNullableVariable(node.fields);
+    _checkForNotInitializedNonNullableVariable(node.fields, false);
   }
 
   void _checkForNotInitializedNonNullableVariable(
     VariableDeclarationList node,
+    bool topLevel,
   ) {
     if (!_isNonNullableByDefault) {
       return;
     }
 
-    // Const and final checked separately.
-    if (node.isConst || node.isFinal) {
+    // Checked separately.
+    if (node.isConst || (topLevel && node.isFinal)) {
       return;
     }
 

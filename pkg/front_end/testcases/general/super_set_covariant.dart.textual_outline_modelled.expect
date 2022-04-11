@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class Class extends SuperClass {
   void set setter(covariant int o);
 }

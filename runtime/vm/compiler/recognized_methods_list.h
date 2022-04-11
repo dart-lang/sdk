@@ -110,6 +110,29 @@ namespace dart {
   V(::, _sqrt, MathSqrt, 0x03183390)                                           \
   V(::, _exp, MathExp, 0x00f4ffd0)                                             \
   V(::, _log, MathLog, 0x09ae8462)                                             \
+  V(FinalizerBase, get:_allEntries, FinalizerBase_getAllEntries, 0xf03ff26b)   \
+  V(FinalizerBase, set:_allEntries, FinalizerBase_setAllEntries, 0x8f0920e8)   \
+  V(FinalizerBase, get:_detachments, FinalizerBase_getDetachments, 0x2f650f36) \
+  V(FinalizerBase, set:_detachments, FinalizerBase_setDetachments, 0x788f1df3) \
+  V(FinalizerBase, _exchangeEntriesCollectedWithNull,                          \
+    FinalizerBase_exchangeEntriesCollectedWithNull, 0x6c9124fb)                \
+  V(FinalizerBase, _setIsolate, FinalizerBase_setIsolate, 0xbcf7db91)          \
+  V(FinalizerBase, get:_isolateFinalizers, FinalizerBase_getIsolateFinalizers, \
+    0x70f53b2b)                                                                \
+  V(FinalizerBase, set:_isolateFinalizers, FinalizerBase_setIsolateFinalizers, \
+    0xb3e66928)                                                                \
+  V(_FinalizerImpl, get:_callback, Finalizer_getCallback, 0x6f3d56bc)          \
+  V(_FinalizerImpl, set:_callback, Finalizer_setCallback, 0xc6aa96f9)          \
+  V(_NativeFinalizer, get:_callback, NativeFinalizer_getCallback, 0x5cb374f5)  \
+  V(_NativeFinalizer, set:_callback, NativeFinalizer_setCallback, 0xb12268f2)  \
+  V(FinalizerEntry, allocate, FinalizerEntry_allocate, 0xe0bad878)             \
+  V(FinalizerEntry, get:value, FinalizerEntry_getValue, 0xf5c9b9d7)            \
+  V(FinalizerEntry, get:detach, FinalizerEntry_getDetach, 0x171cd968)          \
+  V(FinalizerEntry, get:token, FinalizerEntry_getToken, 0x04915a72)            \
+  V(FinalizerEntry, set:token, FinalizerEntry_setToken, 0x63c96cef)            \
+  V(FinalizerEntry, get:next, FinalizerEntry_getNext, 0x7102d7a4)              \
+  V(FinalizerEntry, get:externalSize, FinalizerEntry_getExternalSize,          \
+    0x47df4d22)                                                                \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x1845792b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0xd3b64002)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x13a552c3)                    \

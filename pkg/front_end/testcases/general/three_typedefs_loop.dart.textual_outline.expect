@@ -1,4 +1,3 @@
-// @dart = 2.9
 typedef Foo<T> = void Function(Bar<T>);
 typedef Bar<T> = void Function(Baz<T>);
 typedef Baz<T> = void Function(Foo<T>);

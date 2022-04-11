@@ -168,7 +168,7 @@ class NewPage {
 class SemiSpace {
  public:
   static void Init();
-  static void DrainCache();
+  static void ClearCache();
   static void Cleanup();
   static intptr_t CachedSize();
 
@@ -449,6 +449,7 @@ class Scavenger {
   template <bool>
   friend class ScavengerVisitorBase;
   friend class ScavengerWeakVisitor;
+  friend class ScavengerFinalizerVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

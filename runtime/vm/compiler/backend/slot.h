@@ -53,6 +53,15 @@ class ParsedFunction;
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
+  V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
+  V(FinalizerBase, UntaggedFinalizerBase, all_entries, LinkedHashSet, VAR)     \
+  V(FinalizerBase, UntaggedFinalizerBase, detachments, Dynamic, VAR)           \
+  V(FinalizerBase, UntaggedFinalizer, entries_collected, FinalizerEntry, VAR)  \
+  V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, VAR)               \
+  V(FinalizerEntry, UntaggedFinalizerEntry, detach, Dynamic, VAR)              \
+  V(FinalizerEntry, UntaggedFinalizerEntry, token, Dynamic, VAR)               \
+  V(FinalizerEntry, UntaggedFinalizerEntry, finalizer, FinalizerBase, VAR)     \
+  V(FinalizerEntry, UntaggedFinalizerEntry, next, FinalizerEntry, VAR)         \
   V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
   V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
@@ -91,6 +100,8 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
+  V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
+  V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
   V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
@@ -159,6 +170,8 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
   AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
   V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
     FINAL)                                                                     \
+  V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
+  V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \

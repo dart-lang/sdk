@@ -48,22 +48,22 @@ class RawSocketOption {
 @patch
 class InternetAddress {
   @patch
-  static InternetAddress get LOOPBACK_IP_V4 {
+  static InternetAddress get loopbackIPv4 {
     return _InternetAddress.loopbackIPv4;
   }
 
   @patch
-  static InternetAddress get LOOPBACK_IP_V6 {
+  static InternetAddress get loopbackIPv6 {
     return _InternetAddress.loopbackIPv6;
   }
 
   @patch
-  static InternetAddress get ANY_IP_V4 {
+  static InternetAddress get anyIPv4 {
     return _InternetAddress.anyIPv4;
   }
 
   @patch
-  static InternetAddress get ANY_IP_V6 {
+  static InternetAddress get anyIPv6 {
     return _InternetAddress.anyIPv6;
   }
 

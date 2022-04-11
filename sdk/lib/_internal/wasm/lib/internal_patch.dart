@@ -84,6 +84,20 @@ class Lists {
 // Important: this is unsafe and must be used with care.
 external T unsafeCast<T>(Object? v);
 
+// A version of [unsafeCast] that is opaque to the TFA. The TFA knows about the
+// [unsafeCast] function and will sharpen the result type with the inferred type
+// of the input. When such sharpening is undesirable, this function should be
+// used. One such situation is when either the source or destination type is not
+// an ordinary Dart type, for instance if it is one of the special Wasm types
+// from wasm_types.dart.
+external T unsafeCastOpaque<T>(Object? v);
+
+// This function can be used to keep an object alive till that point.
+void reachabilityFence(Object? object) {}
+
+// This function can be used to encode native side effects.
+external void _nativeEffect(Object object);
+
 // Thomas Wang 64-bit mix.
 // https://gist.github.com/badboy/6267743
 int mix64(int n) {

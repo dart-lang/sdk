@@ -24,7 +24,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*spec.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec.member: Class2.method4:explicit=[method4.T*],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)],test*/
   /*prod.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
@@ -44,14 +44,14 @@ class Class3 {
 
 class Class4 {
   /*prod.member: Class4.method6:needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
-  /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
+  /*spec.member: Class4.method6:explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)],test*/
   method6<T>() {
     /*needsSignature*/ num local(num n, T t) => null;
     return local;
   }
 }
 
-/*spec.member: method7:direct,explicit=[method7.T*],needsArgs*/
+/*spec.member: method7:explicit=[method7.T*],needsArgs,test*/
 /*prod.member: method7:needsArgs*/
 method7<T>() {
   /*needsSignature*/
@@ -66,7 +66,7 @@ method8<T>() {
   return local;
 }
 
-/*spec.member: method9:direct,explicit=[method9.T*],needsArgs*/
+/*spec.member: method9:explicit=[method9.T*],needsArgs,test*/
 /*prod.member: method9:needsArgs*/
 method9<T>() {
   /*needsSignature*/ num local(num n, T t) => null;
@@ -74,7 +74,7 @@ method9<T>() {
 }
 
 method10() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
+  /*spec.explicit=[local.T*],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/ num local<T>(T n) => null;
   return local;
 }
@@ -85,7 +85,7 @@ method11() {
 }
 
 method12() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
+  /*spec.explicit=[local.T*],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/ num local<T>(num n, T t) => null;
   return local;
 }

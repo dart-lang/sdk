@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return this.{main::A::doit_with_this}(2){(dart.core::int*) →* dart.core::int*};
+  return this.{#lib1::A::doit_with_this}(2){(dart.core::int) → dart.core::int};

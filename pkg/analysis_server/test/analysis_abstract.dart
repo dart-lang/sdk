@@ -63,7 +63,8 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile)!;
 
-  void addAnalysisSubscription(AnalysisService service, String file) {
+  Future<void> addAnalysisSubscription(
+      AnalysisService service, String file) async {
     // add file to subscription
     var files = analysisSubscriptions[service];
     if (files == null) {
@@ -74,7 +75,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     // set subscriptions
     var request =
         AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
-    handleSuccessfulRequest(request);
+    await waitResponse(request);
   }
 
   void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
@@ -85,7 +86,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   String addTestFile(String content) {
-    newFile(testFile, content: content);
+    newFile2(testFile, content);
     testCode = content;
     return testFile;
   }
@@ -211,7 +212,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
-  Future waitForTasksFinished() {
+  Future<void> waitForTasksFinished() {
     return server.onAnalysisComplete;
   }
 

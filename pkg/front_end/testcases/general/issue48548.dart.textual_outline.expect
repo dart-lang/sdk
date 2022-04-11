@@ -1,0 +1,14 @@
+abstract class A {
+  int get value;
+  factory A({int value}) = _AImpl;
+}
+
+class _AImpl implements A {
+  final int value;
+  _AImpl({this.value = 0});
+}
+
+const _new = A.new;
+const _newImpl = _AImpl.new;
+void main(List<String> args) {}
+expect(expected, actual) {}

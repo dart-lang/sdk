@@ -1,5 +1,4 @@
 // @dart = 2.9
-// @dart = 2.9
 void test2() {}
 void main() {}
 void checkFirstLineHasPosition(StackTrace stackTrace) {}

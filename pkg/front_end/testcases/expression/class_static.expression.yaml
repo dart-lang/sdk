@@ -2,9 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
+sources: |
+  class A {
+    static int doit(int x) => x + 1;
+  }
 definitions: []
-position: "main.dart#A"
+position: "#A"
 static: true
 expression: |
   doit(3)

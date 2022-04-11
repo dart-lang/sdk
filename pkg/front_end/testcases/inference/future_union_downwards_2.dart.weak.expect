@@ -35,10 +35,10 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
 static field self::MyFuture<dynamic>* f;
 static field asy::Future<core::int*>* t1 = self::f.{self::MyFuture::then}<core::int*>((dynamic _) → self::MyFuture<core::int*>* => new self::MyFuture::value<core::int*>("hi")){((dynamic) →* FutureOr<core::int*>*, {onError: core::Function*}) →* self::MyFuture<core::int*>*};
 static field asy::Future<core::List<core::int*>*>* t2 = self::f.{self::MyFuture::then}<core::List<core::int*>*>((dynamic _) → core::List<core::int*>* => <core::int*>[3]){((dynamic) →* FutureOr<core::List<core::int*>*>*, {onError: core::Function*}) →* self::MyFuture<core::List<core::int*>*>*};
-static method g2() → asy::Future<core::List<core::int*>*>* async {
+static method g2() → asy::Future<core::List<core::int*>*>* async /* futureValueType= core::List<core::int*>* */ {
   return <core::int*>[3];
 }
-static method g3() → asy::Future<core::List<core::int*>*>* async {
+static method g3() → asy::Future<core::List<core::int*>*>* async /* futureValueType= core::List<core::int*>* */ {
   return new self::MyFuture::value<core::List<core::int*>*>(<core::int*>[3]);
 }
 static method main() → dynamic {}

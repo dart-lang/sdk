@@ -296,7 +296,7 @@ class A {
   }
 
   test_topLevelVariable_libraryAnnotation() async {
-    newFile('$testPackageLibPath/library.dart', content: '''
+    newFile2('$testPackageLibPath/library.dart', '''
 @doNotStore
 library lib;
 

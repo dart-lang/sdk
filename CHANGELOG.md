@@ -27,6 +27,12 @@
   `Element.scrollIntoViewIfNeeded` should use the new `scrollIntoViewIfNeeded`
   definition instead.
 
+- Change `Performance.mark` and `Performance.measure` to accept their different
+  overloads. `mark` can now accept a `markOptions` map, and `measure` can now
+  accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
+  return their correct return types now as well - `PerformanceEntry?` and
+  `PerformanceMeasure?`, respectively.
+
 #### `dart:indexed_db`
 
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
@@ -57,15 +63,20 @@
       throw UnsupportedError("keyLog not implemented");
   ```
 
+- **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
+  Constants in `dart:io` following the `SCREAMING_CAPS` convention have been
+  removed (they were previously deprecated).  Please use the corresponding
+  `lowerCamelCase` constants instead.
+
 - Add a optional `keyLog` parameter to `SecureSocket.connect` and
   `SecureSocket.startConnect`.
 
 - Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
   which were no-ops.
 
-#### `dart:isolate`
-
-- Add `Isolate.run` to run a function in a new isolate.
+- **Breaking Change** [#48513](https://github.com/dart-lang/sdk/issues/48513):
+  Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
+  which allows TLS renegotiation for client secure sockets.
 
 ### Tools
 
@@ -100,6 +111,49 @@
           [server-shelf]         A server app using package:shelf.
           [web]                  A web app that uses only core Dart libraries.
 ```
+
+#### Linter
+
+Updated the Linter to `1.22.0`, which includes changes that
+
+- fixes null-safe variance exceptions in `invariant_booleans`
+- updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual
+  package, not needing an explicit dependency.
+- updates `unnecessary_null_checks` and
+  `null_check_on_nullable_type_parameter` to handle
+  list/set/map literals, and `yield` and `await` expressions.
+- fixes `unnecessary_null_aware_assignments` property-access
+  false positives.
+- adds new lint: `use_super_parameters`.
+- adds new lint: `use_enums`.
+- adds new lint: `use_colored_box`.
+- improves performance for `sort_constructors`.
+- improves docs for `always_use_package_imports`,
+  `avoid_print`, and `avoid_relative_lib_imports` .
+- updates `avoid_void_async` to skip `main` functions.
+- updates `prefer_final_parameters` to not super on super params.
+- updates lints for enhanced-enums and super-initializer language
+  features.
+- updates `unnecessary_late` to report on variable names.
+- marks `null_check_on_nullable_type_parameter` stable.
+
+#### Dartdoc
+
+Updated dartdoc to 5.1.0, which includes changes that
+
+- support the enhanced enums feature
+- remove superfluous `[...]` links
+- fix `categoryOrder` option
+- display categorized extensions
+- add annotations to extensions
+- make minor improvements to performance
+
+## 2.16.2 - 2022-03-24
+
+This is a patch release that fixes a dart2js crash when building some Flutter
+web apps (issue [#47916][]).
+
+[#47916]: https://github.com/dart-lang/sdk/issues/47916
 
 ## 2.16.1 - 2022-02-09
 
@@ -167,6 +221,14 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The deprecated standalone `pub` tool has been removed.
+  Its replacement is the `dart pub` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue][].
+
+[an issue]: https://github.com/dart-lang/pub/issues/new
+
 #### Pub
 
 - Fixed race conditions in `dart pub get`, `dart run` and `dart pub global run`.
@@ -176,8 +238,16 @@ in 2018, as it doesn't work with any Dart 2.x release.
   tracker.
 
   `dart --verbose pub [command]` will also cause the log file to be written.
+- `dart pub global activate --source=git` now takes arguments `--git-path` to
+  specify the path of the activated package in the pubspec and `--git-ref` to
+  specify the branch or revision to check out.
 - `dart pub add` can now add multiple packages in one command.
-
+- `dart pub token add` can now add a token for [pub.dev](https://pub.dev).
+- `dart pub uploader` has been removed. To manage uploaders for a package use
+  the `https://pub.dev/<packagename>/admin` web-interface.
+- Pub now supports a separate `pubspec_overrides.yaml` file that can contain
+  `dependency_overrides`. This makes it easier to avoid checking the local
+  overrides into version control.
 #### Linter
 
 Updated the Linter to `1.18.0`, which includes changes that

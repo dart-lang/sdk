@@ -176,15 +176,8 @@ T f<T>(T t) => t;
 int g() => f(null)!;
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['int?'],
-      invokeType: 'int? Function(int?)',
-      type: 'int?',
-    );
-
-    assertResolvedNodeText(findNode.postfix('f(null)!'), r'''
+    var node = findNode.postfix('f(null)!');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: MethodInvocation
     methodName: SimpleIdentifier
@@ -284,25 +277,27 @@ class B extends A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 6),
     ]);
 
-    assertTypeDynamic(findNode.super_('super!'));
-
-    assertResolvedNodeText(findNode.postfix('super!'), r'''
-PostfixExpression
-  operand: SuperExpression
-    superKeyword: super
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: PostfixExpression
+    operand: SuperExpression
+      superKeyword: super
+      staticType: dynamic
+    operator: !
+    staticElement: <null>
     staticType: dynamic
-  operator: !
-  staticElement: <null>
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
   staticType: dynamic
 ''');
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo();'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
   }
 
   test_nullCheck_typeParameter() async {
@@ -785,7 +780,7 @@ PostfixExpression
   }
 
   test_inc_prefixedIdentifier_topLevel() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertNoErrorsInCode(r'''

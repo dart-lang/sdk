@@ -413,8 +413,8 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   @Deprecated('Not useful for clients')
   bool get hasLoadLibraryFunction;
 
-  /// Return the [LineInfo] for the [source], or `null` if not computed yet.
-  LineInfo? get lineInfo;
+  /// Return the [LineInfo] for the [source].
+  LineInfo get lineInfo;
 
   /// Return a list containing all of the mixins contained in this compilation
   /// unit.
@@ -1233,6 +1233,10 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// The name of the method that will be invoked if an attempt is made to
   /// invoke an undefined method on an object.
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
+
+  /// Return `true` if this function represents `identical` from the
+  /// `dart:core` library.
+  bool get isDartCoreIdentical;
 
   /// Return `true` if the function is an entry point, i.e. a top-level function
   /// and has the name `main`.

@@ -581,6 +581,7 @@ $ dart2js_info runtime_coverage --show-packages main.dart.info.data main.runtime
 ```
 
 Here's an example output snippet:
+
 ```
 Runtime Coverage Summary
 ========================================================================

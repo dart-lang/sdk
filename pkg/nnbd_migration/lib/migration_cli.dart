@@ -896,7 +896,7 @@ get erroneous migration suggestions.
     logger.stdout(ansi.emphasized('Re-analyzing project...'));
 
     _dartFixListener!.reset();
-    _fixCodeProcessor!.prepareToRerun();
+    await _fixCodeProcessor!.prepareToRerun();
     var analysisResult = await _fixCodeProcessor!.runFirstPhase();
     if (analysisResult.hasErrors && !options.ignoreErrors!) {
       _logErrors(analysisResult);
@@ -997,10 +997,11 @@ class _FixCodeProcessor extends Object {
 
   bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
 
-  void prepareToRerun() {
+  Future<void> prepareToRerun() async {
     var driver = context.driver;
     pathsToProcess = _migrationCli.computePathsToProcess(context);
     pathsToProcess.forEach(driver.changeFile);
+    await driver.applyPendingFileChanges();
   }
 
   /// Call the supplied [process] function to process each compilation unit.

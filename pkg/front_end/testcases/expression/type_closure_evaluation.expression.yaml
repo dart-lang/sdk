@@ -2,14 +2,22 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
+sources: |
+  void hasClosure() {
+    List<String> x() {
+      return ["hello"];
+    }
+
+    int xCombinedLength = x()
+        .fold<int>(0, (previousValue, element) => previousValue + element.length);
+    print("xCombinedLength = $xCombinedLength");
+  }
 definitions: ["x"]
 # _Closure --- note that this is not what the VM sends (anymore).
 definition_types: ["dart:core", "_Closure", "1", "0"]
 type_definitions: []
 type_bounds: []
 type_defaults: []
-position: "main.dart"
 method: "hasClosure"
 expression: |
   x().fold<int>(0, (previousValue, element) => previousValue + element.length)

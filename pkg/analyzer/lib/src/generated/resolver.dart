@@ -296,14 +296,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       FeatureSet featureSet,
       this.flowAnalysis,
       this._migratableAstInfoProvider,
-      MigrationResolutionHooks? migrationResolutionHooks)
+      this.migrationResolutionHooks)
       : errorReporter = ErrorReporter(
           errorListener,
           source,
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
         _featureSet = featureSet,
-        migrationResolutionHooks = migrationResolutionHooks,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata) {
     var analysisOptions =
@@ -383,6 +382,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   bool get isConstructorTearoffsEnabled =>
       _featureSet.isEnabled(Feature.constructor_tearoffs);
 
+  bool get isInferenceUpdate1Enabled =>
+      _featureSet.isEnabled(Feature.inference_update_1);
+
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
     return flowAnalysis.localVariableTypeProvider;
@@ -441,7 +443,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // TODO(scheglov) encapsulate
     var bodyContext = BodyInferenceContext.of(body);
     if (bodyContext == null) {
-      return null;
+      return;
     }
     var returnType = bodyContext.contextType;
     if (returnType == null) {
@@ -664,7 +666,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
-    )!;
+    );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
     }
@@ -1222,7 +1224,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    flowAnalysis.executableDeclaration_enter(node, node.parameters,
+        isClosure: false);
 
     var returnType = node.declaredElement!.type.returnType;
 
@@ -1540,21 +1543,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var receiverContextType =
         ExtensionMemberResolver(this).computeOverrideReceiverContextType(node);
-    const ExtensionOverrideInferrer().resolveInvocation(
-        resolver: this,
-        node: node,
-        rawType: receiverContextType == null
-            ? null
-            : FunctionTypeImpl(
-                typeFormals: const [],
-                parameters: [
-                    ParameterElementImpl.synthetic(
-                        null, receiverContextType, ParameterKind.REQUIRED)
-                  ],
-                returnType: DynamicTypeImpl.instance,
-                nullabilitySuffix: NullabilitySuffix.none),
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    InvocationInferrer<ExtensionOverrideImpl>(
+            resolver: this,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: receiverContextType == null
+                ? null
+                : FunctionTypeImpl(
+                    typeFormals: const [],
+                    parameters: [
+                        ParameterElementImpl.synthetic(
+                            null, receiverContextType, ParameterKind.REQUIRED)
+                      ],
+                    returnType: DynamicTypeImpl.instance,
+                    nullabilitySuffix: NullabilitySuffix.none),
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
   }
@@ -1611,7 +1616,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.executableDeclaration_enter(
       node,
       node.functionExpression.parameters,
-      isLocal,
+      isClosure: isLocal,
     );
 
     var functionType = node.declaredElement!.type;
@@ -1908,7 +1913,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    flowAnalysis.executableDeclaration_enter(node, node.parameters,
+        isClosure: false);
 
     DartType returnType = node.declaredElement!.returnType;
 
@@ -2162,12 +2168,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
-    const RedirectingConstructorInvocationInferrer().resolveInvocation(
-        resolver: this,
-        node: node,
-        rawType: node.staticElement?.type,
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    InvocationInferrer<RedirectingConstructorInvocationImpl>(
+            resolver: this,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: node.staticElement?.type,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2270,12 +2278,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
-    const SuperConstructorInvocationInferrer().resolveInvocation(
-        resolver: this,
-        node: node,
-        rawType: node.staticElement?.type,
-        contextType: null,
-        whyNotPromotedList: whyNotPromotedList);
+    InvocationInferrer<SuperConstructorInvocationImpl>(
+            resolver: this,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: node.staticElement?.type,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2577,7 +2587,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
-      )!;
+      );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);
       }

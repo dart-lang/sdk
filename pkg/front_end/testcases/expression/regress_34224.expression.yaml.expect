@@ -1,4 +1,4 @@
 Errors: {
 }
-method /*isLegacy, from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return this.{dart.core::Object::toString}(){() →* dart.core::String*};
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return this.{dart.core::Object::toString}(){() → dart.core::String};

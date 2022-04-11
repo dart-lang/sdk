@@ -502,7 +502,7 @@ version: 1.0.0
 dependencies:
   one: ^2.3.4''';
 
-    newFile(pubspecFilePath, content: content);
+    newFile2(pubspecFilePath, content);
     await initialize();
     await openFile(pubspecFileUri, withoutMarkers(content));
     await pumpEventQueue(times: 500);
@@ -556,7 +556,7 @@ version: 1.0.0
 dependencies:
   one: ^''';
 
-    newFile(pubspecFilePath, content: content);
+    newFile2(pubspecFilePath, content);
     await initialize();
     await openFile(pubspecFileUri, withoutMarkers(content));
     await pumpEventQueue(times: 500);

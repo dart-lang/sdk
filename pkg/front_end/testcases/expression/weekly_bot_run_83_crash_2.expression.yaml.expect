@@ -1,0 +1,7 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:6: Error: Too few positional arguments: 2 required, 0 given.
+  clamp()
+       ^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:6: Error: Too few positional arguments: 2 required, 0 given.\nclamp()\n     ^" in this.{dart.core::num::clamp}{<inapplicable>}.(){() → invalid-type};

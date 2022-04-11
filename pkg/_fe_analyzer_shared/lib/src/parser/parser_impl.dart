@@ -63,10 +63,7 @@ import 'declaration_kind.dart' show DeclarationKind;
 import 'directive_context.dart';
 
 import 'formal_parameter_kind.dart'
-    show
-        FormalParameterKind,
-        isMandatoryFormalParameterKind,
-        isOptionalPositionalFormalParameterKind;
+    show FormalParameterKind, FormalParameterKindExtension;
 
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
@@ -1398,7 +1395,8 @@ class Parser {
         token = ensureCloseParen(token, begin);
         break;
       }
-      token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
+      token = parseFormalParameter(
+          token, FormalParameterKind.requiredPositional, kind);
       next = token.next!;
       if (!optional(',', next)) {
         Token next = token.next!;
@@ -1525,6 +1523,7 @@ class Parser {
     if (isModifier(next)) {
       if (optional('required', next)) {
         if (parameterKind == FormalParameterKind.optionalNamed) {
+          parameterKind = FormalParameterKind.requiredNamed;
           requiredToken = token = next;
           next = token.next!;
         }
@@ -1742,11 +1741,10 @@ class Parser {
       // TODO(danrubel): Consider removing the last parameter from the
       // handleValuedFormalParameter event... it appears to be unused.
       listener.handleValuedFormalParameter(equal, next);
-      if (isMandatoryFormalParameterKind(parameterKind)) {
+      if (parameterKind.isRequiredPositional) {
         reportRecoverableError(
             equal, codes.messageRequiredParameterWithDefault);
-      } else if (isOptionalPositionalFormalParameterKind(parameterKind) &&
-          identical(':', value)) {
+      } else if (parameterKind.isOptionalPositional && identical(':', value)) {
         reportRecoverableError(
             equal, codes.messagePositionalParameterWithEquals);
       } else if (inFunctionType ||
@@ -2151,10 +2149,35 @@ class Parser {
     Token beginToken = token;
     token = parseMetadataStar(token);
     token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration);
-    token = parseConstructorReference(token, ConstructorReferenceContext.Const,
-        /* typeArg = */ null, /* isImplicitTypeName = */ true);
+    bool hasTypeArgumentsOrDot = false;
+    {
+      // This is almost a verbatim copy of [parseConstructorReference] inserted
+      // to provide better recovery.
+      Token start = token;
+      listener.handleNoTypeNameInConstructorReference(token.next!);
+      listener.beginConstructorReference(start);
+      TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
+      if (typeArg != noTypeParamOrArg) {
+        hasTypeArgumentsOrDot = true;
+      }
+      token = typeArg.parseArguments(token, this);
+      Token? period = null;
+      if (optional('.', token.next!)) {
+        hasTypeArgumentsOrDot = true;
+        period = token.next!;
+        token = ensureIdentifier(
+            period,
+            IdentifierContext
+                .constructorReferenceContinuationAfterTypeArguments);
+      } else {
+        listener.handleNoConstructorReferenceContinuationAfterTypeArguments(
+            token.next!);
+      }
+      listener.endConstructorReference(
+          start, period, token.next!, ConstructorReferenceContext.Const);
+    }
     Token next = token.next!;
-    if (optional('(', next) || optional('<', next)) {
+    if (optional('(', next) || hasTypeArgumentsOrDot) {
       token = parseConstructorInvocationArguments(token);
     } else {
       listener.handleNoArguments(token);
@@ -4638,19 +4661,14 @@ class Parser {
 
   Token parseConstructorReference(
       Token token, ConstructorReferenceContext constructorReferenceContext,
-      [TypeParamOrArgInfo? typeArg, bool isImplicitTypeName = false]) {
+      [TypeParamOrArgInfo? typeArg]) {
+    // Note that there's an almost verbatim copy in [parseEnumElement] so
+    // any change here should be added there too.
     Token start;
-    if (isImplicitTypeName) {
-      listener.handleNoTypeNameInConstructorReference(token.next!);
-      start = token;
-    } else {
-      start = ensureIdentifier(token, IdentifierContext.constructorReference);
-    }
+    start = ensureIdentifier(token, IdentifierContext.constructorReference);
     listener.beginConstructorReference(start);
-    if (!isImplicitTypeName) {
-      token = parseQualifiedRestOpt(
-          start, IdentifierContext.constructorReferenceContinuation);
-    }
+    token = parseQualifiedRestOpt(
+        start, IdentifierContext.constructorReferenceContinuation);
     typeArg ??= computeTypeParamOrArg(token);
     token = typeArg.parseArguments(token, this);
     Token? period = null;
@@ -6710,7 +6728,7 @@ class Parser {
         break;
       }
       Token? colon = null;
-      if (optional(':', next.next!)) {
+      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
         token =
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;
@@ -7028,11 +7046,17 @@ class Parser {
         // to determine if this is part of a conditional expression
         //
         Listener originalListener = listener;
-        listener = new ForwardingListener();
-        // TODO(danrubel): consider using TokenStreamGhostWriter here
+        TokenStreamRewriter? originalRewriter = cachedRewriter;
+        listener = new NullListener();
+        UndoableTokenStreamRewriter undoableTokenStreamRewriter =
+            new UndoableTokenStreamRewriter();
+        cachedRewriter = undoableTokenStreamRewriter;
         Token afterExpression =
             parseExpressionWithoutCascade(afterIdentifier).next!;
+        // Undo all changes and reset.
+        undoableTokenStreamRewriter.undo();
         listener = originalListener;
+        cachedRewriter = originalRewriter;
 
         if (optional(':', afterExpression)) {
           // Looks like part of a conditional expression.

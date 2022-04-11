@@ -202,7 +202,7 @@ static void DoThrowNullError(Isolate* isolate,
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   const CodeSourceMap& map =
@@ -373,7 +373,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Double::New(0.0)));
 }
@@ -385,28 +385,28 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxDouble, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Integer::New(kMaxInt64)));
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Float32x4::New(0.0, 0.0, 0.0, 0.0)));
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Int32x4::New(0, 0, 0, 0)));
 }
@@ -2680,7 +2680,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
   auto isolate_group = thread->isolate_group();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   bool do_deopt = false;

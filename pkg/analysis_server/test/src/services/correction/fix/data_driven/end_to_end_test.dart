@@ -163,4 +163,36 @@ import '$importUri';
 void f(New o) {}
 ''', errorFilter: ignoreUnusedImport);
   }
+
+  Future<void> test_replaceBy() async {
+    addSdkDataFile('''
+version: 1
+transforms:
+  - title: "Replace with 'FileMode.read'"
+    date: 2021-09-21
+    element:
+      uris: [ 'dart:io' ]
+      variable: 'READ'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: [ 'dart:io' ]
+          inClass: 'FileMode'
+          field: 'read'
+''');
+    await resolveTestCode('''
+import 'dart:io';
+
+int f() {
+  return READ;
+}
+''');
+    await assertHasFix('''
+import 'dart:io';
+
+int f() {
+  return FileMode.read;
+}
+''', errorFilter: ignoreUnusedImport);
+  }
 }

@@ -102,7 +102,7 @@ class Text {
   String render(int width) {
     if (value.length > width) {
       // Narrowed column.
-      return value.substring(0, width - 2) + '..';
+      return '${value.substring(0, width - 2)}..';
     }
     switch (direction) {
       case AlignmentDirection.left:

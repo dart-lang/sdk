@@ -138,11 +138,11 @@ class LintDriver {
         projectAnalysisSession,
         _filesAnalyzed.toList(),
       );
-      Registry.ruleRegistry.forEach((lint) {
+      for (var lint in Registry.ruleRegistry) {
         if (lint is ProjectVisitor) {
           (lint as ProjectVisitor).visit(project);
         }
-      });
+      }
     }
 
     var result = <AnalysisErrorInfo>[];

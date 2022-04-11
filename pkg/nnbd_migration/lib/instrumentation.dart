@@ -48,7 +48,7 @@ class CodeReference {
     var path = unitElement.source.fullName;
     var offset = element.nameOffset;
 
-    var location = unitElement.lineInfo!.getLocation(offset);
+    var location = unitElement.lineInfo.getLocation(offset);
     return CodeReference(path, offset, location.lineNumber,
         location.columnNumber, _computeElementFullName(element));
   }

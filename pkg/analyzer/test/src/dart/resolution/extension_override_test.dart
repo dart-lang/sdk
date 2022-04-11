@@ -88,13 +88,35 @@ void f(int? a) {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo();'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int?',
-    );
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          staticElement: a@54
+          staticType: int?
+      rightParenthesis: )
+    extendedType: int
+    staticType: null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int?
+''');
   }
 
   test_propertyAccess_getter_nullAware() async {
@@ -301,7 +323,7 @@ FunctionExpressionInvocation
   }
 
   test_call_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int call(String s) => 0;
@@ -392,7 +414,7 @@ FunctionExpressionInvocation
 
   test_call_prefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int call(T s) => 0;
@@ -757,7 +779,7 @@ PropertyAccess
   }
 
   test_getter_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int get g => 0;
@@ -841,7 +863,7 @@ PropertyAccess
   }
 
   test_getter_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int get g => 0;
@@ -1127,7 +1149,7 @@ MethodInvocation
   }
 
   test_method_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   void m() {}
@@ -1219,7 +1241,7 @@ MethodInvocation
   }
 
   test_method_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   void m() {}
@@ -1579,7 +1601,7 @@ PostfixExpression
   }
 
   test_operator_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   void operator +(int offset) {}
@@ -1665,7 +1687,7 @@ BinaryExpression
   }
 
   test_operator_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   void operator +(int offset) {}
@@ -1977,7 +1999,7 @@ AssignmentExpression
   }
 
   test_setter_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   set s(int x) {}
@@ -2083,7 +2105,7 @@ AssignmentExpression
   }
 
   test_setter_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   set s(int x) {}
@@ -2429,7 +2451,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int get s => 0;
@@ -2538,7 +2560,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
-    newFile('$testPackageLibPath/lib.dart', content: '''
+    newFile2('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int get s => 0;

@@ -1,4 +1,3 @@
-// @dart = 2.9
 import "issue34515_lib1.dart";
 import "issue34515_lib2.dart";
 

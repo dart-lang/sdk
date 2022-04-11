@@ -42,11 +42,11 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
   {
-    Assembler::CallRuntimeScope scope(
-        assembler, kEnsureRememberedAndMarkingDeferredRuntimeEntry,
-        /*frame_size=*/0, /*preserve_registers=*/preserve_registers);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    // R0 already loaded.
     __ mov(R1, THR);
-    scope.Call(/*argument_count=*/2);
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry,
+            /*argument_count=*/2);
   }
 
   __ Bind(&done);
@@ -700,7 +700,8 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Set retval in NativeArgs.
   ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(R3, FP, 2 * target::kWordSize);
+  __ AddImmediate(
+      R3, FP, (target::frame_layout.param_end_from_fp + 1) * target::kWordSize);
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
@@ -976,13 +977,17 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ PushQuad(vreg);
   }
 
-  __ mov(R0, SP);  // Pass address of saved registers block.
-  bool is_lazy =
-      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-  __ LoadImmediate(R1, is_lazy ? 1 : 0);
-  __ ReserveAlignedFrameSpace(0);
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
-  // Result (R0) is stack-size (FP - SP) in bytes.
+  {
+    __ mov(R0, SP);  // Pass address of saved registers block.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ LoadImmediate(R1, is_lazy ? 1 : 0);
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (R0) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1 temporarily.
@@ -1009,9 +1014,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ Push(R1);  // Preserve exception as first local.
     __ Push(R2);  // Preserve stacktrace as second local.
   }
-  __ ReserveAlignedFrameSpace(0);
-  __ mov(R0, FP);  // Pass last FP as parameter in R0.
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
+  {
+    __ mov(R0, FP);  // Pass last FP as parameter in R0.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
     __ LoadFromOffset(
@@ -1365,8 +1374,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // from over-writing Dart frames.
   __ mov(SP, CSP);
   __ SetupCSPFromThread(R3);
-  // Marker for the profiler.
-  NOT_IN_PRODUCT(READS_RETURN_ADDRESS_FROM_LR(__ Push(LR)));
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1413,6 +1420,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
 #endif
   __ Push(R6);
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
@@ -1489,7 +1499,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  NOT_IN_PRODUCT(__ Drop(1));  // Drop profiler marker.
   __ RestoreCSP();
   __ ret();
 }
@@ -1736,7 +1745,6 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
 COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           Address stub_code,
                                            bool cards) {
   Label add_to_mark_stack, remember_card, lost_race;
   __ tbz(&add_to_mark_stack, R0,
@@ -1799,11 +1807,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
   {
-    Assembler::CallRuntimeScope scope(assembler,
-                                      kStoreBufferBlockProcessRuntimeEntry,
-                                      /*frame_size=*/0, stub_code);
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/true);
     __ mov(R0, THR);
-    scope.Call(/*argument_count=*/1);
+    rt.Call(kStoreBufferBlockProcessRuntimeEntry, /*argument_count=*/1);
   }
   __ ret();
 
@@ -1841,11 +1849,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   __ Bind(&marking_overflow);
   {
-    Assembler::CallRuntimeScope scope(assembler,
-                                      kMarkingStackBlockProcessRuntimeEntry,
-                                      /*frame_size=*/0, stub_code);
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/true);
     __ mov(R0, THR);
-    scope.Call(/*argument_count=*/1);
+    rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
   }
   __ ret();
 
@@ -1881,26 +1889,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
     {
-      Assembler::CallRuntimeScope scope(assembler, kRememberCardRuntimeEntry,
-                                        /*frame_size=*/0, stub_code);
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
       __ mov(R0, R1);   // Arg0 = Object
       __ mov(R1, R25);  // Arg1 = Slot
-      scope.Call(/*argument_count=*/2);
+      rt.Call(kRememberCardRuntimeEntry, /*argument_count=*/2);
     }
     __ ret();
   }
 }
 
 void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler, Address(THR, target::Thread::write_barrier_code_offset()),
-      false);
+  GenerateWriteBarrierStubHelper(assembler, false);
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler,
-      Address(THR, target::Thread::array_write_barrier_code_offset()), true);
+  GenerateWriteBarrierStubHelper(assembler, true);
 }
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,

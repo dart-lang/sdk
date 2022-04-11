@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,7 +40,7 @@ class CreateConstructorTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
 
   Future<void> test_inLibrary_insteadOfSyntheticDefault() async {
-    var a = newFile('$testPackageLibPath/a.dart', content: '''
+    var a = newFile2('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
@@ -61,7 +60,7 @@ class A {
   }
 
   Future<void> test_inLibrary_named() async {
-    var a = newFile('$testPackageLibPath/a.dart', content: '''
+    var a = newFile2('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
@@ -126,9 +125,7 @@ void f() {
   new M(3);
 }
 ''');
-    await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.MIXIN_INSTANTIATE);
+    await assertNoFix();
   }
 
   Future<void> test_named() async {

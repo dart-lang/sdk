@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method main() → dynamic async {
+static method main() → dynamic async /* futureValueType= dynamic */ {
   core::bool b = (() → core::bool => true)(){() → core::bool};
   (dynamic _) → core::int? {
     if(b)
       return 42;
   };
-  (dynamic _) → asy::Future<core::int?> async {
+  (dynamic _) → asy::Future<core::int?> async /* futureValueType= core::int? */ {
     if(b)
       return 42;
   };

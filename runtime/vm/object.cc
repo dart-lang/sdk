@@ -45,6 +45,7 @@
 #include "vm/kernel_binary.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
+#include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object_graph.h"
 #include "vm/object_store.h"
@@ -118,7 +119,7 @@ ArrayPtr SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {};
 
-// These are initialized to a value that will force a illegal memory access if
+// These are initialized to a value that will force an illegal memory access if
 // they are being used.
 #if defined(RAW_NULL)
 #error RAW_NULL should not be defined.
@@ -192,6 +193,9 @@ static void AppendSubString(BaseTextBuffer* buffer,
   buffer->Printf("%.*s", static_cast<int>(len), &name[start_pos]);
 }
 
+// Used to define setters and getters for untagged object fields that are
+// defined with the WSR_COMPRESSED_POINTER_FIELD macro. See
+// PRECOMPILER_WSR_FIELD_DECLARATION in object.h for more information.
 #if defined(DART_PRECOMPILER)
 #define PRECOMPILER_WSR_FIELD_DEFINITION(Class, Type, Name)                    \
   Type##Ptr Class::Name() const {                                              \
@@ -2341,6 +2345,19 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    cls = Class::New<NativeFinalizer, RTN::NativeFinalizer>(isolate_group);
+    object_store->set_native_finalizer_class(cls);
+    RegisterPrivateClass(cls, Symbols::_NativeFinalizer(), lib);
+
+    cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
+    cls.set_type_arguments_field_offset(
+        Finalizer::type_arguments_offset(),
+        RTN::Finalizer::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    object_store->set_finalizer_class(cls);
+    pending_classes.Add(cls);
+    RegisterPrivateClass(cls, Symbols::_FinalizerImpl(), core_lib);
+
     // Pre-register the internal library so we can place the vm class
     // FinalizerEntry there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartInternal());
@@ -2352,6 +2369,11 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_bootstrap_library(ObjectStore::kInternal, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.ptr() == Library::InternalLibrary());
+
+    cls = Class::New<FinalizerEntry, RTN::FinalizerEntry>(isolate_group);
+    object_store->set_finalizer_entry_class(cls);
+    pending_classes.Add(cls);
+    RegisterClass(cls, Symbols::FinalizerEntry(), lib);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
@@ -2520,6 +2542,12 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_weak_property_class(cls);
     cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
     object_store->set_weak_reference_class(cls);
+    cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
+    object_store->set_finalizer_class(cls);
+    cls = Class::New<NativeFinalizer, RTN::NativeFinalizer>(isolate_group);
+    object_store->set_native_finalizer_class(cls);
+    cls = Class::New<FinalizerEntry, RTN::FinalizerEntry>(isolate_group);
+    object_store->set_finalizer_entry_class(cls);
 
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
@@ -2969,6 +2997,11 @@ void Class::set_num_type_arguments_unsafe(intptr_t value) const {
 
 void Class::set_has_pragma(bool value) const {
   set_state_bits(HasPragmaBit::update(value, state_bits()));
+}
+
+void Class::set_implements_finalizable(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(ImplementsFinalizableBit::update(value, state_bits()));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -4083,7 +4116,7 @@ void Class::DisableCHAOptimizedCode(const Class& subclass) {
       THR_Print("Deopt for CHA (new subclass %s)\n", subclass.ToCString());
     }
   }
-  a.DisableCode();
+  a.DisableCode(/*are_mutators_stopped=*/false);
 }
 
 void Class::DisableAllCHAOptimizedCode() {
@@ -5416,7 +5449,9 @@ bool Class::IsSubtypeOf(const Class& cls,
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
         if (type_arg.IsSubtypeOf(other_type_arg, space, trail)) {
-          if (verified_nullability) {
+          // verified_nullability doesn't take into account the nullability of
+          // S1, just of the FutureOr type.
+          if (verified_nullability || !other_type_arg.IsNonNullable()) {
             return true;
           }
         }
@@ -6906,6 +6941,8 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
   if (result.IsNull()) {
     // Canonicalize each type argument.
     AbstractType& type_arg = AbstractType::Handle(zone);
+    GrowableHandlePtrArray<const AbstractType> canonicalized_types(zone,
+                                                                   num_types);
     for (intptr_t i = 0; i < num_types; i++) {
       type_arg = TypeAt(i);
       type_arg = type_arg.Canonicalize(thread, trail);
@@ -6914,7 +6951,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
         ASSERT(IsRecursive());
         return this->ptr();
       }
-      SetTypeAt(i, type_arg);
+      canonicalized_types.Add(type_arg);
     }
     // Canonicalization of a type argument of a recursive type argument vector
     // may change the hash of the vector, so invalidate.
@@ -6929,6 +6966,9 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
     // canonical entry.
     result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
     if (result.IsNull()) {
+      for (intptr_t i = 0; i < num_types; i++) {
+        SetTypeAt(i, canonicalized_types.At(i));
+      }
       // Make sure we have an old space object and add it to the table.
       if (this->IsNew()) {
         result ^= Object::Clone(*this, Heap::kOld);
@@ -8047,6 +8087,38 @@ void Function::SetIsOptimizable(bool value) const {
   if (!value) {
     set_is_inlinable(false);
     set_usage_counter(INT32_MIN);
+  }
+}
+
+bool Function::ForceOptimize() const {
+  return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
+         IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
+         IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField() ||
+         IsFinalizerForceOptimized();
+}
+
+bool Function::IsFinalizerForceOptimized() const {
+  // Either because of unboxed/untagged data, or because we don't want the GC
+  // to trigger in between.
+  switch (recognized_kind()) {
+    case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+    case MethodRecognizer::kFinalizerBase_setIsolate:
+    case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
+      // Unboxed/untagged representation not supported in unoptimized.
+      return true;
+    case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+      // Prevent the GC from running so that the operation is atomic from
+      // a GC point of view. Always double check implementation in
+      // kernel_to_il.cc that no GC can happen in between the relevant IL
+      // instructions.
+      // TODO(https://dartbug.com/48527): Support inlining.
+      return true;
+    case MethodRecognizer::kFinalizerEntry_allocate:
+      // Both of the above reasons.
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -9689,6 +9761,13 @@ StringPtr Function::QualifiedScrubbedName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
+const char* Function::QualifiedScrubbedNameCString() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(NameFormattingParams(kScrubbedName), &printer);
+  return printer.buffer();
+}
+
 StringPtr Function::QualifiedUserVisibleName() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
@@ -10448,11 +10527,13 @@ intptr_t Field::guarded_cid() const {
   // code (in which case the caller might get different answers if it obtains
   // the guarded cid multiple times).
   Thread* thread = Thread::Current();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(!thread->IsInsideCompiler() || is_static());
+#else
   ASSERT(!thread->IsInsideCompiler() ||
-#if !defined(DART_PRECOMPILED_RUNTIME)
          ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
-#endif
          is_static());
+#endif
 #endif
   return LoadNonPointer<ClassIdTagType, std::memory_order_relaxed>(
       &untag()->guarded_cid_);
@@ -10463,11 +10544,13 @@ bool Field::is_nullable() const {
   // Same assert as guarded_cid(), because is_nullable() also needs to be
   // consistent for the background compiler.
   Thread* thread = Thread::Current();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(!thread->IsInsideCompiler() || is_static());
+#else
   ASSERT(!thread->IsInsideCompiler() ||
-#if !defined(DART_PRECOMPILED_RUNTIME)
          ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
-#endif
          is_static());
+#endif
 #endif
   return is_nullable_unsafe();
 }
@@ -10949,7 +11032,7 @@ void Field::RegisterDependentCode(const Code& code) const {
   a.Register(code);
 }
 
-void Field::DeoptimizeDependentCode() const {
+void Field::DeoptimizeDependentCode(bool are_mutators_stopped) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(IsOriginal());
@@ -10957,7 +11040,7 @@ void Field::DeoptimizeDependentCode() const {
   if (FLAG_trace_deoptimization && a.HasCodes()) {
     THR_Print("Deopt for field guard (field %s)\n", ToCString());
   }
-  a.DisableCode();
+  a.DisableCode(are_mutators_stopped);
 }
 
 bool Field::IsConsistentWith(const Field& other) const {
@@ -11231,45 +11314,102 @@ void Field::InitializeGuardedListLengthInObjectOffset(bool unsafe) const {
   }
 }
 
-bool Field::UpdateGuardedCidAndLength(const Object& value) const {
-  ASSERT(IsOriginal());
-  const intptr_t cid = value.GetClassId();
+class FieldGuardUpdater {
+ public:
+  FieldGuardUpdater(const Field* field, const Object& value);
+
+  bool IsUpdateNeeded() {
+    return does_guarded_cid_need_update_ || does_is_nullable_need_update_ ||
+           does_list_length_and_offset_need_update_ ||
+           does_static_type_exactness_state_need_update_;
+  }
+  void DoUpdate();
+
+ private:
+  void ReviewExactnessState();
+  void ReviewGuards();
+
+  intptr_t guarded_cid() { return guarded_cid_; }
+  void set_guarded_cid(intptr_t guarded_cid) {
+    guarded_cid_ = guarded_cid;
+    does_guarded_cid_need_update_ = true;
+  }
+
+  bool is_nullable() { return is_nullable_; }
+  void set_is_nullable(bool is_nullable) {
+    is_nullable_ = is_nullable;
+    does_is_nullable_need_update_ = true;
+  }
+
+  intptr_t guarded_list_length() { return list_length_; }
+  void set_guarded_list_length_and_offset(
+      intptr_t list_length,
+      intptr_t list_length_in_object_offset) {
+    list_length_ = list_length;
+    list_length_in_object_offset_ = list_length_in_object_offset;
+    does_list_length_and_offset_need_update_ = true;
+  }
+
+  StaticTypeExactnessState static_type_exactness_state() {
+    return static_type_exactness_state_;
+  }
+  void set_static_type_exactness_state(StaticTypeExactnessState state) {
+    static_type_exactness_state_ = state;
+    does_static_type_exactness_state_need_update_ = true;
+  }
+
+  const Field* field_;
+  const Object& value_;
+
+  intptr_t guarded_cid_;
+  bool is_nullable_;
+  intptr_t list_length_;
+  intptr_t list_length_in_object_offset_;
+  StaticTypeExactnessState static_type_exactness_state_;
+
+  bool does_guarded_cid_need_update_ = false;
+  bool does_is_nullable_need_update_ = false;
+  bool does_list_length_and_offset_need_update_ = false;
+  bool does_static_type_exactness_state_need_update_ = false;
+};
+
+void FieldGuardUpdater::ReviewGuards() {
+  ASSERT(field_->IsOriginal());
+  const intptr_t cid = value_.GetClassId();
 
   if (guarded_cid() == kIllegalCid) {
-    // Field is assigned first time.
     set_guarded_cid(cid);
     set_is_nullable(cid == kNullCid);
 
     // Start tracking length if needed.
     ASSERT((guarded_list_length() == Field::kUnknownFixedLength) ||
            (guarded_list_length() == Field::kNoFixedLength));
-    if (needs_length_check()) {
+    if (field_->needs_length_check()) {
       ASSERT(guarded_list_length() == Field::kUnknownFixedLength);
-      set_guarded_list_length(GetListLength(value));
-      InitializeGuardedListLengthInObjectOffset();
+      set_guarded_list_length_and_offset(GetListLength(value_),
+                                         GetListLengthOffset(cid));
     }
 
     if (FLAG_trace_field_guards) {
-      THR_Print("    => %s\n", GuardedPropertiesAsCString());
+      THR_Print("    => %s\n", field_->GuardedPropertiesAsCString());
     }
-
-    return false;
+    return;
   }
 
   if ((cid == guarded_cid()) || ((cid == kNullCid) && is_nullable())) {
     // Class id of the assigned value matches expected class id and nullability.
 
     // If we are tracking length check if it has matches.
-    if (needs_length_check() &&
-        (guarded_list_length() != GetListLength(value))) {
+    if (field_->needs_length_check() &&
+        (guarded_list_length() != GetListLength(value_))) {
       ASSERT(guarded_list_length() != Field::kUnknownFixedLength);
-      set_guarded_list_length(Field::kNoFixedLength);
-      set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
-      return true;
+      set_guarded_list_length_and_offset(Field::kNoFixedLength,
+                                         Field::kUnknownLengthOffset);
+      return;
     }
 
     // Everything matches.
-    return false;
+    return;
   }
 
   if ((cid == kNullCid) && !is_nullable()) {
@@ -11288,14 +11428,11 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
   }
 
   // If we were tracking length drop collected feedback.
-  if (needs_length_check()) {
+  if (field_->needs_length_check()) {
     ASSERT(guarded_list_length() != Field::kUnknownFixedLength);
-    set_guarded_list_length(Field::kNoFixedLength);
-    set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+    set_guarded_list_length_and_offset(Field::kNoFixedLength,
+                                       Field::kUnknownLengthOffset);
   }
-
-  // Expected class id or nullability of the field changed.
-  return true;
 }
 
 bool Class::FindInstantiationOf(Zone* zone,
@@ -11555,10 +11692,10 @@ const char* StaticTypeExactnessState::ToCString() const {
   }
 }
 
-bool Field::UpdateGuardedExactnessState(const Object& value) const {
+void FieldGuardUpdater::ReviewExactnessState() {
   if (!static_type_exactness_state().IsExactOrUninitialized()) {
     // Nothing to update.
-    return false;
+    return;
   }
 
   if (guarded_cid() == kDynamicCid) {
@@ -11568,14 +11705,14 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
           "dynamic\n");
     }
     set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-    return true;  // Invalidate.
+    return;
   }
 
   // If we are storing null into a field or we have an exact super type
   // then there is nothing to do.
-  if (value.IsNull() || static_type_exactness_state().IsHasExactSuperType() ||
+  if (value_.IsNull() || static_type_exactness_state().IsHasExactSuperType() ||
       static_type_exactness_state().IsHasExactSuperClass()) {
-    return false;
+    return;
   }
 
   // If we are storing a non-null value into a field that is considered
@@ -11583,16 +11720,16 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
   // type.
   ASSERT(guarded_cid() != kNullCid);
 
-  const Type& field_type = Type::Cast(AbstractType::Handle(type()));
+  const Type& field_type = Type::Cast(AbstractType::Handle(field_->type()));
   const TypeArguments& field_type_args =
       TypeArguments::Handle(field_type.arguments());
 
-  const Instance& instance = Instance::Cast(value);
+  const Instance& instance = Instance::Cast(value_);
   TypeArguments& args = TypeArguments::Handle();
   if (static_type_exactness_state().IsTriviallyExact()) {
     args = instance.GetTypeArguments();
     if (args.ptr() == field_type_args.ptr()) {
-      return false;
+      return;
     }
 
     if (FLAG_trace_field_guards) {
@@ -11601,13 +11738,43 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
     }
 
     set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-    return true;
+    return;
   }
 
   ASSERT(static_type_exactness_state().IsUninitialized());
   set_static_type_exactness_state(StaticTypeExactnessState::Compute(
       field_type, instance, FLAG_trace_field_guards));
-  return true;
+  return;
+}
+
+FieldGuardUpdater::FieldGuardUpdater(const Field* field, const Object& value)
+    : field_(field),
+      value_(value),
+      guarded_cid_(field->guarded_cid()),
+      is_nullable_(field->is_nullable()),
+      list_length_(field->guarded_list_length()),
+      list_length_in_object_offset_(
+          field->guarded_list_length_in_object_offset()),
+      static_type_exactness_state_(field->static_type_exactness_state()) {
+  ReviewGuards();
+  ReviewExactnessState();
+}
+
+void FieldGuardUpdater::DoUpdate() {
+  if (does_guarded_cid_need_update_) {
+    field_->set_guarded_cid(guarded_cid_);
+  }
+  if (does_is_nullable_need_update_) {
+    field_->set_is_nullable(is_nullable_);
+  }
+  if (does_list_length_and_offset_need_update_) {
+    field_->set_guarded_list_length(list_length_);
+    field_->set_guarded_list_length_in_object_offset(
+        list_length_in_object_offset_);
+  }
+  if (does_static_type_exactness_state_need_update_) {
+    field_->set_static_type_exactness_state(static_type_exactness_state_);
+  }
 }
 
 void Field::RecordStore(const Object& value) const {
@@ -11633,20 +11800,19 @@ void Field::RecordStore(const Object& value) const {
               value.ToCString());
   }
 
-  bool invalidate = false;
-  if (UpdateGuardedCidAndLength(value)) {
-    invalidate = true;
-  }
-  if (UpdateGuardedExactnessState(value)) {
-    invalidate = true;
-  }
-
-  if (invalidate) {
+  FieldGuardUpdater updater(this, value);
+  if (updater.IsUpdateNeeded()) {
     if (FLAG_trace_field_guards) {
       THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
-
-    DeoptimizeDependentCode();
+    // Nobody else could have updated guard state since we are holding write
+    // program lock. But we need to ensure we stop mutators as we update
+    // guard state as we can't have optimized code running with updated fields.
+    auto isolate_group = IsolateGroup::Current();
+    isolate_group->RunWithStoppedMutators([&]() {
+      updater.DoUpdate();
+      DeoptimizeDependentCode(/*are_mutators_stopped=*/true);
+    });
   }
 }
 
@@ -24413,7 +24579,7 @@ void LinkedHashBase::ComputeAndSetHashMask() const {
   Zone* const zone = thread->zone();
 
   const auto& data_array = Array::Handle(zone, data());
-  const intptr_t data_length = data_array.Length();
+  const intptr_t data_length = Utils::RoundUpToPowerOfTwo(data_array.Length());
   const intptr_t index_size_mult = IsLinkedHashMap() ? 1 : 2;
   const intptr_t index_size = Utils::Maximum(LinkedHashBase::kInitialIndexSize,
                                              data_length * index_size_mult);
@@ -25915,12 +26081,123 @@ WeakReferencePtr WeakReference::New(Heap::Space space) {
                        space, WeakReference::ContainsCompressedPointers());
   return static_cast<WeakReferencePtr>(raw);
 }
-
 const char* WeakReference::ToCString() const {
   TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   String& type_args_name = String::Handle(type_args.UserVisibleName());
-  return OS::SCreate(Thread::Current()->zone(), "WeakReference%s",
+  return OS::SCreate(Thread::Current()->zone(), "_WeakReference%s",
                      type_args_name.ToCString());
+}
+
+const char* FinalizerBase::ToCString() const {
+  return "FinalizerBase";
+}
+
+FinalizerPtr Finalizer::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->finalizer_class() !=
+         Class::null());
+  ASSERT(
+      Class::Handle(IsolateGroup::Current()->object_store()->finalizer_class())
+          .EnsureIsAllocateFinalized(Thread::Current()) == Error::null());
+
+  ObjectPtr raw =
+      Object::Allocate(Finalizer::kClassId, Finalizer::InstanceSize(), space,
+                       Finalizer::ContainsCompressedPointers());
+  return static_cast<FinalizerPtr>(raw);
+}
+
+const char* Finalizer::ToCString() const {
+  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+  String& type_args_name = String::Handle(type_args.UserVisibleName());
+  return OS::SCreate(Thread::Current()->zone(), "_FinalizerImpl%s",
+                     type_args_name.ToCString());
+}
+
+NativeFinalizerPtr NativeFinalizer::New(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->native_finalizer_class() !=
+         Class::null());
+  ASSERT(Class::Handle(
+             IsolateGroup::Current()->object_store()->native_finalizer_class())
+             .EnsureIsAllocateFinalized(Thread::Current()) == Error::null());
+  ObjectPtr raw = Object::Allocate(
+      NativeFinalizer::kClassId, NativeFinalizer::InstanceSize(), space,
+      NativeFinalizer::ContainsCompressedPointers());
+  return static_cast<NativeFinalizerPtr>(raw);
+}
+
+// Runs the finalizer if not detached, detaches the value and set external size
+// to 0.
+// TODO(http://dartbug.com/47777): Can this be merged with
+// RunNativeFinalizerCallback?
+void NativeFinalizer::RunCallback(const FinalizerEntry& entry,
+                                  const char* trace_context) const {
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  IsolateGroup* const group = thread->isolate_group();
+  const intptr_t external_size = entry.external_size();
+  const auto& token_object = Object::Handle(zone, entry.token());
+  const auto& callback_pointer = Pointer::Handle(zone, this->callback());
+  const auto callback = reinterpret_cast<NativeFinalizer::Callback>(
+      callback_pointer.NativeAddress());
+  if (token_object.IsFinalizerEntry()) {
+    // Detached from Dart code.
+    ASSERT(token_object.ptr() == entry.ptr());
+    ASSERT(external_size == 0);
+    if (FLAG_trace_finalizers) {
+      THR_Print(
+          "%s: Not running native finalizer %p callback %p, "
+          "detached\n",
+          trace_context, ptr()->untag(), callback);
+    }
+  } else {
+    const auto& token = Pointer::Cast(token_object);
+    void* peer = reinterpret_cast<void*>(token.NativeAddress());
+    if (FLAG_trace_finalizers) {
+      THR_Print(
+          "%s: Running native finalizer %p callback %p "
+          "with token %p\n",
+          trace_context, ptr()->untag(), callback, peer);
+    }
+    entry.set_token(entry);
+    callback(peer);
+    if (external_size > 0) {
+      ASSERT(!entry.value()->IsSmi());
+      Heap::Space space =
+          entry.value()->IsOldObject() ? Heap::kOld : Heap::kNew;
+      if (FLAG_trace_finalizers) {
+        THR_Print("%s: Clearing external size %" Pd " bytes in %s space\n",
+                  trace_context, external_size, space == 0 ? "new" : "old");
+      }
+      group->heap()->FreedExternal(external_size, space);
+      entry.set_external_size(0);
+    }
+  }
+}
+
+const char* NativeFinalizer::ToCString() const {
+  const auto& pointer = Pointer::Handle(callback());
+  return OS::SCreate(Thread::Current()->zone(), "_NativeFinalizer %s",
+                     pointer.ToCString());
+}
+
+FinalizerEntryPtr FinalizerEntry::New(const FinalizerBase& finalizer,
+                                      Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->finalizer_entry_class() !=
+         Class::null());
+  auto& entry = FinalizerEntry::Handle();
+  entry ^=
+      Object::Allocate(FinalizerEntry::kClassId, FinalizerEntry::InstanceSize(),
+                       space, FinalizerEntry::ContainsCompressedPointers());
+  entry.set_external_size(0);
+  entry.set_finalizer(finalizer);
+  return entry.ptr();
+}
+
+void FinalizerEntry::set_finalizer(const FinalizerBase& value) const {
+  untag()->set_finalizer(value.ptr());
+}
+
+const char* FinalizerEntry::ToCString() const {
+  return "FinalizerEntry";
 }
 
 AbstractTypePtr MirrorReference::GetAbstractTypeReferent() const {

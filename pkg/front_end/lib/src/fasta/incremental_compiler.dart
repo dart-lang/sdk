@@ -6,8 +6,13 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Completer;
 
+import 'dart:convert' show JsonEncoder;
+
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
+
+import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+    show BenchmarkPhases, Benchmarker;
 
 import 'package:kernel/binary/ast_from_binary.dart'
     show
@@ -55,7 +60,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
-import '../api_prototype/experimental_flags.dart';
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
@@ -71,6 +76,10 @@ import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
 import '../base/nnbd_mode.dart';
 
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../kernel_generator_impl.dart' show precompileMacros;
+
 import 'builder/builder.dart' show Builder;
 
 import 'builder/class_builder.dart' show ClassBuilder;
@@ -84,6 +93,8 @@ import 'builder/library_builder.dart' show LibraryBuilder;
 import 'builder/member_builder.dart' show MemberBuilder;
 
 import 'builder/name_iterator.dart' show NameIterator;
+
+import 'builder/named_type_builder.dart' show NamedTypeBuilder;
 
 import 'builder/type_builder.dart' show TypeBuilder;
 
@@ -110,13 +121,16 @@ import 'import.dart' show Import;
 
 import 'incremental_serializer.dart' show IncrementalSerializer;
 
+import 'kernel/macro/macro.dart' show enableMacros, NeededPrecompilations;
+
 import 'scope.dart' show Scope;
 
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
-import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
+import 'util/experiment_environment_getter.dart'
+    show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
 
 import 'util/textual_outline.dart' show textualOutline;
 
@@ -165,6 +179,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<Component>? _modulesToLoad;
   final IncrementalSerializer? _incrementalSerializer;
   final _ComponentProblems _componentProblems = new _ComponentProblems();
+
+  // This will be set if the right environment variable is set
+  // (enableIncrementalCompilerBenchmarking).
+  Benchmarker? _benchmarker;
 
   RecorderForTesting? get recorderForTesting => null;
 
@@ -239,7 +257,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void _enableExperimentsBasedOnEnvironment({Set<String>? enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
     enabledExperiments ??= getExperimentEnvironment();
-    // Currently there's no live experiments.
+    if (enabledExperiments.contains(enableIncrementalCompilerBenchmarking)) {
+      _benchmarker = new Benchmarker();
+    }
   }
 
   @override
@@ -268,13 +288,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       _computeDeltaRunOnce = true;
       IncrementalKernelTarget? lastGoodKernelTarget = _lastGoodKernelTarget;
+      _benchmarker?.reset();
 
       // Initial setup: Load platform, initialize from dill or component etc.
+      _benchmarker?.enterPhase(BenchmarkPhases.incremental_setupPackages);
       UriTranslator uriTranslator = await _setupPackagesAndUriTranslator(c);
+      _benchmarker?.enterPhase(BenchmarkPhases.incremental_ensurePlatform);
       IncrementalCompilerData data =
           await _ensurePlatformAndInitialize(uriTranslator, c);
 
       // Figure out what to keep and what to throw away.
+      _benchmarker?.enterPhase(BenchmarkPhases.incremental_invalidate);
       Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
       _invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult? reusedResult = _computeReusedLibraries(
@@ -297,13 +321,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       // Experimental invalidation initialization (e.g. figure out if we can).
+      _benchmarker
+          ?.enterPhase(BenchmarkPhases.incremental_experimentalInvalidation);
       ExperimentalInvalidation? experimentalInvalidation =
           await _initializeExperimentalInvalidation(reusedResult, c);
       recorderForTesting?.recordRebuildBodiesCount(
           experimentalInvalidation?.missingSources.length ?? 0);
 
+      _benchmarker
+          ?.enterPhase(BenchmarkPhases.incremental_invalidatePrecompiledMacros);
+      _invalidatePrecompiledMacros(c.options, reusedResult.notReusedLibraries);
+
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
+      _benchmarker?.enterPhase(BenchmarkPhases.incremental_cleanup);
       _cleanupRemovedBuilders(
           lastGoodKernelTarget, reusedResult, uriTranslator);
       _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
@@ -320,6 +351,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // For modular compilation we can be asked to load components and track
       // which libraries we actually use for the compilation. Set that up now.
+      _benchmarker
+          ?.enterPhase(BenchmarkPhases.incremental_loadEnsureLoadedComponents);
       _loadEnsureLoadedComponents(reusedLibraries);
       if (trackNeededDillLibraries) {
         _resetTrackingOfUsedLibraries(hierarchy);
@@ -328,21 +361,34 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // For each computeDelta call we create a new kernel target which needs
       // to be setup, and in the case of experimental invalidation some of the
       // builders needs to be patched up.
-      IncrementalKernelTarget currentKernelTarget = _setupNewKernelTarget(
-          c,
-          uriTranslator,
-          hierarchy,
-          reusedLibraries,
-          experimentalInvalidation,
-          entryPoints!.first);
-      Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
-          _experimentalInvalidationCreateRebuildBodiesBuilders(
-              currentKernelTarget, experimentalInvalidation, uriTranslator);
-      entryPoints = currentKernelTarget.setEntryPoints(entryPoints!);
-      await currentKernelTarget.loader.buildOutlines();
-      _experimentalInvalidationPatchUpScopes(
-          experimentalInvalidation, rebuildBodiesMap);
-      rebuildBodiesMap = null;
+      IncrementalKernelTarget currentKernelTarget;
+      while (true) {
+        _benchmarker?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
+        currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
+            reusedLibraries, experimentalInvalidation, entryPoints!.first);
+        Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
+            _experimentalInvalidationCreateRebuildBodiesBuilders(
+                currentKernelTarget, experimentalInvalidation, uriTranslator);
+        entryPoints = currentKernelTarget.setEntryPoints(entryPoints!);
+
+        // TODO(johnniwinther,jensj): Ensure that the internal state of the
+        // incremental compiler is consistent across 1 or more macro
+        // precompilations.
+        _benchmarker?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
+        NeededPrecompilations? neededPrecompilations =
+            await currentKernelTarget.computeNeededPrecompilations();
+        _benchmarker?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
+        if (enableMacros &&
+            await precompileMacros(neededPrecompilations, c.options)) {
+          continue;
+        }
+        _benchmarker?.enterPhase(
+            BenchmarkPhases.incremental_experimentalInvalidationPatchUpScopes);
+        _experimentalInvalidationPatchUpScopes(
+            experimentalInvalidation, rebuildBodiesMap);
+        rebuildBodiesMap = null;
+        break;
+      }
 
       // Checkpoint: Build the actual outline.
       // Note that the [Component] is not the "full" component.
@@ -362,6 +408,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         componentWithDill = buildResult.component;
       }
       buildResult.macroApplications?.close();
+
+      _benchmarker?.enterPhase(BenchmarkPhases.incremental_hierarchy);
       hierarchy ??= currentKernelTarget.loader.hierarchy;
       if (currentKernelTarget.classHierarchyChanges != null) {
         hierarchy.applyTreeChanges(
@@ -375,6 +423,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Set<Library>? neededDillLibraries;
       if (trackNeededDillLibraries) {
+        _benchmarker
+            ?.enterPhase(BenchmarkPhases.incremental_performDillUsageTracking);
         // Perform actual dill usage tracking.
         neededDillLibraries =
             _performDillUsageTracking(currentKernelTarget, hierarchy);
@@ -385,6 +435,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // TODO(jensj,johnniwinther): Given the code below, [componentWithDill] is
       // assumed always to be non-null.
       if (componentWithDill != null) {
+        _benchmarker
+            ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
         this._invalidatedUris.clear();
         _hasToCheckPackageUris = false;
         lastGoodKernelTarget?.loader.releaseAncillaryResources();
@@ -393,11 +445,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Compute which libraries to output and which (previous) errors/warnings
       // we have to reissue. In the process do some cleanup too.
+      _benchmarker
+          ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
       List<Library> compiledLibraries =
           new List<Library>.of(currentKernelTarget.loader.libraries);
       Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
+
+      _benchmarker?.enterPhase(BenchmarkPhases
+          .incremental_experimentalCompilationPostCompilePatchup);
       _experimentalCompilationPostCompilePatchup(
           experimentalInvalidation, compiledLibraries, uriToSource);
+
+      _benchmarker?.enterPhase(BenchmarkPhases
+          .incremental_calculateOutputLibrariesAndIssueLibraryProblems);
       List<Library> outputLibraries =
           _calculateOutputLibrariesAndIssueLibraryProblems(
               currentKernelTarget,
@@ -421,10 +481,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _dillLoadedData!.loader.currentSourceLoader =
             currentKernelTarget.loader;
       } else {
+        _benchmarker?.enterPhase(
+            BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill);
         _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
             currentKernelTarget, experimentalInvalidation);
       }
 
+      _benchmarker?.enterPhase(BenchmarkPhases.incremental_end);
       experimentalInvalidation = null;
 
       // Output result.
@@ -447,6 +510,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       currentlyCompilingLocal.complete();
 
       _lastGoodKernelTarget = currentKernelTarget;
+
+      _benchmarker?.stop();
+
+      if (_benchmarker != null) {
+        // Report.
+        JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+        print(encoder.convert(_benchmarker));
+      }
+
       return new IncrementalCompilerResult(result,
           classHierarchy: currentKernelTarget.loader.hierarchy,
           coreTypes: currentKernelTarget.loader.coreTypes,
@@ -909,7 +981,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
-    if (c.options.isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+    if (c.options.globalFeatures.nonNullable.isEnabled) {
       switch (c.options.nnbdMode) {
         case NnbdMode.Weak:
           // Don't expect strong or invalid.
@@ -1009,8 +1081,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // The package file was changed.
       // Make sure the dill loader is on the same page.
       DillTarget oldDillLoadedData = _dillLoadedData!;
-      DillTarget newDillLoadedData = _dillLoadedData =
-          new DillTarget(_ticker, uriTranslator, c.options.target);
+      DillTarget newDillLoadedData = _dillLoadedData = new DillTarget(
+          _ticker, uriTranslator, c.options.target,
+          benchmarker: _benchmarker);
       for (DillLibraryBuilder library
           in oldDillLoadedData.loader.libraryBuilders) {
         newDillLoadedData.loader.registerLibraryBuilder(library);
@@ -1075,11 +1148,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<LibraryBuilder> originalNotReusedLibraries;
     Set<Uri>? missingSources;
 
-    if (!context.options.isExperimentEnabledGlobally(
-        ExperimentalFlag.alternativeInvalidationStrategy)) return null;
+    if (!context
+        .options.globalFeatures.alternativeInvalidationStrategy.isEnabled) {
+      return null;
+    }
     if (_modulesToLoad != null) return null;
     if (reusedResult.directlyInvalidated.isEmpty) return null;
     if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
+
+    if (enableMacros) {
+      /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
+      for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+        Iterator<Builder> iterator = builder.iterator;
+        while (iterator.moveNext()) {
+          Builder childBuilder = iterator.current;
+          if (childBuilder is ClassBuilder && childBuilder.isMacro) {
+            // Changes to a library with macro classes can affect any class that
+            // depends on it.
+            return null;
+          }
+        }
+      }
+    }
 
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
@@ -1109,8 +1199,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           enableTripleShift:
               /* should this be on the library? */
               /* this is effectively what the constant evaluator does */
-              context.options
-                  .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift));
+              context.options.globalFeatures.tripleShift.isEnabled);
       String? before = textualOutline(previousSource, scannerConfiguration,
           performModelling: true);
       if (before == null) {
@@ -1253,8 +1342,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       UriTranslator uriTranslator, CompilerContext context) async {
     IncrementalCompilerData data = new IncrementalCompilerData();
     if (_dillLoadedData == null) {
-      DillTarget dillLoadedData = _dillLoadedData =
-          new DillTarget(_ticker, uriTranslator, context.options.target);
+      DillTarget dillLoadedData = _dillLoadedData = new DillTarget(
+          _ticker, uriTranslator, context.options.target,
+          benchmarker: _benchmarker);
       int bytesLength = await _initializationStrategy.initialize(
           dillLoadedData,
           uriTranslator,
@@ -1288,21 +1378,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap,
       TypeBuilder? typeBuilder) {
-    TypeDeclarationBuilder? declaration = typeBuilder?.declaration;
-    Builder? parent = declaration?.parent;
-    if (parent == null) return;
-    Map<String, Builder>? childReplacementMap;
-    if (declaration!.isSetter) {
-      childReplacementMap = replacementSettersMap[parent];
-    } else {
-      childReplacementMap = replacementMap[parent];
-    }
+    if (typeBuilder is NamedTypeBuilder) {
+      TypeDeclarationBuilder? declaration = typeBuilder.declaration;
+      Builder? parent = declaration?.parent;
+      if (parent == null) return;
+      Map<String, Builder>? childReplacementMap;
+      if (declaration!.isSetter) {
+        childReplacementMap = replacementSettersMap[parent];
+      } else {
+        childReplacementMap = replacementMap[parent];
+      }
 
-    if (childReplacementMap == null) return;
-    Builder replacement = childReplacementMap[declaration.name]!;
-    // ignore: unnecessary_null_comparison
-    assert(replacement != null, "Didn't find the replacement for $typeBuilder");
-    typeBuilder!.bind(replacement as TypeDeclarationBuilder);
+      if (childReplacementMap == null) return;
+      Builder replacement = childReplacementMap[declaration.name]!;
+      assert(
+          // ignore: unnecessary_null_comparison
+          replacement != null,
+          "Didn't find the replacement for $typeBuilder");
+      typeBuilder.bind(
+          parent as LibraryBuilder, replacement as TypeDeclarationBuilder);
+    }
   }
 
   /// Allows for updating the list of needed libraries.
@@ -1376,6 +1471,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (_previousSourceBuilders == null ||
             !_previousSourceBuilders!.contains(builder.library)) {
           neededDillLibraries.add(builder.library);
+        }
+      }
+    }
+  }
+
+  /// Removes the precompiled macros whose libraries cannot be reused.
+  void _invalidatePrecompiledMacros(ProcessedOptions processedOptions,
+      Set<LibraryBuilder> notReusedLibraries) {
+    if (notReusedLibraries.isEmpty) {
+      return;
+    }
+    CompilerOptions compilerOptions = processedOptions.rawOptionsForTesting;
+    Map<Uri, Uri>? precompiledMacroUris = compilerOptions.precompiledMacroUris;
+    if (precompiledMacroUris != null) {
+      Set<Uri> importUris =
+          notReusedLibraries.map((library) => library.importUri).toSet();
+      for (Uri macroLibraryUri in precompiledMacroUris.keys.toList()) {
+        if (importUris.contains(macroLibraryUri)) {
+          precompiledMacroUris.remove(macroLibraryUri);
         }
       }
     }
@@ -1672,10 +1786,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        ClassBuilder? classBuilder = libraryBuilder.scope
-            .lookupLocalMember(className, setter: false) as ClassBuilder?;
-        cls = classBuilder?.cls;
-        if (cls == null) return null;
+        Builder? scopeMember =
+            libraryBuilder.scope.lookupLocalMember(className, setter: false);
+        if (scopeMember is ClassBuilder) {
+          cls = scopeMember.cls;
+        } else {
+          return null;
+        }
       }
       Extension? extension;
       String? extensionName;
@@ -2485,8 +2602,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
         // Compute "output nnbd mode".
         NonNullableByDefaultCompiledMode compiledMode;
-        if (context.options
-            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+        if (context.options.globalFeatures.nonNullable.isEnabled) {
           switch (context.options.nnbdMode) {
             case NnbdMode.Weak:
               compiledMode = NonNullableByDefaultCompiledMode.Weak;

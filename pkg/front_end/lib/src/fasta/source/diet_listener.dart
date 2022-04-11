@@ -289,34 +289,17 @@ class DietListener extends StackListenerImpl {
     if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder? type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
-        List<FormalParameterBuilder>? formals = type.formals;
+        List<ParameterBuilder>? formals = type.formals;
         if (formals != null) {
           for (int i = 0; i < formals.length; ++i) {
-            FormalParameterBuilder formal = formals[i];
+            ParameterBuilder formal = formals[i];
             List<MetadataBuilder>? metadata = formal.metadata;
             if (metadata != null && metadata.length > 0) {
               // [parseMetadata] is using [Parser.parseMetadataStar] under the
               // hood, so we only need the offset of the first annotation.
               Token metadataToken = tokenForOffset(
                   typedefKeyword, endToken, metadata[0].charOffset)!;
-              List<Expression> annotations =
-                  parseMetadata(typedefBuilder, metadataToken, null)!;
-              if (formal.isPositional) {
-                VariableDeclaration parameter =
-                    typedefBuilder.typedef.positionalParameters[i];
-                for (Expression annotation in annotations) {
-                  parameter.addAnnotation(annotation);
-                }
-              } else {
-                for (VariableDeclaration named
-                    in typedefBuilder.typedef.namedParameters) {
-                  if (named.name == formal.name) {
-                    for (Expression annotation in annotations) {
-                      named.addAnnotation(annotation);
-                    }
-                  }
-                }
-              }
+              parseMetadata(typedefBuilder, metadataToken, null)!;
             }
           }
         }
@@ -1149,7 +1132,7 @@ class DietListener extends StackListenerImpl {
           ? ""
           : nameOrQualified as String;
     }
-    if (libraryBuilder.enableConstructorTearOffsInLibrary) {
+    if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
     declaration = currentClass!.constructorScope.local[suffix];

@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method main() → asy::Future<dynamic>* async {
+static method main() → asy::Future<dynamic>* async /* futureValueType= dynamic */ {
   dynamic d;
   core::List<core::int*>* l0 = await<core::int*>[d as{TypeError,ForDynamic} core::int*];
   core::List<core::int*>* l1 = await asy::Future::value<core::List<core::int*>*>(<core::int*>[d as{TypeError,ForDynamic} core::int*]);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import './private_method_tearoff_lib.dart';
 
 // `Bar' contains a private method `_f'. The function `baz' is declared in the

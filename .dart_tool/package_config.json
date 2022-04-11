@@ -326,7 +326,7 @@
       "name": "frontend_server",
       "rootUri": "../pkg/frontend_server",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.15"
     },
     {
       "name": "frontend_server_client",
@@ -415,13 +415,13 @@
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "lints",
       "rootUri": "../third_party/pkg/lints",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.17"
     },
     {
       "name": "logging",
@@ -580,7 +580,7 @@
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.16"
     },
     {
       "name": "shelf_packages_handler",
@@ -688,7 +688,7 @@
       "name": "test",
       "rootUri": "../third_party/pkg/test/pkgs/test",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "test_api",
@@ -700,7 +700,7 @@
       "name": "test_core",
       "rootUri": "../third_party/pkg/test/pkgs/test_core",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "test_descriptor",

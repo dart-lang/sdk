@@ -25,7 +25,7 @@ import '../api_prototype/experimental_flags.dart'
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
-import '../fasta/kernel/macro.dart';
+import '../fasta/kernel/macro/macro.dart';
 import '../fasta/messages.dart' show FormattedMessage;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;

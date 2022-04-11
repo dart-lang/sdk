@@ -612,7 +612,7 @@ class _ContextWithElement with EdgeTester {
 
 class _ContextWithFiles with ResourceProviderMixin {
   Future<_ContextWithUnitElement> buildUnitElement(String content) async {
-    var file = newFile('/home/test/lib/test.dart', content: content);
+    var file = newFile2('/home/test/lib/test.dart', content);
 
     var sdkRoot = newFolder('/sdk');
     createMockSdk(

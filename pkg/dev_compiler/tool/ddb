@@ -32,6 +32,10 @@ void main(List<String> args) async {
 
   // Parse flags.
   var parser = ArgParser(usageLineLength: 80)
+    ..addOption('arch',
+        abbr: 'a',
+        help: "Target platform's machine architecture.",
+        allowed: ['x64', 'arm64'])
     ..addOption('binary', abbr: 'b', help: 'Runtime binary path.')
     ..addOption('compile-vm-options',
         help: 'DART_VM_OPTIONS for the compilation VM.')
@@ -106,6 +110,7 @@ void main(List<String> args) async {
     printUsage();
     exit(1);
   }
+  var arch = options['arch'] as String;
   var debug = options['debug'] as bool ||
       options['observe'] as bool ||
       options.wasParsed('vm-service-port');
@@ -213,8 +218,7 @@ void main(List<String> args) async {
   }
 
   var sdkRoot = p.dirname(p.dirname(ddcPath));
-  var buildDir =
-      p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
+  var buildDir = resolveBuildDir(sdkRoot, arch);
   var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
   var sdkOutlineDill = p.join(buildDir,
       soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
@@ -370,4 +374,45 @@ String get _d8executable {
     return p.join('third_party', 'd8', 'macos', 'd8');
   }
   throw UnsupportedError('Unsupported platform.');
+}
+
+/// Maps supported unames to supported architectures.
+final _resolvedUnames = {
+  'arm64': 'arm64',
+  'x86_64': 'x64',
+  'x64': 'x64',
+};
+
+/// Returns the location of the Dart SDK's build directory.
+String resolveBuildDir(String sdkRoot, String architecture) {
+  String platformString;
+  String archString;
+  if (Platform.isMacOS) {
+    platformString = 'xcodebuild';
+    String resolvedArchitecture = architecture;
+    if (architecture == null) {
+      final uname = Process.runSync('uname', ['-m']).stdout.trim();
+      resolvedArchitecture = _resolvedUnames[uname] ?? uname;
+    }
+    if (resolvedArchitecture == 'x64') {
+      archString = 'ReleaseX64';
+    } else if (resolvedArchitecture == 'arm64') {
+      archString = 'ReleaseARM64';
+    } else {
+      throw UnsupportedError(
+          'DDB does not currently support the architecture $architecture '
+          'on MacOS.');
+    }
+  } else if (Platform.isLinux || Platform.isWindows) {
+    platformString = 'out';
+    if (architecture != null && architecture != 'x64') {
+      throw UnsupportedError(
+          'DDB does not currently support the architecture $architecture '
+          'on Windows or Linux.');
+    }
+    archString = 'ReleaseX64';
+  } else {
+    throw UnsupportedError('Unsupported platform.');
+  }
+  return p.join(sdkRoot, platformString, archString);
 }

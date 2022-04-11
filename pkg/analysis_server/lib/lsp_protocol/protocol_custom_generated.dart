@@ -1605,3 +1605,81 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
+
+class ValidateRefactorResult implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+      ValidateRefactorResult.canParse, ValidateRefactorResult.fromJson);
+
+  ValidateRefactorResult({required this.valid, this.message});
+  static ValidateRefactorResult fromJson(Map<String, Object?> json) {
+    final validJson = json['valid'];
+    final valid = validJson as bool;
+    final messageJson = json['message'];
+    final message = messageJson as String?;
+    return ValidateRefactorResult(valid: valid, message: message);
+  }
+
+  final String? message;
+  final bool valid;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['valid'] = valid;
+    if (message != null) {
+      __result['message'] = message;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('valid');
+      try {
+        if (!obj.containsKey('valid')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final valid = obj['valid'];
+        if (valid == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(valid is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('message');
+      try {
+        final message = obj['message'];
+        if (message != null && !(message is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type ValidateRefactorResult');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ValidateRefactorResult &&
+        other.runtimeType == ValidateRefactorResult) {
+      return valid == other.valid && message == other.message && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(valid, message);
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}

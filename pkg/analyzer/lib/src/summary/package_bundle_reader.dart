@@ -4,9 +4,7 @@
 
 import 'dart:io' as io;
 import 'dart:math' show min;
-import 'dart:typed_data';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
@@ -121,16 +119,6 @@ class SummaryDataStore {
   final Set<String> _libraryUris = <String>{};
   final Set<String> _partUris = <String>{};
 
-  /// Create a [SummaryDataStore] and populate it with the summaries in
-  /// [summaryPaths].
-  @Deprecated('Use tmp() and addBundle() instead')
-  SummaryDataStore(Iterable<String> summaryPaths,
-      {ResourceProvider? resourceProvider}) {
-    summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
-  }
-
-  SummaryDataStore.tmp();
-
   /// Add the given [bundle] loaded from the file with the given [path].
   void addBundle(String? path, PackageBundleReader bundle) {
     bundles.add(bundle);
@@ -163,18 +151,5 @@ class SummaryDataStore {
   /// Return `true` if the unit with the [uri] is a part unit in the store.
   bool isPartUnit(String uri) {
     return _partUris.contains(uri);
-  }
-
-  void _fillMaps(String path, ResourceProvider? resourceProvider) {
-    Uint8List bytes;
-    if (resourceProvider != null) {
-      var file = resourceProvider.getFile(path);
-      bytes = file.readAsBytesSync();
-    } else {
-      io.File file = io.File(path);
-      bytes = file.readAsBytesSync();
-    }
-    var bundle = PackageBundleReader(bytes);
-    addBundle(path, bundle);
   }
 }

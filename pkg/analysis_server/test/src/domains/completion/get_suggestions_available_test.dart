@@ -110,7 +110,7 @@ main() {
   }
 
   Future<void> test_defaultArgumentListString() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 void fff(int aaa, int bbb) {}
 
 void ggg({int aaa, @required int bbb, @required int ccc}) {}
@@ -129,11 +129,11 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
 
   Future<void> test_displayUri_file() async {
     var aPath = '/home/test/test/a.dart';
-    newFile(aPath, content: 'class A {}');
+    newFile2(aPath, 'class A {}');
 
     var aSet = await waitForSetWithUri(toUriStr(aPath));
 
-    var testPath = newFile('/home/test/test/sub/test.dart').path;
+    var testPath = newFile2('/home/test/test/sub/test.dart', '').path;
     var results = await _getSuggestions(testPath, 0);
 
     expect(
@@ -146,10 +146,10 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
 
   Future<void> test_displayUri_package() async {
     var aPath = '/home/test/lib/a.dart';
-    newFile(aPath, content: 'class A {}');
+    newFile2(aPath, 'class A {}');
 
     var aSet = await waitForSetWithUri('package:test/a.dart');
-    var testPath = newFile('/home/test/lib/test.dart').path;
+    var testPath = newFile2('/home/test/lib/test.dart', '').path;
 
     var results = await _getSuggestions(testPath, 0);
     expect(
@@ -217,10 +217,10 @@ main() {
   }
 
   Future<void> test_inHtml() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile2('/home/test/lib/a.dart', 'class A {}');
 
     var path = convertPath('/home/test/doc/a.html');
-    newFile(path, content: '<html></html>');
+    newFile2(path, '<html></html>');
 
     await waitResponse(
       CompletionGetSuggestionsParams(path, 0).toRequest('0'),
@@ -257,7 +257,7 @@ main() {
   }
 
   Future<void> test_relevanceTags_enum() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile2('/home/test/lib/a.dart', r'''
 enum MyEnum {
   aaa, bbb
 }

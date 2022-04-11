@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
@@ -573,6 +574,51 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         }
         translator.array_init(b, arrayType, length);
       }
+      translator.struct_new(b, info);
+    });
+  }
+
+  @override
+  ConstantInfo? visitMapConstant(MapConstant constant) {
+    Constant keyTypeConstant = TypeLiteralConstant(constant.keyType);
+    ensureConstant(keyTypeConstant);
+    Constant valueTypeConstant = TypeLiteralConstant(constant.valueType);
+    ensureConstant(valueTypeConstant);
+    List<Constant> dataElements =
+        List.generate(constant.entries.length * 2, (i) {
+      ConstantMapEntry entry = constant.entries[i >> 1];
+      return i.isEven ? entry.key : entry.value;
+    });
+    ListConstant dataList = ListConstant(const DynamicType(), dataElements);
+    ensureConstant(dataList);
+
+    ClassInfo info = translator.classInfo[translator.immutableMapClass]!;
+    translator.functions.allocateClass(info.classId);
+    w.RefType type = info.nonNullableType;
+    return createConstant(constant, type, (function, b) {
+      // This computation of the hash mask follows the computations in
+      // [_ImmutableLinkedHashMapMixin._createIndex] and
+      // [_HashBase._indexSizeToHashMask].
+      const int initialIndexSize = 8;
+      final int indexSize = max(dataElements.length, initialIndexSize);
+      final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
+
+      w.RefType indexType =
+          info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
+      w.RefType dataType =
+          info.struct.fields[FieldIndex.hashBaseData].type as w.RefType;
+
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      b.ref_null(indexType.heapType); // _index
+      b.i64_const(hashMask); // _hashMask
+      constants.instantiateConstant(function, b, dataList, dataType); // _data
+      b.i64_const(dataElements.length); // _usedData
+      b.i64_const(0); // _deletedKeys
+      constants.instantiateConstant(
+          function, b, keyTypeConstant, constants.typeInfo.nullableType);
+      constants.instantiateConstant(
+          function, b, valueTypeConstant, constants.typeInfo.nullableType);
       translator.struct_new(b, info);
     });
   }

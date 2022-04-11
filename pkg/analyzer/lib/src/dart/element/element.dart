@@ -712,6 +712,14 @@ class ClassElementImpl extends AbstractClassElementImpl {
     return true;
   }
 
+  bool get isMacro {
+    return hasModifier(Modifier.MACRO);
+  }
+
+  set isMacro(bool isMacro) {
+    setModifier(Modifier.MACRO, isMacro);
+  }
+
   @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
@@ -971,10 +979,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
   /// The source that corresponds to this compilation unit.
   @override
-  late Source source;
+  final Source source;
 
   @override
-  LineInfo? lineInfo;
+  LineInfo lineInfo;
 
   /// The source of the library containing this compilation unit.
   ///
@@ -982,7 +990,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// except that it does not require the containing [LibraryElement] to be
   /// computed.
   @override
-  late Source librarySource;
+  final Source librarySource;
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
@@ -1016,7 +1024,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
-  CompilationUnitElementImpl() : super(null, -1);
+  CompilationUnitElementImpl({
+    required this.source,
+    required this.librarySource,
+    required this.lineInfo,
+  }) : super(null, -1);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -1181,8 +1193,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  bool operator ==(Object object) =>
-      object is CompilationUnitElementImpl && source == object.source;
+  bool operator ==(Object other) =>
+      other is CompilationUnitElementImpl && source == other.source;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -1291,7 +1303,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
   /// is a part of a cycle.
-  bool _isCycleFree = true;
+  bool isCycleFree = true;
 
   @override
   bool isConstantEvaluated = false;
@@ -1339,16 +1351,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     setModifier(Modifier.CONST, isConst);
   }
 
-  bool get isCycleFree {
-    return _isCycleFree;
-  }
-
-  set isCycleFree(bool isCycleFree) {
-    // This property is updated in ConstantEvaluationEngine even for
-    // resynthesized constructors, so we don't have the usual assert here.
-    _isCycleFree = isCycleFree;
-  }
-
   @override
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
@@ -1365,7 +1367,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   int get nameLength {
     final nameEnd = this.nameEnd;
-    if (nameEnd == null || periodOffset == null) {
+    if (nameEnd == null) {
       return 0;
     } else {
       return nameEnd - nameOffset;
@@ -1604,6 +1606,20 @@ class DefaultSuperFormalParameterElementImpl
 
     if (_superConstructorParameterDefaultValue != null) {
       return superConstructorParameter?.defaultValueCode;
+    }
+
+    return null;
+  }
+
+  @override
+  EvaluationResultImpl? get evaluationResult {
+    if (constantInitializer != null) {
+      return super.evaluationResult;
+    }
+
+    var superConstructorParameter = this.superConstructorParameter;
+    if (superConstructorParameter is ParameterElementImpl) {
+      return superConstructorParameter.evaluationResult;
     }
 
     return null;
@@ -2404,13 +2420,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
       return true;
     }
-    return object is Element &&
-        object.kind == kind &&
-        object.location == location;
+    return other is Element && other.kind == kind && other.location == location;
   }
 
   /// Append a textual representation of this element to the given [builder].
@@ -2610,12 +2624,12 @@ class ElementLocationImpl implements ElementLocation {
   int get hashCode => Object.hashAll(_components);
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
       return true;
     }
-    if (object is ElementLocationImpl) {
-      List<String> otherComponents = object._components;
+    if (other is ElementLocationImpl) {
+      List<String> otherComponents = other._components;
       int length = _components.length;
       if (otherComponents.length != length) {
         return false;
@@ -3336,6 +3350,11 @@ class FunctionElementImpl extends ExecutableElementImpl
       identifier += "@$nameOffset";
     }
     return identifier;
+  }
+
+  @override
+  bool get isDartCoreIdentical {
+    return isStatic && name == 'identical' && library.isDartCore;
   }
 
   @override
@@ -4338,23 +4357,26 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that modifier 'lazy' was applied to the element.
   static const Modifier LATE = Modifier('LATE', 17);
 
+  /// Indicates that a class is a macro builder.
+  static const Modifier MACRO = Modifier('MACRO', 18);
+
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 19);
+  static const Modifier SETTER = Modifier('SETTER', 20);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 20);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 21);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 21);
+  static const Modifier STATIC = Modifier('STATIC', 22);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 22);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 23);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4374,6 +4396,7 @@ class Modifier implements Comparable<Modifier> {
     HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
     LATE,
+    MACRO,
     MIXIN_APPLICATION,
     SETTER,
     STATIC,
@@ -4550,7 +4573,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
         withNullability: withNullability,
       );
     }).join(', ');
-    return '[' + elementsStr + ']';
+    return '[$elementsStr]';
   }
 
   @override
@@ -4797,10 +4820,8 @@ class ParameterElementImpl extends VariableElementImpl
 class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   final PropertyAccessorElementImpl_ImplicitSetter setter;
 
-  ParameterElementImpl_ofImplicitSetter(
-      PropertyAccessorElementImpl_ImplicitSetter setter)
-      : setter = setter,
-        super(
+  ParameterElementImpl_ofImplicitSetter(this.setter)
+      : super(
           name: '_${setter.variable.name}',
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
@@ -4965,11 +4986,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
-  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
-      {Reference? reference})
+  PropertyAccessorElementImpl.forVariable(this.variable, {Reference? reference})
       : super(variable.name, -1, reference: reference) {
-    this.variable = variable;
-    isAbstract = variable is FieldElementImpl && variable.isAbstract;
+    isAbstract = variable is FieldElementImpl &&
+        (variable as FieldElementImpl).isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }

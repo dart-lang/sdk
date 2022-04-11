@@ -128,7 +128,7 @@ class C extends A {}
   }
 
   test_undefined_ignore_part_exists_uriGenerated_nameIgnorable() async {
-    newFile('$testPackageLibPath/a.g.dart', content: r'''
+    newFile2('$testPackageLibPath/a.g.dart', r'''
 part of 'test.dart';
 ''');
 

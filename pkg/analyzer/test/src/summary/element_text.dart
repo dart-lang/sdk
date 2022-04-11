@@ -31,10 +31,11 @@ void applyCheckElementTextReplacements() {
   if (_testPath != null && _replacements.isNotEmpty) {
     _replacements.sort((a, b) => b.offset - a.offset);
     String newCode = _testCode!;
-    _replacements.forEach((r) {
-      newCode =
-          newCode.substring(0, r.offset) + r.text + newCode.substring(r.end);
-    });
+    for (var replacement in _replacements) {
+      newCode = newCode.substring(0, replacement.offset) +
+          replacement.text +
+          newCode.substring(replacement.end);
+    }
     File(_testPath!).writeAsStringSync(newCode);
   }
 }
@@ -101,7 +102,7 @@ void checkElementText(
       int expectationEnd = _testCode!.indexOf("'''", expectationOffset);
 
       _replacements.add(
-          _Replacement(expectationOffset, expectationEnd, '\n' + actualText));
+          _Replacement(expectationOffset, expectationEnd, '\n$actualText'));
     }
   }
 
@@ -243,12 +244,6 @@ class _ElementWriter {
     return components.join(';');
   }
 
-  String? _typeStr(DartType? type) {
-    return type?.getDisplayString(
-      withNullability: true,
-    );
-  }
-
   void _withIndent(void Function() f) {
     var savedIndent = indent;
     indent = '$savedIndent  ';
@@ -273,6 +268,7 @@ class _ElementWriter {
   void _writeClassElement(ClassElement e) {
     _writeIndentedLine(() {
       _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+      _writeIf(e.isMacro, 'macro ');
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
       if (e.isEnum) {
@@ -296,7 +292,7 @@ class _ElementWriter {
       var supertype = e.supertype;
       if (supertype != null &&
           (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
-        _writeType(supertype, name: 'supertype');
+        _writeType('supertype', supertype);
       }
 
       if (e.isMixin) {
@@ -304,21 +300,21 @@ class _ElementWriter {
         if (superclassConstraints.isEmpty) {
           throw StateError('At least Object is expected.');
         }
-        _writeElements<DartType>(
-          'superclassConstraints',
-          superclassConstraints,
-          _writeType,
-        );
+        _writeTypeList('superclassConstraints', superclassConstraints);
       }
 
-      _writeElements<DartType>('mixins', e.mixins, _writeType);
-      _writeElements<DartType>('interfaces', e.interfaces, _writeType);
+      _writeTypeList('mixins', e.mixins);
+      _writeTypeList('interfaces', e.interfaces);
 
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      expect(constructors, isNotEmpty);
-      _writeElements('constructors', constructors, _writeConstructorElement);
+      if (e.isMixin) {
+        expect(constructors, isEmpty);
+      } else {
+        expect(constructors, isNotEmpty);
+        _writeElements('constructors', constructors, _writeConstructorElement);
+      }
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeElements('methods', e.methods, _writeMethodElement);
@@ -484,7 +480,7 @@ class _ElementWriter {
       _writeMetadata(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
-      _writeType(e.extendedType, name: 'extendedType');
+      _writeType('extendedType', e.extendedType);
     });
 
     _withIndent(() {
@@ -522,7 +518,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType(e.returnType, name: 'returnType');
+      _writeType('returnType', e.returnType);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -597,7 +593,7 @@ class _ElementWriter {
 
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType(e.returnType, name: 'returnType');
+      _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
     });
 
@@ -672,7 +668,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeType(e.type, name: 'type');
+      _writeType('type', e.type);
       _writeMetadata(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
@@ -741,7 +737,7 @@ class _ElementWriter {
 
       expect(e.typeParameters, isEmpty);
       _writeParameterElements(e.parameters);
-      _writeType(e.returnType, name: 'returnType');
+      _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
     });
   }
@@ -783,7 +779,7 @@ class _ElementWriter {
       _writeMetadata(e);
       _writeCodeRange(e);
       _writeTypeInferenceError(e);
-      _writeType(e.type, name: 'type');
+      _writeType('type', e.type);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
     });
@@ -800,26 +796,8 @@ class _ElementWriter {
     }
   }
 
-  void _writeType(DartType type, {String? name}) {
-    var typeStr = _typeStr(type);
-    if (name != null) {
-      _writelnWithIndent('$name: $typeStr');
-    } else {
-      _writelnWithIndent('$typeStr');
-    }
-
-    var alias = type.alias;
-    if (alias != null) {
-      _withIndent(() {
-        _createAstPrinter().writeElement('aliasElement', alias.element);
-
-        _writeElements<DartType>(
-          'aliasArguments',
-          alias.typeArguments,
-          _writeType,
-        );
-      });
-    }
+  void _writeType(String name, DartType type) {
+    _createAstPrinter().writeType(type, name: name);
   }
 
   void _writeTypeAliasElement(TypeAliasElement e) {
@@ -838,7 +816,7 @@ class _ElementWriter {
       _writeTypeParameterElements(e.typeParameters);
 
       var aliasedType = e.aliasedType;
-      _writeType(aliasedType, name: 'aliasedType');
+      _writeType('aliasedType', aliasedType);
       // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
       // TODO(scheglov) Remove it when we stop providing it everywhere.
       if (aliasedType is FunctionType) {
@@ -851,7 +829,7 @@ class _ElementWriter {
         _withIndent(() {
           _writeTypeParameterElements(aliasedElement.typeParameters);
           _writeParameterElements(aliasedElement.parameters);
-          _writeType(aliasedElement.returnType, name: 'returnType');
+          _writeType('returnType', aliasedElement.returnType);
         });
       }
     });
@@ -876,6 +854,10 @@ class _ElementWriter {
     }
   }
 
+  void _writeTypeList(String name, List<DartType> types) {
+    _createAstPrinter().writeTypeList(name, types);
+  }
+
   void _writeTypeParameterElement(TypeParameterElement e) {
     e as TypeParameterElementImpl;
 
@@ -889,12 +871,12 @@ class _ElementWriter {
 
       var bound = e.bound;
       if (bound != null) {
-        _writeType(bound, name: 'bound');
+        _writeType('bound', bound);
       }
 
       var defaultType = e.defaultType;
       if (defaultType != null) {
-        _writeType(defaultType, name: 'defaultType');
+        _writeType('defaultType', defaultType);
       }
 
       _writeMetadata(e);
@@ -946,4 +928,11 @@ class _Replacement {
   final String text;
 
   _Replacement(this.offset, this.end, this.text);
+}
+
+extension on ClassElement {
+  bool get isMacro {
+    final self = this;
+    return self is ClassElementImpl && self.isMacro;
+  }
 }

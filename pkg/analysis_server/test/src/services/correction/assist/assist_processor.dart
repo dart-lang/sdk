@@ -31,8 +31,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   AssistKind get kind;
 
   /// The workspace in which fixes contributor operates.
-  ChangeWorkspace get workspace {
-    return DartChangeWorkspace([session]);
+  Future<ChangeWorkspace> get workspace async {
+    return DartChangeWorkspace([await session]);
   }
 
   @override
@@ -194,7 +194,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   Future<List<Assist>> _computeAssists() async {
     var context = DartAssistContextImpl(
       TestInstrumentationService(),
-      workspace,
+      await workspace,
       testAnalysisResult,
       _offset,
       _length,

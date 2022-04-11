@@ -4,11 +4,11 @@
 
 // @dart = 2.7
 
-/*member: staticMethod:deps=[B.instanceMethod],direct,explicit=[staticMethod.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
+/*member: staticMethod:deps=[B.instanceMethod],explicit=[staticMethod.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)],test*/
 staticMethod<T>(t) => t is T;
 
 class B {
-  /*member: B.instanceMethod:implicit=[instanceMethod.T],indirect,needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)]*/
+  /*member: B.instanceMethod:implicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)],test*/
   instanceMethod<T>(a, t) => a<T>(t);
 }
 

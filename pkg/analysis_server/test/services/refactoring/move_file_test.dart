@@ -24,10 +24,10 @@ class MoveFileTest extends RefactoringTest {
   Future<void> test_file_containing_imports_exports_parts() async {
     final root = '/home/test/000/1111';
     testFile = convertPath('$root/test.dart');
-    newFile('/absolute/uri.dart', content: '');
-    final fileA = newFile('$root/a.dart', content: 'part of lib;');
-    final fileB = newFile('$root/b.dart', content: "import 'test.dart';");
-    final fileC = newFile('$root/22/c.dart', content: '');
+    newFile2('/absolute/uri.dart', '');
+    final fileA = newFile2('$root/a.dart', 'part of lib;');
+    final fileB = newFile2('$root/b.dart', "import 'test.dart';");
+    final fileC = newFile2('$root/22/c.dart', '');
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 library lib;
@@ -55,7 +55,7 @@ part '${toUriStr('/absolute/uri.dart')}';
   }
 
   Future<void> test_file_imported_with_package_uri_down() async {
-    var file = newFile('$testPackageLibPath/old_name.dart', content: '');
+    var file = newFile2('$testPackageLibPath/old_name.dart', '');
     addTestSource(r'''
 import 'package:test/old_name.dart';
 ''');
@@ -65,7 +65,7 @@ import 'package:test/old_name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('$testPackageLibPath/222/new_name.dart',
         oldFile: file.path);
@@ -79,8 +79,7 @@ import 'package:test/222/new_name.dart';
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change() async {
     // The current testing stack does not support creating such bazel roots
-    var file =
-        newFile('/home/test0/test1/test2/lib/111/name.dart', content: '');
+    var file = newFile2('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
 ''');
@@ -89,7 +88,7 @@ import 'package:test0.test1.test2/111/name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('/home/test0/test1/test3/lib/111/name.dart',
         oldFile: file.path);
@@ -103,8 +102,7 @@ import 'package:test0.test1.test3/111/name.dart';
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change_down() async {
     // The current testing stack does not support creating such bazel roots
-    var file =
-        newFile('/home/test0/test1/test2/lib/111/name.dart', content: '');
+    var file = newFile2('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
 ''');
@@ -113,7 +111,7 @@ import 'package:test0.test1.test2/111/name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('/home/test0/test1/test2/test3/lib/111/name.dart',
         oldFile: file.path);
@@ -127,8 +125,7 @@ import 'package:test0.test1.test2.test3/111/name.dart';
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change_up() async {
     // The current testing stack does not support creating such bazel roots
-    var file =
-        newFile('/home/test0/test1/test2/lib/111/name.dart', content: '');
+    var file = newFile2('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
 ''');
@@ -137,7 +134,7 @@ import 'package:test0.test1.test2/111/name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('/home/test0/test1/lib/111/name.dart',
         oldFile: file.path);
@@ -149,7 +146,7 @@ import 'package:test0.test1/111/name.dart';
   }
 
   Future<void> test_file_imported_with_package_uri_sideways() async {
-    var file = newFile('$testPackageLibPath/111/old_name.dart', content: '');
+    var file = newFile2('$testPackageLibPath/111/old_name.dart', '');
     addTestSource(r'''
 import 'package:test/111/old_name.dart';
 ''');
@@ -159,7 +156,7 @@ import 'package:test/111/old_name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('$testPackageLibPath/222/new_name.dart',
         oldFile: file.path);
@@ -171,7 +168,7 @@ import 'package:test/222/new_name.dart';
   }
 
   Future<void> test_file_imported_with_package_uri_up() async {
-    var file = newFile('$testPackageLibPath/222/old_name.dart', content: '');
+    var file = newFile2('$testPackageLibPath/222/old_name.dart', '');
     addTestSource(r'''
 import 'package:test/222/old_name.dart';
 ''');
@@ -181,7 +178,7 @@ import 'package:test/222/old_name.dart';
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
     testAnalysisResult =
-        await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(file.path) as ResolvedUnitResult;
 
     _createRefactoring('$testPackageLibPath/new_name.dart', oldFile: file.path);
     await _assertSuccessfulRefactoring();

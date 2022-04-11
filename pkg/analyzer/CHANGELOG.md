@@ -1,3 +1,16 @@
+## 3.4.1
+* Remove checks for consistency after operations in `AnalysisSession`.
+
+## 3.4.0
+* Deprecated `Resource.parent2`, use `parent` instead.
+* Deprecated `astFactory`, clients should not create AST nodes manually.
+* Changed `CompilationUnit.lineInfo` to be non-nullable.
+* Changed `CompilationUnitElement.lineInfo` to be non-nullable.
+* Deprecated `ResourceProviderMixin.newFile`, use `newFile2` instead.
+* Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile`.
+* Added `AnalysisContext.changeFile` and `AnalysisContext.applyPendingFileChanges`.
+* Deprecated `buildSdkSummary`, use asynchronous `buildSdkSummary2` instead.
+
 ## 3.3.1
 * Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.
 

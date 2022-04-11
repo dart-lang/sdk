@@ -125,8 +125,8 @@ class SelectorInfo {
     List<w.ValueType> inputs = List.generate(
         inputSets.length,
         (i) => translator.typeForInfo(
-            upperBound(inputSets[i]), inputNullable[i]) as w.ValueType);
-    inputs[0] = translator.ensureBoxed(inputs[0]);
+                upperBound(inputSets[i]), inputNullable[i], ensureBoxed: i == 0)
+            as w.ValueType);
     if (name == '==') {
       // == can't be called with null
       inputs[1] = inputs[1].withNullability(false);

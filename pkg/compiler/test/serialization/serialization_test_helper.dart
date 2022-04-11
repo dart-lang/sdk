@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:compiler/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/inferrer/types.dart';
@@ -25,6 +26,17 @@ const List<String> dumpInfoExceptions = [
   '"compilationDuration":',
   '"toJsonDuration":'
 ];
+
+void generateJavaScriptCode(
+    Compiler compiler, GlobalTypeInferenceResults globalTypeInferenceResults) {
+  final codegenInputs = compiler.initializeCodegen(globalTypeInferenceResults);
+  final codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
+      codegenInputs, compiler.backendStrategy.functionCompiler);
+  final programSize = compiler.runCodegenEnqueuer(codegenResults);
+  if (compiler.options.dumpInfo) {
+    compiler.runDumpInfo(codegenResults, programSize);
+  }
+}
 
 void finishCompileAndCompare(
     Map<OutputType, Map<String, String>> expectedOutput,
@@ -47,7 +59,7 @@ void finishCompileAndCompare(
     GlobalTypeInferenceResults newGlobalInferenceResults =
         cloneInferenceResults(
             indices, compiler, globalInferenceResults, strategy);
-    compiler.generateJavaScriptCode(newGlobalInferenceResults);
+    generateJavaScriptCode(compiler, newGlobalInferenceResults);
   }
   var actualOutput = actualOutputCollector.clear();
   Expect.setEquals(
@@ -105,7 +117,7 @@ runTest(
       options: commonOptions,
       outputProvider: collector,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
+        compiler.forceSerializationForTesting = true;
       });
   Expect.isTrue(result.isSuccess);
   Map<OutputType, Map<String, String>> expectedOutput = collector.clear();
@@ -119,8 +131,8 @@ runTest(
       options: commonOptions,
       outputProvider: collector2,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
-        compiler.stopAfterClosedWorld = true;
+        compiler.forceSerializationForTesting = true;
+        compiler.stopAfterClosedWorldForTesting = true;
       });
   Expect.isTrue(result2.isSuccess);
 
@@ -136,7 +148,7 @@ runTest(
           ['--out=$dillUri', '${Flags.writeClosedWorld}=$closedWorldUri'],
       outputProvider: collector3a,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
+        compiler.forceSerializationForTesting = true;
       });
   Expect.isTrue(result3a.isSuccess);
   Expect.isTrue(collector3a.binaryOutputMap.containsKey(dillUri));
@@ -164,8 +176,8 @@ runTest(
           ],
       outputProvider: collector3b,
       beforeRun: (Compiler compiler) {
-        compiler.kernelLoader.forceSerialization = true;
-        compiler.stopAfterTypeInference = true;
+        compiler.forceSerializationForTesting = true;
+        compiler.stopAfterGlobalTypeInferenceForTesting = true;
       });
   Expect.isTrue(result3b.isSuccess);
 

@@ -213,8 +213,8 @@ class JsBackendStrategy {
     RecipeEncoder rtiRecipeEncoder = RecipeEncoderImpl(closedWorld,
         rtiSubstitutions, closedWorld.nativeData, closedWorld.commonElements);
 
-    CodegenInputs codegen = CodegenInputsImpl(
-        rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
+    CodegenInputs codegen =
+        CodegenInputs(rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
     return codegen;
@@ -318,10 +318,12 @@ class JsBackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSink sink = ObjectSink(data, useDataKinds: useDataKinds);
+      DataSinkWriter sink =
+          DataSinkWriter(ObjectDataSink(data), useDataKinds: useDataKinds);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSource source = ObjectSource(data, useDataKinds: useDataKinds);
+      DataSourceReader source =
+          DataSourceReader(ObjectDataSource(data), useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(
@@ -388,7 +390,7 @@ class JsBackendStrategy {
   }
 
   /// Prepare [source] to deserialize modular code generation data.
-  void prepareCodegenReader(DataSource source) {
+  void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
     source.registerComponentLookup(

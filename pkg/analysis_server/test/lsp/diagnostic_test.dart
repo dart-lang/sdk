@@ -21,7 +21,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
 
-    newFile(pluginAnalyzedFilePath, content: '''String a = "Test";
+    newFile2(pluginAnalyzedFilePath, '''String a = "Test";
 String b = "Test";
 ''');
     await initialize();
@@ -68,7 +68,7 @@ String b = "Test";
 
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
-    newFile(mainFilePath, content: initialContents);
+    newFile2(mainFilePath, initialContents);
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
@@ -84,7 +84,7 @@ String b = "Test";
   }
 
   Future<void> test_analysisOptionsFile() async {
-    newFile(analysisOptionsPath, content: '''
+    newFile2(analysisOptionsPath, '''
 linter:
   rules:
     - invalid_lint_rule_name
@@ -100,7 +100,7 @@ linter:
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43926')
   Future<void> test_analysisOptionsFile_packageInclude() async {
-    newFile(analysisOptionsPath, content: '''
+    newFile2(analysisOptionsPath, '''
 include: package:pedantic/analysis_options.yaml
 ''');
 
@@ -125,7 +125,7 @@ include: package:pedantic/analysis_options.yaml
   }
 
   Future<void> test_contextMessage() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
 void f() {
   x = 0;
   int x;
@@ -142,7 +142,7 @@ void f() {
   }
 
   Future<void> test_correction() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
 void f() {
   x = 0;
 }
@@ -157,7 +157,7 @@ void f() {
   }
 
   Future<void> test_deletedFile() async {
-    newFile(mainFilePath, content: 'String a = 1;');
+    newFile2(mainFilePath, 'String a = 1;');
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
@@ -172,7 +172,7 @@ void f() {
   }
 
   Future<void> test_diagnosticTag_deprecated() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
     @deprecated
     int dep;
 
@@ -191,7 +191,7 @@ void f() {
   }
 
   Future<void> test_diagnosticTag_notSupported() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
     @deprecated
     int dep;
 
@@ -208,7 +208,7 @@ void f() {
   }
 
   Future<void> test_diagnosticTag_unnecessary() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
     void main() {
       return;
       print('unreachable');
@@ -227,7 +227,7 @@ void f() {
   }
 
   Future<void> test_documentationUrl() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
     // ignore: unused_import
     import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
     ''');
@@ -247,7 +247,7 @@ void f() {
   }
 
   Future<void> test_documentationUrl_notSupported() async {
-    newFile(mainFilePath, content: '''
+    newFile2(mainFilePath, '''
     // ignore: unused_import
     import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
     ''');
@@ -266,7 +266,7 @@ void f() {
         join(projectFolderPath, '.dart_tool', 'tool_file.dart');
     var dotFolderFileUri = Uri.file(dotFolderFilePath);
 
-    newFile(dotFolderFilePath, content: 'String a = 1;');
+    newFile2(dotFolderFilePath, 'String a = 1;');
 
     List<Diagnostic>? diagnostics;
     waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
@@ -283,7 +283,7 @@ void f() {
   Future<void> test_fixDataFile() async {
     var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
     var fixDataUri = Uri.file(fixDataPath);
-    newFile(fixDataPath, content: '''
+    newFile2(fixDataPath, '''
 version: latest
 ''').path;
 
@@ -309,7 +309,7 @@ version: latest
         "A value of type 'int' can't be assigned to a variable of type 'String'";
     final pluginErrorMessage = 'Test error from plugin';
 
-    newFile(mainFilePath, content: 'String a = 1;');
+    newFile2(mainFilePath, 'String a = 1;');
     final initialDiagnosticsFuture = waitForDiagnostics(mainFileUri);
     await initialize();
     final initialDiagnostics = await initialDiagnosticsFuture;
@@ -342,7 +342,7 @@ version: latest
   }
 
   Future<void> test_initialAnalysis() async {
-    newFile(mainFilePath, content: 'String a = 1;');
+    newFile2(mainFilePath, 'String a = 1;');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
@@ -385,7 +385,7 @@ version: latest
     // FIXME: This
     String a = "";
     ''';
-    newFile(mainFilePath, content: contents);
+    newFile2(mainFilePath, contents);
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(
@@ -403,7 +403,7 @@ version: latest
     // TODO: This
     String a = "";
     ''';
-    newFile(mainFilePath, content: contents);
+    newFile2(mainFilePath, contents);
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     // TODOs are disabled by default so we don't need to send any config.
@@ -449,7 +449,7 @@ version: latest
     // FIXME: This
     String a = "";
     ''';
-    newFile(mainFilePath, content: contents);
+    newFile2(mainFilePath, contents);
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(

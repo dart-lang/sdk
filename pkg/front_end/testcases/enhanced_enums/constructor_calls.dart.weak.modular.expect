@@ -99,7 +99,7 @@ class E extends core::_Enum /*isEnum*/  {
                    ^";
   static factory f5() → self::E
     return self::E::f();
-  static factory f6(core::int value) → self::E
+  static factory f6(core::int value = #C11) → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:28:29: Error: The constructor function type 'E Function()' isn't a subtype of 'E Function(int)'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/constructor_calls.dart'.
   factory E.f6(int value) = E.f; // Error.
@@ -129,7 +129,7 @@ static method test() → dynamic {
 Try using a constructor or factory that is 'const'.
   const E.f(); // Error.
         ^";
-  #C11;
+  #C12;
 }
 static method main() → dynamic {}
 
@@ -144,7 +144,8 @@ constants  {
   #C8 = constructor-tearoff self::E::f4
   #C9 = constructor-tearoff self::E::f5
   #C10 = constructor-tearoff self::E::f6
-  #C11 = constructor-tearoff self::E::f
+  #C11 = null
+  #C12 = constructor-tearoff self::E::f
 }
 
 

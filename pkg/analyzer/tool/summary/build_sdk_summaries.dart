@@ -8,7 +8,7 @@ import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/sdk.dart';
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   String command;
   String outFilePath;
   String? sdkPath;
@@ -39,7 +39,7 @@ void main(List<String> args) {
   // Handle commands.
   //
   if (command == 'build' || command == 'build-strong') {
-    _buildSummary(sdkPath, outFilePath);
+    await _buildSummary(sdkPath, outFilePath);
   } else {
     _printUsage();
     return;
@@ -49,10 +49,10 @@ void main(List<String> args) {
 /// The name of the SDK summaries builder application.
 const BINARY_NAME = "build_sdk_summaries";
 
-void _buildSummary(String sdkPath, String outPath) {
+Future<void> _buildSummary(String sdkPath, String outPath) async {
   print('Generating summary.');
   Stopwatch sw = Stopwatch()..start();
-  List<int> bytes = buildSdkSummary(
+  List<int> bytes = await buildSdkSummary2(
     resourceProvider: PhysicalResourceProvider.INSTANCE,
     sdkPath: sdkPath,
   );

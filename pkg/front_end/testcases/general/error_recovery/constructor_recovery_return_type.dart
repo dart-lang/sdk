@@ -1,4 +1,3 @@
-// @dart=2.9
 class Foo {
   void Foo() {
     // Not OK.

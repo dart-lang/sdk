@@ -123,7 +123,7 @@ class FlatTypeMask extends TypeMask {
 
   /// Deserializes a [FlatTypeMask] object from [source].
   factory FlatTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     ClassEntity base = source.readClassOrNull();
     int flags = source.readInt();
@@ -133,7 +133,7 @@ class FlatTypeMask extends TypeMask {
 
   /// Serializes this [FlatTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.flat);
     sink.begin(tag);
     sink.writeClassOrNull(base);

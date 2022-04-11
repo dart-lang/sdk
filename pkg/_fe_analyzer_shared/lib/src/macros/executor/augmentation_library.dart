@@ -9,48 +9,85 @@ import '../executor.dart';
 /// [MacroExecutor.buildAugmentationLibrary].
 mixin AugmentationLibraryBuilder on MacroExecutor {
   @override
-  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
-      ResolvedIdentifier Function(Identifier) resolveIdentifier) {
-    StringBuffer importsBuffer = new StringBuffer();
-    StringBuffer directivesBuffer = new StringBuffer();
-    Map<Uri, String> importPrefixes = {};
-    int nextPrefix = 0;
+  String buildAugmentationLibrary(
+      Iterable<MacroExecutionResult> macroResults,
+      ResolvedIdentifier Function(Identifier) resolveIdentifier,
+      TypeAnnotation? Function(OmittedTypeAnnotation) typeInferrer,
+      {Map<OmittedTypeAnnotation, String>? omittedTypes}) {
+    Map<Uri, _SynthesizedNamePart> importNames = {};
+    Map<OmittedTypeAnnotation, _SynthesizedNamePart> typeNames = {};
+    List<_Part> importParts = [];
+    List<_Part> directivesParts = [];
+    List<_StringPart> stringParts = [];
+    StringBuffer directivesStringPartBuffer = new StringBuffer();
+
+    void flushStringParts() {
+      if (directivesStringPartBuffer.isNotEmpty) {
+        _StringPart stringPart =
+            new _StringPart(directivesStringPartBuffer.toString());
+        directivesParts.add(stringPart);
+        stringParts.add(stringPart);
+        directivesStringPartBuffer = new StringBuffer();
+      }
+    }
 
     // Keeps track of the last part written in `lastDirectivePart`.
     String lastDirectivePart = '';
-    void writeDirectivePart(String part) {
+    void writeDirectiveStringPart(String part) {
       lastDirectivePart = part;
-      directivesBuffer.write(part);
+      directivesStringPartBuffer.write(part);
+    }
+
+    void writeDirectiveSynthesizedNamePart(_SynthesizedNamePart part) {
+      flushStringParts();
+      lastDirectivePart = '';
+      directivesParts.add(part);
     }
 
     void buildCode(Code code) {
       for (Object part in code.parts) {
         if (part is String) {
-          writeDirectivePart(part);
+          writeDirectiveStringPart(part);
         } else if (part is Code) {
           buildCode(part);
         } else if (part is Identifier) {
           ResolvedIdentifier resolved = resolveIdentifier(part);
-          String? prefix;
+          _SynthesizedNamePart? prefix;
           if (resolved.uri != null) {
-            prefix = importPrefixes.putIfAbsent(resolved.uri!, () {
-              String prefix = 'i${nextPrefix++}';
-              importsBuffer.writeln("import '${resolved.uri}' as $prefix;");
+            prefix = importNames.putIfAbsent(resolved.uri!, () {
+              _SynthesizedNamePart prefix = new _SynthesizedNamePart();
+              importParts.add(new _StringPart("import '${resolved.uri}' as "));
+              importParts.add(prefix);
+              importParts.add(new _StringPart(";\n"));
               return prefix;
             });
           }
           if (resolved.kind == IdentifierKind.instanceMember) {
             // Qualify with `this.` if we don't have a receiver.
             if (!lastDirectivePart.trimRight().endsWith('.')) {
-              writeDirectivePart('this.');
+              writeDirectiveStringPart('this.');
             }
           } else if (prefix != null) {
-            writeDirectivePart('${prefix}.');
+            writeDirectiveSynthesizedNamePart(prefix);
+            writeDirectiveStringPart('.');
           }
           if (resolved.kind == IdentifierKind.staticInstanceMember) {
-            writeDirectivePart('${resolved.staticScope!}.');
+            writeDirectiveStringPart('${resolved.staticScope!}.');
           }
-          writeDirectivePart('${part.name}');
+          writeDirectiveStringPart('${part.name}');
+        } else if (part is OmittedTypeAnnotation) {
+          TypeAnnotation? type = typeInferrer(part);
+          if (type == null) {
+            if (omittedTypes != null) {
+              _SynthesizedNamePart name =
+                  typeNames.putIfAbsent(part, () => new _SynthesizedNamePart());
+              writeDirectiveSynthesizedNamePart(name);
+            } else {
+              throw new ArgumentError("No type inferred for $part");
+            }
+          } else {
+            buildCode(type.code);
+          }
         } else {
           throw new ArgumentError(
               'Code objects only support String, Identifier, and Code '
@@ -63,7 +100,7 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
     for (MacroExecutionResult result in macroResults) {
       for (DeclarationCode augmentation in result.libraryAugmentations) {
         buildCode(augmentation);
-        directivesBuffer.writeln();
+        writeDirectiveStringPart('\n');
       }
       for (MapEntry<String, Iterable<DeclarationCode>> entry
           in result.classAugmentations.entries) {
@@ -74,13 +111,79 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
     }
     for (MapEntry<String, List<DeclarationCode>> entry
         in mergedClassResults.entries) {
-      directivesBuffer.writeln('augment class ${entry.key} {');
+      writeDirectiveStringPart('augment class ${entry.key} {\n');
       for (DeclarationCode augmentation in entry.value) {
         buildCode(augmentation);
-        directivesBuffer.writeln();
+        writeDirectiveStringPart('\n');
       }
-      directivesBuffer.writeln('}');
+      writeDirectiveStringPart('}\n');
     }
-    return '$importsBuffer\n\n$directivesBuffer';
+    flushStringParts();
+
+    if (importNames.isNotEmpty) {
+      String prefix = _computeFreshPrefix(stringParts, 'prefix');
+      int index = 0;
+      for (_SynthesizedNamePart part in importNames.values) {
+        part.text = '$prefix${index++}';
+      }
+    }
+    if (omittedTypes != null && typeNames.isNotEmpty) {
+      String prefix = _computeFreshPrefix(stringParts, 'OmittedType');
+      int index = 0;
+      typeNames.forEach(
+          (OmittedTypeAnnotation omittedType, _SynthesizedNamePart part) {
+        String name = '$prefix${index++}';
+        part.text = name;
+        omittedTypes[omittedType] = name;
+      });
+    }
+
+    StringBuffer sb = new StringBuffer();
+    for (_Part part in importParts) {
+      sb.write(part.text);
+    }
+    sb.write('\n');
+    for (_Part part in directivesParts) {
+      sb.write(part.text);
+    }
+
+    return sb.toString();
   }
+}
+
+abstract class _Part {
+  String get text;
+}
+
+class _SynthesizedNamePart implements _Part {
+  late String text;
+}
+
+class _StringPart implements _Part {
+  final String text;
+
+  _StringPart(this.text);
+}
+
+/// Computes a name starting with [name] that is unique with respect to the
+/// text in [stringParts].
+///
+/// This algorithm assumes that no two parts in [stringParts] occur in direct
+/// sequence where they are used, i.e. there is always at least one
+/// [_SynthesizedNamePart] between them.
+String _computeFreshPrefix(List<_StringPart> stringParts, String name) {
+  int index = -1;
+  String prefix = name;
+  for (_StringPart part in stringParts) {
+    while (part.text.contains(prefix)) {
+      index++;
+      prefix = '$name$index';
+    }
+  }
+  if (index > 0) {
+    // Add a separator when an index was needed. This is to ensure that
+    // suffixing number to [prefix] doesn't blend the digits.
+    prefix = '${prefix}_';
+  }
+  return prefix;
 }

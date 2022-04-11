@@ -115,14 +115,14 @@ class FunctionExpressionInvocationResolver {
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    var returnType =
-        const FunctionExpressionInvocationInferrer().resolveInvocation(
+    var returnType = FunctionExpressionInvocationInferrer(
       resolver: _resolver,
       node: node,
+      argumentList: node.argumentList,
       rawType: rawType,
       whyNotPromotedList: whyNotPromotedList,
       contextType: contextType,
-    );
+    ).resolveInvocation();
 
     _inferenceHelper.recordStaticType(node, returnType,
         contextType: contextType);
@@ -205,12 +205,14 @@ class FunctionExpressionInvocationResolver {
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     _setExplicitTypeArgumentTypes(node);
-    const FunctionExpressionInvocationInferrer().resolveInvocation(
-        resolver: _resolver,
-        node: node,
-        rawType: null,
-        contextType: contextType,
-        whyNotPromotedList: whyNotPromotedList);
+    FunctionExpressionInvocationInferrer(
+            resolver: _resolver,
+            node: node,
+            argumentList: node.argumentList,
+            rawType: null,
+            contextType: contextType,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation();
     node.staticInvokeType = DynamicTypeImpl.instance;
     node.staticType = type;
   }

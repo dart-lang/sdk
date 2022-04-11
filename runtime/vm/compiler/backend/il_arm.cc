@@ -1402,27 +1402,33 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  return MakeLocationSummaryInternal(zone, is_optimizing, R0);
+  return MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(R0) | R(CallingConventions::kFfiAnyNonAbiRegister) |
+       R(CallingConventions::kSecondNonArgumentRegister)));
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  const Register temp2 = locs()->temp(0).reg();
   // For regular calls, this holds the FP for rebasing the original locations
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(0).reg();
-  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-                  (1 << saved_fp_or_sp)) != 0);
-  const Register temp1 = locs()->temp(1).reg();
-  const Register temp2 = locs()->temp(2).reg();
-  const Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp_or_sp = locs()->temp(1).reg();
+  const Register temp1 = locs()->temp(2).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-          (1 << saved_fp_or_sp)) != 0);
-  // temp doesn't need to be preserved.
+  ASSERT(IsCalleeSavedRegister(saved_fp_or_sp));
+  // Other temps don't need to be preserved.
 
   __ mov(saved_fp_or_sp,
          is_leaf_ ? compiler::Operand(SPREG) : compiler::Operand(FPREG));
@@ -1590,7 +1596,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the argument registers, in reverse order.
   SaveArguments(compiler);
 
-  // Enter the entry frame.
+  // Enter the entry frame. NativeParameterInstr expects this frame has size
+  // -exit_link_slot_from_entry_fp, verified below.
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
 
   // Save a space for the code object.
@@ -5663,9 +5670,11 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Call the function.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  // Call the function. Parameters are already in their correct spots.
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -6115,15 +6124,20 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ vmovd(D1, D2);
   if (TargetCPUFeatures::hardfp_supported()) {
     ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(instr->TargetFunction(), kInputCount);
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    rt.Call(instr->TargetFunction(), kInputCount);
   } else {
     // If the ABI is not "hardfp", then we have to move the double arguments
     // to the integer registers, and take the results from the integer
     // registers.
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
     __ vmovrrd(R0, R1, D0);
     __ vmovrrd(R2, R3, D1);
-    ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(instr->TargetFunction(), kInputCount);
+    rt.Call(instr->TargetFunction(), kInputCount);
     __ vmovdrr(D0, R0, R1);
     __ vmovdrr(D1, R2, R3);
   }
@@ -6141,16 +6155,20 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmovd(D1, D2);
   }
   if (TargetCPUFeatures::hardfp_supported()) {
-    ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(TargetFunction(), InputCount());
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    rt.Call(TargetFunction(), TargetFunction().argument_count());
   } else {
     // If the ABI is not "hardfp", then we have to move the double arguments
     // to the integer registers, and take the results from the integer
     // registers.
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
     __ vmovrrd(R0, R1, D0);
     __ vmovrrd(R2, R3, D1);
-    ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-    __ CallRuntime(TargetFunction(), InputCount());
+    rt.Call(TargetFunction(), TargetFunction().argument_count());
     __ vmovdrr(D0, R0, R1);
     __ vmovdrr(D1, R2, R3);
   }

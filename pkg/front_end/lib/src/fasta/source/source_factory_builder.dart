@@ -130,9 +130,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   Iterable<Member> get exportedMembers => [_procedure];
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    Member member = build(library);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    Member member = build();
     f(member, BuiltMemberKind.Method);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
@@ -140,8 +139,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  Procedure build(SourceLibraryBuilder libraryBuilder) {
-    buildFunction(libraryBuilder);
+  Procedure build() {
+    buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
         _procedureInternal.fileEndOffset;
@@ -162,13 +161,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
-    super.buildOutlineExpressions(library, classHierarchy,
-        delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     _hasBuiltOutlines = true;
   }
 
@@ -319,8 +317,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     // Ensure that constant factories only have constant targets/bodies.
     if (isConst && !target.isConst) {
-      library.addProblem(messageConstFactoryRedirectionToNonConst, charOffset,
-          noLength, fileUri);
+      libraryBuilder.addProblem(messageConstFactoryRedirectionToNonConst,
+          charOffset, noLength, fileUri);
     }
 
     bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
@@ -334,7 +332,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
               new TypeParameterType.withDefaultNullabilityForLibrary(
-                  actualOrigin!.function.typeParameters[i], library.library);
+                  actualOrigin!.function.typeParameters[i],
+                  libraryBuilder.library);
         }
         typeArguments = new List<DartType>.generate(typeArguments.length,
             (int i) => substitute(typeArguments[i], substitution),
@@ -345,9 +344,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    Member member = build(library);
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    Member member = build();
     f(member, BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
@@ -355,8 +353,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  Procedure build(SourceLibraryBuilder libraryBuilder) {
-    buildFunction(libraryBuilder);
+  Procedure build() {
+    buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
         _procedureInternal.fileEndOffset;
@@ -368,7 +366,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.generate(
           redirectionTarget.typeArguments!.length,
-          (int i) => redirectionTarget.typeArguments![i].build(library),
+          (int i) => redirectionTarget.typeArguments![i].build(libraryBuilder),
           growable: false);
     }
     updatePrivateMemberName(_procedureInternal, libraryBuilder);
@@ -385,32 +383,32 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   @override
   void buildOutlineExpressions(
-      SourceLibraryBuilder library,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (isConst && isPatch) {
-      origin.buildOutlineExpressions(library, classHierarchy,
-          delayedActionPerformers, synthesizedFunctionNodes);
+      origin.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
-    super.buildOutlineExpressions(library, classHierarchy,
-        delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     RedirectingFactoryBody redirectingFactoryBody =
         _procedureInternal.function.body as RedirectingFactoryBody;
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
     Member? target = redirectingFactoryBody.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
-      TypeInferrer inferrer = library.loader.typeInferenceEngine
+      TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
-              fileUri, classBuilder!.thisType, library, null);
-      inferrer.helper = library.loader.createBodyBuilderForOutlineExpression(
-          library, classBuilder, this, classBuilder!.scope, fileUri);
+              fileUri, classBuilder!.thisType, libraryBuilder, null);
+      inferrer.helper = libraryBuilder.loader
+          .createBodyBuilderForOutlineExpression(
+              libraryBuilder, classBuilder, this, classBuilder!.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
-        targetBuilder.buildOutlineExpressions(targetBuilder.library,
-            classHierarchy, delayedActionPerformers, synthesizedFunctionNodes);
+        targetBuilder.buildOutlineExpressions(classHierarchy,
+            delayedActionPerformers, delayedDefaultValueCloners);
       }
       if (targetBuilder is FunctionBuilder) {
         target = targetBuilder.member;
@@ -462,34 +460,51 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           new RedirectingFactoryBody(target, typeArguments, function);
       function.body!.parent = function;
     }
-    if (_factoryTearOff != null) {
-      Set<Procedure> seenTargets = {};
-      while (target is Procedure && target.isRedirectingFactory) {
-        if (!seenTargets.add(target)) {
-          // Cyclic dependency.
-          target = null;
-          break;
-        }
-        RedirectingFactoryBody body =
-            target.function.body as RedirectingFactoryBody;
-        if (typeArguments != null) {
-          Substitution substitution = Substitution.fromPairs(
-              target.function.typeParameters, typeArguments);
-          typeArguments =
-              body.typeArguments?.map(substitution.substituteType).toList();
-        } else {
-          typeArguments = body.typeArguments;
-        }
-        target = body.target;
+
+    Set<Procedure> seenTargets = {};
+    while (target is Procedure && target.isRedirectingFactory) {
+      if (!seenTargets.add(target)) {
+        // Cyclic dependency.
+        target = null;
+        break;
       }
-      if (target is Constructor || target is Procedure && target.isFactory) {
-        synthesizedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
+      RedirectingFactoryBody body =
+          target.function.body as RedirectingFactoryBody;
+      if (typeArguments != null) {
+        Substitution substitution = Substitution.fromPairs(
+            target.function.typeParameters, typeArguments);
+        typeArguments =
+            body.typeArguments?.map(substitution.substituteType).toList();
+      } else {
+        typeArguments = body.typeArguments;
+      }
+      target = body.target;
+    }
+
+    if (target is Constructor || target is Procedure && target.isFactory) {
+      typeArguments ??= [];
+      if (_factoryTearOff != null) {
+        delayedDefaultValueCloners.add(buildRedirectingFactoryTearOffBody(
             _factoryTearOff!,
             target!,
-            typeArguments ?? [],
+            typeArguments,
             _tearOffTypeParameters!,
-            library));
+            libraryBuilder));
       }
+      Map<TypeParameter, DartType> substitutionMap;
+      if (function.typeParameters.length == typeArguments.length) {
+        substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+            function.typeParameters, typeArguments);
+      } else {
+        // Error case: Substitute type parameters with `dynamic`.
+        substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+            function.typeParameters,
+            new List<DartType>.generate(function.typeParameters.length,
+                (int index) => const DynamicType()));
+      }
+      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+          substitutionMap, target!.function!, function,
+          libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
     if (isConst && isPatch) {
       _finishPatch();
