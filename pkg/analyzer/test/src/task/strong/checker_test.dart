@@ -2890,9 +2890,9 @@ class A {}
 class L<T> {}
 class M<T> extends L<T> {}
 //     L<dynamic|Object>
-//    /              \
+//    /              
 // M<dynamic|Object>  L<A>
-//    \              /
+//                  /
 //          M<A>
 // In normal Dart, there are additional edges
 //  from M<A> to M<dynamic>
