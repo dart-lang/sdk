@@ -107,4 +107,8 @@ testReturnTypeRefersToMultipleTypeVars(
   });
 }
 
+testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {
+  f(() => 0, null).expectStaticType<Exactly<int?>>();
+}
+
 main() {}

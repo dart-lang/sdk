@@ -205,6 +205,33 @@ test() => f(t: 0, g: (x) {});
         _isEnabled ? 'int' : 'Object?');
   }
 
+  test_horizontal_inference_unnecessary_due_to_no_dependency() async {
+    // In this example, there is no dependency between the two parameters of
+    // `f`, so there should be no horizontal type inference between inferring
+    // `null` and inferring `() => 0`.  (If there were horizontal type inference
+    // between them, that would be a problem, because we would infer a type of
+    // `null` for `T`).
+    await assertNoErrorsInCode('''
+void f<T>(T Function() g, T t) {}
+test() => f(() => 0, null);
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int?');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function(int? Function(), int?)');
+  }
+
+  test_horizontal_inference_with_callback() async {
+    await assertNoErrorsInCode('''
+test(void Function<T>(T, void Function(T)) f) {
+  f(0, (x) {
+    x;
+  });
+}
+''');
+    assertType(findNode.simple('x;'), _isEnabled ? 'int' : 'Object?');
+  }
+
   test_write_capture_deferred() async {
     await assertNoErrorsInCode('''
 test(int? i) {

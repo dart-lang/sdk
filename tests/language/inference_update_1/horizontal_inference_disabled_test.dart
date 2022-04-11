@@ -44,4 +44,8 @@ testPropagateToReturnType(U Function<T, U>(T, U Function(T)) f) {
   f(0, (x) => [x]).expectStaticType<Exactly<List<Object?>>>();
 }
 
+testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {
+  f(() => 0, null).expectStaticType<Exactly<int?>>();
+}
+
 main() {}
