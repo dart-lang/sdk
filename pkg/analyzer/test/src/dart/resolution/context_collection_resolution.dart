@@ -177,7 +177,9 @@ abstract class ContextResolutionTest
   }
 
   void disposeAnalysisContextCollection() {
-    if (_analysisContextCollection != null) {
+    final analysisContextCollection = _analysisContextCollection;
+    if (analysisContextCollection != null) {
+      analysisContextCollection.dispose();
       _analysisContextCollection = null;
     }
   }
@@ -214,6 +216,10 @@ abstract class ContextResolutionTest
       root: sdkRoot,
       additionalLibraries: additionalMockSdkLibraries,
     );
+  }
+
+  Future<void> tearDown() async {
+    disposeAnalysisContextCollection();
   }
 
   /// Override this method to update [analysisOptions] for every context root,

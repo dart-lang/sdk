@@ -2,9 +2,71 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
+    as isolated_executor;
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    as macro;
 import 'package:path/path.dart' as package_path;
+
+export 'package:_fe_analyzer_shared/src/macros/executor.dart' show Arguments;
+
+class BundleMacroExecutor {
+  final macro.MultiMacroExecutor macroExecutor;
+  late final macro.ExecutorFactoryToken _executorFactoryToken;
+  final Uint8List kernelBytes;
+  Uri? _kernelUriCached;
+
+  BundleMacroExecutor({
+    required this.macroExecutor,
+    required Uint8List kernelBytes,
+    required Set<Uri> libraries,
+  }) : kernelBytes = Uint8List.fromList(kernelBytes) {
+    _executorFactoryToken = macroExecutor.registerExecutorFactory(
+      () => isolated_executor.start(
+        macro.SerializationMode.byteDataServer,
+        _kernelUri,
+      ),
+      libraries,
+    );
+  }
+
+  Uri get _kernelUri {
+    return _kernelUriCached ??=
+        // ignore: avoid_dynamic_calls
+        (Isolate.current as dynamic).createUriForKernelBlob(kernelBytes);
+  }
+
+  void dispose() {
+    macroExecutor.unregisterExecutorFactory(_executorFactoryToken);
+    final kernelUriCached = _kernelUriCached;
+    if (kernelUriCached != null) {
+      // ignore: avoid_dynamic_calls
+      (Isolate.current as dynamic).unregisterKernelBlobUri(kernelUriCached);
+      _kernelUriCached = null;
+    }
+  }
+
+  Future<MacroClassInstance> instantiate({
+    required Uri libraryUri,
+    required String className,
+    required String constructorName,
+    required macro.Arguments arguments,
+    required macro.Declaration declaration,
+    required macro.IdentifierResolver identifierResolver,
+  }) async {
+    var instanceIdentifier = await macroExecutor.instantiateMacro(
+        libraryUri, className, constructorName, arguments);
+    return MacroClassInstance._(
+        this, identifierResolver, declaration, instanceIdentifier);
+  }
+}
 
 class MacroClass {
   final String name;
@@ -14,6 +76,26 @@ class MacroClass {
     required this.name,
     required this.constructors,
   });
+}
+
+class MacroClassInstance {
+  final BundleMacroExecutor _bundleExecutor;
+  final macro.IdentifierResolver _identifierResolver;
+  final macro.Declaration _declaration;
+  final macro.MacroInstanceIdentifier _instanceIdentifier;
+
+  MacroClassInstance._(
+    this._bundleExecutor,
+    this._identifierResolver,
+    this._declaration,
+    this._instanceIdentifier,
+  );
+
+  Future<macro.MacroExecutionResult> executeTypesPhase() async {
+    macro.MacroExecutor executor = _bundleExecutor.macroExecutor;
+    return await executor.executeTypesPhase(
+        _instanceIdentifier, _declaration, _identifierResolver);
+  }
 }
 
 abstract class MacroFileEntry {

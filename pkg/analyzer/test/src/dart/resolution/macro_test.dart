@@ -34,6 +34,9 @@ class MacroResolutionTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
 
+    // TODO(scheglov) Dependency tracking for macros is not right yet.
+    useEmptyByteStore();
+
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
@@ -41,14 +44,30 @@ class MacroResolutionTest extends PubPackageResolutionTest {
   }
 
   test_0() async {
-    await assertNoErrorsInCode(r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class EmptyMacro implements ClassTypesMacro {
   const EmptyMacro();
-  FutureOr<void> buildTypesForClass(clazz, builder) {}
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    var targetName = clazz.identifier.name;
+    builder.declareType(
+      '${targetName}_Macro',
+      DeclarationCode.fromString('class ${targetName}_Macro {}'),
+    );
+  }
 }
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+@EmptyMacro()
+class A {}
+
+void f(A_Macro a) {}
 ''');
   }
 }
