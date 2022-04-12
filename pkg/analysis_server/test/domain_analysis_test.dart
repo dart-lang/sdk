@@ -7,13 +7,13 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
 import 'analysis_server_base.dart';
 import 'mocks.dart';
 
@@ -1465,23 +1465,29 @@ void f(A a) {}
 }
 
 @reflectiveTest
-class SetSubscriptionsTest extends AbstractAnalysisTest {
-  Map<String, List<HighlightRegion>> filesHighlights = {};
+class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
+  Map<File, List<HighlightRegion>> filesHighlights = {};
 
   final Completer<void> _resultsAvailable = Completer();
 
   @override
   void processNotification(Notification notification) {
+    super.processNotification(notification);
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
-      filesHighlights[params.file] = params.regions;
+      filesHighlights[getFile(params.file)] = params.regions;
       _resultsAvailable.complete();
     }
   }
 
+  @override
+  Future<void> setUp() async {
+    super.setUp();
+    await setRoots(included: [workspaceRootPath], excluded: []);
+  }
+
   Future<void> test_afterAnalysis() async {
     addTestFile('int V = 42;');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
@@ -1493,9 +1499,8 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_afterAnalysis_noSuchFile() async {
-    var file = convertPath('/no-such-file.dart');
+    var file = getFile('/no-such-file.dart');
     addTestFile('// no matter');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
@@ -1510,7 +1515,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     var pkgFile = newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
-''').path;
+''');
     newPackageConfigJsonFile(
       '/project',
       (PackageConfigFileBuilder()
@@ -1524,7 +1529,6 @@ main() {
   new A();
 }
 ''');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[pkgFile], isNull);
@@ -1541,7 +1545,7 @@ main() {
     var pkgFileA = newFile2('$pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
-''').path;
+''');
     newFile2('$pkgA/lib/libB.dart', '''
 import 'package:pkgA/libA.dart';
 main() {
@@ -1549,7 +1553,6 @@ main() {
 }
 ''');
     // add 'pkgA' and 'pkgB' as projects
-    newFolder(projectPath);
     await setRoots(included: [pkgA, pkgB], excluded: []);
     // wait for analysis, no results initially
     await waitForTasksFinished();
@@ -1565,7 +1568,7 @@ main() {
     var pkgFile = newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
-''').path;
+''');
     newPackageConfigJsonFile(
       '/project',
       (PackageConfigFileBuilder()
@@ -1574,12 +1577,11 @@ class A {}
     );
     //
     addTestFile('// no "pkgA" reference');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[pkgFile], isNull);
     // make it a priority file, so make analyzable
-    server.setPriorityFiles('0', [pkgFile]);
+    server.setPriorityFiles('0', [pkgFile.path]);
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
     await _resultsAvailable.future;
@@ -1588,9 +1590,8 @@ class A {}
   }
 
   Future<void> test_afterAnalysis_sdkFile() async {
-    var file = convertPath('/sdk/lib/core/core.dart');
+    var file = getFile('/sdk/lib/core/core.dart');
     addTestFile('// no matter');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[file], isNull);
@@ -1603,7 +1604,6 @@ class A {}
 
   Future<void> test_beforeAnalysis() async {
     addTestFile('int V = 42;');
-    await createProject();
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
@@ -1613,7 +1613,6 @@ class A {}
 
   Future<void> test_sentToPlugins() async {
     addTestFile('int V = 42;');
-    await createProject();
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
@@ -1622,7 +1621,7 @@ class A {}
     var subscriptions = params.subscriptions;
     expect(subscriptions, hasLength(1));
     var files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
-    expect(files, [testFile]);
+    expect(files, [testFile.path]);
   }
 }
 

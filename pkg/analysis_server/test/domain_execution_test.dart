@@ -4,10 +4,11 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
+import 'analysis_server_base.dart';
 import 'mocks.dart';
 
 void main() {
@@ -116,13 +117,13 @@ void main() {
 }
 
 @reflectiveTest
-class ExecutionDomainTest extends AbstractAnalysisTest {
+class ExecutionDomainTest extends PubPackageAnalysisServerTest {
   late String contextId;
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await _createExecutionContext(testFile);
   }
 
@@ -134,13 +135,13 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_createAndDeleteMultipleContexts() async {
     var request = ExecutionCreateContextParams('/a/b.dart').toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('0'));
     var result = ExecutionCreateContextResult.fromResponse(response);
     var id0 = result.id;
 
     request = ExecutionCreateContextParams('/c/d.dart').toRequest('1');
-    response = await waitResponse(request);
+    response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('1'));
     result = ExecutionCreateContextResult.fromResponse(response);
     var id1 = result.id;
@@ -148,17 +149,17 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
     expect(id0 == id1, isFalse);
 
     request = ExecutionDeleteContextParams(id0).toRequest('2');
-    response = await waitResponse(request);
+    response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('2'));
 
     request = ExecutionDeleteContextParams(id1).toRequest('3');
-    response = await waitResponse(request);
+    response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('3'));
   }
 
   Future<void> test_deleteNonExistentContext() async {
     var request = ExecutionDeleteContextParams('13').toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     // TODO(brianwilkerson) It isn't currently specified to be an error if a
     // client attempts to delete a context that doesn't exist. Should it be?
 //        expect(response, isResponseFailure('0'));
@@ -186,7 +187,7 @@ void contextFunction() {
         path,
         code.indexOf('// context line'),
         <RuntimeCompletionVariable>[]).toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
 
     var result = ExecutionGetSuggestionsResult.fromResponse(response);
 //    expect(result.suggestions, isNotEmpty);
@@ -225,9 +226,9 @@ void contextFunction() {
     expect(result.uri, isNull);
   }
 
-  Future<void> _createExecutionContext(String path) async {
-    var request = ExecutionCreateContextParams(path).toRequest('0');
-    var response = await waitResponse(request);
+  Future<void> _createExecutionContext(File file) async {
+    var request = ExecutionCreateContextParams(file.path).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('0'));
     var result = ExecutionCreateContextResult.fromResponse(response);
     contextId = result.id;
@@ -235,14 +236,14 @@ void contextFunction() {
 
   Future<void> _disposeExecutionContext() async {
     var request = ExecutionDeleteContextParams(contextId).toRequest('1');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('1'));
   }
 
   Future<ExecutionMapUriResult> _mapUri({String? file, String? uri}) async {
     var request =
         ExecutionMapUriParams(contextId, file: file, uri: uri).toRequest('2');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('2'));
     return ExecutionMapUriResult.fromResponse(response);
   }

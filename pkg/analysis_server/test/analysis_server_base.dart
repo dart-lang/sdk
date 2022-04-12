@@ -91,6 +91,9 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
         EnableString.super_parameters,
       ];
 
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
+
   Folder get sdkRoot => newFolder('/sdk');
 
   File get testFile => getFile(testFilePath);
