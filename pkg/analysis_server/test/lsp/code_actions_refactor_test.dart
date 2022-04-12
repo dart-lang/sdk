@@ -18,6 +18,8 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
+    defineReflectiveTests(
+        ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
@@ -579,6 +581,9 @@ void foo(int arg) {}
 class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
 
+  /// Nullability suffix expected in this test class.
+  String get expectedNullableSuffix => '?';
+
   @override
   void setUp() {
     super.setUp();
@@ -610,7 +615,7 @@ class MyWidget extends StatelessWidget {
   }
 }
     ''';
-    const expectedContent = '''
+    final expectedContent = '''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
@@ -628,7 +633,7 @@ class MyWidget extends StatelessWidget {
 
 class NewWidget extends StatelessWidget {
   const NewWidget({
-    Key key,
+    Key$expectedNullableSuffix key,
   }) : super(key: key);
 
   @override
@@ -668,6 +673,16 @@ main() {}
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);
   }
+}
+
+@reflectiveTest
+class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
+    extends ExtractWidgetRefactorCodeActionsTest {
+  @override
+  String get expectedNullableSuffix => '';
+
+  @override
+  String get testPackageLanguageVersion => '2.9';
 }
 
 @reflectiveTest

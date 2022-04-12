@@ -128,7 +128,7 @@ include: package:pedantic/analysis_options.yaml
     newFile2(mainFilePath, '''
 void f() {
   x = 0;
-  int x;
+  int? x;
   print(x);
 }
 ''');
@@ -174,7 +174,7 @@ void f() {
   Future<void> test_diagnosticTag_deprecated() async {
     newFile2(mainFilePath, '''
     @deprecated
-    int dep;
+    int? dep;
 
     void main() => print(dep);
     ''');
@@ -193,7 +193,7 @@ void f() {
   Future<void> test_diagnosticTag_notSupported() async {
     newFile2(mainFilePath, '''
     @deprecated
-    int dep;
+    int? dep;
 
     void main() => print(dep);
     ''');

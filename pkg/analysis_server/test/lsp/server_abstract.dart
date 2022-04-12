@@ -561,7 +561,7 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
 
-  String get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => latestLanguageVersion;
 
   void writePackageConfig(
     String projectFolderPath, {

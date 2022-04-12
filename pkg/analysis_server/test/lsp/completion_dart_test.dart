@@ -23,9 +23,7 @@ void main() {
     defineReflectiveTests(CompletionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
-    defineReflectiveTests(
-        FlutterSnippetCompletionWithLatestLanguageVersionTest);
-    defineReflectiveTests(CompletionTestWithNullSafetyTest);
+    defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
   });
 }
 
@@ -419,6 +417,77 @@ class _MyWidgetState extends State<MyWidget> {
       insertText: r'myFunction($0)',
       insertTextFormat: InsertTextFormat.Snippet,
     );
+  }
+
+  Future<void> test_completeFunctionCalls_requiredNamed() async {
+    final content = '''
+    void myFunction(String a, int b, {required String c, String d = ''}) {}
+
+    void f() {
+      [[myFu^]]
+    }
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
+  }
+
+  Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
+    final otherFile = join(projectFolderPath, 'lib', 'other.dart');
+    newFile2(
+      otherFile,
+      "void myFunction(String a, int b, {required String c, String d = ''}) {}",
+    );
+    final content = '''
+    void f() {
+      [[myFu^]]
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withApplyEditSupport(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    expect(item.textEdit, isNull);
+
+    // Ensure the item can be resolved and gets a proper TextEdit.
+    final resolved = await resolveCompletion(item);
+    expect(resolved.textEdit, isNotNull);
+    final textEdit = toTextEdit(resolved.textEdit!);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completeFunctionCalls_show() async {
@@ -1252,6 +1321,25 @@ void f() { }
 
     final res = await getCompletion(Uri.file(readmeFilePath), startOfDocPos);
     expect(res, isEmpty);
+  }
+
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? foo(int? a, [int b = 1]) {}
+
+    void f() {
+      fo^
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion = res.singleWhere((c) => c.label.startsWith('foo'));
+    expect(completion.detail, '(int? a, [int b = 1]) → String?');
   }
 
   Future<void> test_parensNotInFilterTextInsertText() async {
@@ -2359,102 +2447,6 @@ $lintsYaml
 }
 
 @reflectiveTest
-class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  Future<void> test_completeFunctionCalls_requiredNamed() async {
-    final content = '''
-    void myFunction(String a, int b, {required String c, String d = ''}) {}
-
-    void f() {
-      [[myFu^]]
-    }
-    ''';
-
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // Ensure the snippet comes through in the expected format with the expected
-    // placeholders.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
-  }
-
-  Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
-    final otherFile = join(projectFolderPath, 'lib', 'other.dart');
-    newFile2(
-      otherFile,
-      "void myFunction(String a, int b, {required String c, String d = ''}) {}",
-    );
-    final content = '''
-    void f() {
-      [[myFu^]]
-    }
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withApplyEditSupport(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
-      ),
-      {'completeFunctionCalls': true},
-    );
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // Ensure the snippet comes through in the expected format with the expected
-    // placeholders.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    expect(item.textEdit, isNull);
-
-    // Ensure the item can be resolved and gets a proper TextEdit.
-    final resolved = await resolveCompletion(item);
-    expect(resolved.textEdit, isNotNull);
-    final textEdit = toTextEdit(resolved.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
-  }
-
-  Future<void> test_nullableTypes() async {
-    final content = '''
-    String? foo(int? a, [int b = 1]) {}
-
-    void f() {
-      fo^
-    }
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    final completion = res.singleWhere((c) => c.label.startsWith('foo'));
-    expect(completion.detail, '(int? a, [int b = 1]) → String?');
-  }
-}
-
-@reflectiveTest
 class DartSnippetCompletionTest extends SnippetCompletionTest {
   Future<void> test_snippets_class() async {
     final content = '''
@@ -2796,18 +2788,17 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
-import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';''';
 
   /// Nullability suffix expected in this test class.
   ///
   /// Used to allow all tests to be run in both modes without having to
-  /// duplicate all tests ([FlutterSnippetCompletionWithLatestLanguageVersionTest]
+  /// duplicate all tests ([FlutterSnippetCompletionWithoutNullSafetyTest]
   /// overrides this).
-  String get expectedNullableSuffix => '';
+  String get expectedNullableSuffix => '?';
 
   /// Constructor params expected on Widget classes.
-  String get expectedWidgetConstructorParams => '({Key key}) : super(key: key)';
+  String get expectedWidgetConstructorParams => '({super.key})';
 
   @override
   void setUp() {
@@ -3069,20 +3060,21 @@ stle^
 }
 
 @reflectiveTest
-class FlutterSnippetCompletionWithLatestLanguageVersionTest
+class FlutterSnippetCompletionWithoutNullSafetyTest
     extends FlutterSnippetCompletionTest {
   @override
   String get expectedImports => '''
+import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';''';
 
   @override
-  String get expectedNullableSuffix => '?';
+  String get expectedNullableSuffix => '';
 
   @override
-  String get expectedWidgetConstructorParams => '({super.key})';
+  String get expectedWidgetConstructorParams => '({Key key}) : super(key: key)';
 
   @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
+  String get testPackageLanguageVersion => '2.9';
 }
 
 abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
