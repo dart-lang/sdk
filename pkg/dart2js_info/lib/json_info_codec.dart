@@ -11,10 +11,6 @@ import 'package:collection/collection.dart';
 import 'info.dart';
 import 'src/util.dart';
 
-List<String> _toSortedSerializedIds(
-        Iterable<Info> infos, Id Function(Info) getId) =>
-    infos.map((i) => getId(i).serializedId).toList()..sort(compareNatural);
-
 // TODO(sigmund): add unit tests.
 class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   // Using `MashMap` here because it's faster than the default `LinkedHashMap`.
@@ -349,10 +345,14 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     implements InfoVisitor<Map> {
   /// Whether to generate json compatible with format 5.1
   final bool isBackwardCompatible;
+
+  /// Whether to filter all treeshaken elements.
+  final bool filterTreeshaken;
   final Map<Info, Id> ids = HashMap<Info, Id>();
   final Set<int> usedIds = <int>{};
 
-  AllInfoToJsonConverter({this.isBackwardCompatible = false});
+  AllInfoToJsonConverter(
+      {this.isBackwardCompatible = false, this.filterTreeshaken = false});
 
   Id idFor(Info info) {
     var serializedId = ids[info];
@@ -391,6 +391,12 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     // Using SplayTree to maintain a consistent order of keys
     var map = SplayTreeMap<String, Map>(compareNatural);
     for (var info in infos) {
+      if (info is BasicInfo) {
+        if (filterTreeshaken &&
+            info.treeShakenStatus != TreeShakenStatus.Live) {
+          continue;
+        }
+      }
       map[idFor(info).id] = info.accept(this);
     }
     return map;
@@ -500,15 +506,13 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map visitLibrary(LibraryInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{
-        'children': _toSortedSerializedIds(
-            [
-              info.topLevelFunctions,
-              info.topLevelVariables,
-              info.classes,
-              info.classTypes,
-              info.typedefs
-            ].expand((i) => i),
-            idFor),
+        'children': _toSortedSerializedIds([
+          ...info.topLevelFunctions,
+          ...info.topLevelVariables,
+          ...info.classes,
+          ...info.classTypes,
+          ...info.typedefs
+        ], idFor),
         'canonicalUri': '${info.uri}',
       });
   }
@@ -519,8 +523,8 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       ..addAll(<String, Object>{
         // TODO(sigmund): change format, include only when abstract is true.
         'modifiers': {'abstract': info.isAbstract},
-        'children': _toSortedSerializedIds(
-            [info.fields, info.functions].expand((i) => i), idFor)
+        'children':
+            _toSortedSerializedIds([...info.fields, ...info.functions], idFor)
       });
   }
 
@@ -613,6 +617,15 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
             })
         .toList();
   }
+
+  List<String> _toSortedSerializedIds(
+          Iterable<Info> infos, Id Function(Info) getId) =>
+      infos
+          .where((i) =>
+              !filterTreeshaken || i.treeShakenStatus == TreeShakenStatus.Live)
+          .map((i) => getId(i).serializedId)
+          .toList()
+        ..sort(compareNatural);
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {
@@ -621,9 +634,11 @@ class AllInfoJsonCodec extends Codec<AllInfo, Map> {
   @override
   final Converter<Map, AllInfo> decoder = JsonToAllInfoConverter();
 
-  AllInfoJsonCodec({bool isBackwardCompatible = false})
-      : encoder =
-            AllInfoToJsonConverter(isBackwardCompatible: isBackwardCompatible);
+  AllInfoJsonCodec(
+      {bool isBackwardCompatible = false, bool filterTreeshaken = false})
+      : encoder = AllInfoToJsonConverter(
+            isBackwardCompatible: isBackwardCompatible,
+            filterTreeshaken: filterTreeshaken);
 }
 
 class Id {
