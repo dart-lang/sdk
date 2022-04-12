@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
@@ -16,6 +17,7 @@ main() {
     MacrosEnvironment.instance;
   } catch (_) {
     print('Cannot initialize environment. Skip macros tests.');
+    test('fake', () {});
     return;
   }
 
