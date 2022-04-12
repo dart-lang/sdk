@@ -29,9 +29,11 @@ class StaticInteropClassEraser extends Transformer {
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _TypeSubstitutor _typeSubstitutor;
 
-  StaticInteropClassEraser(CoreTypes coreTypes)
-      : _javaScriptObject =
-            coreTypes.index.getClass('dart:_interceptors', 'JavaScriptObject') {
+  StaticInteropClassEraser(CoreTypes coreTypes,
+      {String libraryForJavaScriptObject = 'dart:_interceptors',
+      String classNameOfJavaScriptObject = 'JavaScriptObject'})
+      : _javaScriptObject = coreTypes.index
+            .getClass(libraryForJavaScriptObject, classNameOfJavaScriptObject) {
     _typeSubstitutor = _TypeSubstitutor(_javaScriptObject);
   }
 

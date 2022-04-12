@@ -70,6 +70,8 @@ function dartify(object) {
         return stringToDartString(object);
     } else if (object instanceof Array) {
         return arrayToDartList(object);
+    } else if (object instanceof Object) {
+        return dartInstance.exports.$boxJSValue(object);
     } else {
         return object;
     }

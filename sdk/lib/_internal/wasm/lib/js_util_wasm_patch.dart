@@ -23,6 +23,9 @@ List<Object?> _listAllocate() => [];
 void _listAdd(List<Object?> list, WasmAnyRef? item) =>
     list.add(dartifyRaw(item));
 
+@pragma("wasm:export", "\$boxJSValue")
+JSValue _boxJSValue(WasmAnyRef ref) => JSValue(ref);
+
 @patch
 Object _jsObjectToDartObject(WasmAnyRef ref) => unsafeCastOpaque<Object>(ref);
 
