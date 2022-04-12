@@ -18,6 +18,23 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
+Set<Object> _computeExplicitlyTypedParameterSet(
+    FunctionExpression functionExpression) {
+  List<FormalParameter> parameters =
+      functionExpression.parameters?.parameters ?? const [];
+  Set<Object> result = {};
+  for (var formalParameter in parameters) {
+    int unnamedParameterIndex = 0;
+    var key = formalParameter.isNamed
+        ? formalParameter.identifier?.name ?? ''
+        : unnamedParameterIndex++;
+    if (formalParameter.isExplicitlyTyped) {
+      result.add(key);
+    }
+  }
+  return result;
+}
+
 /// Given an iterable of parameters, computes a map whose keys are either the
 /// parameter name (for named parameters) or the zero-based integer index (for
 /// unnamed parameters), and whose values are the parameters themselves.
@@ -642,9 +659,13 @@ class _ClosureDependencies extends ClosureDependencies<TypeParameterElement,
       _DeferredParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
     if (type is FunctionType) {
+      var parameterMap = _computeParameterMap(type.parameters);
+      var explicitlyTypedParameters =
+          _computeExplicitlyTypedParameterSet(paramInfo.value);
       Set<TypeParameterElement> result = {};
-      for (var parameter in type.parameters) {
-        result.addAll(_typeSystem.getFreeParameters(parameter.type,
+      for (var entry in parameterMap.entries) {
+        if (explicitlyTypedParameters.contains(entry.key)) continue;
+        result.addAll(_typeSystem.getFreeParameters(entry.value.type,
                 candidates: _typeVariables) ??
             const []);
       }
