@@ -580,7 +580,7 @@ abstract class Node {
   /// Returns a node equivalent to [this], but with new source position and end
   /// source position.
   Node withSourceInformation(
-      JavaScriptNodeSourceInformation sourceInformation) {
+      JavaScriptNodeSourceInformation? sourceInformation) {
     if (sourceInformation == _sourceInformation) {
       return this;
     }
