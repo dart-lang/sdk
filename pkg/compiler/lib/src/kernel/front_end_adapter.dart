@@ -117,7 +117,7 @@ void reportFrontEndMessage(
       : const [];
   switch (message.severity) {
     case fe.Severity.internalProblem:
-      throw mainMessage.message.computeMessage();
+      throw mainMessage.message.message;
     case fe.Severity.error:
       reporter.reportError(mainMessage, infos);
       break;

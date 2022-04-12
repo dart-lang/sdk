@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.diagnostics.invariant;
 
 import 'spannable.dart';
@@ -41,12 +39,6 @@ assertDebugMode(String message) {
 ///
 ///     throw failedAt(position, message);
 ///
-bool failedAt(Spannable spannable, [String message]) {
-  // TODO(johnniwinther): Use [spannable] and [message] to provide better
-  // information on assertion errors.
-  if (spannable == null) {
-    throw SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-        'Spannable was null for failedAt. Use CURRENT_ELEMENT_SPANNABLE.');
-  }
+bool failedAt(Spannable spannable, [String? message]) {
   throw SpannableAssertionFailure(spannable, message);
 }
