@@ -332,10 +332,9 @@ class MethodInvocationResolver {
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
-            rawType: rawType is FunctionType ? rawType : null,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
     _inferenceHelper.recordStaticType(node, staticStaticType,
         contextType: contextType);
   }
@@ -478,10 +477,9 @@ class MethodInvocationResolver {
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
-            rawType: rawType,
             whyNotPromotedList: whyNotPromotedList,
             contextType: contextType)
-        .resolveInvocation();
+        .resolveInvocation(rawType: rawType);
   }
 
   void _resolveReceiverFunctionBounded(
@@ -553,10 +551,9 @@ class MethodInvocationResolver {
               resolver: _resolver,
               node: node,
               argumentList: node.argumentList,
-              rawType: null,
               contextType: contextType,
               whyNotPromotedList: whyNotPromotedList)
-          .resolveInvocation();
+          .resolveInvocation(rawType: null);
 
       _resolver.errorReporter.reportErrorForNode(
         HintCode.RECEIVER_OF_TYPE_NEVER,
@@ -574,10 +571,9 @@ class MethodInvocationResolver {
               resolver: _resolver,
               node: node,
               argumentList: node.argumentList,
-              rawType: null,
               contextType: contextType,
               whyNotPromotedList: whyNotPromotedList)
-          .resolveInvocation();
+          .resolveInvocation(rawType: null);
       return;
     }
   }

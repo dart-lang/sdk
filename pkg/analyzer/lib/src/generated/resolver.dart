@@ -1545,6 +1545,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation(
             rawType: receiverContextType == null
                 ? null
                 : FunctionTypeImpl(
@@ -1554,10 +1557,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
                             null, receiverContextType, ParameterKind.REQUIRED)
                       ],
                     returnType: DynamicTypeImpl.instance,
-                    nullabilitySuffix: NullabilitySuffix.none),
-            contextType: null,
-            whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+                    nullabilitySuffix: NullabilitySuffix.none));
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
   }
@@ -2170,10 +2170,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            rawType: node.staticElement?.type,
             contextType: null,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2280,10 +2279,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            rawType: node.staticElement?.type,
             contextType: null,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
