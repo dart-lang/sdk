@@ -5,7 +5,6 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -192,13 +191,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     expect(directory.exists, isTrue);
   }
 
-  void test_getPubExecutable() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    File executable = sdk.pubExecutable;
-    expect(executable, isNotNull);
-    expect(executable.exists, isTrue);
-  }
-
   void test_getSdkVersion() {
     FolderBasedDartSdk sdk = _createDartSdk();
     String version = sdk.sdkVersion;
@@ -222,7 +214,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
         content: _librariesFileContent());
     _createFile(sdkDirectory, ['bin', 'dart']);
     _createFile(sdkDirectory, ['bin', 'dart2js']);
-    _createFile(sdkDirectory, ['bin', 'pub']);
     _createFile(sdkDirectory, ['lib', 'async', 'async.dart']);
     _createFile(sdkDirectory, ['lib', 'core', 'core.dart']);
     _createFile(sdkDirectory, ['lib', 'core', 'num.dart']);
@@ -231,8 +222,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     _createFile(sdkDirectory,
         ['lib', 'html', 'html_common', 'html_common_dart2js.dart']);
     _createFile(sdkDirectory, ['lib', 'html', 'dart2js', 'html_dart2js.dart']);
-    _createFile(
-        sdkDirectory, ['bin', (OSUtilities.isWindows() ? 'pub.bat' : 'pub')]);
     return FolderBasedDartSdk(resourceProvider, sdkDirectory);
   }
 

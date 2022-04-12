@@ -119,10 +119,9 @@ class FunctionExpressionInvocationResolver {
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
-      rawType: rawType,
       whyNotPromotedList: whyNotPromotedList,
       contextType: contextType,
-    ).resolveInvocation();
+    ).resolveInvocation(rawType: rawType);
 
     _inferenceHelper.recordStaticType(node, returnType,
         contextType: contextType);
@@ -209,10 +208,9 @@ class FunctionExpressionInvocationResolver {
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
-            rawType: null,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: null);
     node.staticInvokeType = DynamicTypeImpl.instance;
     node.staticType = type;
   }
