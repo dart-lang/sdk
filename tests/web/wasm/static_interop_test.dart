@@ -104,8 +104,43 @@ void setDartObjectPropertyTest() {
   Expect.equals(traveler, holder.foo);
 }
 
+@JS()
+external String get foo;
+
+@JS('')
+external void set baz(String);
+
+@JS('boo.bar')
+external String get bam;
+
+@JS('bar')
+external String fooBar(String);
+
+void topLevelMethodsTest() {
+  eval(r'''
+    globalThis.foo = 'bar';
+    globalThis.baz = null;
+    globalThis.boo = {
+      'bar': {
+        'bam': 'jam'
+      }
+    }
+    globalThis.bar = {
+      'fooBar': function(string) {
+        return string + ' ' + globalThis.baz;
+      }
+    }
+  ''');
+
+  Expect.equals(foo, 'bar');
+  Expect.equals(bam, 'jam');
+  baz = 'world!';
+  Expect.equals(fooBar('hello'), 'hello world!');
+}
+
 void main() {
   createClassTest();
   setInteropPropertyTest();
   setDartObjectPropertyTest();
+  topLevelMethodsTest();
 }
