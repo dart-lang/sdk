@@ -129,6 +129,7 @@ InitializedCompilerState initializeCompiler(
     List<Uri> additionalDills,
     Uri packagesFileUri,
     {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    Map<String, String>? environmentDefines,
     bool verify: false,
     NnbdMode? nnbdMode,
     Set<InvocationMode> invocationModes: const <InvocationMode>{},
@@ -144,6 +145,7 @@ InitializedCompilerState initializeCompiler(
       equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.explicitExperimentalFlags,
           explicitExperimentalFlags) &&
+      equalMaps(oldState.options.environmentDefines, environmentDefines) &&
       oldState.options.verify == verify &&
       oldState.options.nnbdMode == nnbdMode &&
       equalSets(oldState.options.invocationModes, invocationModes) &&
@@ -157,6 +159,8 @@ InitializedCompilerState initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
     ..explicitExperimentalFlags = explicitExperimentalFlags
+    ..environmentDefines = environmentDefines
+    ..errorOnUnevaluatedConstant = environmentDefines != null ? true : false
     ..verify = verify
     ..invocationModes = invocationModes
     ..verbosity = verbosity;

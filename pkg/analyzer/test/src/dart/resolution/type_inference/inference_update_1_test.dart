@@ -205,6 +205,58 @@ test() => f(t: 0, g: (x) {});
         _isEnabled ? 'int' : 'Object?');
   }
 
+  test_horizontal_inference_simple_parenthesized() async {
+    await assertNoErrorsInCode('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, ((x) {}));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function(int, void Function(int))');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_simple_parenthesized_named() async {
+    await assertNoErrorsInCode('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: ((x) {}));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function({required void Function(int) g, required int t})');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_simple_parenthesized_twice() async {
+    await assertNoErrorsInCode('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, (((x) {})));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function(int, void Function(int))');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_simple_parenthesized_twice_named() async {
+    await assertNoErrorsInCode('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: (((x) {})));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function({required void Function(int) g, required int t})');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
   test_horizontal_inference_unnecessary_due_to_explicit_parameter_type() async {
     // In this example, there is no need for horizontal type inference because
     // the type of `x` is explicit.

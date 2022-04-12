@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.diagnostics.spannable;
 
 /// Tagging interface for classes from which source spans can be generated.
-// TODO(johnniwinther): Find a better name.
-// TODO(ahe): How about "Bolt"?
 abstract class Spannable {}
 
 class _SpannableSentinel implements Spannable {
@@ -33,7 +29,7 @@ const Spannable NO_LOCATION_SPANNABLE = _SpannableSentinel("No location");
 
 class SpannableAssertionFailure {
   final Spannable node;
-  final String message;
+  final String? message;
   SpannableAssertionFailure(this.node, this.message);
 
   @override

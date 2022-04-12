@@ -3595,14 +3595,6 @@
           ]
         },
         {
-          "name": "validate .dart_tool/package_config.json",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/generate_package_config.dart",
-            "--check"
-          ]
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [

@@ -122,4 +122,34 @@ testUnnecessaryDueToExplicitParameterTypeNamed(
   a.expectStaticType<Exactly<int?>>();
 }
 
+testParenthesized(void Function<T>(T, void Function(T)) f) {
+  f(0, ((x) {
+    x.expectStaticType<Exactly<int>>();
+  }));
+}
+
+testParenthesizedNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {
+  f(
+      a: 0,
+      b: ((x) {
+        x.expectStaticType<Exactly<int>>();
+      }));
+}
+
+testParenthesizedTwice(void Function<T>(T, void Function(T)) f) {
+  f(0, (((x) {
+    x.expectStaticType<Exactly<int>>();
+  })));
+}
+
+testParenthesizedTwiceNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {
+  f(
+      a: 0,
+      b: (((x) {
+        x.expectStaticType<Exactly<int>>();
+      })));
+}
+
 main() {}

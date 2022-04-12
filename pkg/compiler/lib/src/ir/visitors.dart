@@ -52,15 +52,39 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
 
-  DartType _convertNullability(DartType baseType, ir.Nullability nullability) {
+  DartType _convertNullability(
+      DartType baseType, ir.DartType nullabilitySource) {
+    final nullability = nullabilitySource.nullability;
     switch (nullability) {
+      case ir.Nullability.nonNullable:
+        return baseType;
       case ir.Nullability.nullable:
         return _dartTypes.nullableType(baseType);
       case ir.Nullability.legacy:
         return _dartTypes.legacyType(baseType);
-      default:
-        return baseType;
+      case ir.Nullability.undetermined:
+        // Type parameters may have undetermined nullability since it is derived
+        // from the intersection of the declared nullability with the
+        // nullability of the bound. We don't need a nullability wrapper in this
+        // case.
+        if (nullabilitySource is ir.TypeParameterType) return baseType;
+
+        // Iff `T` has undetermined nullability, then so will `FutureOr<T>`
+        // since it's the union of `T`, which has undetermined nullability, and
+        // `Future<T>`, which does not. We can treat the `Future`/`FutureOr` as
+        // non-nullable and rely on the conversion of the type argument to
+        // produce the right nullability.
+        if (nullabilitySource is ir.FutureOrType &&
+            nullabilitySource.typeArgument.nullability ==
+                ir.Nullability.undetermined) {
+          return baseType;
+        }
+
+        throw UnsupportedError(
+            'Undetermined nullability on $nullabilitySource');
     }
+    throw UnsupportedError(
+        'Unexpected nullability $nullability on $nullabilitySource');
   }
 
   DartType visitType(ir.DartType type) {
@@ -79,7 +103,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   DartType visitTypeParameterType(ir.TypeParameterType node) {
     DartType typeParameter = currentFunctionTypeParameters[node.parameter];
     if (typeParameter != null) {
-      return _convertNullability(typeParameter, node.nullability);
+      return _convertNullability(typeParameter, node);
     }
     if (node.parameter.parent is ir.Typedef) {
       // Typedefs are only used in type literals so we never need their type
@@ -88,7 +112,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     }
     return _convertNullability(
         _dartTypes.typeVariableType(elementMap.getTypeVariable(node.parameter)),
-        node.nullability);
+        node);
   }
 
   @override
@@ -125,7 +149,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .toSet(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
         typeVariables ?? const <FunctionTypeVariable>[]);
-    DartType type = _convertNullability(functionType, node.nullability);
+    DartType type = _convertNullability(functionType, node);
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
@@ -136,15 +160,13 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   DartType visitInterfaceType(ir.InterfaceType node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
     return _convertNullability(
-        _dartTypes.interfaceType(cls, visitTypes(node.typeArguments)),
-        node.nullability);
+        _dartTypes.interfaceType(cls, visitTypes(node.typeArguments)), node);
   }
 
   @override
   DartType visitFutureOrType(ir.FutureOrType node) {
     return _convertNullability(
-        _dartTypes.futureOrType(visitType(node.typeArgument)),
-        node.declaredNullability);
+        _dartTypes.futureOrType(visitType(node.typeArgument)), node);
   }
 
   @override
@@ -166,7 +188,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitNeverType(ir.NeverType node) {
-    return _convertNullability(_dartTypes.neverType(), node.nullability);
+    return _convertNullability(_dartTypes.neverType(), node);
   }
 
   @override

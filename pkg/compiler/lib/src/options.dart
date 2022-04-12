@@ -87,6 +87,9 @@ class FeatureOptions {
   /// to reduce generated code size.
   FeatureOption simpleAsyncToFuture = FeatureOption('simple-async-to-future');
 
+  /// Whether or not the CFE should evaluate constants.
+  FeatureOption cfeConstants = FeatureOption('cfe-constants');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [
     newHolders,
@@ -102,7 +105,8 @@ class FeatureOptions {
   late final List<FeatureOption> canary = [
     writeUtf8,
     newDumpInfo,
-    simpleAsyncToFuture
+    simpleAsyncToFuture,
+    cfeConstants,
   ];
 
   /// Forces canary feature on. This must run after [Option].parse.

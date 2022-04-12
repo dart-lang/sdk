@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/kernel.dart';
+import 'package:kernel/util/graph.dart' as kernel_graph;
 
 /// Returns true iff the node has an `@JS(...)` annotation from `package:js` or
 /// from the internal `dart:_js_annotations`.
@@ -54,8 +55,12 @@ List<String> getNativeNames(Annotatable a) {
 }
 
 final _packageJs = Uri.parse('package:js/js.dart');
+final _jsWasm = Uri.parse('dart:js_wasm');
 final _internalJs = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
+
+bool _isAnyInteropUri(Uri uri) =>
+    uri == _packageJs || uri == _internalJs || uri == _jsWasm;
 
 /// Returns true if [value] is the interop annotation whose class is
 /// [annotationClassName] from `package:js` or from `dart:_js_annotations`.
@@ -63,8 +68,7 @@ bool _isInteropAnnotation(Expression value, String annotationClassName) {
   var c = _annotationClass(value);
   return c != null &&
       c.name == annotationClassName &&
-      (c.enclosingLibrary.importUri == _packageJs ||
-          c.enclosingLibrary.importUri == _internalJs);
+      _isAnyInteropUri(c.enclosingLibrary.importUri);
 }
 
 bool _isPublicJSAnnotation(Expression value) =>
@@ -143,4 +147,41 @@ List<String> _stringAnnotationValues(Expression node) {
     }
   }
   return values;
+}
+
+/// Returns the [Library] within [component] matching the specified
+/// [interopUri] or [null].
+Library? _findJsInteropLibrary(Component component, Uri interopUri) {
+  for (Library lib in component.libraries) {
+    for (LibraryDependency dependency in lib.dependencies) {
+      Library targetLibrary = dependency.targetLibrary;
+      if (targetLibrary.importUri == interopUri) {
+        return targetLibrary;
+      }
+    }
+  }
+  return null;
+}
+
+/// Calculates the libraries in [component] that transitively import a given js
+/// interop library.
+///
+/// Returns null if the given js interop library is not imported.
+/// NOTE: This function was based off of
+/// `calculateTransitiveImportsOfDartFfiIfUsed` in
+/// pkg/vm/lib/transformations/ffi/common.dart.
+List<Library>? calculateTransitiveImportsOfJsInteropIfUsed(
+    Component component, Uri interopUri) {
+  // Check for the presence of [jsInteropLibrary] as a dependency of any of the
+  // libraries in [component]. We use this to bypass the expensive
+  // [calculateTransitiveDependenciesOf] call for cases where js interop is
+  // not used, otherwise we could just use the index of the library instead.
+  Library? jsInteropLibrary = _findJsInteropLibrary(component, interopUri);
+  if (jsInteropLibrary == null) return null;
+
+  kernel_graph.LibraryGraph graph =
+      new kernel_graph.LibraryGraph(component.libraries);
+  Set<Library> result =
+      kernel_graph.calculateTransitiveDependenciesOf(graph, {jsInteropLibrary});
+  return result.toList();
 }
