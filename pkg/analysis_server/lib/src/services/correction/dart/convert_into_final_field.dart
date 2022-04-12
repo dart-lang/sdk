@@ -74,11 +74,11 @@ class ConvertIntoFinalField extends CorrectionProducer {
       var returnType = getter.returnType;
       var code = 'final';
       if (returnType != null) {
-        code += ' ' + utils.getNodeText(returnType);
+        code += ' ${utils.getNodeText(returnType)}';
       }
-      code += ' ' + utils.getNodeText(getter.name);
+      code += ' ${utils.getNodeText(getter.name)}';
       if (expression is! NullLiteral) {
-        code += ' = ' + utils.getNodeText(expression);
+        code += ' = ${utils.getNodeText(expression)}';
       }
       code += ';';
       var replacementRange =

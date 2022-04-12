@@ -229,7 +229,7 @@ class TestPluginManager implements PluginManager {
   @override
   Future<void> restartPlugins() async {
     // Nothing to restart.
-    return null;
+    return;
   }
 
   @override

@@ -40,7 +40,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       } else if (node is FormalParameterList) {
         // It would be confusing for this assist to alter a surrounding context
         // when the selection is inside a parameter list.
-        return null;
+        return;
       }
     }
   }

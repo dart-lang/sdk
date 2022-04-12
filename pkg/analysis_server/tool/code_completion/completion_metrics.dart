@@ -1051,7 +1051,7 @@ class CompletionMetricsComputer {
     var columnHeaders = [' ', targetMetrics[0].name];
     for (var i = 1; i < targetMetrics.length; i++) {
       columnHeaders.add('|');
-      columnHeaders.add('${targetMetrics[i].name}');
+      columnHeaders.add(targetMetrics[i].name);
       columnHeaders.add('delta');
     }
     var blankRow = [for (int i = 0; i < columnHeaders.length; i++) ''];

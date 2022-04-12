@@ -55,16 +55,16 @@ class CanRenameResponse {
 
   FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
     if (Flutter.instance.isStatefulWidgetDeclaration(element)) {
-      var oldStateName = element.displayName + 'State';
+      var oldStateName = '${element.displayName}State';
       var library = element.library!;
       var state =
-          library.getType(oldStateName) ?? library.getType('_' + oldStateName);
+          library.getType(oldStateName) ?? library.getType('_$oldStateName');
       if (state != null) {
-        var flutterWidgetStateNewName = newName + 'State';
+        var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
         if (state.name.startsWith('_') &&
             !flutterWidgetStateNewName.startsWith('_')) {
-          flutterWidgetStateNewName = '_' + flutterWidgetStateNewName;
+          flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
         }
         return FlutterWidgetState(state, flutterWidgetStateNewName);
       }

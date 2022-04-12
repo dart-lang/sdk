@@ -2346,8 +2346,9 @@ f() => [...^];
       StringBuffer msg, Iterable<String> completions, Iterable<String> other) {
     var sorted = completions.toList();
     sorted.sort((c1, c2) => c1.compareTo(c2));
-    sorted.forEach(
-        (c) => msg.writeln('  $c, ${other.contains(c) ? '' : '<<<<<<<<<<<'}'));
+    for (var c in sorted) {
+      msg.writeln('  $c, ${other.contains(c) ? '' : '<<<<<<<<<<<'}');
+    }
   }
 
   bool _equalSets(Iterable<String> iter1, Iterable<String> iter2) {

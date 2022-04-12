@@ -381,7 +381,7 @@ void myMethod() {
 
     // Go through each marker, find the expected label/end and
     // ensure it's in the results.
-    expectedLabels.forEach((m) {
+    for (var m in expectedLabels) {
       var i = m.group(1);
       // Find the end marker.
       var endMatch = RegExp('/\\*$i:(.+?)\\*/').firstMatch(content)!;
@@ -392,7 +392,7 @@ void myMethod() {
 
       expect(labels,
           contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)));
-    });
+    }
   }
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {

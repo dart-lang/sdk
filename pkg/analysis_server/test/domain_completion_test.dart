@@ -2391,9 +2391,8 @@ extension MyClassExtension on MyClass {
 
     // Wait for analysis then edit the content
     await waitForTasksFinished();
-    var revisedContent = testCode.substring(0, completionOffset) +
-        'i' +
-        testCode.substring(completionOffset);
+    var revisedContent =
+        '${testCode.substring(0, completionOffset)}i${testCode.substring(completionOffset)}';
     ++completionOffset;
     server.handleRequest(AnalysisUpdateContentParams(
         {testFile: AddContentOverlay(revisedContent)}).toRequest('add1'));

@@ -27,7 +27,7 @@ class ExpectMixin {
     } else if (x is _Predicate<Object>) {
       // x is already a predicate that can handle anything
       return predicate(x);
-    } else if (x is _Predicate<Null>) {
+    } else if (x is _Predicate<void>) {
       // x is a unary predicate, but expects a specific type
       // so wrap it.
       return predicate((a) => (x as dynamic)(a) as bool);

@@ -145,7 +145,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final ofKind = (CodeActionKind kind) => getCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
           range: rangeFromMarkers(content),
           kinds: [kind],

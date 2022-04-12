@@ -39,7 +39,7 @@ String generateDartForTypes(List<AstNode> types) {
   final buffer = IndentableStringBuffer();
   _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
   final formattedCode = _formatCode(buffer.toString());
-  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
+  return '${formattedCode.trim()}\n'; // Ensure a single trailing newline.
 }
 
 void recordTypes(List<AstNode> types) {
@@ -50,10 +50,10 @@ void recordTypes(List<AstNode> types) {
     _interfaces[interface.name] = interface;
     // Keep track of our base classes so they can look up their super classes
     // later in their fromJson() to deserialise into the most specific type.
-    interface.baseTypes.forEach((base) {
+    for (var base in interface.baseTypes) {
       final subTypes = _subtypes[base.dartType] ??= <String>[];
       subTypes.add(interface.name);
-    });
+    }
   });
   types
       .whereType<Namespace>()
@@ -108,7 +108,7 @@ List<Field> _getAllFields(Interface? interface) {
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
 List<N> _getSortedUnique<N extends AstNode>(List<N> items) {
   final uniqueByName = <String, N>{};
-  items.forEach((item) {
+  for (var item in items) {
     // It's fine to have the same name used for different types (eg. namespace +
     // type alias) but some types are just duplicated entirely in the spec in
     // different positions which should not be emitted twice.
@@ -124,7 +124,7 @@ List<N> _getSortedUnique<N extends AstNode>(List<N> items) {
 
     // Keep the last one as in some cases the first definition is less specific.
     uniqueByName[nameTypeKey] = item;
-  });
+  }
   final sortedList = uniqueByName.values.toList();
   sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
   return sortedList;
@@ -348,7 +348,9 @@ void _writeDocCommentsAndAnnotations(
     // Wrap at 80 - 4 ('/// ') - indent characters.
     var wrappedLines =
         _wrapLines(originalLines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
-    wrappedLines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
+    for (var l in wrappedLines) {
+      buffer.writeIndentedln('/// $l'.trim());
+    }
   }
   // Marking LSP-deprecated fields as deprecated in Dart results in a lot
   // of warnings because we still often populate these fields for clients that
@@ -392,9 +394,9 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     buffer
       ..writeIndentedln('switch (obj) {')
       ..indent();
-    consts.forEach((cons) {
+    for (var cons in consts) {
       buffer.writeIndentedln('case ${cons.valueAsLiteral}:');
-    });
+    }
     buffer
       ..indent()
       ..writeIndentedln('return true;')

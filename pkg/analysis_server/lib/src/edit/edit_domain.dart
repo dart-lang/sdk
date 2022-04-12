@@ -273,16 +273,16 @@ class _RefactoringManager {
     _reset();
   }
 
-  void getRefactoring(Request _request, CancellationToken cancellationToken) {
+  void getRefactoring(Request request, CancellationToken cancellationToken) {
     // prepare for processing the request
-    request = _request;
+    this.request = request;
     final result = this.result = EditGetRefactoringResult(
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
-    var params = EditGetRefactoringParams.fromRequest(_request);
+    var params = EditGetRefactoringParams.fromRequest(request);
     var file = params.file;
 
-    if (server.sendResponseErrorIfInvalidFilePath(_request, file)) {
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
 
@@ -343,8 +343,8 @@ class _RefactoringManager {
         cancel();
       } else {
         server.instrumentationService.logException(exception, stackTrace);
-        server.sendResponse(
-            Response.serverError(_request, exception, stackTrace));
+        server
+            .sendResponse(Response.serverError(request, exception, stackTrace));
       }
       _reset();
     });

@@ -178,6 +178,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     if (shouldMatch) {
       expect(res, equals(expectedLocations));
     } else {
+      // ignore: avoid_function_literals_in_foreach_calls
       expectedLocations.forEach((l) => expect(res, isNot(contains(res))));
     }
   }

@@ -208,7 +208,7 @@ String getTypeString(DartType type, {required bool withNullability}) {
   if (type.isDynamic) {
     return '';
   } else {
-    return type.getDisplayString(withNullability: withNullability) + ' ';
+    return '${type.getDisplayString(withNullability: withNullability)} ';
   }
 }
 

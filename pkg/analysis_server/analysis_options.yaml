@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.1.9.0.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   language:
@@ -8,21 +8,26 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
-    # TODO(srawlins): At the time of writing, 20 violations in lib/. The fix
-    # is not mechanical; each violation probably needs to be scrutinized.
-    unawaited_futures: ignore
+
+    # Lints from the recommended set that conflict w/ analyzer style or will
+    # require some work to reach compliance.
+    # See: https://github.com/dart-lang/sdk/issues/48785
+    avoid_renaming_method_parameters: ignore
+    camel_case_types: ignore
+    constant_identifier_names: ignore
+    file_names: ignore
+    hash_and_equals: ignore
+    implementation_imports: ignore
+    library_private_types_in_public_api: ignore
+    non_constant_identifier_names: ignore
+    overridden_fields: ignore
+    prefer_function_declarations_over_variables: ignore
+    # todo: add ignore to `protocol_generated.dart`
+    prefer_interpolation_to_compose_strings: ignore
+    prefer_void_to_null: ignore
+    provide_deprecation_message: ignore
 
 linter:
   rules:
-    - await_only_futures
-    - avoid_single_cascade_in_expression_statements
     - depend_on_referenced_packages
-    - empty_statements
-    - iterable_contains_unrelated_type
-    - list_remove_unrelated_type
-    - prefer_initializing_formals
-    - prefer_typing_uninitialized_variables
-    - unnecessary_brace_in_string_interps
-    - unnecessary_overrides
     - unnecessary_parenthesis
-    - void_checks

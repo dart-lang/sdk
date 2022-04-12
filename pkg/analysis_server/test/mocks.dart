@@ -57,8 +57,8 @@ class MockProcess implements Process {
   final _exitCodeCompleter = Completer<int>();
   final String _stdout, _stderr;
 
-  MockProcess(this._pid, FutureOr<int> _exitCode, this._stdout, this._stderr) {
-    Future.value(_exitCode).then(_exitCodeCompleter.complete);
+  MockProcess(this._pid, FutureOr<int> exitCode, this._stdout, this._stderr) {
+    Future.value(exitCode).then(_exitCodeCompleter.complete);
   }
 
   @override

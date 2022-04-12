@@ -61,7 +61,7 @@ const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';
 const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
 
-late final ArgParser argParser = () {
+final ArgParser argParser = () {
   var argParser = ArgParser();
 
   argParser.addOption(INPUT_CMDLINE_OPTION,

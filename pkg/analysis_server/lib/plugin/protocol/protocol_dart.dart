@@ -179,7 +179,7 @@ String? _getParametersString(engine.Element element,
     parameter.appendToWithoutDelimiters(sb, withNullability: withNullability);
   }
   sb.write(closeOptionalString);
-  return '(' + sb.toString() + ')';
+  return '($sb)';
 }
 
 String? _getTypeParametersString(engine.Element element) {

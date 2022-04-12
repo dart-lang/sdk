@@ -33,9 +33,9 @@ dependencies:
 dev_dependencies:
   analyzer_utilities:
     path: ../analyzer_utilities
+  lints: ^2.0.0
   logging: any
   matcher: any
-  pedantic: ^1.9.0
   test_reflective_loader: any
 
 dependency_overrides:

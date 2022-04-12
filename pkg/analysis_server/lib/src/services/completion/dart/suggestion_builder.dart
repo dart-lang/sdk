@@ -1295,7 +1295,7 @@ class SuggestionBuilder {
 
     if (prefix != null) {
       completion ??= elementData.completion;
-      completion = prefix + '.' + completion;
+      completion = '$prefix.$completion';
     }
 
     return CompletionSuggestionBuilderImpl(

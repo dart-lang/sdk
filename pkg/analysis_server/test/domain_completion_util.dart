@@ -47,7 +47,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       int? replacementLength,
       ElementKind? elementKind}) {
     CompletionSuggestion? cs;
-    suggestions.forEach((s) {
+    for (var s in suggestions) {
       if (elementKind != null && s.element?.kind != elementKind) {
         return;
       }
@@ -58,7 +58,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
           fail('expected exactly one $completion but found > 1');
         }
       }
-    });
+    }
     if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
 
@@ -69,7 +69,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
 
       fail('expected $expectationText, but found\n $completions');
     }
-    var suggestion = cs!;
+    var suggestion = cs;
     expect(suggestion.kind, equals(kind));
     expect(suggestion.selectionOffset, selectionOffset ?? completion.length);
     expect(suggestion.selectionLength, equals(0));

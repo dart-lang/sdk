@@ -140,7 +140,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     for (var region in regions) {
       var offset = region.offset;
       if (offset < lastEnd) {
-        fail('$lastEnd was expected to be > $offset in\n' + regions.join('\n'));
+        fail('$lastEnd was expected to be > $offset in\n${regions.join('\n')}');
       }
       lastEnd = offset + region.length;
     }

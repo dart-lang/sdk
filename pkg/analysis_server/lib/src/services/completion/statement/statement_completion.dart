@@ -312,7 +312,7 @@ class StatementCompletionProcessor {
           var loc = expr.offset + src.length;
           if (src.contains(eol)) {
             var indent = utils.getNodePrefix(node);
-            _addInsertEdit(loc, ',' + eol + indent + ']');
+            _addInsertEdit(loc, ',$eol$indent]');
           } else {
             _addInsertEdit(loc, ']');
           }
@@ -1183,8 +1183,9 @@ class StatementCompletionProcessor {
     assert(exitPosition != null);
     change.selection = exitPosition;
     change.message = formatList(kind.message, args);
-    linkedPositionGroups.values
-        .forEach((group) => change.addLinkedEditGroup(group));
+    for (var group in linkedPositionGroups.values) {
+      change.addLinkedEditGroup(group);
+    }
     completion = StatementCompletion(kind, change);
   }
 

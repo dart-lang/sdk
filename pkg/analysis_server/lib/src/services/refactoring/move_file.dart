@@ -130,11 +130,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
           if (partOfs.isNotEmpty) {
             await changeBuilder.addDartFileEdit(
                 result.unit.declaredElement!.source.fullName, (builder) {
-              partOfs.forEach((uri) {
+              for (var uri in partOfs) {
                 var newUri = _getRelativeUri(newPath, oldDir);
                 builder.addSimpleReplacement(
                     SourceRange(uri.offset, uri.length), "'$newUri'");
-              });
+              }
             });
           }
         }
@@ -159,12 +159,12 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
       if (partOfs.isNotEmpty) {
         await changeBuilder.addDartFileEdit(element.source.fullName, (builder) {
-          partOfs.forEach((uri) {
+          for (var uri in partOfs) {
             var oldLocation = pathContext.join(oldDir, uri.stringValue);
             var newUri = _getRelativeUri(oldLocation, newDir);
             builder.addSimpleReplacement(
                 SourceRange(uri.offset, uri.length), "'$newUri'");
-          });
+          }
         });
       }
     }

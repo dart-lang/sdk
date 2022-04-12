@@ -119,7 +119,7 @@ main() {
       }
       return;
     }
-    fail('Expected to find |$message| but got: ' + change.message);
+    fail('Expected to find |$message| but got: ${change.message}');
   }
 
   Future<void> _prepareCompletion(String search,

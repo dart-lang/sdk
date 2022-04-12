@@ -23,13 +23,13 @@ class TextDocumentChangeHandler
       DidChangeTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<Null>> handle(
+  FutureOr<ErrorOr<void>> handle(
       DidChangeTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => _changeFile(path, params));
   }
 
-  FutureOr<ErrorOr<Null>> _changeFile(
+  FutureOr<ErrorOr<void>> _changeFile(
       String path, DidChangeTextDocumentParams params) {
     String? oldContents;
     if (server.resourceProvider.hasOverlay(path)) {
@@ -67,7 +67,7 @@ class TextDocumentCloseHandler
       DidCloseTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<Null>> handle(
+  FutureOr<ErrorOr<void>> handle(
       DidCloseTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
@@ -92,7 +92,7 @@ class TextDocumentOpenHandler
       DidOpenTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<Null>> handle(
+  FutureOr<ErrorOr<void>> handle(
       DidOpenTextDocumentParams params, CancellationToken token) {
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);

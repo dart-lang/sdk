@@ -43,11 +43,11 @@ class PubCommand {
   PubCommand(this._instrumentationService, this._processRunner) {
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
-    const _pubEnvString = 'analysis_server.pub_api';
+    const pubEnvString = 'analysis_server.pub_api';
     final existingPubEnv = Platform.environment[_pubEnvironmentKey];
     _pubEnvironmentValue = [
       if (existingPubEnv?.isNotEmpty ?? false) existingPubEnv,
-      _pubEnvString,
+      pubEnvString,
     ].join(':');
   }
 
@@ -86,10 +86,10 @@ class PubCommand {
 
   /// Terminates any in-process commands with [ProcessSignal.sigterm].
   void shutdown() {
-    _activeProcesses.forEach((process) {
+    for (var process in _activeProcesses) {
       _instrumentationService.logInfo('Terminating process ${process.pid}');
       process.kill();
-    });
+    }
   }
 
   /// Runs a pub command and decodes JSON from `stdout`.

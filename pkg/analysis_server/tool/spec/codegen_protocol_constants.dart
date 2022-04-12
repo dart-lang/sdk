@@ -143,13 +143,13 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
     if (type == null) {
       return;
     }
-    type.fields.forEach((TypeObjectField field) {
+    for (var field in type.fields) {
       var name = field.name;
       var components = <String>[];
       components.add(parentName);
       components.addAll(_split(name));
       var fieldConstantName = _fromComponents(components);
       constants.add(_Constant(fieldConstantName, "'$name'"));
-    });
+    }
   }
 }

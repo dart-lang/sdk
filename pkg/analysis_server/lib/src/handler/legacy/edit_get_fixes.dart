@@ -141,9 +141,9 @@ class EditGetFixesHandler extends LegacyHandler
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
+        for (var fix in fixes) {
           errorFixes.fixes.add(fix.change);
-        });
+        }
       }
     }
     return errorFixesList;
@@ -190,9 +190,9 @@ error.errorCode: ${error.errorCode}
             var serverError = newAnalysisError_fromEngine(result, error);
             var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
+            for (var fix in fixes) {
               errorFixes.fixes.add(fix.change);
-            });
+            }
           }
         }
       }
@@ -230,9 +230,9 @@ error.errorCode: ${error.errorCode}
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
+        for (var fix in fixes) {
           errorFixes.fixes.add(fix.change);
-        });
+        }
       }
     }
     return errorFixesList;
@@ -278,9 +278,9 @@ error.errorCode: ${error.errorCode}
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
+        for (var fix in fixes) {
           errorFixes.fixes.add(fix.change);
-        });
+        }
       }
     }
     return errorFixesList;

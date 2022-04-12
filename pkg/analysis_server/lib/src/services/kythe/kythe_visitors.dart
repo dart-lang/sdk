@@ -31,7 +31,7 @@ String _computeConstructorElementName(ConstructorElement element) {
   var name = element.enclosingElement.name;
   var constructorName = element.name;
   if (constructorName.isNotEmpty) {
-    name = name + '.' + constructorName;
+    name = '$name.$constructorName';
   }
   return name;
 }

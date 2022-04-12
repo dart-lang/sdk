@@ -166,7 +166,7 @@ int minified(int x, int y) => min(x, y);
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final ofKind = (CodeActionKind kind) => getCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
           kinds: [kind],
         );

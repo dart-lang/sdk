@@ -84,7 +84,7 @@ class ConvertToFunctionDeclaration extends CorrectionProducer {
             replacement += '$keyword ';
           }
           if (type != null) {
-            replacement += utils.getNodeText(type) + ' ';
+            replacement += '${utils.getNodeText(type)} ';
           }
           replaceWithNewLine(r, after: replacement);
         }

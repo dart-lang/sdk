@@ -40,7 +40,7 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
     if (value == null) {
       return;
     }
-    _replacement = '0x' + value.toRadixString(16).padLeft(8, '0');
+    _replacement = '0x${value.toRadixString(16).padLeft(8, '0')}';
     //
     // Build the edit.
     //

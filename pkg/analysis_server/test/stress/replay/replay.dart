@@ -100,7 +100,7 @@ class Driver {
     // Process the command-line arguments.
     //
     if (!_processCommandLine(args)) {
-      return null;
+      return;
     }
     if (verbose) {
       stdout.writeln();

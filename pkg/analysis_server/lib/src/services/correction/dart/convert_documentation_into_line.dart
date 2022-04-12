@@ -34,11 +34,11 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
     if (comment == null ||
         !comment.isDocumentation ||
         comment.tokens.length != 1) {
-      return null;
+      return;
     }
     var token = comment.tokens.first;
     if (token.type != TokenType.MULTI_LINE_COMMENT) {
-      return null;
+      return;
     }
     var text = token.lexeme;
     var lines = text.split(eol);
@@ -51,7 +51,7 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
         firstLine = false;
         var expectedPrefix = '/**';
         if (!line.startsWith(expectedPrefix)) {
-          return null;
+          return;
         }
         line = line.substring(expectedPrefix.length).trim();
         if (line.isNotEmpty) {
@@ -59,12 +59,12 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
           linePrefix = eol + prefix;
         }
       } else {
-        if (line.startsWith(prefix + ' */')) {
+        if (line.startsWith('$prefix */')) {
           break;
         }
-        var expectedPrefix = prefix + ' *';
+        var expectedPrefix = '$prefix *';
         if (!line.startsWith(expectedPrefix)) {
-          return null;
+          return;
         }
         line = line.substring(expectedPrefix.length);
         if (line.isEmpty) {
