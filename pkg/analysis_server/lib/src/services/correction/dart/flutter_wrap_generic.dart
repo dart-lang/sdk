@@ -44,7 +44,7 @@ class FlutterWrapGeneric extends CorrectionProducer {
         // Linked editing not needed since arg is always a list.
         builder.write('children: ');
         builder.write(literalSrc.replaceAll(
-            RegExp('^$indentOld', multiLine: true), '$indentList'));
+            RegExp('^$indentOld', multiLine: true), indentList));
         builder.write(',');
         builder.write(eol);
         builder.write(indentArg);

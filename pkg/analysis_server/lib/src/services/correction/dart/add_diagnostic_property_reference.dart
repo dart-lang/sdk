@@ -174,7 +174,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         }
       }
       if (propertiesBuilderName == null) {
-        return null;
+        return;
       }
 
       final final_propertiesBuilderName = propertiesBuilderName;

@@ -80,8 +80,8 @@ class CreateMixin extends CorrectionProducer {
                 offset = targetSource.contents.data.length;
                 filePath = targetSource.fullName;
               }
-              prefix = '$eol';
-              suffix = '$eol';
+              prefix = eol;
+              suffix = eol;
             } on FileSystemException {
               // If we can't read the file to get the offset, then we can't
               // create a fix.

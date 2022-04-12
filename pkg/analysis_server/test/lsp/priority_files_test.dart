@@ -21,9 +21,9 @@ class PriorityFilesTest extends AbstractLspAnalysisServerTest {
     await closeFile(mainFileUri);
 
     expect(server.priorityFiles, isNot(contains(mainFilePath)));
-    server.driverMap.values.forEach((driver) {
+    for (var driver in server.driverMap.values) {
       expect(driver.priorityFiles, isNot(contains(mainFilePath)));
-    });
+    }
   }
 
   Future<void> test_open() async {
@@ -31,8 +31,8 @@ class PriorityFilesTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, '');
 
     expect(server.priorityFiles, contains(mainFilePath));
-    server.driverMap.values.forEach((driver) {
+    for (var driver in server.driverMap.values) {
       expect(driver.priorityFiles, contains(mainFilePath));
-    });
+    }
   }
 }

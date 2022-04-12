@@ -38,7 +38,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
           location.offset == offset &&
           location.length == length) {
         if (!expected) {
-          fail('Unexpected result $result in\n' + results.join('\n'));
+          fail('Unexpected result $result in\n${results.join('\n')}');
         }
         this.result = result;
         return;
@@ -46,8 +46,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     }
     if (expected) {
       fail(
-          'Not found: "search" kind=$kind offset=$offset length=$length\nin\n' +
-              results.join('\n'));
+          'Not found: "search" kind=$kind offset=$offset length=$length\nin\n${results.join('\n')}');
     }
   }
 

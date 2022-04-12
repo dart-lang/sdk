@@ -726,7 +726,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void _afterOverlayChanged(String path, plugin.HasToJson changeForPlugins) {
-    driverMap.values.forEach((driver) => driver.changeFile(path));
+    for (var driver in driverMap.values) {
+      driver.changeFile(path);
+    }
     pluginManager.setAnalysisUpdateContentParams(
       plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
     );
@@ -795,9 +797,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void _updateDriversAndPluginsPriorityFiles() {
     final priorityFilesList = priorityFiles.toList();
-    driverMap.values.forEach((driver) {
+    for (var driver in driverMap.values) {
       driver.priorityFiles = priorityFilesList;
-    });
+    }
 
     final pluginPriorities =
         plugin.AnalysisSetPriorityFilesParams(priorityFilesList);

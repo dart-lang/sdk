@@ -77,7 +77,7 @@ class VariableNameContributor extends DartCompletionContributor {
       for (var varName in variableNameSuggestions) {
         _createNameSuggestion(builder, varName);
         if (doIncludePrivateVersion) {
-          _createNameSuggestion(builder, '_' + varName);
+          _createNameSuggestion(builder, '_$varName');
         }
       }
     }

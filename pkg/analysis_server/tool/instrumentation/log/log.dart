@@ -450,12 +450,12 @@ abstract class JsonBasedEntry extends LogEntry {
       buffer.write('}');
     } else if (object is List) {
       buffer.write('[<br>');
-      object.forEach((element) {
+      for (var element in object) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, element as Object);
         buffer.write('<br>');
-      });
+      }
       buffer.write(indent);
       buffer.write(']');
     }

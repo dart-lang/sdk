@@ -107,7 +107,7 @@ class Flutter {
         builder.addSimpleInsertion(listLoc, '[');
       }
       var newChildArgSrc = childArgSrc.replaceAll(
-          RegExp('^$indentOld', multiLine: true), '$indentNew');
+          RegExp('^$indentOld', multiLine: true), indentNew);
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
     }

@@ -32,7 +32,7 @@ class RuntimeCompletionComputer {
 
     var session = contextResult.session;
 
-    const codeMarker = '__code_\_';
+    const codeMarker = '__code__';
 
     // Insert the code being completed at the context offset.
     var changeBuilder = ChangeBuilder(session: session);

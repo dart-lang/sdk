@@ -2270,13 +2270,13 @@ void f() {
 
   SourceEdit? _findEditWithId(SourceChange change, String id) {
     SourceEdit? potentialEdit;
-    change.edits.forEach((fileEdit) {
-      fileEdit.edits.forEach((edit) {
+    for (var fileEdit in change.edits) {
+      for (var edit in fileEdit.edits) {
         if (edit.id == id) {
           potentialEdit = edit;
         }
-      });
-    });
+      }
+    }
     return potentialEdit;
   }
 

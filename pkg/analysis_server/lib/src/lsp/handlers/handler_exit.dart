@@ -9,7 +9,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-class ExitMessageHandler extends MessageHandler<Null, Null> {
+class ExitMessageHandler extends MessageHandler<void, void> {
   final bool clientDidCallShutdown;
 
   ExitMessageHandler(
@@ -21,10 +21,10 @@ class ExitMessageHandler extends MessageHandler<Null, Null> {
   Method get handlesMessage => Method.exit;
 
   @override
-  LspJsonHandler<Null> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  Future<ErrorOr<Null>> handle(Null _, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(void _, CancellationToken token) async {
     // Set a flag that the server shutdown is being controlled here to ensure
     // that the normal code that shuts down the server when the channel closes
     // does not fire.

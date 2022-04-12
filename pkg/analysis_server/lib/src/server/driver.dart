@@ -195,7 +195,7 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
-    var shouldSendCallback = () {
+    bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.
       if (sdkConfig.crashReportingForceEnabled == true) {
         return true;
@@ -203,7 +203,7 @@ class Driver implements ServerStarter {
 
       // TODO(devoncarew): Replace with a real enablement check.
       return false;
-    };
+    }
 
     // Crash reporting
 
@@ -216,7 +216,7 @@ class Driver implements ServerStarter {
       if (results.wasParsed(ANALYTICS_FLAG)) {
         analytics.enabled = results[ANALYTICS_FLAG] as bool;
         print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-        return null;
+        return;
       }
     }
 
@@ -234,7 +234,7 @@ class Driver implements ServerStarter {
 
     if (results[HELP_OPTION] as bool) {
       _printUsage(parser, analytics, fromHelp: true);
-      return null;
+      return;
     }
 
     final defaultSdkPath = _getSdkPath(results);
@@ -287,7 +287,7 @@ class Driver implements ServerStarter {
         print('');
         _printUsage(parser, analytics);
         exitCode = 1;
-        return null;
+        return;
       }
     }
 
@@ -335,7 +335,7 @@ class Driver implements ServerStarter {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
         print("Training directory '$trainDirectory' not found.\n");
         exitCode = 1;
-        return null;
+        return;
       }
     }
     //

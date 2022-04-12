@@ -157,7 +157,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       if (name == null) {
         return node.returnType.name;
       } else {
-        return node.returnType.name + '.' + name.name;
+        return '${node.returnType.name}.${name.name}';
       }
     } else if (node is ConstructorName) {
       return node.toSource();

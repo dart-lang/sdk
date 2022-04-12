@@ -154,11 +154,11 @@ class LocationSpec {
           modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {
-      throw StateError('No tests in source: ' + originalSource);
+      throw StateError('No tests in source: $originalSource');
     }
     for (var result in validationStrings) {
       if (result.length < 3) {
-        throw StateError('Invalid location result: ' + result);
+        throw StateError('Invalid location result: $result');
       }
       var id = result.substring(0, 1);
       var sign = result.substring(1, 2);

@@ -177,21 +177,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         var indent = utils.getIndent(1);
         var expr = target.expression;
         {
-          var code = '{' + eol + prefix + indent;
+          var code = '{$eol$prefix$indent';
           addPosition(
               target.offset + code.length + nameOffsetInDeclarationCode);
           code += declarationCode + eol;
-          code += prefix + indent + 'return ';
+          code += '$prefix${indent}return ';
           var edit =
               SourceEdit(target.offset, expr.offset - target.offset, code);
           occurrencesShift = target.offset + code.length - expr.offset;
           doSourceChange_addElementEdit(change, unitElement, edit);
         }
-        doSourceChange_addElementEdit(
-            change,
-            unitElement,
-            SourceEdit(
-                expr.end, target.end - expr.end, ';' + eol + prefix + '}'));
+        doSourceChange_addElementEdit(change, unitElement,
+            SourceEdit(expr.end, target.end - expr.end, ';$eol$prefix}'));
       }
     }
     // prepare replacement

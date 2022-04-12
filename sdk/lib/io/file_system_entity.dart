@@ -500,7 +500,7 @@ abstract class FileSystemEntity {
   /// On Windows, a path is absolute if it starts with `\\`
   /// (two backslashes or representing a UNC path) or with a drive letter
   /// between `a` and `z` (upper or lower case) followed by `:\` or `:/`.
-  /// The makes, for example, `\file.ext` a non-absolute path
+  /// This makes, for example, `\file.ext` a non-absolute path
   /// because it depends on the current drive letter.
   ///
   /// On non-Windows, a path is absolute if it starts with `/`.
@@ -699,7 +699,7 @@ abstract class FileSystemEntity {
   static Future<bool> isFile(String path) => _getType(_toUtf8Array(path), true)
       .then((type) => (type == FileSystemEntityType.file));
 
-  /// Whether [path]] refers to a directory.
+  /// Whether [path] refers to a directory.
   ///
   /// Checks whether `type(path)` returns [FileSystemEntityType.directory].
   static Future<bool> isDirectory(String path) =>

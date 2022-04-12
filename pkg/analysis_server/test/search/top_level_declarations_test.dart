@@ -20,7 +20,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   void assertHasDeclaration(ElementKind kind, String name) {
     var result = findTopLevelResult(kind, name);
     if (result == null) {
-      fail('Not found: kind=$kind name="$name"\nin\n' + results.join('\n'));
+      fail('Not found: kind=$kind name="$name"\nin\n${results.join('\n')}');
     }
     this.result = result;
   }
@@ -28,7 +28,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   void assertNoDeclaration(ElementKind kind, String name) {
     var result = findTopLevelResult(kind, name);
     if (result != null) {
-      fail('Unexpected: kind=$kind name="$name"\nin\n' + results.join('\n'));
+      fail('Unexpected: kind=$kind name="$name"\nin\n${results.join('\n')}');
     }
   }
 

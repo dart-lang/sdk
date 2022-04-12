@@ -26,10 +26,8 @@ String highlightMatches(String str, FuzzyMatcher matcher) {
   var index = 0;
   var result = '';
   for (var i = 0; i < matches.length - 1; i += 2) {
-    result += str.substring(index, matches[i]) +
-        '[' +
-        str.substring(matches[i], matches[i + 1]) +
-        ']';
+    result +=
+        '${str.substring(index, matches[i])}[${str.substring(matches[i], matches[i + 1])}]';
     index = matches[i + 1];
   }
   return result + str.substring(index);

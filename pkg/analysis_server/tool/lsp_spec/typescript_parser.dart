@@ -367,12 +367,12 @@ class Parser {
     // marked with number.
     final commentText = leadingComment?.text;
     if (commentText != null) {
-      final _linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
-      final linkTypeMatch = _linkTypePattern.firstMatch(commentText);
+      final linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
+      final linkTypeMatch = linkTypePattern.firstMatch(commentText);
       if (linkTypeMatch != null) {
         type = Type.identifier(linkTypeMatch.group(1)!);
         leadingComment = Comment(Token(TokenType.COMMENT,
-            '// ' + commentText.replaceAll(_linkTypePattern, '')));
+            '// ${commentText.replaceAll(linkTypePattern, '')}'));
       }
     }
 

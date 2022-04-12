@@ -12,10 +12,10 @@ import 'package:test/test.dart';
 void main() {
   group('toJson', () {
     test('returns correct JSON for a union', () {
-      final _num = Either2.t1(1);
-      final _string = Either2.t2('Test');
-      expect(json.encode(_num.toJson()), equals('1'));
-      expect(json.encode(_string.toJson()), equals('"Test"'));
+      final num = Either2.t1(1);
+      final string = Either2.t2('Test');
+      expect(json.encode(num.toJson()), equals('1'));
+      expect(json.encode(string.toJson()), equals('"Test"'));
     });
 
     test('returns correct output for union types', () {

@@ -20,7 +20,7 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
   void assertHasDeclaration(ElementKind kind, String className) {
     var result = findTopLevelResult(kind, className);
     if (result == null) {
-      fail('Not found: kind=$kind in="$className"\nin\n' + results.join('\n'));
+      fail('Not found: kind=$kind in="$className"\nin\n${results.join('\n')}');
     }
     this.result = result;
   }

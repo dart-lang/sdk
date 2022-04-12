@@ -38,14 +38,14 @@ class InitializeMessageHandler
     // based only on the open files.
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
       if (workspaceFolders != null) {
-        workspaceFolders.forEach((wf) {
+        for (var wf in workspaceFolders) {
           final uri = Uri.parse(wf.uri);
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
           if (uri.isScheme('file')) {
             unnormalisedWorkspacePaths.add(uri.toFilePath());
           }
-        });
+        }
       }
       if (rootUri != null) {
         final uri = Uri.parse(rootUri);

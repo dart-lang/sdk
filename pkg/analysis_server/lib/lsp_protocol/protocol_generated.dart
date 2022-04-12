@@ -7,6 +7,8 @@
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+// ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 
 import 'dart:core' hide deprecated;

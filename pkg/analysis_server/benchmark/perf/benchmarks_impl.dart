@@ -95,9 +95,8 @@ class AnalysisBenchmark extends Benchmark {
       if (i + 1 < kGroupCount) {
         // mutate
         index = contents.indexOf(';', index);
-        contents = contents.substring(0, index + 1) +
-            ' ' +
-            contents.substring(index + 1);
+        contents =
+            '${contents.substring(0, index + 1)} ${contents.substring(index + 1)}';
         await test.updateFile(filePath, contents);
       }
     }
@@ -124,9 +123,8 @@ class AnalysisBenchmark extends Benchmark {
     for (var i = 0; i < kGroupCount; i++) {
       var startIndex = i * (contents.length ~/ (kGroupCount + 2));
       var index = contents.indexOf(';', startIndex);
-      contents = contents.substring(0, index + 1) +
-          ' ' +
-          contents.substring(index + 1);
+      contents =
+          '${contents.substring(0, index + 1)} ${contents.substring(index + 1)}';
       await test.updateFile(filePath, contents);
       await test.analysisFinished;
     }

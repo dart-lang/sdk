@@ -147,6 +147,6 @@ main() {
         return;
       }
     }
-    fail('Expected to find |$message| in\n' + changes.join('\n'));
+    fail('Expected to find |$message| in\n${changes.join('\n')}');
   }
 }

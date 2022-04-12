@@ -86,8 +86,9 @@ class FlutterStatefulWidgetSnippetProducerTest
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -121,8 +122,9 @@ class _MyWidgetState extends State<MyWidget> {
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/widgets/framework.dart';
 
@@ -181,8 +183,9 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducerTest
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/animation/animation_controller.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -233,8 +236,9 @@ class _MyWidgetState extends State<MyWidget>
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/animation/animation_controller.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -307,8 +311,9 @@ class FlutterStatelessWidgetSnippetProducerTest
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -337,8 +342,9 @@ class MyWidget extends StatelessWidget {
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/widgets/framework.dart';
 

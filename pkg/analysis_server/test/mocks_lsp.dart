@@ -28,12 +28,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// Warning popups sent to the user.
   final shownWarnings = <lsp.ShowMessageParams>[];
 
-  MockLspServerChannel(bool _printMessages) {
-    if (_printMessages) {
+  MockLspServerChannel(bool printMessages) {
+    if (printMessages) {
       _serverToClient.stream
-          .listen((message) => print('<== ' + jsonEncode(message)));
+          .listen((message) => print('<== ${jsonEncode(message)}'));
       _clientToServer.stream
-          .listen((message) => print('==> ' + jsonEncode(message)));
+          .listen((message) => print('==> ${jsonEncode(message)}'));
     }
 
     // Keep track of any errors/warnings that are sent to the user with

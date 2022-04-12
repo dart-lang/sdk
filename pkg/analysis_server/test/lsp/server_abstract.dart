@@ -261,7 +261,7 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
-    source.keys.forEach((key) {
+    for (var key in source.keys) {
       var sourceValue = source[key];
       var destValue = dest[key];
       if (sourceValue is Map<String, dynamic> &&
@@ -270,7 +270,7 @@ mixin ClientCapabilitiesHelperMixin {
       } else {
         dest[key] = source[key];
       }
-    });
+    }
   }
 
   TextDocumentClientCapabilities
@@ -739,14 +739,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyTextDocumentEdits(
       Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
-    edits.forEach((edit) {
+    for (var edit in edits) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
         throw 'Recieved edits for $path which was not provided as a file to be edited. '
             'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
-    });
+    }
   }
 
   String applyTextEdit(String content,
@@ -910,18 +910,23 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ) {
     documentChanges.map(
       // Validate versions on simple doc edits
-      (edits) => edits
-          .forEach((edit) => expectDocumentVersion(edit, expectedVersions)),
+      (edits) {
+        for (var edit in edits) {
+          expectDocumentVersion(edit, expectedVersions);
+        }
+      },
       // For resource changes, we only need to validate changes since
       // creates/renames/deletes do not supply versions.
-      (changes) => changes.forEach((change) {
-        change.map(
-          (edit) => expectDocumentVersion(edit, expectedVersions),
-          (create) => {},
-          (rename) {},
-          (delete) {},
-        );
-      }),
+      (changes) {
+        for (var change in changes) {
+          change.map(
+            (edit) => expectDocumentVersion(edit, expectedVersions),
+            (create) => {},
+            (rename) {},
+            (delete) {},
+          );
+        }
+      },
     );
   }
 

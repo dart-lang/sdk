@@ -803,9 +803,9 @@ class _MyWidgetState extends State<MyWidget> {
     expect(getter.detail, equals('String'));
     expect(setter.detail, equals('String'));
     expect(both.detail, equals('String'));
-    [getter, setter, both].forEach((item) {
+    for (var item in [getter, setter, both]) {
       expect(item.kind, equals(CompletionItemKind.Property));
-    });
+    }
   }
 
   Future<void> test_insertReplaceRanges() async {

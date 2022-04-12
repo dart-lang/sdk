@@ -1037,9 +1037,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addSuggestions(List<Keyword> keywords) {
-    keywords.forEach((Keyword keyword) {
+    for (var keyword in keywords) {
       _addSuggestion(keyword);
-    });
+    }
   }
 
   bool _isEntityAfterIfWithoutElse(AstNode node) {

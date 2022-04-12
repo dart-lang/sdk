@@ -109,7 +109,7 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
         processedNotification.complete();
       }
     });
-    var resetCompleterAndErrors = () async {
+    resetCompleterAndErrors() async {
       // This is necessary because our polling uses modification timestamps
       // whose resolution seems to be too small for a test like this (i.e., we
       // write to the `command.log` file, but if the modification timestamp
@@ -117,7 +117,7 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
       await Future.delayed(Duration(seconds: 1));
       errors.clear();
       processedNotification = Completer();
-    };
+    }
 
     writeFile(testFile, r'''
 import 'generated.dart';

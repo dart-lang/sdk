@@ -1021,7 +1021,7 @@ class CorrectionUtils {
 
     var lastConstant = enumDeclaration.constants.last;
     return ClassMemberLocation(
-      ';' + endOfLine + endOfLine + indent,
+      ';$endOfLine$endOfLine$indent',
       lastConstant.end,
       '',
     );

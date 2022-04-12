@@ -562,9 +562,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // adding to priority files, but if that's done before the file is in an
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
-    server.driverMap.values.forEach((driver) {
+    for (var driver in server.driverMap.values) {
       expect(driver.getCachedResult(nestedFilePath), isNotNull);
-    });
+    }
 
     // Closing the file should remove it.
     await closeFile(nestedFileUri);
@@ -856,9 +856,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // adding to priority files, but if that's done before the file is in an
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
-    server.driverMap.values.forEach((driver) {
+    for (var driver in server.driverMap.values) {
       expect(driver.getCachedResult(nestedFilePath), isNotNull);
-    });
+    }
 
     // Closing the file should remove it.
     await closeFile(nestedFileUri);

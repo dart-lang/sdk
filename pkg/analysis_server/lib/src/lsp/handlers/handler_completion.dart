@@ -415,16 +415,17 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         // duplicates.
         final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
 
-        includedSuggestionSets.forEach((includedSet) {
+        for (var includedSet in includedSuggestionSets) {
           final library = declarationsTracker.getLibrary(includedSet.id);
           if (library == null) {
-            return;
+            break;
           }
 
           // Make a fast lookup for tag relevance.
           final tagBoosts = <String, int>{};
-          includedSuggestionRelevanceTags!
-              .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
+          for (var t in includedSuggestionRelevanceTags) {
+            tagBoosts[t.tag] = t.relevanceBoost;
+          }
 
           // Only specific types of child declarations should be included.
           // This list matches what's in _protocolAvailableSuggestion in
@@ -493,7 +494,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
                     completeFunctionCalls: completeFunctionCalls,
                   ));
           results.addAll(setResults);
-        });
+        }
       }
 
       // Add in any snippets.

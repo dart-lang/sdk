@@ -547,9 +547,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     priorityFiles.clear();
     priorityFiles.addAll(files);
     // Set priority files in drivers.
-    driverMap.values.forEach((driver) {
+    for (var driver in driverMap.values) {
       driver.priorityFiles = files;
-    });
+    }
   }
 
   @override
@@ -696,15 +696,15 @@ class AnalysisServer extends AbstractAnalysisServer {
     var files = <String>{};
 
     if (analysis) {
-      analysisServices.values.forEach((serviceFiles) {
+      for (var serviceFiles in analysisServices.values) {
         files.addAll(serviceFiles);
-      });
+      }
     }
 
     if (flutter) {
-      flutterServices.values.forEach((serviceFiles) {
+      for (var serviceFiles in flutterServices.values) {
         files.addAll(serviceFiles);
-      });
+      }
     }
 
     for (var file in files) {

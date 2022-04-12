@@ -30,21 +30,21 @@ class MoreTypedStreamController<T, ListenData, PauseData> {
         }
         var local_onPause = onPause;
         if (local_onPause != null) {
-          pauseData = local_onPause(listenData!);
+          pauseData = local_onPause(listenData as ListenData);
         }
       },
       onResume: () {
         var local_onResume = onResume;
         if (local_onResume != null) {
-          var local_pauseData = pauseData!;
+          var local_pauseData = pauseData as PauseData;
           pauseData = null;
-          local_onResume(listenData!, local_pauseData);
+          local_onResume(listenData as ListenData, local_pauseData);
         }
       },
       onCancel: () {
         var local_onCancel = onCancel;
         if (local_onCancel != null) {
-          var local_listenData = listenData!;
+          var local_listenData = listenData as ListenData;
           listenData = null;
           local_onCancel(local_listenData);
         }

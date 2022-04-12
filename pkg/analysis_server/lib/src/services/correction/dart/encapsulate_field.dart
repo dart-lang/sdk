@@ -87,7 +87,7 @@ class EncapsulateField extends CorrectionProducer {
         var typeCode = '';
         var typeAnnotation = variableList.type;
         if (typeAnnotation != null) {
-          typeCode = utils.getNodeText(typeAnnotation) + ' ';
+          typeCode = '${utils.getNodeText(typeAnnotation)} ';
         }
 
         // Write getter.

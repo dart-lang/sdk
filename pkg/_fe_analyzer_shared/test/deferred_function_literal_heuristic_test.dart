@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/deferred_closure_heuristic.dart';
+import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:test/test.dart';
 
 main() {
   test('single', () {
-    // If there is just a single closure and no type variables, it is selected.
+    // If there is just a single function literal and no type variables, it is
+    // selected.
     var f = Param('f');
     expect(
-        _TestClosureDeps(typeVars: [], closures: [f])
+        _TestFunctionLiteralDeps(typeVars: [], functionLiterals: [f])
             .planReconciliationStages(),
         [
-          {f}
+          [f]
         ]);
   });
 
@@ -22,11 +23,11 @@ main() {
     var f = Param('f', argTypes: ['T']);
     var g = Param('g', retTypes: ['T']);
     expect(
-        _TestClosureDeps(typeVars: ['T'], closures: [f, g])
+        _TestFunctionLiteralDeps(typeVars: ['T'], functionLiterals: [f, g])
             .planReconciliationStages(),
         [
-          {g},
-          {f}
+          [g],
+          [f]
         ]);
   });
 
@@ -37,27 +38,29 @@ main() {
     var g = Param('g', argTypes: ['U'], retTypes: ['T']);
     var h = Param('h', retTypes: ['U']);
     expect(
-        _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h])
-            .planReconciliationStages(),
+        _TestFunctionLiteralDeps(
+            typeVars: ['T', 'U'],
+            functionLiterals: [f, g, h]).planReconciliationStages(),
         [
-          {h},
-          {g},
-          {f}
+          [h],
+          [g],
+          [f]
         ]);
   });
 
-  test('unrelated closure', () {
-    // Closures that are independent of all the others are inferred during the
-    // first stage.
+  test('unrelated function literal', () {
+    // Function literals that are independent of all the others are inferred
+    // during the first stage.
     var f = Param('f', argTypes: ['T']);
     var g = Param('g', retTypes: ['T']);
     var h = Param('h');
     expect(
-        _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h])
-            .planReconciliationStages(),
+        _TestFunctionLiteralDeps(
+            typeVars: ['T', 'U'],
+            functionLiterals: [f, g, h]).planReconciliationStages(),
         [
-          {g, h},
-          {f}
+          [g, h],
+          [f]
         ]);
   });
 
@@ -69,11 +72,12 @@ main() {
     var h = Param('h', argTypes: ['U']);
     var i = Param('i', retTypes: ['U']);
     expect(
-        _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h, i])
-            .planReconciliationStages(),
+        _TestFunctionLiteralDeps(
+            typeVars: ['T', 'U'],
+            functionLiterals: [f, g, h, i]).planReconciliationStages(),
         [
-          {g, i},
-          {f, h}
+          [g, i],
+          [f, h]
         ]);
   });
 
@@ -85,12 +89,13 @@ main() {
     var h = Param('h', argTypes: ['V'], retTypes: ['U']);
     var i = Param('i', retTypes: ['V']);
     expect(
-        _TestClosureDeps(typeVars: ['T', 'U', 'V'], closures: [f, g, h, i])
-            .planReconciliationStages(),
+        _TestFunctionLiteralDeps(
+            typeVars: ['T', 'U', 'V'],
+            functionLiterals: [f, g, h, i]).planReconciliationStages(),
         [
-          {i},
-          {g, h},
-          {f}
+          [i],
+          [g, h],
+          [f]
         ]);
   });
 
@@ -101,11 +106,12 @@ main() {
     var h = Param('h', argTypes: ['U'], retTypes: ['T']);
     var i = Param('i', argTypes: ['T'], retTypes: ['U']);
     expect(
-        _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h, i])
-            .planReconciliationStages(),
+        _TestFunctionLiteralDeps(
+            typeVars: ['T', 'U'],
+            functionLiterals: [f, g, h, i]).planReconciliationStages(),
         [
-          {h, i},
-          {f, g}
+          [h, i],
+          [f, g]
         ]);
   });
 
@@ -113,11 +119,13 @@ main() {
     var f = Param('f', argTypes: ['T']);
     var x = Param('x', retTypes: ['T']);
     expect(
-        _TestClosureDeps(typeVars: ['T'], closures: [f], undeferredParams: [x])
-            .planReconciliationStages(),
+        _TestFunctionLiteralDeps(
+            typeVars: ['T'],
+            functionLiterals: [f],
+            undeferredParams: [x]).planReconciliationStages(),
         [
-          <Param>{},
-          {f}
+          <Param>[],
+          [f]
         ]);
   });
 }
@@ -133,22 +141,21 @@ class Param {
   String toString() => name;
 }
 
-class _TestClosureDeps extends ClosureDependencies<String, Param, Param> {
+class _TestFunctionLiteralDeps
+    extends FunctionLiteralDependencies<String, Param, Param> {
   final List<String> typeVars;
-  final List<Param> closures;
+  final List<Param> functionLiterals;
   final List<Param> undeferredParams;
 
-  _TestClosureDeps(
+  _TestFunctionLiteralDeps(
       {required this.typeVars,
-      required this.closures,
+      required this.functionLiterals,
       this.undeferredParams = const []})
-      : super(closures, typeVars, undeferredParams);
+      : super(functionLiterals, typeVars, undeferredParams);
 
   @override
-  Set<String> typeVarsFreeInParamParams(Param closure) =>
-      closure.argTypes.toSet();
+  Set<String> typeVarsFreeInParamParams(Param param) => param.argTypes.toSet();
 
   @override
-  Set<String> typeVarsFreeInParamReturns(Param closure) =>
-      closure.retTypes.toSet();
+  Set<String> typeVarsFreeInParamReturns(Param param) => param.retTypes.toSet();
 }

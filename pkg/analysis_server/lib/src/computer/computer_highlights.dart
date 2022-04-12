@@ -1014,7 +1014,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (type != null) {
       if (type.isDynamic && node.name.name == 'dynamic') {
         computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
-        return null;
+        return;
       }
     }
     super.visitNamedType(node);

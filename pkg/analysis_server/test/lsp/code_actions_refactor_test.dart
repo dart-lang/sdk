@@ -250,7 +250,7 @@ main() {
       ),
     );
 
-    final ofKind = (CodeActionKind kind) => getCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
           range: rangeFromMarkers(content),
           kinds: [kind],

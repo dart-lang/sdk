@@ -69,7 +69,7 @@ class AddReturnType extends CorrectionProducer {
 
     var returnType = _inferReturnType(body);
     if (returnType == null) {
-      return null;
+      return;
     }
 
     final insertBeforeEntity_final = insertBeforeEntity;

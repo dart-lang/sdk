@@ -18,10 +18,9 @@ class DartUnitSignatureComputer {
   final AstNode? _node;
   late ArgumentList _argumentList;
   final bool _isNonNullableByDefault;
-  DartUnitSignatureComputer(
-      this._dartdocInfo, CompilationUnit _unit, int _offset)
-      : _node = NodeLocator(_offset).searchWithin(_unit),
-        _isNonNullableByDefault = _unit.isNonNullableByDefault;
+  DartUnitSignatureComputer(this._dartdocInfo, CompilationUnit unit, int offset)
+      : _node = NodeLocator(offset).searchWithin(unit),
+        _isNonNullableByDefault = unit.isNonNullableByDefault;
 
   /// The [ArgumentList] node located by [compute].
   ArgumentList get argumentList => _argumentList;
