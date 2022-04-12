@@ -138,9 +138,31 @@ void topLevelMethodsTest() {
   Expect.equals(fooBar('hello'), 'hello world!');
 }
 
+@JS()
+@anonymous
+@staticInterop
+class AnonymousJSClass {
+  external factory AnonymousJSClass.factory(
+      {String? foo, String bar = 'baz', String? bleep});
+}
+
+extension AnonymousJSClassExtension on AnonymousJSClass {
+  external String? get foo;
+  external String get bar;
+  external String? get bleep;
+}
+
+void anonymousTest() {
+  final anonymousJSClass = AnonymousJSClass.factory(foo: 'boo');
+  Expect.equals('boo', anonymousJSClass.foo);
+  Expect.equals('baz', anonymousJSClass.bar);
+  Expect.equals(null, anonymousJSClass.bleep);
+}
+
 void main() {
   createClassTest();
   setInteropPropertyTest();
   setDartObjectPropertyTest();
   topLevelMethodsTest();
+  anonymousTest();
 }

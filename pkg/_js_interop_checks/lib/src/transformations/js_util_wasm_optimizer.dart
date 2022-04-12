@@ -8,7 +8,11 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../js_interop.dart'
-    show getJSName, hasStaticInteropAnnotation, hasJSInteropAnnotation;
+    show
+        getJSName,
+        hasAnonymousAnnotation,
+        hasStaticInteropAnnotation,
+        hasJSInteropAnnotation;
 
 /// Replaces:
 ///   1) Factory constructors in classes with `@staticInterop` annotations with
@@ -29,6 +33,15 @@ import '../js_interop.dart'
 ///      trampolines based off the interop type, to avoid megamorphic behavior.
 ///      This would have code size implications though, so we would need to
 ///      proceed carefully.
+/// TODO(joshualitt): A few of the functions in this file use js_utils in a
+/// naive way, and could be optimized further. In particular, there are a few
+/// complex operations in [JsUtilWasmOptimizer] where it is obvious a value is
+/// flowing from / to JS, and we have a few options for optimization:
+///    1) Integrate with `js_ast` and emit custom JavaScript for each of these
+///       operations.
+///    2) Use the `raw` variants of the js_util calls.
+///    3) Move more of the logic for these calls into JS where it will likely be
+///       faster.
 class JsUtilWasmOptimizer extends Transformer {
   final Procedure _callMethodTarget;
   final Procedure _callConstructorTarget;
@@ -37,6 +50,7 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _setPropertyTarget;
   final Procedure _jsifyTarget;
   final Procedure _dartifyTarget;
+  final Procedure _newObjectTarget;
   final Class _jsValueClass;
 
   final CoreTypes _coreTypes;
@@ -59,6 +73,8 @@ class JsUtilWasmOptimizer extends Transformer {
             _coreTypes.index.getTopLevelProcedure('dart:js_util_wasm', 'jsify'),
         _dartifyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util_wasm', 'dartify'),
+        _newObjectTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util_wasm', 'newObject'),
         _jsValueClass =
             _coreTypes.index.getClass('dart:js_util_wasm', 'JSValue'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
@@ -85,15 +101,19 @@ class JsUtilWasmOptimizer extends Transformer {
   @override
   Procedure visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
-    ReturnStatement? transformedBody;
+    Statement? transformedBody;
     if (node.isExternal) {
       if (node.isFactory) {
         Class cls = node.enclosingClass!;
         if (hasStaticInteropAnnotation(cls)) {
-          String jsName = getJSName(cls);
-          String constructorName = jsName == '' ? cls.name : jsName;
-          transformedBody =
-              _getExternalCallConstructorBody(node, constructorName);
+          if (hasAnonymousAnnotation(cls)) {
+            transformedBody = _getExternalAnonymousConstructorBody(node);
+          } else {
+            String jsName = getJSName(cls);
+            String constructorName = jsName == '' ? cls.name : jsName;
+            transformedBody =
+                _getExternalCallConstructorBody(node, constructorName);
+          }
         }
       } else if (node.isExtensionMember) {
         var index = _extensionMemberIndex ??=
@@ -161,6 +181,9 @@ class JsUtilWasmOptimizer extends Transformer {
   DartType get _nullableJSValueType =>
       _jsValueClass.getThisType(_coreTypes, Nullability.nullable);
 
+  DartType get _nonNullableJSValueType =>
+      _jsValueClass.getThisType(_coreTypes, Nullability.nonNullable);
+
   Expression _jsifyVariable(VariableDeclaration variable) =>
       StaticInvocation(_jsifyTarget, Arguments([VariableGet(variable)]));
 
@@ -173,11 +196,28 @@ class JsUtilWasmOptimizer extends Transformer {
   Expression getObjectOffGlobalThis(Procedure node, List<String> selectors) {
     Expression currentTarget = _globalThis;
     for (String selector in selectors) {
-      currentTarget = _dartify(StaticInvocation(_getPropertyTarget,
-          Arguments([currentTarget, StringLiteral(selector)])))
-        ..fileOffset = node.fileOffset;
+      currentTarget = _getProperty(node, currentTarget, selector);
     }
     return currentTarget;
+  }
+
+  /// Returns a new function body for the given [node] external factory method
+  /// for a class annotated with `@anonymous`.
+  ///
+  /// This lowers a factory function with named arguments to the creation of a
+  /// new object literal, and a series of `setProperty` calls.
+  Block _getExternalAnonymousConstructorBody(Procedure node) {
+    List<Statement> body = [];
+    final object = VariableDeclaration('|anonymousObject',
+        initializer: StaticInvocation(_newObjectTarget, Arguments([])),
+        type: _nonNullableJSValueType);
+    body.add(object);
+    for (VariableDeclaration variable in node.function.namedParameters) {
+      body.add(ExpressionStatement(
+          _setProperty(node, VariableGet(object), variable.name!, variable)));
+    }
+    body.add(ReturnStatement(VariableGet(object)));
+    return Block(body);
   }
 
   /// Returns a new function body for the given [node] external method.
@@ -194,7 +234,7 @@ class JsUtilWasmOptimizer extends Transformer {
           StringLiteral(constructorName),
           ListLiteral(
               function.positionalParameters.map(_jsifyVariable).toList(),
-              typeArgument: _nullableJSValueType)
+              typeArgument: _nonNullableJSValueType)
         ]))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(callConstructorInvocation);
@@ -203,17 +243,20 @@ class JsUtilWasmOptimizer extends Transformer {
   Expression _dartify(Expression expression) =>
       StaticInvocation(_dartifyTarget, Arguments([expression]));
 
-  /// Returns a new function body for the given [node] external getter.
+  /// Returns a new [Expression] for the given [node] external getter.
   ///
-  /// The new function body is equivalent to:
+  /// The new [Expression] is equivalent to:
   /// `js_util_wasm.getProperty([object], [getterName])`.
+  Expression _getProperty(
+          Procedure node, Expression object, String getterName) =>
+      StaticInvocation(
+          _getPropertyTarget, Arguments([object, StringLiteral(getterName)]))
+        ..fileOffset = node.fileOffset;
+
+  /// Returns a new function body for the given [node] external getter.
   ReturnStatement _getExternalGetterBody(
-      Procedure node, Expression object, String getterName) {
-    final getPropertyInvocation = _dartify(StaticInvocation(
-        _getPropertyTarget, Arguments([object, StringLiteral(getterName)])))
-      ..fileOffset = node.fileOffset;
-    return ReturnStatement(getPropertyInvocation);
-  }
+          Procedure node, Expression object, String getterName) =>
+      ReturnStatement(_dartify(_getProperty(node, object, getterName)));
 
   ReturnStatement _getExternalExtensionGetterBody(Procedure node) =>
       _getExternalGetterBody(
@@ -225,17 +268,20 @@ class JsUtilWasmOptimizer extends Transformer {
           Procedure node, Expression target) =>
       _getExternalGetterBody(node, target, node.name.text);
 
-  /// Returns a new function body for the given [node] external setter.
+  /// Returns a new [Expression] for the given [node] external setter.
   ///
-  /// The new function body is equivalent to:
+  /// The new [Expression] is equivalent to:
   /// `js_util_wasm.setProperty([object], [setterName], [value])`.
+  Expression _setProperty(Procedure node, Expression object, String setterName,
+          VariableDeclaration value) =>
+      StaticInvocation(_setPropertyTarget,
+          Arguments([object, StringLiteral(setterName), _jsifyVariable(value)]))
+        ..fileOffset = node.fileOffset;
+
+  /// Returns a new function body for the given [node] external setter.
   ReturnStatement _getExternalSetterBody(Procedure node, Expression object,
-      String setterName, VariableDeclaration value) {
-    final setPropertyInvocation = _dartify(StaticInvocation(_setPropertyTarget,
-        Arguments([object, StringLiteral(setterName), _jsifyVariable(value)])))
-      ..fileOffset = node.fileOffset;
-    return ReturnStatement(setPropertyInvocation);
-  }
+          String setterName, VariableDeclaration value) =>
+      ReturnStatement(_dartify(_setProperty(node, object, setterName, value)));
 
   ReturnStatement _getExternalExtensionSetterBody(Procedure node) {
     final parameters = node.function.positionalParameters;
