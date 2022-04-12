@@ -64,6 +64,9 @@ Object _convertDataTree(Object data) {
   return _convert(data)!;
 }
 
+@pragma('dart2js:tryInline')
+Object get globalThis => JS('', 'globalThis');
+
 T newObject<T>() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
