@@ -503,7 +503,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
                 (int index) => const DynamicType()));
       }
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          substitutionMap, target!.function!, function,
+          target!, _procedure, substitutionMap,
           libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
     if (isConst && isPatch) {
