@@ -5,13 +5,13 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
-class AbstractSearchDomainTest extends AbstractAnalysisTest {
+class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
   final Map<String, _ResultSet> resultSets = {};
   String? searchId;
   List<SearchResult> results = <SearchResult>[];
@@ -20,13 +20,13 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   void assertHasResult(SearchResultKind kind, String search, [int? length]) {
     var offset = findOffset(search);
     length ??= findIdentifierLength(search);
-    findResult(kind, testFile, offset, length, true);
+    findResult(kind, testFile.path, offset, length, true);
   }
 
   void assertNoResult(SearchResultKind kind, String search, [int? length]) {
     var offset = findOffset(search);
     length ??= findIdentifierLength(search);
-    findResult(kind, testFile, offset, length, false);
+    findResult(kind, testFile.path, offset, length, false);
   }
 
   void findResult(SearchResultKind kind, String file, int offset, int length,
@@ -81,10 +81,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    server.handlers = [
-      SearchDomainHandler(server),
-    ];
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future waitForSearchResults() {
