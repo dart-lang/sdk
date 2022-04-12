@@ -1989,28 +1989,25 @@ class CompletionDomainHandlerGetSuggestionsTest
     extends AbstractCompletionDomainTest {
   Future<void> test_ArgumentList_constructor_named_fieldFormalParam() async {
     // https://github.com/dart-lang/sdk/issues/31023
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f() { new A(field: ^);}
 class A {
   A({this.field: -1}) {}
 }
 ''');
-    await getSuggestions();
   }
 
   Future<void> test_ArgumentList_constructor_named_param_label() async {
-    addTestFile('void f() { new A(^);}'
+    await getTestCodeSuggestions('void f() { new A(^);}'
         'class A { A({one, two}) {} }');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_factory_named_param_label() async {
-    addTestFile('void f() { new A(^);}'
+    await getTestCodeSuggestions('void f() { new A(^);}'
         'class A { factory A({one, two}) => throw 0; }');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
@@ -2018,9 +2015,8 @@ class A {
 
   Future<void>
       test_ArgumentList_function_named_fromPositionalNumeric_withoutSpace() async {
-    addTestFile('void f(int a, {int b = 0}) {}'
+    await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'void g() { f(2, ^3); }');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
     expect(suggestions, hasLength(1));
     // Ensure we don't try to replace the following arg.
@@ -2030,9 +2026,8 @@ class A {
 
   Future<void>
       test_ArgumentList_function_named_fromPositionalNumeric_withSpace() async {
-    addTestFile('void f(int a, {int b = 0}) {}'
+    await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'void g() { f(2, ^ 3); }');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
     expect(suggestions, hasLength(1));
     // Ensure we don't try to replace the following arg.
@@ -2042,10 +2037,9 @@ class A {
 
   Future<void>
       test_ArgumentList_function_named_fromPositionalVariable_withoutSpace() async {
-    addTestFile('void f(int a, {int b = 0}) {}'
+    await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'var foo = 1;'
         'void g() { f(2, ^foo); }');
-    await getSuggestions();
     expect(suggestions, hasLength(1));
 
     // The named arg "b: " should not replace anything.
@@ -2055,10 +2049,9 @@ class A {
 
   Future<void>
       test_ArgumentList_function_named_fromPositionalVariable_withSpace() async {
-    addTestFile('void f(int a, {int b = 0}) {}'
+    await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'var foo = 1;'
         'void g() { f(2, ^ foo); }');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
     expect(suggestions, hasLength(1));
     // Ensure we don't try to replace the following arg.
@@ -2067,7 +2060,7 @@ class A {
   }
 
   Future<void> test_ArgumentList_function_named_partiallyTyped() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
     class C {
       void m(String firstString, {String secondString}) {}
 
@@ -2076,7 +2069,6 @@ class A {
       }
     }
     ''');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'secondString: ');
     expect(suggestions, hasLength(1));
     // Ensure we replace the correct section.
@@ -2085,48 +2077,42 @@ class A {
   }
 
   Future<void> test_ArgumentList_imported_function_named_param() async {
-    addTestFile('void f() { int.parse("16", ^);}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() { int.parse("16", ^);}');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param1() async {
-    addTestFile('void f() { foo(o^);} foo({one, two}) {}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() { foo(o^);} foo({one, two}) {}');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param2() async {
-    addTestFile('void f() {A a = new A(); a.foo(one: 7, ^);}'
+    await getTestCodeSuggestions('void f() {A a = new A(); a.foo(one: 7, ^);}'
         'class A { foo({one, two}) {} }');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(1));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param_label1() async {
-    addTestFile('void f() { int.parse("16", r^: 16);}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() { int.parse("16", r^: 16);}');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param_label3() async {
-    addTestFile('void f() { int.parse("16", ^: 16);}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() { int.parse("16", ^: 16);}');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_catch() async {
-    addTestFile('void f() {try {} ^}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() {try {} ^}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'on');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally');
@@ -2134,8 +2120,7 @@ class A {
   }
 
   Future<void> test_catch2() async {
-    addTestFile('void f() {try {} on Foo {} ^}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() {try {} on Foo {} ^}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'on');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally');
@@ -2148,8 +2133,7 @@ class A {
   }
 
   Future<void> test_catch3() async {
-    addTestFile('void f() {try {} catch (e) {} finally {} ^}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() {try {} catch (e) {} finally {} ^}');
     assertNoResult('on');
     assertNoResult('catch');
     assertNoResult('finally');
@@ -2162,8 +2146,7 @@ class A {
   }
 
   Future<void> test_catch4() async {
-    addTestFile('void f() {try {} finally {} ^}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() {try {} finally {} ^}');
     assertNoResult('on');
     assertNoResult('catch');
     assertNoResult('finally');
@@ -2176,57 +2159,51 @@ class A {
   }
 
   Future<void> test_catch5() async {
-    addTestFile('void f() {try {} ^ finally {}}');
-    await getSuggestions();
+    await getTestCodeSuggestions('void f() {try {} ^ finally {}}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'on');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_constructor() async {
-    addTestFile('class A {bool foo; A() : ^;}');
-    await getSuggestions();
+    await getTestCodeSuggestions('class A {bool foo; A() : ^;}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor2() async {
-    addTestFile('class A {bool foo; A() : s^;}');
-    await getSuggestions();
+    await getTestCodeSuggestions('class A {bool foo; A() : s^;}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor3() async {
-    addTestFile('class A {bool foo; A() : a=7,^;}');
-    await getSuggestions();
+    await getTestCodeSuggestions('class A {bool foo; A() : a=7,^;}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor4() async {
-    addTestFile('class A {bool foo; A() : a=7,s^;}');
-    await getSuggestions();
+    await getTestCodeSuggestions('class A {bool foo; A() : a=7,s^;}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor5() async {
-    addTestFile('class A {bool foo; A() : a=7,s^}');
-    await getSuggestions();
+    await getTestCodeSuggestions('class A {bool foo; A() : a=7,s^}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor6() async {
-    addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
-    await getSuggestions();
+    await getTestCodeSuggestions(
+        'class A {bool foo; A() : a=7,^ void bar() {}}');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_extension() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class MyClass {
   void foo() {
     ba^
@@ -2237,71 +2214,67 @@ extension MyClassExtension on MyClass {
   void bar() {}
 }
 ''');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'bar');
   }
 
-  Future<void> test_html() {
+  Future<void> test_html() async {
     //
     // We no longer support the analysis of non-dart files.
     //
-    testFile = convertPath('/project/web/test.html');
-    addTestFile('''
-      <html>^</html>
-    ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      expect(suggestions, hasLength(0));
-    });
+    await getCodeSuggestions(
+      path: convertPath('$testPackageLibPath/test.html'),
+      content: '<html>^</html>',
+    );
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    expect(suggestions, hasLength(0));
   }
 
-  Future<void> test_import_uri_with_trailing() {
+  Future<void> test_import_uri_with_trailing() async {
     final filePath = '/project/bin/testA.dart';
     final incompleteImportText = toUriStr('/project/bin/t');
     newFile2(filePath, 'library libA;');
-    addTestFile('''
+    await getTestCodeSuggestions('''
     import "$incompleteImportText^.dart";
     void f() {}''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset,
-          equals(completionOffset - incompleteImportText.length));
-      expect(replacementLength, equals(5 + incompleteImportText.length));
-      assertHasResult(CompletionSuggestionKind.IMPORT, toUriStr(filePath));
-      assertNoResult('test');
-    });
+    expect(replacementOffset,
+        equals(completionOffset - incompleteImportText.length));
+    expect(replacementLength, equals(5 + incompleteImportText.length));
+    assertHasResult(CompletionSuggestionKind.IMPORT, toUriStr(filePath));
+    assertNoResult('test');
   }
 
-  Future<void> test_imports() {
-    addTestFile('''
+  Future<void> test_imports() async {
+    await getTestCodeSuggestions('''
       import 'dart:html';
       void f() {^}
     ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
-          elementKind: ElementKind.CLASS);
-      assertNoResult('test');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
+        elementKind: ElementKind.CLASS);
+    assertNoResult('test');
   }
 
   Future<void> test_imports_aborted_new_request() async {
     addTestFile('''
         class foo { }
-        c^''');
+        c''');
+    completionOffset = 31;
 
     // Make a request for suggestions
-    var request1 = CompletionGetSuggestionsParams(testFile, completionOffset)
-        .toRequest('7');
-    var responseFuture1 = waitResponse(request1);
+    var request1 =
+        CompletionGetSuggestionsParams(testFile.path, completionOffset)
+            .toRequest('7');
+    var responseFuture1 = serverChannel.sendRequest(request1);
 
     // Make another request before the first request completes
-    var request2 = CompletionGetSuggestionsParams(testFile, completionOffset)
-        .toRequest('8');
-    var responseFuture2 = waitResponse(request2);
+    var request2 =
+        CompletionGetSuggestionsParams(testFile.path, completionOffset)
+            .toRequest('8');
+    var responseFuture2 = serverChannel.sendRequest(request2);
 
     // Await first response
     var response1 = await responseFuture1;
@@ -2314,7 +2287,7 @@ extension MyClassExtension on MyClass {
     assertValidId(result2.id);
 
     // Wait for all processing to be complete
-    await analysisHandler.server.onAnalysisComplete;
+    await server.onAnalysisComplete;
     await pumpEventQueue();
 
     // Assert that first request has been aborted
@@ -2336,14 +2309,17 @@ extension MyClassExtension on MyClass {
         c^''');
 
     // Make a request for suggestions
-    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
-        .toRequest('0');
-    var responseFuture = waitResponse(request);
+    var request =
+        CompletionGetSuggestionsParams(testFile.path, completionOffset)
+            .toRequest('0');
+    var responseFuture = handleSuccessfulRequest(request);
 
     // Simulate user deleting text after request but before suggestions returned
-    server.updateContent('uc1', {testFile: AddContentOverlay(testCode)});
+    server.updateContent(
+        'uc1', {testFile.path: AddContentOverlay(testFileContent)});
     server.updateContent('uc2', {
-      testFile: ChangeContentOverlay([SourceEdit(completionOffset - 1, 1, '')])
+      testFile.path:
+          ChangeContentOverlay([SourceEdit(completionOffset - 1, 1, '')])
     });
 
     // Await a response
@@ -2352,7 +2328,7 @@ extension MyClassExtension on MyClass {
     assertValidId(completionId);
 
     // Wait for all processing to be complete
-    await analysisHandler.server.onAnalysisComplete;
+    await server.onAnalysisComplete;
     await pumpEventQueue();
 
     // Assert that request has been aborted
@@ -2366,13 +2342,19 @@ extension MyClassExtension on MyClass {
       import "dart:async";
       import "package:foo/foo.dart";
       class foo { }''');
+    completionOffset = 20;
     await waitForTasksFinished();
-    server.updateContent('uc1', {testFile: AddContentOverlay(testCode)});
+    server.updateContent(
+        'uc1', {testFile.path: AddContentOverlay(testFileContent)});
     server.updateContent('uc2', {
-      testFile: ChangeContentOverlay([SourceEdit(completionOffset, 0, 'xp')])
+      testFile.path:
+          ChangeContentOverlay([SourceEdit(completionOffset, 0, 'xp')])
     });
     completionOffset += 2;
-    await getSuggestions();
+    await getSuggestions(
+      path: testFile.path,
+      completionOffset: completionOffset,
+    );
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
@@ -2384,22 +2366,24 @@ extension MyClassExtension on MyClass {
   }
 
   Future<void> test_imports_partial() async {
-    addTestFile('''^
+    addTestFile('''
       import "package:foo/foo.dart";
       import "package:bar/bar.dart";
       class Baz { }''');
+    completionOffset = 0;
 
     // Wait for analysis then edit the content
     await waitForTasksFinished();
-    var revisedContent =
-        '${testCode.substring(0, completionOffset)}i${testCode.substring(completionOffset)}';
+    var revisedContent = testFileContent.substring(0, 0) +
+        'i' +
+        testFileContent.substring(completionOffset);
     ++completionOffset;
     server.handleRequest(AnalysisUpdateContentParams(
-        {testFile: AddContentOverlay(revisedContent)}).toRequest('add1'));
+        {testFile.path: AddContentOverlay(revisedContent)}).toRequest('add1'));
 
     // Request code completion immediately after edit
-    var response = await waitResponse(
-        CompletionGetSuggestionsParams(testFile, completionOffset)
+    var response = await handleSuccessfulRequest(
+        CompletionGetSuggestionsParams(testFile.path, completionOffset)
             .toRequest('0'));
     completionId = response.id;
     assertValidId(completionId);
@@ -2422,123 +2406,110 @@ extension MyClassExtension on MyClass {
     assertNoResult('extends');
   }
 
-  Future<void> test_imports_prefixed() {
-    addTestFile('''
+  Future<void> test_imports_prefixed() async {
+    await getTestCodeSuggestions('''
       import 'dart:html' as foo;
       void f() {^}
     ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
-      assertNoResult('HtmlElement');
-      assertNoResult('test');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
+    assertNoResult('HtmlElement');
+    assertNoResult('test');
   }
 
-  Future<void> test_imports_prefixed2() {
-    addTestFile('''
+  Future<void> test_imports_prefixed2() async {
+    await getTestCodeSuggestions('''
       import 'dart:html' as foo;
       void f() {foo.^}
     ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement');
-      assertNoResult('test');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement');
+    assertNoResult('test');
   }
 
   Future<void> test_inComment_block_beforeDartDoc() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 /* text ^ */
 
 /// some doc comments
 class SomeClass {}
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inComment_block_beforeNode() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
   void f(aaa, bbb) {
     /* text ^ */
     print(42);
   }
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inComment_endOfFile_withNewline() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
     // text ^
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inComment_endOfFile_withoutNewline() async {
-    addTestFile('// text ^');
-    await getSuggestions();
+    await getTestCodeSuggestions('// text ^');
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inComment_endOfLine_beforeDartDoc() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 // text ^
 
 /// some doc comments
 class SomeClass {}
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inComment_endOfLine_beforeNode() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
   void f(aaa, bbb) {
     // text ^
     print(42);
   }
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inComment_endOfLine_beforeToken() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
   void f(aaa, bbb) {
     // text ^
   }
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inDartDoc1() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
   /// ^
   void f(aaa, bbb) {}
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inDartDoc2() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
   /// Some text^
   void f(aaa, bbb) {}
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
   Future<void> test_inDartDoc3() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class MyClass {
   /// ^
   void foo() {}
@@ -2550,7 +2521,6 @@ extension MyClassExtension on MyClass {
   void baz() {}
 }
   ''');
-    await getSuggestions();
     expect(suggestions, isEmpty);
   }
 
@@ -2558,30 +2528,28 @@ extension MyClassExtension on MyClass {
     newFile2('/testA.dart', '''
   part of libA;
   foo(bar) => 0;''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
   library libA;
   part "${toUriStr('/testA.dart')}";
   import "dart:math";
   /// The [^]
   void f(aaa, bbb) {}
   ''');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'f');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'min');
   }
 
   Future<void> test_inDartDoc_reference2() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
   /// The [m^]
   void f(aaa, bbb) {}
   ''');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'f');
   }
 
   Future<void> test_inDartDoc_reference3() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class MyClass {
   /// [^]
   void foo() {}
@@ -2593,13 +2561,12 @@ extension MyClassExtension on MyClass {
   void baz() {}
 }
   ''');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'bar');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'baz');
   }
 
-  Future<void> test_inherited() {
-    addTestFile('''
+  Future<void> test_inherited() async {
+    await getTestCodeSuggestions('''
 class A {
   m() {}
 }
@@ -2607,19 +2574,18 @@ class B extends A {
   x() {^}
 }
 ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -2627,52 +2593,47 @@ class B extends A {
     var request =
         CompletionGetSuggestionsParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
-  Future<void> test_invocation() {
-    addTestFile('class A {b() {}} void f() {A a; a.^}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-    });
+  Future<void> test_invocation() async {
+    await getTestCodeSuggestions('class A {b() {}} void f() {A a; a.^}');
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
   }
 
-  Future<void> test_invocation_withTrailingStmt() {
-    addTestFile('class A {b() {}} void f() {A a; a.^ int x = 7;}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-    });
+  Future<void> test_invocation_withTrailingStmt() async {
+    await getTestCodeSuggestions(
+        'class A {b() {}} void f() {A a; a.^ int x = 7;}');
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
   }
 
   Future<void> test_is_asPrefixedIdentifierStart() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A { var isVisible;}
 void f(A p) { var v1 = p.is^; }''');
-    await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'isVisible');
   }
 
-  Future<void> test_keyword() {
-    addTestFile('library A; cl^');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset - 2));
-      expect(replacementLength, equals(2));
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
-          selectionOffset: 8);
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
-    });
+  Future<void> test_keyword() async {
+    await getTestCodeSuggestions('library A; cl^');
+    expect(replacementOffset, equals(completionOffset - 2));
+    expect(replacementLength, equals(2));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+        selectionOffset: 8);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
   }
 
   Future<void> test_local_implicitCreation() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   A();
   A.named();
@@ -2681,7 +2642,6 @@ void f() {
   ^
 }
 ''');
-    await getSuggestions();
 
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
@@ -2697,34 +2657,30 @@ void f() {
         elementKind: ElementKind.CONSTRUCTOR);
   }
 
-  Future<void> test_local_named_constructor() {
-    addTestFile('class A {A.c(); x() {new A.^}}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'c');
-      assertNoResult('A');
-    });
+  Future<void> test_local_named_constructor() async {
+    await getTestCodeSuggestions('class A {A.c(); x() {new A.^}}');
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'c');
+    assertNoResult('A');
   }
 
-  Future<void> test_local_override() {
+  Future<void> test_local_override() async {
     newFile2('/project/bin/a.dart', 'class A {m() {}}');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 import 'a.dart';
 class B extends A {
   m() {}
   x() {^}
 }
 ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
   }
 
   Future<void> test_local_shadowClass() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   A();
   A.named();
@@ -2734,7 +2690,6 @@ void f() {
   ^
 }
 ''');
-    await getSuggestions();
 
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
@@ -2748,149 +2703,145 @@ void f() {
     assertNoResult('A.named', elementKind: ElementKind.CONSTRUCTOR);
   }
 
-  Future<void> test_locals() {
-    addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'a');
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'b');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'DateTime',
-          elementKind: ElementKind.CLASS);
-    });
+  Future<void> test_locals() async {
+    await getTestCodeSuggestions(
+        'class A {var a; x() {var b;^}} class DateTime { }');
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'a');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'b');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'DateTime',
+        elementKind: ElementKind.CLASS);
   }
 
   Future<void> test_offset_past_eof() async {
-    addTestFile('void f() { }', offset: 300);
-    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
-        .toRequest('0');
-    var response = await waitResponse(request);
-    expect(response.id, '0');
-    expect(response.error!.code, RequestErrorCode.INVALID_PARAMETER);
+    addTestFile('void f() { }');
+    var request =
+        CompletionGetSuggestionsParams(testFile.path, 300).toRequest('0');
+    var response = await handleRequest(request);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_PARAMETER,
+    );
   }
 
-  Future<void> test_overrides() {
+  Future<void> test_overrides() async {
     newFile2('/project/bin/a.dart', 'class A {m() {}}');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 import 'a.dart';
 class B extends A {m() {^}}
 ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
   }
 
-  Future<void> test_partFile() {
-    newFile2('/project/bin/a.dart', '''
+  Future<void> test_partFile() async {
+    newFile2('$testPackageLibPath/a.dart', '''
       library libA;
       import 'dart:html';
       part 'test.dart';
       class A { }
     ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
       part of libA;
       void f() {^}''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
-          elementKind: ElementKind.CLASS);
-      assertNoResult('test');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
+        elementKind: ElementKind.CLASS);
+    assertNoResult('test');
   }
 
-  Future<void> test_partFile2() {
-    newFile2('/project/bin/a.dart', '''
+  Future<void> test_partFile2() async {
+    newFile2('$testPackageLibPath/a.dart', '''
       part of libA;
       class A { }''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
       library libA;
       part "a.dart";
       import 'dart:html';
       void f() {^}
     ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
-          elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
-          elementKind: ElementKind.CLASS);
-      assertNoResult('test');
-    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
+        elementKind: ElementKind.CLASS);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
+        elementKind: ElementKind.CLASS);
+    assertNoResult('test');
   }
 
   Future<void> test_sentToPlugins() async {
     addTestFile('''
       void f() {
-        ^
+        
       }
     ''');
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
         TestNotificationManager(), InstrumentationService.NULL_SERVICE);
     var result = plugin.CompletionGetSuggestionsResult(
-        testFile.indexOf('^'), 0, <CompletionSuggestion>[
+        testFileContent.indexOf('^'), 0, <CompletionSuggestion>[
       CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
       info: Future.value(result.toResponse('-', 1))
     };
-    await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'plugin completion',
-        selectionOffset: 3);
-  }
-
-  Future<void> test_simple() {
-    addTestFile('''
+    await getTestCodeSuggestions('''
       void f() {
         ^
       }
     ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
-          elementKind: ElementKind.CLASS);
-      assertNoResult('HtmlElement');
-      assertNoResult('test');
-    });
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'plugin completion',
+        selectionOffset: 3);
+  }
+
+  Future<void> test_simple() async {
+    await getTestCodeSuggestions('''
+      void f() {
+        ^
+      }
+    ''');
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
+        elementKind: ElementKind.CLASS);
+    assertNoResult('HtmlElement');
+    assertNoResult('test');
   }
 
   Future<void> test_static() async {
-    addTestFile('class A {static b() {} c() {}} void f() {A.^}');
-    await getSuggestions();
+    await getTestCodeSuggestions(
+        'class A {static b() {} c() {}} void f() {A.^}');
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     assertNoResult('c');
   }
 
-  Future<void> test_topLevel() {
-    addTestFile('''
+  Future<void> test_topLevel() async {
+    await getTestCodeSuggestions('''
       typedef foo();
       var test = '';
       void f() {tes^t}
     ''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset - 3));
-      expect(replacementLength, equals(4));
-      // Suggestions based upon imported elements are partially filtered
-      //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'test');
-      assertNoResult('HtmlElement');
-    });
+    expect(replacementOffset, equals(completionOffset - 3));
+    expect(replacementLength, equals(4));
+    // Suggestions based upon imported elements are partially filtered
+    //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'test');
+    assertNoResult('HtmlElement');
   }
 }
 

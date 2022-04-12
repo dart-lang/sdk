@@ -31,7 +31,7 @@ void main() {
 @reflectiveTest
 class ArgumentListCompletionTest extends CompletionTestCase {
   Future<void> test_functionWithVoidReturnType_optionalNamed() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(C c) {
   c.m(handler: ^);
 }
@@ -42,12 +42,11 @@ class C {
   void m({void Function()? handler}) {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_functionWithVoidReturnType_requiredPositional() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(C c) {
   c.m(^);
 }
@@ -58,12 +57,11 @@ class C {
   void m(void Function() handler) {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_privateStaticField() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 extension on int {
   static int _x = 0;
 
@@ -72,7 +70,6 @@ extension on int {
   }
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('_x');
   }
 }
@@ -80,12 +77,11 @@ extension on int {
 @reflectiveTest
 class AsExpressionCompletionTest extends CompletionTestCase {
   Future<void> test_type_dynamic() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(Object o) {
   var x = o as ^;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('dynamic');
   }
 }
@@ -94,14 +90,13 @@ void f(Object o) {
 class AssertStatementCompletionTest extends CompletionTestCase {
   @failingTest
   Future<void> test_message() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f() {
   assert(true, ^);
 }
 
 const c = <int>[];
 ''');
-    await getSuggestions();
     assertHasCompletion('c');
   }
 }
@@ -109,7 +104,7 @@ const c = <int>[];
 @reflectiveTest
 class ConstructorCompletionTest extends CompletionTestCase {
   Future<void> test_constructor_abstract() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f() {
   g(^);
 }
@@ -118,7 +113,6 @@ abstract class C {
   C.c();
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('C.c');
   }
 }
@@ -126,26 +120,24 @@ abstract class C {
 @reflectiveTest
 class DeclaredIdentifierCompletionTest extends CompletionTestCase {
   Future<void> test_afterFinal_withIdentifier() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void m(List<C> cs) {
     for (final ^ x in cs) {}
   }
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('C');
   }
 
   Future<void> test_afterFinal_withoutIdentifier() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void m(List<C> cs) {
     for (final ^) {}
   }
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('C');
   }
 }
@@ -153,7 +145,7 @@ class C {
 @reflectiveTest
 class ExpressionFunctionBodyCompletionTest extends CompletionTestCase {
   Future<void> test_voidReturn_localFunction() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void m() {
     void f() => ^;
@@ -162,29 +154,26 @@ class C {
 
 void g() {}
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_voidReturn_method() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void m() => ^;
 }
 
 void g() {}
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_voidReturn_topLevelFunction() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f() => ^;
 
 void g() {}
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 }
@@ -192,7 +181,7 @@ void g() {}
 @reflectiveTest
 class ExtensionCompletionTest extends CompletionTestCase {
   Future<void> test_explicitTarget_getter_sameUnit() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(String s) {
   s.^;
 }
@@ -200,56 +189,52 @@ extension E on String {
   int get g => length;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_explicitTarget_method_imported() async {
-    newFile2(convertPath('/project/bin/lib.dart'), '''
+    newFile2(convertPath('$testPackageLibPath/lib.dart'), '''
 extension E on String {
   void m() {}
 }
 ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 import 'lib.dart';
 void f(String s) {
   s.^;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 
   Future<void> test_explicitTarget_method_inLibrary() async {
-    newFile2(convertPath('/project/bin/lib.dart'), '''
+    newFile2(convertPath('$testPackageLibPath/lib.dart'), '''
 part 'test.dart';
 extension E on String {
   void m() {}
 }
 ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 part of 'lib.dart';
 void f(String s) {
   s.^;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 
   Future<void> test_explicitTarget_method_inPart() async {
-    newFile2(convertPath('/project/bin/part.dart'), '''
+    newFile2(convertPath('$testPackageLibPath/part.dart'), '''
 extension E on String {
   void m() {}
 }
 ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 part 'part.dart';
 void f(String s) {
   s.^;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 
@@ -262,17 +247,16 @@ extension E on String {
   void m() {}
 }
 ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(String s) {
   s.^;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 
   Future<void> test_explicitTarget_method_sameUnit() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(String s) {
   s.^;
 }
@@ -280,12 +264,11 @@ extension E on String {
   void m() {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 
   Future<void> test_explicitTarget_setter_sameUnit() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(String s) {
   s.^;
 }
@@ -293,12 +276,11 @@ extension E on String {
   set e(int v) {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('e');
   }
 
   Future<void> test_implicitTarget_inClass_method_sameUnit() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void c() {
     ^
@@ -308,19 +290,17 @@ extension E on C {
   void m() {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 
   Future<void> test_implicitTarget_inExtension_method_sameUnit() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 extension E on String {
   void m() {
     ^
   }
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('m');
   }
 }
@@ -328,10 +308,9 @@ extension E on String {
 @reflectiveTest
 class FormalParameterCompletionTest extends CompletionTestCase {
   Future<void> test_named_last() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({int? a, ^}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasCompletion('required');
@@ -339,10 +318,9 @@ void f({int? a, ^}) {}
   }
 
   Future<void> test_named_last_afterCovariant() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({covariant ^}) {}
 ''');
-    await getSuggestions();
     assertHasNoCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasNoCompletion('required');
@@ -350,10 +328,9 @@ void f({covariant ^}) {}
   }
 
   Future<void> test_named_last_afterRequired() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({required ^}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasNoCompletion('required');
@@ -361,10 +338,9 @@ void f({required ^}) {}
   }
 
   Future<void> test_named_only() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({^}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasCompletion('required');
@@ -372,10 +348,9 @@ void f({^}) {}
   }
 
   Future<void> test_optionalPositional_last() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f([int a, ^]) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasNoCompletion('required');
@@ -383,10 +358,9 @@ void f([int a, ^]) {}
   }
 
   Future<void> test_optionalPositional_only() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f([^]) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasNoCompletion('required');
@@ -394,10 +368,9 @@ void f([^]) {}
   }
 
   Future<void> test_requiredPositional_only() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(^) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasNoCompletion('required');
@@ -408,50 +381,44 @@ void f(^) {}
 @reflectiveTest
 class GenericFunctionTypeCompletionTest extends CompletionTestCase {
   Future<void> test_returnType_beforeType() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({^vo Function() p}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 
   Future<void> test_returnType_beforeType_afterRequired() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({required ^vo Function() p}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 
   Future<void> test_returnType_inType() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({v^o Function() p}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 
   Future<void> test_returnType_inType_afterRequired() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({required v^o Function() p}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 
   Future<void> test_returnType_partialFunctionType() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({^ Function() p}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 
   Future<void> test_returnType_partialFunctionType_afterRequired() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f({required ^ Function() p}) {}
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 }
@@ -459,10 +426,9 @@ void f({required ^ Function() p}) {}
 @reflectiveTest
 class GenericTypeAliasCompletionTest extends CompletionTestCase {
   Future<void> test_returnType_void() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 typedef F = ^
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 }
@@ -470,7 +436,7 @@ typedef F = ^
 @reflectiveTest
 class PropertyAccessCompletionTest extends CompletionTestCase {
   Future<void> test_nullSafe_extension() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(C c) {
   c.a?.^;
 }
@@ -481,12 +447,11 @@ extension on C {
   int get b => 0;
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('b');
   }
 
   Future<void> test_setter_deprecated() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(C c) {
   c.^;
 }
@@ -495,13 +460,12 @@ class C {
   set x(int x) {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('x',
         elementKind: ElementKind.SETTER, isDeprecated: true);
   }
 
   Future<void> test_setter_deprecated_withNonDeprecatedGetter() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f(C c) {
   c.^;
 }
@@ -511,7 +475,6 @@ class C {
   set x(int x) {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('x',
         elementKind: ElementKind.GETTER, isDeprecated: false);
   }
@@ -521,7 +484,7 @@ class C {
 class RedirectedConstructorCompletionTest extends CompletionTestCase {
   @failingTest
   Future<void> test_keywords() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   factory A() = ^
 }
@@ -529,14 +492,13 @@ class B implements A {
   B();
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('assert');
     assertHasNoCompletion('super');
     assertHasNoCompletion('this');
   }
 
   Future<void> test_namedConstructor_private() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   factory A() = ^
 }
@@ -544,12 +506,11 @@ class B implements A {
   B._();
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('B._');
   }
 
   Future<void> test_namedConstructor_public() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   factory A() = ^
 }
@@ -557,12 +518,11 @@ class B implements A {
   B.b();
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('B.b');
   }
 
   Future<void> test_sameConstructor() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   factory A() = ^
 }
@@ -570,12 +530,11 @@ class B implements A {
   B();
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('A');
   }
 
   Future<void> test_unnamedConstructor() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   factory A() = ^
 }
@@ -583,7 +542,6 @@ class B implements A {
   B();
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('B');
   }
 
@@ -594,14 +552,13 @@ class B implements A {
   B();
 }
 ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 import 'b.dart';
 
 class A {
   factory A() = ^
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('B');
   }
 }
@@ -611,56 +568,51 @@ class RedirectingConstructorInvocationCompletionTest
     extends CompletionTestCase {
   @failingTest
   Future<void> test_instanceMember() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   C.c() {}
   C() : this.^
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('toString');
   }
 
   Future<void> test_namedConstructor_private() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   C._() {}
   C() : this.^
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('_');
   }
 
   Future<void> test_namedConstructor_public() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   C.c() {}
   C() : this.^
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('c');
   }
 
   Future<void> test_sameConstructor() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   C.c() : this.^
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('c');
   }
 
   Future<void> test_unnamedConstructor() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   C() {}
   C.c() : this.^
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('');
   }
 }
@@ -668,7 +620,7 @@ class C {
 @reflectiveTest
 class ReturnStatementTest extends CompletionTestCase {
   Future<void> test_voidFromVoid_localFunction() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void m() {
     void f() {
@@ -678,12 +630,11 @@ class C {
   void g() {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_voidFromVoid_method() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   void f() {
     return ^
@@ -691,18 +642,16 @@ class C {
   void g() {}
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 
   Future<void> test_voidFromVoid_topLevelFunction() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 void f() {
   return ^
 }
 void g() {}
 ''');
-    await getSuggestions();
     assertHasCompletion('g');
   }
 }
@@ -715,19 +664,18 @@ class A {
   A._() {}
 }
 ''');
-    addTestFile('''
+    await getTestCodeSuggestions('''
 import 'a.dart';
 
 class B extends A {
   B() : super.^
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('_');
   }
 
   Future<void> test_namedConstructor_private() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   A._() {}
 }
@@ -735,12 +683,11 @@ class B extends A {
   B() : super.^
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('_');
   }
 
   Future<void> test_namedConstructor_public() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   A.a() {}
 }
@@ -748,12 +695,11 @@ class B extends A {
   B() : super.^
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('a');
   }
 
   Future<void> test_unnamedConstructor() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class A {
   A() {}
 }
@@ -761,7 +707,6 @@ class B extends A {
   B() : super.^
 }
 ''');
-    await getSuggestions();
     assertHasNoCompletion('');
   }
 }
@@ -769,12 +714,11 @@ class B extends A {
 @reflectiveTest
 class VariableDeclarationListCompletionTest extends CompletionTestCase {
   Future<void> test_type_voidAfterFinal() async {
-    addTestFile('''
+    await getTestCodeSuggestions('''
 class C {
   final ^
 }
 ''');
-    await getSuggestions();
     assertHasCompletion('void');
   }
 }
