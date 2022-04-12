@@ -92,7 +92,7 @@ class DartRepositoryMacroKernelBuilder implements MacroKernelBuilder {
 /// Just like [DartRepositoryMacroKernelBuilder], this is a temporary
 /// implementation.
 class MacrosEnvironment {
-  static late final instance = MacrosEnvironment._();
+  static final instance = MacrosEnvironment._();
 
   final _resourceProvider = MemoryResourceProvider(context: package_path.posix);
   late final Uint8List platformDillBytes;

@@ -44,4 +44,19 @@ testPropagateToReturnType(U Function<T, U>(T, U Function(T)) f) {
   f(0, (x) => [x]).expectStaticType<Exactly<List<Object?>>>();
 }
 
+testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {
+  f(() => 0, null).expectStaticType<Exactly<int?>>();
+}
+
+testUnnecessaryDueToExplicitParameterType(List<int> list) {
+  var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
+  a.expectStaticType<Exactly<int?>>();
+}
+
+testUnnecessaryDueToExplicitParameterTypeNamed(
+    T Function<T>(T, T Function({required T x, required int y})) f) {
+  var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
+  a.expectStaticType<Exactly<int?>>();
+}
+
 main() {}

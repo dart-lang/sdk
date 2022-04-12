@@ -8,10 +8,10 @@ import 'package:test/test.dart';
 main() {
   test('single', () {
     // If there is just a single closure and no type variables, it is selected.
-    var f = Closure('f');
+    var f = Param('f');
     expect(
         _TestClosureDeps(typeVars: [], closures: [f])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {f}
         ]);
@@ -19,11 +19,11 @@ main() {
 
   test('simple dependency', () {
     // If f depends on g, then g is selected first, and then f.
-    var f = Closure('f', argTypes: ['T']);
-    var g = Closure('g', retTypes: ['T']);
+    var f = Param('f', argTypes: ['T']);
+    var g = Param('g', retTypes: ['T']);
     expect(
         _TestClosureDeps(typeVars: ['T'], closures: [f, g])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {g},
           {f}
@@ -33,12 +33,12 @@ main() {
   test('long chain', () {
     // If f depends on g and g depends on h, then we do three separate stages:
     // h, then g, then f.
-    var f = Closure('f', argTypes: ['T']);
-    var g = Closure('g', argTypes: ['U'], retTypes: ['T']);
-    var h = Closure('h', retTypes: ['U']);
+    var f = Param('f', argTypes: ['T']);
+    var g = Param('g', argTypes: ['U'], retTypes: ['T']);
+    var h = Param('h', retTypes: ['U']);
     expect(
         _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {h},
           {g},
@@ -49,12 +49,12 @@ main() {
   test('unrelated closure', () {
     // Closures that are independent of all the others are inferred during the
     // first stage.
-    var f = Closure('f', argTypes: ['T']);
-    var g = Closure('g', retTypes: ['T']);
-    var h = Closure('h');
+    var f = Param('f', argTypes: ['T']);
+    var g = Param('g', retTypes: ['T']);
+    var h = Param('h');
     expect(
         _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {g, h},
           {f}
@@ -64,13 +64,13 @@ main() {
   test('independent chains', () {
     // If f depends on g, and h depends on i, then g and i are selected first,
     // and then f and h.
-    var f = Closure('f', argTypes: ['T']);
-    var g = Closure('g', retTypes: ['T']);
-    var h = Closure('h', argTypes: ['U']);
-    var i = Closure('i', retTypes: ['U']);
+    var f = Param('f', argTypes: ['T']);
+    var g = Param('g', retTypes: ['T']);
+    var h = Param('h', argTypes: ['U']);
+    var i = Param('i', retTypes: ['U']);
     expect(
         _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h, i])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {g, i},
           {f, h}
@@ -80,13 +80,13 @@ main() {
   test('diamond', () {
     // Test a diamond dependency shape: f depends on g and h; g and h both
     // depend on i.
-    var f = Closure('f', argTypes: ['T', 'U']);
-    var g = Closure('g', argTypes: ['V'], retTypes: ['T']);
-    var h = Closure('h', argTypes: ['V'], retTypes: ['U']);
-    var i = Closure('i', retTypes: ['V']);
+    var f = Param('f', argTypes: ['T', 'U']);
+    var g = Param('g', argTypes: ['V'], retTypes: ['T']);
+    var h = Param('h', argTypes: ['V'], retTypes: ['U']);
+    var i = Param('i', retTypes: ['V']);
     expect(
         _TestClosureDeps(typeVars: ['T', 'U', 'V'], closures: [f, g, h, i])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {i},
           {g, h},
@@ -96,43 +96,59 @@ main() {
 
   test('cycle', () {
     // A dependency cycle is inferred all at once.
-    var f = Closure('f', argTypes: ['T']);
-    var g = Closure('g', argTypes: ['U']);
-    var h = Closure('h', argTypes: ['U'], retTypes: ['T']);
-    var i = Closure('i', argTypes: ['T'], retTypes: ['U']);
+    var f = Param('f', argTypes: ['T']);
+    var g = Param('g', argTypes: ['U']);
+    var h = Param('h', argTypes: ['U'], retTypes: ['T']);
+    var i = Param('i', argTypes: ['T'], retTypes: ['U']);
     expect(
         _TestClosureDeps(typeVars: ['T', 'U'], closures: [f, g, h, i])
-            .planClosureReconciliationStages(),
+            .planReconciliationStages(),
         [
           {h, i},
           {f, g}
         ]);
   });
+
+  test('dependency on undeferred param', () {
+    var f = Param('f', argTypes: ['T']);
+    var x = Param('x', retTypes: ['T']);
+    expect(
+        _TestClosureDeps(typeVars: ['T'], closures: [f], undeferredParams: [x])
+            .planReconciliationStages(),
+        [
+          <Param>{},
+          {f}
+        ]);
+  });
 }
 
-class Closure {
+class Param {
   final String name;
   final List<String> argTypes;
   final List<String> retTypes;
 
-  Closure(this.name, {this.argTypes = const [], this.retTypes = const []});
+  Param(this.name, {this.argTypes = const [], this.retTypes = const []});
 
   @override
   String toString() => name;
 }
 
-class _TestClosureDeps extends ClosureDependencies<String, Closure> {
+class _TestClosureDeps extends ClosureDependencies<String, Param, Param> {
   final List<String> typeVars;
-  final List<Closure> closures;
+  final List<Param> closures;
+  final List<Param> undeferredParams;
 
-  _TestClosureDeps({required this.typeVars, required this.closures})
-      : super(closures, typeVars);
+  _TestClosureDeps(
+      {required this.typeVars,
+      required this.closures,
+      this.undeferredParams = const []})
+      : super(closures, typeVars, undeferredParams);
 
   @override
-  Set<String> typeVarsFreeInClosureArguments(Closure closure) =>
+  Set<String> typeVarsFreeInParamParams(Param closure) =>
       closure.argTypes.toSet();
 
   @override
-  Set<String> typeVarsFreeInClosureReturns(Closure closure) =>
+  Set<String> typeVarsFreeInParamReturns(Param closure) =>
       closure.retTypes.toSet();
 }

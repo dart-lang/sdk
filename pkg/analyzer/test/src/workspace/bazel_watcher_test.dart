@@ -159,7 +159,7 @@ class BazelWatcherTest with ResourceProviderMixin {
     ];
     _MockPollTrigger? trigger1;
     _MockPollTrigger? trigger2;
-    var triggerFactory = (String workspace) {
+    _MockPollTrigger triggerFactory(String workspace) {
       if (workspace == convertPath('/workspace1')) {
         trigger1 = _MockPollTrigger();
         return trigger1!;
@@ -169,7 +169,8 @@ class BazelWatcherTest with ResourceProviderMixin {
       } else {
         throw ArgumentError('Got unexpected workspace: `$workspace`');
       }
-    };
+    }
+
     var recPort = ReceivePort();
     // Note that we provide below a dummy `ReceivePort` that will *not* be used.
     // We'll directly call `handleRequest` to avoid any problems with various
@@ -240,8 +241,8 @@ class BazelWatcherTest with ResourceProviderMixin {
 
     // The `_addResources`/`_deleteResources` functions recognize a folder by a
     // trailing `/`, but everywhere else we need to use normalized paths.
-    var addFolder = (path) => _addResources(['$path/']);
-    var deleteFolder = (path) => _deleteResources(['$path/']);
+    void addFolder(path) => _addResources(['$path/']);
+    void deleteFolder(path) => _deleteResources(['$path/']);
 
     var candidates = [
       convertPath('/workspace/bazel-out'),

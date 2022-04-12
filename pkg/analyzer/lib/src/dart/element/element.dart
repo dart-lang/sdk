@@ -40,6 +40,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -3677,6 +3678,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   /// The scope of this library, `null` if it has not been created yet.
   LibraryScope? _scope;
+
+  /// The macro executor for the bundle to which this library belongs.
+  BundleMacroExecutor? bundleMacroExecutor;
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].

@@ -4,136 +4,163 @@
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart';
 
-/// Data structure tracking the type inference dependencies between closures
-/// passed as invocation parameters.
+/// Data structure tracking the type inference dependencies between generic
+/// invocation parameters.
 ///
-/// [planClosureReconciliationStages] is used as part of support for
+/// [planReconciliationStages] is used as part of support for
 /// https://github.com/dart-lang/language/issues/731 (improved inference for
 /// fold etc.) to choose the proper order in which to recursively analyze
 /// closures passed as invocation arguments.
-abstract class ClosureDependencies<TypeVariable, Closure> {
-  final List<_ClosureNode<Closure>> _closureNodes = [];
+abstract class ClosureDependencies<TypeVariable, ParamInfo,
+    DeferredParamInfo extends ParamInfo> {
+  final List<_Node<ParamInfo>> _paramNodes = [];
 
   /// Construct a [ClosureDependencies] object that's prepared to determine the
-  /// order to resolve [closures] for a generic invocation involving the given
-  /// [typeVariables].
+  /// order to resolve [deferredParams] for a generic invocation involving the
+  /// given [typeVariables].
+  ///
+  /// [unDeferredParams] should contain information about any parameters
+  /// corresponding to arguments that have already been type inferred.
   ClosureDependencies(
-      Iterable<Closure> closures, Iterable<TypeVariable> typeVariables) {
-    Map<TypeVariable, Set<_ClosureNode<Closure>>> closuresDependingOnTypeVar =
-        {};
-    Map<TypeVariable, Set<_ClosureNode<Closure>>> closuresConstrainingTypeVar =
-        {};
-    for (Closure closure in closures) {
-      _ClosureNode<Closure> closureNode = new _ClosureNode<Closure>(closure);
-      _closureNodes.add(closureNode);
-      for (TypeVariable v in typeVarsFreeInClosureArguments(closure)) {
-        (closuresDependingOnTypeVar[v] ??= {}).add(closureNode);
+      Iterable<DeferredParamInfo> deferredParams,
+      Iterable<TypeVariable> typeVariables,
+      Iterable<ParamInfo> unDeferredParams) {
+    Map<TypeVariable, Set<_Node<ParamInfo>>> paramsDependingOnTypeVar = {};
+    Map<TypeVariable, Set<_Node<ParamInfo>>> paramsConstrainingTypeVar = {};
+    for (DeferredParamInfo param in deferredParams) {
+      _Node<ParamInfo> paramNode =
+          new _Node<ParamInfo>(param, isDeferred: true);
+      _paramNodes.add(paramNode);
+      for (TypeVariable v in typeVarsFreeInParamParams(param)) {
+        (paramsDependingOnTypeVar[v] ??= {}).add(paramNode);
       }
-      for (TypeVariable v in typeVarsFreeInClosureReturns(closure)) {
-        (closuresConstrainingTypeVar[v] ??= {}).add(closureNode);
+      for (TypeVariable v in typeVarsFreeInParamReturns(param)) {
+        (paramsConstrainingTypeVar[v] ??= {}).add(paramNode);
+      }
+    }
+    for (ParamInfo param in unDeferredParams) {
+      _Node<ParamInfo> paramNode =
+          new _Node<ParamInfo>(param, isDeferred: false);
+      _paramNodes.add(paramNode);
+      // Note: for un-deferred parameters, we only care about
+      // typeVarsFreeInParamReturns, because these parameters have already been
+      // analyzed, so they can't depend on other parameters.
+      for (TypeVariable v in typeVarsFreeInParamReturns(param)) {
+        (paramsConstrainingTypeVar[v] ??= {}).add(paramNode);
       }
     }
     for (TypeVariable typeVariable in typeVariables) {
-      for (_ClosureNode<Closure> closureNode
-          in closuresDependingOnTypeVar[typeVariable] ?? const {}) {
-        closureNode.dependencies
-            .addAll(closuresConstrainingTypeVar[typeVariable] ?? const {});
+      for (_Node<ParamInfo> paramNode
+          in paramsDependingOnTypeVar[typeVariable] ?? const {}) {
+        paramNode.dependencies
+            .addAll(paramsConstrainingTypeVar[typeVariable] ?? const {});
       }
     }
   }
 
-  /// Computes the order in which to resolve the closures passed to the
-  /// constructor.
+  /// Computes the order in which to resolve the deferred parameters passed to
+  /// the constructor.
   ///
-  /// Each entry in the returned list represents the set of closures that should
-  /// be visited during a single stage of resolution; after each stage, the
-  /// assignment of actual types to type variables should be refined.
+  /// Each entry in the returned list represents the set of parameters whose
+  /// corresponding arguments should be visited during a single stage of
+  /// resolution; after each stage, the assignment of actual types to type
+  /// variables should be refined.
   ///
-  /// So, for example, if the closures in question are A, B, and C, and the
-  /// returned list is `[{A, B}, {C}]`, then first closures A and B should be
+  /// So, for example, if the parameters in question are A, B, and C, and the
+  /// returned list is `[{A, B}, {C}]`, then first parameters A and B should be
   /// resolved, then the assignment of actual types to type variables should be
   /// refined, and then C should be resolved, and then the final assignment of
   /// actual types to type variables should be computed.
-  List<Set<Closure>> planClosureReconciliationStages() {
-    _DependencyWalker<Closure> walker = new _DependencyWalker<Closure>();
-    for (_ClosureNode<Closure> closureNode in _closureNodes) {
-      walker.walk(closureNode);
+  ///
+  /// Note that the first stage may be empty; when this happens, it means that
+  /// the assignment of actual types to type variables should be refined before
+  /// doing any visiting.
+  List<Set<DeferredParamInfo>> planReconciliationStages() {
+    _DependencyWalker<ParamInfo, DeferredParamInfo> walker =
+        new _DependencyWalker<ParamInfo, DeferredParamInfo>();
+    for (_Node<ParamInfo> paramNode in _paramNodes) {
+      walker.walk(paramNode);
     }
-    return walker.closureReconciliationStages;
+    return walker.reconciliationStages;
   }
 
-  /// If the type of the parameter corresponding to [closure] is a function
-  /// type, the set of type parameters referred to by the parameter types of
-  /// that parameter.  If the type of the parameter is not a function type, an
-  /// empty iterable should be returned.
+  /// If the type of the parameter corresponding to [param] is a function type,
+  /// the set of type parameters referred to by the parameter types of that
+  /// parameter.  If the type of the parameter is not a function type, an empty
+  /// iterable should be returned.
   ///
   /// Should be overridden by the client.
-  Iterable<TypeVariable> typeVarsFreeInClosureArguments(Closure closure);
+  Iterable<TypeVariable> typeVarsFreeInParamParams(DeferredParamInfo param);
 
-  /// If the type of the parameter corresponding to [closure] is a function
-  /// type, the set of type parameters referred to by the return type of that
+  /// If the type of the parameter corresponding to [param] is a function type,
+  /// the set of type parameters referred to by the return type of that
   /// parameter.  If the type of the parameter is not a function type, the set
   /// type parameters referred to by the type of the parameter should be
   /// returned.
   ///
   /// Should be overridden by the client.
-  Iterable<TypeVariable> typeVarsFreeInClosureReturns(Closure closure);
-}
-
-/// Node type representing a single [Closure] for purposes of walking the
-/// graph of type inference dependencies among closures.
-class _ClosureNode<Closure> extends Node<_ClosureNode<Closure>> {
-  /// The [Closure] being represented by this node.
-  final Closure closure;
-
-  /// If not `null`, the index of the reconciliation stage to which this closure
-  /// has been assigned.
-  int? stageNum;
-
-  /// The nodes for the closures depended on by this closure.
-  final List<_ClosureNode<Closure>> dependencies = [];
-
-  _ClosureNode(this.closure);
-
-  @override
-  bool get isEvaluated => stageNum != null;
-
-  @override
-  List<_ClosureNode<Closure>> computeDependencies() => dependencies;
+  Iterable<TypeVariable> typeVarsFreeInParamReturns(ParamInfo param);
 }
 
 /// Derived class of [DependencyWalker] capable of walking the graph of type
-/// inference dependencies among closures.
-class _DependencyWalker<Closure>
-    extends DependencyWalker<_ClosureNode<Closure>> {
-  /// The set of closure reconciliation stages accumulated so far.
-  final List<Set<Closure>> closureReconciliationStages = [];
+/// inference dependencies among parameters.
+class _DependencyWalker<ParamInfo, DeferredParamInfo extends ParamInfo>
+    extends DependencyWalker<_Node<ParamInfo>> {
+  /// The set of reconciliation stages accumulated so far.
+  final List<Set<DeferredParamInfo>> reconciliationStages = [];
 
   @override
-  void evaluate(_ClosureNode v) => evaluateScc([v]);
+  void evaluate(_Node<ParamInfo> v) => evaluateScc([v]);
 
   @override
-  void evaluateScc(List<_ClosureNode> nodes) {
+  void evaluateScc(List<_Node<ParamInfo>> nodes) {
     int stageNum = 0;
-    for (_ClosureNode node in nodes) {
-      for (_ClosureNode dependency in node.dependencies) {
+    for (_Node<ParamInfo> node in nodes) {
+      for (_Node<ParamInfo> dependency in node.dependencies) {
         int? dependencyStageNum = dependency.stageNum;
         if (dependencyStageNum != null && dependencyStageNum >= stageNum) {
           stageNum = dependencyStageNum + 1;
         }
       }
     }
-    if (closureReconciliationStages.length <= stageNum) {
-      closureReconciliationStages.add({});
+    if (reconciliationStages.length <= stageNum) {
+      reconciliationStages.add({});
       // `stageNum` can't grow by more than 1 each time `evaluateScc` is called,
       // so adding one stage is sufficient to make sure the list is now long
       // enough.
-      assert(stageNum < closureReconciliationStages.length);
+      assert(stageNum < reconciliationStages.length);
     }
-    Set<Closure> stage = closureReconciliationStages[stageNum];
-    for (_ClosureNode node in nodes) {
+    Set<DeferredParamInfo> stage = reconciliationStages[stageNum];
+    for (_Node<ParamInfo> node in nodes) {
       node.stageNum = stageNum;
-      stage.add(node.closure);
+      if (node.isDeferred) {
+        stage.add(node.param as DeferredParamInfo);
+      }
     }
   }
+}
+
+/// Node type representing a single parameter for purposes of walking the graph
+/// of type inference dependencies among parameters.
+class _Node<ParamInfo> extends Node<_Node<ParamInfo>> {
+  /// The [ParamInfo] represented by this node.
+  final ParamInfo param;
+
+  /// If not `null`, the index of the reconciliation stage to which this
+  /// parameter has been assigned.
+  int? stageNum;
+
+  /// The nodes for the parameters depended on by this parameter.
+  final List<_Node<ParamInfo>> dependencies = [];
+
+  /// Indicates whether this node represents a deferred parameter.
+  final bool isDeferred;
+
+  _Node(this.param, {required this.isDeferred});
+
+  @override
+  bool get isEvaluated => stageNum != null;
+
+  @override
+  List<_Node<ParamInfo>> computeDependencies() => dependencies;
 }

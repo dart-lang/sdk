@@ -45,6 +45,9 @@ Future<void> testFinalizerZone() async {
 
   // Now we have.
   Expect.equals(expectedZone, actualZone);
+
+  // Make sure finalizer is still reachable.
+  reachabilityFence(finalizer);
 }
 
 Future<void> testFinalizerException() async {
@@ -70,4 +73,7 @@ Future<void> testFinalizerException() async {
   Expect.isNull(caughtError);
   await yieldToMessageLoop();
   Expect.isNotNull(caughtError);
+
+  // Make sure finalizer is still reachable.
+  reachabilityFence(finalizer);
 }

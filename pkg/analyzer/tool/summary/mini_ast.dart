@@ -361,8 +361,7 @@ class MiniAstBuilder extends StackListener {
     var constructorName = popIfNotNull(periodBeforeName) as String?;
     pop(); // Type arguments
     var name = pop() as String;
-    push(Annotation(name, constructorName,
-        arguments == null ? null : arguments.cast<Expression>()));
+    push(Annotation(name, constructorName, arguments?.cast<Expression>()));
   }
 
   @override

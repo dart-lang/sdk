@@ -919,7 +919,7 @@ class _ElementWriter {
       if (uri.isScheme('file')) {
         uriStr = uri.pathSegments.last;
       }
-      buffer.write('$uriStr');
+      buffer.write(uriStr);
     } else {
       buffer.write('<unresolved>');
     }

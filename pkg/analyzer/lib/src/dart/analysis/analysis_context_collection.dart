@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -21,6 +23,9 @@ import 'package:analyzer/src/util/sdk.dart';
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
+
+  /// The instance of macro executor that is used for all macros.
+  final macro.MultiMacroExecutor? macroExecutor = macro.MultiMacroExecutor();
 
   /// The list of analysis contexts.
   @override
@@ -77,6 +82,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         updateAnalysisOptions: updateAnalysisOptions,
         fileContentCache: fileContentCache,
         macroKernelBuilder: macroKernelBuilder,
+        macroExecutor: macroExecutor,
       );
       contexts.add(context);
     }
@@ -107,6 +113,13 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     }
 
     throw StateError('Unable to find the context to $path');
+  }
+
+  void dispose() {
+    for (var analysisContext in contexts) {
+      analysisContext.driver.dispose();
+    }
+    macroExecutor?.close();
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].
