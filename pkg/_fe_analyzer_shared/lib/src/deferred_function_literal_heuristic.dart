@@ -27,9 +27,10 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
       Iterable<ParamInfo> unDeferredParams) {
     Map<TypeVariable, Set<_Node<ParamInfo>>> paramsDependingOnTypeVar = {};
     Map<TypeVariable, Set<_Node<ParamInfo>>> paramsConstrainingTypeVar = {};
+    int deferredParamIndex = 0;
     for (DeferredParamInfo param in deferredParams) {
       _Node<ParamInfo> paramNode =
-          new _Node<ParamInfo>(param, isDeferred: true);
+          new _Node<ParamInfo>(param, deferredParamIndex: deferredParamIndex++);
       _paramNodes.add(paramNode);
       for (TypeVariable v in typeVarsFreeInParamParams(param)) {
         (paramsDependingOnTypeVar[v] ??= {}).add(paramNode);
@@ -40,7 +41,7 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
     }
     for (ParamInfo param in unDeferredParams) {
       _Node<ParamInfo> paramNode =
-          new _Node<ParamInfo>(param, isDeferred: false);
+          new _Node<ParamInfo>(param, deferredParamIndex: null);
       _paramNodes.add(paramNode);
       // Note: for un-deferred parameters, we only care about
       // typeVarsFreeInParamReturns, because these parameters have already been
@@ -64,10 +65,12 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
   /// Each entry in the returned list represents the set of parameters whose
   /// corresponding arguments should be visited during a single stage of
   /// resolution; after each stage, the assignment of actual types to type
-  /// variables should be refined.
+  /// variables should be refined.  The list of parameters in each stage is
+  /// sorted to match the order of the `deferredParams` node passed to the
+  /// constructor.
   ///
   /// So, for example, if the parameters in question are A, B, and C, and the
-  /// returned list is `[{A, B}, {C}]`, then first parameters A and B should be
+  /// returned list is `[[A, B], [C]]`, then first parameters A and B should be
   /// resolved, then the assignment of actual types to type variables should be
   /// refined, and then C should be resolved, and then the final assignment of
   /// actual types to type variables should be computed.
@@ -75,13 +78,24 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
   /// Note that the first stage may be empty; when this happens, it means that
   /// the assignment of actual types to type variables should be refined before
   /// doing any visiting.
-  List<Set<DeferredParamInfo>> planReconciliationStages() {
+  List<List<DeferredParamInfo>> planReconciliationStages() {
     _DependencyWalker<ParamInfo, DeferredParamInfo> walker =
         new _DependencyWalker<ParamInfo, DeferredParamInfo>();
     for (_Node<ParamInfo> paramNode in _paramNodes) {
       walker.walk(paramNode);
     }
-    return walker.reconciliationStages;
+    List<_Node<ParamInfo>> _sortStage(List<_Node<ParamInfo>> stage) {
+      stage.sort((a, b) => a.deferredParamIndex! - b.deferredParamIndex!);
+      return stage;
+    }
+
+    return [
+      for (List<_Node<ParamInfo>> stage in walker.reconciliationStages)
+        [
+          for (_Node<ParamInfo> node in _sortStage(stage))
+            node.param as DeferredParamInfo
+        ]
+    ];
   }
 
   /// If the type of the parameter corresponding to [param] is a function type,
@@ -107,7 +121,7 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
 class _DependencyWalker<ParamInfo, DeferredParamInfo extends ParamInfo>
     extends DependencyWalker<_Node<ParamInfo>> {
   /// The set of reconciliation stages accumulated so far.
-  final List<Set<DeferredParamInfo>> reconciliationStages = [];
+  final List<List<_Node<ParamInfo>>> reconciliationStages = [];
 
   @override
   void evaluate(_Node<ParamInfo> v) => evaluateScc([v]);
@@ -124,17 +138,17 @@ class _DependencyWalker<ParamInfo, DeferredParamInfo extends ParamInfo>
       }
     }
     if (reconciliationStages.length <= stageNum) {
-      reconciliationStages.add({});
+      reconciliationStages.add([]);
       // `stageNum` can't grow by more than 1 each time `evaluateScc` is called,
       // so adding one stage is sufficient to make sure the list is now long
       // enough.
       assert(stageNum < reconciliationStages.length);
     }
-    Set<DeferredParamInfo> stage = reconciliationStages[stageNum];
+    List<_Node<ParamInfo>> stage = reconciliationStages[stageNum];
     for (_Node<ParamInfo> node in nodes) {
       node.stageNum = stageNum;
-      if (node.isDeferred) {
-        stage.add(node.param as DeferredParamInfo);
+      if (node.deferredParamIndex != null) {
+        stage.add(node);
       }
     }
   }
@@ -153,10 +167,11 @@ class _Node<ParamInfo> extends Node<_Node<ParamInfo>> {
   /// The nodes for the parameters depended on by this parameter.
   final List<_Node<ParamInfo>> dependencies = [];
 
-  /// Indicates whether this node represents a deferred parameter.
-  final bool isDeferred;
+  /// If this node represents a deferred parameter, the index of it in the list
+  /// of deferred parameters used to construct [FunctionLiteralDependencies].
+  final int? deferredParamIndex;
 
-  _Node(this.param, {required this.isDeferred});
+  _Node(this.param, {required this.deferredParamIndex});
 
   @override
   bool get isEvaluated => stageNum != null;

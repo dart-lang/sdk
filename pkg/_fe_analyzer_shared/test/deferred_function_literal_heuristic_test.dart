@@ -14,7 +14,7 @@ main() {
         _TestFunctionLiteralDeps(typeVars: [], functionLiterals: [f])
             .planReconciliationStages(),
         [
-          {f}
+          [f]
         ]);
   });
 
@@ -26,8 +26,8 @@ main() {
         _TestFunctionLiteralDeps(typeVars: ['T'], functionLiterals: [f, g])
             .planReconciliationStages(),
         [
-          {g},
-          {f}
+          [g],
+          [f]
         ]);
   });
 
@@ -42,9 +42,9 @@ main() {
             typeVars: ['T', 'U'],
             functionLiterals: [f, g, h]).planReconciliationStages(),
         [
-          {h},
-          {g},
-          {f}
+          [h],
+          [g],
+          [f]
         ]);
   });
 
@@ -59,8 +59,8 @@ main() {
             typeVars: ['T', 'U'],
             functionLiterals: [f, g, h]).planReconciliationStages(),
         [
-          {g, h},
-          {f}
+          [g, h],
+          [f]
         ]);
   });
 
@@ -76,8 +76,8 @@ main() {
             typeVars: ['T', 'U'],
             functionLiterals: [f, g, h, i]).planReconciliationStages(),
         [
-          {g, i},
-          {f, h}
+          [g, i],
+          [f, h]
         ]);
   });
 
@@ -93,9 +93,9 @@ main() {
             typeVars: ['T', 'U', 'V'],
             functionLiterals: [f, g, h, i]).planReconciliationStages(),
         [
-          {i},
-          {g, h},
-          {f}
+          [i],
+          [g, h],
+          [f]
         ]);
   });
 
@@ -110,8 +110,8 @@ main() {
             typeVars: ['T', 'U'],
             functionLiterals: [f, g, h, i]).planReconciliationStages(),
         [
-          {h, i},
-          {f, g}
+          [h, i],
+          [f, g]
         ]);
   });
 
@@ -124,8 +124,8 @@ main() {
             functionLiterals: [f],
             undeferredParams: [x]).planReconciliationStages(),
         [
-          <Param>{},
-          {f}
+          <Param>[],
+          [f]
         ]);
   });
 }

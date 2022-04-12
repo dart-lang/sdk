@@ -471,7 +471,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// Resolves any function literals that were deferred by [_visitArguments].
   void _resolveDeferredFunctionLiterals(
-      {required Iterable<_DeferredParamInfo> deferredFunctionLiterals,
+      {required List<_DeferredParamInfo> deferredFunctionLiterals,
       List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
