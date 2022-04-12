@@ -213,8 +213,12 @@ Future<_LoadFromSourceResult> _loadFromSource(
     fe.InitializedCompilerState initializedCompilerState,
     String targetName) async {
   bool verbose = false;
+  bool cfeConstants = options.features.cfeConstants.isEnabled;
+  Map<String, String> environment = cfeConstants ? options.environment : null;
   Target target = Dart2jsTarget(targetName, TargetFlags(),
-      options: options, canPerformGlobalTransforms: true);
+      options: options,
+      canPerformGlobalTransforms: true,
+      supportsUnevaluatedConstants: !cfeConstants);
   fe.FileSystem fileSystem = CompilerFileSystem(compilerInput);
   fe.Verbosity verbosity = options.verbosity;
   fe.DiagnosticMessageHandler onDiagnostic = (fe.DiagnosticMessage message) {
@@ -237,6 +241,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       ..librariesSpecificationUri = options.librariesSpecificationUri
       ..packagesFileUri = options.packageConfig
       ..explicitExperimentalFlags = options.explicitExperimentalFlags
+      ..environmentDefines = environment
       ..verbose = verbose
       ..fileSystem = fileSystem
       ..onDiagnostic = onDiagnostic
@@ -266,6 +271,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       dependencies,
       options.packageConfig,
       explicitExperimentalFlags: options.explicitExperimentalFlags,
+      environmentDefines: environment,
       nnbdMode:
           options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
       invocationModes: options.cfeInvocationModes,

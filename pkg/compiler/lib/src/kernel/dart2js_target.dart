@@ -71,9 +71,12 @@ class Dart2jsTarget extends Target {
 
   final CompilerOptions? options;
   final bool canPerformGlobalTransforms;
+  final bool supportsUnevaluatedConstants;
 
   Dart2jsTarget(this.name, this.flags,
-      {this.options, this.canPerformGlobalTransforms = true});
+      {this.options,
+      this.canPerformGlobalTransforms = true,
+      this.supportsUnevaluatedConstants = true});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -223,8 +226,8 @@ class Dart2jsTarget extends Target {
   }
 
   @override
-  ConstantsBackend get constantsBackend =>
-      const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
+  ConstantsBackend get constantsBackend => Dart2jsConstantsBackend(
+      supportsUnevaluatedConstants: supportsUnevaluatedConstants);
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
