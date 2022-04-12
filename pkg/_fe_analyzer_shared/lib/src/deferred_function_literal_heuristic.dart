@@ -10,18 +10,18 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart';
 /// [planReconciliationStages] is used as part of support for
 /// https://github.com/dart-lang/language/issues/731 (improved inference for
 /// fold etc.) to choose the proper order in which to recursively analyze
-/// closures passed as invocation arguments.
-abstract class ClosureDependencies<TypeVariable, ParamInfo,
+/// function literals passed as invocation arguments.
+abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
     DeferredParamInfo extends ParamInfo> {
   final List<_Node<ParamInfo>> _paramNodes = [];
 
-  /// Construct a [ClosureDependencies] object that's prepared to determine the
-  /// order to resolve [deferredParams] for a generic invocation involving the
-  /// given [typeVariables].
+  /// Construct a [FunctionLiteralDependencies] object that's prepared to
+  /// determine the order to resolve [deferredParams] for a generic invocation
+  /// involving the given [typeVariables].
   ///
   /// [unDeferredParams] should contain information about any parameters
   /// corresponding to arguments that have already been type inferred.
-  ClosureDependencies(
+  FunctionLiteralDependencies(
       Iterable<DeferredParamInfo> deferredParams,
       Iterable<TypeVariable> typeVariables,
       Iterable<ParamInfo> unDeferredParams) {
