@@ -24,11 +24,12 @@ const configuration = [
   Config("Uint16", "int", "Uint16List", 2),
   Config("Uint32", "int", "Uint32List", 4),
   Config("Uint64", "int", "Uint64List", 8),
-  Config("IntPtr", "int", kDoNotEmit, kIntPtrElementSize),
   Config("Float", "double", "Float32List", 4),
   Config("Double", "double", "Float64List", 8),
-  Config("Bool", "bool", kDoNotEmit, 1),
+  Config("Bool", "bool", kDoNotEmit, 1, since: Version(2, 15)),
 ];
+
+const arrayVersion = Version(2, 13);
 
 //
 // Generator.
@@ -81,8 +82,6 @@ void generatePublicExtension(
   final elementSize = config.elementSize;
 
   final bits = sizeOfBits(elementSize);
-  // final sizeInBytes =
-  // "${sizeOf(elementSize)} byte${elementSize != 1 ? "s" : ""}";
 
   String property;
   if (_isInt(nativeType)) {
@@ -178,9 +177,10 @@ $alignment  external $typedListType asTypedList(int length);
 """;
 
   if (container == "Pointer") {
+    final since = config.since?.sinceAnnotation ?? '';
     buffer.write("""
 /// Extension on [Pointer] specialized for the type argument [$nativeType].
-extension ${nativeType}Pointer on Pointer<$nativeType> {
+$since extension ${nativeType}Pointer on Pointer<$nativeType> {
   /// The $property at [address].
 $platform$truncate$alignment  external $dartType get value;
 
@@ -197,9 +197,11 @@ $asTypedList
 
 """);
   } else {
+    final since =
+        Version.latest(config.since, arrayVersion)?.sinceAnnotation ?? '';
     buffer.write("""
 /// Bounds checking indexing methods on [Array]s of [$nativeType].
-extension ${nativeType}Array on Array<$nativeType> {
+$since extension ${nativeType}Array on Array<$nativeType> {
   external $dartType operator [](int index);
 
   external void operator []=(int index, $dartType value);
@@ -288,32 +290,11 @@ void generateFooter(StringBuffer buffer) {
 bool _isInt(String type) => type.startsWith("Int") || type.startsWith("Uint");
 bool _isSigned(String type) => type.startsWith("Int");
 
-String sizeOf(int size) {
-  switch (size) {
-    case kIntPtrElementSize:
-      return "4 or 8";
-    default:
-      return "$size";
-  }
-}
+String sizeOf(int size) => "$size";
 
-String sizeOfBits(int size) {
-  switch (size) {
-    case kIntPtrElementSize:
-      return "32 or 64";
-    default:
-      return "${size * 8}";
-  }
-}
+String sizeOfBits(int size) => "${size * 8}";
 
-String sizeOfIntPtrSize(int size) {
-  switch (size) {
-    case kIntPtrElementSize:
-      return "_intPtrSize";
-    default:
-      return "$size";
-  }
-}
+String sizeOfIntPtrSize(int size) => "$size";
 
 String bracketOr(String input) {
   if (input.contains("or")) {
@@ -348,9 +329,32 @@ class Config {
   final String dartType;
   final String typedListType;
   final int elementSize;
+  final Version? since;
   const Config(
-      this.nativeType, this.dartType, this.typedListType, this.elementSize);
+      this.nativeType, this.dartType, this.typedListType, this.elementSize,
+      {Version? since})
+      : since = since;
 }
 
 const String kDoNotEmit = "donotemit";
-const int kIntPtrElementSize = -1;
+
+class Version {
+  final int major;
+  final int minor;
+
+  const Version(this.major, this.minor);
+
+  @override
+  String toString() => '$major.$minor';
+
+  static Version? latest(Version? a, Version? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    if (a.major > b.major) return a;
+    if (b.major > a.major) return b;
+    if (a.minor > b.minor) return a;
+    return b;
+  }
+
+  String get sinceAnnotation => "@Since('$this')";
+}

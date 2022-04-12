@@ -61,6 +61,7 @@ abstract class _Compound extends NativeType {
 /// by native memory or typed data. They may allocated via allocation or loaded
 /// from a [Pointer] or created by ffi calls or callbacks. They cannot be
 /// created by a generative constructor.
+@Since('2.12')
 abstract class Struct extends _Compound {
   /// Construct a reference to the [nullptr].
   ///
@@ -76,6 +77,7 @@ abstract class Struct extends _Compound {
 /// need to be packed.
 ///
 /// Valid values for [memberAlignment] are 1, 2, 4, 8, and 16.
+@Since('2.13')
 class Packed {
   final int memberAlignment;
 
