@@ -228,6 +228,11 @@ bool StoreBuffer::Overflowed() {
   return (full_.length() + partial_.length()) > kMaxNonEmpty;
 }
 
+intptr_t StoreBuffer::Size() {
+  MonitorLocker ml(&monitor_);
+  return full_.length() + partial_.length();
+}
+
 void StoreBuffer::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   for (Block* block = full_.Peek(); block != NULL; block = block->next()) {
     block->VisitObjectPointers(visitor);

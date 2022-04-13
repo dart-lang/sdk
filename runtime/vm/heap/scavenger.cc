@@ -1742,9 +1742,6 @@ void Scavenger::Scavenge(GCReason reason) {
   Thread* thread = Thread::Current();
   GcSafepointOperationScope safepoint_scope(thread);
 
-  int64_t safe_point = OS::GetCurrentMonotonicMicros();
-  heap_->RecordTime(kSafePoint, safe_point - start);
-
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
