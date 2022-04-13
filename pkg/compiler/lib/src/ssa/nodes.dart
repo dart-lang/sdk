@@ -185,7 +185,7 @@ abstract class HGraphVisitor {
     }
   }
 
-  visitBasicBlock(HBasicBlock block);
+  visitBasicBlock(HBasicBlock /*!*/ block);
 }
 
 class _Frame {
@@ -1032,9 +1032,9 @@ abstract class HInstruction implements Spannable {
   SourceInformation sourceInformation;
 
   final int id = idCounter++;
-  static int idCounter;
+  static int idCounter = 0;
 
-  final List<HInstruction> inputs;
+  final List<HInstruction /*!*/ > inputs;
   final List<HInstruction> usedBy = [];
 
   HBasicBlock block;

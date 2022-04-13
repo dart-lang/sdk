@@ -34,7 +34,7 @@ abstract class Entity implements Spannable {
 /// and/or Dart-in-JS classes.
 abstract class LibraryEntity extends Entity {
   /// Return the canonical uri that identifies this library.
-  Uri get canonicalUri;
+  Uri /*!*/ get canonicalUri;
 
   /// Returns whether or not this library has opted into null safety.
   bool get isNonNullableByDefault;
@@ -125,14 +125,14 @@ abstract class MemberEntity extends Entity {
   bool get isSetter;
 
   /// Whether this member is assignable, i.e. a non-final, non-const field.
-  bool get isAssignable;
+  bool /*!*/ get isAssignable;
 
   /// Whether this member is constant, i.e. a constant field or constructor.
-  bool get isConst;
+  bool /*!*/ get isConst;
 
   /// Whether this member is abstract, i.e. an abstract method, getter or
   /// setter.
-  bool get isAbstract;
+  bool /*!*/ get isAbstract;
 
   /// The enclosing class if this is a constructor, instance member or
   /// static member of a class.
@@ -156,7 +156,7 @@ abstract class FieldEntity extends MemberEntity {}
 abstract class FunctionEntity extends MemberEntity {
   /// Whether this function is external, i.e. the body is not defined in terms
   /// of Dart code.
-  bool get isExternal;
+  bool /*!*/ get isExternal;
 
   /// The structure of the function parameters.
   ParameterStructure get parameterStructure;

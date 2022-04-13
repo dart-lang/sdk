@@ -66,7 +66,7 @@ class KernelToElementMap implements IrToElementMap {
   final NativeBasicDataBuilder nativeBasicDataBuilder =
       NativeBasicDataBuilder();
   NativeBasicData _nativeBasicData;
-  KCommonElements _commonElements;
+  KCommonElements /*!*/ _commonElements;
   KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelDartTypes _types;
@@ -1686,7 +1686,9 @@ class KernelToElementMap implements IrToElementMap {
 
   IndexedFunction createGetter(LibraryEntity library,
       ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ bool isAbstract}) {
     return KGetter(library, enclosingClass, name, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
@@ -1697,9 +1699,9 @@ class KernelToElementMap implements IrToElementMap {
       Name name,
       ParameterStructure parameterStructure,
       AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ bool isAbstract}) {
     return KMethod(
         library, enclosingClass, name, parameterStructure, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
@@ -1707,14 +1709,18 @@ class KernelToElementMap implements IrToElementMap {
 
   IndexedFunction createSetter(
       LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ bool isAbstract}) {
     return KSetter(library, enclosingClass, name,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
   IndexedField createField(
       LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isAssignable,
+      /*required*/ bool isConst}) {
     return KField(library, enclosingClass, name,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
