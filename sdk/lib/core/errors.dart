@@ -96,8 +96,8 @@ class Error {
 
   /// Throws [error] with associated stack trace [stackTrace].
   ///
-  /// Behaves like <code>throw [error]</code> would
-  /// if the [current stack trace](StackTrace.current) was [stackTrace]
+  /// Behaves like `throw error` would
+  /// if the [current stack trace][StackTrace.current] was [stackTrace]
   /// at the time of the `throw`.
   ///
   /// Like for a `throw`, if [error] extends [Error], and it has not been
