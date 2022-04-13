@@ -187,7 +187,9 @@ class KMethod extends KFunction {
 
   KMethod(KLibrary library, KClass enclosingClass, Name name,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ this.isAbstract})
       : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -204,7 +206,9 @@ class KGetter extends KFunction {
 
   KGetter(KLibrary library, KClass enclosingClass, Name name,
       AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.getter,
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
@@ -221,7 +225,9 @@ class KSetter extends KFunction {
   final bool isAbstract;
 
   KSetter(KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.setter,
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
@@ -243,7 +249,9 @@ class KField extends KMember implements FieldEntity, IndexedField {
   final bool isConst;
 
   KField(KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, this.isAssignable, this.isConst})
+      {/*required*/ bool isStatic,
+      /*required*/ this.isAssignable,
+      /*required*/ this.isConst})
       : super(library, enclosingClass, name, isStatic: isStatic);
 
   @override

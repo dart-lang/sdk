@@ -104,9 +104,9 @@ abstract class ConstantValue {
   bool get isNegativeInfinity => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
-  DartType getType(CommonElements types);
+  DartType /*!*/ getType(CommonElements types);
 
-  List<ConstantValue> getDependencies();
+  List<ConstantValue /*!*/ > /*!*/ getDependencies();
 
   accept(ConstantValueVisitor visitor, arg);
 
@@ -135,9 +135,9 @@ abstract class ConstantValue {
 }
 
 class FunctionConstantValue extends ConstantValue {
-  final FunctionEntity element;
+  final FunctionEntity /*!*/ element;
   // TODO(johnniwinther): Should the type be derived from [element].
-  final FunctionType type;
+  final FunctionType /*!*/ type;
 
   FunctionConstantValue(this.element, this.type);
 
@@ -244,7 +244,7 @@ abstract class NumConstantValue extends PrimitiveConstantValue {
 }
 
 class IntConstantValue extends NumConstantValue {
-  final BigInt intValue;
+  final BigInt /*!*/ intValue;
 
   // Caching IntConstantValues representing -2 through 10 so that we don't have
   // to create new ones every time those values are used.
@@ -253,7 +253,7 @@ class IntConstantValue extends NumConstantValue {
   @override
   double get doubleValue => intValue.toDouble();
 
-  factory IntConstantValue(BigInt value) {
+  factory IntConstantValue(BigInt /*!*/ value) {
     var existing = _cachedValues[value];
     if (existing != null) return existing;
     var intConstantVal = IntConstantValue._internal(value);

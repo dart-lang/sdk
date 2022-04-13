@@ -53,7 +53,7 @@ import 'native_basic_data.dart';
 class KernelFrontendStrategy {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
-  KernelToElementMap _elementMap;
+  /*late*/ KernelToElementMap _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   KernelAnnotationProcessor _annotationProcessor;

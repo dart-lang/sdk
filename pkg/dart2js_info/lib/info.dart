@@ -26,8 +26,14 @@ abstract class Info {
   /// Info of the enclosing element.
   Info parent;
 
+  /// At which stage of the compiler this component was treeshaken.
+  TreeShakenStatus treeShakenStatus;
+
   T accept<T>(InfoVisitor<T> visitor);
 }
+
+/// Indicates at what stage of compilation the [Info] element was treeshaken.
+enum TreeShakenStatus { Dead, Live }
 
 /// Common information used for most kind of elements.
 // TODO(sigmund): add more:
@@ -42,6 +48,8 @@ abstract class BasicInfo implements Info {
   int size;
   @override
   Info parent;
+  @override
+  TreeShakenStatus treeShakenStatus = TreeShakenStatus.Dead;
 
   @override
   String name;

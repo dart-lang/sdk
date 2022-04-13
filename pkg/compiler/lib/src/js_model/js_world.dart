@@ -83,7 +83,7 @@ class JsClosedWorld implements JClosedWorld {
   final JsKernelToElementMap elementMap;
   @override
   final RuntimeTypesNeed rtiNeed;
-  AbstractValueDomain _abstractValueDomain;
+  AbstractValueDomain /*!*/ _abstractValueDomain;
   @override
   final JFieldAnalysis fieldAnalysis;
   @override

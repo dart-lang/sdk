@@ -70,7 +70,7 @@ class Compiler {
 
   KernelFrontendStrategy frontendStrategy;
   JsBackendStrategy backendStrategy;
-  DiagnosticReporter _reporter;
+  /*late*/ DiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
   GenericTask userHandlerTask;
   GenericTask userProviderTask;

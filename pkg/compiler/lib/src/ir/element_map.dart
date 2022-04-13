@@ -54,7 +54,7 @@ abstract class IrToElementMap {
   /// [node].
   TypeVariableEntity getTypeVariable(ir.TypeParameter node);
 
-  CommonElements get commonElements;
+  CommonElements /*!*/ get commonElements;
   DiagnosticReporter get reporter;
   ir.CoreTypes get coreTypes;
   InterfaceType getThisType(IndexedClass cls);

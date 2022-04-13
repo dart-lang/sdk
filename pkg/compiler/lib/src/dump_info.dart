@@ -1004,20 +1004,24 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         ..run();
 
       var allInfo = buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
+      // TODO(markzipan): Filter DumpInfo here instead of passing a filter
+      // filter flag through the serializers.
       if (useBinaryFormat) {
-        dumpInfoBinary(allInfo);
+        dumpInfoBinary(allInfo, filterTreeshaken: true);
       } else {
-        dumpInfoJson(allInfo);
+        dumpInfoJson(allInfo, filterTreeshaken: true);
       }
     });
   }
 
-  void dumpInfoJson(AllInfo data) {
+  void dumpInfoJson(AllInfo data, {bool filterTreeshaken = false}) {
     StringBuffer jsonBuffer = StringBuffer();
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         StringConversionSink.fromStringSink(jsonBuffer));
-    sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
+    sink.add(AllInfoJsonCodec(
+            isBackwardCompatible: true, filterTreeshaken: filterTreeshaken)
+        .encode(data));
     compiler.outputProvider.createOutputSink(
         compiler.options.outputUri.pathSegments.last,
         'info.json',
@@ -1031,8 +1035,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     });
   }
 
-  void dumpInfoBinary(AllInfo data) {
+  void dumpInfoBinary(AllInfo data, {bool filterTreeshaken = false}) {
     var name = compiler.options.outputUri.pathSegments.last + ".info.data";
+    // TODO(markzipan): Plumb [filterTreeshaken] through
+    // [BinaryOutputSinkAdapter].
     Sink<List<int>> sink = BinaryOutputSinkAdapter(compiler.outputProvider
         .createBinarySink(compiler.options.outputUri.resolve(name)));
     dump_info.encode(data, sink);
@@ -1137,6 +1143,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         // Don't register dart2js builtin functions that are not recorded.
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
+        if (useInfo.treeShakenStatus != TreeShakenStatus.Live) continue;
         info.uses.add(
             DependencyInfo(useInfo, selection.receiverConstraint?.toString()));
       }
@@ -1152,6 +1159,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Selection selection in uses) {
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
+        if (useInfo.treeShakenStatus != TreeShakenStatus.Live) continue;
         info.uses.add(
             DependencyInfo(useInfo, selection.receiverConstraint?.toString()));
       }
@@ -1164,6 +1172,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Entity inlined in inlineMap[entity]) {
         Info inlinedInfo = infoCollector._entityToInfo[inlined];
         if (inlinedInfo == null) continue;
+        if (inlinedInfo.treeShakenStatus != TreeShakenStatus.Live) continue;
         outerInfo.uses.add(DependencyInfo(inlinedInfo, 'inlined'));
       }
     }

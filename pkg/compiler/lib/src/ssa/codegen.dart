@@ -392,7 +392,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   /// If the [instruction] is not `null` it will be used to attach the position
   /// to the [expression].
-  push(js.Expression expression) {
+  push(js.Expression /*!*/ expression) {
     expressionStack.add(expression);
   }
 

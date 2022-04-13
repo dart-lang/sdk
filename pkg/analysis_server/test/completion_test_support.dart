@@ -81,17 +81,19 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
 
   Future runTest(LocationSpec spec, [Map<String, String>? extraFiles]) async {
     await super.setUp();
-    return Future(() {
-      var content = spec.source;
-      newFile2(testFile, content);
-      testCode = content;
+
+    try {
+      extraFiles?.forEach((String fileName, String content) {
+        newFile2(fileName, content);
+      });
+
+      newFile2(testFile.path, spec.source);
       completionOffset = spec.testLocation;
-      if (extraFiles != null) {
-        extraFiles.forEach((String fileName, String content) {
-          newFile2(fileName, content);
-        });
-      }
-    }).then((_) => getSuggestions()).then((_) {
+      await getSuggestions(
+        path: testFile.path,
+        completionOffset: completionOffset,
+      );
+
       filterResults(spec.source);
       for (var result in spec.positiveResults) {
         assertHasCompletion(result);
@@ -99,9 +101,9 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
       for (var result in spec.negativeResults) {
         assertHasNoCompletion(result);
       }
-    }).whenComplete(() {
+    } finally {
       super.tearDown();
-    });
+    }
   }
 }
 
