@@ -1,4 +1,4 @@
-## 4.0.0 (Not yet released - breaking changes)
+## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.
 * Removed deprecated `LibraryElement.hasExtUri`.
 * Removed deprecated `LibraryElement.hasLoadLibraryFunction`.
