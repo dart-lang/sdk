@@ -184,6 +184,8 @@ class Flags {
   // Experimental flags.
   static const String resolveOnly = '--resolve-only';
 
+  static const String cfeConstants = '--cfe-constants';
+
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.
   // Shipping features default to on, but can be disabled individually. All

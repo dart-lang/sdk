@@ -1100,7 +1100,7 @@ void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
   }
 }
 
-void PageSpace::CollectGarbage(bool compact, bool finalize) {
+void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
   ASSERT(GrowthControlState());
 
   if (!finalize) {
@@ -1112,16 +1112,11 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
 #endif
   }
 
-  Thread* thread = Thread::Current();
-  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
   GcSafepointOperationScope safepoint_scope(thread);
 
-  const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
   // Wait for pending tasks to complete and then account for the driver task.
-  Phase waited_for;
   {
     MonitorLocker locker(tasks_lock());
-    waited_for = phase();
     if (!finalize &&
         (phase() == kMarking || phase() == kAwaitingFinalization)) {
       // Concurrent mark is already running.
@@ -1136,26 +1131,11 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
     set_tasks(1);
   }
 
-  if (FLAG_verbose_gc) {
-    const int64_t wait =
-        OS::GetCurrentMonotonicMicros() - pre_wait_for_sweepers;
-    if (waited_for == kMarking) {
-      THR_Print("Waited %" Pd64 " us for concurrent marking to finish.\n",
-                wait);
-    } else if (waited_for == kSweepingRegular || waited_for == kSweepingLarge) {
-      THR_Print("Waited %" Pd64 " us for concurrent sweeping to finish.\n",
-                wait);
-    }
-  }
-
   // Ensure that all threads for this isolate are at a safepoint (either
   // stopped or in native code). We have guards around Newgen GC and oldgen GC
   // to ensure that if two threads are racing to collect at the same time the
   // loser skips collection and goes straight to allocation.
-  {
-    CollectGarbageHelper(compact, finalize, pre_wait_for_sweepers,
-                         pre_safe_point);
-  }
+  CollectGarbageHelper(thread, compact, finalize);
 
   // Done, reset the task count.
   {
@@ -1165,11 +1145,9 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 }
 
-void PageSpace::CollectGarbageHelper(bool compact,
-                                     bool finalize,
-                                     int64_t pre_wait_for_sweepers,
-                                     int64_t pre_safe_point) {
-  Thread* thread = Thread::Current();
+void PageSpace::CollectGarbageHelper(Thread* thread,
+                                     bool compact,
+                                     bool finalize) {
   ASSERT(thread->IsAtSafepoint());
   auto isolate_group = heap_->isolate_group();
   ASSERT(isolate_group == IsolateGroup::Current());
@@ -1182,7 +1160,7 @@ void PageSpace::CollectGarbageHelper(bool compact,
       [&](Isolate* isolate) { isolate->field_table()->FreeOldTables(); },
       /*at_safepoint=*/true);
 
-  NoSafepointScope no_safepoints;
+  NoSafepointScope no_safepoints(thread);
 
   if (FLAG_print_free_list_before_gc) {
     for (intptr_t i = 0; i < num_freelists_; i++) {
@@ -1224,8 +1202,6 @@ void PageSpace::CollectGarbageHelper(bool compact,
   delete marker_;
   marker_ = NULL;
 
-  int64_t mid1 = OS::GetCurrentMonotonicMicros();
-
   // Abandon the remainder of the bump allocation block.
   AbandonBumpAllocation();
   // Reset the freelists and setup sweeping.
@@ -1233,19 +1209,15 @@ void PageSpace::CollectGarbageHelper(bool compact,
     freelists_[i].Reset();
   }
 
-  int64_t mid2 = OS::GetCurrentMonotonicMicros();
-  int64_t mid3 = 0;
+  if (FLAG_verify_before_gc) {
+    OS::PrintErr("Verifying before sweeping...");
+    heap_->VerifyGC(kAllowMarked);
+    OS::PrintErr(" done.\n");
+  }
 
   {
-    if (FLAG_verify_before_gc) {
-      OS::PrintErr("Verifying before sweeping...");
-      heap_->VerifyGC(kAllowMarked);
-      OS::PrintErr(" done.\n");
-    }
-
     // Executable pages are always swept immediately to simplify
     // code protection.
-
     TIMELINE_FUNCTION_GC_DURATION(thread, "SweepExecutable");
     GCSweeper sweeper;
     OldPage* prev_page = NULL;
@@ -1263,8 +1235,6 @@ void PageSpace::CollectGarbageHelper(bool compact,
       // Advance to the next page.
       page = next_page;
     }
-
-    mid3 = OS::GetCurrentMonotonicMicros();
   }
 
   bool has_reservation = MarkReservation();
@@ -1314,13 +1284,6 @@ void PageSpace::CollectGarbageHelper(bool compact,
   // Record signals for growth control. Include size of external allocations.
   page_space_controller_.EvaluateGarbageCollection(
       usage_before, GetCurrentUsage(), start, end);
-
-  heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
-  heap_->RecordTime(kSafePoint, start - pre_safe_point);
-  heap_->RecordTime(kMarkObjects, mid1 - start);
-  heap_->RecordTime(kResetFreeLists, mid2 - mid1);
-  heap_->RecordTime(kSweepPages, mid3 - mid2);
-  heap_->RecordTime(kSweepLargePages, end - mid3);
 
   if (FLAG_print_free_list_after_gc) {
     for (intptr_t i = 0; i < num_freelists_; i++) {
@@ -1748,8 +1711,8 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   if (FLAG_log_growth || FLAG_verbose_gc) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
               heap_->isolate_group()->source()->name,
-              hard_gc_threshold_in_words_ / KBInWords,
-              idle_gc_threshold_in_words_ / KBInWords, reason);
+              RoundWordsToKB(hard_gc_threshold_in_words_),
+              RoundWordsToKB(idle_gc_threshold_in_words_), reason);
   }
 }
 
