@@ -55,7 +55,7 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       SerializationMode serializationMode,
       String programPath,
       List<String> arguments) async {
-    late ServerSocket serverSocket;
+    ServerSocket serverSocket;
     // Try an ipv6 address loopback first, and fall back on ipv4.
     try {
       serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
