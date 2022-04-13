@@ -1037,7 +1037,8 @@ void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
     Assembler* assembler) {
   GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
+      assembler, /*save_fpu_registers=*/false,
+      &kInterruptOrStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/true);
 }
@@ -1045,7 +1046,8 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
 void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
     Assembler* assembler) {
   GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
+      assembler, /*save_fpu_registers=*/true,
+      &kInterruptOrStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
       /*allow_return=*/true);
 }

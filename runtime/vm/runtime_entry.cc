@@ -2853,7 +2853,7 @@ static void HandleOSRRequest(Thread* thread) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
+DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
   // If simulator was never called it may return 0 as a value of SPREG.
