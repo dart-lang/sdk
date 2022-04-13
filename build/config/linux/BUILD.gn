@@ -35,10 +35,6 @@ config("sdk") {
       ]
     }
   }
-
-  if (is_qemu) {
-    cflags += [ "-DDART_RUN_IN_QEMU_ARMv7" ]
-  }
 }
 
 config("executable_config") {
