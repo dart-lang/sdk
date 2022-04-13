@@ -277,6 +277,7 @@ class ModularAnalysisStep extends IOModularStep {
         '${Flags.sources}=${sources.join(',')}'
       else
         '${Flags.inputDill}=${toUri(module, dillId)}',
+      '${Flags.cfeConstants}',
       if (dillDependencies.isNotEmpty)
         '--dill-dependencies=${dillDependencies.join(',')}',
       '--out=${toUri(module, modularUpdatedDillId)}',
@@ -363,10 +364,13 @@ class ConcatenateDillsStep extends IOModularStep {
 class ComputeClosedWorldStep extends IOModularStep {
   final bool useModularAnalysis;
 
+  DataId get idForDill =>
+      useModularAnalysis ? modularUpdatedDillId : fullDillId;
+
   ComputeClosedWorldStep({this.useModularAnalysis});
 
   List<DataId> get dependencies => [
-        fullDillId,
+        idForDill,
         if (useModularAnalysis) modularDataId,
       ];
 
@@ -391,6 +395,8 @@ class ComputeClosedWorldStep extends IOModularStep {
     if (_options.verbose)
       print("\nstep: dart2js compute closed world on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    Iterable<String> dillDependencies =
+        transitiveDependencies.map((m) => '${toUri(m, idForDill)}');
     List<String> dataDependencies = transitiveDependencies
         .map((m) => '${toUri(m, modularDataId)}')
         .toList();
@@ -401,8 +407,12 @@ class ComputeClosedWorldStep extends IOModularStep {
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${Flags.inputDill}=${toUri(module, fullDillId)}',
+      '${Flags.inputDill}=${toUri(module, idForDill)}',
       for (String flag in flags) '--enable-experiment=$flag',
+      if (useModularAnalysis) ...[
+        '${Flags.dillDependencies}=${dillDependencies.join(',')}',
+        '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
+      ],
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
       Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',
