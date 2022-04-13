@@ -318,8 +318,7 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
   }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
-  return new DelayedDefaultValueCloner(
-      substitutionMap, target.function!, tearOff.function,
+  return new DelayedDefaultValueCloner(target, tearOff, substitutionMap,
       identicalSignatures: false, libraryBuilder: libraryBuilder);
 }
 

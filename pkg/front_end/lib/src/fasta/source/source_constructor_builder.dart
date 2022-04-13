@@ -426,7 +426,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
     if (positionalSuperParameters != null || namedSuperParameters != null) {
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          substitution, superTarget.function, constructor.function,
+          superTarget, constructor, substitution,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
           isOutlineNode: true,

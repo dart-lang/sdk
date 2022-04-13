@@ -28,10 +28,10 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
       String search, bool includePotential) async {
     var offset = findOffset(search);
     await waitForTasksFinished();
-    var request =
-        SearchFindElementReferencesParams(testFile, offset, includePotential)
-            .toRequest('0');
-    var response = await waitResponse(request);
+    var request = SearchFindElementReferencesParams(
+            testFile.path, offset, includePotential)
+        .toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
     searchElement = result.element;

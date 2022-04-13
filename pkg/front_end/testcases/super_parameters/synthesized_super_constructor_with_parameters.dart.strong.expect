@@ -161,7 +161,7 @@ class B9 extends core::Object {
     ;
 }
 class C9 = syn::A9 with self::B9 {
-  synthetic constructor •([core::int? a = #C3]) → self::C9
+  synthetic constructor •([core::int? a]) → self::C9
     : super syn::A9::•(a)
     ;
 }
@@ -210,7 +210,7 @@ class B8 extends core::Object {
     ;
 }
 class C8 = syn::A8 with syn::B8 {
-  synthetic constructor •({core::int? a = #C3}) → syn::C8
+  synthetic constructor •({core::int? a}) → syn::C8
     : super syn::A8::•(a: a)
     ;
 }

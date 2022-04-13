@@ -22,7 +22,7 @@ class DeclarationsTest extends AbstractSearchDomainTest {
   ElementDeclaration assertHas(String name, ElementKind kind,
       {String? className, String? mixinName}) {
     return declarationsResult.declarations.singleWhere((ElementDeclaration d) =>
-        declarationsResult.files[d.fileIndex] == testFile &&
+        declarationsResult.files[d.fileIndex] == testFile.path &&
         d.name == name &&
         d.kind == kind &&
         d.className == className &&
@@ -33,7 +33,7 @@ class DeclarationsTest extends AbstractSearchDomainTest {
     expect(
         declarationsResult.declarations,
         isNot(contains(predicate((ElementDeclaration d) =>
-            declarationsResult.files[d.fileIndex] == testFile &&
+            declarationsResult.files[d.fileIndex] == testFile.path &&
             d.name == name))));
   }
 
@@ -83,11 +83,11 @@ enum E {
   }
 
   Future<void> test_maxResults() async {
-    newFile2(join(testFolder, 'a.dart'), r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''').path;
-    newFile2(join(testFolder, 'b.dart'), r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 class C {}
 class D {}
 ''').path;
@@ -124,8 +124,8 @@ mixin M {
   }
 
   Future<void> test_multipleFiles() async {
-    var a = newFile2(join(testFolder, 'a.dart'), 'class A {}').path;
-    var b = newFile2(join(testFolder, 'b.dart'), 'class B {}').path;
+    var a = newFile2('$testPackageLibPath/a.dart', 'class A {}').path;
+    var b = newFile2('$testPackageLibPath/b.dart', 'class B {}').path;
 
     await _getDeclarations();
 
@@ -153,8 +153,8 @@ mixin M {
   }
 
   Future<void> test_onlyForFile() async {
-    var a = newFile2(join(testFolder, 'a.dart'), 'class A {}').path;
-    newFile2(join(testFolder, 'b.dart'), 'class B {}').path;
+    var a = newFile2('$testPackageLibPath/a.dart', 'class A {}').path;
+    newFile2('$testPackageLibPath/b.dart', 'class B {}').path;
 
     await _getDeclarations(file: a);
 
@@ -218,7 +218,7 @@ typedef td3 = double;
     var request = SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)
         .toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
 
     declarationsResult =
         SearchGetElementDeclarationsResult.fromResponse(response);

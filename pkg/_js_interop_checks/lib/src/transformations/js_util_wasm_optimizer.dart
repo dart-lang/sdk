@@ -7,7 +7,8 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../js_interop.dart' show getJSName, hasStaticInteropAnnotation;
+import '../js_interop.dart'
+    show getJSName, hasStaticInteropAnnotation, hasJSInteropAnnotation;
 
 /// Replaces:
 ///   1) Factory constructors in classes with `@staticInterop` annotations with
@@ -101,13 +102,30 @@ class JsUtilWasmOptimizer extends Transformer {
         if (nodeDescriptor != null) {
           if (!nodeDescriptor.isStatic) {
             if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
-              transformedBody = _getExternalGetterBody(node);
+              transformedBody = _getExternalExtensionGetterBody(node);
             } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
-              transformedBody = _getExternalSetterBody(node);
+              transformedBody = _getExternalExtensionSetterBody(node);
             } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
-              transformedBody = _getExternalMethodBody(node);
+              transformedBody = _getExternalExtensionMethodBody(node);
             }
           }
+        }
+      } else if (hasJSInteropAnnotation(node)) {
+        String selectorString = getJSName(node);
+        late Expression target;
+        if (selectorString.isEmpty) {
+          target = _globalThis;
+        } else {
+          List<String> selectors = selectorString.split('.');
+          target = getObjectOffGlobalThis(node, selectors);
+        }
+        if (node.isGetter) {
+          transformedBody = _getExternalTopLevelGetterBody(node, target);
+        } else if (node.isSetter) {
+          transformedBody = _getExternalTopLevelSetterBody(node, target);
+        } else {
+          assert(node.kind == ProcedureKind.Method);
+          transformedBody = _getExternalTopLevelMethodBody(node, target);
         }
       }
     }
@@ -146,6 +164,22 @@ class JsUtilWasmOptimizer extends Transformer {
   Expression _jsifyVariable(VariableDeclaration variable) =>
       StaticInvocation(_jsifyTarget, Arguments([VariableGet(variable)]));
 
+  StaticInvocation get _globalThis =>
+      StaticInvocation(_globalThisTarget, Arguments([]));
+
+  /// Takes a list of [selectors] and returns an object off of
+  /// `globalThis`. We could optimize this with a custom method built with
+  /// js_ast.
+  Expression getObjectOffGlobalThis(Procedure node, List<String> selectors) {
+    Expression currentTarget = _globalThis;
+    for (String selector in selectors) {
+      currentTarget = _dartify(StaticInvocation(_getPropertyTarget,
+          Arguments([currentTarget, StringLiteral(selector)])))
+        ..fileOffset = node.fileOffset;
+    }
+    return currentTarget;
+  }
+
   /// Returns a new function body for the given [node] external method.
   ///
   /// The new function body will call `js_util_wasm.callConstructorVarArgs`
@@ -156,7 +190,7 @@ class JsUtilWasmOptimizer extends Transformer {
     var callConstructorInvocation = StaticInvocation(
         _callConstructorTarget,
         Arguments([
-          StaticInvocation(_globalThisTarget, Arguments([])),
+          _globalThis,
           StringLiteral(constructorName),
           ListLiteral(
               function.positionalParameters.map(_jsifyVariable).toList(),
@@ -171,61 +205,79 @@ class JsUtilWasmOptimizer extends Transformer {
 
   /// Returns a new function body for the given [node] external getter.
   ///
-  /// The new function body will call `js_util_wasm.getProperty` for the
-  /// given external getter.
-  ReturnStatement _getExternalGetterBody(Procedure node) {
-    var function = node.function;
-    assert(function.positionalParameters.length == 1);
-    var getPropertyInvocation = _dartify(StaticInvocation(
-        _getPropertyTarget,
-        Arguments([
-          VariableGet(function.positionalParameters.first),
-          StringLiteral(_getExtensionMemberName(node))
-        ])))
+  /// The new function body is equivalent to:
+  /// `js_util_wasm.getProperty([object], [getterName])`.
+  ReturnStatement _getExternalGetterBody(
+      Procedure node, Expression object, String getterName) {
+    final getPropertyInvocation = _dartify(StaticInvocation(
+        _getPropertyTarget, Arguments([object, StringLiteral(getterName)])))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(getPropertyInvocation);
   }
 
+  ReturnStatement _getExternalExtensionGetterBody(Procedure node) =>
+      _getExternalGetterBody(
+          node,
+          VariableGet(node.function.positionalParameters.single),
+          _getExtensionMemberName(node));
+
+  ReturnStatement _getExternalTopLevelGetterBody(
+          Procedure node, Expression target) =>
+      _getExternalGetterBody(node, target, node.name.text);
+
   /// Returns a new function body for the given [node] external setter.
   ///
-  /// The new function body will call `js_util_wasm.setProperty` for
-  /// the given external setter.
-  ReturnStatement _getExternalSetterBody(Procedure node) {
-    var function = node.function;
-    assert(function.positionalParameters.length == 2);
-    var value = function.positionalParameters.last;
-    var setPropertyInvocation = _dartify(StaticInvocation(
-        _setPropertyTarget,
-        Arguments([
-          VariableGet(function.positionalParameters.first),
-          StringLiteral(_getExtensionMemberName(node)),
-          _jsifyVariable(value)
-        ])))
+  /// The new function body is equivalent to:
+  /// `js_util_wasm.setProperty([object], [setterName], [value])`.
+  ReturnStatement _getExternalSetterBody(Procedure node, Expression object,
+      String setterName, VariableDeclaration value) {
+    final setPropertyInvocation = _dartify(StaticInvocation(_setPropertyTarget,
+        Arguments([object, StringLiteral(setterName), _jsifyVariable(value)])))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(setPropertyInvocation);
   }
 
+  ReturnStatement _getExternalExtensionSetterBody(Procedure node) {
+    final parameters = node.function.positionalParameters;
+    assert(parameters.length == 2);
+    return _getExternalSetterBody(node, VariableGet(parameters.first),
+        _getExtensionMemberName(node), parameters.last);
+  }
+
+  ReturnStatement _getExternalTopLevelSetterBody(
+          Procedure node, Expression target) =>
+      _getExternalSetterBody(node, target, node.name.text,
+          node.function.positionalParameters.single);
+
   /// Returns a new function body for the given [node] external method.
   ///
-  /// The new function body will call `js_util_wasm.callMethodVarArgs` for
-  /// the given external method.
-  ReturnStatement _getExternalMethodBody(Procedure node) {
-    var function = node.function;
-    var callMethodInvocation = _dartify(StaticInvocation(
+  /// The new function body is equivalent to:
+  /// `js_util_wasm.callMethodVarArgs([object], [methodName], [values])`.
+  ReturnStatement _getExternalMethodBody(Procedure node, Expression object,
+      String methodName, List<VariableDeclaration> values) {
+    final callMethodInvocation = _dartify(StaticInvocation(
         _callMethodTarget,
         Arguments([
-          VariableGet(function.positionalParameters.first),
-          StringLiteral(_getExtensionMemberName(node)),
-          ListLiteral(
-              function.positionalParameters
-                  .sublist(1)
-                  .map(_jsifyVariable)
-                  .toList(),
+          object,
+          StringLiteral(methodName),
+          ListLiteral(values.map(_jsifyVariable).toList(),
               typeArgument: _nullableJSValueType)
         ])))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(callMethodInvocation);
   }
+
+  ReturnStatement _getExternalExtensionMethodBody(Procedure node) {
+    final parameters = node.function.positionalParameters;
+    assert(parameters.length > 0);
+    return _getExternalMethodBody(node, VariableGet(parameters.first),
+        _getExtensionMemberName(node), parameters.sublist(1));
+  }
+
+  ReturnStatement _getExternalTopLevelMethodBody(
+          Procedure node, Expression target) =>
+      _getExternalMethodBody(
+          node, target, node.name.text, node.function.positionalParameters);
 
   /// Returns the extension member name.
   ///

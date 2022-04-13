@@ -139,8 +139,7 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners =
-      <DelayedDefaultValueCloner>[];
+  final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
 
   final UriTranslator uriTranslator;
 
@@ -544,8 +543,11 @@ class KernelTarget extends TargetImplementation {
       loader.checkMixins(sourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
+      // TODO(johnniwinther): Add an interface for registering delayed actions.
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
       loader.buildOutlineExpressions(
-          loader.hierarchy, _delayedDefaultValueCloners);
+          loader.hierarchy, delayedDefaultValueCloners);
+      delayedDefaultValueCloners.forEach(registerDelayedDefaultValueCloner);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
@@ -1048,19 +1050,6 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
-    DelayedDefaultValueCloner delayedDefaultValueCloner =
-        new DelayedDefaultValueCloner(
-            substitutionMap, superConstructor.function, function,
-            libraryBuilder: classBuilder.libraryBuilder);
-    if (!isConst) {
-      // For constant constructors default values are computed and cloned part
-      // of the outline expression and therefore passed to the
-      // [SyntheticConstructorBuilder] below.
-      //
-      // For non-constant constructors default values are cloned as part of the
-      // full compilation using [_delayedDefaultValueCloners].
-      _delayedDefaultValueCloners.add(delayedDefaultValueCloner);
-    }
     Constructor constructor = new Constructor(function,
         name: superConstructor.name,
         initializers: <Initializer>[initializer],
@@ -1073,6 +1062,19 @@ class KernelTarget extends TargetImplementation {
       //..fileOffset = cls.fileOffset
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+    DelayedDefaultValueCloner delayedDefaultValueCloner =
+        new DelayedDefaultValueCloner(
+            superConstructor, constructor, substitutionMap,
+            libraryBuilder: classBuilder.libraryBuilder);
+    if (!isConst) {
+      // For constant constructors default values are computed and cloned part
+      // of the outline expression and therefore passed to the
+      // [SyntheticConstructorBuilder] below.
+      //
+      // For non-constant constructors default values are cloned as part of the
+      // full compilation using [_delayedDefaultValueCloners].
+      registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
+    }
 
     TypeDependency? typeDependency;
     if (hasTypeDependency) {
@@ -1109,11 +1111,30 @@ class KernelTarget extends TargetImplementation {
     return constructorBuilder;
   }
 
+  void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
+    // TODO(johnniwinther): Avoid re-registration of cloners.
+    assert(
+        !_delayedDefaultValueCloners.containsKey(cloner.synthesized) ||
+            _delayedDefaultValueCloners[cloner.synthesized] == cloner,
+        "Default cloner already registered for ${cloner.synthesized}.");
+    _delayedDefaultValueCloners[cloner.synthesized] = cloner;
+  }
+
   void finishSynthesizedParameters({bool forOutline = false}) {
+    void cloneDefaultValues(
+        DelayedDefaultValueCloner delayedDefaultValueCloner) {
+      DelayedDefaultValueCloner? originalCloner =
+          _delayedDefaultValueCloners[delayedDefaultValueCloner.original];
+      if (originalCloner != null) {
+        cloneDefaultValues(originalCloner);
+      }
+      delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
+    }
+
     for (DelayedDefaultValueCloner delayedDefaultValueCloner
-        in _delayedDefaultValueCloners) {
+        in _delayedDefaultValueCloners.values) {
       if (!forOutline || delayedDefaultValueCloner.isOutlineNode) {
-        delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
+        cloneDefaultValues(delayedDefaultValueCloner);
       }
     }
     if (!forOutline) {

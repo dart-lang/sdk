@@ -13,7 +13,6 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HoverTest);
-    defineReflectiveTests(HoverWithNullSafetyTest);
   });
 }
 
@@ -137,6 +136,29 @@ print();
     await openFile(pubspecFileUri, simplePubspecContent);
     final hover = await getHover(pubspecFileUri, startOfDocPos);
     expect(hover, isNull);
+  }
+
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? [[a^bc]];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+String? abc
+```
+Type: `String?`
+*package:test/main.dart*
+    '''
+        .trim();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    expect(_getStringContents(hover), equals(expectedHoverContent));
   }
 
   Future<void> test_plainText_simple() async {
@@ -338,34 +360,5 @@ Type: `String`
       (t1) => t1,
       (t2) => throw 'Hover contents were MarkupContent, not String',
     );
-  }
-}
-
-@reflectiveTest
-class HoverWithNullSafetyTest extends HoverTest {
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  Future<void> test_nullableTypes() async {
-    final content = '''
-    String? [[a^bc]];
-    ''';
-
-    final expectedHoverContent = '''
-```dart
-String? abc
-```
-Type: `String?`
-*package:test/main.dart*
-    '''
-        .trim();
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    expect(_getStringContents(hover), equals(expectedHoverContent));
   }
 }

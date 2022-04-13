@@ -251,10 +251,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
       InterfaceType targetType = typedef.type as InterfaceType;
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+          target,
+          tearOff,
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
-          target.function!,
-          tearOff.function,
           libraryBuilder: libraryBuilder));
     });
   }
