@@ -1523,9 +1523,11 @@ abstract class ParameterElement
   /// parameters are always positional, unless the experiment 'non-nullable' is
   /// enabled, in which case named parameters can also be required.
   ///
-  /// Note: regardless of the state of the 'non-nullable' experiment, this will
-  /// return `false` for a named parameter that is annotated with the
-  /// `@required` annotation.
+  /// Note: regardless of the state of the 'non-nullable' experiment, the
+  /// presence or absence of the `@required` annotation does not change the
+  /// meaning of this getter. The parameter `{@required int x}` will return
+  /// `false` and the parameter `{@required required int x}` will return
+  /// `true`
   // TODO(brianwilkerson) Rename this to `isRequired`.
   bool get isNotOptional;
 
