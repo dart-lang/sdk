@@ -813,6 +813,367 @@ class KernelInfoCollector {
   }
 }
 
+/// Annotates [KernelInfoCollector] with info extracted from closed-world
+/// analysis.
+class DumpInfoAnnotator {
+  final KernelInfoCollector kernelInfo;
+  final Compiler compiler;
+  final JClosedWorld closedWorld;
+  final GlobalTypeInferenceResults _globalInferenceResults;
+  final DumpInfoTask dumpInfoTask;
+
+  JElementEnvironment get environment => closedWorld.elementEnvironment;
+
+  DumpInfoAnnotator(this.kernelInfo, this.compiler, this.dumpInfoTask,
+      this.closedWorld, this._globalInferenceResults);
+
+  void run() {
+    dumpInfoTask._constantToNode.forEach((constant, node) {
+      // TODO(sigmund): add dependencies on other constants
+      var span = dumpInfoTask._nodeData[node];
+      var info = ConstantInfo(
+          size: span.end - span.start,
+          code: [span],
+          outputUnit: _unitInfoForConstant(constant));
+      kernelInfo._constantToInfo[constant] = info;
+      info.treeShakenStatus = TreeShakenStatus.Live;
+      kernelInfo.result.constants.add(info);
+    });
+    environment.libraries.forEach(visitLibrary);
+  }
+
+  /// Whether to emit information about [entity].
+  ///
+  /// By default we emit information for any entity that contributes to the
+  /// output size. Either because it is a function being emitted or inlined,
+  /// or because it is an entity that holds dependencies to other entities.
+  bool shouldKeep(Entity entity) {
+    return dumpInfoTask.impacts.containsKey(entity) ||
+        dumpInfoTask.inlineCount.containsKey(entity);
+  }
+
+  LibraryInfo visitLibrary(LibraryEntity lib) {
+    var kLibraryInfos = kernelInfo.result.libraries
+        .where((i) => '${i.uri}' == '${lib.canonicalUri}');
+    assert(
+        kLibraryInfos.length == 1,
+        'Ambiguous library resolution. '
+        'Expected singleton, found $kLibraryInfos');
+    var kLibraryInfo = kLibraryInfos.first;
+
+    String libname = environment.getLibraryName(lib);
+    if (libname.isEmpty) {
+      libname = '<unnamed>';
+    }
+    assert(kLibraryInfo.name == libname);
+    kLibraryInfo.size = dumpInfoTask.sizeOf(lib);
+
+    environment.forEachLibraryMember(lib, (MemberEntity member) {
+      if (member.isFunction || member.isGetter || member.isSetter) {
+        visitFunction(member, libname);
+      } else if (member.isField) {
+        visitField(member, libname);
+      } else {
+        throw StateError('Class member not a function or field');
+      }
+    });
+
+    environment.forEachClass(lib, (ClassEntity clazz) {
+      visitClassType(clazz, libname);
+      visitClass(clazz, libname);
+    });
+
+    bool hasLiveFields = [
+      ...kLibraryInfo.topLevelFunctions,
+      ...kLibraryInfo.topLevelVariables,
+      ...kLibraryInfo.classes,
+      ...kLibraryInfo.classTypes
+    ].any((i) => i.treeShakenStatus == TreeShakenStatus.Live);
+    if (!hasLiveFields && !shouldKeep(lib)) return null;
+    kLibraryInfo.treeShakenStatus = TreeShakenStatus.Live;
+    return kLibraryInfo;
+  }
+
+  GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
+      _globalInferenceResults.resultOfMember(e);
+
+  AbstractValue _resultOfParameter(Local e) =>
+      _globalInferenceResults.resultOfParameter(e);
+
+  // TODO(markzipan): [parentName] is used for disambiguation, but this might
+  // not always be valid. Check and validate later.
+  FieldInfo visitField(FieldEntity field, String parentName) {
+    AbstractValue inferredType = _resultOfMember(field).type;
+    // If a field has an empty inferred type it is never used.
+    if (inferredType == null ||
+        closedWorld.abstractValueDomain
+            .isEmpty(inferredType)
+            .isDefinitelyTrue) {
+      return null;
+    }
+
+    final kFieldInfos = kernelInfo.result.fields
+        .where((f) => f.name == field.name && f.parent.name == parentName)
+        .toList();
+    assert(
+        kFieldInfos.length == 1,
+        'Ambiguous field resolution. '
+        'Expected singleton, found $kFieldInfos');
+    final kFieldInfo = kFieldInfos.first;
+
+    int size = dumpInfoTask.sizeOf(field);
+    List<CodeSpan> code = dumpInfoTask.codeOf(field);
+
+    // TODO(het): Why doesn't `size` account for the code size already?
+    if (code != null) size += code.length;
+
+    kFieldInfo.outputUnit = _unitInfoForMember(field);
+    kFieldInfo.inferredType = '$inferredType';
+    kFieldInfo.code = code;
+    kFieldInfo.treeShakenStatus = TreeShakenStatus.Live;
+
+    FieldAnalysisData fieldData = closedWorld.fieldAnalysis.getFieldData(field);
+    if (fieldData.initialValue != null) {
+      kFieldInfo.initializer =
+          kernelInfo._constantToInfo[fieldData.initialValue];
+    }
+
+    int closureSize = _addClosureInfo(kFieldInfo, field);
+    kFieldInfo.size = size + closureSize;
+    return kFieldInfo;
+  }
+
+  // TODO(markzipan): [parentName] is used for disambiguation, but this might
+  // not always be valid. Check and validate later.
+  ClassTypeInfo visitClassType(ClassEntity clazz, String parentName) {
+    var kClassTypeInfos = kernelInfo.result.classTypes
+        .where((i) => i.name == clazz.name && i.parent.name == parentName);
+    assert(
+        kClassTypeInfos.length == 1,
+        'Ambiguous class type resolution. '
+        'Expected singleton, found $kClassTypeInfos');
+    var kClassTypeInfo = kClassTypeInfos.first;
+
+    // TODO(joshualitt): Get accurate size information for class types.
+    kClassTypeInfo.size = 0;
+
+    // Omit class type if it is not needed.
+    bool isNeeded =
+        compiler.backendStrategy.emitterTask.neededClassTypes.contains(clazz);
+    if (!isNeeded) return null;
+
+    assert(kClassTypeInfo.name == clazz.name);
+    kClassTypeInfo.outputUnit = _unitInfoForClassType(clazz);
+    kClassTypeInfo.treeShakenStatus = TreeShakenStatus.Live;
+    return kClassTypeInfo;
+  }
+
+  // TODO(markzipan): [parentName] is used for disambiguation, but this might
+  // not always be valid. Check and validate later.
+  ClassInfo visitClass(ClassEntity clazz, String parentName) {
+    final kClassInfos = kernelInfo.result.classes
+        .where((i) => i.name == clazz.name && i.parent.name == parentName)
+        .toList();
+    assert(
+        kClassInfos.length == 1,
+        'Ambiguous class resolution. '
+        'Expected singleton, found $kClassInfos');
+    final kClassInfo = kClassInfos.first;
+
+    int size = dumpInfoTask.sizeOf(clazz);
+    environment.forEachLocalClassMember(clazz, (member) {
+      if (member.isFunction || member.isGetter || member.isSetter) {
+        FunctionInfo functionInfo = visitFunction(member, clazz.name);
+        if (functionInfo != null) {
+          for (var closureInfo in functionInfo.closures) {
+            size += closureInfo.size;
+          }
+        }
+      } else if (member.isField) {
+        FieldInfo fieldInfo = visitField(member, clazz.name);
+        if (fieldInfo != null) {
+          for (var closureInfo in fieldInfo.closures) {
+            size += closureInfo.size;
+          }
+        }
+      } else {
+        throw StateError('Class member not a function or field');
+      }
+    });
+    environment.forEachConstructor(clazz, (constructor) {
+      FunctionInfo functionInfo = visitFunction(constructor, clazz.name);
+      if (functionInfo != null) {
+        for (var closureInfo in functionInfo.closures) {
+          size += closureInfo.size;
+        }
+      }
+    });
+    kClassInfo.size = size;
+
+    bool hasLiveFields = [...kClassInfo.fields, ...kClassInfo.functions]
+        .any((i) => i.treeShakenStatus == TreeShakenStatus.Live);
+    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+        !hasLiveFields) {
+      return null;
+    }
+
+    kClassInfo.outputUnit = _unitInfoForClass(clazz);
+    kClassInfo.treeShakenStatus = TreeShakenStatus.Live;
+    return kClassInfo;
+  }
+
+  ClosureInfo visitClosureClass(ClassEntity element) {
+    ClosureInfo closureInfo = ClosureInfo(
+        name: element.name,
+        outputUnit: _unitInfoForClass(element),
+        size: dumpInfoTask.sizeOf(element));
+    kernelInfo._entityToInfo[element] = closureInfo;
+
+    FunctionEntity callMethod = closedWorld.elementEnvironment
+        .lookupClassMember(element, Identifiers.call);
+
+    FunctionInfo functionInfo = visitFunction(callMethod, element.name);
+    if (functionInfo == null) return null;
+
+    closureInfo.function = functionInfo;
+    functionInfo.parent = closureInfo;
+    closureInfo.treeShakenStatus = TreeShakenStatus.Live;
+
+    kernelInfo.result.closures.add(closureInfo);
+    return closureInfo;
+  }
+
+  // TODO(markzipan): [parentName] is used for disambiguation, but this might
+  // not always be valid. Check and validate later.
+  FunctionInfo visitFunction(FunctionEntity function, String parentName) {
+    int size = dumpInfoTask.sizeOf(function);
+    // TODO(sigmund): consider adding a small info to represent unreachable
+    // code here.
+    if (size == 0 && !shouldKeep(function)) return null;
+
+    var compareName = function.name;
+    if (function.isConstructor) {
+      compareName = compareName == ""
+          ? "${function.enclosingClass.name}"
+          : "${function.enclosingClass.name}.${function.name}";
+    }
+
+    // Multiple kernel members members can sometimes map to a single JElement.
+    // [isSetter] and [isGetter] are required for disambiguating these cases.
+    final kFunctionInfos = kernelInfo.result.functions
+        .where((i) =>
+            i.name == compareName &&
+            i.parent.name == parentName &&
+            !(function.isGetter ^ i.modifiers.isGetter) &&
+            !(function.isSetter ^ i.modifiers.isSetter))
+        .toList();
+    assert(
+        kFunctionInfos.length == 1,
+        'Ambiguous function resolution. '
+        'Expected singleton, found $kFunctionInfos');
+    final kFunctionInfo = kFunctionInfos.first;
+
+    List<CodeSpan> code = dumpInfoTask.codeOf(function);
+    List<ParameterInfo> parameters = <ParameterInfo>[];
+    List<String> inferredParameterTypes = <String>[];
+
+    closedWorld.elementEnvironment.forEachParameterAsLocal(
+        _globalInferenceResults.globalLocalsMap, function, (parameter) {
+      inferredParameterTypes.add('${_resultOfParameter(parameter)}');
+    });
+    int parameterIndex = 0;
+    closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
+      // Synthesized parameters have no name. This can happen on parameters of
+      // setters derived from lowering late fields.
+      parameters.add(ParameterInfo(name ?? '#t${parameterIndex}',
+          inferredParameterTypes[parameterIndex++], '$type'));
+    });
+
+    String inferredReturnType = '${_resultOfMember(function).returnType}';
+    String sideEffects =
+        '${_globalInferenceResults.inferredData.getSideEffectsOfElement(function)}';
+    int inlinedCount = dumpInfoTask.inlineCount[function] ?? 0;
+
+    kFunctionInfo.inferredReturnType = inferredReturnType;
+    kFunctionInfo.sideEffects = sideEffects;
+    kFunctionInfo.inlinedCount = inlinedCount;
+    kFunctionInfo.code = code;
+    kFunctionInfo.outputUnit = _unitInfoForMember(function);
+
+    int closureSize = _addClosureInfo(kFunctionInfo, function);
+    kFunctionInfo.size = size + closureSize;
+
+    kFunctionInfo.treeShakenStatus = TreeShakenStatus.Live;
+    return kFunctionInfo;
+  }
+
+  /// Adds closure information to [info], using all nested closures in [member].
+  ///
+  /// Returns the total size of the nested closures, to add to the info size.
+  int _addClosureInfo(BasicInfo info, MemberEntity member) {
+    assert(info is FunctionInfo || info is FieldInfo);
+    int size = 0;
+    List<ClosureInfo> nestedClosures = <ClosureInfo>[];
+    environment.forEachNestedClosure(member, (closure) {
+      ClosureInfo closureInfo = visitClosureClass(closure.enclosingClass);
+      if (closureInfo != null) {
+        closureInfo.parent = info;
+        closureInfo.treeShakenStatus = info.treeShakenStatus;
+        nestedClosures.add(closureInfo);
+        size += closureInfo.size;
+      }
+    });
+    if (info is FunctionInfo) info.closures = nestedClosures;
+    if (info is FieldInfo) info.closures = nestedClosures;
+
+    return size;
+  }
+
+  OutputUnitInfo _infoFromOutputUnit(OutputUnit outputUnit) {
+    return kernelInfo._outputToInfo.putIfAbsent(outputUnit, () {
+      // Dump-info currently only works with the full emitter. If another
+      // emitter is used it will fail here.
+      JsBackendStrategy backendStrategy = compiler.backendStrategy;
+      assert(outputUnit.name != null || outputUnit.isMainOutput);
+      var filename = outputUnit.isMainOutput
+          ? compiler.options.outputUri.pathSegments.last
+          : deferredPartFileName(compiler.options, outputUnit.name);
+      OutputUnitInfo info = OutputUnitInfo(filename, outputUnit.name,
+          backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
+      info.treeShakenStatus = TreeShakenStatus.Live;
+      info.imports
+          .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
+      kernelInfo.result.outputUnits.add(info);
+      return info;
+    });
+  }
+
+  OutputUnitInfo _unitInfoForMember(MemberEntity entity) {
+    return _infoFromOutputUnit(
+        closedWorld.outputUnitData.outputUnitForMember(entity));
+  }
+
+  OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
+    return _infoFromOutputUnit(
+        closedWorld.outputUnitData.outputUnitForClass(entity, allowNull: true));
+  }
+
+  OutputUnitInfo _unitInfoForClassType(ClassEntity entity) {
+    return _infoFromOutputUnit(closedWorld.outputUnitData
+        .outputUnitForClassType(entity, allowNull: true));
+  }
+
+  OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
+    OutputUnit outputUnit =
+        closedWorld.outputUnitData.outputUnitForConstant(constant);
+    if (outputUnit == null) {
+      assert(constant is InterceptorConstantValue);
+      return null;
+    }
+    return _infoFromOutputUnit(outputUnit);
+  }
+}
+
 class Selection {
   final Entity selectedEntity;
   final Object receiverConstraint;
