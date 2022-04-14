@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 import 'plugin/plugin_manager_test.dart';
 
 void main() {
@@ -23,7 +23,7 @@ void main() {
 }
 
 @reflectiveTest
-class AbstractRequestHandlerTest extends AbstractAnalysisTest {
+class AbstractRequestHandlerTest extends PubPackageAnalysisServerTest {
   Future<void> test_waitForResponses_empty_noTimeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     var futures = <PluginInfo, Future<plugin.Response>>{};
