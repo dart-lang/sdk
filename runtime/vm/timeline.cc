@@ -105,10 +105,6 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
   if (use_systrace_recorder || (flag != NULL)) {
     if (use_systrace_recorder || (strcmp("systrace", flag) == 0)) {
-      if (FLAG_trace_timeline) {
-        THR_Print("Using the Systrace timeline recorder.\n");
-      }
-
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
       return new TimelineEventSystraceRecorder();
 #elif defined(DART_HOST_OS_MACOS)
@@ -128,24 +124,22 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
   if (use_endless_recorder || (flag != NULL)) {
     if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
-      if (FLAG_trace_timeline) {
-        THR_Print("Using the endless timeline recorder.\n");
-      }
       return new TimelineEventEndlessRecorder();
     }
   }
 
   if (use_startup_recorder || (flag != NULL)) {
     if (use_startup_recorder || (strcmp("startup", flag) == 0)) {
-      if (FLAG_trace_timeline) {
-        THR_Print("Using the startup recorder.\n");
-      }
       return new TimelineEventStartupRecorder();
     }
   }
 
-  if (FLAG_trace_timeline) {
-    THR_Print("Using the ring timeline recorder.\n");
+  if (strcmp("file", flag) == 0) {
+    return new TimelineEventFileRecorder("dart-timeline.json");
+  }
+  if (Utils::StrStartsWith(flag, "file:") ||
+      Utils::StrStartsWith(flag, "file=")) {
+    return new TimelineEventFileRecorder(&flag[5]);
   }
 
   // Always fall back to the ring recorder.
@@ -202,6 +196,9 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 void Timeline::Init() {
   ASSERT(recorder_ == NULL);
   recorder_ = CreateTimelineRecorder();
+  if (FLAG_trace_timeline) {
+    OS::PrintErr("Using the %s timeline recorder.\n", recorder_->name());
+  }
   ASSERT(recorder_ != NULL);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
 // Global overrides.
@@ -1345,6 +1342,132 @@ TimelineEvent* TimelineEventPlatformRecorder::StartEvent() {
 void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   OnEvent(event);
   delete event;
+}
+
+static void TimelineEventFileRecorderStart(uword parameter) {
+  reinterpret_cast<TimelineEventFileRecorder*>(parameter)->Drain();
+}
+
+TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
+    : TimelineEventPlatformRecorder(),
+      monitor_(),
+      head_(nullptr),
+      tail_(nullptr),
+      file_(nullptr),
+      first_(true),
+      shutting_down_(false),
+      thread_id_(OSThread::kInvalidThreadJoinId) {
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
+    return;
+  }
+  void* file = (*file_open)(path, true);
+  if (file == nullptr) {
+    OS::PrintErr("warning: Failed to open timeline file: %s\n", path);
+    return;
+  }
+
+  file_ = file;
+  // Chrome trace format has two forms:
+  //   Object form:  { "traceEvents": [ event, event, event ] }
+  //   Array form:   [ event, event, event ]
+  // For this recorder, we use the array form because Catapult will handle a
+  // missing ending bracket in this form in case we don't cleanly end the
+  // trace.
+  Write("[\n");
+  OSThread::Start("TimelineEventFileRecorder", TimelineEventFileRecorderStart,
+                  reinterpret_cast<uword>(this));
+}
+
+TimelineEventFileRecorder::~TimelineEventFileRecorder() {
+  if (file_ == nullptr) return;
+
+  {
+    MonitorLocker ml(&monitor_);
+    shutting_down_ = true;
+    ml.Notify();
+  }
+
+  ASSERT(thread_id_ != OSThread::kInvalidThreadJoinId);
+  OSThread::Join(thread_id_);
+  thread_id_ = OSThread::kInvalidThreadJoinId;
+
+  TimelineEvent* event = head_;
+  while (event != nullptr) {
+    TimelineEvent* next = event->next();
+    delete event;
+    event = next;
+  }
+  head_ = tail_ = nullptr;
+
+  Write("]\n");
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  (*file_close)(file_);
+  file_ = nullptr;
+}
+
+void TimelineEventFileRecorder::CompleteEvent(TimelineEvent* event) {
+  if (event == nullptr) {
+    return;
+  }
+  if (file_ == nullptr) {
+    delete event;
+    return;
+  }
+
+  MonitorLocker ml(&monitor_);
+  ASSERT(!shutting_down_);
+  event->set_next(nullptr);
+  if (tail_ == nullptr) {
+    head_ = tail_ = event;
+  } else {
+    tail_->set_next(event);
+    tail_ = event;
+  }
+  ml.Notify();
+}
+
+void TimelineEventFileRecorder::Drain() {
+  MonitorLocker ml(&monitor_);
+  thread_id_ = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+  while (!shutting_down_) {
+    if (head_ == nullptr) {
+      ml.Wait();
+      continue;  // Recheck empty and shutting down.
+    }
+    TimelineEvent* event = head_;
+    TimelineEvent* next = event->next();
+    head_ = next;
+    if (next == nullptr) {
+      tail_ = nullptr;
+    }
+    ml.Exit();
+    {
+      JSONStream stream;
+      event->PrintJSON(&stream);
+      char* output = NULL;
+      intptr_t output_length = 0;
+      stream.Steal(&output, &output_length);
+      if (first_) {
+        first_ = false;
+      } else {
+        Write(",\n");
+      }
+      Write(output, output_length);
+      free(output);
+      delete event;
+    }
+    ml.Enter();
+  }
+}
+
+void TimelineEventFileRecorder::Write(const char* buffer, intptr_t len) {
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  (*file_write)(buffer, len, file_);
 }
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()

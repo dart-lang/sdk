@@ -49,6 +49,7 @@ class Zone;
 
 #define CALLBACK_RECORDER_NAME "Callback"
 #define ENDLESS_RECORDER_NAME "Endless"
+#define FILE_RECORDER_NAME "File"
 #define FUCHSIA_RECORDER_NAME "Fuchsia"
 #define MACOS_RECORDER_NAME "Macos"
 #define RING_RECORDER_NAME "Ring"
@@ -456,6 +457,13 @@ class TimelineEvent {
 
   intptr_t arguments_length() const { return arguments_.length(); }
 
+  TimelineEvent* next() const {
+    return next_;
+  }
+  void set_next(TimelineEvent* next) {
+    next_ = next;
+  }
+
  private:
   void StreamInit(TimelineStream* stream) { stream_ = stream; }
   void Init(EventType event_type, const char* label);
@@ -518,6 +526,7 @@ class TimelineEvent {
   ThreadId thread_;
   Dart_Port isolate_id_;
   uint64_t isolate_group_id_;
+  TimelineEvent* next_;
 
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;
@@ -1005,6 +1014,31 @@ class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
   void OnEvent(TimelineEvent* event) API_AVAILABLE(ios(12.0), macos(10.14));
 };
 #endif  // defined(DART_HOST_OS_MACOS)
+
+class TimelineEventFileRecorder : public TimelineEventPlatformRecorder {
+ public:
+  explicit TimelineEventFileRecorder(const char* path);
+  virtual ~TimelineEventFileRecorder();
+
+  const char* name() const { return FILE_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
+
+  void Drain();
+
+ private:
+  void CompleteEvent(TimelineEvent* event);
+  void OnEvent(TimelineEvent* event) { UNREACHABLE(); }
+  void Write(const char* buffer) { Write(buffer, strlen(buffer)); }
+  void Write(const char* buffer, intptr_t len);
+
+  Monitor monitor_;
+  TimelineEvent* head_;
+  TimelineEvent* tail_;
+  void* file_;
+  bool first_;
+  bool shutting_down_;
+  ThreadJoinId thread_id_;
+};
 
 class DartTimelineEventHelpers : public AllStatic {
  public:
