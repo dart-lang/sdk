@@ -36,7 +36,7 @@ class Mutex {
       // Reinitialize if this is the only weakly guarded scope.
       _outstandingReadersCompleter = Completer<void>();
     }
-    final result;
+    final T result;
     try {
       await _acquireLock(strong: false);
       result = await criticalSection();
