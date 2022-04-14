@@ -5,21 +5,20 @@
 import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../analysis_abstract.dart';
+import '../../../analysis_server_base.dart';
 import '../../../constants.dart';
 
 @reflectiveTest
-class AvailableSuggestionsBase extends AbstractAnalysisTest {
+class AvailableSuggestionsBase extends PubPackageAnalysisServerTest {
   final Map<int, AvailableSuggestionSet> idToSetMap = {};
   final Map<String, AvailableSuggestionSet> uriToSetMap = {};
   final Map<String, CompletionResultsParams> idToSuggestions = {};
-  final Map<String, ExistingImports> fileToExistingImports = {};
+  final Map<File, ExistingImports> fileToExistingImports = {};
 
   void assertJsonText(Object object, String expected) {
     expected = expected.trimRight();
@@ -59,7 +58,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
       var params = CompletionExistingImportsParams.fromNotification(
         notification,
       );
-      fileToExistingImports[params.file] = params.imports;
+      fileToExistingImports[getFile(params.file)] = params.imports;
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       fail('${notification.toJson()}');
     }
@@ -75,19 +74,16 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    projectPath = convertPath('/home');
-    testFile = convertPath('/home/test/lib/test.dart');
 
-    newPubspecYamlFile('/home/test', '');
-    newPackageConfigJsonFile(
-      '/home/test',
-      (PackageConfigFileBuilder()..add(name: 'test', rootPath: '/home/test'))
-          .toContent(toUriStr: toUriStr),
+    newPubspecYamlFile(testPackageRootPath, '');
+    writeTestPackageConfig();
+    await setRoots(included: [workspaceRootPath], excluded: []);
+
+    await handleSuccessfulRequest(
+      CompletionSetSubscriptionsParams([
+        CompletionService.AVAILABLE_SUGGESTION_SETS,
+      ]).toRequest('0'),
     );
-
-    await createProject();
-    handler = server.handlers.whereType<CompletionDomainHandler>().single;
-    _setCompletionSubscriptions([CompletionService.AVAILABLE_SUGGESTION_SETS]);
   }
 
   Future<CompletionResultsParams> waitForGetSuggestions(String id) async {
@@ -118,11 +114,5 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
       }
       await Future.delayed(const Duration(milliseconds: 1));
     }
-  }
-
-  void _setCompletionSubscriptions(List<CompletionService> subscriptions) {
-    handleSuccessfulRequest(
-      CompletionSetSubscriptionsParams(subscriptions).toRequest('0'),
-    );
   }
 }
