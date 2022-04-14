@@ -13,3 +13,6 @@ dependencies:
     path: ../meta
   path: any
   test: any
+
+dev_dependencies:
+  lints: any

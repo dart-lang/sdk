@@ -17,7 +17,7 @@ class CheckTarget<T> {
   String get _indent => '  ' * (_depth + 1);
 
   Never fail(String message) {
-    test_package.fail(_describe() + '\n' + _indent + message);
+    test_package.fail('${_describe()}\n$_indent$message');
   }
 
   /// Chains to the given [value]; if a subsequent check fails, [describe]
@@ -27,7 +27,7 @@ class CheckTarget<T> {
     String Function(U value) describe,
   ) {
     return CheckTarget(value, _depth + 1, () {
-      return _describe() + '\n' + _indent + describe(value);
+      return '${_describe()}\n$_indent${describe(value)}';
     });
   }
 

@@ -549,7 +549,7 @@ class _HtmlCodeGeneratorState {
     var lines = text.split('\n');
     if (lines.last.isEmpty) {
       lines.removeLast();
-      buffer.add(dom.Text(lines.join('\n$indent') + '\n'));
+      buffer.add(dom.Text('${lines.join('\n$indent')}\n'));
       indentNeeded = true;
     } else {
       buffer.add(dom.Text(lines.join('\n$indent')));
