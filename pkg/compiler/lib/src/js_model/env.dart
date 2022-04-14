@@ -753,7 +753,8 @@ class SignatureFunctionData implements FunctionData {
   factory SignatureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    InterfaceType memberThisType = source.readDartType(allowNull: true);
+    InterfaceType /*?*/ memberThisType =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
     List<ir.TypeParameter> typeParameters = source.readTypeParameterNodes();
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
@@ -767,7 +768,7 @@ class SignatureFunctionData implements FunctionData {
     sink.writeEnum(JMemberDataKind.signature);
     sink.begin(tag);
     definition.writeToDataSink(sink);
-    sink.writeDartType(memberThisType, allowNull: true);
+    sink.writeDartTypeOrNull(memberThisType);
     sink.writeTypeParameterNodes(typeParameters);
     sink.writeEnum(classTypeVariableAccess);
     sink.end(tag);

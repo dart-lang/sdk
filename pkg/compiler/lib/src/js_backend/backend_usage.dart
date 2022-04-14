@@ -369,7 +369,7 @@ class BackendUsageImpl implements BackendUsage {
     Set<RuntimeTypeUse> runtimeTypeUses = source.readList(() {
       RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
       DartType receiverType = source.readDartType();
-      DartType argumentType = source.readDartType(allowNull: true);
+      DartType /*?*/ argumentType = source.readDartTypeOrNull();
       return RuntimeTypeUse(kind, receiverType, argumentType);
     }).toSet();
     bool needToInitializeIsolateAffinityTag = source.readBool();
@@ -407,7 +407,7 @@ class BackendUsageImpl implements BackendUsage {
     sink.writeList(runtimeTypeUses, (RuntimeTypeUse runtimeTypeUse) {
       sink.writeEnum(runtimeTypeUse.kind);
       sink.writeDartType(runtimeTypeUse.receiverType);
-      sink.writeDartType(runtimeTypeUse.argumentType, allowNull: true);
+      sink.writeDartTypeOrNull(runtimeTypeUse.argumentType);
     });
     sink.writeBool(needToInitializeIsolateAffinityTag);
     sink.writeBool(needToInitializeDispatchProperty);

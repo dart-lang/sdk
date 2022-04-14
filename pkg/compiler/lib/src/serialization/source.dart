@@ -633,23 +633,35 @@ class DataSourceReader {
     return list;
   }
 
-  /// Reads a type from this data source. If [allowNull], the returned type is
-  /// allowed to be `null`.
-  DartType readDartType({bool allowNull = false}) {
+  /// Reads a type from this data source.
+  DartType /*!*/ readDartType() {
     _checkDataKind(DataKind.dartType);
-    DartType type = DartType.readFromDataSource(this, []);
-    assert(type != null || allowNull);
-    return type;
+    return DartType.readFromDataSource(this, []);
   }
 
-  /// Reads a list of types from this data source. If [emptyAsNull] is `true`,
-  /// `null` is returned instead of an empty list.
+  /// Reads a nullable type from this data source.
+  DartType /*?*/ readDartTypeOrNull() {
+    _checkDataKind(DataKind.dartType);
+    return DartType.readFromDataSourceOrNull(this, []);
+  }
+
+  /// Reads a list of types from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypes].
-  List<DartType> readDartTypes({bool emptyAsNull = false}) {
+  List<DartType> readDartTypes() {
+    // Share the list when empty.
+    return readDartTypesOrNull() ?? const [];
+  }
+
+  /// Reads a list of types from this data source. Returns `null` instead of an
+  /// empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeDartTypes].
+  List<DartType> /*?*/ readDartTypesOrNull() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     List<DartType> list = List<DartType>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readDartType();

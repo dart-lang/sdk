@@ -69,7 +69,7 @@ class DynamicUse {
     if (hasConstraint) {
       receiverConstraint = source.readAbstractValue();
     }
-    List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
+    List<DartType> typeArguments = source.readDartTypesOrNull();
     source.end(tag);
     return DynamicUse(selector, receiverConstraint, typeArguments);
   }
@@ -86,7 +86,7 @@ class DynamicUse {
             "Unsupported receiver constraint: ${receiverConstraint}");
       }
     }
-    sink.writeDartTypes(_typeArguments, allowNull: true);
+    sink.writeDartTypesOrNull(_typeArguments);
     sink.end(tag);
   }
 
@@ -221,12 +221,13 @@ class StaticUse {
     source.begin(tag);
     MemberEntity element = source.readMember();
     StaticUseKind kind = source.readEnum(StaticUseKind.values);
-    InterfaceType type = source.readDartType(allowNull: true);
+    InterfaceType /*?*/ type =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
     CallStructure callStructure =
         source.readValueOrNull(() => CallStructure.readFromDataSource(source));
     ImportEntity deferredImport = source.readImportOrNull();
     ConstantValue constant = source.readConstantOrNull();
-    List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
+    List<DartType> typeArguments = source.readDartTypesOrNull();
     source.end(tag);
     return StaticUse.internal(element, kind,
         type: type,
@@ -241,12 +242,12 @@ class StaticUse {
     assert(element is MemberEntity, "Unsupported entity: $element");
     sink.writeMember(element);
     sink.writeEnum(kind);
-    sink.writeDartType(type, allowNull: true);
+    sink.writeDartTypeOrNull(type);
     sink.writeValueOrNull(
         callStructure, (CallStructure c) => c.writeToDataSink(sink));
     sink.writeImportOrNull(deferredImport);
     sink.writeConstantOrNull(constant);
-    sink.writeDartTypes(typeArguments, allowNull: true);
+    sink.writeDartTypesOrNull(typeArguments);
     sink.end(tag);
   }
 

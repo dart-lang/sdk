@@ -282,9 +282,9 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 
   static FullTypeEnvironmentRecipe _readFromDataSource(
       DataSourceReader source) {
-    InterfaceType classType =
-        source.readDartType(allowNull: true) as InterfaceType;
-    List<DartType> types = source.readDartTypes(emptyAsNull: true) ?? const [];
+    InterfaceType /*?*/ classType =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
+    List<DartType> types = source.readDartTypes();
     return FullTypeEnvironmentRecipe(classType: classType, types: types);
   }
 
@@ -293,8 +293,8 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 
   @override
   void _writeToDataSink(DataSinkWriter sink) {
-    sink.writeDartType(classType, allowNull: true);
-    sink.writeDartTypes(types, allowNull: false);
+    sink.writeDartTypeOrNull(classType);
+    sink.writeDartTypes(types);
   }
 
   @override
