@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:analysis_server/src/status/pages.dart';
 
@@ -291,6 +292,136 @@ class MeanReciprocalRankComputer {
       'sum': _sum,
       'sum_5': _sum_5,
       'count': _count,
+    };
+  }
+}
+
+/// A computer for calculating percentile-based metrics on a data set.
+///
+/// Specifically this tracks p50 (the median), p90, and p95.
+///
+/// See https://en.wikipedia.org/wiki/Percentile.
+class PercentileComputer {
+  final String name;
+
+  /// The value limit allowed by this computer.
+  ///
+  /// The computer can calculate percentile values for all data that range
+  /// between 0 and [valueLimit], exclusive.
+  int valueLimit;
+
+  /// An array of counts; the value at each index _i_ is the number of
+  /// occurrences of value _i_.
+  ///
+  /// Any values larger than [valueLimit] are not counted here.
+  Uint32List _counts;
+
+  /// The number of values which are less than [valueLimit].
+  int valueCount = 0;
+
+  /// The number of values greater than [valueLimit].
+  int aboveValueMaxCount = 0;
+
+  List<int> aboveValueMaxSamples = [];
+
+  int maxValue = 0;
+
+  PercentileComputer(this.name, {required this.valueLimit})
+      : _counts = Uint32List(valueLimit);
+
+  /// Calculates the median (p50) value.
+  int get median => kthPercentile(50);
+
+  /// Calculates the p90 value; the value at the 90th percentile of the data.
+  int get p90 => kthPercentile(90);
+
+  /// Calculates the p95 value; the value at the 95th percentile of the data.
+  int get p95 => kthPercentile(95);
+
+  /// Add the data from the given [computer] to this computer.
+  void addData(PercentileComputer computer) {
+    if (computer.valueLimit != valueLimit) {
+      throw UnsupportedError(
+          'Cannot combine two PercentileComputers with different valueLimit '
+          'values');
+    }
+    for (var i = 0; i < _counts.length; i++) {
+      _counts[i] += computer._counts[i];
+    }
+    valueCount += computer.valueCount;
+    aboveValueMaxCount += computer.aboveValueMaxCount;
+    for (var val in computer.aboveValueMaxSamples) {
+      if (aboveValueMaxSamples.length < 10) {
+        aboveValueMaxSamples.add(val);
+      }
+    }
+    maxValue = math.max(maxValue, computer.maxValue);
+  }
+
+  void addValue(int val) {
+    if (val > valueLimit) {
+      aboveValueMaxCount++;
+      if (aboveValueMaxSamples.length < 10) {
+        aboveValueMaxSamples.add(val);
+      }
+    } else {
+      _counts[val]++;
+      valueCount++;
+    }
+    maxValue = math.max(maxValue, val);
+  }
+
+  void clear() {
+    _counts = Uint32List(0);
+    valueCount = 0;
+    aboveValueMaxCount = 0;
+    aboveValueMaxSamples = [];
+    maxValue = 0;
+  }
+
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    valueLimit = map['valueLimit'] as int;
+    _counts = Uint32List.fromList((map['counts'] as List<dynamic>).cast<int>());
+    valueCount = map['valueCount'] as int;
+    aboveValueMaxCount = map['aboveValueMaxCount'] as int;
+    aboveValueMaxSamples =
+        (map['aboveValueMaxSamples'] as List<dynamic>).cast<int>();
+    maxValue = map['maxValue'] as int;
+  }
+
+  /// Calculates the value at the _k_th percentile of the data.
+  int kthPercentile(int percentile) {
+    if (valueCount == 0) {
+      return 0;
+    }
+    // Linear walk through the data takes O([maxValue]) time. If this is too
+    // slow, a binary search can be implemented.
+    var targetIndex = valueCount * percentile / 100;
+    // The number of values represented by walking the counts.
+    var accumulation = 0;
+    for (var i = 0; i < _counts.length; i++) {
+      accumulation += _counts[i];
+      if (accumulation > targetIndex) {
+        // We've now accounted for [targetIndex] values, which includes the
+        // median value.
+        return i;
+      }
+    }
+    // The median value is in the very highest expected possible value.
+    return valueLimit;
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'counts': _counts,
+      'valueLimit': valueLimit,
+      'valueCount': valueCount,
+      'aboveValueMaxCount': aboveValueMaxCount,
+      'aboveValueMaxSamples': aboveValueMaxSamples,
+      'maxValue': maxValue,
     };
   }
 }

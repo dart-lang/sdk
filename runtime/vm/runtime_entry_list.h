@@ -51,7 +51,7 @@ namespace dart {
   V(ArgumentErrorUnboxedInt64)                                                 \
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
-  V(StackOverflow)                                                             \
+  V(InterruptOrStackOverflow)                                                  \
   V(Throw)                                                                     \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \

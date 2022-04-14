@@ -36,6 +36,7 @@ import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
+import 'src/binary_protocol.dart';
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
 
@@ -114,6 +115,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           ' option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
+  ..addOption('binary-protocol-address',
+      hide: true,
+      help: 'The server will establish TCP connection to this address, and'
+          ' will exchange binary requests and responses with the client.')
   ..addFlag('enable-http-uris',
       defaultsTo: false, hide: true, help: 'Enables support for http uris.')
   ..addFlag('verbose', help: 'Enables verbose output from the compiler.')
@@ -1419,6 +1424,12 @@ Future<int> starter(
     } finally {
       temp.deleteSync(recursive: true);
     }
+  }
+
+  final binaryProtocolAddressStr = options['binary-protocol-address'];
+  if (binaryProtocolAddressStr is String) {
+    runBinaryProtocol(binaryProtocolAddressStr);
+    return 0;
   }
 
   compiler ??= FrontendCompiler(output,

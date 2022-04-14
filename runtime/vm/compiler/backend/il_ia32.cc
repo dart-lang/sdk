@@ -2898,7 +2898,7 @@ class CheckStackOverflowSlowPath
         instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
 
-    __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+    __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
     compiler->EmitCallsiteMetadata(
         instruction()->source(), instruction()->deopt_id(),
         UntaggedPcDescriptors::kOther, instruction()->locs(), env);

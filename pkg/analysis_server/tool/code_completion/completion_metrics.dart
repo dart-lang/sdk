@@ -66,10 +66,13 @@ import 'visitors.dart';
 ///
 /// This approach has several drawbacks:
 ///
-/// - The AST is always complete and correct, and that's rarely the case for
-///   real completion requests. Usually the tree is incomplete and often has a
-///   completely different structure because of the way recovery works. We
-///   currently have no way of measuring completions under realistic conditions.
+/// - The options for creating an "in-progress" file are limited. In the default
+///   'overlay' mode, the AST is always complete and correct, rarely the case
+///   for real completion requests. The other 'overlay' modes generate
+///   incomplete ASTs with error recovery nodes, but neither of these quite
+///   properly emulate the act of editing the middle of a file, perhaps the
+///   middle of an expression, or the middle of an argument list. We currently
+///   have no way of measuring completions under realistic conditions.
 ///
 /// - We can't measure completions for several keywords because the presence of
 ///   the keyword in the AST causes it to not be suggested.
@@ -77,7 +80,7 @@ import 'visitors.dart';
 /// - The time it takes to compute the suggestions doesn't include the time
 ///   required to finish analyzing the file if the analysis hasn't been
 ///   completed before suggestions are requested. While the times are accurate
-///   (within the accuracy of the `Stopwatch` class) they are the minimum
+///   (within the accuracy of the [Stopwatch] class) they are the minimum
 ///   possible time. This doesn't give us a measure of how completion will
 ///   perform in production, but does give us an optimistic approximation.
 ///
@@ -193,7 +196,7 @@ ArgParser createArgParser() {
     ..addFlag(CompletionMetricsOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
         defaultsTo: false,
         help: 'Print detailed information every time a completion request '
-            'produces a suggestions whose name matches the expected suggestion '
+            'produces a suggestion whose name matches the expected suggestion '
             'but that is referencing a different element',
         negatable: false)
     ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
@@ -332,6 +335,11 @@ class CompletionMetrics {
   final ArithmeticMeanComputer meanCompletionMS =
       ArithmeticMeanComputer('ms per completion');
 
+  /// A percentile computer for the ms per completion request, using 2.000
+  /// seconds as the max value to use in percentile calculations.
+  final PercentileComputer percentileCompletionMS =
+      PercentileComputer('ms per completion', valueLimit: 2000);
+
   final DistributionComputer distributionCompletionMS = DistributionComputer();
 
   final MeanReciprocalRankComputer mrrComputer =
@@ -398,6 +406,8 @@ class CompletionMetrics {
         .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
     metrics.meanCompletionMS
         .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
+    metrics.percentileCompletionMS
+        .fromJson(map['percentileMS'] as Map<String, dynamic>);
     metrics.distributionCompletionMS
         .fromJson(map['distributionCompletionMS'] as Map<String, dynamic>);
     metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
@@ -453,6 +463,7 @@ class CompletionMetrics {
     completionKindCounter.addData(metrics.completionKindCounter);
     completionElementKindCounter.addData(metrics.completionElementKindCounter);
     meanCompletionMS.addData(metrics.meanCompletionMS);
+    percentileCompletionMS.addData(metrics.percentileCompletionMS);
     distributionCompletionMS.addData(metrics.distributionCompletionMS);
     mrrComputer.addData(metrics.mrrComputer);
     successfulMrrComputer.addData(metrics.successfulMrrComputer);
@@ -545,6 +556,7 @@ class CompletionMetrics {
       'completionKindCounter': completionKindCounter.toJson(),
       'completionElementKindCounter': completionElementKindCounter.toJson(),
       'meanCompletionMS': meanCompletionMS.toJson(),
+      'percentileCompletionMS': percentileCompletionMS.toJson(),
       'distributionCompletionMS': distributionCompletionMS.toJson(),
       'mrrComputer': mrrComputer.toJson(),
       'successfulMrrComputer': successfulMrrComputer.toJson(),
@@ -617,6 +629,7 @@ class CompletionMetrics {
   /// Record this elapsed ms count for the average ms count.
   void _recordTime(CompletionResult result) {
     meanCompletionMS.addValue(result.elapsedMS);
+    percentileCompletionMS.addValue(result.elapsedMS);
     distributionCompletionMS.addValue(result.elapsedMS);
   }
 
@@ -815,7 +828,7 @@ class CompletionMetricsComputer {
 
   void printComparisonOfCompletionCounts() {
     String toString(int count, int totalCount) {
-      return '$count (${printPercentage(count / totalCount, 2)})';
+      return '$count (${(count / totalCount).asPercentage(2)})';
     }
 
     var counters = targetMetrics.map((metrics) => metrics.completionCounter);
@@ -1093,25 +1106,45 @@ class CompletionMetricsComputer {
   }
 
   void printOtherMetrics(CompletionMetrics metrics) {
-    List<String> toRow(ArithmeticMeanComputer computer) {
-      var min = computer.min;
-      var mean = computer.mean.toStringAsFixed(6);
-      var max = computer.max;
-      return [computer.name, '$min, $mean, $max'];
+    List<String> meanComputingRow(ArithmeticMeanComputer computer) {
+      return [
+        computer.name,
+        computer.min!.toStringAsFixed(3),
+        computer.mean.toStringAsFixed(3),
+        computer.max!.toStringAsFixed(3),
+      ];
     }
 
     var table = [
-      toRow(metrics.meanCompletionMS),
-      toRow(metrics.charsBeforeTop),
-      toRow(metrics.charsBeforeTopFive),
-      toRow(metrics.insertionLengthTheoretical),
+      ['', 'min', 'mean', 'max'],
+      meanComputingRow(metrics.meanCompletionMS),
+      meanComputingRow(metrics.charsBeforeTop),
+      meanComputingRow(metrics.charsBeforeTopFive),
+      meanComputingRow(metrics.insertionLengthTheoretical),
     ];
     rightJustifyColumns(table, range(1, table[0].length));
 
     printHeading(2, 'Other metrics');
     printTable(table);
 
+    var percentileTable = [
+      ['', 'p50', 'p90', 'p95', 'count > 2s', 'max'],
+      [
+        metrics.percentileCompletionMS.name,
+        metrics.percentileCompletionMS.median.toString(),
+        metrics.percentileCompletionMS.p90.toString(),
+        metrics.percentileCompletionMS.p95.toString(),
+        metrics.percentileCompletionMS.aboveValueMaxCount.toString(),
+        metrics.percentileCompletionMS.maxValue.toString(),
+      ],
+    ];
+    rightJustifyColumns(percentileTable, range(1, percentileTable[1].length));
+
+    printHeading(3, 'Percentile metrics');
+    printTable(percentileTable);
+
     var distribution = metrics.distributionCompletionMS.displayString();
+    printHeading(3, 'Completion ms distribution');
     print('${metrics.name}: $distribution');
     print('');
   }
@@ -2081,6 +2114,12 @@ extension on CompletionGroup {
         return 'unknown';
     }
   }
+}
+
+extension on num {
+  String asPercentage([int fractionDigits = 1]) =>
+      '${(this * 100).toStringAsFixed(fractionDigits)}%'
+          .padLeft(4 + fractionDigits);
 }
 
 extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {

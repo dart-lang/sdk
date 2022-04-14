@@ -3691,7 +3691,7 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
     } else {
-      __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);
