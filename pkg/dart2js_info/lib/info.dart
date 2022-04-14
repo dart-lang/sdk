@@ -467,12 +467,17 @@ class FunctionModifiers {
   final bool isConst;
   final bool isFactory;
   final bool isExternal;
+  final bool isGetter;
+  final bool isSetter;
 
-  FunctionModifiers(
-      {this.isStatic = false,
-      this.isConst = false,
-      this.isFactory = false,
-      this.isExternal = false});
+  FunctionModifiers({
+    this.isStatic = false,
+    this.isConst = false,
+    this.isFactory = false,
+    this.isExternal = false,
+    this.isGetter,
+    this.isSetter,
+  });
 }
 
 /// Possible values of the `kind` field in the serialized infos.
