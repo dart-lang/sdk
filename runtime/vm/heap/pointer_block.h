@@ -268,7 +268,6 @@ class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
   // Check whether non-empty blocks have exceeded kMaxNonEmpty (but takes no
   // action).
   bool Overflowed();
-  intptr_t Size();
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 };
