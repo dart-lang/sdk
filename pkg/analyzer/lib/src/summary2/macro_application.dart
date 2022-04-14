@@ -79,27 +79,7 @@ class LibraryMacroApplier {
   }
 
   macro.ClassDeclaration getClassDeclaration(ClassDeclaration node) {
-    return _classDeclarations[node] ??= _createClassDeclaration(node);
-  }
-
-  macro.ClassDeclaration _createClassDeclaration(ClassDeclaration node) {
-    return macro.ClassDeclarationImpl(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _IdentifierImpl(
-        id: macro.RemoteInstance.uniqueId,
-        name: node.name.name,
-      ),
-      // TODO(scheglov): Support typeParameters
-      typeParameters: [],
-      // TODO(scheglov): Support interfaces
-      interfaces: [],
-      isAbstract: node.abstractKeyword != null,
-      isExternal: false,
-      // TODO(scheglov): Support mixins
-      mixins: [],
-      // TODO(scheglov): Support superclass
-      superclass: null,
-    );
+    return _classDeclarations[node] ??= _buildClassDeclaration(node);
   }
 
   macro.TypeAnnotation _inferOmittedType(
@@ -127,6 +107,52 @@ class LibraryMacroApplier {
     );
     return await macroInstance.executeTypesPhase();
   }
+
+  static macro.ClassDeclaration _buildClassDeclaration(ClassDeclaration node) {
+    return macro.ClassDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _buildIdentifier(node.name),
+      // TODO(scheglov): Support typeParameters
+      typeParameters: [],
+      // TODO(scheglov): Support interfaces
+      interfaces: [],
+      isAbstract: node.abstractKeyword != null,
+      isExternal: false,
+      // TODO(scheglov): Support mixins
+      mixins: [],
+      superclass: node.extendsClause?.superclass.mapOrNull(
+        _buildTypeAnnotation,
+      ),
+    );
+  }
+
+  static macro.IdentifierImpl _buildIdentifier(Identifier node) {
+    final String name;
+    if (node is SimpleIdentifier) {
+      name = node.name;
+    } else {
+      name = (node as PrefixedIdentifier).identifier.name;
+    }
+    return _IdentifierImpl(
+      id: macro.RemoteInstance.uniqueId,
+      name: name,
+    );
+  }
+
+  static macro.TypeAnnotationImpl _buildTypeAnnotation(TypeAnnotation node) {
+    if (node is NamedType) {
+      return macro.NamedTypeAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: _buildIdentifier(node.name),
+        isNullable: node.question != null,
+        typeArguments:
+            node.typeArguments?.arguments.map(_buildTypeAnnotation).toList() ??
+                const [],
+      );
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
 }
 
 class _FakeIdentifierResolver extends macro.IdentifierResolver {
@@ -145,4 +171,11 @@ class _IdentifierImpl extends macro.IdentifierImpl {
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
       libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
+}
+
+extension _IfNotNull<T> on T? {
+  R? mapOrNull<R>(R Function(T) mapper) {
+    final self = this;
+    return self != null ? mapper(self) : null;
+  }
 }

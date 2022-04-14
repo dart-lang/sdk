@@ -96,6 +96,7 @@ class MacrosEnvironment {
 
   final _resourceProvider = MemoryResourceProvider(context: package_path.posix);
   late final Uint8List platformDillBytes;
+  late final Folder packageAnalyzerFolder;
 
   MacrosEnvironment._() {
     var physical = PhysicalResourceProvider.INSTANCE;
@@ -107,6 +108,8 @@ class MacrosEnvironment {
         .copyTo(
           packageSharedFolder.getChildAssumingFolder('lib/src'),
         );
+    packageAnalyzerFolder =
+        physical.getFolder(packageRoot).getChildAssumingFolder('analyzer');
 
     platformDillBytes = physical
         .getFile(io.Platform.resolvedExecutable)
