@@ -108,18 +108,17 @@ class LibraryMacroApplier {
     return await macroInstance.executeTypesPhase();
   }
 
-  static macro.ClassDeclaration _buildClassDeclaration(ClassDeclaration node) {
+  static macro.ClassDeclarationImpl _buildClassDeclaration(
+    ClassDeclaration node,
+  ) {
     return macro.ClassDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _buildIdentifier(node.name),
-      // TODO(scheglov): Support typeParameters
-      typeParameters: [],
-      // TODO(scheglov): Support interfaces
-      interfaces: [],
+      typeParameters: _buildTypeParameters(node.typeParameters),
+      interfaces: _buildTypeAnnotations(node.implementsClause?.interfaces),
       isAbstract: node.abstractKeyword != null,
       isExternal: false,
-      // TODO(scheglov): Support mixins
-      mixins: [],
+      mixins: _buildTypeAnnotations(node.withClause?.mixinTypes),
       superclass: node.extendsClause?.superclass.mapOrNull(
         _buildTypeAnnotation,
       ),
@@ -145,12 +144,40 @@ class LibraryMacroApplier {
         id: macro.RemoteInstance.uniqueId,
         identifier: _buildIdentifier(node.name),
         isNullable: node.question != null,
-        typeArguments:
-            node.typeArguments?.arguments.map(_buildTypeAnnotation).toList() ??
-                const [],
+        typeArguments: _buildTypeAnnotations(node.typeArguments?.arguments),
       );
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
+  static List<macro.TypeAnnotationImpl> _buildTypeAnnotations(
+    List<TypeAnnotation>? elements,
+  ) {
+    if (elements != null) {
+      return elements.map(_buildTypeAnnotation).toList();
+    } else {
+      return const [];
+    }
+  }
+
+  static macro.TypeParameterDeclarationImpl _buildTypeParameter(
+    TypeParameter node,
+  ) {
+    return macro.TypeParameterDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _buildIdentifier(node.name),
+      bound: node.bound?.mapOrNull(_buildTypeAnnotation),
+    );
+  }
+
+  static List<macro.TypeParameterDeclarationImpl> _buildTypeParameters(
+    TypeParameterList? typeParameterList,
+  ) {
+    if (typeParameterList != null) {
+      return typeParameterList.typeParameters.map(_buildTypeParameter).toList();
+    } else {
+      return const [];
     }
   }
 }

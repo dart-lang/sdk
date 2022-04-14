@@ -132,11 +132,33 @@ library
         withExportScope: true);
   }
 
+  test_introspect_types_ClassDeclaration_interfaces() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A implements B, C<int, String> {}
+''', r'''
+class A
+  interfaces
+    B
+    C<int, String>
+''');
+  }
+
   test_introspect_types_ClassDeclaration_isAbstract() async {
     await _assertTypesPhaseIntrospectionText(r'''
 abstract class A {}
 ''', r'''
 abstract class A
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_mixins() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A with B, C<int, String> {}
+''', r'''
+class A
+  mixins
+    B
+    C<int, String>
 ''');
   }
 
@@ -164,6 +186,18 @@ class A extends B<String, List<int>> {}
 ''', r'''
 class A
   superclass: B<String, List<int>>
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_typeParameters() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A<T, U extends List<T>> {}
+''', r'''
+class A
+  typeParameters
+    T
+    U
+      bound: List<T>
 ''');
   }
 

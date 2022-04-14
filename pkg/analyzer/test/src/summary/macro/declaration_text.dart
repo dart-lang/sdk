@@ -37,8 +37,12 @@ class _DeclarationPrinter {
     _withIndent(() {
       var superclass = e.superclass;
       if (superclass != null) {
-        _writeType('superclass', superclass);
+        _writeTypeAnnotation('superclass', superclass);
       }
+
+      _writeTypeParameters(e.typeParameters);
+      _writeTypeAnnotations('mixins', e.mixins);
+      _writeTypeAnnotations('interfaces', e.interfaces);
     });
   }
 
@@ -47,6 +51,21 @@ class _DeclarationPrinter {
     _indent = '$savedIndent  ';
     f();
     _indent = savedIndent;
+  }
+
+  void _writeElements<T>(
+    String name,
+    Iterable<T> elements,
+    void Function(T) f,
+  ) {
+    if (elements.isNotEmpty) {
+      _writelnWithIndent(name);
+      _withIndent(() {
+        for (var element in elements) {
+          f(element);
+        }
+      });
+    }
   }
 
   void _writeIf(bool flag, String str) {
@@ -59,7 +78,12 @@ class _DeclarationPrinter {
     _sink.writeln(line);
   }
 
-  void _writeType(String name, TypeAnnotation? type) {
+  void _writelnWithIndent(String line) {
+    _sink.write(_indent);
+    _sink.writeln(line);
+  }
+
+  void _writeTypeAnnotation(String name, TypeAnnotation? type) {
     _sink.write(_indent);
     _sink.write('$name: ');
 
@@ -68,6 +92,30 @@ class _DeclarationPrinter {
     } else {
       _writeln('null');
     }
+  }
+
+  void _writeTypeAnnotationLine(TypeAnnotation type) {
+    var typeStr = _typeStr(type);
+    _writelnWithIndent(typeStr);
+  }
+
+  void _writeTypeAnnotations(String name, Iterable<TypeAnnotation> elements) {
+    _writeElements(name, elements, _writeTypeAnnotationLine);
+  }
+
+  void _writeTypeParameter(TypeParameterDeclaration e) {
+    _writelnWithIndent(e.identifier.name);
+
+    _withIndent(() {
+      var bound = e.bound;
+      if (bound != null) {
+        _writeTypeAnnotation('bound', bound);
+      }
+    });
+  }
+
+  void _writeTypeParameters(Iterable<TypeParameterDeclaration> elements) {
+    _writeElements('typeParameters', elements, _writeTypeParameter);
   }
 
   static String _typeStr(TypeAnnotation type) {
@@ -85,7 +133,13 @@ class _TypeStringBuilder {
   void write(TypeAnnotation type) {
     if (type is NamedTypeAnnotation) {
       _sink.write(type.identifier.name);
-      _writeList(type.typeArguments, ', ', write, open: '<', close: '>');
+      _sink.writeList(
+        elements: type.typeArguments,
+        write: write,
+        separator: ', ',
+        open: '<',
+        close: '>',
+      );
     } else {
       throw UnimplementedError('(${type.runtimeType}) $type');
     }
@@ -93,30 +147,32 @@ class _TypeStringBuilder {
       _sink.write('?');
     }
   }
+}
 
-  void _writeList<T>(
-    Iterable<T> elements,
-    String separator,
-    void Function(T element) write, {
+extension on StringSink {
+  void writeList<T>({
+    required Iterable<T> elements,
+    required void Function(T element) write,
+    required String separator,
     String? open,
     String? close,
   }) {
     elements = elements.toList();
     if (elements.isNotEmpty) {
       if (open != null) {
-        _sink.write(open);
+        this.write(open);
       }
       var isFirst = true;
       for (var element in elements) {
         if (isFirst) {
           isFirst = false;
         } else {
-          _sink.write(separator);
+          this.write(separator);
         }
         write(element);
       }
       if (close != null) {
-        _sink.write(close);
+        this.write(close);
       }
     }
   }
