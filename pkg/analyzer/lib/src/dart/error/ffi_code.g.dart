@@ -927,7 +927,9 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   /**
-   * No parameters.
+   * Parameters:
+   * 0: the type that is missing a native type annotation
+   * 1: the superclass which is extended by this field's class
    */
   // #### Description
   //
@@ -966,8 +968,8 @@ class FfiCode extends AnalyzerErrorCode {
   // ```
   static const FfiCode MISSING_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
     'MISSING_ANNOTATION_ON_STRUCT_FIELD',
-    "Fields in a struct class must either have the type 'Pointer' or an "
-        "annotation indicating the native type.",
+    "Fields of type '{0}' in a subclass of '{1}' must have an annotation "
+        "indicating the native type.",
     correctionMessage: "Try adding an annotation.",
     hasPublishedDocs: true,
   );

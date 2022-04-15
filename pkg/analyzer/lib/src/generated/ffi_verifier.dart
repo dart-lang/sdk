@@ -702,8 +702,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate that the [annotations] include exactly one annotation that
   /// satisfies the [requiredTypes]. If an error is produced that cannot be
   /// associated with an annotation, associate it with the [errorNode].
-  void _validateAnnotations(AstNode errorNode, NodeList<Annotation> annotations,
-      _PrimitiveDartType requiredType) {
+  void _validateAnnotations(TypeAnnotation errorNode,
+      NodeList<Annotation> annotations, _PrimitiveDartType requiredType) {
     bool requiredFound = false;
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
@@ -734,7 +734,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (!requiredFound) {
       _errorReporter.reportErrorForNode(
-          FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, errorNode);
+          FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
+          errorNode,
+          [errorNode.type!, compound!.extendsClause!.superclass.name.name]);
     }
   }
 

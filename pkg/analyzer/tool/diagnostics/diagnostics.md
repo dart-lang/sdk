@@ -10092,8 +10092,8 @@ class C extends Struct {
 
 ### missing_annotation_on_struct_field
 
-_Fields in a struct class must either have the type 'Pointer' or an annotation
-indicating the native type._
+_Fields of type '{0}' in a subclass of '{1}' must have an annotation indicating
+the native type._
 
 #### Description
 
