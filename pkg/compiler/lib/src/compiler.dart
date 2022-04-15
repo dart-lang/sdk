@@ -749,8 +749,6 @@ class Compiler {
 
   void _reportDiagnosticMessage(
       DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
-    // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
-    // instance in the [Types] constructor in typechecker.dart.
     var span = diagnosticMessage.sourceSpan;
     var message = diagnosticMessage.message;
     if (span == null || span.uri == null) {
