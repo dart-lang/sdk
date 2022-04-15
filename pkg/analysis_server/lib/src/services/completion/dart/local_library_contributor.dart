@@ -77,7 +77,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (opType.includeReturnValueSuggestions) {
       builder.suggestExtension(element, kind: kind, prefix: prefix);
     }
-    element.visitChildren(this);
   }
 
   @override
