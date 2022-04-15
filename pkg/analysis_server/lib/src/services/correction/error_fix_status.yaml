@@ -953,7 +953,8 @@ CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
-  status: needsEvaluation
+  status: hasFix
+  issue: https://github.com/dart-lang/sdk/issues/47643
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
   status: needsFix
   since: 2.17

@@ -154,7 +154,7 @@ class CreateMethod extends CorrectionProducer {
         return;
       }
       targetElement = targetClassElement;
-      if (targetClassElement.librarySource.uri.isScheme('dart')) {
+      if (targetClassElement.library.isInSdk) {
         return;
       }
       // prepare target ClassDeclaration

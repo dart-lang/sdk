@@ -129,7 +129,7 @@ class CiderRenameComputer {
     if (node == null || element == null) {
       return null;
     }
-    if (element.source != null && element.source!.uri.isScheme('dart')) {
+    if (element.library?.isInSdk == true) {
       return null;
     }
     if (element is MethodElement && element.isOperator) {
