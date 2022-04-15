@@ -65,16 +65,16 @@ class KernelToElementMap implements IrToElementMap {
   final Environment _environment;
   final NativeBasicDataBuilder nativeBasicDataBuilder =
       NativeBasicDataBuilder();
-  NativeBasicData _nativeBasicData;
-  KCommonElements /*!*/ _commonElements;
-  KernelElementEnvironment _elementEnvironment;
-  DartTypeConverter _typeConverter;
-  KernelDartTypes _types;
-  ir.CoreTypes _coreTypes;
-  ir.TypeEnvironment _typeEnvironment;
-  ir.ClassHierarchy _classHierarchy;
-  Dart2jsConstantEvaluator _constantEvaluator;
-  ConstantValuefier _constantValuefier;
+  NativeBasicData /*?*/ _nativeBasicData;
+  /*late final*/ KCommonElements /*!*/ _commonElements;
+  /*late final*/ KernelElementEnvironment /*!*/ _elementEnvironment;
+  /*late final*/ DartTypeConverter _typeConverter;
+  /*late final*/ KernelDartTypes /*!*/ _types;
+  ir.CoreTypes /*?*/ _coreTypes;
+  ir.TypeEnvironment /*?*/ _typeEnvironment;
+  ir.ClassHierarchy /*?*/ _classHierarchy;
+  Dart2jsConstantEvaluator /*?*/ _constantEvaluator;
+  /*late final*/ ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   KProgramEnv env = KProgramEnv();
@@ -1657,7 +1657,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract}) {
+      {/*required*/ bool isAbstract}) {
     return KClass(library, name, isAbstract: isAbstract);
   }
 
@@ -1668,7 +1668,7 @@ class KernelToElementMap implements IrToElementMap {
 
   IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
       Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst}) {
+      {/*required*/ bool isExternal, /*required*/ bool isConst}) {
     return KGenerativeConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal, isConst: isConst);
   }
@@ -1677,7 +1677,9 @@ class KernelToElementMap implements IrToElementMap {
   // isEnvironmentConstructor: Here, and everywhere in the compiler.
   IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
       Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
+      {/*required*/ bool isExternal,
+      /*required*/ bool isConst,
+      /*required*/ bool isFromEnvironmentConstructor}) {
     return KFactoryConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal,
         isConst: isConst,

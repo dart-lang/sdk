@@ -126,7 +126,7 @@ enum JMemberKind {
 
 abstract class JMember extends IndexedMember {
   @override
-  final JLibrary library;
+  final JLibrary /*!*/ library;
   @override
   final JClass enclosingClass;
   final Name _name;

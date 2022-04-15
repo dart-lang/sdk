@@ -78,15 +78,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  JCommonElements _commonElements;
-  JsElementEnvironment _elementEnvironment;
-  DartTypeConverter _typeConverter;
-  KernelDartTypes _types;
+  /*late final*/ JCommonElements _commonElements;
+  /*late final*/ JsElementEnvironment _elementEnvironment;
+  /*late final*/ DartTypeConverter _typeConverter;
+  /*late final*/ KernelDartTypes _types;
   ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
-  Dart2jsConstantEvaluator _constantEvaluator;
-  ConstantValuefier _constantValuefier;
+  Dart2jsConstantEvaluator /*?*/ _constantEvaluator;
+  /*late final*/ ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -1643,10 +1643,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         }
       }
     }
-    assert(
-        typeVariable != null,
-        "No type variable entity for $node on "
-        "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+    if (typeVariable == null) {
+      throw failedAt(
+          CURRENT_ELEMENT_SPANNABLE,
+          "No type variable entity for $node on "
+          "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+    }
     return typeVariable;
   }
 
@@ -1658,15 +1660,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   JConstructorBody _getConstructorBody(IndexedConstructor constructor) {
     JConstructorDataImpl data = members.getData(constructor);
-    if (data.constructorBody == null) {
+    JConstructorBody /*?*/ constructorBody = data.constructorBody;
+    if (constructorBody == null) {
       /// The constructor calls the constructor body with all parameters.
       // TODO(johnniwinther): Remove parameters that are not used in the
       //  constructor body.
       ParameterStructure parameterStructure =
           _getParameterStructureFromFunctionNode(data.node.function);
 
-      JConstructorBody constructorBody =
-          createConstructorBody(constructor, parameterStructure);
+      constructorBody = createConstructorBody(constructor, parameterStructure);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
           ConstructorBodyDataImpl(
@@ -1683,7 +1685,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           constructor, constructorBody);
       data.constructorBody = constructorBody;
     }
-    return data.constructorBody;
+    return constructorBody;
   }
 
   @override

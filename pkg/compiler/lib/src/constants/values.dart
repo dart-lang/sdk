@@ -468,7 +468,7 @@ class FalseConstantValue extends BoolConstantValue {
 }
 
 class StringConstantValue extends PrimitiveConstantValue {
-  final String stringValue;
+  final String /*!*/ stringValue;
 
   @override
   final int hashCode;
@@ -568,7 +568,7 @@ class TypeConstantValue extends ObjectConstantValue {
 }
 
 class ListConstantValue extends ObjectConstantValue {
-  final List<ConstantValue> entries;
+  final List<ConstantValue /*!*/ > /*!*/ entries;
   @override
   final int hashCode;
 

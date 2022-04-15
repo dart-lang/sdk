@@ -40,7 +40,7 @@ class DataSourceReader {
   final DataSource _sourceReader;
 
   static final List<ir.DartType> emptyListOfDartTypes =
-      List<ir.DartType>.filled(0, null, growable: false);
+      List<ir.DartType>.empty();
 
   final bool useDataKinds;
   DataSourceIndices importedIndices;
@@ -123,7 +123,7 @@ class DataSourceReader {
 
   ComponentLookup get componentLookup {
     assert(_componentLookup != null);
-    return _componentLookup;
+    return _componentLookup /*!*/;
   }
 
   /// Registers an [EntityLookup] object with this data source to support
@@ -135,7 +135,7 @@ class DataSourceReader {
 
   EntityLookup get entityLookup {
     assert(_entityLookup != null);
-    return _entityLookup;
+    return _entityLookup /*!*/;
   }
 
   /// Registers an [EntityReader] with this data source for non-default encoding
@@ -153,7 +153,7 @@ class DataSourceReader {
 
   LocalLookup get localLookup {
     assert(_localLookup != null);
-    return _localLookup;
+    return _localLookup /*!*/;
   }
 
   /// Registers a [CodegenReader] with this data source to support
@@ -263,7 +263,7 @@ class DataSourceReader {
     return _readString();
   }
 
-  String _readString() {
+  String /*!*/ _readString() {
     return _stringIndex.read(_sourceReader.readString);
   }
 
@@ -287,7 +287,7 @@ class DataSourceReader {
   List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<String> list = List<String>.filled(count, null);
+    List<String> list = List<String>.filled(count, '');
     for (int i = 0; i < count; i++) {
       list[i] = readString();
     }
@@ -662,11 +662,7 @@ class DataSourceReader {
   List<DartType> /*?*/ readDartTypesOrNull() {
     int count = readInt();
     if (count == 0) return null;
-    List<DartType> list = List<DartType>.filled(count, null);
-    for (int i = 0; i < count; i++) {
-      list[i] = readDartType();
-    }
-    return list;
+    return List.generate(count, (_) => readDartType(), growable: false);
   }
 
   /// Reads a kernel type node from this data source. If [allowNull], the
@@ -800,7 +796,8 @@ class DataSourceReader {
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return emptyListOfDartTypes;
-    List<ir.DartType> types = List<ir.DartType>.filled(count, null);
+    List<ir.DartType> types =
+        List<ir.DartType>.filled(count, const ir.InvalidType());
     for (int index = 0; index < count; index++) {
       types[index] = _readDartTypeNode(functionTypeVariables);
     }
