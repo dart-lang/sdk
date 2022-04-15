@@ -5,7 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
@@ -19,7 +18,7 @@ import 'package:collection/collection.dart';
 
 class ReferencesHandler
     extends MessageHandler<ReferenceParams, List<Location>?> {
-  ReferencesHandler(LspAnalysisServer server) : super(server);
+  ReferencesHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_references;
 

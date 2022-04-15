@@ -12,7 +12,6 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -21,9 +20,8 @@ class KytheGetKytheEntriesHandler extends LegacyHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  KytheGetKytheEntriesHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  KytheGetKytheEntriesHandler(
+      super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {

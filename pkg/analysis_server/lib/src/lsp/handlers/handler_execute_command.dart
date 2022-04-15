@@ -12,7 +12,6 @@ import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.da
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 
 /// Handles workspace/executeCommand messages by delegating to a specific handler
@@ -20,7 +19,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler> commandHandlers;
-  ExecuteCommandHandler(LspAnalysisServer server)
+  ExecuteCommandHandler(super.server)
       : commandHandlers = {
           Commands.sortMembers: SortMembersCommandHandler(server),
           Commands.organizeImports: OrganizeImportsCommandHandler(server),
@@ -28,8 +27,7 @@ class ExecuteCommandHandler
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.validateRefactor: ValidateRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
-        },
-        super(server);
+        };
 
   @override
   Method get handlesMessage => Method.workspace_executeCommand;

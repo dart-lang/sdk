@@ -32,10 +32,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   /// been shadowed by local declarations.
   _VisibilityTracker visibilityTracker = _VisibilityTracker();
 
-  LocalReferenceContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  LocalReferenceContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
@@ -24,11 +23,11 @@ class NotImportedContributor extends DartCompletionContributor {
   final Set<Element> _importedElements = Set.identity();
 
   NotImportedContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
+    super.request,
+    super.builder,
     this.budget,
     this.additionalData,
-  ) : super(request, builder);
+  );
 
   @override
   Future<void> computeSuggestions() async {

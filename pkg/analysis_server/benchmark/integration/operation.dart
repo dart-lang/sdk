@@ -20,8 +20,7 @@ class CompletionRequestOperation extends RequestOperation {
   bool firstNotification = true;
 
   CompletionRequestOperation(
-      CommonInputConverter converter, Map<String, dynamic> json)
-      : super(converter, json);
+      super.converter, super.json);
 
   @override
   Future<void>? perform(Driver driver) {

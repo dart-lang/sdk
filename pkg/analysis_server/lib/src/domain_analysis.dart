@@ -26,7 +26,7 @@ import 'package:analyzer/src/utilities/cancellation.dart';
 class AnalysisDomainHandler extends AbstractRequestHandler {
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  AnalysisDomainHandler(AnalysisServer server) : super(server);
+  AnalysisDomainHandler(super.server);
 
   @override
   Response? handleRequest(

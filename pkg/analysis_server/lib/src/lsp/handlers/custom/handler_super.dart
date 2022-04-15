@@ -6,14 +6,13 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:collection/collection.dart';
 
 class SuperHandler
     extends MessageHandler<TextDocumentPositionParams, Location?> {
-  SuperHandler(LspAnalysisServer server) : super(server);
+  SuperHandler(super.server);
   @override
   Method get handlesMessage => CustomMethods.super_;
 

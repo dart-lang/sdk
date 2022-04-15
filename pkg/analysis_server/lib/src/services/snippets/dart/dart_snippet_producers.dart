@@ -18,7 +18,7 @@ class DartClassSnippetProducer extends DartSnippetProducer {
   static const prefix = 'class';
   static const label = 'class';
 
-  DartClassSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartClassSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -55,7 +55,7 @@ class DartDoWhileLoopSnippetProducer extends DartSnippetProducer {
   static const prefix = 'do';
   static const label = 'do while';
 
-  DartDoWhileLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartDoWhileLoopSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -93,7 +93,7 @@ class DartForInLoopSnippetProducer extends DartSnippetProducer {
   static const prefix = 'forin';
   static const label = 'for in';
 
-  DartForInLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartForInLoopSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -134,7 +134,7 @@ class DartForLoopSnippetProducer extends DartSnippetProducer {
   static const prefix = 'for';
   static const label = 'for';
 
-  DartForLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartForLoopSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -171,7 +171,7 @@ class DartIfElseSnippetProducer extends DartSnippetProducer {
   static const prefix = 'ife';
   static const label = 'ife';
 
-  DartIfElseSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartIfElseSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -212,7 +212,7 @@ class DartIfSnippetProducer extends DartSnippetProducer {
   static const prefix = 'if';
   static const label = 'if';
 
-  DartIfSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartIfSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -252,8 +252,7 @@ class DartMainFunctionSnippetProducer extends DartSnippetProducer {
   static const prefix = 'main';
   static const label = 'main()';
 
-  DartMainFunctionSnippetProducer._(DartSnippetRequest request)
-      : super(request);
+  DartMainFunctionSnippetProducer._(super.request);
 
   /// Whether to insert a `List<String> args` parameter in the generated
   /// function.
@@ -306,13 +305,12 @@ abstract class DartSnippetProducer extends SnippetProducer {
   final LibraryElement libraryElement;
   final bool useSuperParams;
 
-  DartSnippetProducer(DartSnippetRequest request)
+  DartSnippetProducer(super.request)
       : sessionHelper = AnalysisSessionHelper(request.analysisSession),
         utils = CorrectionUtils(request.unit),
         libraryElement = request.unit.libraryElement,
         useSuperParams = request.unit.libraryElement.featureSet
-            .isEnabled(Feature.super_parameters),
-        super(request);
+            .isEnabled(Feature.super_parameters);
 
   bool get isInTestDirectory {
     final path = request.unit.path;
@@ -336,7 +334,7 @@ class DartSwitchSnippetProducer extends DartSnippetProducer {
   static const prefix = 'switch';
   static const label = 'switch case';
 
-  DartSwitchSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartSwitchSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -380,7 +378,7 @@ class DartTestBlockSnippetProducer extends DartSnippetProducer {
   static const prefix = 'test';
   static const label = 'test';
 
-  DartTestBlockSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartTestBlockSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -426,8 +424,7 @@ class DartTestGroupBlockSnippetProducer extends DartSnippetProducer {
   static const prefix = 'group';
   static const label = 'group';
 
-  DartTestGroupBlockSnippetProducer._(DartSnippetRequest request)
-      : super(request);
+  DartTestGroupBlockSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -474,7 +471,7 @@ class DartTryCatchSnippetProducer extends DartSnippetProducer {
   static const prefix = 'try';
   static const label = 'try';
 
-  DartTryCatchSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartTryCatchSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -517,7 +514,7 @@ class DartWhileLoopSnippetProducer extends DartSnippetProducer {
   static const prefix = 'while';
   static const label = 'while';
 
-  DartWhileLoopSnippetProducer._(DartSnippetRequest request) : super(request);
+  DartWhileLoopSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {

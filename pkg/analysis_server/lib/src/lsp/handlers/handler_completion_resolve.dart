@@ -9,7 +9,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -27,7 +26,7 @@ class CompletionResolveHandler
   /// cancel events).
   CompletionItem? _latestCompletionItem;
 
-  CompletionResolveHandler(LspAnalysisServer server) : super(server);
+  CompletionResolveHandler(super.server);
 
   @override
   Method get handlesMessage => Method.completionItem_resolve;

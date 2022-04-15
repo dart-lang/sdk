@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// A contributor that produces suggestions for constructors that are being
@@ -12,10 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// expressions of the form `this.^` or `super.^` in a constructor's initializer
 /// list or after an `=` in a factory constructor.
 class RedirectingContributor extends DartCompletionContributor {
-  RedirectingContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  RedirectingContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

@@ -31,3 +31,4 @@ linter:
   rules:
     - depend_on_referenced_packages
     - unnecessary_parenthesis
+    - use_super_parameters

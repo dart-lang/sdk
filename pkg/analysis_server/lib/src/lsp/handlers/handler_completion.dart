@@ -38,9 +38,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
 
-  CompletionHandler(LspAnalysisServer server, LspInitializationOptions options)
-      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
-        super(server);
+  CompletionHandler(super.server, LspInitializationOptions options)
+      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries;
 
   @override
   Method get handlesMessage => Method.textDocument_completion;

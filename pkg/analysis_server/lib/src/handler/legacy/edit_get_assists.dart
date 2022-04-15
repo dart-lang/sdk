@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -27,9 +26,7 @@ class EditGetAssistsHandler extends LegacyHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetAssistsHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  EditGetAssistsHandler(super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {
