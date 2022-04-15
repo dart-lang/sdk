@@ -1253,6 +1253,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove unused parameters everywhere in file',
   );
+  static const REMOVE_VAR = FixKind(
+    'dart.fix.remove.var',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'var'",
+  );
   static const RENAME_TO_CAMEL_CASE = FixKind(
     'dart.fix.rename.toCamelCase',
     DartFixKindPriority.DEFAULT,
