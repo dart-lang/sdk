@@ -365,7 +365,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
         }
       }
 
-      link(
+      await link(
         elementFactory,
         cycleInputLibraries,
         macroExecutor: macroExecutor,

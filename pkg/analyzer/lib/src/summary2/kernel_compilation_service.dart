@@ -57,6 +57,7 @@ class KernelCompilationService {
     ]);
 
     // When the process exits, we should not try to continue using it.
+    // ignore: unawaited_futures
     process.exitCode.then((_) {
       _currentInstance = null;
     });
@@ -127,8 +128,12 @@ class KernelCompilationService {
       final instance = _currentInstance;
       if (instance != null) {
         _currentInstance = null;
+        // We don't expect any answer, the process will stop.
+        // ignore: unawaited_futures
         instance.requestChannel.sendRequest<void>('exit', {});
         instance.socket.destroy();
+        // This socket is bound to a fresh port, we don't need it.
+        // ignore: unawaited_futures
         instance.serverSocket.close();
         instance.process.kill();
       }
