@@ -123,6 +123,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Add missing debug property references everywhere in file',
   );
+  static const ADD_ENUM_CONSTANT = FixKind(
+    'dart.fix.add.enumConstant',
+    DartFixKindPriority.DEFAULT,
+    "Add enum constant '{0}'",
+  );
   static const ADD_EOL_AT_END_OF_FILE = FixKind(
     'dart.fix.add.eolAtEndOfFile',
     DartFixKindPriority.DEFAULT,

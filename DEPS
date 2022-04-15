@@ -119,7 +119,7 @@ vars = {
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev": "34bf7f04b61cce561f47f7f275c2cc811534a05a",
   "http_parser_rev": "202391286ddc13c4c3c284ac5b511f04697250ed",
-  "http_rev": "1e42ffa181b263f7790f276a5465832bff7ce615",
+  "http_rev": "a645b938f766d6c9f48724ee55d40e1b394bfae4",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_tag": "9669926609e7efc17dfd74fbb44ec719a7e573cc", # 0.17.0-nullsafety
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -131,7 +131,7 @@ vars = {
   "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
   "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
   "mime_rev": "c2c5ffd594674f32dc277521369da1557a1622d3",
-  "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
+  "mockito_rev": "1e977a727e82a2e1bdb49b79ef1dce0f23aa1faa",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",
   "path_rev": "baedce9d2ca11ea2cdf54395a74eb038087777a4",

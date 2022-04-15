@@ -306,7 +306,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       // Compute the fix kind.
       FixKind fixKind;
-      if (librarySource.uri.isScheme('dart')) {
+      if (libraryElement.isInSdk) {
         fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
       } else if (_isLibSrcPath(librarySource.fullName)) {
         // Bad: non-API.
