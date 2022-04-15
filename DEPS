@@ -131,7 +131,7 @@ vars = {
   "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
   "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
   "mime_rev": "c2c5ffd594674f32dc277521369da1557a1622d3",
-  "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
+  "mockito_rev": "1e977a727e82a2e1bdb49b79ef1dce0f23aa1faa",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",
   "path_rev": "baedce9d2ca11ea2cdf54395a74eb038087777a4",
