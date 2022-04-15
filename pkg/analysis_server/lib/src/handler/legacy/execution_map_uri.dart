@@ -6,18 +6,14 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// The handler for the `execution.mapUri` request.
 class ExecutionMapUriHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  ExecutionMapUriHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  ExecutionMapUriHandler(super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {

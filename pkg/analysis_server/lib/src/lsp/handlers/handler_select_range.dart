@@ -7,7 +7,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart'
     hide SelectionRange;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,7 +14,7 @@ import 'package:analyzer/source/line_info.dart';
 
 class SelectionRangeHandler
     extends MessageHandler<SelectionRangeParams, List<SelectionRange>?> {
-  SelectionRangeHandler(LspAnalysisServer server) : super(server);
+  SelectionRangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_selectionRange;
 

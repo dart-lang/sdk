@@ -1513,7 +1513,7 @@ abstract class ElementEnvironment {
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments);
+      ClassEntity /*!*/ cls, List<DartType /*!*/ > typeArguments);
 
   /// Returns the `dynamic` type.
   DartType get dynamicType;

@@ -8,13 +8,12 @@ import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 
 class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
-  ValidateRefactorCommandHandler(LspAnalysisServer server) : super(server);
+  ValidateRefactorCommandHandler(super.server);
 
   @override
   String get commandName => 'Validate Refactor';

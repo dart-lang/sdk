@@ -8,17 +8,17 @@ version: 8.2.2+1
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/vm_service
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.15.0 <3.0.0'
 
 dependencies:
 
 dev_dependencies:
   async: ^2.5.0
   expect: any
+  lints: any
   markdown: ^4.0.0-nullsafety.0
   mockito: ^5.0.0-nullsafety.1
   path: ^1.8.0
-  pedantic: ^1.10.0-nullsafety.3
   process: ^4.0.0
   pub_semver: ^2.0.0-nullsafety.0
   test: ^1.16.0-nullsafety.13

@@ -39,8 +39,8 @@ extension on DataSourceReader {
 }
 
 extension on DataSinkWriter {
-  void _writeDartTypes(
-      List<DartType> types, List<FunctionTypeVariable> functionTypeVariables) {
+  void _writeDartTypes(List<DartType /*!*/ > types,
+      List<FunctionTypeVariable /*!*/ > functionTypeVariables) {
     writeInt(types.length);
     for (DartType type in types) {
       type.writeToDataSink(this, functionTypeVariables);
@@ -94,8 +94,8 @@ abstract class DartType {
     throw UnsupportedError('Unexpected DartTypeKind $kind');
   }
 
-  void writeToDataSink(
-      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables);
+  void writeToDataSink(DataSinkWriter sink,
+      List<FunctionTypeVariable /*!*/ > functionTypeVariables);
 
   /// Returns the base type if this is a [LegacyType] or [NullableType] and
   /// returns this type otherwise.
@@ -209,7 +209,7 @@ class _Assumptions {
 }
 
 class LegacyType extends DartType {
-  final DartType baseType;
+  final DartType /*!*/ baseType;
 
   const LegacyType._(this.baseType);
 
@@ -264,7 +264,7 @@ class LegacyType extends DartType {
 }
 
 class NullableType extends DartType {
-  final DartType baseType;
+  final DartType /*!*/ baseType;
 
   const NullableType._(this.baseType);
 
@@ -319,8 +319,8 @@ class NullableType extends DartType {
 }
 
 class InterfaceType extends DartType {
-  final ClassEntity element;
-  final List<DartType> typeArguments;
+  final ClassEntity /*!*/ element;
+  final List<DartType /*!*/ > typeArguments;
 
   InterfaceType._allocate(this.element, this.typeArguments);
 
@@ -478,7 +478,7 @@ class FunctionTypeVariable extends DartType {
     }
   }
 
-  DartType get bound {
+  DartType /*!*/ get bound {
     assert(_bound != null, "Bound has not been set.");
     return _bound;
   }
@@ -653,8 +653,8 @@ class AnyType extends DartType {
 
 class FunctionType extends DartType {
   final DartType returnType;
-  final List<DartType> parameterTypes;
-  final List<DartType> optionalParameterTypes;
+  final List<DartType /*!*/ > parameterTypes;
+  final List<DartType /*!*/ > optionalParameterTypes;
 
   /// The names of all named parameters ordered lexicographically.
   final List<String> namedParameters;
@@ -664,9 +664,9 @@ class FunctionType extends DartType {
 
   /// The types of the named parameters in the order corresponding to the
   /// [namedParameters].
-  final List<DartType> namedParameterTypes;
+  final List<DartType /*!*/ > namedParameterTypes;
 
-  final List<FunctionTypeVariable> typeVariables;
+  final List<FunctionTypeVariable /*!*/ > typeVariables;
 
   FunctionType._allocate(
       this.returnType,
@@ -691,12 +691,12 @@ class FunctionType extends DartType {
 
   factory FunctionType._(
       DartType returnType,
-      List<DartType> parameterTypes,
-      List<DartType> optionalParameterTypes,
-      List<String> namedParameters,
-      Set<String> requiredNamedParameters,
-      List<DartType> namedParameterTypes,
-      List<FunctionTypeVariable> typeVariables) {
+      List<DartType /*!*/ > parameterTypes,
+      List<DartType /*!*/ > optionalParameterTypes,
+      List<String /*!*/ > namedParameters,
+      Set<String /*!*/ > requiredNamedParameters,
+      List<DartType /*!*/ > namedParameterTypes,
+      List<FunctionTypeVariable /*!*/ > typeVariables) {
     // Canonicalize empty collections to constants to save storage.
     if (parameterTypes.isEmpty) parameterTypes = const [];
     if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
@@ -736,7 +736,7 @@ class FunctionType extends DartType {
     List<DartType> namedParameterTypes =
         source._readDartTypes(functionTypeVariables);
     List<String> namedParameters =
-        List<String>.filled(namedParameterTypes.length, null);
+        List<String>.filled(namedParameterTypes.length, '');
     var requiredNamedParameters = <String>{};
     for (int i = 0; i < namedParameters.length; i++) {
       namedParameters[i] = source.readString();
@@ -856,7 +856,7 @@ class FunctionType extends DartType {
 }
 
 class FutureOrType extends DartType {
-  final DartType typeArgument;
+  final DartType /*!*/ typeArgument;
 
   const FutureOrType._(this.typeArgument);
 
@@ -921,34 +921,36 @@ bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
 abstract class DartTypeVisitor<R, A> {
   const DartTypeVisitor();
 
-  R visit(covariant DartType type, A argument) => type.accept(this, argument);
+  R /*!*/ visit(covariant DartType type, A argument) =>
+      type.accept(this, argument);
 
-  R visitLegacyType(covariant LegacyType type, A argument);
+  R /*!*/ visitLegacyType(covariant LegacyType type, A argument);
 
-  R visitNullableType(covariant NullableType type, A argument);
+  R /*!*/ visitNullableType(covariant NullableType type, A argument);
 
-  R visitNeverType(covariant NeverType type, A argument);
+  R /*!*/ visitNeverType(covariant NeverType type, A argument);
 
-  R visitVoidType(covariant VoidType type, A argument);
+  R /*!*/ visitVoidType(covariant VoidType type, A argument);
 
-  R visitTypeVariableType(covariant TypeVariableType type, A argument);
+  R /*!*/ visitTypeVariableType(covariant TypeVariableType type, A argument);
 
-  R visitFunctionTypeVariable(covariant FunctionTypeVariable type, A argument);
+  R /*!*/ visitFunctionTypeVariable(
+      covariant FunctionTypeVariable type, A argument);
 
-  R visitFunctionType(covariant FunctionType type, A argument);
+  R /*!*/ visitFunctionType(covariant FunctionType type, A argument);
 
-  R visitInterfaceType(covariant InterfaceType type, A argument);
+  R /*!*/ visitInterfaceType(covariant InterfaceType type, A argument);
 
-  R visitDynamicType(covariant DynamicType type, A argument);
+  R /*!*/ visitDynamicType(covariant DynamicType type, A argument);
 
-  R visitErasedType(covariant ErasedType type, A argument);
+  R /*!*/ visitErasedType(covariant ErasedType type, A argument);
 
-  R visitAnyType(covariant AnyType type, A argument);
+  R /*!*/ visitAnyType(covariant AnyType type, A argument);
 
-  R visitFutureOrType(covariant FutureOrType type, A argument);
+  R /*!*/ visitFutureOrType(covariant FutureOrType type, A argument);
 }
 
-class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
+class _LegacyErasureVisitor extends DartTypeVisitor<DartType /*!*/, Null> {
   final DartTypes _dartTypes;
 
   _LegacyErasureVisitor(this._dartTypes);
@@ -997,8 +999,9 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
     var oldTypeVariables = type.typeVariables;
     var length = oldTypeVariables.length;
 
+    // Use the old type variables as placeholders that are overwritten.
     List<FunctionTypeVariable> typeVariables =
-        List<FunctionTypeVariable>.filled(length, null);
+        List<FunctionTypeVariable>.of(oldTypeVariables, growable: false);
     List<FunctionTypeVariable> erasableTypeVariables = [];
     List<FunctionTypeVariable> erasedTypeVariables = [];
     for (int i = 0; i < length; i++) {
@@ -1059,13 +1062,13 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
 }
 
 abstract class DartTypeSubstitutionVisitor<A>
-    extends DartTypeVisitor<DartType, A> {
+    extends DartTypeVisitor<DartType /*!*/, A> {
   DartTypes get dartTypes;
 
   // The input type is a DAG and we must preserve the sharing.
   final Map<DartType, DartType> _map = Map.identity();
 
-  DartType _mapped(DartType oldType, DartType newType) {
+  DartType _mapped(DartType oldType, DartType /*!*/ newType) {
     assert(_map[oldType] == null);
     return _map[oldType] = newType;
   }
@@ -1187,7 +1190,8 @@ abstract class DartTypeSubstitutionVisitor<A>
     // indirectly changed by the substitution of F. When D is replaced by `D2
     // extends Map<B,G>`, C must be replaced by `C2 extends D2`.
 
-    List<FunctionTypeVariable> undecided = variables.toList();
+    List<FunctionTypeVariable /*?*/ > undecided =
+        List.of(variables, growable: false);
     List<FunctionTypeVariable> newVariables;
 
     _DependencyCheck<A> dependencyCheck = _DependencyCheck<A>(this, argument);
@@ -1306,7 +1310,7 @@ class _DependencyCheck<A> extends DartTypeStructuralPredicateVisitor {
 /// visit returns `true`.  The default handlers return `false` which will search
 /// the whole structure unless overridden.
 abstract class DartTypeStructuralPredicateVisitor
-    extends DartTypeVisitor<bool, List<FunctionTypeVariable>> {
+    extends DartTypeVisitor<bool, List<FunctionTypeVariable> /*?*/ > {
   const DartTypeStructuralPredicateVisitor();
 
   bool run(DartType type) => visit(type, null);
@@ -1701,7 +1705,7 @@ abstract class DartTypes {
   DartType bottomType() =>
       useLegacySubtyping ? commonElements.nullType : neverType();
 
-  DartType legacyType(DartType baseType) {
+  DartType legacyType(DartType /*!*/ baseType) {
     DartType result;
     if (isStrongTopType(baseType) ||
         baseType.isNull ||
@@ -1714,7 +1718,7 @@ abstract class DartTypes {
     return result;
   }
 
-  DartType nullableType(DartType baseType) {
+  DartType nullableType(DartType /*!*/ baseType) {
     bool _isNullable(DartType t) =>
         // Note that we can assume null safety is enabled here.
         t.isNull ||
@@ -1748,7 +1752,7 @@ abstract class DartTypes {
   }
 
   InterfaceType interfaceType(
-          ClassEntity element, List<DartType> typeArguments) =>
+          ClassEntity element, List<DartType /*!*/ > typeArguments) =>
       InterfaceType._(element, typeArguments);
 
   // TODO(fishythefish): Normalize `T extends Never` to `Never`.
@@ -1771,12 +1775,12 @@ abstract class DartTypes {
 
   FunctionType functionType(
       DartType returnType,
-      List<DartType> parameterTypes,
-      List<DartType> optionalParameterTypes,
+      List<DartType /*!*/ > parameterTypes,
+      List<DartType /*!*/ > optionalParameterTypes,
       List<String> namedParameters,
       Set<String> requiredNamedParameters,
-      List<DartType> namedParameterTypes,
-      List<FunctionTypeVariable> typeVariables) {
+      List<DartType /*!*/ > namedParameterTypes,
+      List<FunctionTypeVariable /*!*/ > typeVariables) {
     FunctionType type = FunctionType._(
         returnType,
         parameterTypes,
@@ -2264,7 +2268,7 @@ abstract class DartTypes {
 
   /// Returns `true` if [type] occuring in a program with no sound null safety
   /// cannot accept `null` under sound rules.
-  bool isNonNullableIfSound(DartType type) {
+  bool isNonNullableIfSound(DartType /*!*/ type) {
     if (type is DynamicType ||
         type is VoidType ||
         type is AnyType ||

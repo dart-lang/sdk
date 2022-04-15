@@ -35,9 +35,9 @@ class KClass extends IndexedClass {
   @override
   final String name;
   @override
-  final bool isAbstract;
+  final bool /*!*/ isAbstract;
 
-  KClass(this.library, this.name, {this.isAbstract});
+  KClass(this.library, this.name, {/*required*/ this.isAbstract});
 
   @override
   bool get isClosure => false;
@@ -166,7 +166,7 @@ class KGenerativeConstructor extends KConstructor {
 
 class KFactoryConstructor extends KConstructor {
   @override
-  final bool isFromEnvironmentConstructor;
+  final bool /*!*/ isFromEnvironmentConstructor;
 
   KFactoryConstructor(
       KClass enclosingClass, Name name, ParameterStructure parameterStructure,

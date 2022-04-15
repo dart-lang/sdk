@@ -247,7 +247,7 @@ class LibraryContext {
         var macroKernelKey = '${cycle.transitiveSignature}.macro_kernel';
         var macroKernelBytes = byteStore.get(macroKernelKey);
         if (macroKernelBytes == null) {
-          macroKernelBytes = macroKernelBuilder.build(
+          macroKernelBytes = await macroKernelBuilder.build(
             fileSystem: _MacroFileSystem(fileSystemState),
             libraries: macroLibraries,
           );

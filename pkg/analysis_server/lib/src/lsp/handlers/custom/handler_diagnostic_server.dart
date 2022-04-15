@@ -7,11 +7,10 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class DiagnosticServerHandler
     extends MessageHandler<void, DartDiagnosticServer> {
-  DiagnosticServerHandler(LspAnalysisServer server) : super(server);
+  DiagnosticServerHandler(super.server);
   @override
   Method get handlesMessage => CustomMethods.diagnosticServer;
 

@@ -248,11 +248,11 @@ class _BaseUnitMemberValidator {
 /// Helper to check if the created element will cause any conflicts.
 class _CreateUnitMemberValidator extends _BaseUnitMemberValidator {
   _CreateUnitMemberValidator(
-    SearchEngine searchEngine,
-    LibraryElement library,
-    ElementKind elementKind,
-    String name,
-  ) : super(searchEngine, library, elementKind, name);
+    super.searchEngine,
+    super.library,
+    super.elementKind,
+    super.name,
+  );
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();

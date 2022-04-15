@@ -105,9 +105,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
   final bool generateGetters;
   final bool generateSetters;
 
-  CodegenJavaType(Api api, this.className, this.superclassName,
-      this.generateGetters, this.generateSetters)
-      : super(api);
+  CodegenJavaType(super.api, this.className, this.superclassName,
+      this.generateGetters, this.generateSetters);
 
   /// Get the name of the consumer class for responses to this request.
   @override

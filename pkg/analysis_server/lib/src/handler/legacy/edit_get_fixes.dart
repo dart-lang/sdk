@@ -28,7 +28,6 @@ import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:html/parser.dart';
@@ -39,9 +38,7 @@ class EditGetFixesHandler extends LegacyHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetFixesHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  EditGetFixesHandler(super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {

@@ -27,10 +27,7 @@ const YIELD_STAR = 'yield*';
 /// A contributor that produces suggestions based on the set of keywords that
 /// are valid at the completion point.
 class KeywordContributor extends DartCompletionContributor {
-  KeywordContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  KeywordContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

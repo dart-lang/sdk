@@ -5,12 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class WorkspaceDidChangeConfigurationMessageHandler
     extends MessageHandler<DidChangeConfigurationParams, void> {
-  WorkspaceDidChangeConfigurationMessageHandler(LspAnalysisServer server)
-      : super(server);
+  WorkspaceDidChangeConfigurationMessageHandler(super.server);
 
   @override
   Method get handlesMessage => Method.workspace_didChangeConfiguration;

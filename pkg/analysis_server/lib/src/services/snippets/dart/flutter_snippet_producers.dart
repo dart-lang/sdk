@@ -18,7 +18,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
 
   late ClassElement? classWidget;
 
-  FlutterSnippetProducer(DartSnippetRequest request) : super(request);
+  FlutterSnippetProducer(super.request);
 
   @override
   @mustCallSuper
@@ -57,8 +57,7 @@ class FlutterStatefulWidgetSnippetProducer extends FlutterSnippetProducer
   @override
   late ClassElement? classKey;
 
-  FlutterStatefulWidgetSnippetProducer._(DartSnippetRequest request)
-      : super(request);
+  FlutterStatefulWidgetSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -146,9 +145,7 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
   late ClassElement? classAnimationController;
   late ClassElement? classSingleTickerProviderStateMixin;
 
-  FlutterStatefulWidgetWithAnimationControllerSnippetProducer._(
-      DartSnippetRequest request)
-      : super(request);
+  FlutterStatefulWidgetWithAnimationControllerSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {
@@ -282,8 +279,7 @@ class FlutterStatelessWidgetSnippetProducer extends FlutterSnippetProducer
   @override
   late ClassElement? classKey;
 
-  FlutterStatelessWidgetSnippetProducer._(DartSnippetRequest request)
-      : super(request);
+  FlutterStatelessWidgetSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {

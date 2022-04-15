@@ -7,15 +7,14 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class ExitMessageHandler extends MessageHandler<void, void> {
   final bool clientDidCallShutdown;
 
   ExitMessageHandler(
-    LspAnalysisServer server, {
+    super.server, {
     this.clientDidCallShutdown = false,
-  }) : super(server);
+  });
 
   @override
   Method get handlesMessage => Method.exit;

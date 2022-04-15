@@ -682,7 +682,8 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
 
 typedef _EntityConverter = Entity Function(Entity cls);
 
-class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
+class _TypeConverter
+    implements DartTypeVisitor<DartType /*!*/, _EntityConverter> {
   final DartTypes _dartTypes;
   final bool allowFreeVariables;
 
@@ -779,8 +780,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
     if (result == null && allowFreeVariables) {
       return type;
     }
-    assert(result != null,
-        "Function type variable $type not found in $_functionTypeVariables");
+    if (result == null) {
+      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+          "Function type variable $type not found in $_functionTypeVariables");
+    }
     return result;
   }
 

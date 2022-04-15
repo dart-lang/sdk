@@ -7,12 +7,11 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 
 class DocumentHighlightsHandler extends MessageHandler<
     TextDocumentPositionParams, List<DocumentHighlight>?> {
-  DocumentHighlightsHandler(LspAnalysisServer server) : super(server);
+  DocumentHighlightsHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentHighlight;
 

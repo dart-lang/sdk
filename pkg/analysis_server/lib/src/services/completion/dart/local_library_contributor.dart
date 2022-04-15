@@ -77,7 +77,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (opType.includeReturnValueSuggestions) {
       builder.suggestExtension(element, kind: kind, prefix: prefix);
     }
-    element.visitChildren(this);
   }
 
   @override
@@ -156,10 +155,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 /// the library in which the completion is requested but outside the file in
 /// which the completion is requested.
 class LocalLibraryContributor extends DartCompletionContributor {
-  LocalLibraryContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  LocalLibraryContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -12,10 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// A contributor that produces suggestions for constructors to be invoked
 /// in enum constants.
 class EnumConstantConstructorContributor extends DartCompletionContributor {
-  EnumConstantConstructorContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  EnumConstantConstructorContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

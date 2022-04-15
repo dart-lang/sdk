@@ -7,12 +7,11 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 
 class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
-  OrganizeImportsCommandHandler(LspAnalysisServer server) : super(server);
+  OrganizeImportsCommandHandler(super.server);
 
   @override
   String get commandName => 'Organize Imports';

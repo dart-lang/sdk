@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -14,7 +13,7 @@ import 'package:analyzer/src/utilities/cancellation.dart';
 class FlutterDomainHandler extends AbstractRequestHandler {
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  FlutterDomainHandler(AnalysisServer server) : super(server);
+  FlutterDomainHandler(super.server);
 
   /// Implement the 'flutter.getWidgetDescription' request.
   void getWidgetDescription(Request request) async {

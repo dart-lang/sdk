@@ -13,7 +13,7 @@ final GeneratedFile target = javaGeneratedFile(
     (Api api) => CodegenAnalysisServer(api));
 
 class CodegenAnalysisServer extends CodegenJavaVisitor {
-  CodegenAnalysisServer(Api api) : super(api);
+  CodegenAnalysisServer(super.api);
 
   @override
   void visitApi() {

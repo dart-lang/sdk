@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolated_executor;
@@ -13,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
     as macro;
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:path/path.dart' as package_path;
 
 export 'package:_fe_analyzer_shared/src/macros/executor.dart' show Arguments;
@@ -68,6 +70,34 @@ class BundleMacroExecutor {
   }
 }
 
+/// Implementation of [MacroKernelBuilder] using `frontend_server`.
+class FrontEndServerMacroKernelBuilder implements MacroKernelBuilder {
+  @override
+  Future<Uint8List> build({
+    required MacroFileSystem fileSystem,
+    required List<MacroLibrary> libraries,
+  }) async {
+    final macroMainContent = macro.bootstrapMacroIsolate(
+      {
+        for (final library in libraries)
+          library.uri.toString(): {
+            for (final c in library.classes) c.name: c.constructors
+          },
+      },
+      macro.SerializationMode.byteDataClient,
+    );
+
+    final macroMainPath = '${libraries.first.path}.macro';
+    final overlayFileSystem = _OverlayMacroFileSystem(fileSystem);
+    overlayFileSystem.overlays[macroMainPath] = macroMainContent;
+
+    return KernelCompilationService.compile(
+      fileSystem: overlayFileSystem,
+      path: macroMainPath,
+    );
+  }
+}
+
 class MacroClass {
   final String name;
   final List<String> constructors;
@@ -113,7 +143,7 @@ abstract class MacroFileSystem {
 }
 
 abstract class MacroKernelBuilder {
-  Uint8List build({
+  Future<Uint8List> build({
     required MacroFileSystem fileSystem,
     required List<MacroLibrary> libraries,
   });
@@ -131,4 +161,38 @@ class MacroLibrary {
   });
 
   String get uriStr => uri.toString();
+}
+
+/// [MacroFileEntry] for a file with overridden content.
+class _OverlayMacroFileEntry implements MacroFileEntry {
+  @override
+  final String content;
+
+  _OverlayMacroFileEntry(this.content);
+
+  @override
+  bool get exists => true;
+}
+
+/// Wrapper around another [MacroFileSystem] that can be configured to
+/// provide (or override) content of files.
+class _OverlayMacroFileSystem implements MacroFileSystem {
+  final MacroFileSystem _fileSystem;
+
+  /// The mapping from the path to the file content.
+  final Map<String, String> overlays = {};
+
+  _OverlayMacroFileSystem(this._fileSystem);
+
+  @override
+  package_path.Context get pathContext => _fileSystem.pathContext;
+
+  @override
+  MacroFileEntry getFile(String path) {
+    final overlayContent = overlays[path];
+    if (overlayContent != null) {
+      return _OverlayMacroFileEntry(overlayContent);
+    }
+    return _fileSystem.getFile(path);
+  }
 }

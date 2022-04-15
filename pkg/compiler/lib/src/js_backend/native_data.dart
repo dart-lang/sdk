@@ -207,7 +207,7 @@ class NativeBasicData {
     bool isAllowInteropUsed = source.readBool();
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
         source.readClassMap(() {
-      List<String> names = source.readStrings();
+      List<String> names = source.readStrings() /*!*/;
       bool isNonLeaf = source.readBool();
       return NativeClassTag.internal(names, isNonLeaf);
     });

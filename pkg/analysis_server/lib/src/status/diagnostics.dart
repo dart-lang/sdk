@@ -354,7 +354,7 @@ class CompletionPage extends AbstractCompletionPage {
   @override
   AnalysisServer server;
 
-  CompletionPage(DiagnosticsSite site, this.server) : super(site);
+  CompletionPage(super.site, this.server);
 
   CompletionDomainHandler get completionDomain => server.handlers
           .firstWhere((handler) => handler is CompletionDomainHandler)
@@ -704,9 +704,7 @@ abstract class DiagnosticPage extends Page {
 }
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
-  DiagnosticPageWithNav(DiagnosticsSite site, String id, String title,
-      {String? description})
-      : super(site, id, title, description: description);
+  DiagnosticPageWithNav(super.site, super.id, super.title, {super.description});
 
   @override
   bool get isNavPage => true;
@@ -1039,7 +1037,7 @@ class LspCompletionPage extends AbstractCompletionPage {
   @override
   LspAnalysisServer server;
 
-  LspCompletionPage(DiagnosticsSite site, this.server) : super(site);
+  LspCompletionPage(super.site, this.server);
 
   @override
   path.Context get pathContext => server.resourceProvider.pathContext;

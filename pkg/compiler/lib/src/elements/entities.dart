@@ -44,7 +44,7 @@ abstract class LibraryEntity extends Entity {
 ///
 /// The [name] property corresponds to the prefix name, if any.
 class ImportEntity {
-  final String name;
+  final String /*?*/ name;
 
   /// The canonical URI of the library where this import occurs
   /// (where the import is declared).
@@ -316,8 +316,8 @@ class ParameterStructure {
   factory ParameterStructure(
       int requiredPositionalParameters,
       int positionalParameters,
-      List<String> namedParameters,
-      Set<String> requiredNamedParameters,
+      List<String /*!*/ > namedParameters,
+      Set<String /*!*/ > requiredNamedParameters,
       int typeParameters) {
     // This simple canonicalization reduces the number of ParameterStructure
     // objects by over 90%.
@@ -356,7 +356,7 @@ class ParameterStructure {
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();
     int positionalParameters = source.readInt();
-    List<String> namedParameters = source.readStrings();
+    List<String> namedParameters = source.readStrings() /*!*/;
     Set<String> requiredNamedParameters =
         source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
     int typeParameters = source.readInt();

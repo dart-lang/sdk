@@ -6,13 +6,15 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
 import 'elements_base.dart';
-import 'repository_macro_kernel_builder.dart';
+import 'macros_environment.dart';
 
 main() {
   try {
@@ -62,15 +64,15 @@ class MacroElementsTest extends ElementsBaseTest {
       macrosEnvironment: MacrosEnvironment.instance,
     );
 
-    macroKernelBuilder = DartRepositoryMacroKernelBuilder(
-      MacrosEnvironment.instance.platformDillBytes,
-    );
-
+    macroKernelBuilder = FrontEndServerMacroKernelBuilder();
     macroExecutor = macro.MultiMacroExecutor();
   }
 
   Future<void> tearDown() async {
     await macroExecutor?.close();
+    KernelCompilationService.disposeDelayed(
+      const Duration(milliseconds: 100),
+    );
   }
 
   test_build_types() async {

@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -61,7 +60,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   DartCompletionRequest? _currentRequest;
 
   /// Initialize a new request handler for the given [server].
-  CompletionDomainHandler(AnalysisServer server) : super(server);
+  CompletionDomainHandler(super.server);
 
   /// Compute completion results for the given request and append them to the
   /// stream. Clients should not call this method directly as it is

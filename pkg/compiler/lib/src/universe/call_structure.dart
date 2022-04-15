@@ -87,7 +87,7 @@ class CallStructure {
   factory CallStructure.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int argumentCount = source.readInt();
-    List<String> namedArguments = source.readStrings();
+    List<String> namedArguments = source.readStrings() /*!*/;
     int typeArgumentCount = source.readInt();
     source.end(tag);
     return CallStructure(argumentCount, namedArguments, typeArgumentCount);

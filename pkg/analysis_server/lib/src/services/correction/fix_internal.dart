@@ -150,6 +150,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_impor
 import 'package:analysis_server/src/services/correction/dart/remove_unused_label.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
@@ -1350,6 +1351,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.new,
+    ],
+    ParserErrorCode.VAR_RETURN_TYPE: [
+      RemoveVar.new,
     ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,

@@ -8,13 +8,12 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
-  HoverHandler(LspAnalysisServer server) : super(server);
+  HoverHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_hover;
 

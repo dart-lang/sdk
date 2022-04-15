@@ -903,9 +903,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
 /// [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(
-      ResolvedUnitResult resolveResult, SourceRange selection)
-      : super(resolveResult, selection);
+  _ExtractMethodAnalyzer(super.resolveResult, super.selection);
 
   @override
   void handleNextSelectedNode(AstNode node) {

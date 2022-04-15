@@ -37,4 +37,5 @@ linter:
     - avoid_unused_constructor_parameters
     - await_only_futures
     - depend_on_referenced_packages
+    - unawaited_futures
     - unnecessary_parenthesis

@@ -41,8 +41,7 @@ class AddMissingParameter extends MultiCorrectionProducer {
 /// A correction processor that can make one of the possible change computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
-  _AddMissingOptionalPositionalParameter(ExecutableParameters context)
-      : super(context);
+  _AddMissingOptionalPositionalParameter(super.context);
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL;
@@ -97,8 +96,7 @@ abstract class _AddMissingParameter extends CorrectionProducer {
 /// A correction processor that can make one of the possible change computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
-  _AddMissingRequiredPositionalParameter(ExecutableParameters context)
-      : super(context);
+  _AddMissingRequiredPositionalParameter(super.context);
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;

@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../summary/repository_macro_kernel_builder.dart';
+import '../../summary/macros_environment.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -25,9 +26,7 @@ main() {
 class MacroResolutionTest extends PubPackageResolutionTest {
   @override
   MacroKernelBuilder? get macroKernelBuilder {
-    return DartRepositoryMacroKernelBuilder(
-      MacrosEnvironment.instance.platformDillBytes,
-    );
+    return FrontEndServerMacroKernelBuilder();
   }
 
   @override
@@ -40,6 +39,14 @@ class MacroResolutionTest extends PubPackageResolutionTest {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
+    );
+  }
+
+  @override
+  Future<void> tearDown() async {
+    await super.tearDown();
+    KernelCompilationService.disposeDelayed(
+      const Duration(milliseconds: 100),
     );
   }
 

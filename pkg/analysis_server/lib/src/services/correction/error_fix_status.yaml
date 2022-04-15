@@ -2338,7 +2338,7 @@ ParserErrorCode.VAR_CLASS:
 ParserErrorCode.VAR_ENUM:
   status: needsEvaluation
 ParserErrorCode.VAR_RETURN_TYPE:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.VAR_TYPEDEF:
   status: needsEvaluation
 ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS:
