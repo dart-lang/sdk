@@ -8,7 +8,6 @@ import 'package:dds/dds.dart';
 import 'package:dds/src/dds_impl.dart';
 import 'package:dds/src/rpc_error_codes.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
-import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -49,7 +48,7 @@ void main() {
   test('StateError handled by _StreamManager.clientDisconnect', () async {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
         Uri(scheme: 'http'));
-    final ws = await WebSocketChannel.connect(dds.uri!.replace(scheme: 'ws'));
+    final ws = WebSocketChannel.connect(dds.uri!.replace(scheme: 'ws'));
 
     // Create a VM service client that connects to DDS.
     final client = json_rpc.Client(ws.cast<String>());
@@ -76,7 +75,7 @@ void main() {
       () async {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
         Uri(scheme: 'http'));
-    final ws = await WebSocketChannel.connect(dds.uri!.replace(scheme: 'ws'));
+    final ws = WebSocketChannel.connect(dds.uri!.replace(scheme: 'ws'));
 
     // Create a VM service client that connects to DDS.
     final client = json_rpc.Client(ws.cast<String>());

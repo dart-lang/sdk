@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,6 +48,14 @@ class MacroElementsTest extends ElementsBaseTest {
   /// The path for external packages.
   String get packagesRootPath => '/packages';
 
+  /// Return the code for `DeclarationTextMacro`.
+  String get _declarationTextCode {
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/declaration_text.dart')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
+
   Future<void> setUp() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
@@ -87,7 +97,9 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   imports
     package:test/a.dart
@@ -113,10 +125,83 @@ library
         class MyClass @6
           constructors
             synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
+  test_introspect_types_ClassDeclaration_interfaces() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A implements B, C<int, String> {}
+''', r'''
+class A
+  interfaces
+    B
+    C<int, String>
 ''');
   }
 
-  test_class_macro() async {
+  test_introspect_types_ClassDeclaration_isAbstract() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {}
+''', r'''
+abstract class A
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_mixins() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A with B, C<int, String> {}
+''', r'''
+class A
+  mixins
+    B
+    C<int, String>
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_superclass() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B {}
+''', r'''
+class A
+  superclass: B
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_superclass_nullable() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<int?> {}
+''', r'''
+class A
+  superclass: B<int?>
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_superclass_typeArguments() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<String, List<int>> {}
+''', r'''
+class A
+  superclass: B<String, List<int>>
+''');
+  }
+
+  test_introspect_types_ClassDeclaration_typeParameters() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A<T, U extends List<T>> {}
+''', r'''
+class A
+  typeParameters
+    T
+    U
+      bound: List<T>
+''');
+  }
+
+  test_macroFlag_class() async {
     var library = await buildLibrary(r'''
 macro class A {}
 ''');
@@ -130,7 +215,7 @@ library
 ''');
   }
 
-  test_classAlias_macro() async {
+  test_macroFlag_classAlias() async {
     var library = await buildLibrary(r'''
 mixin M {}
 macro class A = Object with M;
@@ -185,5 +270,47 @@ library
         toUriStr: toUriStr,
       ),
     );
+  }
+
+  /// Assert that the textual dump of the introspection information for
+  /// the first declaration in [declarationCode] is the same as [expected].
+  Future<void> _assertTypesPhaseIntrospectionText(
+      String declarationCode, String expected) async {
+    var actual = await _getDeclarationText(declarationCode);
+    if (actual != expected) {
+      print(actual);
+    }
+    expect(actual, expected);
+  }
+
+  /// The [declarationCode] is expected to start with a declaration. It may
+  /// include other declaration below, for example to reference them in
+  /// the first declaration.
+  ///
+  /// Use `DeclarationTextMacro` to generate a library that produces exactly
+  /// one part, with exactly one top-level constant `x`, with a string
+  /// literal initializer. We expect that the value of this literal is
+  /// the textual dump of the introspection information for the first
+  /// declaration.
+  Future<String> _getDeclarationText(String declarationCode) async {
+    newFile2(
+      '$testPackageLibPath/declaration_text.dart',
+      _declarationTextCode,
+    );
+
+    var library = await buildLibrary('''
+import 'declaration_text.dart';
+
+@DeclarationTextMacro()
+$declarationCode
+''', preBuildSequence: [
+      {'package:test/declaration_text.dart'}
+    ]);
+
+    var x = library.parts.single.topLevelVariables.single;
+    expect(x.name, 'x');
+    x as ConstTopLevelVariableElementImpl;
+    var x_literal = x.constantInitializer as SimpleStringLiteral;
+    return x_literal.value;
   }
 }

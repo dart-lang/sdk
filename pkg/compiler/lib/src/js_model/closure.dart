@@ -1227,7 +1227,8 @@ class ClosureFunctionData extends ClosureMemberData
     source.begin(tag);
     ClosureMemberDefinition definition =
         MemberDefinition.readFromDataSource(source);
-    InterfaceType memberThisType = source.readDartType(allowNull: true);
+    InterfaceType /*?*/ memberThisType =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
     FunctionType functionType = source.readDartType();
     ir.FunctionNode functionNode = source.readTreeNode();
     ClassTypeVariableAccess classTypeVariableAccess =
@@ -1242,7 +1243,7 @@ class ClosureFunctionData extends ClosureMemberData
     sink.writeEnum(JMemberDataKind.closureFunction);
     sink.begin(tag);
     definition.writeToDataSink(sink);
-    sink.writeDartType(memberThisType, allowNull: true);
+    sink.writeDartTypeOrNull(memberThisType);
     sink.writeDartType(functionType);
     sink.writeTreeNode(functionNode);
     sink.writeEnum(classTypeVariableAccess);
@@ -1280,7 +1281,8 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   factory ClosureFieldData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    InterfaceType memberThisType = source.readDartType(allowNull: true);
+    InterfaceType /*?*/ memberThisType =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
     source.end(tag);
     return ClosureFieldData(definition, memberThisType);
   }
@@ -1290,7 +1292,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
     sink.writeEnum(JMemberDataKind.closureField);
     sink.begin(tag);
     definition.writeToDataSink(sink);
-    sink.writeDartType(memberThisType, allowNull: true);
+    sink.writeDartTypeOrNull(memberThisType);
     sink.end(tag);
   }
 

@@ -589,40 +589,43 @@ class DataSinkWriter {
     }
   }
 
-  /// Writes the type [value] to this data sink. If [allowNull] is `true`,
-  /// [value] is allowed to be `null`.
-  void writeDartType(DartType value, {bool allowNull = false}) {
+  /// Writes the type [value] to this data sink.
+  void writeDartType(DartType value) {
     _writeDataKind(DataKind.dartType);
-    _writeDartType(value, [], allowNull: allowNull);
+    value.writeToDataSink(this, []);
   }
 
-  void _writeDartType(
-      DartType value, List<FunctionTypeVariable> functionTypeVariables,
-      {bool allowNull = false}) {
+  /// Writes the optional type [value] to this data sink.
+  void writeDartTypeOrNull(DartType /*?*/ value) {
+    _writeDataKind(DataKind.dartType);
     if (value == null) {
-      if (!allowNull) {
-        throw UnsupportedError("Missing DartType is not allowed.");
-      }
       writeEnum(DartTypeKind.none);
     } else {
-      value.writeToDataSink(this, functionTypeVariables);
+      value.writeToDataSink(this, []);
     }
   }
 
-  /// Writes the type [values] to this data sink. If [allowNull] is `true`,
-  /// [values] is allowed to be `null`.
+  /// Writes the types [values] to this data sink. If [values] is null, write a
+  /// zero-length iterable.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSourceReader.readDartTypesOrNull].
+  void writeDartTypesOrNull(Iterable<DartType> /*?*/ values) {
+    if (values == null) {
+      writeInt(0);
+    } else {
+      writeDartTypes(values);
+    }
+  }
+
+  /// Writes the types [values] to this data sink.
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readDartTypes].
-  void writeDartTypes(Iterable<DartType> values, {bool allowNull = false}) {
-    if (values == null) {
-      assert(allowNull);
-      writeInt(0);
-    } else {
-      writeInt(values.length);
-      for (DartType value in values) {
-        writeDartType(value);
-      }
+  void writeDartTypes(Iterable<DartType> values) {
+    writeInt(values.length);
+    for (DartType value in values) {
+      writeDartType(value);
     }
   }
 

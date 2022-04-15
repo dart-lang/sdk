@@ -269,6 +269,7 @@ void main() {
       });
     });
     group('nullability', () {
+      // ignore: unnecessary_nullable_for_final_variable_declarations
       const int? notNullable = 0;
       const int? nullable = null;
       test('isNotNull', () {

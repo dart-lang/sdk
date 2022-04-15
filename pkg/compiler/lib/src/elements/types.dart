@@ -30,7 +30,7 @@ extension on DataSourceReader {
   List<DartType> _readDartTypes(
       List<FunctionTypeVariable> functionTypeVariables) {
     int count = readInt();
-    List<DartType> types = List<DartType>.filled(count, null);
+    List<DartType> types = List<DartType>.filled(count, const NeverType._());
     for (int index = 0; index < count; index++) {
       types[index] = DartType.readFromDataSource(this, functionTypeVariables);
     }
@@ -51,7 +51,14 @@ extension on DataSinkWriter {
 abstract class DartType {
   const DartType();
 
-  factory DartType.readFromDataSource(DataSourceReader source,
+  static DartType readFromDataSource(DataSourceReader source,
+      List<FunctionTypeVariable> functionTypeVariables) {
+    DartType type = readFromDataSourceOrNull(source, functionTypeVariables);
+    if (type == null) throw StateError('Unexpected null DartType');
+    return type;
+  }
+
+  static DartType readFromDataSourceOrNull(DataSourceReader source,
       List<FunctionTypeVariable> functionTypeVariables) {
     DartTypeKind kind = source.readEnum(DartTypeKind.values);
     switch (kind) {

@@ -19,7 +19,7 @@ main() {
   group('debug mode evaluation', () {
     test('evaluates expressions with simple results', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   var a = 1;
   var b = 2;
@@ -37,7 +37,7 @@ void main(List<String> args) {
 
     test('evaluates expressions with complex results', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -60,7 +60,7 @@ void main(List<String> args) {
 
     test('evaluates expressions ending with semicolons', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   var a = 1;
   var b = 2;
@@ -77,7 +77,7 @@ void main(List<String> args) {
         'evaluates complex expressions expressions with evaluateToStringInDebugViews=true',
         () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(
@@ -99,7 +99,7 @@ void main(List<String> args) {
         'evaluates $threadExceptionExpression to the threads exception (simple type)',
         () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw 'my error';
 }''');
@@ -118,7 +118,7 @@ void main(List<String> args) {
         'evaluates $threadExceptionExpression to the threads exception (complex type)',
         () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw Exception('my error');
 }''');
@@ -137,7 +137,7 @@ void main(List<String> args) {
         'evaluates $threadExceptionExpression.x.y to x.y on the threads exception',
         () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw Exception('12345');
 }
@@ -154,7 +154,7 @@ void main(List<String> args) {
 
     test('can evaluate expressions in non-top frames', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   var a = 999;
   foo();
@@ -175,7 +175,7 @@ void foo() {
 
     test('returns the full message for evaluation errors', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -198,7 +198,7 @@ void foo() {
 
     test('returns short errors for evaluation in "watch" context', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);

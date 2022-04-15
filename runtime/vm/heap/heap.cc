@@ -522,8 +522,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
                                     ? VMTag::kGCIdleTagId
                                     : VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
-    old_space_.CollectGarbage(thread, /*compact=*/type == GCType::kMarkCompact,
-                              /*finalize=*/true);
+    old_space_.CollectGarbage(type == GCType::kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
 #if defined(SUPPORT_TIMELINE)
@@ -624,7 +623,7 @@ void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
                                   ? VMTag::kGCIdleTagId
                                   : VMTag::kGCOldSpaceTagId);
   TIMELINE_FUNCTION_GC_DURATION(thread, "StartConcurrentMarking");
-  old_space_.CollectGarbage(thread, /*compact=*/false, /*finalize=*/false);
+  old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
   RecordAfterGC(GCType::kStartConcurrentMark);
   PrintStats();
 #if defined(SUPPORT_TIMELINE)
@@ -1020,7 +1019,8 @@ void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.before_.micros_ = OS::GetCurrentMonotonicMicros();
   stats_.before_.new_ = new_space_.GetCurrentUsage();
   stats_.before_.old_ = old_space_.GetCurrentUsage();
-  stats_.before_.store_buffer_ = isolate_group_->store_buffer()->Size();
+  for (int i = 0; i < GCStats::kTimeEntries; i++)
+    stats_.times_[i] = 0;
 }
 
 static double AvgCollectionPeriod(int64_t run_time, intptr_t collections) {
@@ -1043,7 +1043,6 @@ void Heap::RecordAfterGC(GCType type) {
   }
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
-  stats_.after_.store_buffer_ = isolate_group_->store_buffer()->Size();
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {
@@ -1115,20 +1114,24 @@ void Heap::RecordAfterGC(GCType type) {
 }
 
 void Heap::PrintStats() {
+#if !defined(PRODUCT)
   if (!FLAG_verbose_gc) return;
 
   if ((FLAG_verbose_gc_hdr != 0) &&
       (((stats_.num_ - 1) % FLAG_verbose_gc_hdr) == 0)) {
     OS::PrintErr(
-        "[              |                          |     |       |      | new "
-        "gen     | new gen     | new gen | old gen       | old gen       | old "
-        "gen     |  store  | delta used   ]\n"
-        "[ GC isolate   | space (reason)           | GC# | start | time | used "
-        "(MB)   | capacity MB | external| used (MB)     | capacity (MB) | "
-        "external MB |  buffer | new  | old   ]\n"
+        "[              |                          |     |       |      "
+        "| new gen     | new gen     | new gen "
+        "| old gen       | old gen       | old gen     "
+        "| sweep | safe- | roots/| stbuf/| tospc/| weaks/  ]\n"
+        "[ GC isolate   | space (reason)           | GC# | start | time "
+        "| used (MB)   | capacity MB | external"
+        "| used (MB)     | capacity (MB) | external MB "
+        "| thread| point |marking| reset | sweep |swplrge  ]\n"
         "[              |                          |     |  (s)  | (ms) "
-        "|before| after|before| after| b4 |aftr| before| after | before| after "
-        "|before| after| b4 |aftr| (MB) | (MB)  ]\n");
+        "|before| after|before| after| b4 |aftr"
+        "| before| after | before| after |before| after"
+        "| (ms)  | (ms)  | (ms)  | (ms)  | (ms)  | (ms)    ]\n");
   }
 
   // clang-format off
@@ -1143,8 +1146,7 @@ void Heap::PrintStats() {
     "%6.1f, %6.1f, "   // old gen: in use before/after
     "%6.1f, %6.1f, "   // old gen: capacity before/after
     "%5.1f, %5.1f, "   // old gen: external before/after
-    "%3" Pd ", %3" Pd ", "   // store buffer: before/after
-    "%5.1f, %6.1f, "   // delta used: new gen/old gen
+    "%6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, "  // times
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate_group()->source()->name,
     GCTypeToString(stats_.type_),
@@ -1165,13 +1167,14 @@ void Heap::PrintStats() {
     WordsToMB(stats_.after_.old_.capacity_in_words),
     WordsToMB(stats_.before_.old_.external_in_words),
     WordsToMB(stats_.after_.old_.external_in_words),
-    stats_.before_.store_buffer_,
-    stats_.after_.store_buffer_,
-    WordsToMB(stats_.after_.new_.used_in_words -
-              stats_.before_.new_.used_in_words),
-    WordsToMB(stats_.after_.old_.used_in_words -
-              stats_.before_.old_.used_in_words));
+    MicrosecondsToMilliseconds(stats_.times_[0]),
+    MicrosecondsToMilliseconds(stats_.times_[1]),
+    MicrosecondsToMilliseconds(stats_.times_[2]),
+    MicrosecondsToMilliseconds(stats_.times_[3]),
+    MicrosecondsToMilliseconds(stats_.times_[4]),
+    MicrosecondsToMilliseconds(stats_.times_[5]));
   // clang-format on
+#endif  // !defined(PRODUCT)
 }
 
 void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {

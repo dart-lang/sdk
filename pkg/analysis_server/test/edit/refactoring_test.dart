@@ -10,7 +10,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
 import '../analysis_server_base.dart';
 import '../mocks.dart';
 import '../src/utilities/mock_packages.dart';
@@ -841,16 +840,14 @@ int? res(int b) {
 }
 
 @reflectiveTest
-class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
+class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
     var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
-    newPackageConfigJsonFile(
-      projectPath,
-      (PackageConfigFileBuilder()
-            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
-          .toContent(toUriStr: toUriStr),
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'flutter', rootPath: flutterLib.parent.path),
     );
   }
 
@@ -877,8 +874,9 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   /// Returns the list of available refactorings for the given [offset] and
   /// [length].
   Future getRefactorings(int offset, int length) async {
-    var request = EditGetAvailableRefactoringsParams(testFile, offset, length)
-        .toRequest('0');
+    var request =
+        EditGetAvailableRefactoringsParams(testFile.path, offset, length)
+            .toRequest('0');
     serverChannel.sendRequest(request);
     var response = await serverChannel.waitForResponse(request);
     var result = EditGetAvailableRefactoringsResult.fromResponse(response);
@@ -899,9 +897,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
-    server.handlers = [handler];
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future test_convertMethodToGetter_hasElement() {
@@ -954,10 +950,11 @@ class MyWidget extends StatelessWidget {
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request =
         EditGetAvailableRefactoringsParams('test.dart', 0, 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -965,10 +962,11 @@ class MyWidget extends StatelessWidget {
     var request = EditGetAvailableRefactoringsParams(
             convertPath('/foo/../bar/test.dart'), 0, 0)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 

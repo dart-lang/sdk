@@ -8,7 +8,7 @@ version: 2.2.1
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/dds
 
 environment:
-  sdk: '>=2.13.0 <3.0.0'
+  sdk: '>=2.14.0 <3.0.0'
 
 dependencies:
   args: ^2.0.0
@@ -21,7 +21,6 @@ dependencies:
   json_rpc_2: ^3.0.0
   meta: ^1.1.8
   path: ^1.8.0
-  pedantic: ^1.7.0
   shelf: ^1.0.0
   shelf_proxy: ^1.0.0
   shelf_static: ^1.0.0
@@ -34,5 +33,6 @@ dependencies:
 
 dev_dependencies:
   http: ^0.13.0
+  lints: any
   test: ^1.0.0
   webdriver: ^3.0.0

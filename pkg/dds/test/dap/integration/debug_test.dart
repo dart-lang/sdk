@@ -114,7 +114,7 @@ main() {
       ], eagerError: true);
 
       // Resume and expect termination.
-      await await Future.wait([
+      await Future.wait([
         dap.client.event('terminated'),
         dap.client.continue_((await stop).threadId!),
       ], eagerError: true);

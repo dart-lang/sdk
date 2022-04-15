@@ -1405,7 +1405,8 @@ class CompletionMetricsComputer {
           _provider.setOverlay(filePath,
               content: overlayContents,
               modificationStamp: overlayModificationStamp++);
-          context.driver.changeFile(filePath);
+          context.changeFile(filePath);
+          await context.applyPendingFileChanges();
           resolvedUnitResult = await context.currentSession
               .getResolvedUnit(filePath) as ResolvedUnitResult;
         }

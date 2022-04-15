@@ -180,13 +180,6 @@ class SemiSpace {
   bool Contains(uword addr) const;
   void WriteProtect(bool read_only);
 
-  intptr_t used_in_words() const {
-    intptr_t size = 0;
-    for (const NewPage* p = head_; p != nullptr; p = p->next()) {
-      size += (p->object_end() - p->object_start());
-    }
-    return size >> kWordSizeLog2;
-  }
   intptr_t capacity_in_words() const { return capacity_in_words_; }
   intptr_t max_capacity_in_words() const { return max_capacity_in_words_; }
 
@@ -291,7 +284,7 @@ class Scavenger {
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
-    return to_->used_in_words();
+    return to_->capacity_in_words();
   }
   int64_t CapacityInWords() const { return to_->max_capacity_in_words(); }
   int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
