@@ -138,18 +138,19 @@ class ConvertToSuperParameters extends CorrectionProducer {
       // Convert the parameters.
       for (var parameterData in allParameters) {
         var keyword = parameterData.finalKeyword;
+        var nameOffset = parameterData.name.offset;
 
         void insertSuper() {
           if (keyword == null) {
-            builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
+            builder.addSimpleInsertion(nameOffset, 'super.');
           } else {
             var tokenAfterKeyword = keyword.next!;
-            if (tokenAfterKeyword.offset == parameterData.nameOffset) {
+            if (tokenAfterKeyword.offset == nameOffset) {
               builder.addSimpleReplacement(
                   range.startStart(keyword, tokenAfterKeyword), 'super.');
             } else {
               builder.addDeletion(range.startStart(keyword, tokenAfterKeyword));
-              builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
+              builder.addSimpleInsertion(nameOffset, 'super.');
             }
           }
         }
@@ -163,7 +164,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
             // This only happens when the type is an inline function type with
             // no return type, such as `f(int i)`. Inline function types can't
             // have a `final` keyword unless there's an error in the code.
-            builder.addSimpleInsertion(parameterData.nameOffset, 'super.');
+            builder.addSimpleInsertion(nameOffset, 'super.');
           } else {
             if (keyword == null) {
               builder.addSimpleReplacement(primaryRange, 'super.');
@@ -180,6 +181,9 @@ class ConvertToSuperParameters extends CorrectionProducer {
                 builder.addSimpleReplacement(primaryRange, 'super.');
               }
             }
+          }
+          if (parameterData.nullInitializer) {
+            builder.addSimpleInsertion(parameterData.name.end, ' = null');
           }
           var parameterRange = typeToDelete.parameterRange;
           if (parameterRange != null) {
@@ -250,7 +254,8 @@ class ConvertToSuperParameters extends CorrectionProducer {
       defaultValueRange:
           _defaultValueRange(parameterNode, superParameter, parameter.element),
       finalKeyword: _finalKeyword(parameterNode),
-      nameOffset: identifier.offset,
+      name: identifier,
+      nullInitializer: _nullInitializer(parameterNode, superParameter),
       parameterIndex: parameter.index,
       typeToDelete: superType == thisType ? _type(parameterNode) : null,
     );
@@ -321,6 +326,15 @@ class ConvertToSuperParameters extends CorrectionProducer {
       previousIndex = index;
     }
     return true;
+  }
+
+  /// Return [true] if the parameter has no default value
+  /// and the parameter in the super constructor has a default one
+  bool _nullInitializer(
+      FormalParameter parameter, ParameterElement superParameter) {
+    return parameter is DefaultFormalParameter &&
+        parameter.defaultValue == null &&
+        superParameter.defaultValueCode != null;
   }
 
   /// Return the parameter corresponding to the [expression], or `null` if the
@@ -436,12 +450,15 @@ class _ParameterData {
   /// be deleted.
   final _TypeData? typeToDelete;
 
-  /// The offset of the name.
-  final int nameOffset;
+  /// The name.
+  final Identifier name;
+
+  /// Whether to add a default initializer with `null` value or not.
+  final bool nullInitializer;
 
   /// The range of the default value that is to be deleted from the parameter
-  /// list, or `null` if there is no default value, the default value isn't to
-  /// be deleted.
+  /// list, or `null` if there is no default value, or the default value isn't
+  /// to be deleted.
   final SourceRange? defaultValueRange;
 
   /// The index of the parameter to be updated.
@@ -454,8 +471,9 @@ class _ParameterData {
   _ParameterData(
       {required this.finalKeyword,
       required this.typeToDelete,
-      required this.nameOffset,
+      required this.name,
       required this.defaultValueRange,
+      required this.nullInitializer,
       required this.parameterIndex,
       required this.argumentIndex});
 }
