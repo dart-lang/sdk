@@ -27,7 +27,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
-import '../../summary/repository_macro_kernel_builder.dart';
+import '../../summary/macros_environment.dart';
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
@@ -218,6 +218,7 @@ abstract class ContextResolutionTest
     );
   }
 
+  @mustCallSuper
   Future<void> tearDown() async {
     disposeAnalysisContextCollection();
   }

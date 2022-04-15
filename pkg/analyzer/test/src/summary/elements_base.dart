@@ -171,7 +171,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       ),
     );
 
-    _linkConfiguredLibraries(
+    await _linkConfiguredLibraries(
       elementFactory,
       inputLibraries,
       preBuildSequence,
@@ -307,10 +307,10 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
 
   /// If there are any [macroLibraries], build the kernel and prepare for
   /// execution.
-  void _buildMacroLibraries(
+  Future<void> _buildMacroLibraries(
     LinkedElementFactory elementFactory,
     List<MacroLibrary> macroLibraries,
-  ) {
+  ) async {
     if (macroLibraries.isEmpty) {
       return;
     }
@@ -325,7 +325,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       return;
     }
 
-    var macroKernelBytes = macroKernelBuilder.build(
+    var macroKernelBytes = await macroKernelBuilder.build(
       fileSystem: _MacroFileSystem(resourceProvider),
       libraries: macroLibraries,
     );
@@ -346,11 +346,11 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
   /// If there are any libraries in the [uriStrSetList], link these subsets
   /// of [inputLibraries] (and remove from it), build macro kernels, prepare
   /// for executing macros.
-  void _linkConfiguredLibraries(
+  Future<void> _linkConfiguredLibraries(
     LinkedElementFactory elementFactory,
     List<LinkInputLibrary> inputLibraries,
     List<Set<String>>? uriStrSetList,
-  ) {
+  ) async {
     if (uriStrSetList == null) {
       return;
     }
@@ -371,7 +371,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
         macroExecutor: macroExecutor,
       );
 
-      _buildMacroLibraries(elementFactory, macroLibraries);
+      await _buildMacroLibraries(elementFactory, macroLibraries);
 
       // Remove libraries that we just linked.
       cycleInputLibraries.forEach(inputLibraries.remove);
