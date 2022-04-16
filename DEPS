@@ -151,7 +151,6 @@ vars = {
   "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
   "source_map_stack_trace_rev": "8eabd96b1811e30a11d3c54c9b4afae4fb72e98f",
-  "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "c07a01b8d5547ce3a47ee7a7a2b938a2bc09afe3",
   "source_span_rev": "8ae724c3e67f5afaacead44e93ff145bfb8775c7",
   "sse_rev": "9084339389eb441d0c0518cddac211a097e78657",
