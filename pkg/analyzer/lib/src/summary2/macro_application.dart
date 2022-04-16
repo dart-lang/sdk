@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/macro.dart';
@@ -31,8 +32,9 @@ class LibraryMacroApplier {
         if (classNode is ClassDeclaration) {
           for (var annotation in classNode.metadata) {
             var annotationNameNode = annotation.name;
+            var argumentsNode = annotation.arguments;
             if (annotationNameNode is SimpleIdentifier &&
-                annotation.arguments != null) {
+                argumentsNode != null) {
               // TODO(scheglov) Create a Scope.
               for (var import in libraryBuilder.element.imports) {
                 var importedLibrary = import.importedLibrary;
@@ -51,6 +53,7 @@ class LibraryMacroApplier {
                           macroExecutor,
                           getClassDeclaration(classNode),
                           getter,
+                          _buildArguments(argumentsNode),
                         );
                         if (macroResult.isNotEmpty) {
                           macroResults.add(macroResult);
@@ -96,16 +99,32 @@ class LibraryMacroApplier {
     BundleMacroExecutor macroExecutor,
     macro.Declaration declaration,
     ClassElementImpl classElement,
+    macro.Arguments arguments,
   ) async {
     var macroInstance = await macroExecutor.instantiate(
       libraryUri: classElement.librarySource.uri,
       className: classElement.name,
       constructorName: '', // TODO
-      arguments: Arguments([], {}), // TODO
+      arguments: arguments,
       declaration: declaration,
       identifierResolver: _FakeIdentifierResolver(),
     );
     return await macroInstance.executeTypesPhase();
+  }
+
+  static macro.Arguments _buildArguments(ArgumentList node) {
+    final positional = <Object?>[];
+    final named = <String, Object?>{};
+    for (final argument in node.arguments) {
+      if (argument is NamedExpression) {
+        final value = _evaluateArgument(argument.expression);
+        named[argument.name.label.name] = value;
+      } else {
+        final value = _evaluateArgument(argument);
+        positional.add(value);
+      }
+    }
+    return macro.Arguments(positional, named);
   }
 
   static macro.ClassDeclarationImpl _buildClassDeclaration(
@@ -179,6 +198,44 @@ class LibraryMacroApplier {
     } else {
       return const [];
     }
+  }
+
+  static Object? _evaluateArgument(Expression node) {
+    if (node is BooleanLiteral) {
+      return node.value;
+    } else if (node is DoubleLiteral) {
+      return node.value;
+    } else if (node is IntegerLiteral) {
+      return node.value;
+    } else if (node is ListLiteral) {
+      return node.elements.cast<Expression>().map(_evaluateArgument).toList();
+    } else if (node is NullLiteral) {
+      return null;
+    } else if (node is PrefixExpression &&
+        node.operator.type == TokenType.MINUS) {
+      final operandValue = _evaluateArgument(node.operand);
+      if (operandValue is double) {
+        return -operandValue;
+      } else if (operandValue is int) {
+        return -operandValue;
+      }
+    } else if (node is SetOrMapLiteral) {
+      final result = <Object?, Object?>{};
+      for (final element in node.elements) {
+        if (element is! MapLiteralEntry) {
+          throw ArgumentError(
+            'Not supported: (${element.runtimeType}) $element',
+          );
+        }
+        final key = _evaluateArgument(element.key);
+        final value = _evaluateArgument(element.value);
+        result[key] = value;
+      }
+      return result;
+    } else if (node is SimpleStringLiteral) {
+      return node.value;
+    }
+    throw ArgumentError('Not supported: (${node.runtimeType}) $node');
   }
 }
 
