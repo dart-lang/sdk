@@ -258,6 +258,12 @@ class TypeVariableTests {
     _instantiationMap.forEach(f);
   }
 
+  Set<GenericInstantiation> instantiationsOf(Entity target) =>
+      _instantiationMap[target] ?? const {};
+
+  Set<InterfaceType> classInstantiationsOf(ClassEntity cls) =>
+      _classInstantiationMap[cls] ?? const {};
+
   ClassNode _getClassNode(ClassEntity cls) {
     return _classes.putIfAbsent(cls, () => ClassNode(cls));
   }
@@ -554,12 +560,12 @@ class TypeVariableTests {
     TypeVariableEntity entity = variable.element;
     Entity declaration = entity.typeDeclaration;
     if (declaration is ClassEntity) {
-      _classInstantiationMap[declaration]?.forEach((InterfaceType type) {
+      classInstantiationsOf(declaration).forEach((InterfaceType type) {
         _addImplicitCheck(type.typeArguments[entity.index]);
       });
     } else {
-      _instantiationMap[declaration]
-          ?.forEach((GenericInstantiation instantiation) {
+      instantiationsOf(declaration)
+          .forEach((GenericInstantiation instantiation) {
         _addImplicitCheck(instantiation.typeArguments[entity.index]);
       });
       _world.forEachStaticTypeArgument(
@@ -598,7 +604,7 @@ class TypeVariableTests {
       // one of its type arguments in an is-check and add the arguments to the
       // set of is-checks.
       for (ClassEntity base in _classHierarchy.allSubtypesOf(cls)) {
-        _classInstantiationMap[base]?.forEach((InterfaceType subtype) {
+        classInstantiationsOf(base).forEach((InterfaceType subtype) {
           InterfaceType instance = _dartTypes.asInstanceOf(subtype, cls);
           assert(instance != null);
           _addImplicitChecks(instance.typeArguments);
