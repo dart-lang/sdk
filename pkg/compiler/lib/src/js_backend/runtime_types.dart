@@ -546,6 +546,20 @@ class RuntimeTypesImpl
     Set<ClassEntity> typeLiterals = {};
     Set<ClassEntity> typeArguments = {};
 
+    Iterable<DartType> instantiateTypeVariable(TypeVariableEntity variable) {
+      Entity declaration = variable.typeDeclaration;
+      int index = variable.index;
+      if (declaration is ClassEntity) {
+        return typeVariableTests
+            .classInstantiationsOf(declaration)
+            .map((InterfaceType interface) => interface.typeArguments[index]);
+      } else {
+        return typeVariableTests.instantiationsOf(declaration).map(
+            (GenericInstantiation instantiation) =>
+                instantiation.typeArguments[index]);
+      }
+    }
+
     // The [liveTypeVisitor] is used to register class use in the type of
     // instantiated objects like `new T` and the function types of
     // tear offs and closures.
@@ -559,27 +573,28 @@ class RuntimeTypesImpl
     //    new A<B Function(C)>();
     //
     // makes A and B live but C tested.
-    TypeVisitor liveTypeVisitor =
-        TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
-      ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
-      switch (state) {
-        case TypeVisitorState.covariantTypeArgument:
-          classUse.typeArgument = true;
-          typeArguments.add(cls);
-          break;
-        case TypeVisitorState.contravariantTypeArgument:
-          classUse.typeArgument = true;
-          classUse.checkedTypeArgument = true;
-          typeArguments.add(cls);
-          break;
-        case TypeVisitorState.typeLiteral:
-          classUse.typeLiteral = true;
-          typeLiterals.add(cls);
-          break;
-        case TypeVisitorState.direct:
-          break;
-      }
-    });
+    TypeVisitor liveTypeVisitor = TypeVisitor(
+        onClass: (ClassEntity cls, {TypeVisitorState state}) {
+          ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
+          switch (state) {
+            case TypeVisitorState.covariantTypeArgument:
+              classUse.typeArgument = true;
+              typeArguments.add(cls);
+              break;
+            case TypeVisitorState.contravariantTypeArgument:
+              classUse.typeArgument = true;
+              classUse.checkedTypeArgument = true;
+              typeArguments.add(cls);
+              break;
+            case TypeVisitorState.typeLiteral:
+              classUse.typeLiteral = true;
+              typeLiterals.add(cls);
+              break;
+            case TypeVisitorState.direct:
+              break;
+          }
+        },
+        instantiateTypeVariable: instantiateTypeVariable);
 
     // The [testedTypeVisitor] is used to register class use in type tests like
     // `o is T` and `o as T` (both implicit and explicit).
@@ -593,26 +608,27 @@ class RuntimeTypesImpl
     //    o is A<B Function(C)>;
     //
     // makes A and B tested but C live.
-    TypeVisitor testedTypeVisitor =
-        TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
-      ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
-      switch (state) {
-        case TypeVisitorState.covariantTypeArgument:
-          classUse.typeArgument = true;
-          classUse.checkedTypeArgument = true;
-          typeArguments.add(cls);
-          break;
-        case TypeVisitorState.contravariantTypeArgument:
-          classUse.typeArgument = true;
-          typeArguments.add(cls);
-          break;
-        case TypeVisitorState.typeLiteral:
-          break;
-        case TypeVisitorState.direct:
-          classUse.checkedInstance = true;
-          break;
-      }
-    });
+    TypeVisitor testedTypeVisitor = TypeVisitor(
+        onClass: (ClassEntity cls, {TypeVisitorState state}) {
+          ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
+          switch (state) {
+            case TypeVisitorState.covariantTypeArgument:
+              classUse.typeArgument = true;
+              classUse.checkedTypeArgument = true;
+              typeArguments.add(cls);
+              break;
+            case TypeVisitorState.contravariantTypeArgument:
+              classUse.typeArgument = true;
+              typeArguments.add(cls);
+              break;
+            case TypeVisitorState.typeLiteral:
+              break;
+            case TypeVisitorState.direct:
+              classUse.checkedInstance = true;
+              break;
+          }
+        },
+        instantiateTypeVariable: instantiateTypeVariable);
 
     codegenWorld.instantiatedClasses.forEach((ClassEntity cls) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
@@ -875,15 +891,14 @@ enum TypeVisitorState {
 }
 
 class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
+  final Set<TypeVariableType> _visitedTypeVariables = {};
   final Set<FunctionTypeVariable> _visitedFunctionTypeVariables = {};
 
   final void Function(ClassEntity entity, {TypeVisitorState state}) onClass;
-  final void Function(TypeVariableEntity entity, {TypeVisitorState state})
-      onTypeVariable;
-  final void Function(FunctionType type, {TypeVisitorState state})
-      onFunctionType;
+  final Iterable<DartType> Function(TypeVariableEntity entity)
+      instantiateTypeVariable;
 
-  TypeVisitor({this.onClass, this.onTypeVariable, this.onFunctionType});
+  TypeVisitor({this.onClass, this.instantiateTypeVariable});
 
   void visitType(DartType type, TypeVisitorState state) =>
       type.accept(this, state);
@@ -938,8 +953,10 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
 
   @override
   void visitTypeVariableType(TypeVariableType type, TypeVisitorState state) {
-    if (onTypeVariable != null) {
-      onTypeVariable(type.element, state: state);
+    if (_visitedTypeVariables.add(type) && instantiateTypeVariable != null) {
+      for (DartType instantiation in instantiateTypeVariable(type.element)) {
+        visitType(instantiation, state);
+      }
     }
   }
 
@@ -952,9 +969,6 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
 
   @override
   void visitFunctionType(FunctionType type, TypeVisitorState state) {
-    if (onFunctionType != null) {
-      onFunctionType(type, state: state);
-    }
     // Visit all nested types as type arguments; these types are not runtime
     // instances but runtime type representations.
     visitType(type.returnType, covariantArgument(state));
