@@ -75,6 +75,165 @@ class MacroElementsTest extends ElementsBaseTest {
     );
   }
 
+  test_arguments_typesPhase_kind_optionalNamed() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'int',
+        'bar': 'int',
+      },
+      constructorParametersCode: '({this.foo = -1, this.bar = -2})',
+      argumentsCode: '(foo: 1)',
+      expected: r'''
+foo: 1
+bar: -2
+''',
+    );
+  }
+
+  test_arguments_typesPhase_kind_optionalPositional() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'int',
+        'bar': 'int',
+      },
+      constructorParametersCode: '([this.foo = -1, this.bar = -2])',
+      argumentsCode: '(1)',
+      expected: r'''
+foo: 1
+bar: -2
+''',
+    );
+  }
+
+  test_arguments_typesPhase_kind_requiredNamed() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'int'},
+      constructorParametersCode: '({required this.foo})',
+      argumentsCode: '(foo: 42)',
+      expected: r'''
+foo: 42
+''',
+    );
+  }
+
+  test_arguments_typesPhase_kind_requiredPositional() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'int'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(42)',
+      expected: r'''
+foo: 42
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_bool() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'bool',
+        'bar': 'bool',
+      },
+      constructorParametersCode: '(this.foo, this.bar)',
+      argumentsCode: '(true, false)',
+      expected: r'''
+foo: true
+bar: false
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_double() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'double'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(1.2)',
+      expected: r'''
+foo: 1.2
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_double_negative() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'double'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(-1.2)',
+      expected: r'''
+foo: -1.2
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_int() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'int'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(42)',
+      expected: r'''
+foo: 42
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_int_negative() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'int'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(-42)',
+      expected: r'''
+foo: -42
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_list() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<Object?>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([1, 2, true, 3, 4.2])',
+      expected: r'''
+foo: [1, 2, true, 3, 4.2]
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_map() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'Map<Object?, Object?>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '({1: true, "abc": 2.3})',
+      expected: r'''
+foo: {1: true, abc: 2.3}
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_null() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'Object?'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(null)',
+      expected: r'''
+foo: null
+''',
+    );
+  }
+
+  test_arguments_typesPhase_type_string() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'String'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: "('aaa')",
+      expected: r'''
+foo: aaa
+''',
+    );
+  }
+
   test_build_types() async {
     newFile2('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
@@ -272,6 +431,64 @@ library
         toUriStr: toUriStr,
       ),
     );
+  }
+
+  /// Build a macro with specified [fields], initialized in the constructor
+  /// with [constructorParametersCode], and apply this macro  with
+  /// [argumentsCode] to an empty class.
+  ///
+  /// The macro generates exactly one top-level constant `x`, with a textual
+  /// dump of the field values. So, we check that the analyzer built these
+  /// values, and the macro executor marshalled these values to the running
+  /// macro isolate.
+  Future<void> _assertTypesPhaseArgumentsText({
+    required Map<String, String> fields,
+    required String constructorParametersCode,
+    required String argumentsCode,
+    required String expected,
+  }) async {
+    final dumpCode = fields.keys.map((name) {
+      return "$name: \$$name\\\\n";
+    }).join('');
+
+    newFile2('$testPackageLibPath/arguments_text.dart', '''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class ArgumentsTextMacro implements ClassTypesMacro {
+${fields.entries.map((e) => '  final${e.value} ${e.key}').join('\n')}
+
+  const ArgumentsTextMacro${constructorParametersCode.trim()};
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'x',
+      DeclarationCode.fromString(
+        "const x = '$dumpCode';",
+      ),
+    );
+  }
+}
+''');
+
+    final library = await buildLibrary('''
+import 'arguments_text.dart';
+
+@ArgumentsTextMacro$argumentsCode
+class A {}
+    ''', preBuildSequence: [
+      {'package:test/arguments_text.dart'}
+    ]);
+
+    final x = library.parts.single.topLevelVariables.single;
+    expect(x.name, 'x');
+    x as ConstTopLevelVariableElementImpl;
+    final actual = (x.constantInitializer as SimpleStringLiteral).value;
+
+    if (actual != expected) {
+      print(actual);
+    }
+    expect(actual, expected);
   }
 
   /// Assert that the textual dump of the introspection information for

@@ -17,8 +17,6 @@ import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:path/path.dart' as package_path;
 
-export 'package:_fe_analyzer_shared/src/macros/executor.dart' show Arguments;
-
 class BundleMacroExecutor {
   final macro.MultiMacroExecutor macroExecutor;
   late final macro.ExecutorFactoryToken _executorFactoryToken;
