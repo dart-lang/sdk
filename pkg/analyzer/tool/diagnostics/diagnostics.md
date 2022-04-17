@@ -6731,6 +6731,8 @@ class B implements A {}
 
 ### implements_super_class
 
+_'{0}' can't be used in both 'extends' and 'with' clauses._
+
 _'{0}' can't be used in both the 'extends' and 'implements' clauses._
 
 #### Description
