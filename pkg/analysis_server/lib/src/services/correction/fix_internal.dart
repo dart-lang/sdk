@@ -1087,6 +1087,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
       AddEnumConstant.new,
+      ChangeTo.getterOrSetter,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       ChangeTo.getterOrSetter,
