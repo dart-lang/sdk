@@ -118,7 +118,7 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
-  late final implementsDartCoreEnum =
+  late final bool implementsDartCoreEnum =
       classElement.allSupertypes.any((e) => e.isDartCoreEnum);
 
   _ClassVerifier({
@@ -648,6 +648,7 @@ class _ClassVerifier {
 
   void _checkIllegalConcreteEnumMemberDeclaration(SimpleIdentifier name) {
     if (implementsDartCoreEnum &&
+        !classElement.isDartCoreEnumImpl &&
         const {'index', 'hashCode', '=='}.contains(name.name)) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,

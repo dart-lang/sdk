@@ -476,6 +476,7 @@ import 'mixin_super_class_constraint_non_interface_test.dart'
 import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
+import 'mock_sdk_test.dart' as mock_sdk;
 import 'multiple_redirecting_constructor_invocations_test.dart'
     as multiple_redirecting_constructor_invocations;
 import 'multiple_super_initializers_test.dart' as multiple_super_initializers;
@@ -1105,6 +1106,7 @@ main() {
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
+    mock_sdk.main();
     multiple_redirecting_constructor_invocations.main();
     multiple_super_initializers.main();
     must_be_a_native_function_type.main();
