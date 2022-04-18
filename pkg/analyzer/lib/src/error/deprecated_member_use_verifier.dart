@@ -146,10 +146,6 @@ class DeprecatedMemberUseVerifier {
       return;
     }
 
-    if (element is ParameterElement && element.isNotOptional) {
-      return;
-    }
-
     var errorNode = node;
     var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -208,7 +204,11 @@ class DeprecatedMemberUseVerifier {
       _visitParametersAndArguments(
         element.parameters,
         arguments.arguments,
-        _checkForDeprecated,
+        (parameter, argument) {
+          if (parameter.isOptional) {
+            _checkForDeprecated(parameter, argument);
+          }
+        },
       );
     }
   }
