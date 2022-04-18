@@ -234,6 +234,17 @@ foo: aaa
     );
   }
 
+  test_arguments_typesPhase_type_string_adjacent() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'String'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: "('aaa' 'bbb' 'ccc')",
+      expected: r'''
+foo: aaabbbccc
+''',
+    );
+  }
+
   test_build_types() async {
     newFile2('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
