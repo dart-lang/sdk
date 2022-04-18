@@ -627,6 +627,44 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) const {
   return nullptr;
 }
 
+#if (defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)) &&    \
+    defined(TARGET_ARCH_ARM64)
+// When generating ARM64 Mach-O LLVM tends to generate Compact Unwind Info
+// (__unwind_info) rather than traditional DWARF unwinding information
+// (__eh_frame).
+//
+// Unfortunately when generating __unwind_info LLVM seems to only apply CFI
+// rules to the region between two non-local symbols that contains these CFI
+// directives. In other words given:
+//
+//   Abc:
+//   .cfi_startproc
+//   .cfi_def_cfa x29, 16
+//   .cfi_offset x29, -16
+//   .cfi_offset x30, -8
+//   ;; ...
+//   Xyz:
+//   ;; ...
+//   .cfi_endproc
+//
+// __unwind_info would specify proper unwinding information only for the region
+// between Abc and Xyz symbols. And the region Xyz onwards will have no
+// unwinding information.
+//
+// There also seems to be a difference in how unwinding information is
+// canonicalized and compressed: when building __unwind_info from CFI directives
+// LLVM will fold together similar entries, the same does not happen for
+// __eh_frame. This means that emitting CFI directives for each function would
+// baloon the size of __eh_frame.
+//
+// Hence to work around the problem of incorrect __unwind_info without balooning
+// snapshot size when __eh_frame is generated we choose to emit CFI directives
+// per function specifically on ARM64 Mac OS X and iOS.
+//
+// See also |useCompactUnwind| method in LLVM (https://github.com/llvm/llvm-project/blob/b27430f9f46b88bcd54d992debc8d72e131e1bd0/llvm/lib/MC/MCObjectFileInfo.cpp#L28-L50)
+#define EMIT_UNWIND_DIRECTIVES_PER_FUNCTION 1
+#endif
+
 void ImageWriter::WriteText(bool vm) {
   const bool bare_instruction_payloads = FLAG_precompiled_mode;
 
@@ -728,7 +766,9 @@ void ImageWriter::WriteText(bool vm) {
   }
 #endif
 
+#if !defined(EMIT_UNWIND_DIRECTIVES_PER_FUNCTION)
   FrameUnwindPrologue();
+#endif
 
 #if defined(DART_PRECOMPILER)
   PcDescriptors& descriptors = PcDescriptors::Handle(zone_);
@@ -795,6 +835,10 @@ void ImageWriter::WriteText(bool vm) {
     AddCodeSymbol(code, object_name, text_offset);
 #endif
 
+#if defined(EMIT_UNWIND_DIRECTIVES_PER_FUNCTION)
+    FrameUnwindPrologue();
+#endif
+
     {
       NoSafepointScope no_safepoint;
 
@@ -847,6 +891,9 @@ void ImageWriter::WriteText(bool vm) {
     text_offset += AlignWithBreakInstructions(alignment, text_offset);
 
     ASSERT_EQUAL(text_offset - instr_start, SizeInSnapshot(insns.ptr()));
+#if defined(EMIT_UNWIND_DIRECTIVES_PER_FUNCTION)
+    FrameUnwindEpilogue();
+#endif
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
@@ -860,7 +907,9 @@ void ImageWriter::WriteText(bool vm) {
 
   ASSERT_EQUAL(text_offset, image_size);
 
+#if !defined(EMIT_UNWIND_DIRECTIVES_PER_FUNCTION)
   FrameUnwindEpilogue();
+#endif
 
   ExitSection(ProgramSection::Text, vm, text_offset);
 }
