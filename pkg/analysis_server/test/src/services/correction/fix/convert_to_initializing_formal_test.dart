@@ -23,6 +23,25 @@ class ConvertToInitializingFormalTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_initializing_formals;
 
+  Future<void> test_assignment_different_type() async {
+    await resolveTestCode('''
+class C {
+  Object a = '';
+
+  C(String a) {
+    this.a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Object a = '';
+
+  C(String this.a);
+}
+''');
+  }
+
   Future<void> test_assignment_emptyAfterRemoval() async {
     await resolveTestCode('''
 class C {
@@ -56,6 +75,21 @@ class C {
   C(this.a) {
     print(a);
   }
+}
+''');
+  }
+
+  Future<void> test_initializer_different_type() async {
+    await resolveTestCode('''
+class C {
+  final Object name;
+  C.forName(String name) : name = name;
+}
+''');
+    await assertHasFix('''
+class C {
+  final Object name;
+  C.forName(String this.name);
 }
 ''');
   }
