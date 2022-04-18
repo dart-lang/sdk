@@ -69,8 +69,6 @@ Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
-Dart_PostTaskCallback Dart::post_task_callback_ = nullptr;
-void* Dart::post_task_data_ = nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -283,8 +281,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   SetFileCallbacks(params->file_open, params->file_read, params->file_write,
                    params->file_close);
   set_entropy_source_callback(params->entropy_source);
-  set_post_task_callback(params->post_task);
-  set_post_task_data(params->post_task_data);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
   if (params->code_observer != nullptr) {
@@ -802,8 +798,6 @@ char* Dart::Cleanup() {
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   VirtualMemory::Cleanup();
-  post_task_callback_ = nullptr;
-  post_task_data_ = nullptr;
   return NULL;
 }
 
