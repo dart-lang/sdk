@@ -256,12 +256,6 @@ class Heap {
   void ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object);
   void ForwardWeakTables(ObjectPointerVisitor* visitor);
 
-  // Stats collection.
-  void RecordTime(int id, int64_t micros) {
-    ASSERT((id >= 0) && (id < GCStats::kTimeEntries));
-    stats_.times_[id] = micros;
-  }
-
   void UpdateGlobalMaxUsed();
 
   static bool IsAllocatableInNewSpace(intptr_t size) {
@@ -314,16 +308,14 @@ class Heap {
       int64_t micros_;
       SpaceUsage new_;
       SpaceUsage old_;
+      intptr_t store_buffer_;
 
      private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
 
-    enum { kTimeEntries = 6 };
-
     Data before_;
     Data after_;
-    int64_t times_[kTimeEntries];
 
    private:
     DISALLOW_COPY_AND_ASSIGN(GCStats);
