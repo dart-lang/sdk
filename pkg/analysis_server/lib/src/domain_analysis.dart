@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';
@@ -15,10 +14,10 @@ import 'package:analysis_server/src/handler/legacy/analysis_set_analysis_roots.d
 import 'package:analysis_server/src/handler/legacy/analysis_set_general_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_set_priority_files.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_update_content.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_update_options.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
-import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -78,62 +77,17 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
             .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_UPDATE_CONTENT) {
-        // TODO(brianwilkerson) Converting this to a handler currently causes a
-        //  test to timeout.
-        return updateContent(request);
+        AnalysisUpdateContentHandler(server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_UPDATE_OPTIONS) {
-        // TODO(brianwilkerson) Converting this to a handler currently causes a
-        //  test to timeout.
-        return updateOptions(request);
+        AnalysisUpdateOptionsHandler(server, request, cancellationToken)
+            .handle();
+        return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
-  }
-
-  /// Implement the 'analysis.updateContent' request.
-  Response updateContent(Request request) {
-    var params = AnalysisUpdateContentParams.fromRequest(request);
-
-    for (var file in params.files.keys) {
-      if (!server.isAbsoluteAndNormalized(file)) {
-        return Response.invalidFilePathFormat(request, file);
-      }
-    }
-
-    server.updateContent(request.id, params.files);
-    //
-    // Forward the request to the plugins.
-    //
-    var converter = RequestConverter();
-    server.pluginManager.setAnalysisUpdateContentParams(
-        converter.convertAnalysisUpdateContentParams(params));
-    //
-    // Send the response.
-    //
-    return AnalysisUpdateContentResult().toResponse(request.id);
-  }
-
-  /// Implement the 'analysis.updateOptions' request.
-  Response updateOptions(Request request) {
-    // options
-    var params = AnalysisUpdateOptionsParams.fromRequest(request);
-    var newOptions = params.options;
-    var updaters = <OptionUpdater>[];
-    var generateHints = newOptions.generateHints;
-    if (generateHints != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.hint = generateHints;
-      });
-    }
-    var generateLints = newOptions.generateLints;
-    if (generateLints != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.lint = generateLints;
-      });
-    }
-    server.updateOptions(updaters);
-    return AnalysisUpdateOptionsResult().toResponse(request.id);
   }
 }
