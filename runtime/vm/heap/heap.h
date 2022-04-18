@@ -108,8 +108,7 @@ class Heap {
   void NotifyIdle(int64_t deadline);
 
   // Collect a single generation.
-  void CollectGarbage(Space space);
-  void CollectGarbage(GCType type, GCReason reason);
+  void CollectGarbage(Thread* thread, GCType type, GCReason reason);
 
   // Collect both generations by performing a scavenge followed by a
   // mark-sweep. This function may not collect all unreachable objects. Because
@@ -344,9 +343,8 @@ class Heap {
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked);
 
   // Helper functions for garbage collection.
-  void CollectNewSpaceGarbage(Thread* thread, GCReason reason);
+  void CollectNewSpaceGarbage(Thread* thread, GCType type, GCReason reason);
   void CollectOldSpaceGarbage(Thread* thread, GCType type, GCReason reason);
-  void EvacuateNewSpace(Thread* thread, GCReason reason);
 
   // GC stats collection.
   void RecordBeforeGC(GCType type, GCReason reason);
@@ -463,7 +461,8 @@ class GCTestHelper : public AllStatic {
   static void CollectNewSpace() {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->CollectNewSpaceGarbage(thread, GCReason::kDebugging);
+    thread->heap()->CollectGarbage(thread, GCType::kScavenge,
+                                   GCReason::kDebugging);
   }
 
   // Fully collect old gen and wait for the sweeper to finish. The normal call
@@ -474,9 +473,11 @@ class GCTestHelper : public AllStatic {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
     if (thread->is_marking()) {
-      thread->heap()->CollectGarbage(GCType::kMarkSweep, GCReason::kDebugging);
+      thread->heap()->CollectGarbage(thread, GCType::kMarkSweep,
+                                     GCReason::kDebugging);
     }
-    thread->heap()->CollectGarbage(GCType::kMarkSweep, GCReason::kDebugging);
+    thread->heap()->CollectGarbage(thread, GCType::kMarkSweep,
+                                   GCReason::kDebugging);
     WaitForGCTasks();
   }
 

@@ -78,7 +78,7 @@ VM_UNIT_TEST_CASE(Metric_OnDemand) {
 
 ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
   {
-    TransitionVMToNative transition(Thread::Current());
+    TransitionVMToNative transition(thread);
 
     const char* kScript = "void main() {}";
     Dart_Handle api_lib = TestCase::LoadTestScript(
@@ -88,15 +88,16 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
 
   // Ensure we've done new/old GCs to ensure max metrics are initialized.
   String::New("<land-in-new-space>", Heap::kNew);
-  IsolateGroup::Current()->heap()->new_space()->Scavenge(GCReason::kDebugging);
-  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                                     /*compact=*/ true);
+  thread->heap()->CollectGarbage(thread, GCType::kScavenge,
+                                 GCReason::kDebugging);
+  thread->heap()->CollectGarbage(thread, GCType::kMarkCompact,
+                                 GCReason::kDebugging);
 
   // Ensure we've something live in new space.
   String::New("<land-in-new-space2>", Heap::kNew);
 
   {
-    TransitionVMToNative transition(Thread::Current());
+    TransitionVMToNative transition(thread);
 
     Dart_Isolate isolate = Dart_CurrentIsolate();
 #if !defined(PRODUCT)

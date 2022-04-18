@@ -79,7 +79,7 @@ uword Heap::AllocateNew(intptr_t size) {
     // This call to CollectGarbage might end up "reusing" a collection spawned
     // from a different thread and will be racing to allocate the requested
     // memory with other threads being released after the collection.
-    CollectGarbage(kNew);
+    CollectGarbage(thread, GCType::kScavenge, GCReason::kNewSpace);
 
     addr = new_space_.TryAllocate(thread, size);
     if (LIKELY(addr != 0)) {
@@ -184,16 +184,16 @@ void Heap::CheckExternalGC(Thread* thread) {
   if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
     // Attempt to free some external allocation by a scavenge. (If the total
     // remains above the limit, next external alloc will trigger another.)
-    CollectGarbage(GCType::kScavenge, GCReason::kExternal);
+    CollectGarbage(thread, GCType::kScavenge, GCReason::kExternal);
     // Promotion may have pushed old space over its limit. Fall through for old
     // space GC check.
   }
 
   if (old_space_.ReachedHardThreshold()) {
     if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(thread, GCReason::kFull);
+      CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
     }
-    CollectGarbage(GCType::kMarkSweep, GCReason::kExternal);
+    CollectGarbage(thread, GCType::kMarkSweep, GCReason::kExternal);
   } else {
     CheckStartConcurrentMarking(thread, GCReason::kExternal);
   }
@@ -377,7 +377,7 @@ void Heap::NotifyIdle(int64_t deadline) {
     // first to shrink the root set (make old-space GC faster) and avoid
     // intergenerational garbage (make old-space GC free more memory).
     if (new_space_.ShouldPerformIdleScavenge(deadline)) {
-      CollectNewSpaceGarbage(thread, GCReason::kIdle);
+      CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kIdle);
     }
 
     // Check if we want to collect old-space, in decreasing order of cost.
@@ -425,34 +425,9 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 }
 
-void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
-  ASSERT(reason != GCReason::kPromotion);
-  ASSERT(reason != GCReason::kFinalize);
-  if (thread->isolate_group() == Dart::vm_isolate_group()) {
-    // The vm isolate cannot safely collect garbage due to unvisited read-only
-    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
-    // trigger a nice out-of-memory message instead of a crash in the middle of
-    // visiting pointers.
-    return;
-  }
-  {
-    GcSafepointOperationScope safepoint_operation(thread);
-    RecordBeforeGC(GCType::kScavenge, reason);
-    VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                    ? VMTag::kGCIdleTagId
-                                    : VMTag::kGCNewSpaceTagId);
-    TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
-    new_space_.Evacuate(reason);
-    RecordAfterGC(GCType::kScavenge);
-    PrintStats();
-#if defined(SUPPORT_TIMELINE)
-    PrintStatsToTimeline(&tbes, reason);
-#endif
-    last_gc_was_old_space_ = false;
-  }
-}
-
-void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
+void Heap::CollectNewSpaceGarbage(Thread* thread,
+                                  GCType type,
+                                  GCReason reason) {
   NoActiveIsolateScope no_active_isolate_scope;
   ASSERT(reason != GCReason::kPromotion);
   ASSERT(reason != GCReason::kFinalize);
@@ -465,21 +440,21 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   }
   {
     GcSafepointOperationScope safepoint_operation(thread);
-    RecordBeforeGC(GCType::kScavenge, reason);
+    RecordBeforeGC(type, reason);
     {
       VMTagScope tagScope(thread, reason == GCReason::kIdle
                                       ? VMTag::kGCIdleTagId
                                       : VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
-      new_space_.Scavenge(reason);
-      RecordAfterGC(GCType::kScavenge);
+      new_space_.Scavenge(thread, type, reason);
+      RecordAfterGC(type);
       PrintStats();
 #if defined(SUPPORT_TIMELINE)
       PrintStatsToTimeline(&tbes, reason);
 #endif
       last_gc_was_old_space_ = false;
     }
-    if (reason == GCReason::kNewSpace) {
+    if (type == GCType::kScavenge && reason == GCReason::kNewSpace) {
       if (old_space_.ReachedHardThreshold()) {
         CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
                                GCReason::kPromotion);
@@ -542,11 +517,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
 }
 
-void Heap::CollectGarbage(GCType type, GCReason reason) {
-  Thread* thread = Thread::Current();
+void Heap::CollectGarbage(Thread* thread, GCType type, GCReason reason) {
   switch (type) {
     case GCType::kScavenge:
-      CollectNewSpaceGarbage(thread, reason);
+    case GCType::kEvacuate:
+      CollectNewSpaceGarbage(thread, type, reason);
       break;
     case GCType::kMarkSweep:
     case GCType::kMarkCompact:
@@ -557,19 +532,9 @@ void Heap::CollectGarbage(GCType type, GCReason reason) {
   }
 }
 
-void Heap::CollectGarbage(Space space) {
-  Thread* thread = Thread::Current();
-  if (space == kOld) {
-    CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kOldSpace);
-  } else {
-    ASSERT(space == kNew);
-    CollectNewSpaceGarbage(thread, GCReason::kNewSpace);
-  }
-}
-
 void Heap::CollectMostGarbage(GCReason reason, bool compact) {
   Thread* thread = Thread::Current();
-  CollectNewSpaceGarbage(thread, reason);
+  CollectNewSpaceGarbage(thread, GCType::kScavenge, reason);
   CollectOldSpaceGarbage(
       thread, compact ? GCType::kMarkCompact : GCType::kMarkSweep, reason);
 }
@@ -579,7 +544,7 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
 
   // New space is evacuated so this GC will collect all dead objects
   // kept alive by a cross-generational pointer.
-  EvacuateNewSpace(thread, reason);
+  CollectNewSpaceGarbage(thread, GCType::kEvacuate, reason);
   if (thread->is_marking()) {
     // If incremental marking is happening, we need to finish the GC cycle
     // and perform a follow-up GC to purge any "floating garbage" that may be
@@ -610,7 +575,7 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
     // new-space GC. This check is the concurrent-marking equivalent to the
     // new-space GC before synchronous-marking in CollectMostGarbage.
     if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(thread, GCReason::kFull);
+      CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
     }
 
     StartConcurrentMarking(thread, reason);
@@ -858,6 +823,8 @@ const char* Heap::GCTypeToString(GCType type) {
   switch (type) {
     case GCType::kScavenge:
       return "Scavenge";
+    case GCType::kEvacuate:
+      return "Evacuate";
     case GCType::kStartConcurrentMark:
       return "StartCMark";
     case GCType::kMarkSweep:
