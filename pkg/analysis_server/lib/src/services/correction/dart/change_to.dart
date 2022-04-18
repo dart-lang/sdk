@@ -219,9 +219,9 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeMethod(ChangeBuilder builder) async {
-    if (node.parent is MethodInvocation) {
-      var invocation = node.parent as MethodInvocation;
-      await _proposeClassOrMixinMember(builder, invocation.realTarget,
+    var parent = node.parent;
+    if (parent is MethodInvocation) {
+      await _proposeClassOrMixinMember(builder, parent.realTarget,
           (Element element) => element is MethodElement && !element.isOperator);
     }
   }
