@@ -317,7 +317,8 @@ class DeferredLoadTask extends CompilerTask {
 
   /// A sentinel used only by the [ImportSet] corresponding to the
   /// [_mainOutputUnit].
-  final ImportEntity _mainImport = ImportEntity(true, 'main#main', null, null);
+  final ImportEntity _mainImport =
+      ImportEntity(true, 'main#main', Uri(), Uri());
 
   /// A set containing (eventually) all output units that will result from the
   /// program.
