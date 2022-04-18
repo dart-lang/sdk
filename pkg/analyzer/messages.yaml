@@ -8297,12 +8297,11 @@ CompileTimeErrorCode:
       }
       ```
   MIXINS_SUPER_CLASS:
+    sharedName: IMPLEMENTS_SUPER_CLASS
     problemMessage: "'{0}' can't be used in both 'extends' and 'with' clauses."
     correctionMessage: Try removing one of the occurrences.
+    hasPublishedDocs: true
     comment: |-
-      Technically this is [IMPLEMENTS_SUPER_CLASS].
-      See https://github.com/dart-lang/sdk/issues/25765#issuecomment-307422593
-
       Parameters:
       0: the name of the class that appears in both "extends" and "with" clauses
   MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:

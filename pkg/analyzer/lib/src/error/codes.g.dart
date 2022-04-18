@@ -9475,16 +9475,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * Technically this is [IMPLEMENTS_SUPER_CLASS].
-   * See https://github.com/dart-lang/sdk/issues/25765#issuecomment-307422593
-   *
    * Parameters:
    * 0: the name of the class that appears in both "extends" and "with" clauses
    */
   static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
-    'MIXINS_SUPER_CLASS',
+    'IMPLEMENTS_SUPER_CLASS',
     "'{0}' can't be used in both 'extends' and 'with' clauses.",
     correctionMessage: "Try removing one of the occurrences.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXINS_SUPER_CLASS',
   );
 
   /**
