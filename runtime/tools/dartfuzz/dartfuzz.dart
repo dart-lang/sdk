@@ -1938,11 +1938,9 @@ class DartFuzz {
     switch (choose(2)) {
       case 0:
         return emitScalarVar(tp, isLhs: isLhs, rhsFilter: rhsFilter);
-        break;
       default:
         return emitSubscriptedVar(depth, tp,
             isLhs: isLhs, assignOp: assignOp, rhsFilter: rhsFilter);
-        break;
     }
   }
 
