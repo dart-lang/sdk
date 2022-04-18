@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 
 class LibraryMacroApplier {
   final LibraryBuilder libraryBuilder;
@@ -27,10 +28,13 @@ class LibraryMacroApplier {
     var macroResults = <macro.MacroExecutionResult>[];
     for (var unitElement in libraryBuilder.element.units) {
       for (var classElement in unitElement.classes) {
+        classElement as ClassElementImpl;
         var classNode = libraryBuilder.linker.elementNodes[classElement];
         // TODO(scheglov) support other declarations
         if (classNode is ClassDeclaration) {
-          for (var annotation in classNode.metadata) {
+          var annotationList = classNode.metadata;
+          for (var i = 0; i < annotationList.length; i++) {
+            final annotation = annotationList[i];
             var annotationNameNode = annotation.name;
             var argumentsNode = annotation.arguments;
             if (annotationNameNode is SimpleIdentifier &&
@@ -49,14 +53,30 @@ class LibraryMacroApplier {
                     if (getter is ClassElementImpl && getter.isMacro) {
                       var macroExecutor = importedLibrary.bundleMacroExecutor;
                       if (macroExecutor != null) {
-                        var macroResult = await _runSingleMacro(
-                          macroExecutor,
-                          getClassDeclaration(classNode),
-                          getter,
-                          _buildArguments(argumentsNode),
-                        );
-                        if (macroResult.isNotEmpty) {
-                          macroResults.add(macroResult);
+                        try {
+                          final arguments = _buildArguments(
+                            annotationIndex: i,
+                            node: argumentsNode,
+                          );
+                          final macroResult = await _runSingleMacro(
+                            macroExecutor,
+                            getClassDeclaration(classNode),
+                            getter,
+                            arguments,
+                          );
+                          if (macroResult.isNotEmpty) {
+                            macroResults.add(macroResult);
+                          }
+                        } on MacroApplicationError catch (e) {
+                          classElement.macroApplicationErrors.add(e);
+                        } catch (e, stackTrace) {
+                          classElement.macroApplicationErrors.add(
+                            UnknownMacroApplicationError(
+                              annotationIndex: i,
+                              stackTrace: stackTrace.toString(),
+                              message: e.toString(),
+                            ),
+                          );
                         }
                       }
                     }
@@ -112,15 +132,23 @@ class LibraryMacroApplier {
     return await macroInstance.executeTypesPhase();
   }
 
-  static macro.Arguments _buildArguments(ArgumentList node) {
+  static macro.Arguments _buildArguments({
+    required int annotationIndex,
+    required ArgumentList node,
+  }) {
     final positional = <Object?>[];
     final named = <String, Object?>{};
-    for (final argument in node.arguments) {
+    for (var i = 0; i < node.arguments.length; ++i) {
+      final argument = node.arguments[i];
+      final evaluation = _ArgumentEvaluation(
+        annotationIndex: annotationIndex,
+        argumentIndex: i,
+      );
       if (argument is NamedExpression) {
-        final value = _evaluateArgument(argument.expression);
+        final value = evaluation.evaluate(argument.expression);
         named[argument.name.label.name] = value;
       } else {
-        final value = _evaluateArgument(argument);
+        final value = evaluation.evaluate(argument);
         positional.add(value);
       }
     }
@@ -199,10 +227,22 @@ class LibraryMacroApplier {
       return const [];
     }
   }
+}
 
-  static Object? _evaluateArgument(Expression node) {
+/// Helper class for evaluating arguments for a single constructor based
+/// macro application.
+class _ArgumentEvaluation {
+  final int annotationIndex;
+  final int argumentIndex;
+
+  _ArgumentEvaluation({
+    required this.annotationIndex,
+    required this.argumentIndex,
+  });
+
+  Object? evaluate(Expression node) {
     if (node is AdjacentStrings) {
-      return node.strings.map(_evaluateArgument).join('');
+      return node.strings.map(evaluate).join('');
     } else if (node is BooleanLiteral) {
       return node.value;
     } else if (node is DoubleLiteral) {
@@ -210,12 +250,12 @@ class LibraryMacroApplier {
     } else if (node is IntegerLiteral) {
       return node.value;
     } else if (node is ListLiteral) {
-      return node.elements.cast<Expression>().map(_evaluateArgument).toList();
+      return node.elements.cast<Expression>().map(evaluate).toList();
     } else if (node is NullLiteral) {
       return null;
     } else if (node is PrefixExpression &&
         node.operator.type == TokenType.MINUS) {
-      final operandValue = _evaluateArgument(node.operand);
+      final operandValue = evaluate(node.operand);
       if (operandValue is double) {
         return -operandValue;
       } else if (operandValue is int) {
@@ -225,19 +265,25 @@ class LibraryMacroApplier {
       final result = <Object?, Object?>{};
       for (final element in node.elements) {
         if (element is! MapLiteralEntry) {
-          throw ArgumentError(
-            'Not supported: (${element.runtimeType}) $element',
-          );
+          _throwError(element, 'MapLiteralEntry expected');
         }
-        final key = _evaluateArgument(element.key);
-        final value = _evaluateArgument(element.value);
+        final key = evaluate(element.key);
+        final value = evaluate(element.value);
         result[key] = value;
       }
       return result;
     } else if (node is SimpleStringLiteral) {
       return node.value;
     }
-    throw ArgumentError('Not supported: (${node.runtimeType}) $node');
+    _throwError(node, 'Not supported: ${node.runtimeType}');
+  }
+
+  Never _throwError(AstNode node, String message) {
+    throw ArgumentMacroApplicationError(
+      annotationIndex: annotationIndex,
+      argumentIndex: argumentIndex,
+      message: message,
+    );
   }
 }
 

@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -125,6 +126,11 @@ class BundleWriter {
 
     _sink._writeStringReference(element.name);
     ClassElementFlags.write(_sink, element);
+
+    _sink.writeList<MacroApplicationError>(
+      element.macroApplicationErrors,
+      (x) => x.write(_sink),
+    );
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
