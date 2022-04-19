@@ -1453,7 +1453,7 @@ mixin ConstructorElementMixin implements ConstructorElement {
     }
     // no required parameters
     for (ParameterElement parameter in parameters) {
-      if (parameter.isNotOptional) {
+      if (parameter.isRequired) {
         return false;
       }
     }
@@ -4880,6 +4880,7 @@ mixin ParameterElementMixin implements ParameterElement {
   @override
   bool get isNamed => parameterKind.isNamed;
 
+  @Deprecated('Use isRequired instead')
   @override
   bool get isNotOptional => parameterKind.isRequired;
 
@@ -4894,6 +4895,9 @@ mixin ParameterElementMixin implements ParameterElement {
 
   @override
   bool get isPositional => parameterKind.isPositional;
+
+  @override
+  bool get isRequired => parameterKind.isRequired;
 
   @override
   bool get isRequiredNamed => parameterKind.isRequiredNamed;
