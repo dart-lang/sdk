@@ -73,8 +73,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   NameIterator get nameIterator;
 
-  Builder? addBuilder(String? name, Builder declaration, int charOffset);
-
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 

@@ -787,7 +787,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  @override
   Builder? addBuilder(String? name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
     // TODO(ahe): Set the parent correctly here. Could then change the
