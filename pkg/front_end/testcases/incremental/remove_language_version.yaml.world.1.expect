@@ -13,6 +13,6 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 
   static method main() → dynamic {
-    dart.core::int? i;
+    dart.core::int* i;
   }
 }

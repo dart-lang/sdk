@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, VariableDeclaration;
-import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -147,9 +146,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {
       DartType? builtType = type?.build(library);
-      if (!library.isNonNullableByDefault && builtType != null) {
-        builtType = legacyErasure(builtType);
-      }
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,
