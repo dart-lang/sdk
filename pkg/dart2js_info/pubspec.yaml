@@ -18,7 +18,7 @@ dependencies:
   yaml: ^3.1.0
 
 dev_dependencies:
-  lints: ^1.0.0
+  lints: any
   test: ^1.2.0
 
 executables:

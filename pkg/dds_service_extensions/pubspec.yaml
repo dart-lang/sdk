@@ -15,4 +15,4 @@ dependencies:
    vm_service: ^8.1.0
 
 dev_dependencies:
-  lints: ^1.0.0
+  lints: any
