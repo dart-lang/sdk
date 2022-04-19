@@ -6177,6 +6177,9 @@ class BodyBuilder extends StackListenerImpl
             fasta.messageForInLoopWithConstVariable,
             lvalue.fileOffset,
             lvalue.name!.length);
+        // As a recovery step, remove the const flag, to not confuse the
+        // constant evaluator further in the pipeline.
+        lvalue.isConst = false;
       }
     } else {
       VariableDeclaration variable = elements.syntheticVariableDeclaration =
