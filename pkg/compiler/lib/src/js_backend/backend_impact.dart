@@ -783,7 +783,7 @@ class BackendImpacts {
   BackendImpact _lateFieldReadCheck;
 
   BackendImpact get lateFieldReadCheck =>
-      _lateFieldReadCheck ??= BackendImpact(staticUses: [
+      _lateFieldReadCheck ??= BackendImpact(globalUses: [
         _commonElements.throwUnnamedLateFieldNI,
         _commonElements.throwLateFieldNI,
       ]);
@@ -791,7 +791,7 @@ class BackendImpacts {
   BackendImpact _lateFieldWriteOnceCheck;
 
   BackendImpact get lateFieldWriteOnceCheck =>
-      _lateFieldWriteOnceCheck ??= BackendImpact(staticUses: [
+      _lateFieldWriteOnceCheck ??= BackendImpact(globalUses: [
         _commonElements.throwUnnamedLateFieldAI,
         _commonElements.throwLateFieldAI,
       ]);
@@ -799,7 +799,7 @@ class BackendImpacts {
   BackendImpact _lateFieldInitializeOnceCheck;
 
   BackendImpact get lateFieldInitializeOnceCheck =>
-      _lateFieldInitializeOnceCheck ??= BackendImpact(staticUses: [
+      _lateFieldInitializeOnceCheck ??= BackendImpact(globalUses: [
         _commonElements.throwUnnamedLateFieldADI,
         _commonElements.throwLateFieldADI,
       ]);
