@@ -32,12 +32,30 @@ class SimpleMacro
         VariableTypesMacro,
         VariableDeclarationsMacro,
         VariableDefinitionMacro {
-  final int? x;
-  final int? y;
+  final bool? myBool;
+  final int? myInt;
+  final double? myDouble;
+  final Set? mySet;
+  final List? myList;
+  final Map? myMap;
+  final String? myString;
 
-  SimpleMacro([this.x, this.y]);
+  SimpleMacro([this.myInt])
+      : myBool = null,
+        myDouble = null,
+        mySet = null,
+        myList = null,
+        myMap = null,
+        myString = null;
 
-  SimpleMacro.named({this.x, this.y});
+  SimpleMacro.named(
+      {required this.myBool,
+      required this.myDouble,
+      required this.myInt,
+      required this.mySet,
+      required this.myList,
+      required this.myMap,
+      required this.myString});
 
   @override
   FutureOr<void> buildDeclarationsForClass(
@@ -156,7 +174,7 @@ class SimpleMacro
           // TODO: Compare against actual `int` type.
           if (field.isFinal &&
               (field.type as NamedTypeAnnotation).identifier.name == 'int')
-            Code.fromParts([field.identifier, ' = ${x!}']),
+            Code.fromParts([field.identifier, ' = ${myInt!}']),
       ],
     );
   }
@@ -214,7 +232,13 @@ class SimpleMacro
 
     builder.augment(FunctionBodyCode.fromParts([
       '''{
-      print('x: $x, y: $y');
+      print('myBool: $myBool');
+      print('myDouble: $myDouble');
+      print('myInt: $myInt');
+      print('myList: $myList');
+      print('mySet: $mySet');
+      print('myMap: $myMap');
+      print('myString: $myString');
       print('parentClass: ${parentClass.identifier.name}');
       print('superClass: ${superClass.identifier.name}');''',
       for (var interface in interfaces)

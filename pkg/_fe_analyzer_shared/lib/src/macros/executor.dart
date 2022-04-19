@@ -141,6 +141,15 @@ class Arguments implements Serializable {
               hasNext = deserializer.moveNext())
             _deserializeArg(deserializer, alreadyMoved: true),
         ];
+      case _ArgumentKind.set:
+        deserializer.moveNext();
+        deserializer.expectList();
+        return {
+          for (bool hasNext = deserializer.moveNext();
+              hasNext;
+              hasNext = deserializer.moveNext())
+            _deserializeArg(deserializer, alreadyMoved: true),
+        };
       case _ArgumentKind.map:
         deserializer.moveNext();
         deserializer.expectList();
@@ -191,6 +200,14 @@ class Arguments implements Serializable {
     } else if (arg is List) {
       serializer
         ..addInt(_ArgumentKind.list.index)
+        ..startList();
+      for (Object? item in arg) {
+        _serializeArg(item, serializer);
+      }
+      serializer.endList();
+    } else if (arg is Set) {
+      serializer
+        ..addInt(_ArgumentKind.set.index)
         ..startList();
       for (Object? item in arg) {
         _serializeArg(item, serializer);
@@ -305,4 +322,13 @@ enum Phase {
 }
 
 /// Used for serializing and deserializing arguments.
-enum _ArgumentKind { string, bool, double, int, list, map, nil }
+enum _ArgumentKind {
+  string,
+  bool,
+  double,
+  int,
+  list,
+  map,
+  set,
+  nil,
+}

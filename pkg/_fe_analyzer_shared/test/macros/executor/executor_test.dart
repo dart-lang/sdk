@@ -92,12 +92,33 @@ void main() {
                 reason: 'Can create an instance with no arguments.');
 
             instanceId = await executor.instantiateMacro(
-                macroUri, macroName, '', Arguments([1, 2], {}));
+                macroUri, macroName, '', Arguments([1], {}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with positional arguments.');
 
             instanceId = await executor.instantiateMacro(
-                macroUri, macroName, 'named', Arguments([], {'x': 1, 'y': 2}));
+                macroUri,
+                macroName,
+                'named',
+                Arguments([], {
+                  'myBool': true,
+                  'myDouble': 1.0,
+                  'myInt': 1,
+                  'myList': [
+                    1,
+                    2,
+                    3,
+                  ],
+                  'mySet': {
+                    true,
+                    null,
+                    {'a': 1.0}
+                  },
+                  'myMap': {
+                    'x': 1,
+                  },
+                  'myString': 'a',
+                }));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with named arguments.');
           });
@@ -548,7 +569,13 @@ final methodDefinitionMatchers = [
     }'''),
   equalsIgnoringWhitespace('''
     augment String myMethod() {
-      print('x: 1, y: 2');
+      print('myBool: true');
+      print('myDouble: 1.0');
+      print('myInt: 1');
+      print('myList: [1, 2, 3]');
+      print('mySet: {true, null, {a: 1.0}}');
+      print('myMap: {x: 1}');
+      print('myString: a');
       print('parentClass: MyClass');
       print('superClass: MySuperclass');
       print('interface: MyInterface');
