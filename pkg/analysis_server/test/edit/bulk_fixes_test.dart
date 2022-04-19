@@ -58,7 +58,7 @@ class BulkFixesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_annotateOverrides_excludedFile() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - test/**
@@ -81,7 +81,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - test/data/**
@@ -89,7 +89,7 @@ analyzer:
 
     // Sub-project.
     var subprojectRoot = '$testPackageRootPath/test/data/subproject';
-    newAnalysisOptionsYamlFile2(subprojectRoot, '''
+    newAnalysisOptionsYamlFile(subprojectRoot, '''
 linter:
   rules:
     - annotate_overrides
@@ -113,7 +113,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_subProject() async {
     var subprojectRoot = '$testPackageRootPath/test/data/subproject';
-    newAnalysisOptionsYamlFile2(subprojectRoot, '''
+    newAnalysisOptionsYamlFile(subprojectRoot, '''
 linter:
   rules:
     - annotate_overrides
@@ -146,7 +146,7 @@ class B extends A {
   }
 
   Future<void> test_details() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - annotate_overrides
@@ -179,7 +179,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - unnecessary_new
@@ -199,7 +199,7 @@ A f() => A();
     // The test case currently drops the 'new' but does not convert the code to
     // use a set literal. The code is no longer mangled, but we need to run the
     // BulkFixProcessor iteratively to solve the second case.
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - prefer_collection_literals
@@ -222,7 +222,7 @@ class A {
   }
 
   Future<void> test_unnecessaryNew_ignoredInOptions() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   errors:
     unnecessary_new: ignore
@@ -238,7 +238,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew_ignoredInSource() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - unnecessary_new

@@ -24,7 +24,7 @@ class FormatIfEnabledTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_enabled() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 code-style:
   format: true
 ''');

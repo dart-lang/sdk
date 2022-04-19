@@ -1,6 +1,7 @@
 ## 4.1.0-dev
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
 * Deprecated `ResourceProviderMixin.newFile2`, use `newFile` instead.
+* Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile2`, use `newAnalysisOptionsYamlFile` instead.
 
 ## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.

@@ -50,7 +50,7 @@ class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_analysisOptionsFile() async {
-    var analysisOptions = newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    var analysisOptions = newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - invalid_lint_rule_name
@@ -71,7 +71,7 @@ linter:
   }
 
   Future<void> test_analysisOptionsFile_packageInclude() async {
-    var analysisOptions = newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    var analysisOptions = newAnalysisOptionsYamlFile(testPackageRootPath, '''
 include: package:pedantic/analysis_options.yaml
 ''');
 
@@ -112,7 +112,7 @@ include: package:pedantic/analysis_options.yaml
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''');
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -142,7 +142,7 @@ analyzer:
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -262,7 +262,7 @@ transforms:
   }
 
   Future<void> test_excludedFolder() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - excluded/**
@@ -314,7 +314,7 @@ import 'does_not_exist.dart';
   Future<void> test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -508,7 +508,7 @@ version: 1.3.2
   }
 
   Future<void> test_pubspecFile_lint() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_pub_dependencies

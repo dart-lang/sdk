@@ -70,7 +70,7 @@ linter:
       packageConfigFileBuilder.toContent(toUriStr: toUriStr),
     );
 
-    newAnalysisOptionsYamlFile2(rootFolder.path, r'''
+    newAnalysisOptionsYamlFile(rootFolder.path, r'''
 include: package:foo/included.yaml
 
 linter:
@@ -90,7 +90,7 @@ linter:
 
   test_new_analysisOptions_lintRules() {
     var rootFolder = newFolder('/home/test');
-    newAnalysisOptionsYamlFile2(rootFolder.path, r'''
+    newAnalysisOptionsYamlFile(rootFolder.path, r'''
 linter:
   rules:
     - non_existent_lint_rule
@@ -127,7 +127,7 @@ linter:
     newFile('/test/outer/lib/outer.dart', '');
 
     var innerFolder = newFolder('/test/outer/inner');
-    newAnalysisOptionsYamlFile2('/test/outer/inner', '');
+    newAnalysisOptionsYamlFile('/test/outer/inner', '');
     newFile('/test/outer/inner/inner.dart', '');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);

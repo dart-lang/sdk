@@ -60,7 +60,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_invalid() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile2(projectPath, ';');
+    newAnalysisOptionsYamlFile(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     var analysisOptions = analysisContext.analysisOptionsImpl;
@@ -69,7 +69,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_languageOptions() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       projectPath,
       AnalysisOptionsFileConfig(
         strictRawTypes: true,

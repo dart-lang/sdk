@@ -64,14 +64,14 @@ mixin ResourceProviderMixin {
     resourceProvider.modifyFile(convertedPath, content);
   }
 
-  @Deprecated('Use newAnalysisOptionsYamlFile2() instead')
-  File newAnalysisOptionsYamlFile(String directoryPath, {String content = ''}) {
-    return newAnalysisOptionsYamlFile2(directoryPath, content);
-  }
-
-  File newAnalysisOptionsYamlFile2(String directoryPath, String content) {
+  File newAnalysisOptionsYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.analysisOptionsYaml);
     return newFile(path, content);
+  }
+
+  @Deprecated('Use newAnalysisOptionsYamlFile() instead')
+  File newAnalysisOptionsYamlFile2(String directoryPath, String content) {
+    return newAnalysisOptionsYamlFile(directoryPath, content);
   }
 
   File newBazelBuildFile(String directoryPath, String content) {

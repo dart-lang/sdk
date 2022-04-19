@@ -271,7 +271,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );

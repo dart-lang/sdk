@@ -239,7 +239,7 @@ int b = a;
   }
 
   test_analysisOptions_file_inPackage() async {
-    newAnalysisOptionsYamlFile2('/workspace/dart/test', r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/test', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
@@ -260,7 +260,7 @@ analyzer:
     implicit-casts: false
 ''');
 
-    newAnalysisOptionsYamlFile2('/workspace/third_party/dart/aaa', r'''
+    newAnalysisOptionsYamlFile('/workspace/third_party/dart/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -282,7 +282,7 @@ analyzer:
     implicit-casts: false
 ''');
 
-    newAnalysisOptionsYamlFile2('/workspace/third_party/dart_lang/aaa', r'''
+    newAnalysisOptionsYamlFile('/workspace/third_party/dart_lang/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -1215,14 +1215,14 @@ int b = a;
 
   test_reuse_incompatibleOptions_implicitCasts() async {
     newFile('/workspace/dart/aaa/BUILD', '');
-    newAnalysisOptionsYamlFile2('/workspace/dart/aaa', r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
     newFile('/workspace/dart/bbb/BUILD', '');
-    newAnalysisOptionsYamlFile2('/workspace/dart/bbb', r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/bbb', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
