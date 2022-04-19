@@ -39,6 +39,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Libraries that use `external` to exclude from checks on external.
   static final Iterable<String> _pathsWithAllowedDartExternalUsage = <String>[
     '_foreign_helper', // for foreign helpers
+    '_late_helper', // for dart2js late variable utilities
     '_interceptors', // for ddc JS string
     '_native_typed_data',
     '_runtime', // for ddc types at runtime

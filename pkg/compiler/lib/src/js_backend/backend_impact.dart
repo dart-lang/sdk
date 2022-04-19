@@ -779,4 +779,28 @@ class BackendImpacts {
       ], otherImpacts: [
         _needsString('Needed to encode the new RTI ruleset.')
       ]);
+
+  BackendImpact _lateFieldReadCheck;
+
+  BackendImpact get lateFieldReadCheck =>
+      _lateFieldReadCheck ??= BackendImpact(staticUses: [
+        _commonElements.throwUnnamedLateFieldNI,
+        _commonElements.throwLateFieldNI,
+      ]);
+
+  BackendImpact _lateFieldWriteOnceCheck;
+
+  BackendImpact get lateFieldWriteOnceCheck =>
+      _lateFieldWriteOnceCheck ??= BackendImpact(staticUses: [
+        _commonElements.throwUnnamedLateFieldAI,
+        _commonElements.throwLateFieldAI,
+      ]);
+
+  BackendImpact _lateFieldInitializeOnceCheck;
+
+  BackendImpact get lateFieldInitializeOnceCheck =>
+      _lateFieldInitializeOnceCheck ??= BackendImpact(staticUses: [
+        _commonElements.throwUnnamedLateFieldADI,
+        _commonElements.throwLateFieldADI,
+      ]);
 }
