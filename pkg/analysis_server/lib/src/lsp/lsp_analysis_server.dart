@@ -120,6 +120,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// The subscription to the stream of incoming messages from the client.
   late StreamSubscription<void> _channelSubscription;
 
+  /// A completer that tracks in-progress analysis context rebuilds.
+  ///
+  /// Starts completed and will be replaced each time a context rebuild starts.
+  Completer<void> _analysisContextRebuildCompleter = Completer()..complete();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -162,6 +167,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _pluginChangeSubscription =
         pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
   }
+
+  /// A [Future] that completes when any in-progress analysis context rebuild
+  /// completes.
+  ///
+  /// If no context rebuild is in progress, will return an already complete
+  /// [Future].
+  Future<void> get analysisContextsRebuilt =>
+      _analysisContextRebuildCompleter.future;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? get clientCapabilities => _clientCapabilities;
@@ -788,10 +801,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
         .toSet();
 
-    notificationManager.setAnalysisRoots(
-        includedPaths.toList(), excludedPaths.toList());
-    await contextManager.setRoots(
-        includedPaths.toList(), excludedPaths.toList());
+    final completer = _analysisContextRebuildCompleter = Completer();
+    try {
+      notificationManager.setAnalysisRoots(
+          includedPaths.toList(), excludedPaths.toList());
+      await contextManager.setRoots(
+          includedPaths.toList(), excludedPaths.toList());
+    } finally {
+      completer.complete();
+    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
