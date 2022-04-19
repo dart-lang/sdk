@@ -37,7 +37,7 @@ class A {
 
 class B {
   String? b;
-  A(this.b);
+  B(this.b);
 }
 
 class C extends B {
