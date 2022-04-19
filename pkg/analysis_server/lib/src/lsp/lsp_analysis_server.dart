@@ -13,8 +13,6 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_completion.dart'
-    show CompletionDomainHandler;
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -34,6 +32,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
+import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -845,7 +844,7 @@ class LspPerformance {
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
       RecentBuffer<CompletionPerformance>(
-          CompletionDomainHandler.performanceListMaxLength);
+          CompletionState.performanceListMaxLength);
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {

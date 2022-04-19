@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details.dart';
@@ -35,30 +34,6 @@ import 'package:collection/collection.dart';
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
 class CompletionDomainHandler extends AbstractRequestHandler {
-  /// The maximum number of performance measurements to keep.
-  static const int performanceListMaxLength = 50;
-
-  /// The time budget for a completion request.
-  Duration budgetDuration = CompletionBudget.defaultDuration;
-
-  /// The completion services that the client is currently subscribed.
-  // TODO(brianwilkerson) This needs to be moved to some location where multiple
-  //  [LegacyHandler]s can access it, and the tests need to be cleaned up so
-  //  that they no longer depend on creating a new [CompletionDomainHandler] to
-  //  clear subscriptions from previous tests.
-  final Set<CompletionService> subscriptions = <CompletionService>{};
-
-  /// The next completion response id.
-  int _nextCompletionId = 0;
-
-  /// A list of code completion performance measurements for the latest
-  /// completion operation up to [performanceListMaxLength] measurements.
-  final RecentBuffer<CompletionPerformance> performanceList =
-      RecentBuffer<CompletionPerformance>(performanceListMaxLength);
-
-  /// The current request being processed or `null` if none.
-  DartCompletionRequest? _currentRequest;
-
   /// Initialize a new request handler for the given [server].
   CompletionDomainHandler(super.server);
 
@@ -143,7 +118,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var budget = CompletionBudget(
       timeoutMilliseconds != null
           ? Duration(milliseconds: timeoutMilliseconds)
-          : budgetDuration,
+          : server.completionState.budgetDuration,
     );
 
     var provider = server.resourceProvider;
@@ -204,7 +179,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           content: resolvedUnit.content,
           offset: offset,
         );
-        performanceList.add(completionPerformance);
+        server.completionState.performanceList.add(completionPerformance);
 
         var analysisSession = resolvedUnit.analysisSession;
         var enclosingNode =
@@ -323,14 +298,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   }
 
   void ifMatchesRequestClear(DartCompletionRequest request) {
-    if (_currentRequest == request) {
-      _currentRequest = null;
+    if (server.completionState.currentRequest == request) {
+      server.completionState.currentRequest = null;
     }
   }
 
   /// Process a `completion.getSuggestions` request.
   Future<void> processRequest(Request request) async {
-    var budget = CompletionBudget(budgetDuration);
+    var budget = CompletionBudget(server.completionState.budgetDuration);
 
     // extract and validate params
     var params = CompletionGetSuggestionsParams.fromRequest(request);
@@ -347,7 +322,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       (performance) async {
         if (file.endsWith('.yaml')) {
           // Return the response without results.
-          var completionId = (_nextCompletionId++).toString();
+          var completionId =
+              (server.completionState.nextCompletionId++).toString();
           server.sendResponse(CompletionGetSuggestionsResult(completionId)
               .toResponse(request.id));
           // Send a notification with results.
@@ -365,7 +341,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           return;
         } else if (!file.endsWith('.dart')) {
           // Return the response without results.
-          var completionId = (_nextCompletionId++).toString();
+          var completionId =
+              (server.completionState.nextCompletionId++).toString();
           server.sendResponse(CompletionGetSuggestionsResult(completionId)
               .toResponse(request.id));
           // Send a notification with results.
@@ -397,7 +374,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           content: resolvedUnit.content,
           offset: offset,
         );
-        performanceList.add(completionPerformance);
+        server.completionState.performanceList.add(completionPerformance);
 
         var declarationsTracker = server.declarationsTracker;
         if (declarationsTracker == null) {
@@ -415,7 +392,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           documentationCache: server.getDocumentationCacheFor(resolvedUnit),
         );
 
-        var completionId = (_nextCompletionId++).toString();
+        var completionId =
+            (server.completionState.nextCompletionId++).toString();
 
         setNewRequest(completionRequest);
 
@@ -428,7 +406,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         Set<ElementKind>? includedElementKinds;
         Set<String>? includedElementNames;
         List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
-        if (subscriptions
+        if (server.completionState.subscriptions
             .contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
           includedElementKinds = <ElementKind>{};
           includedElementNames = <String>{};
@@ -518,13 +496,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   void setNewRequest(DartCompletionRequest request) {
     _abortCurrentRequest();
-    _currentRequest = request;
+    server.completionState.currentRequest = request;
   }
 
   /// Implement the 'completion.setSubscriptions' request.
   Response setSubscriptions(Request request) {
     var params = CompletionSetSubscriptionsParams.fromRequest(request);
 
+    var subscriptions = server.completionState.subscriptions;
     subscriptions.clear();
     subscriptions.addAll(params.subscriptions);
 
@@ -554,10 +533,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Abort the current completion request, if any.
   void _abortCurrentRequest() {
-    var currentRequest = _currentRequest;
+    var currentRequest = server.completionState.currentRequest;
     if (currentRequest != null) {
       currentRequest.abort();
-      _currentRequest = null;
+      server.completionState.currentRequest = null;
     }
   }
 
