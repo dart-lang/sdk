@@ -173,6 +173,7 @@ class JSONStream : ValueObject {
   }
 
   void PrintCommaIfNeeded() { writer_.PrintCommaIfNeeded(); }
+  JSONWriter* writer() { return &writer_; }
 
  private:
   void Clear() { writer_.Clear(); }
