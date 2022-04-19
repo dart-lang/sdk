@@ -2283,12 +2283,16 @@ class TypeInferrerImpl implements TypeInferrer {
         explicitTypeArguments == null &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
+    bool useFormalAndActualTypes = inferenceNeeded ||
+        typeChecksNeeded ||
+        isSpecialCasedBinaryOperator ||
+        isSpecialCasedTernaryOperator;
 
     List<DartType>? inferredTypes;
     Substitution? substitution;
     List<DartType>? formalTypes;
     List<DartType>? actualTypes;
-    if (inferenceNeeded || typeChecksNeeded) {
+    if (useFormalAndActualTypes) {
       formalTypes = [];
       actualTypes = [];
     }
@@ -2448,7 +2452,7 @@ class TypeInferrerImpl implements TypeInferrer {
               ?.add(flowAnalysis.equalityOperand_end(expression, inferredType));
           arguments.positional[index] = expression..parent = arguments;
         }
-        if (inferenceNeeded || typeChecksNeeded) {
+        if (useFormalAndActualTypes) {
           formalTypes!.add(formalType);
           actualTypes!.add(inferredType);
         }
@@ -2481,7 +2485,7 @@ class TypeInferrerImpl implements TypeInferrer {
         Expression expression =
             _hoist(result.expression, inferredType, hoistedExpressions);
         namedArgument.value = expression..parent = namedArgument;
-        if (inferenceNeeded || typeChecksNeeded) {
+        if (useFormalAndActualTypes) {
           formalTypes!.add(formalType);
           actualTypes!.add(inferredType);
         }
@@ -2546,8 +2550,10 @@ class TypeInferrerImpl implements TypeInferrer {
             named[1].fileOffset,
             name.length);
         arguments.named = [new NamedExpression(named[1].name, error)];
-        formalTypes!.removeLast();
-        actualTypes!.removeLast();
+        if (useFormalAndActualTypes) {
+          formalTypes!.removeLast();
+          actualTypes!.removeLast();
+        }
       }
     } else if (named.length > 2) {
       Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
@@ -2566,8 +2572,10 @@ class TypeInferrerImpl implements TypeInferrer {
               expression.fileOffset,
               name.length)
             ..parent = prevNamedExpression;
-          formalTypes!.removeAt(namedTypeIndex);
-          actualTypes!.removeAt(namedTypeIndex);
+          if (useFormalAndActualTypes) {
+            formalTypes!.removeAt(namedTypeIndex);
+            actualTypes!.removeAt(namedTypeIndex);
+          }
         } else {
           seenNames[name] = expression;
           uniqueNamed.add(expression);
