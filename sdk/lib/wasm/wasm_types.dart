@@ -23,17 +23,49 @@ abstract class _WasmFloat extends _WasmBase {}
 
 /// The Wasm `anyref` type.
 @pragma("wasm:entry-point")
-class WasmAnyRef extends _WasmBase {}
+class WasmAnyRef extends _WasmBase {
+  /// Upcast Dart object to `anyref`.
+  external factory WasmAnyRef.fromObject(Object o);
+
+  /// Whether this reference is a Dart object.
+  external bool get isObject;
+
+  /// Downcast `anyref` to a Dart object.
+  ///
+  /// Will throw if the reference is not a Dart object.
+  external Object toObject();
+}
+
+/// The Wasm `funcref` type.
+@pragma("wasm:entry-point")
+class WasmFuncRef extends WasmAnyRef {
+  /// Upcast typed function reference to `funcref`
+  external factory WasmFuncRef.fromWasmFunction(WasmFunction<Function> fun);
+
+  /// Downcast `anyref` to `funcref`.
+  ///
+  /// Will throw if the reference is not a `funcref`.
+  external factory WasmFuncRef.fromRef(WasmAnyRef ref);
+}
 
 /// The Wasm `eqref` type.
 @pragma("wasm:entry-point")
-class WasmEqRef extends WasmAnyRef {}
+class WasmEqRef extends WasmAnyRef {
+  /// Upcast Dart object to `eqref`.
+  external factory WasmEqRef.fromObject(Object o);
+}
 
 /// The Wasm `dataref` type.
 @pragma("wasm:entry-point")
-class WasmDataRef extends WasmEqRef {}
+class WasmDataRef extends WasmEqRef {
+  /// Upcast Dart object to `dataref`.
+  external factory WasmDataRef.fromObject(Object o);
+}
 
 abstract class _WasmArray extends WasmDataRef {
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory _WasmArray._dummy();
+
   external int get length;
 }
 
@@ -100,6 +132,25 @@ class WasmObjectArray<T extends Object?> extends _WasmArray {
 
   external T read(int index);
   external void write(int index, T value);
+}
+
+/// Wasm typed function reference.
+@pragma("wasm:entry-point")
+class WasmFunction<F extends Function> extends WasmFuncRef {
+  /// Create a typed function reference referring to the given function.
+  ///
+  /// The argument must directly name a static function with no optional
+  /// parameters and no type parameters.
+  external factory WasmFunction.fromFunction(F f);
+
+  /// Downcast `anyref` to a typed function reference.
+  ///
+  /// Will throw if the reference is not a function with the expected signature.
+  external factory WasmFunction.fromRef(WasmAnyRef ref);
+
+  /// Call the function referred to by this typed function reference.
+  @pragma("wasm:entry-point")
+  external F get call;
 }
 
 extension IntToWasmInt on int {

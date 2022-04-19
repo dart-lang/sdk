@@ -65,4 +65,11 @@ class _TypeError extends _Error implements TypeError {
         stackTrace);
     return _throwObjectWithStackTrace(typeError, stackTrace);
   }
+
+  @pragma("wasm:entry-point")
+  static Never _throwWasmRefError(String expected, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "The Wasm reference is not $expected", stackTrace);
+    return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
 }

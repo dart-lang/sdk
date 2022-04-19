@@ -5,7 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show StringToken;
+    show StringTokenImpl;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -563,7 +563,7 @@ class FileState {
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
-    StringToken.canonicalizer.clear();
+    StringTokenImpl.canonicalizer.clear();
 
     return unit;
   }

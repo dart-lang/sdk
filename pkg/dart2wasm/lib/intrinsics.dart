@@ -118,28 +118,45 @@ class Intrinsifier {
   Intrinsifier(this.codeGen);
 
   w.ValueType? generateInstanceGetterIntrinsic(InstanceGet node) {
-    DartType receiverType = dartTypeOf(node.receiver);
+    Expression receiver = node.receiver;
+    DartType receiverType = dartTypeOf(receiver);
     String name = node.name.text;
+    Member target = node.interfaceTarget;
+    Class cls = target.enclosingClass!;
+
+    // WasmAnyRef.isObject
+    if (cls == translator.wasmAnyRefClass) {
+      assert(name == "isObject");
+      w.Label succeed = b.block(const [], const [w.NumType.i32]);
+      w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
+      codeGen.wrap(receiver, w.RefType.any(nullable: false));
+      b.br_on_non_data(fail);
+      translator.ref_test(b, translator.topInfo);
+      b.br(succeed);
+      b.end(); // fail
+      b.drop();
+      b.i32_const(0);
+      b.end(); // succeed
+      return w.NumType.i32;
+    }
 
     // _WasmArray.length
-    if (node.interfaceTarget.enclosingClass == translator.wasmArrayBaseClass) {
+    if (cls == translator.wasmArrayBaseClass) {
       assert(name == 'length');
       DartType elementType =
           (receiverType as InterfaceType).typeArguments.single;
       w.ArrayType arrayType = translator.arrayTypeForDartType(elementType);
-      Expression array = node.receiver;
-      codeGen.wrap(array, w.RefType.def(arrayType, nullable: true));
+      codeGen.wrap(receiver, w.RefType.def(arrayType, nullable: true));
       b.array_len(arrayType);
       b.i64_extend_i32_u();
       return w.NumType.i64;
     }
 
     // int.bitlength
-    if (node.interfaceTarget.enclosingClass == translator.coreTypes.intClass &&
-        name == 'bitLength') {
+    if (cls == translator.coreTypes.intClass && name == 'bitLength') {
       w.Local temp = codeGen.function.addLocal(w.NumType.i64);
       b.i64_const(64);
-      codeGen.wrap(node.receiver, w.NumType.i64);
+      codeGen.wrap(receiver, w.NumType.i64);
       b.local_tee(temp);
       b.local_get(temp);
       b.i64_const(63);
@@ -151,28 +168,26 @@ class Intrinsifier {
     }
 
     // _HashAbstractImmutableBase._indexNullable
-    if (node.interfaceTarget == translator.immutableMapIndexNullable) {
+    if (target == translator.immutableMapIndexNullable) {
       ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
-      codeGen.wrap(node.receiver, info.nullableType);
+      codeGen.wrap(receiver, info.nullableType);
       b.struct_get(info.struct, FieldIndex.hashBaseIndex);
       return info.struct.fields[FieldIndex.hashBaseIndex].type.unpacked;
     }
 
     // _Compound._typedDataBase
-    if (node.interfaceTarget.enclosingClass == translator.ffiCompoundClass &&
-        name == '_typedDataBase') {
+    if (cls == translator.ffiCompoundClass && name == '_typedDataBase') {
       // A compound (subclass of Struct or Union) is represented by its i32
       // address. The _typedDataBase field contains a Pointer pointing to the
       // compound, whose representation is the same.
-      codeGen.wrap(node.receiver, w.NumType.i32);
+      codeGen.wrap(receiver, w.NumType.i32);
       return w.NumType.i32;
     }
 
     // Pointer.address
-    if (node.interfaceTarget.enclosingClass == translator.ffiPointerClass &&
-        name == 'address') {
+    if (cls == translator.ffiPointerClass && name == 'address') {
       // A Pointer is represented by its i32 address.
-      codeGen.wrap(node.receiver, w.NumType.i32);
+      codeGen.wrap(receiver, w.NumType.i32);
       b.i64_extend_i32_u();
       return w.NumType.i64;
     }
@@ -185,17 +200,17 @@ class Intrinsifier {
     DartType receiverType = dartTypeOf(receiver);
     String name = node.name.text;
     Procedure target = node.interfaceTarget;
+    Class cls = target.enclosingClass!;
 
     // _TypedListBase._setRange
-    if (target.enclosingClass == translator.typedListBaseClass &&
-        name == "_setRange") {
+    if (cls == translator.typedListBaseClass && name == "_setRange") {
       // Always fall back to alternative implementation.
       b.i32_const(0);
       return w.NumType.i32;
     }
 
     // _TypedList._(get|set)(Int|Uint|Float)(8|16|32|64)
-    if (node.interfaceTarget.enclosingClass == translator.typedListClass) {
+    if (cls == translator.typedListClass) {
       Match? match = RegExp("^_(get|set)(Int|Uint|Float)(8|16|32|64)\$")
           .matchAsPrefix(name);
       if (match != null) {
@@ -319,11 +334,24 @@ class Intrinsifier {
       }
     }
 
+    // WasmAnyRef.toObject
+    if (cls == translator.wasmAnyRefClass) {
+      assert(name == "toObject");
+      w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
+      w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
+      codeGen.wrap(receiver, w.RefType.any(nullable: false));
+      b.br_on_non_data(fail);
+      translator.br_on_cast(b, succeed, translator.topInfo);
+      b.end(); // fail
+      codeGen.throwWasmRefError("a Dart object");
+      b.end(); // succeed
+      return translator.topInfo.nonNullableType;
+    }
+
     // WasmIntArray.(readSigned|readUnsigned|write)
     // WasmFloatArray.(read|write)
     // WasmObjectArray.(read|write)
-    if (node.interfaceTarget.enclosingClass?.superclass ==
-        translator.wasmArrayBaseClass) {
+    if (cls.superclass == translator.wasmArrayBaseClass) {
       DartType elementType =
           (receiverType as InterfaceType).typeArguments.single;
       w.ArrayType arrayType = translator.arrayTypeForDartType(elementType);
@@ -388,10 +416,8 @@ class Intrinsifier {
     }
 
     // Wasm(I32|I64|F32|F64) conversions
-    if (node.interfaceTarget.enclosingClass?.superclass?.superclass ==
-        translator.wasmTypesBaseClass) {
-      w.StorageType receiverType =
-          translator.builtinTypes[node.interfaceTarget.enclosingClass]!;
+    if (cls.superclass?.superclass == translator.wasmTypesBaseClass) {
+      w.StorageType receiverType = translator.builtinTypes[cls]!;
       switch (receiverType) {
         case w.NumType.i32:
           assert(name == "toIntSigned" || name == "toIntUnsigned");
@@ -557,6 +583,7 @@ class Intrinsifier {
 
   w.ValueType? generateStaticIntrinsic(StaticInvocation node) {
     String name = node.name.text;
+    Class? cls = node.target.enclosingClass;
 
     // dart:core static functions
     if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
@@ -710,7 +737,7 @@ class Intrinsifier {
           b.f64_reinterpret_i64();
           return w.NumType.f64;
         case "getID":
-          assert(node.target.enclosingClass?.name == "ClassID");
+          assert(cls?.name == "ClassID");
           ClassInfo info = translator.topInfo;
           codeGen.wrap(node.arguments.positional.single, info.nullableType);
           b.struct_get(info.struct, FieldIndex.classId);
@@ -836,24 +863,58 @@ class Intrinsifier {
       }
     }
 
-    // Wasm(Int|Float|Object)Array constructors
-    if (node.target.enclosingClass?.superclass ==
-        translator.wasmArrayBaseClass) {
-      Expression length = node.arguments.positional[0];
-      w.ArrayType arrayType =
-          translator.arrayTypeForDartType(node.arguments.types.single);
-      codeGen.wrap(length, w.NumType.i64);
-      b.i32_wrap_i64();
-      translator.array_new_default(b, arrayType);
-      return w.RefType.def(arrayType, nullable: false);
-    }
+    if (cls != null && translator.isWasmType(cls)) {
+      // Wasm(Int|Float|Object)Array constructors
+      if (cls.superclass == translator.wasmArrayBaseClass) {
+        Expression length = node.arguments.positional[0];
+        w.ArrayType arrayType =
+            translator.arrayTypeForDartType(node.arguments.types.single);
+        codeGen.wrap(length, w.NumType.i64);
+        b.i32_wrap_i64();
+        translator.array_new_default(b, arrayType);
+        return w.RefType.def(arrayType, nullable: false);
+      }
 
-    // Wasm(I32|I64|F32|F64) constructors
-    if (node.target.enclosingClass?.superclass?.superclass ==
-        translator.wasmTypesBaseClass) {
+      // (WasmFuncRef|WasmFunction).fromRef constructors
+      if ((cls == translator.wasmFuncRefClass ||
+              cls == translator.wasmFunctionClass) &&
+          name == "fromRef") {
+        Expression ref = node.arguments.positional[0];
+        w.RefType resultType = typeOfExp(node) as w.RefType;
+        w.Label succeed = b.block(const [], [resultType]);
+        w.Label fail =
+            b.block(const [], const [w.RefType.any(nullable: false)]);
+        codeGen.wrap(ref, w.RefType.any(nullable: false));
+        b.br_on_non_func(fail);
+        if (cls == translator.wasmFunctionClass) {
+          assert(resultType.heapType is w.FunctionType);
+          translator.br_on_cast_fail(b, fail, resultType.heapType);
+        }
+        b.br(succeed);
+        b.end(); // fail
+        codeGen.throwWasmRefError("a function with the expected signature");
+        b.end(); // succeed
+        return resultType;
+      }
+
+      // WasmFunction.fromFunction constructor
+      if (cls == translator.wasmFunctionClass) {
+        assert(name == "fromFunction");
+        Expression f = node.arguments.positional[0];
+        if (f is! ConstantExpression || f.constant is! StaticTearOffConstant) {
+          throw "Argument to WasmFunction.fromFunction isn't a static function";
+        }
+        StaticTearOffConstant func = f.constant as StaticTearOffConstant;
+        w.BaseFunction wasmFunction =
+            translator.functions.getFunction(func.targetReference);
+        w.Global functionRef = translator.makeFunctionRef(wasmFunction);
+        b.global_get(functionRef);
+        return functionRef.type.type;
+      }
+
+      // Wasm(AnyRef|FuncRef|EqRef|DataRef|I32|I64|F32|F64) constructors
       Expression value = node.arguments.positional[0];
-      w.StorageType targetType =
-          translator.builtinTypes[node.target.enclosingClass]!;
+      w.StorageType targetType = translator.builtinTypes[cls]!;
       switch (targetType) {
         case w.NumType.i32:
           codeGen.wrap(value, w.NumType.i64);
@@ -869,6 +930,10 @@ class Intrinsifier {
         case w.NumType.f64:
           codeGen.wrap(value, w.NumType.f64);
           return w.NumType.f64;
+        default:
+          w.RefType valueType = targetType as w.RefType;
+          codeGen.wrap(value, valueType);
+          return valueType;
       }
     }
 

@@ -4,8 +4,14 @@
 
 library _fe_analyzer_shared.scanner.token;
 
-import 'token.dart' as analyzer;
-import 'token.dart' show TokenType;
+import 'token.dart'
+    show
+        DocumentationCommentToken,
+        SimpleToken,
+        TokenType,
+        CommentToken,
+        StringToken,
+        LanguageVersionToken;
 
 import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -16,7 +22,7 @@ import 'string_canonicalizer.dart';
  * number literals, comments, and error tokens, using the corresponding
  * precedence info.
  */
-class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
+class StringTokenImpl extends SimpleToken implements StringToken {
   /**
    * The length threshold above which substring tokens are computed lazily.
    *
@@ -33,8 +39,8 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    * Creates a non-lazy string token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  StringToken.fromString(TokenType type, String value, int charOffset,
-      {bool canonicalize: false, analyzer.CommentToken? precedingComments})
+  StringTokenImpl.fromString(TokenType type, String value, int charOffset,
+      {bool canonicalize: false, CommentToken? precedingComments})
       : valueOrLazySubstring = canonicalizedString(
             value, /* start = */ 0, value.length, canonicalize),
         super(type, charOffset, precedingComments);
@@ -43,9 +49,9 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    * Creates a lazy string token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  StringToken.fromSubstring(
+  StringTokenImpl.fromSubstring(
       TokenType type, String data, int start, int end, int charOffset,
-      {bool canonicalize: false, analyzer.CommentToken? precedingComments})
+      {bool canonicalize: false, CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
@@ -61,9 +67,9 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  StringToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
-      bool asciiOnly, int charOffset,
-      {analyzer.CommentToken? precedingComments})
+  StringTokenImpl.fromUtf8Bytes(TokenType type, List<int> data, int start,
+      int end, bool asciiOnly, int charOffset,
+      {CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
@@ -72,10 +78,6 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
       valueOrLazySubstring = new _LazySubstring(data, start, length, asciiOnly);
     }
   }
-
-  StringToken._(TokenType type, this.valueOrLazySubstring, int charOffset,
-      [analyzer.CommentToken? precedingComments])
-      : super(type, charOffset, precedingComments);
 
   @override
   String get lexeme {
@@ -119,28 +121,15 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
   String value() => lexeme;
 }
 
-/**
- * A String-valued token that does not exist in the original source.
- */
-class SyntheticStringToken extends StringToken
-    implements analyzer.SyntheticStringToken {
-  SyntheticStringToken(TokenType type, String value, int offset,
-      [analyzer.CommentToken? precedingComments])
-      : super._(type, value, offset, precedingComments);
-
+class CommentTokenImpl extends StringTokenImpl implements CommentToken {
   @override
-  int get length => 0;
-}
-
-class CommentToken extends StringToken implements analyzer.CommentToken {
-  @override
-  analyzer.SimpleToken? parent;
+  SimpleToken? parent;
 
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  CommentToken.fromSubstring(
+  CommentTokenImpl.fromSubstring(
       TokenType type, String data, int start, int end, int charOffset,
       {bool canonicalize: false})
       : super.fromSubstring(type, data, start, end, charOffset,
@@ -149,44 +138,44 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
   /**
    * Creates a non-lazy comment token.
    */
-  CommentToken.fromString(TokenType type, String lexeme, int charOffset)
+  CommentTokenImpl.fromString(TokenType type, String lexeme, int charOffset)
       : super.fromString(type, lexeme, charOffset);
 
   /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  CommentToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
-      bool asciiOnly, int charOffset)
+  CommentTokenImpl.fromUtf8Bytes(TokenType type, List<int> data, int start,
+      int end, bool asciiOnly, int charOffset)
       : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
 }
 
-class LanguageVersionToken extends CommentToken
-    implements analyzer.LanguageVersionToken {
+class LanguageVersionTokenImpl extends CommentTokenImpl
+    implements LanguageVersionToken {
   @override
   int major;
 
   @override
   int minor;
 
-  LanguageVersionToken.from(String text, int offset, this.major, this.minor)
+  LanguageVersionTokenImpl.from(String text, int offset, this.major, this.minor)
       : super.fromString(TokenType.SINGLE_LINE_COMMENT, text, offset);
 
-  LanguageVersionToken.fromSubstring(
+  LanguageVersionTokenImpl.fromSubstring(
       String string, int start, int end, int tokenStart, this.major, this.minor,
       {bool canonicalize: false})
       : super.fromSubstring(
             TokenType.SINGLE_LINE_COMMENT, string, start, end, tokenStart,
             canonicalize: canonicalize);
 
-  LanguageVersionToken.fromUtf8Bytes(List<int> bytes, int start, int end,
+  LanguageVersionTokenImpl.fromUtf8Bytes(List<int> bytes, int start, int end,
       int tokenStart, this.major, this.minor)
       : super.fromUtf8Bytes(
             TokenType.SINGLE_LINE_COMMENT, bytes, start, end, true, tokenStart);
 }
 
-class DartDocToken extends CommentToken
-    implements analyzer.DocumentationCommentToken {
+class DartDocToken extends CommentTokenImpl
+    implements DocumentationCommentToken {
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.

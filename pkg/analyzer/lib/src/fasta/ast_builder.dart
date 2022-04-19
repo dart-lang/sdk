@@ -50,7 +50,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValue, StackListener;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';

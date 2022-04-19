@@ -118,7 +118,7 @@ class AnalysisEngine {
   /// will be performed the next time an analysis context is created.
   void clearCaches() {
     // See https://github.com/dart-lang/sdk/issues/30314.
-    StringToken.canonicalizer.clear();
+    StringTokenImpl.canonicalizer.clear();
   }
 }
 

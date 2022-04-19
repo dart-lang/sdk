@@ -388,6 +388,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     });
   }
 
+  /// Helper function to throw a Wasm ref downcast error.
+  void throwWasmRefError(String expected) {
+    wrap(
+        StringLiteral(expected),
+        translator
+            .translateType(translator.coreTypes.stringNonNullableRawType));
+    _call(translator.stackTraceCurrent.reference);
+    _call(translator.throwWasmRefError.reference);
+    b.unreachable();
+  }
+
   /// Generates code for an expression plus conversion code to convert the
   /// result to the expected type if needed. All expression code generation goes
   /// through this method.
@@ -1660,9 +1671,28 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitFunctionInvocation(
       FunctionInvocation node, w.ValueType expectedType) {
+    Expression receiver = node.receiver;
+    if (receiver is InstanceGet &&
+        receiver.interfaceTarget == translator.wasmFunctionCall) {
+      // Receiver is a WasmFunction
+      assert(receiver.name.text == "call");
+      w.RefType receiverType =
+          translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
+      w.Local temp = addLocal(receiverType);
+      wrap(receiver.receiver, receiverType);
+      b.local_set(temp);
+      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
+      assert(node.arguments.positional.length == functionType.inputs.length);
+      for (int i = 0; i < node.arguments.positional.length; i++) {
+        wrap(node.arguments.positional[i], functionType.inputs[i]);
+      }
+      b.local_get(temp);
+      b.call_ref();
+      return translator.outputOrVoid(functionType.outputs);
+    }
     int parameterCount = node.functionType?.requiredParameterCount ??
         node.arguments.positional.length;
-    return _functionCall(parameterCount, node.receiver, node.arguments);
+    return _functionCall(parameterCount, receiver, node.arguments);
   }
 
   w.ValueType _functionCall(
