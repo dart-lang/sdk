@@ -1807,9 +1807,9 @@ class EnterIsolateGroupScope {
 // an individual isolate.
 class NoActiveIsolateScope : public StackResource {
  public:
-  NoActiveIsolateScope()
-      : StackResource(Thread::Current()),
-        thread_(static_cast<Thread*>(thread())) {
+  NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}
+  explicit NoActiveIsolateScope(Thread* thread)
+      : StackResource(thread), thread_(thread) {
     saved_isolate_ = thread_->isolate_;
     thread_->isolate_ = nullptr;
   }

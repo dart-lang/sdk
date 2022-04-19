@@ -75,6 +75,18 @@ class MacroElementsTest extends ElementsBaseTest {
     );
   }
 
+  test_arguments_error() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'Object',
+        'bar': 'Object',
+      },
+      constructorParametersCode: '(this.foo, this.bar)',
+      argumentsCode: '(0, const Object())',
+      expectedErrors: 'Argument(annotation: 0, argument: 1)',
+    );
+  }
+
   test_arguments_typesPhase_kind_optionalNamed() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -456,7 +468,8 @@ library
     required Map<String, String> fields,
     required String constructorParametersCode,
     required String argumentsCode,
-    required String expected,
+    String? expected,
+    String? expectedErrors,
   }) async {
     final dumpCode = fields.keys.map((name) {
       return "$name: \$$name\\\\n";
@@ -491,15 +504,26 @@ class A {}
       {'package:test/arguments_text.dart'}
     ]);
 
-    final x = library.parts.single.topLevelVariables.single;
-    expect(x.name, 'x');
-    x as ConstTopLevelVariableElementImpl;
-    final actual = (x.constantInitializer as SimpleStringLiteral).value;
+    if (expected != null) {
+      final x = library.parts.single.topLevelVariables.single;
+      expect(x.name, 'x');
+      x as ConstTopLevelVariableElementImpl;
+      final actual = (x.constantInitializer as SimpleStringLiteral).value;
 
-    if (actual != expected) {
-      print(actual);
+      if (actual != expected) {
+        print(actual);
+      }
+      expect(actual, expected);
+    } else if (expectedErrors != null) {
+      var A = library.definingCompilationUnit.getType('A');
+      A as ClassElementImpl;
+      expect(
+        A.macroApplicationErrors.map((e) => e.toStringForTest()).join('\n'),
+        expectedErrors,
+      );
+    } else {
+      fail("Either 'expected' or 'expectedErrors' must be provided.");
     }
-    expect(actual, expected);
   }
 
   /// Assert that the textual dump of the introspection information for

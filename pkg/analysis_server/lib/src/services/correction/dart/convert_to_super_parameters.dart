@@ -333,8 +333,9 @@ class ConvertToSuperParameters extends CorrectionProducer {
   bool _nullInitializer(
       FormalParameter parameter, ParameterElement superParameter) {
     return parameter is DefaultFormalParameter &&
+        !parameter.isRequired &&
         parameter.defaultValue == null &&
-        superParameter.defaultValueCode != null;
+        superParameter.hasDefaultValue;
   }
 
   /// Return the parameter corresponding to the [expression], or `null` if the

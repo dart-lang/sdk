@@ -1,3 +1,6 @@
+## 4.1.0-dev
+* Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
+
 ## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.
 * Removed deprecated `LibraryElement.hasExtUri`.

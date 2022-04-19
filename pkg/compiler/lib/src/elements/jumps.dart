@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library elements.jumps;
 
-import 'entities.dart';
+import 'entities_migrated.dart' show Entity, Local;
 
 /// The label entity defined by a labeled statement.
 abstract class LabelDefinition extends Entity {

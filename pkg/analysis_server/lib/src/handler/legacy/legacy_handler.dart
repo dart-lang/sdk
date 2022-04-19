@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/error/error.dart';
@@ -52,5 +53,10 @@ abstract class LegacyHandler {
   /// and whose body if the given [result].
   void sendResult(ResponseResult result) {
     sendResponse(result.toResponse(request.id));
+  }
+
+  /// Send a notification built from the given [params].
+  void sendSearchResults(SearchResultsParams params) {
+    server.sendNotification(params.toNotification());
   }
 }

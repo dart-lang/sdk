@@ -143,6 +143,9 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The context used by the execution domain handlers.
   final ExecutionContext executionContext = ExecutionContext();
 
+  /// The next search response id.
+  int nextSearchId = 0;
+
   /// The [Completer] that completes when analysis is complete.
   Completer<void>? _onAnalysisCompleteCompleter;
 

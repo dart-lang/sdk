@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
-import '../common.dart';
-import '../elements/entities.dart';
+// TODO(48820): revert to '../common.dart':
+import '../diagnostics/source_span.dart';
+import '../elements/entities_migrated.dart'
+    show AsyncMarker, MemberEntity, Variance;
 
 /// Returns a textual representation of [node] that include the runtime type and
 /// hash code of the node and a one line prefix of the node toString text.
@@ -19,10 +19,10 @@ String nodeToDebugString(ir.Node node, [int textLength = 40]) {
   return '(${node.runtimeType}:${node.hashCode})${blockText}';
 }
 
-/// Comparator for the canonical order or named parameters.
+/// Comparator for the canonical order for named parameters.
 // TODO(johnniwinther): Remove this when named parameters are sorted in dill.
 int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
-  return a.name.compareTo(b.name);
+  return a.name!.compareTo(b.name!);
 }
 
 /// Comparator for the declaration order of parameters.
@@ -30,18 +30,17 @@ int nativeOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
+SourceSpan? computeSourceSpanFromTreeNode(ir.TreeNode node) {
   // TODO(johnniwinther): Use [ir.Location] directly as a [SourceSpan].
-  Uri uri;
-  int offset;
-  while (node != null) {
-    if (node.fileOffset != ir.TreeNode.noOffset) {
-      offset = node.fileOffset;
+  Uri? uri;
+  late int offset;
+  for (ir.TreeNode? current = node; current != null; current = current.parent) {
+    if (current.fileOffset != ir.TreeNode.noOffset) {
+      offset = current.fileOffset;
       // @patch annotations have no location.
-      uri = node.location?.file;
+      uri = current.location?.file;
       break;
     }
-    node = node.parent;
   }
   if (uri != null) {
     return SourceSpan(uri, offset, offset + 1);
@@ -100,34 +99,33 @@ bool isNullLiteral(ir.Expression node) {
 /// the parent of the let node, i.e. the parent node of the original null-aware
 /// expression. [let] returns the let node created for the encoding.
 class NullAwareExpression {
+  final ir.Let let;
   final ir.VariableDeclaration syntheticVariable;
   final ir.Expression expression;
 
-  NullAwareExpression(this.syntheticVariable, this.expression);
+  NullAwareExpression(this.let, this.syntheticVariable, this.expression);
 
-  ir.Expression get receiver => syntheticVariable.initializer;
+  ir.Expression get receiver => syntheticVariable.initializer!;
 
-  ir.TreeNode get parent => syntheticVariable.parent.parent;
-
-  ir.Let get let => syntheticVariable.parent;
+  ir.TreeNode get parent => let.parent!;
 
   @override
   String toString() => let.toString();
 }
 
-NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
+NullAwareExpression? getNullAwareExpression(ir.TreeNode node) {
   if (node is ir.Let) {
     ir.Expression body = node.body;
     if (node.variable.name == null &&
         node.variable.isFinal &&
         body is ir.ConditionalExpression) {
-      if (body.condition is ir.EqualsNull) {
-        ir.EqualsNull equalsNull = body.condition;
-        ir.Expression receiver = equalsNull.expression;
+      final condition = body.condition;
+      if (condition is ir.EqualsNull) {
+        ir.Expression receiver = condition.expression;
         if (receiver is ir.VariableGet && receiver.variable == node.variable) {
           // We have
           //   let #t1 = e0 in #t1 == null ? null : e1
-          return NullAwareExpression(node.variable, body.otherwise);
+          return NullAwareExpression(node, node.variable, body.otherwise);
         }
       }
     }
@@ -137,11 +135,11 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
 
 /// Check whether [node] is immediately guarded by a
 /// [ir.CheckLibraryIsLoaded], and hence the node is a deferred access.
-ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
+ir.LibraryDependency? getDeferredImport(ir.TreeNode node) {
   // Note: this code relies on the CFE generating the code as we expect it here.
   // If one day we optimize away redundant CheckLibraryIsLoaded instructions,
   // we'd need to derive this information directly from the CFE (See #35005),
-  ir.TreeNode parent = node.parent;
+  ir.TreeNode? parent = node.parent;
 
   // TODO(sigmund): remove when CFE generates the correct tree (#35320). For
   // instance, it currently generates
@@ -160,7 +158,7 @@ ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
         parent is ir.InstanceGetterInvocation ||
         parent is ir.DynamicInvocation ||
         parent is ir.FunctionInvocation) {
-      parent = parent.parent;
+      parent = parent!.parent;
     }
   }
 
@@ -177,8 +175,8 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   const _FreeVariableVisitor();
 
   bool visit(ir.DartType type) {
-    if (type != null) return type.accept(this);
-    return false;
+    assert(type as dynamic != null); // TODO(48820): Remove.
+    return type.accept(this);
   }
 
   bool visitList(List<ir.DartType> types) {
@@ -265,15 +263,15 @@ bool _isWebLibrary(Uri importUri) =>
     importUri.path
         .contains('native_null_assertions/web_library_interfaces.dart');
 
-bool nodeIsInWebLibrary(ir.TreeNode node) {
+bool nodeIsInWebLibrary(ir.TreeNode? node) {
   if (node == null) return false;
   if (node is ir.Library) return _isWebLibrary(node.importUri);
   return nodeIsInWebLibrary(node.parent);
 }
 
 bool memberEntityIsInWebLibrary(MemberEntity entity) {
-  var importUri = entity?.library?.canonicalUri;
-  if (importUri == null) return false;
+  var importUri = entity.library.canonicalUri;
+  assert(importUri as dynamic != null); // TODO(48820): Remove.
   return _isWebLibrary(importUri);
 }
 
@@ -285,7 +283,7 @@ bool memberEntityIsInWebLibrary(MemberEntity entity) {
 ///
 /// See [ir.ProcedureStubKind.ConcreteMixinStub] for why concrete mixin stubs
 /// are inserted in the first place.
-ir.Member getEffectiveSuperTarget(ir.Member target) {
+ir.Member? getEffectiveSuperTarget(ir.Member? target) {
   if (target is ir.Procedure) {
     if (target.stubKind == ir.ProcedureStubKind.ConcreteMixinStub) {
       return getEffectiveSuperTarget(target.stubTarget);

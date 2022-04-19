@@ -13,4 +13,4 @@ dependencies:
   path: ^1.7.0
 
 dev_dependencies:
-  pedantic: ^1.9.2
+  lints: any

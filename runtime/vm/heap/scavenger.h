@@ -277,10 +277,7 @@ class Scavenger {
   void AbandonRemainingTLABForDebugging(Thread* thread);
 
   // Collect the garbage in this scavenger.
-  void Scavenge(GCReason reason);
-
-  // Promote all live objects.
-  void Evacuate(GCReason reason);
+  void Scavenge(Thread* thread, GCType type, GCReason reason);
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);

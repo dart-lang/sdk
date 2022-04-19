@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.elements.names;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show $_;
 
-import 'entities.dart' show LibraryEntity;
+import 'entities_migrated.dart' show LibraryEntity;
 
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy
 /// and setter into account.
@@ -17,9 +15,9 @@ abstract class Name {
   /// Create a [Name] for an identifier [text]. If [text] begins with '_' a
   /// private name with respect to [library] is created. If [isSetter] is `true`
   /// the created name represents the setter name 'text='.
-  factory Name(String text, LibraryEntity library, {bool isSetter = false}) {
+  factory Name(String text, LibraryEntity? library, {bool isSetter = false}) {
     if (isPrivateName(text)) {
-      return PrivateName(text, library, isSetter: isSetter);
+      return PrivateName(text, library!, isSetter: isSetter);
     }
     return PublicName(text, isSetter: isSetter);
   }
@@ -53,7 +51,8 @@ abstract class Name {
   bool isSimilarTo(Name other);
   int get similarHashCode;
 
-  LibraryEntity get library;
+  // TODO(sra): Should this rather throw for public names?
+  LibraryEntity? get library;
 
   /// Returns `true` when [s] is private if used as an identifier.
   static bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
@@ -98,7 +97,7 @@ class PublicName implements Name {
   int get similarHashCode => text.hashCode + 11 * isSetter.hashCode;
 
   @override
-  LibraryEntity get library => null;
+  LibraryEntity? get library => null;
 
   @override
   String toString() => isSetter ? '$text=' : text;

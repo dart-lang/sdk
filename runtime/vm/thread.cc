@@ -437,7 +437,7 @@ ErrorPtr Thread::HandleInterrupts() {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {
-      heap()->CollectGarbage(GCType::kScavenge, GCReason::kStoreBuffer);
+      heap()->CollectGarbage(this, GCType::kScavenge, GCReason::kStoreBuffer);
     }
 
 #if !defined(PRODUCT)

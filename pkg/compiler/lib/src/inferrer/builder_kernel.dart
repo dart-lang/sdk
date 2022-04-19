@@ -2109,6 +2109,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     if (target == null) {
       // TODO(johnniwinther): Remove this when the CFE checks for missing
       //  concrete super targets.
+      // TODO(48820): If this path is infeasible, update types on
+      //  getEffectiveSuperTarget.
       return handleSuperNoSuchMethod(node, selector, null);
     }
     MemberEntity member = _elementMap.getMember(target);

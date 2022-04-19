@@ -1528,7 +1528,7 @@ abstract class ParameterElement
   /// meaning of this getter. The parameter `{@required int x}` will return
   /// `false` and the parameter `{@required required int x}` will return
   /// `true`
-  // TODO(brianwilkerson) Rename this to `isRequired`.
+  @Deprecated('Use isRequired instead')
   bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
@@ -1551,6 +1551,15 @@ abstract class ParameterElement
   /// Return `true` if this parameter is a positional parameter. Positional
   /// parameters can either be required or optional.
   bool get isPositional;
+
+  /// Return `true` if this parameter is either a required positional
+  /// parameter, or a named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
+  bool get isRequired;
 
   /// Return `true` if this parameter is both a required and named parameter.
   /// Named parameters that are annotated with the `@required` annotation are
