@@ -1,5 +1,6 @@
 ## 4.1.0-dev
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
+* Deprecated `ResourceProviderMixin.newFile2`, use `newFile` instead.
 
 ## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.

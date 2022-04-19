@@ -16,10 +16,10 @@ main() {
 @reflectiveTest
 class AmbiguousExportTest extends PubPackageResolutionTest {
   test_class() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class N {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', r'''
+    newFile('$testPackageLibPath/lib2.dart', r'''
 class N {}
 ''');
     await assertErrorsInCode(r'''
@@ -31,10 +31,10 @@ export 'lib2.dart';
   }
 
   test_extensions_bothExported() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', r'''
+    newFile('$testPackageLibPath/lib2.dart', r'''
 extension E on String {}
 ''');
     await assertErrorsInCode(r'''
@@ -46,7 +46,7 @@ export 'lib2.dart';
   }
 
   test_extensions_localAndExported() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {}
 ''');
     await assertNoErrorsInCode(r'''

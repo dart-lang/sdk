@@ -609,7 +609,7 @@ void f() {
     final expectedLabel = 'foo(String s, int i)';
     final expectedDoc = 'Does foo.';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         textDocumentCapabilities: withSignatureHelpContentFormat(
             emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));

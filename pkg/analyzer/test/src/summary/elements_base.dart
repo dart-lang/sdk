@@ -126,7 +126,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
   String get workspaceRootPath => '/home';
 
   void addSource(String path, String contents) {
-    newFile2(path, contents);
+    newFile(path, contents);
   }
 
   Future<LibraryElementImpl> buildLibrary(
@@ -135,7 +135,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     bool dumpSummaries = false,
     List<Set<String>>? preBuildSequence,
   }) async {
-    var testFile = newFile2(testFilePath, text);
+    var testFile = newFile(testFilePath, text);
     var testUri = sourceFactory.pathToUri(testFile.path)!;
     var testSource = sourceFactory.forUri2(testUri)!;
 

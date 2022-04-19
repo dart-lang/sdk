@@ -269,7 +269,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    newFile2('$testPackageLibPath/other.dart', r'''
+    newFile('$testPackageLibPath/other.dart', r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -471,7 +471,7 @@ void f() {
 
   Future<void> test_resetOnAnalysisSetChanged_watch_otherFile() async {
     var otherFile = join('$testPackageLibPath/other.dart');
-    newFile2(otherFile, '// other 1');
+    newFile(otherFile, '// other 1');
     addTestFile('''
 void f() {
   foo(1 + 2);
@@ -491,7 +491,7 @@ foo(int myName) {}
     // The refactoring is reset, even though it's a different file. It is up to
     // analyzer to track dependencies and provide resolved units fast when
     // possible.
-    newFile2(otherFile, '// other 2');
+    newFile(otherFile, '// other 2');
     await pumpEventQueue();
     expect(test_resetCount, initialResetCount + 1);
   }
@@ -1091,7 +1091,7 @@ void f() {
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    newFile2('$testPackageLibPath/other.dart', r'''
+    newFile('$testPackageLibPath/other.dart', r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1159,7 +1159,7 @@ void f() {
   }
 
   Future<void> test_resetOnAnalysisSetChanged() async {
-    newFile2('$testPackageLibPath/other.dart', '// other 1');
+    newFile('$testPackageLibPath/other.dart', '// other 1');
     addTestFile('''
 void f() {
   int res = 1 + 2;
@@ -1321,7 +1321,7 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
   late MoveFileOptions options;
 
   Future<void> test_file_OK() {
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'a.dart';
@@ -1336,7 +1336,7 @@ import 'lib/a.dart';
   }
 
   Future<void> test_folder_cancel() {
-    newFile2('$testPackageLibPath/original_folder/file.dart', '');
+    newFile('$testPackageLibPath/original_folder/file.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'original_folder/file.dart';
@@ -1349,7 +1349,7 @@ import 'original_folder/file.dart';
   }
 
   Future<void> test_folder_OK() {
-    newFile2('$testPackageLibPath/original_folder/file.dart', '');
+    newFile('$testPackageLibPath/original_folder/file.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'original_folder/file.dart';
@@ -2133,7 +2133,7 @@ library my.new_name;
   }
 
   Future<void> test_library_partOfDirective() {
-    newFile2('$testPackageLibPath/my_lib.dart', '''
+    newFile('$testPackageLibPath/my_lib.dart', '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');

@@ -87,7 +87,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile2(testFilePath, content);
+    newFile(testFilePath, content);
   }
 
   void assertAssignment(
@@ -281,7 +281,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     List<ExpectedError> expectedErrors,
   ) async {
     path = convertPath(path);
-    newFile2(path, content);
+    newFile(path, content);
 
     var result = await resolveFile(path);
     assertErrorsInResolvedUnit(result, expectedErrors);
@@ -826,7 +826,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], resolve it into [result].
   Future<void> resolveFileCode(String path, String content) {
-    newFile2(path, content);
+    newFile(path, content);
     return resolveFile2(path);
   }
 

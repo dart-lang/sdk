@@ -54,10 +54,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool warnOnWeakCode = false,
       bool allowErrors = false}) async {
     for (var path in migratedInput.keys) {
-      newFile2(path, migratedInput[path]!);
+      newFile(path, migratedInput[path]!);
     }
     for (var path in input.keys) {
-      newFile2(path, input[path]!);
+      newFile(path, input[path]!);
     }
     var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener,

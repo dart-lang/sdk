@@ -86,7 +86,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   String addTestFile(String content) {
-    newFile2(testFile, content);
+    newFile(testFile, content);
     testCode = content;
     return testFile;
   }

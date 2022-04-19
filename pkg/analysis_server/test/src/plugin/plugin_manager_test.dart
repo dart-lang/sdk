@@ -480,7 +480,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     // a '.dart_tool/package_config.json' file.
     //
     var pluginDirPath = newFolder('/plugin').path;
-    var pluginFile = newFile2('/plugin/bin/plugin.dart', '');
+    var pluginFile = newFile('/plugin/bin/plugin.dart', '');
     var packageConfigFile = newPackageConfigJsonFile('/plugin', '');
     //
     // Test path computation.
@@ -494,14 +494,14 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     // Build a Bazel workspace containing four packages, including the plugin.
     //
-    newFile2('/workspaceRoot/WORKSPACE', '');
+    newFile('/workspaceRoot/WORKSPACE', '');
     newFolder('/workspaceRoot/bazel-bin');
     newFolder('/workspaceRoot/bazel-genfiles');
 
     String newPackage(String packageName, [List<String>? dependencies]) {
       var packageRoot =
           newFolder('/workspaceRoot/third_party/dart/$packageName').path;
-      newFile2('$packageRoot/lib/$packageName.dart', '');
+      newFile('$packageRoot/lib/$packageName.dart', '');
       var buffer = StringBuffer();
       if (dependencies != null) {
         buffer.writeln('dependencies:');
@@ -517,7 +517,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     var bRootPath = newPackage('b', ['d']);
     var cRootPath = newPackage('c', ['d']);
     var dRootPath = newPackage('d');
-    var pluginFile = newFile2('$pluginDirPath/bin/plugin.dart', '');
+    var pluginFile = newFile('$pluginDirPath/bin/plugin.dart', '');
     //
     // Test path computation.
     //

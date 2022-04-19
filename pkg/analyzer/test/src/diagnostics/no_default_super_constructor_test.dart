@@ -80,7 +80,7 @@ class B extends A {
   }
 
   test_super_requiredNamed_legacySubclass_explicitConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required String s});
 }
@@ -96,7 +96,7 @@ class B extends A {
   }
 
   test_super_requiredNamed_legacySubclass_implicitConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required String s});
 }O

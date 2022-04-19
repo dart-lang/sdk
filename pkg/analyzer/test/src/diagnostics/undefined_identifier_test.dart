@@ -371,7 +371,7 @@ void f() {
   }
 
   test_private_getter() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 class A {
   var _foo;
@@ -389,7 +389,7 @@ class B extends A {
   }
 
   test_private_setter() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 class A {
   var _foo;

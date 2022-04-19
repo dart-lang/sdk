@@ -297,11 +297,11 @@ class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
 
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
   Future<void> test_project_filterImports_defaultConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -325,13 +325,13 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_enumValues() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum E {
   e,
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -354,13 +354,13 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_namedConstructors() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A.a();
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -383,11 +383,11 @@ void f() {
   }
 
   Future<void> test_project_filterMultipleImports() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -411,7 +411,7 @@ void f() {
   }
 
   Future<void> test_project_lib() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 enum E {
   e,
@@ -468,7 +468,7 @@ void f() {
   }
 
   Future<void> test_project_lib_fields_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int f = 0;
 }
@@ -488,7 +488,7 @@ void m() {
   }
 
   Future<void> test_project_lib_fields_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int f = 0;
 }
@@ -511,7 +511,7 @@ void f() {
   }
 
   Future<void> test_project_lib_getters_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int get g => 0;
 }
@@ -531,7 +531,7 @@ void f() {
   }
 
   Future<void> test_project_lib_getters_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int get g => 0;
 }
@@ -555,7 +555,7 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
   Future<void> test_project_lib_getters_topLevel() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int get g => 0;
 ''');
 
@@ -576,7 +576,7 @@ void f() {
   }
 
   Future<void> test_project_lib_methods_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo() => 0;
 }
@@ -596,7 +596,7 @@ void f() {
   }
 
   Future<void> test_project_lib_methods_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static void foo() => 0;
 }
@@ -616,11 +616,11 @@ void f() {
   }
 
   Future<void> test_project_lib_multipleExports() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -643,7 +643,7 @@ void f() {
   }
 
   Future<void> test_project_lib_setters_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   set s(int s) {}
 }
@@ -663,7 +663,7 @@ void f() {
   }
 
   Future<void> test_project_lib_setters_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static set g(int g) {}
 }
@@ -684,7 +684,7 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
   Future<void> test_project_lib_setters_topLevel() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 set s(int s) {}
 ''');
 
@@ -707,7 +707,7 @@ void f() {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38739')
   Future<void>
       test_project_suggestionRelevance_constructorParameterType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'b.dart';
 
 class A {
@@ -715,7 +715,7 @@ class A {
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 class O { }
 ''');
 
@@ -746,7 +746,7 @@ void f(List<String> args) {
   }
 
   Future<void> test_project_suggestionRelevance_constructorsAndTypes() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A { }
 ''');
 
@@ -778,7 +778,7 @@ void f(List<String> args) {
 
   /// See: https://github.com/dart-lang/sdk/issues/35529
   Future<void> test_project_suggestMixins() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin M { }
 class A { }
 ''');

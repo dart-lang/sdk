@@ -28,7 +28,7 @@ export 'dart:core';
   }
 
   test_exportOptedIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -37,11 +37,11 @@ export 'a.dart';
   }
 
   test_exportOptedOut_exportOptedIn_hasLegacySymbol() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.5
 export 'a.dart';
 class B {}
@@ -55,11 +55,11 @@ export 'b.dart';
   }
 
   test_exportOptedOut_exportOptedIn_hideLegacySymbol() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.5
 export 'a.dart';
 class B {}
@@ -71,7 +71,7 @@ export 'b.dart' hide B;
   }
 
   test_exportOptedOut_hasLegacySymbol() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 class A {}
 class B {}

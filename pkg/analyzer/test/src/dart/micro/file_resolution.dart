@@ -37,7 +37,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   void addTestFile(String content) {
-    newFile2(_testFile, content);
+    newFile(_testFile, content);
   }
 
   /// Create a new [FileResolver] into [fileResolver].
@@ -100,8 +100,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       root: sdkRoot,
     );
 
-    newFile2('/workspace/WORKSPACE', '');
-    newFile2('/workspace/dart/test/BUILD', r'''
+    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/dart/test/BUILD', r'''
 dart_package(
   null_safety = True,
 )

@@ -57,7 +57,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
   test_new_analysisOptions_includes() {
     var rootFolder = newFolder('/home/test');
     var fooFolder = newFolder('/home/packages/foo');
-    newFile2('${fooFolder.path}/lib/included.yaml', r'''
+    newFile('${fooFolder.path}/lib/included.yaml', r'''
 linter:
   rules:
     - empty_statements
@@ -124,11 +124,11 @@ linter:
 
   test_new_outer_inner() {
     var outerFolder = newFolder('/test/outer');
-    newFile2('/test/outer/lib/outer.dart', '');
+    newFile('/test/outer/lib/outer.dart', '');
 
     var innerFolder = newFolder('/test/outer/inner');
     newAnalysisOptionsYamlFile2('/test/outer/inner', '');
-    newFile2('/test/outer/inner/inner.dart', '');
+    newFile('/test/outer/inner/inner.dart', '');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
 

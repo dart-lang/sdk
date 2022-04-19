@@ -24,7 +24,7 @@ class TypeNameResolutionTest extends PubPackageResolutionTest
   }
 
   test_optIn_fromOptOut_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -43,7 +43,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T extends num> {}
 ''');
 
@@ -62,7 +62,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds_dynamic() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
 
@@ -81,7 +81,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_typeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
 
@@ -100,7 +100,7 @@ f(A<int> a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F = int Function(bool);
 ''');
 
@@ -124,7 +124,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
 
@@ -148,7 +148,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T extends num> = T Function(bool);
 ''');
 
@@ -172,7 +172,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
 
@@ -196,7 +196,7 @@ f(F<int> a) {}
   }
 
   test_optOut_fromOptIn_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A {}
 ''');
@@ -217,7 +217,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T extends num> {}
 ''');
@@ -238,7 +238,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds_dynamic() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
 ''');
@@ -259,7 +259,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_typeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
 ''');
@@ -280,7 +280,7 @@ f(A<int> a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F = int Function();
 ''');
@@ -301,7 +301,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T extends num> = T Function();
 ''');
@@ -322,7 +322,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds_dynamic() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');
@@ -343,7 +343,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_typeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');
@@ -437,7 +437,7 @@ void f(X<String> a, X<String?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_none_inLegacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = Map<int, T>;
 ''');
     await assertNoErrorsInCode(r'''
@@ -473,7 +473,7 @@ void f(X<int> a, X<int?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_question_inLegacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = List<T?>;
 ''');
     await assertNoErrorsInCode(r'''
@@ -509,7 +509,7 @@ void f(X a, X? b) {}
   }
 
   test_typeAlias_asParameterType_Never_none_inLegacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef X = Never;
 ''');
     await assertNoErrorsInCode(r'''

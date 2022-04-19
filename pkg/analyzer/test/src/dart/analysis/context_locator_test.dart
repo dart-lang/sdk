@@ -48,8 +48,8 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void test_locateRoots_link_file_toOutOfRoot() {
     Folder rootFolder = newFolder('/home/test');
-    newFile2('/home/test/lib/a.dart', '');
-    newFile2('/home/b.dart', '');
+    newFile('/home/test/lib/a.dart', '');
+    newFile('/home/b.dart', '');
     resourceProvider.newLink(
       convertPath('/home/test/lib/c.dart'),
       convertPath('/home/b.dart'),
@@ -73,7 +73,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void test_locateRoots_link_file_toSiblingInRoot() {
     Folder rootFolder = newFolder('/test');
-    newFile2('/test/lib/a.dart', '');
+    newFile('/test/lib/a.dart', '');
     resourceProvider.newLink(
       convertPath('/test/lib/b.dart'),
       convertPath('/test/lib/a.dart'),
@@ -97,7 +97,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void test_locateRoots_link_folder_notExistingTarget() {
     var rootFolder = newFolder('/test');
-    newFile2('/test/lib/a.dart', '');
+    newFile('/test/lib/a.dart', '');
     newFolder('/test/lib/foo');
     resourceProvider.newLink(
       convertPath('/test/lib/foo'),
@@ -127,7 +127,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void test_locateRoots_link_folder_toParentInRoot() {
     Folder rootFolder = newFolder('/test');
-    newFile2('/test/lib/a.dart', '');
+    newFile('/test/lib/a.dart', '');
     resourceProvider.newLink(
       convertPath('/test/lib/foo'),
       convertPath('/test/lib'),
@@ -153,9 +153,9 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void test_locateRoots_link_folder_toParentOfRoot() {
     Folder rootFolder = newFolder('/home/test');
-    newFile2('/home/test/lib/a.dart', '');
-    newFile2('/home/b.dart', '');
-    newFile2('/home/other/c.dart', '');
+    newFile('/home/test/lib/a.dart', '');
+    newFile('/home/b.dart', '');
+    newFile('/home/other/c.dart', '');
     resourceProvider.newLink(
       convertPath('/home/test/lib/foo'),
       convertPath('/home'),
@@ -182,8 +182,8 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void test_locateRoots_link_folder_toSiblingInRoot() {
     Folder rootFolder = newFolder('/test');
-    newFile2('/test/lib/a.dart', '');
-    newFile2('/test/lib/foo/b.dart', '');
+    newFile('/test/lib/a.dart', '');
+    newFile('/test/lib/foo/b.dart', '');
     resourceProvider.newLink(
       convertPath('/test/lib/bar'),
       convertPath('/test/lib/foo'),
@@ -299,9 +299,9 @@ analyzer:
     - lib/f*.dart
 ''');
     var packagesFile = newPackageConfigJsonFile(rootPath, '');
-    var fooFile = newFile2('$rootPath/lib/foo.dart', '');
-    newFile2('$rootPath/lib/far.dart', ''); // not used
-    var barFile = newFile2('$rootPath/lib/bar.dart', '');
+    var fooFile = newFile('$rootPath/lib/foo.dart', '');
+    newFile('$rootPath/lib/far.dart', ''); // not used
+    var barFile = newFile('$rootPath/lib/bar.dart', '');
 
     var roots = contextLocator.locateRoots(
       includedPaths: [rootFolder.path, fooFile.path],
@@ -322,7 +322,7 @@ analyzer:
 
   void test_locateRoots_multiple_dirAndNestedFile_noConfigurationFiles() {
     Folder outerRootFolder = newFolder('/test/outer');
-    File testFile = newFile2('/test/outer/examples/inner/test.dart', '');
+    File testFile = newFile('/test/outer/examples/inner/test.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [outerRootFolder.path, testFile.path]);
@@ -339,7 +339,7 @@ analyzer:
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile2('/test/outer', '');
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
-    File testFile = newFile2('/test/outer/examples/inner/test.dart', '');
+    File testFile = newFile('/test/outer/examples/inner/test.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [outerRootFolder.path, testFile.path]);
@@ -406,7 +406,7 @@ analyzer:
 
     File outer2OptionsFile = newAnalysisOptionsYamlFile2('/test/outer2', '');
     File outer2PackagesFile = newPackageConfigJsonFile('/test/outer2', '');
-    File testFile = newFile2('/test/outer2/test.dart', '');
+    File testFile = newFile('/test/outer2/test.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [outer1RootFolder.path, testFile.path]);
@@ -427,7 +427,7 @@ analyzer:
 
   void test_locateRoots_multiple_dirAndSiblingFile_noConfigurationFiles() {
     Folder outer1RootFolder = newFolder('/test/outer1');
-    File testFile = newFile2('/test/outer2/test.dart', '');
+    File testFile = newFile('/test/outer2/test.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [outer1RootFolder.path, testFile.path]);
@@ -452,15 +452,15 @@ analyzer:
     var pkgPath1 = '$workspacePath1/pkg1';
     var pkgPath2 = '$workspacePath2/pkg2';
 
-    newFile2('$workspacePath1/WORKSPACE', '');
-    newFile2('$workspacePath2/WORKSPACE', '');
+    newFile('$workspacePath1/WORKSPACE', '');
+    newFile('$workspacePath2/WORKSPACE', '');
     newBazelBuildFile(pkgPath1, '');
     newBazelBuildFile(pkgPath2, '');
 
     var folder1 = newFolder('$pkgPath1/lib/folder1');
     var folder2 = newFolder('$pkgPath2/lib/folder2');
-    var file1 = newFile2('$pkgPath1/lib/folder1/file1.dart', '');
-    var file2 = newFile2('$pkgPath2/lib/folder2/file2.dart', '');
+    var file1 = newFile('$pkgPath1/lib/folder1/file1.dart', '');
+    var file2 = newFile('$pkgPath2/lib/folder2/file2.dart', '');
 
     var roots = contextLocator.locateRoots(
       includedPaths: [folder1.path, folder2.path],
@@ -493,8 +493,8 @@ analyzer:
     - lib/test2.dart
 ''');
     File packagesFile = newPackageConfigJsonFile('/home/test', '');
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
@@ -512,8 +512,8 @@ analyzer:
 
   void test_locateRoots_multiple_fileAndSiblingFile_hasOptions() {
     File optionsFile = newAnalysisOptionsYamlFile2('/home/test', '');
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
@@ -533,8 +533,8 @@ analyzer:
       test_locateRoots_multiple_fileAndSiblingFile_hasOptions_overrideOptions() {
     newAnalysisOptionsYamlFile2('/home/test', ''); // not used
     File overrideOptionsFile = newAnalysisOptionsYamlFile2('/home', '');
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [testFile1.path, testFile2.path],
@@ -555,8 +555,8 @@ analyzer:
   void test_locateRoots_multiple_fileAndSiblingFile_hasOptionsPackages() {
     File optionsFile = newAnalysisOptionsYamlFile2('/home/test', '');
     File packagesFile = newPackageConfigJsonFile('/home/test', '');
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
@@ -574,8 +574,8 @@ analyzer:
 
   void test_locateRoots_multiple_fileAndSiblingFile_hasPackages() {
     File packagesFile = newPackageConfigJsonFile('/home/test', '');
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
@@ -599,8 +599,8 @@ analyzer:
       test_locateRoots_multiple_fileAndSiblingFile_hasPackages_overridePackages() {
     newPackageConfigJsonFile('/home/test', ''); // not used
     File overridePackagesFile = newPackageConfigJsonFile('/home', '');
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [testFile1.path, testFile2.path],
@@ -621,8 +621,8 @@ analyzer:
   /// When there are no configuration files, we can use the root of the file
   /// system, because it contains all the files.
   void test_locateRoots_multiple_fileAndSiblingFile_noConfigurationFiles() {
-    File testFile1 = newFile2('/home/test/lib/test1.dart', '');
-    File testFile2 = newFile2('/home/test/lib/test2.dart', '');
+    File testFile1 = newFile('/home/test/lib/test1.dart', '');
+    File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
@@ -645,13 +645,13 @@ analyzer:
     var pkgPath1 = '$workspacePath1/pkg1';
     var pkgPath2 = '$workspacePath2/pkg2';
 
-    newFile2('$workspacePath1/WORKSPACE', '');
-    newFile2('$workspacePath2/WORKSPACE', '');
+    newFile('$workspacePath1/WORKSPACE', '');
+    newFile('$workspacePath2/WORKSPACE', '');
     newBazelBuildFile(pkgPath1, '');
     newBazelBuildFile(pkgPath2, '');
 
-    var file1 = newFile2('$pkgPath1/lib/file1.dart', '');
-    var file2 = newFile2('$pkgPath2/lib/file2.dart', '');
+    var file1 = newFile('$pkgPath1/lib/file1.dart', '');
+    var file2 = newFile('$pkgPath2/lib/file2.dart', '');
 
     var roots = contextLocator.locateRoots(
       includedPaths: [file1.path, file2.path],
@@ -680,12 +680,12 @@ analyzer:
     var fooPath = '$workspacePath/foo';
     var barPath = '$workspacePath/bar';
 
-    newFile2('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/WORKSPACE', '');
     newBazelBuildFile(fooPath, '');
     newBazelBuildFile(barPath, '');
 
-    var fooFile = newFile2('$fooPath/lib/foo.dart', '');
-    var barFile = newFile2('$barPath/lib/bar.dart', '');
+    var fooFile = newFile('$fooPath/lib/foo.dart', '');
+    var barFile = newFile('$barPath/lib/bar.dart', '');
 
     var roots = contextLocator.locateRoots(
       includedPaths: [fooFile.path, barFile.path],
@@ -709,8 +709,8 @@ analyzer:
     newPubspecYamlFile(fooPath, '');
     newPubspecYamlFile(barPath, '');
 
-    var fooFile = newFile2('$fooPath/lib/foo.dart', '');
-    var barFile = newFile2('$barPath/lib/bar.dart', '');
+    var fooFile = newFile('$fooPath/lib/foo.dart', '');
+    var barFile = newFile('$barPath/lib/bar.dart', '');
 
     var roots = contextLocator.locateRoots(
       includedPaths: [fooFile.path, barFile.path],
@@ -738,8 +738,8 @@ analyzer:
     var fooPackagesFile = newPackageConfigJsonFile('/home/foo', '');
     var barPackagesFile = newPackageConfigJsonFile('/home/bar', '');
     var optionsFile = newAnalysisOptionsYamlFile2('/home', '');
-    var fooFile = newFile2('/home/foo/lib/foo.dart', '');
-    var barFile = newFile2('/home/bar/lib/bar.dart', '');
+    var fooFile = newFile('/home/foo/lib/foo.dart', '');
+    var barFile = newFile('/home/bar/lib/bar.dart', '');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [fooFile.path, barFile.path],
@@ -765,8 +765,8 @@ analyzer:
     var packagesFile = newPackageConfigJsonFile('/home', '');
     var fooOptionsFile = newAnalysisOptionsYamlFile2('/home/foo', '');
     var barOptionsFile = newAnalysisOptionsYamlFile2('/home/bar', '');
-    var fooFile = newFile2('/home/foo/lib/foo.dart', '');
-    var barFile = newFile2('/home/bar/lib/bar.dart', '');
+    var fooFile = newFile('/home/foo/lib/foo.dart', '');
+    var barFile = newFile('/home/bar/lib/bar.dart', '');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [fooFile.path, barFile.path],
@@ -1107,8 +1107,8 @@ analyzer:
   void test_locateRoots_options_default_bazel() {
     var workspacePath = '/home/workspace';
     var workspaceFolder = getFolder(workspacePath);
-    newFile2('$workspacePath/WORKSPACE', '');
-    var bazelOptionsFile = newFile2(
+    newFile('$workspacePath/WORKSPACE', '');
+    var bazelOptionsFile = newFile(
       '$workspacePath/dart/analysis_options/lib/default.yaml',
       '',
     );
@@ -1131,7 +1131,7 @@ analyzer:
     var rootFolder = newFolder('/home/test');
 
     var flutterPath = '/home/packages/flutter';
-    var flutterAnalysisOptionsFile = newFile2(
+    var flutterAnalysisOptionsFile = newFile(
       '$flutterPath/lib/analysis_options_user.yaml',
       '',
     );
@@ -1282,7 +1282,7 @@ analyzer:
     File optionsFile = newAnalysisOptionsYamlFile2('/test/root', '''
 include: has_excludes.yaml
 ''');
-    newFile2('/test/root/has_excludes.yaml', '''
+    newFile('/test/root/has_excludes.yaml', '''
 analyzer:
   exclude:
     - data/**
@@ -1319,7 +1319,7 @@ analyzer:
   exclude:
     - bar/**
 ''');
-    newFile2('/test/root/has_excludes.yaml', '''
+    newFile('/test/root/has_excludes.yaml', '''
 analyzer:
   exclude:
     - foo/**
@@ -1466,7 +1466,7 @@ analyzer:
   void test_locateRoots_single_file_inheritedOptions_directPackages() {
     File optionsFile = newAnalysisOptionsYamlFile2('/test', '');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
-    File testFile = newFile2('/test/root/test.dart', '');
+    File testFile = newFile('/test/root/test.dart', '');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [testFile.path]);

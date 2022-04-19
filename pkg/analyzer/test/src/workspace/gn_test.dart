@@ -20,8 +20,8 @@ main() {
 class GnWorkspacePackageTest with ResourceProviderMixin {
   void test_contains_differentPackageInWorkspace() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/BUILD.gn', '');
-    var targetFile = newFile2('/ws/some/code/lib/code.dart', '');
+    newFile('/ws/some/code/BUILD.gn', '');
+    var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
     // A file that is _not_ in this package is not required to have a BUILD.gn
@@ -34,8 +34,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_differentWorkspace() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/BUILD.gn', '');
-    var targetFile = newFile2('/ws/some/code/lib/code.dart', '');
+    newFile('/ws/some/code/BUILD.gn', '');
+    var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
     expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
@@ -44,12 +44,12 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/BUILD.gn', '');
-    var targetFile = newFile2('/ws/some/code/lib/code.dart', '');
-    var targetFile2 = newFile2('/ws/some/code/lib/code2.dart', '');
-    var targetFile3 = newFile2('/ws/some/code/lib/src/code3.dart', '');
-    var targetBinFile = newFile2('/ws/some/code/bin/code.dart', '');
-    var targetTestFile = newFile2('/ws/some/code/test/code_test.dart', '');
+    newFile('/ws/some/code/BUILD.gn', '');
+    var targetFile = newFile('/ws/some/code/lib/code.dart', '');
+    var targetFile2 = newFile('/ws/some/code/lib/code2.dart', '');
+    var targetFile3 = newFile('/ws/some/code/lib/src/code3.dart', '');
+    var targetBinFile = newFile('/ws/some/code/bin/code.dart', '');
+    var targetTestFile = newFile('/ws/some/code/test/code_test.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
     expect(package.contains(TestSource(targetFile2.path)), isTrue);
@@ -60,10 +60,10 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_subPackage() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/BUILD.gn', '');
-    newFile2('/ws/some/code/lib/code.dart', '');
-    newFile2('/ws/some/code/testing/BUILD.gn', '');
-    newFile2('/ws/some/code/testing/lib/testing.dart', '');
+    newFile('/ws/some/code/BUILD.gn', '');
+    newFile('/ws/some/code/lib/code.dart', '');
+    newFile('/ws/some/code/testing/BUILD.gn', '');
+    newFile('/ws/some/code/testing/lib/testing.dart', '');
 
     var package =
         workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
@@ -75,8 +75,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_findPackageFor_buildFileExists() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/BUILD.gn', '');
-    var targetFile = newFile2('/ws/some/code/lib/code.dart', '');
+    newFile('/ws/some/code/BUILD.gn', '');
+    var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
     expect(package.root, convertPath('/ws/some/code'));
@@ -85,7 +85,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_findPackageFor_missingBuildFile() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/lib/code.dart', '');
+    newFile('/ws/some/code/lib/code.dart', '');
 
     var package =
         workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
@@ -94,8 +94,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
   void test_packagesAvailableTo() {
     GnWorkspace workspace = _buildStandardGnWorkspace();
-    newFile2('/ws/some/code/BUILD.gn', '');
-    var libraryPath = newFile2('/ws/some/code/lib/code.dart', '').path;
+    newFile('/ws/some/code/BUILD.gn', '');
+    var libraryPath = newFile('/ws/some/code/lib/code.dart', '').path;
     var package = workspace.findPackageFor(libraryPath)!;
     var packageMap = package.packagesAvailableTo(libraryPath);
     expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
@@ -104,8 +104,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
   GnWorkspace _buildStandardGnWorkspace() {
     newFolder('/ws/.jiri_root');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile2('/ws/.fx-build-dir', '$buildDir\n');
-    newFile2(
+    newFile('/ws/.fx-build-dir', '$buildDir\n');
+    newFile(
         '/ws/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -160,8 +160,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile2('/workspace/.fx-build-dir', '$buildDir\n');
-    newFile2(
+    newFile('/workspace/.fx-build-dir', '$buildDir\n');
+    newFile(
       '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
       '',
     );
@@ -175,10 +175,10 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile2('/workspace/.fx-build-dir', '$buildDir\n');
+    newFile('/workspace/.fx-build-dir', '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -204,10 +204,10 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('/workspace/out/debug-x87_128');
-    newFile2('/workspace/.fx-build-dir', '$buildDir\n');
+    newFile('/workspace/.fx-build-dir', '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -234,7 +234,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace/some/code', '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -259,10 +259,10 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
     newPubspecYamlFile('/workspace/some/code', '');
-    newFile2('/workspace/.fx-build-dir', '');
+    newFile('/workspace/.fx-build-dir', '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -288,10 +288,10 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/release-y22_256');
-    newFile2('/workspace/.fx-build-dir', '$buildDir\n');
+    newFile('/workspace/.fx-build-dir', '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -307,7 +307,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String otherPackageLocation = convertPath('/workspace/here/too');
     Uri otherPackageUri =
         resourceProvider.pathContext.toUri(otherPackageLocation);
-    newFile2(
+    newFile(
         '/workspace/out/release-y22_256/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -333,10 +333,10 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile2('/workspace/.fx-build-dir', '$buildDir\n');
+    newFile('/workspace/.fx-build-dir', '$buildDir\n');
     String packageOneLocation = convertPath('/workspace/this/is/the/package');
     Uri packageOneUri = resourceProvider.pathContext.toUri(packageOneLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
         '''{
   "configVersion": 2,
@@ -352,7 +352,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageTwoLocation =
         convertPath('/workspace/this/is/the/other/package');
     Uri packageTwoUri = resourceProvider.pathContext.toUri(packageTwoLocation);
-    newFile2(
+    newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_test_package_config.json',
         '''{
   "configVersion": 2,

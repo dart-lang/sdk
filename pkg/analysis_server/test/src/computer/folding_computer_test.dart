@@ -580,7 +580,7 @@ main() {}
   }
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
-    newFile2(sourcePath, sourceContent);
+    newFile(sourcePath, sourceContent);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);

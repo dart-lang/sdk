@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNonNullAssertionTest extends PubPackageResolutionTest {
   test_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');

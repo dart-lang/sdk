@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class C<T extends Object> {
   C(T t);
 }
@@ -46,7 +46,7 @@ main() {
   }
 
   test_functionType_optOutOfGenericMetadata() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 void f<X>() {}
 ''');
     await assertErrorsInCode('''
@@ -224,7 +224,7 @@ void main() {
   }
 
   test_functionType_parameterIsObject_returnIsBound_prefixedFunction() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 external T f<T extends num>(T a, T b);
 ''');
     await assertErrorsInCode('''

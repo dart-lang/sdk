@@ -258,7 +258,7 @@ foo: aaabbbccc
   }
 
   test_build_types() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
@@ -475,7 +475,7 @@ library
       return "$name: \$$name\\\\n";
     }).join('');
 
-    newFile2('$testPackageLibPath/arguments_text.dart', '''
+    newFile('$testPackageLibPath/arguments_text.dart', '''
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
@@ -547,7 +547,7 @@ class A {}
   /// the textual dump of the introspection information for the first
   /// declaration.
   Future<String> _getDeclarationText(String declarationCode) async {
-    newFile2(
+    newFile(
       '$testPackageLibPath/declaration_text.dart',
       _declarationTextCode,
     );

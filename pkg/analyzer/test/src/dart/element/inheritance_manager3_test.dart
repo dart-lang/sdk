@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class InheritanceManager3Test extends _InheritanceManager3Base {
   test_getInheritedMap_topMerge_method() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.6
 class A {
   void foo({int a}) {}
@@ -69,7 +69,7 @@ class Y extends A<Object?> with M<dynamic> {}
   }
 
   test_getMember_optIn_inheritsOptIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -93,7 +93,7 @@ class B extends A {
   }
 
   test_getMember_optIn_inheritsOptOut() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.6
 class A {
   int foo(int a, int b) => 0;
@@ -218,7 +218,7 @@ abstract class X extends A implements B {}
   }
 
   test_getMember_optOut_inheritsOptIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -244,7 +244,7 @@ class B extends A {
   }
 
   test_getMember_optOut_mixesOptIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -269,12 +269,12 @@ class B with A {
   }
 
   test_getMember_optOut_passOptIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
 }
 ''');
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.6
 import 'a.dart';
 class B extends A {

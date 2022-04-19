@@ -31,7 +31,7 @@ code-style:
     addTestFile('''
 void f() { int x = 3; }
 ''');
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A { A(); }
 ''');
     var edits = await _format();

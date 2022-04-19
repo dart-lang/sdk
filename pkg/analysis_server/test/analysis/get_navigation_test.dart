@@ -62,7 +62,7 @@ String main() {
 
   Future<void> test_comment_toolSeeCodeComment() async {
     var examplePath = 'examples/api/foo.dart';
-    newFile2('$testPackageLibPath/$examplePath', '');
+    newFile('$testPackageLibPath/$examplePath', '');
     addTestFile('''
 /// {@tool dartpad}
 /// ** See code in $examplePath **
@@ -147,7 +147,7 @@ class Bar {
   /// TODO(scheglov) Rewrite these tests to work with any file.
   @FailingTest(reason: 'requires infrastructure rewriting')
   Future<void> test_fileOutsideOfRoot() async {
-    var file = newFile2('/outside.dart', '''
+    var file = newFile('/outside.dart', '''
 main() {
   var test = 0;
   print(test);
@@ -187,8 +187,8 @@ main() {
   }
 
   Future<void> test_importUri_configurations() async {
-    final ioFile = newFile2('$testPackageLibPath/io.dart', '');
-    final htmlFile = newFile2('$testPackageLibPath/html.dart', '');
+    final ioFile = newFile('$testPackageLibPath/io.dart', '');
+    final htmlFile = newFile('$testPackageLibPath/html.dart', '');
     addTestFile('''
 import 'foo.dart'
   if (dart.library.io) 'io.dart'

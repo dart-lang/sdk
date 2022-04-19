@@ -84,10 +84,10 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
 
     try {
       extraFiles?.forEach((String fileName, String content) {
-        newFile2(fileName, content);
+        newFile(fileName, content);
       });
 
-      newFile2(testFile.path, spec.source);
+      newFile(testFile.path, spec.source);
       completionOffset = spec.testLocation;
       await getSuggestions(
         path: testFile.path,

@@ -40,7 +40,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     importRange = ranges[0];
     colorRange = ranges[1];
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
@@ -60,7 +60,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final colors = await getColorPresentation(
@@ -80,7 +80,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     colorRange = rangeFromMarkers(content);
 
     final outsideRootFilePath = convertPath('/home/other/test.dart');
-    newFile2(outsideRootFilePath, withoutMarkers(content));
+    newFile(outsideRootFilePath, withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
@@ -102,7 +102,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     ''';
     colorRange = rangeFromMarkers(content);
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
@@ -155,7 +155,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final colors = await getDocumentColors(pubspecFileUri.toString());
@@ -168,7 +168,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
 
     const red = [[Colors.red]];
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final colors = await getDocumentColors(mainFileUri.toString());

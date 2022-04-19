@@ -210,7 +210,7 @@ abstract class AbstractLspAnalysisServerTest
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
-    newFile2(join(projectFolderPath, 'lib', 'file.dart'), '');
+    newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
@@ -612,7 +612,7 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';
     var content = config.toContent(toUriStr: toUriStr);
-    newFile2(path, content);
+    newFile(path, content);
   }
 }
 

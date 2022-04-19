@@ -178,18 +178,18 @@ class _SimpleDartSdkTest with ResourceProviderMixin {
   late final DartSdk sdk;
 
   void setUp() {
-    newFile2('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart', '''
+    newFile('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart', '''
 const Map<String, LibraryInfo> libraries = const {
   "core": const LibraryInfo("core/core.dart")
 };
 ''');
 
-    newFile2('/sdk/lib/core/core.dart', '''
+    newFile('/sdk/lib/core/core.dart', '''
 library dart.core;
 part 'int.dart';
 ''');
 
-    newFile2('/sdk/lib/core/int.dart', '''
+    newFile('/sdk/lib/core/int.dart', '''
 part of dart.core;
 ''');
 

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnusedShownNameTest extends PubPackageResolutionTest {
   test_extension_instance_method_unused() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {
   String empty() => '';
 }
@@ -34,7 +34,7 @@ f() {
   }
 
   test_extension_instance_method_used() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {
   String empty() => '';
 }
@@ -49,7 +49,7 @@ f() {
   }
 
   test_referenced_prefixed_assignmentExpression() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
 ''');
 
@@ -63,7 +63,7 @@ void f() {
   }
 
   test_referenced_prefixed_postfixExpression() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
 ''');
 
@@ -77,7 +77,7 @@ void f() {
   }
 
   test_referenced_prefixed_prefixExpression() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
 ''');
 
@@ -91,7 +91,7 @@ void f() {
   }
 
   test_referenced_unprefixed_assignmentExpression() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
 ''');
 
@@ -105,7 +105,7 @@ void f() {
   }
 
   test_referenced_unprefixed_postfixExpression() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
 ''');
 
@@ -119,7 +119,7 @@ void f() {
   }
 
   test_referenced_unprefixed_prefixExpression() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
 ''');
 
@@ -133,7 +133,7 @@ void f() {
   }
 
   test_unreferenced() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
 ''');
@@ -157,7 +157,7 @@ main() {
   }
 
   test_unusedShownName_as() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
 ''');
@@ -170,7 +170,7 @@ p.A a = p.A();
   }
 
   test_unusedShownName_duplicates() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -188,7 +188,7 @@ C c = C();
   }
 
   test_unusedShownName_topLevelVariable() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 const int var1 = 1;
 const int var2 = 2;
 const int var3 = 3;

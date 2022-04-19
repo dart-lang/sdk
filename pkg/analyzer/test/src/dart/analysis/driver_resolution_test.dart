@@ -247,7 +247,7 @@ const a = 1;
   }
 
   test_annotation_onDirective_part() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
     addTestFile(r'''
@@ -270,7 +270,7 @@ const a = 1;
   }
 
   test_annotation_onDirective_partOf() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 ''');
     addTestFile(r'''
@@ -393,7 +393,7 @@ class C {
   }
 
   test_annotation_prefixed_classField() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 1;
 }
@@ -432,7 +432,7 @@ main() {}
   }
 
   test_annotation_prefixed_constructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a, {int b});
 }
@@ -473,7 +473,7 @@ main() {}
   }
 
   test_annotation_prefixed_constructor_named() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named(int a, {int b});
 }
@@ -516,7 +516,7 @@ main() {}
   }
 
   test_annotation_prefixed_topLevelVariable() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const topAnnotation = 1;
 ''');
     addTestFile(r'''
@@ -1422,7 +1422,7 @@ class B<U> {
   }
 
   test_deferredImport_loadLibrary_invocation() async {
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() {
@@ -1446,7 +1446,7 @@ main() {
   }
 
   test_deferredImport_loadLibrary_invocation_argument() async {
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 var b = 1;
@@ -1480,7 +1480,7 @@ main() {
   }
 
   test_deferredImport_loadLibrary_tearOff() async {
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() {
@@ -1503,7 +1503,7 @@ main() {
   }
 
   test_deferredImport_variable() async {
-    newFile2('$testPackageLibPath/a.dart', 'var v = 0;');
+    newFile('$testPackageLibPath/a.dart', 'var v = 0;');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() async {
@@ -1542,7 +1542,7 @@ main() async {
   }
 
   test_directive_export() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -1590,7 +1590,7 @@ export 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
   }
 
   test_directive_import_hide() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -1638,7 +1638,7 @@ import 'a.dart' hide MyClass, myVar, myGetter, mySetter, Unresolved;
   }
 
   test_directive_import_show() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -2187,7 +2187,7 @@ var b = new C.named(2);
   }
 
   test_instanceCreation_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C<T> {
   C(T p);
   C.named(T p);
@@ -3595,7 +3595,7 @@ main() {
 
   @failingTest
   test_invalid_nonTypeAsType_topLevelFunction_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int T() => 0;
 ''');
     addTestFile(r'''
@@ -3663,7 +3663,7 @@ main() {
 
   @failingTest
   test_invalid_nonTypeAsType_topLevelVariable_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int T;
 ''');
     addTestFile(r'''
@@ -5618,7 +5618,7 @@ const b = C.named(); // ref
   }
 
   test_optionalConst_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
   const C.named();
@@ -6132,7 +6132,7 @@ f(double computation(int p)) {
   }
 
   test_prefixedIdentifier_importPrefix_className() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class MyClass {}
 typedef void MyFunctionTypeAlias();
 int myTopVariable;
@@ -7733,9 +7733,9 @@ main() {
   }
 
   test_typeAnnotation_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
-    newFile2('$testPackageLibPath/b.dart', "export 'a.dart';");
-    newFile2('$testPackageLibPath/c.dart', "export 'a.dart';");
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', "export 'a.dart';");
+    newFile('$testPackageLibPath/c.dart', "export 'a.dart';");
     addTestFile(r'''
 import 'b.dart' as b;
 import 'c.dart' as c;

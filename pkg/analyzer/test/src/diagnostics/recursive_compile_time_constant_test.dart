@@ -73,7 +73,7 @@ class A {
   }
 
   test_fromMapLiteral() async {
-    newFile2(
+    newFile(
       '$testPackageLibPath/constants.dart',
       r'''
 const int x = y;

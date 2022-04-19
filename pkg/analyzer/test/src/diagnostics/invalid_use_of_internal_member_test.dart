@@ -37,12 +37,12 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
   }
 
   test_insidePackage() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 class A {}
 ''');
-    newFile2('$fooPackageRootPath/lib/a.dart', '''
+    newFile('$fooPackageRootPath/lib/a.dart', '''
 import 'src/a.dart';
 
 A a = A();
@@ -53,7 +53,7 @@ A a = A();
   }
 
   test_outsidePackage_class() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 class A {}
@@ -69,7 +69,7 @@ A a = A();
   }
 
   test_outsidePackage_constructor_named() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -87,7 +87,7 @@ C a = C.named();
   }
 
   test_outsidePackage_constructor_unnamed() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -105,7 +105,7 @@ C a = C();
   }
 
   test_outsidePackage_enum() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 enum E {one}
@@ -121,7 +121,7 @@ void f(E value) {}
   }
 
   test_outsidePackage_enumValue() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 enum E {@internal one}
 ''');
@@ -136,7 +136,7 @@ E f() => E.one;
   }
 
   test_outsidePackage_extensionMethod() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 extension E on String {
   @internal
@@ -154,7 +154,7 @@ int a = 'hello'.f();
   }
 
   test_outsidePackage_function() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int a() => 1;
@@ -170,7 +170,7 @@ int b = a() + 1;
   }
 
   test_outsidePackage_function_generic() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int a<T>() => 1;
@@ -186,7 +186,7 @@ int b = a<void>() + 1;
   }
 
   test_outsidePackage_function_generic_tearoff() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int a<T>() => 1;
@@ -202,7 +202,7 @@ int Function() b = a;
   }
 
   test_outsidePackage_function_tearoff() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int a() => 1;
@@ -218,7 +218,7 @@ int Function() b = a;
   }
 
   test_outsidePackage_functionLiteralForInternalTypedef() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 @internal
 typedef IntFunc = int Function(int);
 int foo(IntFunc f, int x) => f(x);
@@ -232,7 +232,7 @@ int g() => foo((x) => 2*x, 7);
   }
 
   test_outsidePackage_inCommentReference() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int get a => 1;
@@ -247,7 +247,7 @@ int b = 1;
   }
 
   test_outsidePackage_library() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 @internal
 library a;
 import 'package:meta/meta.dart';
@@ -262,7 +262,7 @@ import 'package:foo/src/a.dart';
   }
 
   test_outsidePackage_method() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -280,7 +280,7 @@ int a = C().m();
   }
 
   test_outsidePackage_method_generic() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -298,7 +298,7 @@ int a = C().m<void>();
   }
 
   test_outsidePackage_method_subclassed() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal int f() => 1;
@@ -317,7 +317,7 @@ int a = D().f();
   }
 
   test_outsidePackage_method_subclassed_overridden() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal int f() => 1;
@@ -336,7 +336,7 @@ int a = D().f();
   }
 
   test_outsidePackage_method_tearoff() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -354,7 +354,7 @@ int Function() a = C().m;
   }
 
   test_outsidePackage_methodParameter_named() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   int m({@internal int a = 0}) => 1;
@@ -372,7 +372,7 @@ int a = C().m(a: 5);
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_methodParameter_positional() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   int m([@internal int a = 0]) => 1;
@@ -389,7 +389,7 @@ int a = C().m(5);
   }
 
   test_outsidePackage_mixin() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 mixin A {}
@@ -405,7 +405,7 @@ class C with A {}
   }
 
   test_outsidePackage_pairedWithProtected() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -426,7 +426,7 @@ class D extends C {
   }
 
   test_outsidePackage_redirectingFactoryConstructor() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 class D implements C {
@@ -446,7 +446,7 @@ class C {
   }
 
   test_outsidePackage_setter() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal
@@ -466,7 +466,7 @@ f() {
   }
 
   test_outsidePackage_setter_compound() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   int get s() => 1;
@@ -488,7 +488,7 @@ f() {
   }
 
   test_outsidePackage_setter_questionQuestion() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   int get s() => 1;
@@ -510,7 +510,7 @@ f() {
   }
 
   test_outsidePackage_superConstructor() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal C();
@@ -529,7 +529,7 @@ class D extends C {
   }
 
   test_outsidePackage_superConstructor_named() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 class C {
   @internal C.named();
@@ -548,7 +548,7 @@ class D extends C {
   }
 
   test_outsidePackage_topLevelGetter() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int get a => 1;
@@ -564,7 +564,7 @@ int b = a + 1;
   }
 
   test_outsidePackage_typedef() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 typedef t = void Function();
@@ -581,7 +581,7 @@ t func = () {};
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_typedefParameter() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 typedef T = void Function({@internal int a = 1});
 ''');
@@ -596,7 +596,7 @@ void f(T t) => t(a: 5);
   }
 
   test_outsidePackage_variable() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int a = 1;
@@ -612,7 +612,7 @@ int b = a + 1;
   }
 
   test_outsidePackage_variable_prefixed() async {
-    newFile2('$fooPackageRootPath/lib/src/a.dart', '''
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal
 int a = 1;

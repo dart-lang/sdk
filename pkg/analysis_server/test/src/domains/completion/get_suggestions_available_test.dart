@@ -111,7 +111,7 @@ main() {
   }
 
   Future<void> test_defaultArgumentListString() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void fff(int aaa, int bbb) {}
 
 void ggg({int aaa, @required int bbb, @required int ccc}) {}
@@ -130,11 +130,11 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
 
   Future<void> test_displayUri_file() async {
     var aPath = '$testPackageRootPath/test/a.dart';
-    newFile2(aPath, 'class A {}');
+    newFile(aPath, 'class A {}');
 
     var aSet = await waitForSetWithUri(toUriStr(aPath));
 
-    var file = newFile2('$testPackageRootPath/test/sub/test.dart', '');
+    var file = newFile('$testPackageRootPath/test/sub/test.dart', '');
     var results = await _getSuggestions(file, 0);
 
     expect(
@@ -146,10 +146,10 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
   }
 
   Future<void> test_displayUri_package() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
 
     var aSet = await waitForSetWithUri('package:test/a.dart');
-    var file = newFile2('$testPackageLibPath/test.dart', '');
+    var file = newFile('$testPackageLibPath/test.dart', '');
 
     var results = await _getSuggestions(file, 0);
     expect(
@@ -217,9 +217,9 @@ main() {
   }
 
   Future<void> test_inHtml() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
 
-    var file = newFile2('$testPackageRoot/doc/a.html', '<html></html>');
+    var file = newFile('$testPackageRoot/doc/a.html', '<html></html>');
 
     await handleSuccessfulRequest(
       CompletionGetSuggestionsParams(file.path, 0).toRequest('0'),
@@ -256,7 +256,7 @@ main() {
   }
 
   Future<void> test_relevanceTags_enum() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 enum MyEnum {
   aaa, bbb
 }

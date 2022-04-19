@@ -67,7 +67,7 @@ linter:
     - annotate_overrides
 ''');
 
-    newFile2('$testPackageRootPath/test/test.dart', '''
+    newFile('$testPackageRootPath/test/test.dart', '''
 class A {
   void f() {}
 }
@@ -99,7 +99,7 @@ linter:
 name: subproject
 ''');
 
-    newFile2('$subprojectRoot/test.dart', '''
+    newFile('$subprojectRoot/test.dart', '''
 class A {
   void f() {}
 }
@@ -123,7 +123,7 @@ linter:
 name: subproject
 ''');
 
-    var file = newFile2('$subprojectRoot/test.dart', '''
+    var file = newFile('$subprojectRoot/test.dart', '''
 class A {
   void f() {}
 }
@@ -153,7 +153,7 @@ linter:
     - unnecessary_new
 ''');
 
-    var a = newFile2('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   A f() => new A();
 }

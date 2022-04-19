@@ -18,7 +18,7 @@ class YieldStatementResolutionTest extends PubPackageResolutionTest {
   setUp() {
     super.setUp();
 
-    newFile2('$testPackageLibPath/my_stream.dart', r'''
+    newFile('$testPackageLibPath/my_stream.dart', r'''
 import 'dart:async';
 
 export 'dart:async';

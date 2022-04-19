@@ -154,7 +154,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile2(path, '');
+        newFile(path, '');
       }
     }
     workspace = BazelWorkspace.find(
@@ -648,7 +648,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile2(path, '');
+        newFile(path, '');
       }
     }
     workspace =
@@ -718,10 +718,10 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage() {
     _setUpPackage();
-    final targetFile = newFile2('/ws/some/code/lib/code2.dart', '');
-    final targetFile2 = newFile2('/ws/some/code/lib/src/code3.dart', '');
-    final targetBinFile = newFile2('/ws/some/code/bin/code.dart', '');
-    final targetTestFile = newFile2('/ws/some/code/test/code_test.dart', '');
+    final targetFile = newFile('/ws/some/code/lib/code2.dart', '');
+    final targetFile2 = newFile('/ws/some/code/lib/src/code3.dart', '');
+    final targetBinFile = newFile('/ws/some/code/bin/code.dart', '');
+    final targetTestFile = newFile('/ws/some/code/test/code_test.dart', '');
 
     expect(package!.contains(_testSource(targetFile.path)), isTrue);
     expect(package!.contains(_testSource(targetFile2.path)), isTrue);
@@ -731,8 +731,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage_summarySource() {
     _setUpPackage();
-    newFile2('/ws/some/code/lib/code2.dart', '');
-    newFile2('/ws/some/code/lib/src/code3.dart', '');
+    newFile('/ws/some/code/lib/code2.dart', '');
+    newFile('/ws/some/code/lib/src/code3.dart', '');
     final file2Source = _inSummarySource('package:some.code/code2.dart');
     final file3Source = _inSummarySource('package:some.code/src/code2.dart');
 
@@ -742,8 +742,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_subPackage() {
     _setUpPackage();
-    newFile2('/ws/some/code/testing/BUILD', '');
-    newFile2('/ws/some/code/testing/lib/testing.dart', '');
+    newFile('/ws/some/code/testing/BUILD', '');
+    newFile('/ws/some/code/testing/lib/testing.dart', '');
 
     expect(
       package!.contains(
@@ -784,8 +784,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
   void test_findPackageFor_inBlazeOut_notPackage() {
     var path =
         convertPath('/ws/blaze-out/k8-opt/bin/news/lib/news_base.pb.dart');
-    newFile2('/ws/news/BUILD', '');
-    newFile2(path, '');
+    newFile('/ws/news/BUILD', '');
+    newFile(path, '');
     workspace = BazelWorkspace.find(resourceProvider, path)!;
 
     var package = workspace.findPackageFor(path);
@@ -801,7 +801,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
-    final targetFile = newFile2('/ws/some/code/lib/code.dart', '');
+    final targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     package = workspace.findPackageFor(targetFile.path);
     expect(package, isNull);
@@ -894,7 +894,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile2(path, '');
+        newFile(path, '');
       }
     }
   }
@@ -1138,7 +1138,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
 
   void test_find_null_symlinkPrefix() {
     String prefix = BazelWorkspace.defaultSymlinkPrefix;
-    newFile2('/workspace/WORKSPACE', '');
+    newFile('/workspace/WORKSPACE', '');
     var workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
@@ -1209,7 +1209,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
       } else {
-        newFile2(path, '');
+        newFile(path, '');
       }
     }
   }

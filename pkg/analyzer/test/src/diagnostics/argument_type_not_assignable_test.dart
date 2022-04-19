@@ -210,7 +210,7 @@ main() {
 mixin ArgumentTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_ambiguousClassName() async {
     // See dartbug.com/19624
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 class _A {}
 g(h(_A a)) {}''');
     await assertErrorsInCode('''

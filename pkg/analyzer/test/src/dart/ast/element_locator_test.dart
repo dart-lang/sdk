@@ -204,7 +204,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -220,7 +220,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 ''');
     await resolveTestCode(r'''
 class A {}
@@ -284,12 +284,12 @@ void main() {
     var libPath = convertPath('$testPackageLibPath/lib.dart');
     var partPath = convertPath('$testPackageLibPath/test.dart');
 
-    newFile2(libPath, r'''
+    newFile(libPath, r'''
 library my.lib;
 part 'test.dart';
 ''');
 
-    newFile2(partPath, r'''
+    newFile(partPath, r'''
 part of my.lib;
 ''');
 
@@ -326,7 +326,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_exportUri() async {
-    newFile2("$testPackageLibPath/foo.dart", '');
+    newFile("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("export 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
@@ -341,7 +341,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_importUri() async {
-    newFile2("$testPackageLibPath/foo.dart", '');
+    newFile("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("import 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
@@ -349,7 +349,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_partUri() async {
-    newFile2("$testPackageLibPath/foo.dart", 'part of lib;');
+    newFile("$testPackageLibPath/foo.dart", 'part of lib;');
     await resolveTestCode('''
 library lib;
 

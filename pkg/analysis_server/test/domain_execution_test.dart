@@ -178,8 +178,8 @@ void contextFunction() {
 }
 ''';
 
-    var path = newFile2('/test.dart', '').path;
-    newFile2(path, code);
+    var path = newFile('/test.dart', '').path;
+    newFile(path, code);
 
     var request = ExecutionGetSuggestionsParams(
         'a.',
@@ -203,7 +203,7 @@ void contextFunction() {
   }
 
   Future<void> test_mapUri_file() async {
-    var path = newFile2('/a/b.dart', '').path;
+    var path = newFile('/a/b.dart', '').path;
     // map the file
     var result = await _mapUri(file: path);
     expect(result.file, isNull);
@@ -219,7 +219,7 @@ void contextFunction() {
   }
 
   Future<void> test_mapUri_uri() async {
-    var path = newFile2('/a/b.dart', '').path;
+    var path = newFile('/a/b.dart', '').path;
     // map the uri
     var result = await _mapUri(uri: Uri.file(path).toString());
     expect(result.file, convertPath('/a/b.dart'));

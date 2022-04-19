@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ImportOfNonLibraryTest extends PubPackageResolutionTest {
   test_deferred() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 part of lib;
 class A {}
 ''');
@@ -31,7 +31,7 @@ var a = new p.A();
   }
 
   test_part() async {
-    newFile2('$testPackageLibPath/part.dart', r'''
+    newFile('$testPackageLibPath/part.dart', r'''
 part of lib;
 class A{}
 ''');

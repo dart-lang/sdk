@@ -132,7 +132,7 @@ main() {
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile2(testPath, content);
+    newFile(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

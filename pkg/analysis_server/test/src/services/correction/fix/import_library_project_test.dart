@@ -237,11 +237,11 @@ void f(String s) {
   Future<void> test_extension_otherPackage_exported_fromSrc() async {
     var pkgRootPath = '$packagesRootPath/aaa';
 
-    newFile2('$pkgRootPath/lib/a.dart', r'''
+    newFile('$pkgRootPath/lib/a.dart', r'''
 export 'src/b.dart';
 ''');
 
-    newFile2('$pkgRootPath/lib/src/b.dart', r'''
+    newFile('$pkgRootPath/lib/src/b.dart', r'''
 extension IntExtension on int {
   int get foo => 0;
 }
@@ -299,7 +299,7 @@ void f() {
   }
 
   Future<void> test_lib() async {
-    newFile2('$packagesRootPath/my_pkg/lib/a.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/a.dart', '''
 class Test {}
 ''');
 
@@ -331,7 +331,7 @@ main() {
   }
 
   Future<void> test_lib_extension() async {
-    newFile2('$packagesRootPath/my_pkg/lib/a.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/a.dart', '''
 extension E on int {
   static String m() => '';
 }
@@ -363,7 +363,7 @@ f() {
   }
 
   Future<void> test_lib_src() async {
-    newFile2('$packagesRootPath/my_pkg/lib/src/a.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/src/a.dart', '''
 class Test {}
 ''');
 
@@ -718,7 +718,7 @@ main() {
 
   Future<void> test_withClass_pub_other_inLib_dependencies() async {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile2('${aaaRoot.path}/lib/a.dart', '''
+    newFile('${aaaRoot.path}/lib/a.dart', '''
 class Test {}
 ''');
 
@@ -746,7 +746,7 @@ void f(Test t) {}
 
   Future<void> test_withClass_pub_other_inLib_devDependencies() async {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile2('${aaaRoot.path}/lib/a.dart', '''
+    newFile('${aaaRoot.path}/lib/a.dart', '''
 class Test {}
 ''');
 
@@ -770,7 +770,7 @@ void f(Test t) {}
 
   Future<void> test_withClass_pub_other_inLib_notListed() async {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile2('${aaaRoot.path}/lib/a.dart', '''
+    newFile('${aaaRoot.path}/lib/a.dart', '''
 class Test {}
 ''');
 
@@ -793,7 +793,7 @@ void f(Test t) {}
 
   Future<void> test_withClass_pub_other_inTest_dependencies() async {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile2('${aaaRoot.path}/lib/a.dart', '''
+    newFile('${aaaRoot.path}/lib/a.dart', '''
 class Test {}
 ''');
 
@@ -808,7 +808,7 @@ dependencies:
         ..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
-    var b = newFile2('$testPackageTestPath/b.dart', r'''
+    var b = newFile('$testPackageTestPath/b.dart', r'''
 void f(Test t) {}
 ''');
 
@@ -823,7 +823,7 @@ void f(Test t) {}
 
   Future<void> test_withClass_pub_other_inTest_devDependencies() async {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile2('${aaaRoot.path}/lib/a.dart', '''
+    newFile('${aaaRoot.path}/lib/a.dart', '''
 class Test {}
 ''');
 
@@ -838,7 +838,7 @@ dev_dependencies:
         ..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
-    var b = newFile2('$testPackageTestPath/b.dart', r'''
+    var b = newFile('$testPackageTestPath/b.dart', r'''
 void f(Test t) {}
 ''');
 
@@ -856,7 +856,7 @@ void f(Test t) {}
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class Test {}
 ''');
 
@@ -876,7 +876,7 @@ void f(Test t) {}
 name: test
 ''');
 
-    newFile2('$testPackageTestPath/a.dart', r'''
+    newFile('$testPackageTestPath/a.dart', r'''
 class Test {}
 ''');
 
@@ -891,11 +891,11 @@ void f(Test t) {}
 name: test
 ''');
 
-    newFile2('$testPackageTestPath/a.dart', r'''
+    newFile('$testPackageTestPath/a.dart', r'''
 class Test {}
 ''');
 
-    var b = newFile2('$testPackageTestPath/b.dart', r'''
+    var b = newFile('$testPackageTestPath/b.dart', r'''
 void f(Test t) {}
 ''');
 
@@ -913,7 +913,7 @@ void f(Test t) {}
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 extension IntExtension on int {
   int get foo => 0;
 }
@@ -1225,10 +1225,10 @@ class ImportLibraryProject2Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
 
   Future<void> test_lib() async {
-    newFile2('$packagesRootPath/my_pkg/lib/a.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/a.dart', '''
 export 'b.dart';
 ''');
-    newFile2('$packagesRootPath/my_pkg/lib/b.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/b.dart', '''
 class Test {}
 ''');
 
@@ -1258,10 +1258,10 @@ main() {
   }
 
   Future<void> test_lib_src() async {
-    newFile2('$packagesRootPath/my_pkg/lib/a.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/a.dart', '''
 export 'src/b.dart';
 ''');
-    newFile2('$packagesRootPath/my_pkg/lib/src/b.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/src/b.dart', '''
 class Test {}
 ''');
 
@@ -1291,10 +1291,10 @@ main() {
   }
 
   Future<void> test_lib_src_extension() async {
-    newFile2('$packagesRootPath/my_pkg/lib/a.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/a.dart', '''
 export 'src/b.dart';
 ''');
-    newFile2('$packagesRootPath/my_pkg/lib/src/b.dart', '''
+    newFile('$packagesRootPath/my_pkg/lib/src/b.dart', '''
 extension E on int {
   static String m() => '';
 }
@@ -1354,7 +1354,7 @@ f() {
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/src/a.dart', r'''
+    newFile('$testPackageLibPath/src/a.dart', r'''
 class Test {}
 ''');
 
@@ -1374,11 +1374,11 @@ void f(Test t) {}
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/src/a.dart', r'''
+    newFile('$testPackageLibPath/src/a.dart', r'''
 class Test {}
 ''');
 
-    var b = newFile2('$testPackageTestPath/b.dart', r'''
+    var b = newFile('$testPackageTestPath/b.dart', r'''
 void f(Test t) {}
 ''');
 

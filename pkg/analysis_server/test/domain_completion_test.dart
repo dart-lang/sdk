@@ -78,7 +78,7 @@ dependencies:
 ''');
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
-    newFile2('${aaaRoot.path}/lib/f.dart', '''
+    newFile('${aaaRoot.path}/lib/f.dart', '''
 class Test {}
 ''');
 
@@ -109,7 +109,7 @@ void f() {
   }
 
   Future<void> test_import_package_this() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class Test {}
 ''');
 
@@ -174,7 +174,7 @@ void f() {
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    newFile2(
+    newFile(
         path,
         content.substring(0, completionOffset) +
             content.substring(completionOffset + 1));
@@ -233,7 +233,7 @@ class CompletionDomainHandlerGetSuggestions2Test
       abortedIdSet.add(request.id);
     });
 
-    newFile2(testFilePath, '');
+    newFile(testFilePath, '');
 
     await _configureWithWorkspaceRoot();
 
@@ -271,7 +271,7 @@ class CompletionDomainHandlerGetSuggestions2Test
       abortedIdSet.add(request.id);
     });
 
-    newFile2(testFilePath, '');
+    newFile(testFilePath, '');
 
     await _configureWithWorkspaceRoot();
 
@@ -312,13 +312,13 @@ class CompletionDomainHandlerGetSuggestions2Test
   }
 
   Future<void> test_isNotImportedFeature_prefixed_classInstanceMethod() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   void foo01() {}
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 
 class B extends A {
@@ -392,13 +392,13 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_enumConstant() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 enum E1 {
   foo01
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 enum E2 {
   foo02
 }
@@ -432,13 +432,13 @@ void f() {
   Future<void> test_notImported_lowerRelevance_extension_getter() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 extension E2 on int {
   int get foo02 => 0;
 }
@@ -470,13 +470,13 @@ void f() {
   Future<void> test_notImported_lowerRelevance_extension_method() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   void foo01() {}
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 extension E2 on int {
   void foo02() {}
 }
@@ -508,13 +508,13 @@ void f() {
   Future<void> test_notImported_lowerRelevance_extension_setter() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   set foo01(int _) {}
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 extension E2 on int {
   set foo02(int _) {}
 }
@@ -544,11 +544,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_class() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -578,11 +578,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_getter() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 int get foo01 => 0;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 int get foo02 => 0;
 ''');
 
@@ -612,11 +612,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_setter() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 set foo01(int _) {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 set foo02(int _) {}
 ''');
 
@@ -646,11 +646,11 @@ void f() {
   }
 
   Future<void> test_notImported_lowerRelevance_topLevel_variable() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var foo01 = 0;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 var foo02 = 0;
 ''');
 
@@ -689,18 +689,18 @@ dev_dependencies:
 ''');
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
-    newFile2('${aaaRoot.path}/lib/f.dart', '''
+    newFile('${aaaRoot.path}/lib/f.dart', '''
 class A01 {}
 ''');
-    newFile2('${aaaRoot.path}/lib/src/f.dart', '''
+    newFile('${aaaRoot.path}/lib/src/f.dart', '''
 class A02 {}
 ''');
 
     var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
-    newFile2('${bbbRoot.path}/lib/f.dart', '''
+    newFile('${bbbRoot.path}/lib/f.dart', '''
 class A03 {}
 ''');
-    newFile2('${bbbRoot.path}/lib/src/f.dart', '''
+    newFile('${bbbRoot.path}/lib/src/f.dart', '''
 class A04 {}
 ''');
 
@@ -739,18 +739,18 @@ dev_dependencies:
 ''');
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
-    newFile2('${aaaRoot.path}/lib/f.dart', '''
+    newFile('${aaaRoot.path}/lib/f.dart', '''
 class A01 {}
 ''');
-    newFile2('${aaaRoot.path}/lib/src/f.dart', '''
+    newFile('${aaaRoot.path}/lib/src/f.dart', '''
 class A02 {}
 ''');
 
     var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
-    newFile2('${bbbRoot.path}/lib/f.dart', '''
+    newFile('${bbbRoot.path}/lib/f.dart', '''
 class A03 {}
 ''');
-    newFile2('${bbbRoot.path}/lib/src/f.dart', '''
+    newFile('${bbbRoot.path}/lib/src/f.dart', '''
 class A04 {}
 ''');
 
@@ -787,11 +787,11 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -818,12 +818,12 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_hasImport() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 class A02 {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 class A03 {}
 ''');
 
@@ -855,12 +855,12 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_hasImport_hasShow() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 class A02 {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 class A03 {}
 ''');
 
@@ -900,11 +900,11 @@ void f() {
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile2('$testPackageTestPath/b.dart', '''
+    newFile('$testPackageTestPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -932,11 +932,11 @@ void f() {
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/f.dart', '''
+    newFile('$testPackageLibPath/f.dart', '''
 class A01 {}
 ''');
 
-    newFile2('$testPackageLibPath/src/f.dart', '''
+    newFile('$testPackageLibPath/src/f.dart', '''
 class A02 {}
 ''');
 
@@ -967,11 +967,11 @@ void f() {
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    var b = newFile2('$testPackageTestPath/b.dart', '''
+    var b = newFile('$testPackageTestPath/b.dart', '''
 class A02 {}
 ''');
     var b_uriStr = toUriStr(b.path);
@@ -1007,11 +1007,11 @@ void f() {
 name: test
 ''');
 
-    newFile2('$testPackageLibPath/f.dart', '''
+    newFile('$testPackageLibPath/f.dart', '''
 class A01 {}
 ''');
 
-    newFile2('$testPackageLibPath/src/f.dart', '''
+    newFile('$testPackageLibPath/src/f.dart', '''
 class A02 {}
 ''');
 
@@ -1100,7 +1100,7 @@ void f() {
   Future<void> test_numResults_topLevelVariables_imported_withPrefix() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var foo01 = 0;
 var foo02 = 0;
 var foo03 = 0;
@@ -1280,7 +1280,7 @@ void f() {
   Future<void> test_prefixed_expression_extensionGetters_notImported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
   int get bar => 0;
@@ -1321,7 +1321,7 @@ void f() {
       test_prefixed_expression_extensionGetters_notImported_private() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
 }
@@ -1389,7 +1389,7 @@ void f() {
   Future<void> test_prefixed_expression_extensionMethods_notImported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   void foo01() {}
   void bar() {}
@@ -1462,7 +1462,7 @@ void f() {
   Future<void> test_prefixed_expression_extensionSetters_notImported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   set foo01(int _) {}
   set bar(int _) {}
@@ -1503,7 +1503,7 @@ void f() {
       test_prefixed_expression_extensionSetters_notImported_private() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   set foo01(int _) {}
 }
@@ -1538,7 +1538,7 @@ void f() {
   Future<void> test_prefixed_extensionGetters_imported() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension E1 on int {
   int get foo01 => 0;
   int get foo02 => 0;
@@ -1682,11 +1682,11 @@ void f() {
   Future<void> test_unprefixed_imported_class() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A01 {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 class A02 {}
 ''');
 
@@ -1720,11 +1720,11 @@ void f() {
   Future<void> test_unprefixed_imported_topLevelVariable() async {
     await _configureWithWorkspaceRoot();
 
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var foo01 = 0;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 var foo02 = 0;
 ''');
 
@@ -1927,7 +1927,7 @@ void f() {
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    newFile2(
+    newFile(
       path,
       content.substring(0, completionOffset) +
           content.substring(completionOffset + 1),
@@ -2233,7 +2233,7 @@ extension MyClassExtension on MyClass {
   Future<void> test_import_uri_with_trailing() async {
     final filePath = '/project/bin/testA.dart';
     final incompleteImportText = toUriStr('/project/bin/t');
-    newFile2(filePath, 'library libA;');
+    newFile(filePath, 'library libA;');
     await getTestCodeSuggestions('''
     import "$incompleteImportText^.dart";
     void f() {}''');
@@ -2525,7 +2525,7 @@ extension MyClassExtension on MyClass {
   }
 
   Future<void> test_inDartDoc_reference1() async {
-    newFile2('/testA.dart', '''
+    newFile('/testA.dart', '''
   part of libA;
   foo(bar) => 0;''');
     await getTestCodeSuggestions('''
@@ -2666,7 +2666,7 @@ void f() {
   }
 
   Future<void> test_local_override() async {
-    newFile2('/project/bin/a.dart', 'class A {m() {}}');
+    newFile('/project/bin/a.dart', 'class A {m() {}}');
     await getTestCodeSuggestions('''
 import 'a.dart';
 class B extends A {
@@ -2730,7 +2730,7 @@ void f() {
   }
 
   Future<void> test_overrides() async {
-    newFile2('/project/bin/a.dart', 'class A {m() {}}');
+    newFile('/project/bin/a.dart', 'class A {m() {}}');
     await getTestCodeSuggestions('''
 import 'a.dart';
 class B extends A {m() {^}}
@@ -2741,7 +2741,7 @@ class B extends A {m() {^}}
   }
 
   Future<void> test_partFile() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
       library libA;
       import 'dart:html';
       part 'test.dart';
@@ -2762,7 +2762,7 @@ class B extends A {m() {^}}
   }
 
   Future<void> test_partFile2() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
       part of libA;
       class A { }''');
     await getTestCodeSuggestions('''

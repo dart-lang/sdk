@@ -140,7 +140,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   /// TODO(scheglov) rename
   void addTestFile(String content) {
-    newFile2(testFilePath, content);
+    newFile(testFilePath, content);
   }
 
   void assertResponseFailure(
