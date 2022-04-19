@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
@@ -1631,14 +1632,20 @@ class TypeSchemaEnvironmentTest {
         inferredTypeNodes = parseTypes(inferredTypesFromDownwardPhase);
       }
 
-      typeSchemaEnvironment.inferGenericFunctionOrType(
-          declaredReturnTypeNode,
-          typeParameterNodesToInfer,
-          formalTypeNodes,
-          actualTypeNodes,
-          returnContextTypeNode,
-          inferredTypeNodes,
-          testLibrary);
+      TypeConstraintGatherer gatherer =
+          typeSchemaEnvironment.setupGenericTypeInference(
+              declaredReturnTypeNode,
+              typeParameterNodesToInfer,
+              returnContextTypeNode,
+              testLibrary);
+      if (formalTypeNodes == null) {
+        typeSchemaEnvironment.downwardsInfer(gatherer,
+            typeParameterNodesToInfer, inferredTypeNodes, testLibrary);
+      } else {
+        gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!);
+        typeSchemaEnvironment.upwardsInfer(gatherer, typeParameterNodesToInfer,
+            inferredTypeNodes, testLibrary);
+      }
 
       assert(
           inferredTypeNodes.length == expectedTypeNodes.length,
