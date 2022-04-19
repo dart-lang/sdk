@@ -24,6 +24,7 @@ main(List<String> args) async {
   await withTempDir((String tmp) async {
     final String timelinePath = path.join(tmp, "timeline.json");
     final p = await Process.run(Platform.executable, [
+      ...Platform.executableArguments,
       "--trace_timeline",
       "--timeline_recorder=file:$timelinePath",
       "--timeline_streams=VM,Isolate,GC,Compiler",
