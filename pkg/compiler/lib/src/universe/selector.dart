@@ -68,15 +68,7 @@ class Selector {
   LibraryEntity get library => memberName.library;
 
   static bool isOperatorName(String name) {
-    if (name == Names.INDEX_SET_NAME.text) {
-      return true;
-    } else if (name == UnaryOperator.NEGATE.selectorName) {
-      return true;
-    } else if (name == UnaryOperator.COMPLEMENT.selectorName) {
-      return true;
-    } else {
-      return BinaryOperator.parseUserDefinable(name) != null;
-    }
+    return instanceMethodOperatorNames.contains(name);
   }
 
   Selector.internal(
