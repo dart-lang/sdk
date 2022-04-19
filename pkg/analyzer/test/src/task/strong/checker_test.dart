@@ -2884,15 +2884,15 @@ class A {
   }
 
   test_relaxedCasts() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(r'''
 class A {}
 
 class L<T> {}
 class M<T> extends L<T> {}
 //     L<dynamic|Object>
-//    /              
+//    /              \
 // M<dynamic|Object>  L<A>
-//                  /
+//    \              /
 //          M<A>
 // In normal Dart, there are additional edges
 //  from M<A> to M<dynamic>
@@ -2962,10 +2962,10 @@ void main() {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 764, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 783, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1032, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1202, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 766, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 785, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1034, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1204, 5),
     ]);
   }
 
