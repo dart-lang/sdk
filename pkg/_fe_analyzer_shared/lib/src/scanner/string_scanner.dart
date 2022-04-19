@@ -4,7 +4,13 @@
 
 library dart2js.scanner.string_scanner;
 
-import 'token.dart' show Token, SyntheticStringToken, TokenType;
+import 'token.dart'
+    show
+        CommentToken,
+        LanguageVersionToken,
+        SyntheticStringToken,
+        Token,
+        TokenType;
 
 import 'token.dart' as analyzer show StringToken;
 
@@ -12,7 +18,11 @@ import 'abstract_scanner.dart'
     show AbstractScanner, LanguageVersionChanged, ScannerConfiguration;
 
 import 'token_impl.dart'
-    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
+    show
+        CommentTokenImpl,
+        DartDocToken,
+        LanguageVersionTokenImpl,
+        StringTokenImpl;
 
 import 'error_token.dart' show ErrorToken;
 
@@ -69,7 +79,7 @@ class StringScanner extends AbstractScanner {
   analyzer.StringToken createSubstringToken(
       TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    return new StringToken.fromSubstring(
+    return new StringTokenImpl.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true, precedingComments: comments);
   }
@@ -85,7 +95,7 @@ class StringScanner extends AbstractScanner {
   @override
   CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    return new CommentToken.fromSubstring(
+    return new CommentTokenImpl.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
   }
@@ -101,7 +111,7 @@ class StringScanner extends AbstractScanner {
   @override
   LanguageVersionToken createLanguageVersionToken(
       int start, int major, int minor) {
-    return new LanguageVersionToken.fromSubstring(
+    return new LanguageVersionTokenImpl.fromSubstring(
         string, start, scanOffset, tokenStart, major, minor,
         canonicalize: true);
   }

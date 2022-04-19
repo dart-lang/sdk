@@ -406,7 +406,10 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
         }
       }
       if (addTypes) {
-        sb.write("[${token.runtimeType}]");
+        // Avoid 6000+ changes caused by "Impl" being added to some token
+        // classes.
+        String type = token.runtimeType.toString().replaceFirst("Impl", "");
+        sb.write("[$type]");
       }
       printed = true;
       endOfLast = token.end;

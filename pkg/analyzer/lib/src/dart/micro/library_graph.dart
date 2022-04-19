@@ -877,7 +877,7 @@ class _FileStateUnlinked {
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
-    StringToken.canonicalizer.clear();
+    StringTokenImpl.canonicalizer.clear();
 
     // TODO(scheglov) Use actual versions.
     unit.languageVersion = LibraryLanguageVersion(
