@@ -136,7 +136,7 @@ library;
 import self as self2;
 import "dart:core" as core;
 
-typedef F = () →? void;
+typedef F = () →* void;
 class A<T extends core::Object* = dynamic> extends core::Object {
   field core::int* field = 42;
   synthetic constructor •() → self2::A<self2::A::T*>*
@@ -158,15 +158,15 @@ class B extends self2::A<core::String*> {
     : super self2::A::•()
     ;
 }
-static field core::List<core::String?>* l = <core::String*>[];
-static field core::String? s = null;
+static field core::List<core::String*>* l = <core::String*>[];
+static field core::String* s = null;
 static field core::String* t = self2::s!;
 static field core::int* field = 42;
 static method method(() →* void f, {core::int* a = #C1}) → void {}
 static method errors() → dynamic {
   core::int* local = 42;
-  has-declared-initializer core::List<core::String?>* l = null;
-  has-declared-initializer core::String? s = null;
+  has-declared-initializer core::List<core::String*>* l = null;
+  has-declared-initializer core::String* s = null;
   core::String* t = s!;
   dynamic c;
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.

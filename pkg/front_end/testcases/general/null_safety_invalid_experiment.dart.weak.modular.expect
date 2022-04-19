@@ -13,5 +13,5 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static field core::int? i;
+static field core::int* i;
 static method main() → dynamic {}

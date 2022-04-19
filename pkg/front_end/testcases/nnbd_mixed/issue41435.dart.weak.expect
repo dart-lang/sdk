@@ -11,7 +11,7 @@ static method main() → void {
   iss::takesNever(null);
   iss::takesNever(nil);
   iss::takesTakesNull(#C1);
-  iss::f = (Null x) → Null {};
+  iss::f = (Never* x) → Null {};
 }
 
 library /*isNonNullableByDefault*/;
