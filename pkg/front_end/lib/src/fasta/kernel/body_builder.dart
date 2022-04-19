@@ -773,8 +773,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
-    return new JumpTarget(
-        kind, functionNestingLevel, member as MemberBuilder, charOffset);
+    return new JumpTarget(kind, functionNestingLevel, uri, charOffset);
   }
 
   void inferAnnotations(TreeNode? parent, List<Expression>? annotations) {
@@ -6311,8 +6310,8 @@ class BodyBuilder extends StackListenerImpl
     List<Label>? labels = const FixedNullableList<Label>()
         .popNonNullable(stack, labelCount, dummyLabel);
     enterLocalScope('labeledStatement', scope.createNestedLabelScope());
-    LabelTarget target = new LabelTarget(
-        member as MemberBuilder, functionNestingLevel, token.charOffset);
+    LabelTarget target =
+        new LabelTarget(functionNestingLevel, uri, token.charOffset);
     if (labels != null) {
       for (Label label in labels) {
         scope.declareLabel(label.name, target);
@@ -7493,14 +7492,12 @@ class JumpTarget {
 
   final int functionNestingLevel;
 
-  final MemberBuilder parent;
+  final Uri fileUri;
 
   final int charOffset;
 
   JumpTarget(
-      this.kind, this.functionNestingLevel, this.parent, this.charOffset);
-
-  Uri get fileUri => parent.fileUri!;
+      this.kind, this.functionNestingLevel, this.fileUri, this.charOffset);
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
 
@@ -7563,9 +7560,6 @@ class JumpTarget {
 }
 
 class LabelTarget implements JumpTarget {
-  @override
-  final MemberBuilder parent;
-
   final JumpTarget breakTarget;
 
   final JumpTarget continueTarget;
@@ -7574,16 +7568,16 @@ class LabelTarget implements JumpTarget {
   final int functionNestingLevel;
 
   @override
-  final int charOffset;
-
-  LabelTarget(this.parent, this.functionNestingLevel, this.charOffset)
-      : breakTarget = new JumpTarget(
-            JumpTargetKind.Break, functionNestingLevel, parent, charOffset),
-        continueTarget = new JumpTarget(
-            JumpTargetKind.Continue, functionNestingLevel, parent, charOffset);
+  final Uri fileUri;
 
   @override
-  Uri get fileUri => parent.fileUri!;
+  final int charOffset;
+
+  LabelTarget(this.functionNestingLevel, this.fileUri, this.charOffset)
+      : breakTarget = new JumpTarget(
+            JumpTargetKind.Break, functionNestingLevel, fileUri, charOffset),
+        continueTarget = new JumpTarget(
+            JumpTargetKind.Continue, functionNestingLevel, fileUri, charOffset);
 
   @override
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
