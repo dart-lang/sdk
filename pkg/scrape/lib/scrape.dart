@@ -223,15 +223,21 @@ class Scrape {
       if (entry.path.endsWith('README.dart')) continue;
 
       if (!_includeLanguageTests) {
-        if (entry.path.contains('/sdk/tests/')) continue;
-        if (entry.path.contains('/testcases/')) continue;
-        if (entry.path.contains('/sdk/runtime/tests/')) continue;
-        if (entry.path.contains('/linter/test/_data/')) continue;
-        if (entry.path.contains('/analyzer/test/')) continue;
-        if (entry.path.contains('/dev_compiler/test/')) continue;
-        if (entry.path.contains('/analyzer_cli/test/')) continue;
+        if (entry.path.contains('/_fe_analyzer_shared/test/')) continue;
         if (entry.path.contains('/analysis_server/test/')) continue;
+        if (entry.path.contains('/analyzer/test/')) continue;
+        if (entry.path.contains('/analyzer_cli/test/')) continue;
+        if (entry.path.contains('/compiler/test/')) continue;
+        if (entry.path.contains('/dart/runtime/observatory/tests/')) continue;
+        if (entry.path.contains('/dart/runtime/observatory_2/tests/')) continue;
+        if (entry.path.contains('/dart/runtime/tests/')) continue;
+        if (entry.path.contains('/dart/tests/')) continue;
+        if (entry.path.contains('/dev_compiler/test/')) continue;
+        if (entry.path.contains('/front_end/parser_testcases/')) continue;
+        if (entry.path.contains('/front_end/test/')) continue;
         if (entry.path.contains('/kernel/test/')) continue;
+        if (entry.path.contains('/linter/test/_data/')) continue;
+        if (entry.path.contains('/testcases/')) continue;
       }
 
       if (!_includeTests) {
