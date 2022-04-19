@@ -105,7 +105,7 @@ include: package:pedantic/analysis_options.yaml
   Future<void> test_androidManifestFile() async {
     var manifestPath =
         join(testPackageRootPath, 'android', 'AndroidManifest.xml');
-    var manifestFile = newFile2(manifestPath, '''
+    var manifestFile = newFile(manifestPath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -135,7 +135,7 @@ analyzer:
   Future<void> test_androidManifestFile_dotDirectoryIgnored() async {
     var manifestPath =
         join(testPackageRootPath, 'ios', '.symlinks', 'AndroidManifest.xml');
-    var manifestFile = newFile2(manifestPath, '''
+    var manifestFile = newFile(manifestPath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -170,10 +170,10 @@ analyzer:
     // Add the generated project into package_config.json.
     final config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
-    newFile2(configPath, config.toContent(toUriStr: toUriStr));
+    newFile(configPath, config.toContent(toUriStr: toUriStr));
 
     // Set up project that references the class prior to initial analysis.
-    newFile2(generatedFile, 'class A {}');
+    newFile(generatedFile, 'class A {}');
     addTestFile('''
 import 'package:foo/foo.dart';
 A? a;
@@ -194,7 +194,7 @@ A? a;
   }
 
   Future<void> test_dataFile() async {
-    var dataFile = newFile2('$testPackageLibPath/fix_data.yaml', '''
+    var dataFile = newFile('$testPackageLibPath/fix_data.yaml', '''
 version: 1
 transforms:
 ''');
@@ -220,7 +220,7 @@ transforms:
     await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
     var brokenFile =
-        newFile2(join(testPackageRootPath, '.dart_tool/broken.dart'), 'err');
+        newFile(join(testPackageRootPath, '.dart_tool/broken.dart'), 'err');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -244,7 +244,7 @@ transforms:
     await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
     var brokenFile =
-        newFile2('$testPackageRootPath/.dart_tool/broken.dart', 'err');
+        newFile('$testPackageRootPath/.dart_tool/broken.dart', 'err');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -269,7 +269,7 @@ analyzer:
 ''');
     await setRoots(included: [workspaceRootPath], excluded: []);
     var excludedFile =
-        newFile2('$testPackageRootPath/excluded/broken.dart', 'err');
+        newFile('$testPackageRootPath/excluded/broken.dart', 'err');
 
     // There should be no errors initially.
     await waitForTasksFinished();
@@ -344,7 +344,7 @@ linter:
 
   Future<void> test_notInAnalysisRoot() async {
     await setRoots(included: [workspaceRootPath], excluded: []);
-    var otherFile = newFile2('/other.dart', 'UnknownType V;');
+    var otherFile = newFile('/other.dart', 'UnknownType V;');
     addTestFile('''
 import '/other.dart';
 main() {
@@ -361,7 +361,7 @@ main() {
     await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
     var brokenFile =
-        newFile2('$testPackageRootPath/.dart_tool/broken.dart', 'err');
+        newFile('$testPackageRootPath/.dart_tool/broken.dart', 'err');
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

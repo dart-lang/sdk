@@ -158,7 +158,7 @@ class CCC extends BBB implements AAA {}
 
   Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    newFile2('$packagesRootPath/pkgA/lib/libA.dart', '''
+    newFile('$packagesRootPath/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 class B extends A {}
@@ -648,7 +648,7 @@ class D extends C {
   }
 
   Future<void> test_class_member_method_private_differentLib() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 import 'test.dart';
 class A {
   void _m() {}

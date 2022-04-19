@@ -38,7 +38,7 @@ C c = C.m();
   }
 
   test_definedInPrivateExtension() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class B {}
 
 extension _ on B {
@@ -57,7 +57,7 @@ f(B b) {
   }
 
   test_definedInUnnamedExtension() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class C {}
 
 extension on C {

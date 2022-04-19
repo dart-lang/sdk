@@ -42,7 +42,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   void addTestFile(String content, {bool priority = false}) {
     testCode = content;
-    newFile2(testFile, content);
+    newFile(testFile, content);
     driver.addFile(testFile);
     if (priority) {
       driver.priorityFiles = [testFile];

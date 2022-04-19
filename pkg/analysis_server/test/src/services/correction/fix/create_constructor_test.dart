@@ -40,7 +40,7 @@ class CreateConstructorTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
 
   Future<void> test_inLibrary_insteadOfSyntheticDefault() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
@@ -60,7 +60,7 @@ class A {
   }
 
   Future<void> test_inLibrary_named() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;

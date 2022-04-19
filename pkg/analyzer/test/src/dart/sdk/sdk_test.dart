@@ -233,7 +233,7 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
       parent = parent.getChildAssumingFolder(segments[i]);
     }
     File file = parent.getChildAssumingFile(segments[last]);
-    newFile2(file.path, content);
+    newFile(file.path, content);
   }
 
   String _librariesFileContent() => '''

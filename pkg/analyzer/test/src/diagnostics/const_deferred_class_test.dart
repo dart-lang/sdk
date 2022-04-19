@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ConstDeferredClassTest extends PubPackageResolutionTest {
   test_namedConstructor() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {
   const A.b();
@@ -32,7 +32,7 @@ main() {
   }
 
   test_nonFunctionTypedef() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {
   const A();
@@ -51,7 +51,7 @@ main() {
   }
 
   test_unnamed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {
   const A();

@@ -73,7 +73,7 @@ void f(A a) {
   }
 
   Future<void> test_importLibrary_withClass() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class Test {}
 ''');
     await fileResolver.resolve2(path: a.path);
@@ -90,7 +90,7 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withEnum() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 enum Test {a, b, c}
 ''');
     await fileResolver.resolve2(path: a.path);
@@ -107,7 +107,7 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withExtension() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 extension E on int {
   void foo() {}
 }
@@ -130,7 +130,7 @@ void f() {
   }
 
   Future<void> test_importLibrary_withFunction() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 void foo() {}
 ''');
     await fileResolver.resolve2(path: a.path);
@@ -151,7 +151,7 @@ void f() {
   }
 
   Future<void> test_importLibrary_withMixin() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 mixin Test {}
 ''');
     await fileResolver.resolve2(path: a.path);
@@ -168,7 +168,7 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withTopLevelVariable() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
     await fileResolver.resolve2(path: a.path);
@@ -230,7 +230,7 @@ var v = 0;
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile2(testPath, content);
+    newFile(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

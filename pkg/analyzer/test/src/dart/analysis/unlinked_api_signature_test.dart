@@ -1393,11 +1393,11 @@ typedef F = void Function(double);
   void _assertSignature(String oldCode, String newCode, {required bool same}) {
     var path = convertPath('/test.dart');
 
-    newFile2(path, oldCode);
+    newFile(path, oldCode);
     var oldUnit = parseUnit(path).unit;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
-    newFile2(path, newCode);
+    newFile(path, newCode);
     var newUnit = parseUnit(path).unit;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 

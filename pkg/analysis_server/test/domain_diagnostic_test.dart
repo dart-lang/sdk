@@ -18,7 +18,7 @@ void main() {
 class DiagnosticDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_getDiagnostics() async {
     newPubspecYamlFile(testPackageRootPath, 'name: project');
-    newFile2('$testPackageLibPath/test.dart', 'main() {}');
+    newFile('$testPackageLibPath/test.dart', 'main() {}');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;

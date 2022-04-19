@@ -192,7 +192,7 @@ void a(String b) {
 
   Future<List<SelectionRange>?> _computeSelectionRanges(
       String sourceContent, int offset) async {
-    newFile2(sourcePath, sourceContent);
+    newFile(sourcePath, sourceContent);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = DartSelectionRangeComputer(result.unit, offset);

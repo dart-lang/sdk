@@ -34,7 +34,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -76,7 +76,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -110,7 +110,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     final expectedCreatedFile =
         path.join(path.dirname(mainFilePath), 'newfile.dart');
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -141,7 +141,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     ofKind(CodeActionKind kind) => getCodeActions(
@@ -166,7 +166,7 @@ var a = [[foo]]();
 var b = bar();
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -188,7 +188,7 @@ void f(String a) {
 }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -217,7 +217,7 @@ void f(String a) {
   print(a);
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -260,7 +260,7 @@ import 'dart:async';
 import 'dart:convert';
 
 Future foo;''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -295,7 +295,7 @@ import 'dart:async';
 import 'dart:convert';
 
 Future foo;''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -330,7 +330,7 @@ Future foo;''';
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -358,7 +358,7 @@ Future foo;''';
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -378,7 +378,7 @@ Future foo;''';
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -395,7 +395,7 @@ Future foo;''';
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -408,7 +408,7 @@ Future foo;''';
 
   Future<void> test_organizeImportsFix_namedOrganizeImports() async {
     registerLintRules();
-    newFile2(analysisOptionsPath, '''
+    newFile(analysisOptionsPath, '''
 linter:
   rules:
     - directives_ordering
@@ -430,7 +430,7 @@ import 'dart:io';
 Completer a;
 ProcessInfo b;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -457,7 +457,7 @@ ProcessInfo b;
   Future<void> test_outsideRoot() async {
     final otherFilePath = convertPath('/home/otherProject/foo.dart');
     final otherFileUri = Uri.file(otherFilePath);
-    newFile2(otherFilePath, 'bad code to create error');
+    newFile(otherFilePath, 'bad code to create error');
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -501,7 +501,7 @@ ProcessInfo b;
           request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -551,7 +551,7 @@ ProcessInfo b;
           request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -589,7 +589,7 @@ class A {
 }
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -637,7 +637,7 @@ main() {
 useFunction(int g(a, b)) {}
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),

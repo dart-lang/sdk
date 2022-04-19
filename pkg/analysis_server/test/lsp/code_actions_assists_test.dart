@@ -45,7 +45,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -86,7 +86,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -122,7 +122,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     // indicating this is not a valid (Dart) int.
     // https://github.com/dart-lang/sdk/issues/42786
 
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize();
 
     final request = makeRequest(
@@ -157,7 +157,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -191,7 +191,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -228,7 +228,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -285,7 +285,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -357,7 +357,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -421,7 +421,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -463,7 +463,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     build() => Contai^ner(child: Container());
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -504,7 +504,7 @@ void f() {
 }
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),

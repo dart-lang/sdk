@@ -30,7 +30,7 @@ class CompletionMixinTest with ResourceProviderMixin {
   void setUp() {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
-    newFile2(filePath1, 'int foo = bar;');
+    newFile(filePath1, 'int foo = bar;');
     contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
     channel = MockChannel();

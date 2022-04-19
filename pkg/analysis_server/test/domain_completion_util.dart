@@ -86,7 +86,7 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    newFile2(
+    newFile(
       path,
       content.substring(0, completionOffset) +
           content.substring(completionOffset + 1),

@@ -36587,7 +36587,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
-    newFile2('/a.dart', r'''
+    newFile('/a.dart', r'''
 typedef A = List<int>;
 ''');
     var library = await buildLibrary(r'''

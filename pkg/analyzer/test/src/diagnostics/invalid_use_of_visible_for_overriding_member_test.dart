@@ -23,7 +23,7 @@ class InvalidUseOfVisibleForOverridingMemberTest
   }
 
   test_differentLibrary_invalid() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class Parent {
@@ -45,7 +45,7 @@ class Child extends Parent {
   }
 
   test_differentLibrary_valid_onlyOverride() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class Parent {
@@ -65,7 +65,7 @@ class Child extends Parent {
   }
 
   test_differentLibrary_valid_overrideAndUse() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class Parent {
@@ -89,7 +89,7 @@ class Child extends Parent {
   }
 
   test_getter() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -112,7 +112,7 @@ class B {
   }
 
   test_operator() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -133,7 +133,7 @@ class B {
   }
 
   test_overriding_getter() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -157,7 +157,7 @@ class B extends A {
   }
 
   test_overriding_methodInvocation() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -181,7 +181,7 @@ class B extends A {
   }
 
   test_overriding_operator() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -205,7 +205,7 @@ class B extends A {
   }
 
   test_overriding_setter() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -246,7 +246,7 @@ class Child extends Parent {
   }
 
   test_setter() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class A {

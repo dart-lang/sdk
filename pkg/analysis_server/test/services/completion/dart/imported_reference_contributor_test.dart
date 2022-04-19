@@ -1237,7 +1237,7 @@ class B extends A {
   }
 
   Future<void> test_Block_unimported() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
 
     addTestSource('void f() { ^ }');
 
@@ -1971,7 +1971,7 @@ void f() {
   }
 
   Future<void> test_ExtendsClause() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -1982,7 +1982,7 @@ class B extends ^
   }
 
   Future<void> test_ExtensionDeclaration_extendedType() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -1994,7 +1994,7 @@ extension E on ^
   }
 
   Future<void> test_ExtensionDeclaration_extendedType2() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -2006,7 +2006,7 @@ extension E on ^ {}
   }
 
   Future<void> test_ExtensionDeclaration_member() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -2697,7 +2697,7 @@ void f() {
   }
 
   Future<void> test_implementsClause() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -4898,7 +4898,7 @@ List<^> x;
   }
 
   Future<void> test_withClause_mixin() async {
-    newFile2('$testPackageLibPath/a.dart', 'mixin M {}');
+    newFile('$testPackageLibPath/a.dart', 'mixin M {}');
     addTestSource('''
 import 'a.dart';
 

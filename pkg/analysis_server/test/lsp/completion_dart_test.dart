@@ -451,7 +451,7 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
     final otherFile = join(projectFolderPath, 'lib', 'other.dart');
-    newFile2(
+    newFile(
       otherFile,
       "void myFunction(String a, int b, {required String c, String d = ''}) {}",
     );
@@ -540,7 +540,7 @@ class _MyWidgetState extends State<MyWidget> {
       );
 
   Future<void> test_completionKinds_default() async {
-    newFile2(join(projectFolderPath, 'file.dart'), '');
+    newFile(join(projectFolderPath, 'file.dart'), '');
     newFolder(join(projectFolderPath, 'folder'));
 
     final content = "import '^';";
@@ -1053,7 +1053,7 @@ void f() {
     ''';
 
     // Create a class with fields aaa1 to aaa500 in the other file.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'a.dart'),
       [
         'class A {',
@@ -1086,7 +1086,7 @@ void f() {
     ''';
 
     // Create a class with fields aaa1 to aaa500 in the other file.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'a.dart'),
       [
         'class A {',
@@ -1316,7 +1316,7 @@ void f() { }
 
   Future<void> test_nonAnalyzedFile() async {
     final readmeFilePath = convertPath(join(projectFolderPath, 'README.md'));
-    newFile2(readmeFilePath, '');
+    newFile(readmeFilePath, '');
     await initialize();
 
     final res = await getCompletion(Uri.file(readmeFilePath), startOfDocPos);
@@ -1448,7 +1448,7 @@ void f() { }
   }
 
   Future<void> test_unimportedSymbols() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
       /// This class is in another file.
@@ -1524,19 +1524,19 @@ void f() {
       test_unimportedSymbols_doesNotDuplicate_importedViaMultipleLibraries() async {
     // An item that's already imported through multiple libraries that
     // export it should not result in multiple entries.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1569,19 +1569,19 @@ void f() {
       test_unimportedSymbols_doesNotDuplicate_importedViaSingleLibrary() async {
     // An item that's already imported through a library that exports it
     // should not result in multiple entries.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1611,15 +1611,15 @@ void f() {
 
   Future<void> test_unimportedSymbols_doesNotFilterSymbolsWithSameName() async {
     // Classes here are not re-exports, so should not be filtered out.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file1.dart'),
       'class MyDuplicatedClass {}',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file2.dart'),
       'class MyDuplicatedClass {}',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file3.dart'),
       'class MyDuplicatedClass {}',
     );
@@ -1652,7 +1652,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_enumValues() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file.dart'),
       '''
       enum MyExportedEnum { One, Two }
@@ -1716,19 +1716,19 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_enumValuesAlreadyImported() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
       '''
       enum MyExportedEnum { One, Two }
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1760,19 +1760,19 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1803,7 +1803,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_importsPackageUri() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'my_class.dart'),
       'class MyClass {}',
     );
@@ -1834,19 +1834,19 @@ void f() {
 
   Future<void>
       test_unimportedSymbols_includesReexportedSymbolsForEachFile() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1880,7 +1880,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_insertReplaceRanges() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
       /// This class is in another file.
@@ -1973,14 +1973,14 @@ void f() {
 
   Future<void> test_unimportedSymbols_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
     );
 
     // File that will have the import added.
     final parentContent = '''part 'main.dart';''';
-    final parentFilePath = newFile2(
+    final parentFilePath = newFile(
       join(projectFolderPath, 'lib', 'parent.dart'),
       parentContent,
     ).path;
@@ -2063,7 +2063,7 @@ part 'main.dart';'''));
   }
 
   Future<void> test_unimportedSymbols_members() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file.dart'),
       '''
       class MyExportedClass {
@@ -2153,7 +2153,7 @@ void f() {
     await initialAnalysis;
 
     // Start with a blank file.
-    newFile2(otherFilePath, '');
+    newFile(otherFilePath, '');
     await openFile(otherFileUri, '');
     await pumpEventQueue(times: 5000);
 
@@ -2171,7 +2171,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_namedConstructors() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
       /// This class is in another file.
@@ -2239,7 +2239,7 @@ void f() {
         join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
 
     // Create a file that will be auto-imported from completion.
-    newFile2(importedFilePath, 'class MyClass {}');
+    newFile(importedFilePath, 'class MyClass {}');
 
     final content = '''
 void f() {
@@ -2277,7 +2277,7 @@ void f() {
         join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
 
     // Create a file that will be auto-imported from completion.
-    newFile2(importedFilePath, 'class MyClass {}');
+    newFile(importedFilePath, 'class MyClass {}');
 
     final content = '''
 void f() {
@@ -2304,7 +2304,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_unavailableIfDisabled() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
     );
@@ -2337,7 +2337,7 @@ void f() {
   Future<void> test_unimportedSymbols_unavailableWithoutApplyEdit() async {
     // If client doesn't advertise support for workspace/applyEdit, we won't
     // include suggestion sets.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
     );
@@ -2372,7 +2372,7 @@ void f() {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
@@ -2438,7 +2438,7 @@ void f() {
   void _enableLints(List<String> lintNames) {
     registerLintRules();
     final lintsYaml = lintNames.map((name) => '    - $name\n').join();
-    newFile2(analysisOptionsPath, '''
+    newFile(analysisOptionsPath, '''
 linter:
   rules:
 $lintsYaml

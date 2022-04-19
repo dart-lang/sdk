@@ -346,7 +346,7 @@ class C extends A {
   }
 
   Future<void> test_method_withMethod_private_differentLib() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 import 'test.dart';
 class B extends A {
   void _m() {}

@@ -28,7 +28,7 @@ var t = C<int>;
   }
 
   test_class_importPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
     await assertNoErrorsInCode('''
@@ -119,7 +119,7 @@ var t = CA<void Function()>;
   }
 
   test_classAlias_importPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 typedef CA<T> = C<T>;
 ''');
@@ -163,7 +163,7 @@ var t = Fn<int>;
   }
 
   test_functionAlias_importPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 typedef Fn<T> = void Function(T);
 ''');
     await assertNoErrorsInCode('''
@@ -204,7 +204,7 @@ extension E on Type {
   }
 
   test_functionAlias_targetOfMethodCall_importPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 typedef Fn<T> = void Function(T);
 ''');
     await assertErrorsInCode('''
@@ -433,7 +433,7 @@ var t = C<int>;
   }
 
   test_class_importPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
     await assertErrorsInCode('''

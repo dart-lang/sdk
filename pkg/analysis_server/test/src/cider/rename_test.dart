@@ -325,7 +325,7 @@ void f() {
   }
 
   void test_rename_function_imported() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 foo() {}
 ''');
     await fileResolver.resolve2(path: a.path);
@@ -360,7 +360,7 @@ void foo() {
   }
 
   void test_rename_method_imported() async {
-    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
   foo() {}
 }
@@ -471,7 +471,7 @@ void f(F a) {}
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile2(testPath, content);
+    newFile(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

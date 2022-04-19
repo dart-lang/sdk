@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnnecessaryImportTest extends PubPackageResolutionTest {
   test_annotationOnDirective() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {
   const A() {}
 }
@@ -28,10 +28,10 @@ import 'lib1.dart';
   }
 
   test_as() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 export 'lib1.dart';
 class B {}
 ''');
@@ -43,10 +43,10 @@ f(A a, two.B b) {}
   }
 
   test_as_differentPrefixes() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 export 'lib1.dart';
 class B {}
 ''');
@@ -58,10 +58,10 @@ f(one.A a, two.B b) {}
   }
 
   test_as_equalPrefixes_referenced() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', r'''
+    newFile('$testPackageLibPath/lib2.dart', r'''
 class B {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -72,13 +72,13 @@ f(one.A a, one.B b) {}
   }
 
   test_as_equalPrefixes_referenced_via_export() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', r'''
+    newFile('$testPackageLibPath/lib2.dart', r'''
 class B {}
 ''');
-    newFile2('$testPackageLibPath/lib3.dart', r'''
+    newFile('$testPackageLibPath/lib3.dart', r'''
 export 'lib2.dart';
 ''');
     await assertNoErrorsInCode(r'''
@@ -89,10 +89,10 @@ f(one.A a, one.B b) {}
   }
 
   test_as_equalPrefixes_unreferenced() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', r'''
+    newFile('$testPackageLibPath/lib2.dart', r'''
 class B {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -103,7 +103,7 @@ f(one.A a) {}
   }
 
   test_as_show_multipleElements() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
 ''');
@@ -114,7 +114,7 @@ f(one.A a, one.B b) {}
   }
 
   test_as_showTopLevelFunction() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class One {}
 topLevelFunction() {}
 ''');
@@ -128,7 +128,7 @@ f(One o) {
   }
 
   test_as_showTopLevelFunction_multipleDirectives() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class One {}
 topLevelFunction() {}
 ''');
@@ -144,7 +144,7 @@ f(One o) {
   }
 
   test_as_systemShadowing() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class File {}
 ''');
     await assertNoErrorsInCode('''
@@ -155,10 +155,10 @@ g(io.Directory d, io.File f) {}
   }
 
   test_as_unnecessary() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 export 'lib1.dart';
 class B {}
 ''');
@@ -172,7 +172,7 @@ f(p.A a, p.B b) {}
   }
 
   test_duplicteImport_differentPrefix() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 class B {}
 ''');
@@ -184,10 +184,10 @@ f(A a1, p.A a2, B b) {}
   }
 
   test_hide() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 export 'lib1.dart' hide A;
 class B {}
 ''');
@@ -199,7 +199,7 @@ f(A a, B b) {}
   }
 
   test_systemShadowing() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class File {}
 ''');
     await assertNoErrorsInCode('''
@@ -210,10 +210,10 @@ g(Directory d, File f) {}
   }
 
   test_unnecessaryImport() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 export 'lib1.dart';
 class B {}
 ''');
@@ -227,10 +227,10 @@ f(A a, B b) {}
   }
 
   test_unnecessaryImport_sameUri() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', '''
+    newFile('$testPackageLibPath/lib2.dart', '''
 export 'lib1.dart';
 class B {}
 ''');

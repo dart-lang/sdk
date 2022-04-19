@@ -75,7 +75,7 @@ f() {
   }
 
   test_unnamed_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {
   const A.name();
 }

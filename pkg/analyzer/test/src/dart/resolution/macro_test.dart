@@ -51,7 +51,7 @@ class MacroResolutionTest extends PubPackageResolutionTest {
   }
 
   test_0() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 

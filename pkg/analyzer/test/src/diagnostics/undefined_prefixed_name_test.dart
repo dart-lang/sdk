@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
   test_getterContext() async {
-    newFile2('$testPackageLibPath/lib.dart', '');
+    newFile('$testPackageLibPath/lib.dart', '');
     await assertErrorsInCode('''
 import 'lib.dart' as p;
 f() => p.c;
@@ -26,7 +26,7 @@ f() => p.c;
   }
 
   test_new() async {
-    newFile2('$testPackageLibPath/lib.dart', '');
+    newFile('$testPackageLibPath/lib.dart', '');
     await assertErrorsInCode(r'''
 import 'lib.dart' as p;
 void f() {
@@ -38,7 +38,7 @@ void f() {
   }
 
   test_setterContext() async {
-    newFile2('$testPackageLibPath/lib.dart', '');
+    newFile('$testPackageLibPath/lib.dart', '');
     await assertErrorsInCode('''
 import 'lib.dart' as p;
 f() {

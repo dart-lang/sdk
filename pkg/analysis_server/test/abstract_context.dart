@@ -81,7 +81,7 @@ class AbstractContextTest with ResourceProviderMixin {
   String get workspaceRootPath => '/home';
 
   void addSource(String path, String content) {
-    newFile2(path, content);
+    newFile(path, content);
   }
 
   Future<void> analyzeTestPackageFiles() async {
@@ -134,7 +134,7 @@ class AbstractContextTest with ResourceProviderMixin {
       }
     }
 
-    newFile2(analysisOptionsPath, buffer.toString());
+    newFile(analysisOptionsPath, buffer.toString());
   }
 
   AnalysisDriver driverFor(String path) {
@@ -158,14 +158,14 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   @override
-  File newFile2(String path, String content) {
+  File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
     path = convertPath(path);
     _addAnalyzedFileToDrivers(path);
-    return super.newFile2(path, content);
+    return super.newFile(path, content);
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
@@ -209,13 +209,13 @@ class AbstractContextTest with ResourceProviderMixin {
 
   /// Update `pubspec.yaml` and create the driver.
   void updateTestPubspecFile(String content) {
-    newFile2(testPubspecPath, content);
+    newFile(testPubspecPath, content);
   }
 
   void verifyCreatedCollection() {}
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile2(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(toUriStr: toUriStr));
   }
 
   void writeTestPackageConfig({

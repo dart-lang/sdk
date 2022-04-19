@@ -75,7 +75,7 @@ class C implements S {}
   }
 
   test_implements_struct_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 import 'dart:ffi';
 class S extends Struct {}
 ''');
@@ -116,7 +116,7 @@ class C with S {}
   }
 
   test_with_struct_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 import 'dart:ffi';
 class S extends Struct {}
 ''');

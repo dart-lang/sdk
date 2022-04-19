@@ -151,7 +151,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     ''');
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final res = await getImplementations(pubspecFileUri, startOfDocPos);

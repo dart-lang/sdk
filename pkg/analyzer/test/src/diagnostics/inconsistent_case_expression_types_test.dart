@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest {
   test_int_none_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
 

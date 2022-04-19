@@ -45,7 +45,7 @@ class AnalysisSignatureTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
@@ -68,7 +68,7 @@ main() {
   }
 
   Future<void> test_constructor_factory() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass private constructor doc
@@ -95,7 +95,7 @@ main() {
   }
 
   Future<void> test_constructor_named() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass.foo constructor doc
@@ -118,7 +118,7 @@ main() {
   }
 
   Future<void> test_does_not_walk_up_over_closure() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 one(String name, int length) {}
 main() {
   one("Danny", () {
@@ -142,7 +142,7 @@ main() {
   }
 
   Future<void> test_error_function_unknown() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 someFunc(/*^*/);
 ''');
     var response = await prepareRawSignature('/*^*/');
@@ -154,7 +154,7 @@ someFunc(/*^*/);
   }
 
   Future<void> test_error_offset_invalid() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 a() {}
 ''');
     var response = await prepareRawSignatureAt(1000);
@@ -166,7 +166,7 @@ a() {}
   }
 
   Future<void> test_function_expression() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// f doc
 int Function(String) f(String s) => (int i) => int.parse(s) + i;
 main() {
@@ -184,14 +184,14 @@ main() {
   }
 
   Future<void> test_function_from_other_file() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 /// one doc
 one(String name, int length) {}
 main() {
   one("Danny", /*^*/);
 }
 ''');
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 import 'other.dart';
 main() {
   one("Danny", /*^*/);
@@ -212,7 +212,7 @@ main() {
   }
 
   Future<void> test_function_irrelevant_parens() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, int length) {}
 main() {
@@ -234,7 +234,7 @@ main() {
   }
 
   Future<void> test_function_named() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, {int length}) {}
 main() {
@@ -254,7 +254,7 @@ main() {
   }
 
   Future<void> test_function_named_with_default_int() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, {int length = 1}) {}
 main() {
@@ -276,7 +276,7 @@ main() {
   }
 
   Future<void> test_function_named_with_default_string() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, {String email = "a@b.c"}) {}
 main() {
@@ -299,7 +299,7 @@ main() {
 
   Future<void> test_function_nested_call_inner() async {
     // eg. foo(bar(1, 2));
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String one) {}
 /// two doc
@@ -320,7 +320,7 @@ main() {
 
   Future<void> test_function_nested_call_outer() async {
     // eg. foo(bar(1, 2));
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String one) {}
 /// two doc
@@ -340,7 +340,7 @@ main() {
   }
 
   Future<void> test_function_no_dart_doc() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 one(String name, int length) {}
 main() {
   one("Danny", /*^*/);
@@ -361,7 +361,7 @@ main() {
   }
 
   Future<void> test_function_optional() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, [int length]) {}
 main() {
@@ -383,7 +383,7 @@ main() {
   }
 
   Future<void> test_function_optional_with_default() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, [int length = 11]) {}
 main() {
@@ -405,7 +405,7 @@ main() {
   }
 
   Future<void> test_function_required() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, int length) {}
 main() {
@@ -427,7 +427,7 @@ main() {
   }
 
   Future<void> test_function_zero_arguments() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one() {}
 main() {
@@ -463,7 +463,7 @@ main() {
   }
 
   Future<void> test_method_instance() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
@@ -489,7 +489,7 @@ main() {
   }
 
   Future<void> test_method_static() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc

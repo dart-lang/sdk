@@ -115,7 +115,7 @@ class A {
     );
     configureTestPlugin(respondWith: pluginResult);
 
-    newFile2(pluginAnalyzedFilePath, '');
+    newFile(pluginAnalyzedFilePath, '');
     await initialize();
     final res = await getDefinitionAsLocation(
         pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
@@ -227,7 +227,7 @@ class A {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
@@ -311,7 +311,7 @@ class [[A]] {}
 }
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(contents));
+    newFile(mainFilePath, withoutMarkers(contents));
     await testContents(contents, inOpenFile: false);
   }
 

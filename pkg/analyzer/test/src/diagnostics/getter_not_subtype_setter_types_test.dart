@@ -74,7 +74,7 @@ abstract class X implements A, B {}
   }
 
   test_class_instance_private_getter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
@@ -91,12 +91,12 @@ class B extends A {
   }
 
   test_class_instance_private_interfaces() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
 ''');
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 class B {
   set _foo(String _) {}
 }
@@ -110,7 +110,7 @@ class X implements A, B {}
   }
 
   test_class_instance_private_interfaces2() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
@@ -127,7 +127,7 @@ class X implements A, B {}
   }
 
   test_class_instance_private_setter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   set _foo(String _) {}
 }

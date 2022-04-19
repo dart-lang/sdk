@@ -32,7 +32,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_fileOutsideRoot() async {
     final outsideFile = '/foo/test.dart';
-    newFile2(outsideFile, 'bad code to create error');
+    newFile(outsideFile, 'bad code to create error');
 
     // Set up the original project, as the code fix code won't run at all
     // if there are no contexts.
@@ -166,15 +166,15 @@ dependencies:
             ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
           .toContent(toUriStr: toUriStr),
     );
-    newFile2('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
-    newFile2(
+    newFile('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
+    newFile(
         '$workspaceRootPath/bbb/lib/target.generated.dart', 'class Foo() {}');
-    newFile2(
+    newFile(
         '$workspaceRootPath/bbb/lib/target.template.dart', 'class Foo() {}');
 
     // Configure the test file.
     final file =
-        newFile2('$workspaceRootPath/aaa/main.dart', 'main() { new Foo(); }');
+        newFile('$workspaceRootPath/aaa/main.dart', 'main() { new Foo(); }');
 
     await waitForTasksFinished();
 

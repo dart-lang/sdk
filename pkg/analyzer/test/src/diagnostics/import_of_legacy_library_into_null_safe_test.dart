@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ImportOfLegacyLibraryInoNullSafeTest extends PubPackageResolutionTest {
   test_legacy_into_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.9
 class A {}
 ''');
@@ -29,7 +29,7 @@ void f(A a) {}
   }
 
   test_legacy_into_nullSafe() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.9
 class A {}
 ''');
@@ -43,7 +43,7 @@ void f(A a) {}
   }
 
   test_nullSafe_into_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -55,7 +55,7 @@ void f(A a) {}
   }
 
   test_nullSafe_into_nullSafe() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -66,9 +66,9 @@ void f(A a) {}
   }
 
   test_nullSafe_into_nullSafe_part() async {
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 import 'a.dart';
 ''');

@@ -92,7 +92,7 @@ const a^ = 'test string';
 const a = '^';
 ''';
 
-    newFile2(pubspecFilePath, withoutMarkers(contents));
+    newFile(pubspecFilePath, withoutMarkers(contents));
     await initialize();
     final results = await getTypeDefinitionAsLocation(
         mainFileUri, positionFromMarker(contents));
@@ -112,7 +112,7 @@ final [[a^]] = A();
 class [[A]] {}
 ''';
 
-    newFile2(otherFilePath, withoutMarkers(otherContents));
+    newFile(otherFilePath, withoutMarkers(otherContents));
     final result = await _getResult(contents);
     expect(result.originSelectionRange, rangeFromMarkers(contents));
     expect(result.targetUri, otherFileUri.toString());
@@ -186,7 +186,7 @@ const a = [['te^st string']];
 const a = [['^']];
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(contents));
+    newFile(mainFilePath, withoutMarkers(contents));
     final result = await _getResult(contents, inOpenFile: false);
     expect(result.originSelectionRange, rangeFromMarkers(contents));
     _expectSdkCoreType(result, 'String');

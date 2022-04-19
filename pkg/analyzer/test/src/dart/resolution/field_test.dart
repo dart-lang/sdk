@@ -63,7 +63,7 @@ class A {
   }
 
   test_type_inferred_nonNullify() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 var a = 0;
 ''');

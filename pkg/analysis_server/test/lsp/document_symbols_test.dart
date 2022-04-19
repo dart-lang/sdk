@@ -24,7 +24,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
       light,
     }
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize();
 
     final result = await getDocumentSymbols(mainFileUri.toString());
@@ -53,7 +53,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
       light,
     }
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
       textDocumentCapabilities: withDocumentSymbolKinds(
         emptyTextDocumentClientCapabilities,
@@ -90,7 +90,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     extension StringExtensions on String {}
     extension on String {}
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize();
 
     final result = await getDocumentSymbols(mainFileUri.toString());
@@ -143,7 +143,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         textDocumentCapabilities: withHierarchicalDocumentSymbolSupport(
             emptyTextDocumentClientCapabilities));
@@ -182,7 +182,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     // When there are no analysis roots and we open a file, it should be added as
     // a temporary root allowing us to service requests for it.
     const content = 'class MyClass {}';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(allowEmptyRootUri: true);
     await openFile(mainFileUri, content);
 
@@ -203,7 +203,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     // When there are no analysis roots and we receive requests for a file that
     // was not opened, we will reject the file due to not being analyzed.
     const content = 'class MyClass {}';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(allowEmptyRootUri: true);
 
     await expectLater(
@@ -213,7 +213,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final result = await getDocumentSymbols(pubspecFileUri.toString());

@@ -37,7 +37,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
       ),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 dynamic a = 0;
 int b = a;
 ''');
@@ -119,7 +119,7 @@ class A {
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -139,7 +139,7 @@ class A {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -160,7 +160,7 @@ class A {
   test_change_functionBody() async {
     useEmptyByteStore();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   print(0);
 }
@@ -177,7 +177,7 @@ void f() {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   print(1);
 }
@@ -193,8 +193,8 @@ void f() {
   test_getLibraryByUri_invalidated_exportNamespace() async {
     useEmptyByteStore();
 
-    var a = newFile2('$testPackageLibPath/a.dart', 'const a1 = 0;');
-    newFile2('$testPackageLibPath/b.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', 'const a1 = 0;');
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 ''');
 
@@ -244,7 +244,7 @@ import 'a.dart';
     useEmptyByteStore();
 
     var aaaPackageRootPath = '$packagesRootPath/aaa';
-    newFile2('$aaaPackageRootPath/lib/a.dart', '');
+    newFile('$aaaPackageRootPath/lib/a.dart', '');
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
@@ -265,7 +265,7 @@ import 'a.dart';
       ),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
 ''');
@@ -308,7 +308,7 @@ import 'package:aaa/a.dart';
       AnalysisOptionsFileConfig(lints: []),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   ![0].isEmpty;
 }

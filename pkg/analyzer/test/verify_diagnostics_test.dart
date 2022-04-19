@@ -443,12 +443,12 @@ class _SnippetTest extends PubPackageResolutionTest {
         packageConfigBuilder.add(name: packageName, rootPath: packageRootPath);
 
         String pathInLib = uri.pathSegments.skip(1).join('/');
-        newFile2(
+        newFile(
           '$packageRootPath/lib/$pathInLib',
           auxiliaryFiles[uriStr]!,
         );
       } else {
-        newFile2(
+        newFile(
           '$testPackageRootPath/$uriStr',
           auxiliaryFiles[uriStr]!,
         );

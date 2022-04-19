@@ -83,11 +83,11 @@ enum E {
   }
 
   Future<void> test_maxResults() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''').path;
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 class C {}
 class D {}
 ''').path;
@@ -124,8 +124,8 @@ mixin M {
   }
 
   Future<void> test_multipleFiles() async {
-    var a = newFile2('$testPackageLibPath/a.dart', 'class A {}').path;
-    var b = newFile2('$testPackageLibPath/b.dart', 'class B {}').path;
+    var a = newFile('$testPackageLibPath/a.dart', 'class A {}').path;
+    var b = newFile('$testPackageLibPath/b.dart', 'class B {}').path;
 
     await _getDeclarations();
 
@@ -153,8 +153,8 @@ mixin M {
   }
 
   Future<void> test_onlyForFile() async {
-    var a = newFile2('$testPackageLibPath/a.dart', 'class A {}').path;
-    newFile2('$testPackageLibPath/b.dart', 'class B {}').path;
+    var a = newFile('$testPackageLibPath/a.dart', 'class A {}').path;
+    newFile('$testPackageLibPath/b.dart', 'class B {}').path;
 
     await _getDeclarations(file: a);
 

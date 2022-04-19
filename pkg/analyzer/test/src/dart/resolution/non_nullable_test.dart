@@ -59,7 +59,7 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await resolveTestCode(r'''
