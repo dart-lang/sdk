@@ -1,11 +1,9 @@
 name: vm_service
+version: 8.2.2+1
 description: >-
   A library to communicate with a service implementing the Dart VM
   service protocol.
-
-version: 8.2.2+1
-
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/vm_service
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service
 
 environment:
   sdk: '>=2.15.0 <3.0.0'
