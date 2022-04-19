@@ -26,7 +26,7 @@ import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/messages.dart' show Message;
-import 'dump_info.dart' show DumpInfoTask;
+import 'dump_info.dart' show DumpInfoStateData, DumpInfoTask;
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
@@ -93,6 +93,7 @@ class Compiler {
   DataSourceIndices closedWorldIndicesForTesting;
   ResolutionEnqueuer resolutionEnqueuerForTesting;
   CodegenEnqueuer codegenEnqueuerForTesting;
+  DumpInfoStateData dumpInfoStateForTesting;
 
   ir.Component untrimmedComponentForDumpInfo;
 
@@ -660,13 +661,18 @@ class Compiler {
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
 
+    DumpInfoStateData dumpInfoState;
     dumpInfoTask.reportSize(programSize);
     if (options.features.newDumpInfo.isEnabled) {
       assert(untrimmedComponentForDumpInfo != null);
-      dumpInfoTask.dumpInfoNew(untrimmedComponentForDumpInfo, closedWorld,
-          globalTypeInferenceResults);
+      dumpInfoState = dumpInfoTask.dumpInfoNew(untrimmedComponentForDumpInfo,
+          closedWorld, globalTypeInferenceResults);
     } else {
-      dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+      dumpInfoState =
+          dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+    }
+    if (retainDataForTesting) {
+      dumpInfoStateForTesting = dumpInfoState;
     }
   }
 

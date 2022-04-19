@@ -201,7 +201,9 @@ class LibraryMacroApplier {
   }
 
   static Object? _evaluateArgument(Expression node) {
-    if (node is BooleanLiteral) {
+    if (node is AdjacentStrings) {
+      return node.strings.map(_evaluateArgument).join('');
+    } else if (node is BooleanLiteral) {
       return node.value;
     } else if (node is DoubleLiteral) {
       return node.value;

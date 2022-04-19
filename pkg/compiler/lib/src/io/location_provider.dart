@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.io.location_provider;
 
-import 'code_output.dart' show CodeOutputListener;
+import 'code_output_listener.dart' show CodeOutputListener;
 
 import 'package:kernel/ast.dart' show Location, Source;
 
@@ -43,8 +41,11 @@ class LocationCollector extends CodeOutputListener implements LocationProvider {
   Location getLocation(int offset) {
     RangeError.checkValueInInterval(offset, 0, length, 'offset');
     return Source(lineStarts, const <int>[], null, null)
-        .getLocation(null, offset);
+        .getLocation(_dummyFile, offset);
   }
+
+  // TODO(48820): Pass file Uri in to Constructor.
+  static final Uri _dummyFile = Uri();
 
   @override
   void onDone(int length) {

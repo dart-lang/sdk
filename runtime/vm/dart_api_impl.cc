@@ -2047,16 +2047,6 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
   return true;
 }
 
-DART_EXPORT void Dart_RunTask(Dart_Task task) {
-  Thread* T = Thread::Current();
-  Isolate* I = T == nullptr ? nullptr : T->isolate();
-  CHECK_NO_ISOLATE(I);
-  API_TIMELINE_BEGIN_END(T);
-  ThreadPool::Task* task_impl = reinterpret_cast<ThreadPool::Task*>(task);
-  task_impl->Run();
-  delete task_impl;
-}
-
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();

@@ -7,16 +7,9 @@
 library dart2js.code_output;
 
 import '../../compiler.dart';
+import 'code_output_listener.dart';
+export 'code_output_listener.dart';
 import 'source_information.dart';
-
-/// Listener interface for [CodeOutput] activity.
-abstract class CodeOutputListener {
-  /// Called when [text] is added to the output.
-  void onText(String text);
-
-  /// Called when the output is closed with a final length of [length].
-  void onDone(int length);
-}
 
 /// Interface for a mapping of target offsets to source locations and for
 /// tracking inlining frame data.

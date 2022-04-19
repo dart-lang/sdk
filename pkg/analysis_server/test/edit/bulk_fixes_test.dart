@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Platform;
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -201,9 +199,6 @@ A f() => A();
     // The test case currently drops the 'new' but does not convert the code to
     // use a set literal. The code is no longer mangled, but we need to run the
     // BulkFixProcessor iteratively to solve the second case.
-    if (Platform.isWindows) {
-      fail('Should not be passing on Windows, but it does');
-    }
     newAnalysisOptionsYamlFile2(testPackageRootPath, '''
 linter:
   rules:

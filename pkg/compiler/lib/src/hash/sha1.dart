@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
-import '../io/code_output.dart' show CodeOutputListener;
+import '../io/code_output_listener.dart' show CodeOutputListener;
 
 class Hasher implements CodeOutputListener {
   final _DigestSink _digestSink;
-  ByteConversionSink _byteSink;
+  ByteConversionSink? _byteSink;
 
   Hasher._(this._digestSink)
       : _byteSink = sha1.startChunkedConversion(_digestSink);
@@ -27,7 +25,7 @@ class Hasher implements CodeOutputListener {
   @override
   void onText(String text) {
     if (_byteSink != null) {
-      _byteSink.add(utf8.encode(text));
+      _byteSink!.add(utf8.encode(text));
     }
   }
 
@@ -35,7 +33,7 @@ class Hasher implements CodeOutputListener {
   /// text.
   String getHash() {
     if (_byteSink != null) {
-      _byteSink.close();
+      _byteSink!.close();
       _byteSink = null;
     }
     return base64.encode(_digestSink.value.bytes);
@@ -44,12 +42,12 @@ class Hasher implements CodeOutputListener {
 
 /// A sink used to get a digest value out of `Hash.startChunkedConversion`.
 class _DigestSink extends Sink<Digest> {
-  Digest _value;
+  Digest? _value;
 
   /// The value added to the sink, if any.
   Digest /*!*/ get value {
     assert(_value != null);
-    return _value;
+    return _value!;
   }
 
   /// Adds [value] to the sink.
