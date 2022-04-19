@@ -132,7 +132,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 0;
+  final int minorVersion = 1;
 
   AllInfo();
 
