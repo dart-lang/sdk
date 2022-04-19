@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue48808.dart:6:14: Error: A for-in loop-variable can't be 'const'.
+// Try removing the 'const' modifier.
+//   for (const x in [1, 2, 3]) print(x);
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  {
+    invalid-expression "pkg/front_end/testcases/general/issue48808.dart:6:14: Error: A for-in loop-variable can't be 'const'.
+Try removing the 'const' modifier.
+  for (const x in [1, 2, 3]) print(x);
+             ^";
+    for (core::int x in <core::int>[1, 2, 3])
+      core::print(x);
+  }
+}
+static method main() → dynamic {}
