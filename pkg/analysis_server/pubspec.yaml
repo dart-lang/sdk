@@ -33,6 +33,7 @@ dependencies:
 dev_dependencies:
   analyzer_utilities:
     path: ../analyzer_utilities
+  cli_util: any
   lints: ^2.0.0
   logging: any
   matcher: any
