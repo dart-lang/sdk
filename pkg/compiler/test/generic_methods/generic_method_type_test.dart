@@ -7,6 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/entities_parameter_structure_methods.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:expect/expect.dart';

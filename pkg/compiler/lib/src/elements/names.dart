@@ -6,7 +6,7 @@ library dart2js.elements.names;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show $_;
 
-import 'entities_migrated.dart' show LibraryEntity;
+import 'entities.dart' show LibraryEntity;
 
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy
 /// and setter into account.

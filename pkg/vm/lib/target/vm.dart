@@ -231,7 +231,9 @@ class VmTarget extends Target {
           _fixedLengthList(
               coreTypes,
               coreTypes.typeLegacyRawType,
-              arguments.types.map((t) => new TypeLiteral(t)).toList(),
+              arguments.types
+                  .map<Expression>((t) => new TypeLiteral(t))
+                  .toList(),
               arguments.fileOffset),
           _fixedLengthList(coreTypes, const DynamicType(), arguments.positional,
               arguments.fileOffset),

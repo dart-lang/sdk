@@ -10,6 +10,7 @@ import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
@@ -279,7 +280,7 @@ class JGenerativeConstructor extends JConstructor {
     JClass enclosingClass = source.readClass();
     String name = source.readString();
     ParameterStructure parameterStructure =
-        ParameterStructure.readFromDataSource(source);
+        ParameterStructureMethods.readFromDataSource(source);
     bool isExternal = source.readBool();
     bool isConst = source.readBool();
     source.end(tag);
@@ -317,7 +318,9 @@ class JFactoryConstructor extends JConstructor {
 
   JFactoryConstructor(
       JClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
+      {bool isExternal,
+      bool isConst,
+      /*required*/ this.isFromEnvironmentConstructor})
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
@@ -326,7 +329,7 @@ class JFactoryConstructor extends JConstructor {
     JClass enclosingClass = source.readClass();
     String name = source.readString();
     ParameterStructure parameterStructure =
-        ParameterStructure.readFromDataSource(source);
+        ParameterStructureMethods.readFromDataSource(source);
     bool isExternal = source.readBool();
     bool isConst = source.readBool();
     bool isFromEnvironmentConstructor = source.readBool();
@@ -375,7 +378,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
     source.begin(tag);
     JConstructor constructor = source.readMember();
     ParameterStructure parameterStructure =
-        ParameterStructure.readFromDataSource(source);
+        ParameterStructureMethods.readFromDataSource(source);
     source.end(tag);
     return JConstructorBody(constructor, parameterStructure);
   }
@@ -423,7 +426,7 @@ class JMethod extends JFunction {
     }
     String name = source.readString();
     ParameterStructure parameterStructure =
-        ParameterStructure.readFromDataSource(source);
+        ParameterStructureMethods.readFromDataSource(source);
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
     bool isStatic = source.readBool();
     bool isExternal = source.readBool();
@@ -705,7 +708,7 @@ class JClosureCallMethod extends JMethod {
     source.begin(tag);
     JClass enclosingClass = source.readClass();
     ParameterStructure parameterStructure =
-        ParameterStructure.readFromDataSource(source);
+        ParameterStructureMethods.readFromDataSource(source);
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
     source.end(tag);
     return JClosureCallMethod(enclosingClass, parameterStructure, asyncMarker);

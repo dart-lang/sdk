@@ -191,8 +191,9 @@ class Dart2jsTarget extends Target {
             .getTopLevelProcedure('dart:core', '_createInvocationMirror'),
         ir.Arguments(<ir.Expression>[
           ir.StringLiteral(name)..fileOffset = offset,
-          ir.ListLiteral(
-              arguments.types.map((t) => ir.TypeLiteral(t)).toList()),
+          ir.ListLiteral(arguments.types
+              .map<ir.Expression>((t) => ir.TypeLiteral(t))
+              .toList()),
           ir.ListLiteral(arguments.positional)..fileOffset = offset,
           ir.MapLiteral(List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
