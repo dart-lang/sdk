@@ -54,6 +54,7 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 
 [ $compiler != dart2js && $compiler != dartdevk ]
 web/*: SkipByDesign
