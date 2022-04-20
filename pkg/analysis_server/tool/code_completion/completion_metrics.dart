@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show stdout;
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -50,6 +51,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_logging.dart';
 
 import 'metrics_util.dart';
 import 'output_utilities.dart';
@@ -1338,8 +1340,6 @@ class CompletionMetricsComputer {
 
     var context = collection.contexts[0];
 
-    // Set the DeclarationsTracker, only call doWork to build up the available
-    // suggestions if doComputeCompletionsFromAnalysisServer is true.
     DeclarationsTracker? declarationsTracker;
     protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams;
     if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
@@ -1350,13 +1350,22 @@ class CompletionMetricsComputer {
         declarationsTracker.doWork();
       }
 
-      // Have the AvailableDeclarationsSet computed to use later.
+      // Have the [AvailableDeclarationsSet] computed to use later.
       availableSuggestionsParams = createCompletionAvailableSuggestions(
           declarationsTracker.allLibraries.toList(), []);
     }
 
     // Loop through each file, resolve the file and call
-    // forEachExpectedCompletion
+    // [forEachExpectedCompletion].
+
+    var ansi = Ansi(Ansi.terminalSupportsAnsi);
+    var logger = Logger.standard(ansi: ansi);
+    var analyzedFileCount = context.contextRoot.analyzedFiles().length;
+    logger.write('Computing completions at root: ${root.root.path} '
+        '($analyzedFileCount files)\n');
+
+    logger.write('Resolving...\n');
+    var progress = _ProgressBar(logger, analyzedFileCount);
 
     var dartdocDirectiveInfo = DartdocDirectiveInfo();
     var documentationCache = DocumentationCache(dartdocDirectiveInfo);
@@ -1370,6 +1379,7 @@ class CompletionMetricsComputer {
 
           var analysisError = getFirstErrorOrNull(result);
           if (analysisError != null) {
+            progress.clear();
             print('File $filePath skipped due to errors such as:');
             print('  ${analysisError.toString()}');
             print('');
@@ -1379,12 +1389,18 @@ class CompletionMetricsComputer {
             documentationCache.cacheFromResult(result);
           }
         } catch (exception, stackTrace) {
+          progress.clear();
           print('Exception caught analyzing: $filePath');
           print(exception.toString());
           print(stackTrace);
         }
       }
+      progress.tick();
     }
+    progress.complete();
+
+    logger.write('Analyzing completion suggestions...\n');
+    progress = _ProgressBar(logger, results.length);
     for (var result in results) {
       _resolvedUnitResult = result;
       var filePath = result.path;
@@ -1471,7 +1487,9 @@ class CompletionMetricsComputer {
           _provider.removeOverlay(filePath);
         }
       }
+      progress.tick();
     }
+    progress.complete();
   }
 
   List<protocol.CompletionSuggestion> _filterSuggestions(
@@ -2071,6 +2089,84 @@ class SuggestionData {
       'suggestion': suggestion.toJson(),
       'features': features,
     };
+  }
+}
+
+/// A facility for drawing a progress bar in the terminal.
+///
+/// The bar is instantiated with the total number of "ticks" to be completed,
+/// and progress is made by calling [tick]. The bar is drawn across one entire
+/// line, like so:
+///
+///     [----------                                                   ]
+///
+/// The hyphens represent completed progress, and the whitespace represents
+/// remaining progress.
+///
+/// If there is no terminal, the progress bar will not be drawn.
+class _ProgressBar {
+  /// Whether the progress bar should be drawn.
+  late bool _shouldDrawProgress;
+
+  /// The width of the terminal, in terms of characters.
+  late int _width;
+
+  final Logger _logger;
+
+  /// The inner width of the terminal, in terms of characters.
+  ///
+  /// This represents the number of characters available for drawing progress.
+  late int _innerWidth;
+
+  final int _totalTickCount;
+
+  int _tickCount = 0;
+
+  _ProgressBar(this._logger, this._totalTickCount) {
+    if (!stdout.hasTerminal) {
+      _shouldDrawProgress = false;
+    } else {
+      _shouldDrawProgress = true;
+      _width = stdout.terminalColumns;
+      // Inclusion of the percent indicator assumes a terminal width of at least
+      // 12 (2 brackets + 1 space + 2 parenthesis characters + 3 digits +
+      // 1 period + 2 digits + 1 '%' character).
+      _innerWidth = stdout.terminalColumns - 12;
+      _logger.write('[${' ' * _innerWidth}]');
+    }
+  }
+
+  /// Clears the progress bar from the terminal, allowing other logging to be
+  /// printed.
+  void clear() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _logger.write('\r${' ' * _width}\r');
+  }
+
+  /// Draws the progress bar as complete, and print two newlines.
+  void complete() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _logger.write('\r[${'-' * _innerWidth}]\n\n');
+  }
+
+  /// Progresses the bar by one tick.
+  void tick() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _tickCount++;
+    var fractionComplete =
+        math.max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
+    // The inner space consists of hyphens, one spinner character, and spaces.
+    var remaining = _innerWidth - fractionComplete - 1;
+    var spinner = AnsiProgress.kAnimationItems[_tickCount % 4];
+    var pctComplete = (_tickCount * 100 / _totalTickCount).toStringAsFixed(2);
+    _logger.write(
+        '\r[${'-' * fractionComplete}$spinner${' ' * remaining}] ($pctComplete%)');
   }
 }
 

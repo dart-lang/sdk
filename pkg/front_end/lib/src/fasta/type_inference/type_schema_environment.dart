@@ -123,6 +123,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         getStandardLowerBound(constraint.upper, upper, clientLibrary);
   }
 
+  /// Performs downwards inference, producing a set of inferred types that may
+  /// contain references to the "unknown type".
+  void downwardsInfer(
+          TypeConstraintGatherer gatherer,
+          List<TypeParameter> typeParametersToInfer,
+          List<DartType> inferredTypes,
+          Library clientLibrary) =>
+      _chooseTypes(
+          gatherer, typeParametersToInfer, inferredTypes, clientLibrary,
+          downwardsInferPhase: true);
+
   @override
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
       {bool isNonNullableByDefault: false}) {
@@ -219,81 +230,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
     }
     return operandType;
-  }
-
-  /// Infers a generic type, function, method, or list/map literal
-  /// instantiation, using the downward context type as well as the argument
-  /// types if available.
-  ///
-  /// For example, given a function type with generic type parameters, this
-  /// infers the type parameters from the actual argument types.
-  ///
-  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
-  /// result type R, and generic type parameters T0, T1, ... Tm, use the
-  /// argument types A0, A1, ... An to solve for the type parameters.
-  ///
-  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
-  /// running the subtype algorithm, and when we reach a type parameter Tj,
-  /// recording the lower or upper bound it must satisfy. At the end, all
-  /// constraints can be combined to determine the type.
-  ///
-  /// All constraints on each type parameter Tj are tracked, as well as where
-  /// they originated, so we can issue an error message tracing back to the
-  /// argument values, type parameter "extends" clause, or the return type
-  /// context.
-  ///
-  /// If non-null values for [formalTypes] and [actualTypes] are provided, this
-  /// is upwards inference.  Otherwise it is downward inference.
-  void inferGenericFunctionOrType(
-      DartType? declaredReturnType,
-      List<TypeParameter> typeParametersToInfer,
-      List<DartType>? formalTypes,
-      List<DartType>? actualTypes,
-      DartType? returnContextType,
-      List<DartType> inferredTypes,
-      Library clientLibrary,
-      {bool isConst: false}) {
-    assert((formalTypes?.length ?? 0) == (actualTypes?.length ?? 0));
-    if (typeParametersToInfer.isEmpty) {
-      return;
-    }
-
-    // Create a TypeConstraintGatherer that will allow certain type parameters
-    // to be inferred. It will optimistically assume these type parameters can
-    // be subtypes (or supertypes) as necessary, and track the constraints that
-    // are implied by this.
-    TypeConstraintGatherer gatherer =
-        new TypeConstraintGatherer(this, typeParametersToInfer, clientLibrary);
-
-    if (!isEmptyContext(returnContextType)) {
-      if (isConst) {
-        returnContextType = new TypeVariableEliminator(
-                clientLibrary.isNonNullableByDefault
-                    ? const NeverType.nonNullable()
-                    : const NullType(),
-                clientLibrary.isNonNullableByDefault
-                    ? objectNullableRawType
-                    : objectLegacyRawType)
-            .substituteType(returnContextType!);
-      }
-      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!);
-    }
-
-    if (formalTypes != null) {
-      for (int i = 0; i < formalTypes.length; i++) {
-        // Try to pass each argument to each parameter, recording any type
-        // parameter bounds that were implied by this assignment.
-        gatherer.tryConstrainLower(formalTypes[i], actualTypes![i]);
-      }
-    }
-
-    inferTypeFromConstraints(gatherer.computeConstraints(clientLibrary),
-        typeParametersToInfer, inferredTypes, clientLibrary,
-        downwardsInferPhase: formalTypes == null);
-
-    for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i], clientLibrary);
-    }
   }
 
   bool hasOmittedBound(TypeParameter parameter) {
@@ -460,6 +396,40 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     }
   }
 
+  /// Prepares to infer type arguments for a generic type, function, method, or
+  /// list/map literal, initializing a [TypeConstraintGatherer] using the
+  /// downward context type.
+  TypeConstraintGatherer setupGenericTypeInference(
+      DartType? declaredReturnType,
+      List<TypeParameter> typeParametersToInfer,
+      DartType? returnContextType,
+      Library clientLibrary,
+      {bool isConst: false}) {
+    assert(typeParametersToInfer.isNotEmpty);
+
+    // Create a TypeConstraintGatherer that will allow certain type parameters
+    // to be inferred. It will optimistically assume these type parameters can
+    // be subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    TypeConstraintGatherer gatherer =
+        new TypeConstraintGatherer(this, typeParametersToInfer, clientLibrary);
+
+    if (!isEmptyContext(returnContextType)) {
+      if (isConst) {
+        returnContextType = new TypeVariableEliminator(
+                clientLibrary.isNonNullableByDefault
+                    ? const NeverType.nonNullable()
+                    : const NullType(),
+                clientLibrary.isNonNullableByDefault
+                    ? objectNullableRawType
+                    : objectLegacyRawType)
+            .substituteType(returnContextType!);
+      }
+      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!);
+    }
+    return gatherer;
+  }
+
   /// Computes the constraint solution for a type variable based on a given set
   /// of constraints.
   ///
@@ -520,6 +490,34 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return isSubtypeOf(
             constraint.lower, type, SubtypeCheckMode.withNullabilities) &&
         isSubtypeOf(type, constraint.upper, SubtypeCheckMode.withNullabilities);
+  }
+
+  /// Performs upwards inference, producing a final set of inferred types that
+  /// does not  contain references to the "unknown type".
+  void upwardsInfer(
+          TypeConstraintGatherer gatherer,
+          List<TypeParameter> typeParametersToInfer,
+          List<DartType> inferredTypes,
+          Library clientLibrary) =>
+      _chooseTypes(
+          gatherer, typeParametersToInfer, inferredTypes, clientLibrary,
+          downwardsInferPhase: false);
+
+  /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
+  /// that have been recorded so far.
+  void _chooseTypes(
+      TypeConstraintGatherer gatherer,
+      List<TypeParameter> typeParametersToInfer,
+      List<DartType> inferredTypes,
+      Library clientLibrary,
+      {required bool downwardsInferPhase}) {
+    inferTypeFromConstraints(gatherer.computeConstraints(clientLibrary),
+        typeParametersToInfer, inferredTypes, clientLibrary,
+        downwardsInferPhase: downwardsInferPhase);
+
+    for (int i = 0; i < inferredTypes.length; i++) {
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i], clientLibrary);
+    }
   }
 
   DartType _inferTypeParameterFromAll(

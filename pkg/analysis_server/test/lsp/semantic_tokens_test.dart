@@ -676,6 +676,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       if (false) {
         print('test');
       }
+      for (var item in []);
     }
     ''';
 
@@ -700,6 +701,13 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('false', CustomSemanticTokenTypes.boolean),
       _Token('print', SemanticTokenTypes.function),
       _Token("'test'", SemanticTokenTypes.string),
+      _Token('for', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('item', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('in', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
     ];
 
     await initialize();

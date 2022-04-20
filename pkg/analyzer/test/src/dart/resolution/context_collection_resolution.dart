@@ -321,7 +321,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );

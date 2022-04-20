@@ -916,8 +916,12 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType onType = extension.onType;
     List<DartType> inferredTypes =
         new List<DartType>.filled(typeParameters.length, const UnknownType());
-    typeSchemaEnvironment.inferGenericFunctionOrType(null, typeParameters,
-        [onType], [receiverType], null, inferredTypes, libraryBuilder.library);
+    TypeConstraintGatherer gatherer =
+        typeSchemaEnvironment.setupGenericTypeInference(
+            null, typeParameters, null, libraryBuilder.library);
+    gatherer.constrainArguments([onType], [receiverType]);
+    typeSchemaEnvironment.upwardsInfer(
+        gatherer, typeParameters, inferredTypes, libraryBuilder.library);
     return inferredTypes;
   }
 
@@ -2305,6 +2309,7 @@ class TypeInferrerImpl implements TypeInferrer {
       hoistedExpressions = localHoistedExpressions = <VariableDeclaration>[];
     }
 
+    TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       // ignore: unnecessary_null_comparison
       if (isConst && typeContext != null) {
@@ -2317,16 +2322,15 @@ class TypeInferrerImpl implements TypeInferrer {
       }
       inferredTypes = new List<DartType>.filled(
           calleeTypeParameters.length, const UnknownType());
-      typeSchemaEnvironment.inferGenericFunctionOrType(
+      gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           isNonNullableByDefault
               ? calleeType.returnType
               : legacyErasure(calleeType.returnType),
           calleeTypeParameters,
-          null,
-          null,
           typeContext,
-          inferredTypes,
           libraryBuilder.library);
+      typeSchemaEnvironment.downwardsInfer(gatherer, calleeTypeParameters,
+          inferredTypes, libraryBuilder.library);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -2588,14 +2592,9 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (inferenceNeeded) {
-      typeSchemaEnvironment.inferGenericFunctionOrType(
-          calleeType.returnType,
-          calleeTypeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
-          inferredTypes!,
-          libraryBuilder.library);
+      gatherer!.constrainArguments(formalTypes!, actualTypes!);
+      typeSchemaEnvironment.upwardsInfer(gatherer, calleeTypeParameters,
+          inferredTypes!, libraryBuilder.library);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -4138,14 +4137,11 @@ class TypeInferrerImpl implements TypeInferrer {
         List<DartType> inferredTypes = new List<DartType>.filled(
             typeParameters.length, const UnknownType());
         FunctionType instantiatedType = functionType.withoutTypeParameters;
-        typeSchemaEnvironment.inferGenericFunctionOrType(
-            instantiatedType,
-            typeParameters,
-            [],
-            [],
-            context,
-            inferredTypes,
-            libraryBuilder.library);
+        TypeConstraintGatherer gatherer =
+            typeSchemaEnvironment.setupGenericTypeInference(instantiatedType,
+                typeParameters, context, libraryBuilder.library);
+        typeSchemaEnvironment.upwardsInfer(
+            gatherer, typeParameters, inferredTypes, libraryBuilder.library);
         Substitution substitution =
             Substitution.fromPairs(typeParameters, inferredTypes);
         tearoffType = substitution.substituteType(instantiatedType);

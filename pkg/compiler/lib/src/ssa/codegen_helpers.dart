@@ -778,6 +778,19 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   }
 
   @override
+  void visitLateReadCheck(HLateReadCheck instruction) {
+    // If the checked value is used, the input might still have one use
+    // (i.e. this HLateReadCheck), but it cannot be generated at use, since we
+    // will rely on non-generate-at-use to assign the value to a variable.
+    //
+    // However, if the checked value is unused then the input may be generated
+    // at use in the check.
+    if (instruction.usedBy.isEmpty) {
+      visitInstruction(instruction);
+    }
+  }
+
+  @override
   void visitTypeKnown(HTypeKnown instruction) {
     // [HTypeKnown] instructions are removed before code generation.
     assert(false);

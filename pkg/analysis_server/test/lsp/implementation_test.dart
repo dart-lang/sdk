@@ -20,13 +20,13 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       abstract class ^[[A]] {}
       class B extends A {}
       class C extends A {}
-    ''', shouldMatch: false);
+    ''', expectResults: false);
 
   Future<void> test_class_excludesSuper() => _testMarkedContent('''
       abstract class [[A]] {}
       class ^B extends A {}
       class C extends A {}
-    ''', shouldMatch: false);
+    ''', expectResults: false);
 
   Future<void> test_class_sub() => _testMarkedContent('''
       abstract class ^A {}
@@ -65,7 +65,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       class B extends A {}
 
       class [[E]] extends B {}
-    ''', shouldMatch: false);
+    ''', expectResults: false);
 
   Future<void> test_method_excludesSelf() => _testMarkedContent('''
       abstract class A {
@@ -75,7 +75,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       class B extends A {
         void b() {}
       }
-    ''', shouldMatch: false);
+    ''', expectResults: false);
 
   Future<void> test_method_excludesSuper() => _testMarkedContent('''
       abstract class A {
@@ -85,7 +85,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       class B extends A {
         void ^b() {}
       }
-    ''', shouldMatch: false);
+    ''', expectResults: false);
 
   Future<void> test_method_fromCallSite() => _testMarkedContent('''
       abstract class A {
@@ -159,11 +159,15 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Takes an input string that contains ^ at the location to invoke the
-  /// textDocument/implementations command and has ranges marked with
-  /// `[[brackets]]` that are expected to be included (or not, if [shouldMatch]
-  /// is set to `false`) in the results.
-  Future<void> _testMarkedContent(String content,
-      {bool shouldMatch = true}) async {
+  /// `textDocument/implementations` command and has ranges marked with
+  /// `[[brackets]]` that are expected to be included.
+  ///
+  /// If [expectResults] is `false` then expects none of the ranges marked with
+  /// `[[brackets]]` to be present in the results instead.
+  Future<void> _testMarkedContent(
+    String content, {
+    bool expectResults = true,
+  }) async {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
 
@@ -175,11 +179,12 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     final expectedLocations = rangesFromMarkers(content)
         .map((r) => Location(uri: mainFileUri.toString(), range: r));
 
-    if (shouldMatch) {
+    if (expectResults) {
       expect(res, equals(expectedLocations));
     } else {
-      // ignore: avoid_function_literals_in_foreach_calls
-      expectedLocations.forEach((l) => expect(res, isNot(contains(res))));
+      for (final location in expectedLocations) {
+        expect(res, isNot(contains(location)));
+      }
     }
   }
 }

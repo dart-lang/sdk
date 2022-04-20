@@ -224,7 +224,7 @@ class CompletionDomainHandlerGetSuggestions2Test
   @override
   void setUp() {
     super.setUp();
-    completionDomain.budgetDuration = const Duration(seconds: 30);
+    server.completionState.budgetDuration = const Duration(seconds: 30);
   }
 
   Future<void> test_abort_onAnotherCompletionRequest() async {
@@ -377,7 +377,7 @@ void f() {
     await _configureWithWorkspaceRoot();
 
     // Empty budget, so no not yet imported libraries.
-    completionDomain.budgetDuration = const Duration(milliseconds: 0);
+    server.completionState.budgetDuration = const Duration(milliseconds: 0);
 
     var response = await _getTestCodeSuggestions('''
 void f() {

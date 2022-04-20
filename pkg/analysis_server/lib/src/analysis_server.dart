@@ -47,6 +47,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
+import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -139,6 +140,9 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The support for Flutter properties.
   WidgetDescriptions flutterWidgetDescriptions = WidgetDescriptions();
+
+  /// The state used by the completion domain handlers.
+  final CompletionState completionState = CompletionState();
 
   /// The context used by the execution domain handlers.
   final ExecutionContext executionContext = ExecutionContext();

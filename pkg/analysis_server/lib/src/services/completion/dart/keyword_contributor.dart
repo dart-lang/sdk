@@ -598,6 +598,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitListLiteral(ListLiteral node) {
     _addCollectionElementKeywords();
+    _addElseElementKeyword(node.elements);
     super.visitListLiteral(node);
   }
 
@@ -717,6 +718,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _addCollectionElementKeywords();
+    _addElseElementKeyword(node.elements);
     super.visitSetOrMapLiteral(node);
   }
 
@@ -897,6 +899,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
+  void _addElseElementKeyword(NodeList<CollectionElement> elements) {
+    final entity = this.entity;
+    var token = entity is AstNode ? entity.beginToken : entity as Token;
+    // Walk through the elements, looking for the element which precedes the
+    // cursor, backwards with the notion that a user is more likely to be typing
+    // at the end of the collection than at the beginning.
+    for (var i = elements.length - 1; i >= 0; i--) {
+      if (_isTokenAfterIfElementWithoutElse(token, elements[i])) {
+        _addSuggestions([Keyword.ELSE]);
+        break;
+      }
+    }
+  }
+
   void _addEnumBodyKeywords() {
     _addSuggestions([
       Keyword.CONST,
@@ -1059,6 +1075,35 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           return statement is IfStatement && statement.elseStatement == null;
         }
       }
+    }
+    return false;
+  }
+
+  /// Returns whether [token] follows an 'if element' which does not have an
+  /// 'else element', either at [element] or at a descendant of [element].
+  bool _isTokenAfterIfElementWithoutElse(
+      Token token, CollectionElement element) {
+    if (element is IfElement) {
+      var tokenAfterIf = element.endToken.next!;
+      // The parser recovers an identifier (non-'else') after an if-element
+      // by inserting a synthetic comma. `[if (true) 1 e]` becomes
+      // `[if (true) 1, e]`.
+      if (element.elseElement == null &&
+          (tokenAfterIf == token ||
+              (tokenAfterIf.isSynthetic && tokenAfterIf.next == token))) {
+        return true;
+      } else {
+        if (_isTokenAfterIfElementWithoutElse(token, element.thenElement)) {
+          return true;
+        }
+        if (element.elseElement != null) {
+          if (_isTokenAfterIfElementWithoutElse(token, element.elseElement!)) {
+            return true;
+          }
+        }
+      }
+    } else if (element is ForElement) {
+      return _isTokenAfterIfElementWithoutElse(token, element.body);
     }
     return false;
   }

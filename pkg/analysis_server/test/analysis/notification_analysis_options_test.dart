@@ -39,7 +39,7 @@ main() {
   List<AnalysisError> get testFileErrors => filesErrors[testFile]!;
 
   void addOptionsFile(String contents) {
-    optionsFile = newAnalysisOptionsYamlFile2(testPackageRootPath, contents);
+    optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, contents);
   }
 
   @override

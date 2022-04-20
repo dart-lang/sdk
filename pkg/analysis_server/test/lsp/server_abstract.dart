@@ -1156,11 +1156,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(String fileUri) {
+      getDocumentSymbols(Uri uri) {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       DocumentSymbolParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
       ),
     );
     return expectSuccessfulResponseTo(

@@ -1546,11 +1546,23 @@ class A {
     assertSuggestKeywords(statementStartOutsideClass);
   }
 
-  @failingTest
-  Future<void> test_ifElement_noElse_last() async {
+  Future<void> test_ifElement_list_hasElse_notLast() async {
     addTestSource('''
-void f() {
-  [if (true) 1 ^];
+void f(int i) {
+  [if (true) 1 else 2 e^, i, i];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+    ]);
+  }
+
+  Future<void> test_ifElement_list_noElse_insideForElement() async {
+    addTestSource('''
+void f(int i) {
+  [for (var e in []) if (true) i ^];
 }
 ''');
     await computeSuggestions();
@@ -1561,7 +1573,49 @@ void f() {
     ]);
   }
 
-  Future<void> test_ifElement_noElse_notInElement() async {
+  Future<void> test_ifElement_list_noElse_insideIfElement_else() async {
+    addTestSource('''
+void f(int i) {
+  [if (false) i else if (true) i ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  Future<void> test_ifElement_list_noElse_insideIfElement_then() async {
+    addTestSource('''
+void f(int i) {
+  [if (false) if (true) i ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  Future<void> test_ifElement_list_noElse_last() async {
+    addTestSource('''
+void f(int i) {
+  [if (true) i ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  Future<void> test_ifElement_list_noElse_notInElement() async {
     addTestSource('''
 void f() {
   [if (true) 1, ^];
@@ -1572,11 +1626,17 @@ void f() {
         [...COLLECTION_ELEMENT_START, ...EXPRESSION_START_NO_INSTANCE]);
   }
 
-  @failingTest
-  Future<void> test_ifElement_noElse_notLast() async {
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/sdk/issues/48837',
+      reason:
+          'The CompletionTarget for this test is determined to be "j", which '
+          'prevents us from suggesting "else". This CompletionTarget bug seems '
+          'to stem from the current state of `ListLiteralImpl.childEntities` '
+          'not including comma tokens.')
+  Future<void> test_ifElement_list_noElse_notLast() async {
     addTestSource('''
-void f(int i) {
-  [if (true) 1 ^, i];
+void f(int i, int j) {
+  [if (true) i ^, j];
 }
 ''');
     await computeSuggestions();
@@ -1587,8 +1647,7 @@ void f(int i) {
     ]);
   }
 
-  @failingTest
-  Future<void> test_ifElement_partialElse_last() async {
+  Future<void> test_ifElement_list_partialElse_last() async {
     addTestSource('''
 void f() {
   [if (true) 1 e^];
@@ -1602,8 +1661,7 @@ void f() {
     ]);
   }
 
-  @failingTest
-  Future<void> test_ifElement_partialElse_notLast() async {
+  Future<void> test_ifElement_list_partialElse_notLast() async {
     addTestSource('''
 void f(int i) {
   [if (true) 1 e^, i];
@@ -1617,28 +1675,46 @@ void f(int i) {
     ]);
   }
 
-  Future<void> test_ifOrForElement_forElement() async {
+  Future<void> test_ifElement_list_partialElse_thenIsForElement() async {
     addTestSource('''
-f() => [for (var e in c) ^];
+void f(int i) {
+  [if (b) for (var e in c) e e^];
+}
 ''');
     await computeSuggestions();
-    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
   }
 
-  Future<void> test_ifOrForElement_ifElement_else() async {
+  Future<void> test_ifElement_map_partialElse_notLast() async {
     addTestSource('''
-f() => [if (true) 1 else ^];
+void f(int i) {
+  <int, int>{if (true) 1: 1 e^, 2: i};
+}
 ''');
     await computeSuggestions();
-    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
   }
 
-  Future<void> test_ifOrForElement_ifElement_then() async {
+  Future<void> test_ifElement_set_partialElse_notLast() async {
     addTestSource('''
-f() => [if (true) ^];
+void f(int i) {
+  <int>{if (true) 1 e^, i};
+}
 ''');
     await computeSuggestions();
-    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
   }
 
   Future<void> test_ifOrForElement_list_empty() async {
@@ -1652,6 +1728,30 @@ f() => [^];
   Future<void> test_ifOrForElement_list_first() async {
     addTestSource('''
 f() => [^1, 2];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  Future<void> test_ifOrForElement_list_forElement() async {
+    addTestSource('''
+f() => [for (var e in c) ^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  Future<void> test_ifOrForElement_list_ifElement_else() async {
+    addTestSource('''
+f() => [if (true) 1 else ^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  Future<void> test_ifOrForElement_list_ifElement_then() async {
+    addTestSource('''
+f() => [if (true) ^];
 ''');
     await computeSuggestions();
     assertSuggestKeywords(COLLECTION_ELEMENT_START);

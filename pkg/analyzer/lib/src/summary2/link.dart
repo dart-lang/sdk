@@ -41,15 +41,6 @@ Future<LinkResult> link(
   );
 }
 
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-@Deprecated('Use link() instead')
-Future<LinkResult> link2(
-  LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-) async {
-  return link(elementFactory, inputLibraries);
-}
-
 class Linker {
   final LinkedElementFactory elementFactory;
   final macro.MultiMacroExecutor? macroExecutor;

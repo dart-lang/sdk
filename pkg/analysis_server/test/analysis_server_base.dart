@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
@@ -79,10 +78,6 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   AnalysisDomainHandler get analysisDomain {
     return server.handlers.whereType<AnalysisDomainHandler>().single;
-  }
-
-  CompletionDomainHandler get completionDomain {
-    return server.handlers.whereType<CompletionDomainHandler>().single;
   }
 
   List<String> get experiments => [
@@ -255,7 +250,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
     server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.pluginManager = pluginManager;
-    completionDomain.budgetDuration = const Duration(seconds: 30);
+    server.completionState.budgetDuration = const Duration(seconds: 30);
   }
 
   Future<void> tearDown() async {
@@ -276,7 +271,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );

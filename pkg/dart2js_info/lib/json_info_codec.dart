@@ -349,7 +349,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   /// Whether to filter all treeshaken elements.
   final bool filterTreeshaken;
   final Map<Info, Id> ids = HashMap<Info, Id>();
-  final Set<int> usedIds = <int>{};
+  final Set<String> usedIds = <String>{};
 
   AllInfoToJsonConverter(
       {this.isBackwardCompatible = false, this.filterTreeshaken = false});
@@ -365,23 +365,27 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
             info.parent != null,
         "$info");
 
-    int id;
+    String name;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
       assert(info.name == null);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      id = info.code.first.text.hashCode;
+      name = info.code.first.text;
     } else {
-      id = longName(info, useLibraryUri: true, forId: true).hashCode;
+      name = longName(info, useLibraryUri: true, forId: true);
     }
 
-    while (!usedIds.add(id)) {
-      id++;
+    Id id = Id(info.kind, name);
+    // longName isn't guaranteed to create unique serializedIds for some info
+    // constructs (such as closures), so we disambiguate here.
+    int count = 0;
+    while (!usedIds.add(id.serializedId)) {
+      id = Id(info.kind, '$name%${count++}');
     }
-    serializedId = Id(info.kind, '$id');
-    return ids[info] = serializedId;
+
+    return ids[info] = id;
   }
 
   @override

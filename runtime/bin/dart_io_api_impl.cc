@@ -57,6 +57,19 @@ void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
   Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
 }
 
+void* OpenFile(const char* name, bool write) {
+  return DartUtils::OpenFile(name, write);
+}
+void ReadFile(uint8_t** data, intptr_t* file_len, void* stream) {
+  DartUtils::ReadFile(data, file_len, stream);
+}
+void WriteFile(const void* buffer, intptr_t num_bytes, void* stream) {
+  DartUtils::WriteFile(buffer, num_bytes, stream);
+}
+void CloseFile(void* stream) {
+  DartUtils::CloseFile(stream);
+}
+
 bool GetEntropy(uint8_t* buffer, intptr_t length) {
   return Crypto::GetRandomBytes(length, buffer);
 }

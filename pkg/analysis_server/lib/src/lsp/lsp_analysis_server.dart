@@ -13,8 +13,6 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_completion.dart'
-    show CompletionDomainHandler;
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -34,6 +32,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
+import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -121,6 +120,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// The subscription to the stream of incoming messages from the client.
   late StreamSubscription<void> _channelSubscription;
 
+  /// A completer that tracks in-progress analysis context rebuilds.
+  ///
+  /// Starts completed and will be replaced each time a context rebuild starts.
+  Completer<void> _analysisContextRebuildCompleter = Completer()..complete();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -163,6 +167,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _pluginChangeSubscription =
         pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
   }
+
+  /// A [Future] that completes when any in-progress analysis context rebuild
+  /// completes.
+  ///
+  /// If no context rebuild is in progress, will return an already complete
+  /// [Future].
+  Future<void> get analysisContextsRebuilt =>
+      _analysisContextRebuildCompleter.future;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? get clientCapabilities => _clientCapabilities;
@@ -789,10 +801,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
         .toSet();
 
-    notificationManager.setAnalysisRoots(
-        includedPaths.toList(), excludedPaths.toList());
-    await contextManager.setRoots(
-        includedPaths.toList(), excludedPaths.toList());
+    final completer = _analysisContextRebuildCompleter = Completer();
+    try {
+      notificationManager.setAnalysisRoots(
+          includedPaths.toList(), excludedPaths.toList());
+      await contextManager.setRoots(
+          includedPaths.toList(), excludedPaths.toList());
+    } finally {
+      completer.complete();
+    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -845,7 +862,7 @@ class LspPerformance {
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
       RecentBuffer<CompletionPerformance>(
-          CompletionDomainHandler.performanceListMaxLength);
+          CompletionState.performanceListMaxLength);
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {

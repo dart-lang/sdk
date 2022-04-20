@@ -67,7 +67,7 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
             ..add(name: 'flutter', rootPath: flutterFolder.parent.path))
           .toContent(toUriStr: toUriStr),
     );
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   strong-mode: true
 ''');

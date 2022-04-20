@@ -19,6 +19,7 @@ import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../type_inference/type_constraint_gatherer.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
@@ -2027,17 +2028,20 @@ class InferenceVisitor
       inferredSpreadTypes = new Map<TreeNode, DartType>.identity();
       inferredConditionTypes = new Map<Expression, DartType>.identity();
     }
+    TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType()];
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+      gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           listType,
           listClass.typeParameters,
-          null,
-          null,
           typeContext,
-          inferredTypes,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
+      inferrer.typeSchemaEnvironment.downwardsInfer(
+          gatherer,
+          listClass.typeParameters,
+          inferredTypes,
+          inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
       if (inferrer.dataForTesting != null) {
         inferrer.dataForTesting!.typeInferenceResult
@@ -2063,12 +2067,10 @@ class InferenceVisitor
       }
     }
     if (inferenceNeeded) {
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-          listType,
+      gatherer!.constrainArguments(formalTypes!, actualTypes!);
+      inferrer.typeSchemaEnvironment.upwardsInfer(
+          gatherer,
           listClass.typeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
           inferredTypes!,
           inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
@@ -2711,17 +2713,20 @@ class InferenceVisitor
       inferredSpreadTypes = new Map<TreeNode, DartType>.identity();
       inferredConditionTypes = new Map<Expression, DartType>.identity();
     }
+    TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       inferredTypes = [noInferredType, noInferredType];
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+      gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           mapType,
           mapClass.typeParameters,
-          null,
-          null,
           typeContext,
-          inferredTypes,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
+      inferrer.typeSchemaEnvironment.downwardsInfer(
+          gatherer,
+          mapClass.typeParameters,
+          inferredTypes,
+          inferrer.libraryBuilder.library);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       if (inferrer.dataForTesting != null) {
@@ -2792,22 +2797,25 @@ class InferenceVisitor
         }
 
         List<DartType> inferredTypesForSet = <DartType>[noInferredType];
-        inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-            setType,
+        // Note: we don't use the previously created gatherer because it was set
+        // up presuming that the literal would be a map; we now know that it
+        // needs to be a set.
+        TypeConstraintGatherer gatherer = inferrer.typeSchemaEnvironment
+            .setupGenericTypeInference(
+                setType,
+                inferrer.coreTypes.setClass.typeParameters,
+                typeContext,
+                inferrer.libraryBuilder.library,
+                isConst: node.isConst);
+        inferrer.typeSchemaEnvironment.downwardsInfer(
+            gatherer,
             inferrer.coreTypes.setClass.typeParameters,
-            null,
-            null,
-            typeContext,
             inferredTypesForSet,
-            inferrer.libraryBuilder.library,
-            isConst: node.isConst);
-        inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-            inferrer.coreTypes.thisInterfaceType(inferrer.coreTypes.setClass,
-                inferrer.libraryBuilder.nonNullable),
+            inferrer.libraryBuilder.library);
+        gatherer.constrainArguments(formalTypesForSet, actualTypesForSet!);
+        inferrer.typeSchemaEnvironment.upwardsInfer(
+            gatherer,
             inferrer.coreTypes.setClass.typeParameters,
-            formalTypesForSet,
-            actualTypesForSet,
-            typeContext,
             inferredTypesForSet,
             inferrer.libraryBuilder.library);
         DartType inferredTypeArgument = inferredTypesForSet[0];
@@ -2855,12 +2863,10 @@ class InferenceVisitor
             NeverType.fromNullability(inferrer.libraryBuilder.nonNullable),
             replacement);
       }
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-          mapType,
+      gatherer!.constrainArguments(formalTypes!, actualTypes!);
+      inferrer.typeSchemaEnvironment.upwardsInfer(
+          gatherer,
           mapClass.typeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
           inferredTypes!,
           inferrer.libraryBuilder.library);
       inferredKeyType = inferredTypes[0];
@@ -5977,17 +5983,20 @@ class InferenceVisitor
       inferredSpreadTypes = new Map<TreeNode, DartType>.identity();
       inferredConditionTypes = new Map<Expression, DartType>.identity();
     }
+    TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType()];
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+      gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           setType,
           setClass.typeParameters,
-          null,
-          null,
           typeContext,
-          inferredTypes,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
+      inferrer.typeSchemaEnvironment.downwardsInfer(
+          gatherer,
+          setClass.typeParameters,
+          inferredTypes,
+          inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
       if (inferrer.dataForTesting != null) {
         inferrer.dataForTesting!.typeInferenceResult
@@ -6013,12 +6022,10 @@ class InferenceVisitor
       }
     }
     if (inferenceNeeded) {
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-          setType,
+      gatherer!.constrainArguments(formalTypes!, actualTypes!);
+      inferrer.typeSchemaEnvironment.upwardsInfer(
+          gatherer,
           setClass.typeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
           inferredTypes!,
           inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];

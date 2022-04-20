@@ -1,10 +1,10 @@
 name: dart_internal
 version: 0.2.5
-repository: https://github.com/dart-lang/sdk/tree/master/pkg/dart_internal
 description: >-
   This package is not intended for wide use. It provides a temporary API to
   solve the problem: "Given an object some generic type A, how do I construct an
   instance of generic type B with the same type argument(s)?"
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/dart_internal
 
 environment:
   # Restrict the upper bound so that we can remove support for this in a later

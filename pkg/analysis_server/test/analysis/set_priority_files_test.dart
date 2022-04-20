@@ -67,7 +67,7 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_ignoredInAnalysisOptions() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -85,7 +85,7 @@ analyzer:
       '$testPackageRootPath/child/samples/sample.dart',
       '',
     );
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -102,7 +102,7 @@ analyzer:
       '$testPackageRootPath/child/samples/sample.dart',
       '',
     );
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - 'child/samples/**'

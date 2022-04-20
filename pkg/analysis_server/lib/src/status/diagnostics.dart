@@ -366,7 +366,7 @@ class CompletionPage extends AbstractCompletionPage {
 
   @override
   List<CompletionPerformance> get performanceItems =>
-      completionDomain.performanceList.items.toList();
+      server.completionState.performanceList.items.toList();
 }
 
 class ContentsPage extends DiagnosticPageWithNav {
@@ -1255,12 +1255,9 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
     }
 
     // completion domain
-    var handler = server.handlers
-            .firstWhereOrNull((handler) => handler is CompletionDomainHandler)
-        as CompletionDomainHandler?;
     h3('Completion domain subscriptions');
     ul(CompletionService.VALUES, (service) {
-      if (handler?.subscriptions.contains(service) ?? false) {
+      if (server.completionState.subscriptions.contains(service)) {
         buf.write('$service (has subscriptions)');
       } else {
         buf.write('$service (no subscriptions)');

@@ -122,6 +122,9 @@ final String? authToken =
 final Element? editListElement =
     document.querySelector('.edit-list .panel-content');
 
+final Element? editListHeading =
+    document.querySelector('.edit-list .panel-heading');
+
 final Element? editPanel = document.querySelector('.edit-panel .panel-content');
 
 final Element? footerPanel = document.querySelector('footer');
@@ -646,6 +649,14 @@ void populateProposedEdits(
   editListElement!.innerHtml = '';
 
   var editCount = edits.length;
+
+  if (editCount < 2) {
+    editListHeading!.innerText = 'Proposed Edits';
+  } else {
+    int total = edits.entries.fold(0, (sum, edit) => sum + edit.value.length);
+    editListHeading!.innerText = '$total Proposed Edits';
+  }
+
   if (editCount == 0) {
     Element p = document.createElement('p');
     editListElement!.append(p);

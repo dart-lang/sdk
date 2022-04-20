@@ -203,7 +203,7 @@ class MyAnnotation {
   }
 
   Future<void> test_OK_genericFunctionType() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   strong-mode: true
 ''');

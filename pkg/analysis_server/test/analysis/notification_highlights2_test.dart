@@ -121,6 +121,7 @@ f(a) async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
@@ -133,6 +134,7 @@ f(a) async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
@@ -145,6 +147,7 @@ f(a) async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
@@ -1014,6 +1017,7 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'assert(true)');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for (;;)');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for (var v4 in');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var v4 in');
     assertHasRegion(HighlightRegionType.KEYWORD, 'break;');
     assertHasRegion(HighlightRegionType.KEYWORD, 'case 0:');
     assertHasRegion(HighlightRegionType.KEYWORD, 'catch (e) {}');

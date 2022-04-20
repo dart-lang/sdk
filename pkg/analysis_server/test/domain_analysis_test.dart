@@ -85,7 +85,7 @@ class AnalysisDomainPubTest extends _AnalysisDomainTest {
     );
 
     // Write the options file that excludes b.dart
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -138,7 +138,7 @@ analyzer:
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -206,7 +206,7 @@ class A {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
@@ -301,7 +301,7 @@ void f(A a) {}
 
     // Write an empty file to force a new analysis context.
     // We look for `pubspec.yaml` files only in analysis context roots.
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -403,7 +403,7 @@ analyzer:
     // Has an error - no touch screen.
     newFile(path, '<manifest/>');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -494,7 +494,7 @@ class A {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
@@ -747,7 +747,7 @@ analyzer:
     // Has an error - no touch screen.
     newFile(path, '<manifest/>');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -790,7 +790,7 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
@@ -1143,7 +1143,7 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - "**/b.dart"
@@ -1252,7 +1252,7 @@ analyzer:
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
