@@ -1275,4 +1275,33 @@ DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
   ENSURE(!Dart_IsError(result));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Helper for the regression test for b/216834909
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||            \
+    defined(DART_HOST_OS_MACOS)
+static bool Regress216834909_hang_at_exit = true;
+
+static void Regress216834909_AtExit() {
+  if (Regress216834909_hang_at_exit) {
+    while (true) {
+      sleep(60 * 60);  // Sleep for 1 hour.
+    }
+  }
+}
+
+DART_EXPORT void Regress216834909_SetAtExit(int64_t install) {
+  if (install != 0) {
+    // Set and arm atexit routine.
+    atexit(&Regress216834909_AtExit);
+    Regress216834909_hang_at_exit = true;
+  } else {
+    // Disarm atexit routine.
+    Regress216834909_hang_at_exit = false;
+  }
+}
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||     \
+        // defined(DART_HOST_OS_MACOS)
+
 }  // namespace dart
