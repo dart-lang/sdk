@@ -74,6 +74,10 @@ bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 T getProperty<T>(Object o, Object name) =>
     JS<dynamic>('Object|Null', '#[#]', o, name);
 
+/// Similar to [getProperty] but introduces an unsound implicit cast to `T`.
+T _getPropertyTrustType<T>(Object o, Object name) =>
+    JS<T>('Object|Null', '#[#]', o, name);
+
 // A CFE transformation may optimize calls to `setProperty`, when [value] is
 // statically known to be a non-function.
 T setProperty<T>(Object o, Object name, T? value) {
@@ -95,10 +99,23 @@ T callMethod<T>(Object o, String method, List<Object?> args) {
   return JS<dynamic>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
 
+/// Similar to [callMethod] but introduces an unsound implicit cast to `T`.
+T _callMethodTrustType<T>(Object o, String method, List<Object?> args) {
+  assertInteropArgs(args);
+  return JS<T>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+}
+
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked0<T>(Object o, String method) {
   return JS<dynamic>('Object|Null', '#[#]()', o, method);
+}
+
+/// Similar to [_callMethodUnchecked] but introduces an unsound implicit cast
+/// to `T`.
+@pragma('dart2js:tryInline')
+T _callMethodUncheckedTrustType0<T>(Object o, String method) {
+  return JS<T>('Object|Null', '#[#]()', o, method);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
@@ -107,11 +124,26 @@ T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
   return JS<dynamic>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
+/// Similar to [_callMethodUnchecked1] but introduces an unsound implicit cast
+/// to `T`.
+@pragma('dart2js:tryInline')
+T _callMethodUncheckedTrustType1<T>(Object o, String method, Object? arg1) {
+  return JS<T>('Object|Null', '#[#](#)', o, method, arg1);
+}
+
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked2<T>(
     Object o, String method, Object? arg1, Object? arg2) {
   return JS<dynamic>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
+}
+
+/// Similar to [_callMethodUnchecked2] but introduces an unsound implicit cast
+/// to `T`.
+@pragma('dart2js:tryInline')
+T _callMethodUncheckedTrustType2<T>(
+    Object o, String method, Object? arg1, Object? arg2) {
+  return JS<T>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
@@ -122,11 +154,28 @@ T _callMethodUnchecked3<T>(
       'Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
+/// Similar to [_callMethodUnchecked3] but introduces an unsound implicit cast
+/// to `T`.
+@pragma('dart2js:tryInline')
+T _callMethodUncheckedTrustType3<T>(
+    Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
+  return JS<T>('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
+}
+
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
     Object? arg3, Object? arg4) {
   return JS<dynamic>(
+      'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
+}
+
+/// Similar to [_callMethodUnchecked4] but introduces an unsound implicit cast
+/// to `T`.
+@pragma('dart2js:tryInline')
+T _callMethodUncheckedTrustType4<T>(Object o, String method, Object? arg1,
+    Object? arg2, Object? arg3, Object? arg4) {
+  return JS<T>(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
 }
 

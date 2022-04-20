@@ -20,6 +20,11 @@ bool hasAnonymousAnnotation(Annotatable a) =>
 bool hasStaticInteropAnnotation(Annotatable a) =>
     a.annotations.any(_isStaticInteropAnnotation);
 
+/// Returns true iff the node has an `@trustTypes` annotation from
+/// `package:js` or from the internal `dart:_js_annotations`.
+bool hasTrustTypesAnnotation(Annotatable a) =>
+    a.annotations.any(_isTrustTypesAnnotation);
+
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
@@ -79,6 +84,9 @@ bool _isAnonymousAnnotation(Expression value) =>
 
 bool _isStaticInteropAnnotation(Expression value) =>
     _isInteropAnnotation(value, '_StaticInterop');
+
+bool _isTrustTypesAnnotation(Expression value) =>
+    _isInteropAnnotation(value, '_TrustTypes');
 
 /// Returns true if [value] is the `Native` annotation from `dart:_js_helper`.
 bool _isNativeAnnotation(Expression value) {

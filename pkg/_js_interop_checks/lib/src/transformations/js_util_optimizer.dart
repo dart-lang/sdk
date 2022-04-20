@@ -7,16 +7,19 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../js_interop.dart' show getJSName;
+import '../js_interop.dart' show getJSName, hasTrustTypesAnnotation;
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
 class JsUtilOptimizer extends Transformer {
   final Procedure _callMethodTarget;
+  final Procedure _callMethodTrustTypeTarget;
   final List<Procedure> _callMethodUncheckedTargets;
+  final List<Procedure> _callMethodUncheckedTrustTypeTargets;
   final Procedure _callConstructorTarget;
   final List<Procedure> _callConstructorUncheckedTargets;
   final Procedure _getPropertyTarget;
+  final Procedure _getPropertyTrustTypeTarget;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
 
@@ -37,14 +40,21 @@ class JsUtilOptimizer extends Transformer {
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
   Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
+  late Set<Reference> _shouldTrustType;
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _callMethodTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
+        _callMethodTrustTypeTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', '_callMethodTrustType'),
         _callMethodUncheckedTargets = List<Procedure>.generate(
             5,
             (i) => _coreTypes.index.getTopLevelProcedure(
                 'dart:js_util', '_callMethodUnchecked$i')),
+        _callMethodUncheckedTrustTypeTargets = List<Procedure>.generate(
+            5,
+            (i) => _coreTypes.index.getTopLevelProcedure(
+                'dart:js_util', '_callMethodUncheckedTrustType$i')),
         _callConstructorTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'callConstructor'),
         _callConstructorUncheckedTargets = List<Procedure>.generate(
@@ -53,6 +63,8 @@ class JsUtilOptimizer extends Transformer {
                 'dart:js_util', '_callConstructorUnchecked$i')),
         _getPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
+        _getPropertyTrustTypeTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', '_getPropertyTrustType'),
         _setPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _setPropertyUncheckedTarget = _coreTypes.index
@@ -93,14 +105,16 @@ class JsUtilOptimizer extends Transformer {
     if (node.isExternal && node.isExtensionMember) {
       var index = _extensionMemberIndex ??=
           _createExtensionMembersIndex(node.enclosingLibrary);
-      var nodeDescriptor = index[node.reference]!;
+      Reference reference = node.reference;
+      var nodeDescriptor = index[reference]!;
+      bool shouldTrustType = _shouldTrustType.contains(reference);
       if (!nodeDescriptor.isStatic) {
         if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
-          transformedBody = _getExternalGetterBody(node);
+          transformedBody = _getExternalGetterBody(node, shouldTrustType);
         } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
           transformedBody = _getExternalSetterBody(node);
         } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
-          transformedBody = _getExternalMethodBody(node);
+          transformedBody = _getExternalMethodBody(node, shouldTrustType);
         }
       }
     }
@@ -120,9 +134,17 @@ class JsUtilOptimizer extends Transformer {
   Map<Reference, ExtensionMemberDescriptor> _createExtensionMembersIndex(
       Library library) {
     _extensionMemberIndex = {};
-    library.extensions.forEach((extension) => extension.members.forEach(
-        (descriptor) =>
-            _extensionMemberIndex![descriptor.member] = descriptor));
+    _shouldTrustType = {};
+    library.extensions
+        .forEach((extension) => extension.members.forEach((descriptor) {
+              Reference reference = descriptor.member;
+              _extensionMemberIndex![reference] = descriptor;
+              DartType onType = extension.onType;
+              if (onType is InterfaceType &&
+                  hasTrustTypesAnnotation(onType.className.asClass)) {
+                _shouldTrustType.add(reference);
+              }
+            }));
     return _extensionMemberIndex!;
   }
 
@@ -130,11 +152,13 @@ class JsUtilOptimizer extends Transformer {
   ///
   /// The new function body will call the optimized version of
   /// `js_util.getProperty` for the given external getter.
-  ReturnStatement _getExternalGetterBody(Procedure node) {
+  ReturnStatement _getExternalGetterBody(Procedure node, bool shouldTrustType) {
     var function = node.function;
     assert(function.positionalParameters.length == 1);
+    Procedure target =
+        shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
     var getPropertyInvocation = StaticInvocation(
-        _getPropertyTarget,
+        target,
         Arguments([
           VariableGet(function.positionalParameters.first),
           StringLiteral(_getExtensionMemberName(node))
@@ -170,10 +194,12 @@ class JsUtilOptimizer extends Transformer {
   ///
   /// The new function body will call the optimized version of
   /// `js_util.callMethod` for the given external method.
-  ReturnStatement _getExternalMethodBody(Procedure node) {
+  ReturnStatement _getExternalMethodBody(Procedure node, bool shouldTrustType) {
     var function = node.function;
+    Procedure target =
+        shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
     var callMethodInvocation = StaticInvocation(
-        _callMethodTarget,
+        target,
         Arguments([
           VariableGet(function.positionalParameters.first),
           StringLiteral(_getExtensionMemberName(node)),
@@ -185,7 +211,8 @@ class JsUtilOptimizer extends Transformer {
           function.returnType
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(_lowerCallMethod(callMethodInvocation));
+    return ReturnStatement(_lowerCallMethod(callMethodInvocation,
+        shouldTrustType: shouldTrustType));
   }
 
   /// Returns the extension member name.
@@ -214,7 +241,8 @@ class JsUtilOptimizer extends Transformer {
     if (node.target == _setPropertyTarget) {
       node = _lowerSetProperty(node);
     } else if (node.target == _callMethodTarget) {
-      node = _lowerCallMethod(node);
+      // Never trust types on explicit `js_util` calls.
+      node = _lowerCallMethod(node, shouldTrustType: false);
     } else if (node.target == _callConstructorTarget) {
       node = _lowerCallConstructor(node);
     }
@@ -245,13 +273,17 @@ class JsUtilOptimizer extends Transformer {
   /// Calls will be lowered when using a List literal or constant list with 0-4
   /// elements for the `callMethod` arguments, or the `List.empty()` factory.
   /// Removing the checks allows further inlining by the compilers.
-  StaticInvocation _lowerCallMethod(StaticInvocation node) {
+  StaticInvocation _lowerCallMethod(StaticInvocation node,
+      {required bool shouldTrustType}) {
     Arguments arguments = node.arguments;
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
+    List<Procedure> targets = shouldTrustType
+        ? _callMethodUncheckedTrustTypeTargets
+        : _callMethodUncheckedTargets;
 
     return _lowerToCallUnchecked(
-        node, _callMethodUncheckedTargets, arguments.positional.sublist(0, 2));
+        node, targets, arguments.positional.sublist(0, 2));
   }
 
   /// Lowers the given js_util `callConstructor` call to `_callConstructorUncheckedN`

@@ -87,6 +87,7 @@ t
 team
 this.namedconstructor
 this.x
+trusttypes
 type3.#name
 u
 unsound
