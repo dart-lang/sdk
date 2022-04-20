@@ -317,7 +317,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     // TODO: Handle invalidation of precompiled macros.
     // TODO: Handle multiple macro libraries compiled to a single precompiled
     // kernel file.
-    var macroExecutor = state.options.macroExecutor;
+    var macroExecutor = state.processedOpts.macroExecutor;
     var format = parsedArgs['precompiled-macro-format'];
     for (var parts in (parsedArgs['precompiled-macro'] as List<String>)
         .map((arg) => arg.split(';'))) {

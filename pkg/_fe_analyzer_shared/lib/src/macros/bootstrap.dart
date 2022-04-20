@@ -34,7 +34,7 @@ String bootstrapMacroIsolate(
       }
       constructorEntries.writeln('},');
     });
-    constructorEntries.writeln("}");
+    constructorEntries.writeln('},');
   });
   return template
       .replaceFirst(_importMarker, imports.toString())
