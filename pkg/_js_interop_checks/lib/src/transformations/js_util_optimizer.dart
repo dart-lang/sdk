@@ -179,7 +179,7 @@ class JsUtilOptimizer extends Transformer {
           StringLiteral(_getExtensionMemberName(node)),
           ListLiteral(function.positionalParameters
               .sublist(1)
-              .map((argument) => VariableGet(argument))
+              .map<Expression>((argument) => VariableGet(argument))
               .toList())
         ], types: [
           function.returnType
@@ -294,8 +294,8 @@ class JsUtilOptimizer extends Transformer {
     }
 
     // Lower arguments in other kinds of Lists.
-    var callUncheckedArguments;
-    var entryType;
+    List<Expression> callUncheckedArguments;
+    DartType entryType;
     if (argumentsList is ListLiteral) {
       if (argumentsList.expressions.length >= callUncheckedTargets.length) {
         return node;
@@ -309,7 +309,7 @@ class JsUtilOptimizer extends Transformer {
         return node;
       }
       callUncheckedArguments = argumentsListConstant.entries
-          .map((constant) => ConstantExpression(
+          .map<Expression>((constant) => ConstantExpression(
               constant, constant.getType(_staticTypeContext)))
           .toList();
       entryType = argumentsListConstant.typeArgument;

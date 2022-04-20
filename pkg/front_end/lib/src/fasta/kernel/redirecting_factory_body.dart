@@ -92,7 +92,7 @@ class RedirectingFactoryBody extends ReturnStatement {
   static Expression _makeForwardingCall(
       Member target, List<DartType> typeArguments, FunctionNode function) {
     final List<Expression> positional = function.positionalParameters
-        .map((v) => new VariableGet(v)..fileOffset = v.fileOffset)
+        .map<Expression>((v) => new VariableGet(v)..fileOffset = v.fileOffset)
         .toList();
     final List<NamedExpression> named = function.namedParameters
         .map((v) => new NamedExpression(
