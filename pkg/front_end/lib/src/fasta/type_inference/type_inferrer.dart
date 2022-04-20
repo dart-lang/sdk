@@ -3595,7 +3595,9 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Expression _hoist(Expression expression, DartType type,
       List<VariableDeclaration>? hoistedExpressions) {
-    if (hoistedExpressions != null && expression is! ThisExpression) {
+    if (hoistedExpressions != null &&
+        expression is! ThisExpression &&
+        expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);
       return createVariableGet(variable);
