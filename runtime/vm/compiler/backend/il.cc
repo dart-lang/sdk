@@ -6596,8 +6596,10 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
       } else {
+#if defined(INCLUDE_IL_PRINTER)
         __ Comment("def_target %s <- origin %s %s", def_target.ToCString(),
                    origin.ToCString(), RepresentationToCString(origin_rep));
+#endif  // defined(INCLUDE_IL_PRINTER)
 #ifdef DEBUG
         // Stack arguments split are in word-size chunks. These chunks can copy
         // too much. However, that doesn't matter in practise because we process
