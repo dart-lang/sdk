@@ -437,7 +437,10 @@ ErrorPtr Thread::HandleInterrupts() {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {
-      heap()->CollectGarbage(this, GCType::kScavenge, GCReason::kStoreBuffer);
+      // Evacuate: If the popular store buffer targets are copied instead of
+      // promoted, the store buffer won't shrink and a second scavenge will
+      // occur that does promote them.
+      heap()->CollectGarbage(this, GCType::kEvacuate, GCReason::kStoreBuffer);
     }
 
 #if !defined(PRODUCT)
