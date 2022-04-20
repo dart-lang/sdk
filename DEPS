@@ -144,7 +144,7 @@ vars = {
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
-  "shelf_proxy_rev": "ccd311f64d8689e7a145d703ba267975d6df9e28",
+  "shelf_proxy_rev": "124615d0614b38814970aa9638725d9d6b435268",
   "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
