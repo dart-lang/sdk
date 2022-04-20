@@ -3855,6 +3855,7 @@ class FunctionNode extends TreeNode {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType.accept(v);
+    futureValueType?.accept(v);
     body?.accept(v);
   }
 
@@ -3864,6 +3865,9 @@ class FunctionNode extends TreeNode {
     v.transformList(positionalParameters, this);
     v.transformList(namedParameters, this);
     returnType = v.visitDartType(returnType);
+    if (futureValueType != null) {
+      futureValueType = v.visitDartType(futureValueType!);
+    }
     if (body != null) {
       body = v.transform(body!);
       body?.parent = this;
@@ -3876,6 +3880,9 @@ class FunctionNode extends TreeNode {
     v.transformVariableDeclarationList(positionalParameters, this);
     v.transformVariableDeclarationList(namedParameters, this);
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
+    if (futureValueType != null) {
+      futureValueType = v.visitDartType(futureValueType!, cannotRemoveSentinel);
+    }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);
       body?.parent = this;
