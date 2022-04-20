@@ -204,7 +204,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         ParameterStructure parameterStructure =
             annotations.hasNoElision(constructor)
                 ? constructor.parameterStructure
-                : memberUsage.invokedParameters;
+                : memberUsage.invokedParameters /*!*/;
         if (constructor.isFactoryConstructor) {
           // TODO(redemption): This should be a JFunction.
           newMember = JFactoryConstructor(
@@ -236,7 +236,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         ParameterStructure parameterStructure =
             annotations.hasNoElision(function)
                 ? function.parameterStructure
-                : memberUsage.invokedParameters;
+                : memberUsage.invokedParameters /*!*/;
         newMember = JMethod(newLibrary, newClass, memberName,
             parameterStructure, function.asyncMarker,
             isStatic: function.isStatic,

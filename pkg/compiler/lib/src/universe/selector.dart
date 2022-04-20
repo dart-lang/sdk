@@ -9,6 +9,7 @@ library dart2js.selector;
 import '../common.dart';
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';

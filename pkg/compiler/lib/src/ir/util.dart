@@ -6,8 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 // TODO(48820): revert to '../common.dart':
 import '../diagnostics/source_span.dart';
-import '../elements/entities_migrated.dart'
-    show AsyncMarker, MemberEntity, Variance;
+import '../elements/entities.dart' show AsyncMarker, MemberEntity, Variance;
 
 /// Returns a textual representation of [node] that include the runtime type and
 /// hash code of the node and a one line prefix of the node toString text.

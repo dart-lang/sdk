@@ -22,6 +22,7 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
 import '../js_model/closure.dart';

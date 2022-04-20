@@ -4,7 +4,7 @@
 
 library elements.jumps;
 
-import 'entities_migrated.dart' show Entity, Local;
+import 'entities.dart' show Entity, Local;
 
 /// The label entity defined by a labeled statement.
 abstract class LabelDefinition extends Entity {

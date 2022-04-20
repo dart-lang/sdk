@@ -10,6 +10,7 @@ import '../common.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
@@ -141,7 +142,8 @@ class CallablePropertyNode extends CallableNode {
     if (property.memberName != selector.memberName) return false;
     if (type is FunctionType &&
         !selector.callStructure
-            .signatureApplies(ParameterStructure.fromType(type))) return false;
+            .signatureApplies(ParameterStructureMethods.fromType(type)))
+      return false;
     return true;
   }
 
@@ -288,8 +290,9 @@ class TypeVariableTests {
             instanceName: instanceName,
             isNoSuchMethod: isNoSuchMethod);
       } else {
-        ParameterStructure parameterStructure = ParameterStructure.fromType(
-            _elementEnvironment.getLocalFunctionType(function));
+        ParameterStructure parameterStructure =
+            ParameterStructureMethods.fromType(
+                _elementEnvironment.getLocalFunctionType(function));
         node = MethodNode(function, parameterStructure, isCallTarget: true);
       }
       return node;
@@ -446,7 +449,7 @@ class TypeVariableTests {
 
     for (GenericInstantiation instantiation in _genericInstantiations) {
       ParameterStructure instantiationParameterStructure =
-          ParameterStructure.fromType(instantiation.functionType);
+          ParameterStructureMethods.fromType(instantiation.functionType);
       ClassEntity implementationClass = _commonElements
           .getInstantiationClass(instantiation.typeArguments.length);
 
