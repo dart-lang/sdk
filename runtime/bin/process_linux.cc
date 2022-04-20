@@ -170,8 +170,7 @@ class ExitCodeHandler {
     // Wake up the [ExitCodeHandler] thread which is blocked on `wait()` (see
     // [ExitCodeHandlerEntry]).
     if (TEMP_FAILURE_RETRY(fork()) == 0) {
-      // We avoid running through registered atexit() handlers because that is
-      // unnecessary work.
+      // Avoid calling any atexit callbacks to prevent deadlocks.
       _exit(0);
     }
 
@@ -437,7 +436,7 @@ class ProcessStarter {
     int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
     if (bytes_read != sizeof(msg)) {
       perror("Failed receiving notification message");
-      exit(1);
+      _exit(1);
     }
     if (Process::ModeIsAttached(mode_)) {
       ExecProcess();
@@ -569,13 +568,15 @@ class ProcessStarter {
           execvp(realpath, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
-          // Exit the intermediate process.
-          exit(0);
+          // Exit the intermediate process. Avoid calling any atexit callbacks
+          // to avoid potential issues (e.g. deadlocks).
+          _exit(0);
         }
       }
     } else {
-      // Exit the intermediate process.
-      exit(0);
+      // Exit the intermediate process. Avoid calling any atexit callbacks
+      // to avoid potential issues (e.g. deadlocks).
+      _exit(0);
     }
   }
 
@@ -728,7 +729,8 @@ class ProcessStarter {
     close(exec_control_[1]);
 
     // We avoid running through registered atexit() handlers because that is
-    // unnecessary work.
+    // unnecessary work. It can also cause deadlocks on exit in the forked
+    // process.
     _exit(1);
   }
 

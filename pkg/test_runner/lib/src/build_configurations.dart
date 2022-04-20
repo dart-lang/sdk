@@ -8,25 +8,35 @@ import 'dart:io';
 import 'configuration.dart';
 import 'utils.dart';
 
-Future buildConfigurations(List<TestConfiguration> configurations) async {
-  var startTime = DateTime.now();
-  if (!configurations.first.build) return;
+// Returns false if build failed.
+Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
+  final startTime = DateTime.now();
+
   final buildTargets = <String>{};
   final modes = <Mode>{};
   final architectures = <Architecture>{};
   final systems = <System>{};
   for (final configuration in configurations) {
+    if (!configuration.build) {
+      continue;
+    }
     final inner = configuration.configuration;
     buildTargets.addAll(_selectBuildTargets(inner));
     modes.add(inner.mode);
     architectures.add(inner.architecture);
     systems.add(inner.system);
   }
-  if (buildTargets.isEmpty) return;
+
+  if (buildTargets.isEmpty) {
+    print('No build targets found.');
+    return true;
+  }
+
   if (systems.length > 1) {
     print('Unimplemented: building for multiple systems ${systems.join(',')}');
     exit(1);
   }
+
   final system = systems.single;
   final osFlags = <String>[];
   if (system == System.android) {
@@ -40,6 +50,7 @@ Future buildConfigurations(List<TestConfiguration> configurations) async {
       exit(1);
     }
   }
+
   final command = [
     'tools/build.py',
     '-m',
@@ -50,6 +61,7 @@ Future buildConfigurations(List<TestConfiguration> configurations) async {
     ...buildTargets
   ];
   print('Running command: python3 ${command.join(' ')}');
+
   final process = await Process.start('python3', command);
   stdout.nonBlocking.addStream(process.stdout);
   stderr.nonBlocking.addStream(process.stderr);
@@ -57,8 +69,11 @@ Future buildConfigurations(List<TestConfiguration> configurations) async {
   if (exitCode != 0) {
     print('exit code: $exitCode');
   }
-  var buildTime = niceTime(DateTime.now().difference(startTime));
+
+  final buildTime = niceTime(DateTime.now().difference(startTime));
   print('--- Build time: $buildTime ---');
+
+  return exitCode == 0;
 }
 
 List<String> _selectBuildTargets(Configuration inner) {

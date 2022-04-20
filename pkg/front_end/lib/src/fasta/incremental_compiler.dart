@@ -1952,7 +1952,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) =>
+              .map<VariableDeclaration>((name) =>
                   new VariableDeclarationImpl(name, 0, type: definitions[name])
                     ..fileOffset = cls?.fileOffset ??
                         extension?.fileOffset ??
