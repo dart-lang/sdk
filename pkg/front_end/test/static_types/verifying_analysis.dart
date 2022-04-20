@@ -7,93 +7,21 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/kernel_generator.dart';
-import 'package:front_end/src/api_prototype/terminal_color_support.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
+import 'package:front_end/src/testing/analysis_helper.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/type_environment.dart';
 
-Future<void> run(Uri entryPoint, String allowedListPath,
-    {bool verbose = false,
-    bool generate = false,
-    bool Function(Uri uri)? analyzedUrisFilter}) async {
-  CompilerOptions options = new CompilerOptions();
-  options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-
-  options.onDiagnostic = (DiagnosticMessage message) {
-    printDiagnosticMessage(message, print);
-  };
-  InternalCompilerResult compilerResult = await kernelForProgramInternal(
-          entryPoint, options, retainDataForTesting: true, requireMain: false)
-      as InternalCompilerResult;
-
-  new DynamicVisitor(options.onDiagnostic!, compilerResult.component!,
-          allowedListPath, analyzedUrisFilter)
-      .run(verbose: verbose, generate: generate);
-}
-
-class StaticTypeVisitorBase extends RecursiveVisitor {
-  final TypeEnvironment typeEnvironment;
-
-  StaticTypeContext? staticTypeContext;
-
-  StaticTypeVisitorBase(Component component, ClassHierarchy classHierarchy)
-      : typeEnvironment =
-            new TypeEnvironment(new CoreTypes(component), classHierarchy);
-
-  @override
-  void visitProcedure(Procedure node) {
-    if (node.kind == ProcedureKind.Factory && isRedirectingFactory(node)) {
-      // Don't visit redirecting factories.
-      return;
-    }
-    staticTypeContext = new StaticTypeContext(node, typeEnvironment);
-    super.visitProcedure(node);
-    staticTypeContext = null;
-  }
-
-  @override
-  void visitField(Field node) {
-    if (isRedirectingFactoryField(node)) {
-      // Skip synthetic .dill members.
-      return;
-    }
-    staticTypeContext = new StaticTypeContext(node, typeEnvironment);
-    super.visitField(node);
-    staticTypeContext = null;
-  }
-
-  @override
-  void visitConstructor(Constructor node) {
-    staticTypeContext = new StaticTypeContext(node, typeEnvironment);
-    super.visitConstructor(node);
-    staticTypeContext = null;
-  }
-}
-
-class DynamicVisitor extends StaticTypeVisitorBase {
-  // TODO(johnniwinther): Enable this when it is less noisy.
-  static const bool checkReturnTypes = false;
-
-  final DiagnosticMessageHandler onDiagnostic;
-  final Component component;
+/// [AnalysisVisitor] that supports tracking error/problem occurrences in an
+/// allowed list file.
+class VerifyingAnalysis extends AnalysisVisitor {
   final String? _allowedListPath;
-  final bool Function(Uri uri)? analyzedUrisFilter;
 
   Map _expectedJson = {};
-  Map<String, Map<String, List<FormattedMessage>>> _actualMessages = {};
 
-  DynamicVisitor(this.onDiagnostic, this.component, this._allowedListPath,
-      this.analyzedUrisFilter)
-      : super(
-            component, new ClassHierarchy(component, new CoreTypes(component)));
+  VerifyingAnalysis(DiagnosticMessageHandler onDiagnostic, Component component,
+      this._allowedListPath, UriFilter? analyzedUrisFilter)
+      : super(onDiagnostic, component, analyzedUrisFilter);
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
@@ -109,7 +37,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     component.accept(this);
     if (generate && _allowedListPath != null) {
       Map<String, Map<String, int>> actualJson = {};
-      _actualMessages.forEach(
+      forEachMessage(
           (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
         Map<String, int> map = {};
         actualMessagesMap
@@ -127,7 +55,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     int errorCount = 0;
     _expectedJson.forEach((uri, expectedMessages) {
       Map<String, List<FormattedMessage>>? actualMessagesMap =
-          _actualMessages[uri];
+          getMessagesForUri(uri);
       if (actualMessagesMap == null) {
         print("Error: Allowed-listing of uri '$uri' isn't used. "
             "Remove it from the allowed-list.");
@@ -168,7 +96,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         });
       }
     });
-    _actualMessages.forEach(
+    forEachMessage(
         (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
       if (!_expectedJson.containsKey(uri)) {
         actualMessagesMap
@@ -185,7 +113,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
       print("""
 
 ********************************************************************************
-*  Unexpected dynamic invocations found by test:
+*  Unexpected code patterns found by test:
 *
 *    ${relativizeUri(Platform.script)}
 *
@@ -199,7 +127,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
       exit(-1);
     }
     if (verbose) {
-      _actualMessages.forEach(
+      forEachMessage(
           (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
         actualMessagesMap
             .forEach((String message, List<FormattedMessage> actualMessages) {
@@ -234,7 +162,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
       });
     } else {
       int total = 0;
-      _actualMessages.forEach(
+      forEachMessage(
           (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
         int count = 0;
         actualMessagesMap
@@ -251,83 +179,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
   }
 
-  @override
-  void visitLibrary(Library node) {
-    if (analyzedUrisFilter != null) {
-      if (analyzedUrisFilter!(node.importUri)) {
-        super.visitLibrary(node);
-      }
-    } else {
-      super.visitLibrary(node);
-    }
-  }
-
-  @override
-  void visitDynamicGet(DynamicGet node) {
-    registerError(node, "Dynamic access of '${node.name}'.");
-    super.visitDynamicGet(node);
-  }
-
-  @override
-  void visitDynamicSet(DynamicSet node) {
-    registerError(node, "Dynamic update to '${node.name}'.");
-    super.visitDynamicSet(node);
-  }
-
-  @override
-  void visitDynamicInvocation(DynamicInvocation node) {
-    registerError(node, "Dynamic invocation of '${node.name}'.");
-    super.visitDynamicInvocation(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (checkReturnTypes && node.function.returnType is DynamicType) {
-      registerError(node, "Dynamic return type");
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    if (checkReturnTypes && node.function.returnType is DynamicType) {
-      registerError(node, "Dynamic return type");
-    }
-    super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitProcedure(Procedure node) {
-    if (checkReturnTypes &&
-        node.function.returnType is DynamicType &&
-        node.name.text != 'noSuchMethod') {
-      registerError(node, "Dynamic return type on $node");
-    }
-    super.visitProcedure(node);
-  }
-
   void registerError(TreeNode node, String message) {
-    Location location = node.location!;
-    Uri uri = location.file;
-    String uriString = relativizeUri(uri)!;
-    Map<String, List<FormattedMessage>> actualMap = _actualMessages.putIfAbsent(
-        uriString, () => <String, List<FormattedMessage>>{});
-    if (uri.isScheme('org-dartlang-sdk')) {
-      location = new Location(Uri.base.resolve(uri.path.substring(1)),
-          location.line, location.column);
-    }
-    LocatedMessage locatedMessage = templateUnspecified
-        .withArguments(message)
-        .withLocation(uri, node.fileOffset, noLength);
-    FormattedMessage diagnosticMessage = locatedMessage.withFormatting(
-        format(locatedMessage, Severity.warning,
-            location: location, uriToSource: component.uriToSource),
-        location.line,
-        location.column,
-        Severity.warning,
-        []);
-    actualMap
-        .putIfAbsent(message, () => <FormattedMessage>[])
-        .add(diagnosticMessage);
+    registerMessage(node, message);
   }
 }
