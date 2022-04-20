@@ -185,7 +185,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "91",
   "download_firefox": False,
-  "firefox_tag": "67",
+  "firefox_tag": "98.0.2",
 }
 
 gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
