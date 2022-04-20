@@ -59,19 +59,19 @@ class Heap {
   Scavenger* new_space() { return &new_space_; }
   PageSpace* old_space() { return &old_space_; }
 
-  uword Allocate(intptr_t size, Space space) {
+  uword Allocate(Thread* thread, intptr_t size, Space space) {
     ASSERT(!read_only_);
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(size, OldPage::kData);
+          return AllocateOld(thread, size, OldPage::kData);
         }
-        return AllocateNew(size);
+        return AllocateNew(thread, size);
       case kOld:
-        return AllocateOld(size, OldPage::kData);
+        return AllocateOld(thread, size, OldPage::kData);
       case kCode:
-        return AllocateOld(size, OldPage::kExecutable);
+        return AllocateOld(thread, size, OldPage::kExecutable);
       default:
         UNREACHABLE();
     }
@@ -325,8 +325,8 @@ class Heap {
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
-  uword AllocateNew(intptr_t size);
-  uword AllocateOld(intptr_t size, OldPage::PageType type);
+  uword AllocateNew(Thread* thread, intptr_t size);
+  uword AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -355,7 +355,7 @@ class Heap {
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
-  void CollectForDebugging();
+  void CollectForDebugging(Thread* thread);
 
   IsolateGroup* isolate_group_;
   bool is_vm_isolate_;

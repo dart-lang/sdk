@@ -538,6 +538,7 @@ static type SpecialCharacter(type value) {
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
+  Thread* thread = Thread::Current();
   auto heap = isolate_group->heap();
 
   // TODO(iposva): NoSafepointScope needs to be added here.
@@ -547,7 +548,8 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // 'null_' must be the first object allocated as it is used in allocation to
   // clear the object.
   {
-    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, Instance::InstanceSize(), Heap::kOld);
     null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize(),
@@ -561,14 +563,14 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // otherwise identical.
   {
     // Allocate a dummy bool object to give true the desired alignment.
-    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
                      Bool::ContainsCompressedPointers());
     static_cast<BoolPtr>(address + kHeapObjectTag)->untag()->value_ = false;
   }
   {
     // Allocate true.
-    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
     true_ = static_cast<BoolPtr>(address + kHeapObjectTag);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
                      Bool::ContainsCompressedPointers());
@@ -577,7 +579,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   }
   {
     // Allocate false.
-    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
     false_ = static_cast<BoolPtr>(address + kHeapObjectTag);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
                      Bool::ContainsCompressedPointers());
@@ -744,7 +746,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Allocate and initialize the class class.
   {
     intptr_t size = Class::InstanceSize();
-    uword address = heap->Allocate(size, Heap::kOld);
+    uword address = heap->Allocate(thread, size, Heap::kOld);
     class_class_ = static_cast<ClassPtr>(address + kHeapObjectTag);
     InitializeObject(address, Class::kClassId, size,
                      Class::ContainsCompressedPointers());
@@ -979,7 +981,7 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the empty_array instance.
   {
-    uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
+    uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0),
                      Array::ContainsCompressedPointers());
     Array::initializeHandle(empty_array_,
@@ -991,7 +993,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   Smi& smi = Smi::Handle();
   // Allocate and initialize the zero_array instance.
   {
-    uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
+    uword address = heap->Allocate(thread, Array::InstanceSize(1), Heap::kOld);
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1),
                      Array::ContainsCompressedPointers());
     Array::initializeHandle(zero_array_,
@@ -1004,7 +1006,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty context scope object.
   {
-    uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, ContextScope::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kContextScopeCid, ContextScope::InstanceSize(0),
                      ContextScope::ContainsCompressedPointers());
     ContextScope::initializeHandle(
@@ -1019,7 +1022,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty object pool object.
   {
-    uword address = heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, ObjectPool::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kObjectPoolCid, ObjectPool::InstanceSize(0),
                      ObjectPool::ContainsCompressedPointers());
     ObjectPool::initializeHandle(
@@ -1033,7 +1037,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Allocate and initialize the empty_compressed_stackmaps instance.
   {
     const intptr_t instance_size = CompressedStackMaps::InstanceSize(0);
-    uword address = heap->Allocate(instance_size, Heap::kOld);
+    uword address = heap->Allocate(thread, instance_size, Heap::kOld);
     InitializeObject(address, kCompressedStackMapsCid, instance_size,
                      CompressedStackMaps::ContainsCompressedPointers());
     CompressedStackMaps::initializeHandle(
@@ -1045,7 +1049,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the empty_descriptors instance.
   {
-    uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, PcDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid, PcDescriptors::InstanceSize(0),
                      PcDescriptors::ContainsCompressedPointers());
     PcDescriptors::initializeHandle(
@@ -1058,8 +1063,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty variable descriptor object.
   {
-    uword address =
-        heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
+    uword address = heap->Allocate(thread, LocalVarDescriptors::InstanceSize(0),
+                                   Heap::kOld);
     InitializeObject(address, kLocalVarDescriptorsCid,
                      LocalVarDescriptors::InstanceSize(0),
                      LocalVarDescriptors::ContainsCompressedPointers());
@@ -1076,7 +1081,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // and can share this canonical descriptor.
   {
     uword address =
-        heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
+        heap->Allocate(thread, ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kExceptionHandlersCid,
                      ExceptionHandlers::InstanceSize(0),
                      ExceptionHandlers::ContainsCompressedPointers());
@@ -1090,7 +1095,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty type arguments object.
   {
-    uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, TypeArguments::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
                      TypeArguments::ContainsCompressedPointers());
     TypeArguments::initializeHandle(
@@ -2666,7 +2672,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = thread->heap();
 
-  uword address = heap->Allocate(size, space);
+  uword address = heap->Allocate(thread, size, space);
   if (UNLIKELY(address == 0)) {
     // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
     // available, it is the innermost error handler, so check for a longjmp base
@@ -2684,7 +2690,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       OUT_OF_MEMORY();
     }
   }
-  NoSafepointScope no_safepoint;
+  NoSafepointScope no_safepoint(thread);
   ObjectPtr raw_obj;
   InitializeObject(address, cls_id, size, compressed);
   raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
@@ -19714,6 +19720,11 @@ InstancePtr Instance::New(const Class& cls, Heap::Space space) {
   if (cls.EnsureIsAllocateFinalized(thread) != Error::null()) {
     return Instance::null();
   }
+  return NewAlreadyFinalized(cls, space);
+}
+
+InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
+  ASSERT(cls.is_allocate_finalized());
   intptr_t instance_size = cls.host_instance_size();
   ASSERT(instance_size > 0);
   ObjectPtr raw = Object::Allocate(cls.id(), instance_size, space,
@@ -24306,7 +24317,8 @@ const char* Array::ToCString() const {
 ArrayPtr Array::Grow(const Array& source,
                      intptr_t new_length,
                      Heap::Space space) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Array& result = Array::Handle(zone, Array::New(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
@@ -24319,7 +24331,7 @@ ArrayPtr Array::Grow(const Array& source,
   PassiveObject& obj = PassiveObject::Handle(zone);
   for (int i = 0; i < len; i++) {
     obj = source.At(i);
-    result.SetAt(i, obj);
+    result.SetAt(i, obj, thread);
   }
   return result.ptr();
 }

@@ -7714,6 +7714,8 @@ class Instance : public Object {
   }
 
   static InstancePtr New(const Class& cls, Heap::Space space = Heap::kNew);
+  static InstancePtr NewAlreadyFinalized(const Class& cls,
+                                         Heap::Space space = Heap::kNew);
 
   // Array/list element address computations.
   static intptr_t DataOffsetFor(intptr_t cid);
@@ -10342,8 +10344,11 @@ class Array : public Instance {
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
-    // TODO(iposva): Add storing NoSafepointScope.
     untag()->set_element<order>(index, value.ptr());
+  }
+  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    untag()->set_element<order>(index, value.ptr(), thread);
   }
 
   // Access to the array with acquire release semantics.
@@ -10479,9 +10484,11 @@ class Array : public Instance {
       memmove(const_cast<CompressedObjectPtr*>(to), from,
               count * kBytesPerElement);
     } else {
+      Thread* thread = Thread::Current();
       const uword heap_base = ptr()->heap_base();
       for (intptr_t i = 0; i < count; ++i) {
-        StoreArrayPointer(&to[i], from[i].Decompress(heap_base));
+        untag()->StoreArrayPointer(&to[i], from[i].Decompress(heap_base),
+                                   thread);
       }
     }
   }

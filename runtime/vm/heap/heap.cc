@@ -67,10 +67,9 @@ Heap::~Heap() {
   }
 }
 
-uword Heap::AllocateNew(intptr_t size) {
-  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  CollectForDebugging();
-  Thread* thread = Thread::Current();
+uword Heap::AllocateNew(Thread* thread, intptr_t size) {
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
+  CollectForDebugging(thread);
   uword addr = new_space_.TryAllocate(thread, size);
   if (LIKELY(addr != 0)) {
     return addr;
@@ -89,18 +88,17 @@ uword Heap::AllocateNew(intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(size, OldPage::kData);
+  return AllocateOld(thread, size, OldPage::kData);
 }
 
-uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
-  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
+uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (old_space_.GrowthControlState()) {
-    CollectForDebugging();
+    CollectForDebugging(thread);
     uword addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
     }
-    Thread* thread = Thread::Current();
     // Wait for any GC tasks that are in progress.
     WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, type);
@@ -135,7 +133,7 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   }
 
   if (old_space_.GrowthControlState()) {
-    WaitForSweeperTasks(Thread::Current());
+    WaitForSweeperTasks(thread);
     old_space_.TryReleaseReservation();
   } else {
     // We may or may not be a safepoint, so we don't know how to wait for the
@@ -428,7 +426,7 @@ void Heap::NotifyIdle(int64_t deadline) {
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   GCType type,
                                   GCReason reason) {
-  NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope(thread);
   ASSERT(reason != GCReason::kPromotion);
   ASSERT(reason != GCReason::kFinalize);
   if (thread->isolate_group() == Dart::vm_isolate_group()) {
@@ -468,7 +466,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   GCType type,
                                   GCReason reason) {
-  NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope(thread);
 
   ASSERT(type != GCType::kScavenge);
   ASSERT(reason != GCReason::kNewSpace);
@@ -704,9 +702,9 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   gc_on_nth_allocation_ = num_allocations;
 }
 
-void Heap::CollectForDebugging() {
+void Heap::CollectForDebugging(Thread* thread) {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
-  if (Thread::Current()->IsAtSafepoint()) {
+  if (thread->IsAtSafepoint()) {
     // CollectAllGarbage is not supported when we are at a safepoint.
     // Allocating when at a safepoint is not a common case.
     return;
@@ -717,7 +715,7 @@ void Heap::CollectForDebugging() {
     gc_on_nth_allocation_ = kNoForcedGarbageCollection;
   } else {
     // Prevent generated code from using the TLAB fast path on next allocation.
-    new_space_.AbandonRemainingTLABForDebugging(Thread::Current());
+    new_space_.AbandonRemainingTLABForDebugging(thread);
   }
 }
 
