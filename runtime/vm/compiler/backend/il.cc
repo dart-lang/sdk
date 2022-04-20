@@ -6534,14 +6534,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                                   const Register saved_fp,
                                   const Register temp0,
                                   const Register temp1) {
-  if (compiler::Assembler::EmittingComments()) {
-    __ Comment("EmitParamMoves");
-  }
+  __ Comment("EmitParamMoves");
 
   // Moves for return pointer.
   const auto& return_location =
       marshaller_.Location(compiler::ffi::kResultIndex);
   if (return_location.IsPointerToMemory()) {
+    __ Comment("return_location.IsPointerToMemory");
     const auto& pointer_location =
         return_location.AsPointerToMemory().pointer_location();
     const auto& pointer_register =
@@ -6568,10 +6567,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
        arg_index++) {
     const intptr_t num_defs = marshaller_.NumDefinitions(arg_index);
     const auto& arg_target = marshaller_.Location(arg_index);
+    __ Comment("arg_index %" Pd " arg_target %s", arg_index,
+               arg_target.ToCString());
 
     // First deal with moving all individual definitions passed in to the
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
+      __ Comment("  def_index %" Pd, def_index);
       const Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep =
           RequiredInputRepresentation(def_index) == kTagged
@@ -6594,6 +6596,21 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
       } else {
+        __ Comment("def_target %s <- origin %s %s", def_target.ToCString(),
+                   origin.ToCString(), RepresentationToCString(origin_rep));
+#ifdef DEBUG
+        // Stack arguments split are in word-size chunks. These chunks can copy
+        // too much. However, that doesn't matter in practise because we process
+        // the stack in order.
+        // It only matters for the last chunk, it should not overwrite what was
+        // already on the stack.
+        if (def_target.IsStack()) {
+          const auto& def_target_stack = def_target.AsStack();
+          ASSERT(def_target_stack.offset_in_bytes() +
+                     def_target.payload_type().SizeInBytes() <=
+                 marshaller_.RequiredStackSpaceInBytes());
+        }
+#endif
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }
       def_index++;
@@ -6604,6 +6621,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // Note that the step above has already moved the pointer into the expected
     // native location.
     if (arg_target.IsPointerToMemory()) {
+      __ Comment("arg_target.IsPointerToMemory");
       NoTemporaryAllocator temp_alloc;
       const auto& pointer_loc =
           arg_target.AsPointerToMemory().pointer_location();
@@ -6635,13 +6653,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       const auto& src = compiler::ffi::NativeRegistersLocation(
           zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
           temp0);
+      __ Comment("pointer_loc %s <- src %s", pointer_loc.ToCString(),
+                 src.ToCString());
       compiler->EmitNativeMove(pointer_loc, src, &temp_alloc);
     }
   }
 
-  if (compiler::Assembler::EmittingComments()) {
-    __ Comment("EmitParamMovesEnd");
-  }
+  __ Comment("EmitParamMovesEnd");
 }
 
 void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
