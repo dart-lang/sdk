@@ -18,7 +18,8 @@ import '../../compiler.dart' as api;
 import '../commandline_options.dart';
 import '../common.dart';
 import '../kernel/front_end_adapter.dart';
-import '../kernel/dart2js_target.dart' show Dart2jsTarget;
+import '../kernel/dart2js_target.dart'
+    show Dart2jsTarget, implicitlyUsedLibraries;
 import '../kernel/transformations/clone_mixin_methods_with_super.dart'
     as transformMixins show transformLibraries;
 import '../options.dart';
@@ -164,9 +165,11 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   _inferNullSafetyMode(options, isStrongDill);
   _validateNullSafetyMode(options);
 
-  // Modular compiles do not include the platform on the input dill
-  // either.
-  if (options.platformBinaries != null) {
+  // When compiling modularly, a dill for the SDK will be provided. In those
+  // cases we ignore the implicit platform binary.
+  bool platformBinariesIncluded =
+      options.modularMode || options.hasModularAnalysisInputs;
+  if (options.platformBinaries != null && !platformBinariesIncluded) {
     var platformUri = options.platformBinaries
         .resolve(_getPlatformFilename(options, targetName));
     // Modular analysis can be run on the sdk by providing directly the
@@ -331,11 +334,20 @@ Output _createOutput(
 
     search(root);
 
-    // Libraries dependencies do not show implicit imports to `dart:core`.
-    var dartCore = component.libraries.firstWhere((lib) {
-      return lib.importUri.isScheme('dart') && lib.importUri.path == 'core';
-    });
-    search(dartCore);
+    // Libraries dependencies do not show implicit imports to certain internal
+    // libraries.
+    const Set<String> alwaysInclude = {
+      'dart:_internal',
+      'dart:core',
+      'dart:async',
+      ...implicitlyUsedLibraries,
+    };
+    for (String uri in alwaysInclude) {
+      Library library = component.libraries.firstWhere((lib) {
+        return '${lib.importUri}' == uri;
+      });
+      search(library);
+    }
 
     libraries = libraries.where(seen.contains);
   }

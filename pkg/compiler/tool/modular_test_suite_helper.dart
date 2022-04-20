@@ -32,6 +32,7 @@ const dillId = DataId("full.dill");
 const fullDillId = DataId("concatenate.dill");
 const modularUpdatedDillId = DataId("modular.dill");
 const modularDataId = DataId("modular.data");
+const modularFullDataId = DataId("concatenate.modular.data");
 const closedWorldId = DataId("world");
 const globalUpdatedDillId = DataId("global.dill");
 const globalDataId = DataId("global.data");
@@ -304,10 +305,16 @@ class ConcatenateDillsStep extends IOModularStep {
 
   DataId get idForDill => useModularAnalysis ? modularUpdatedDillId : dillId;
 
-  List<DataId> get dependencies => [idForDill];
+  List<DataId> get dependencies => [
+        idForDill,
+        if (useModularAnalysis) modularDataId,
+      ];
 
   @override
-  List<DataId> get resultData => const [fullDillId];
+  List<DataId> get resultData => [
+        fullDillId,
+        if (useModularAnalysis) modularFullDataId,
+      ];
 
   @override
   bool get needsSources => false;
@@ -344,6 +351,10 @@ class ConcatenateDillsStep extends IOModularStep {
       '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
+      if (useModularAnalysis) ...[
+        '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
+        '${Flags.writeModularAnalysis}=${toUri(module, modularFullDataId)}',
+      ],
       '${Flags.cfeOnly}',
       '--out=${toUri(module, fullDillId)}',
     ];
@@ -364,14 +375,11 @@ class ConcatenateDillsStep extends IOModularStep {
 class ComputeClosedWorldStep extends IOModularStep {
   final bool useModularAnalysis;
 
-  DataId get idForDill =>
-      useModularAnalysis ? modularUpdatedDillId : fullDillId;
-
   ComputeClosedWorldStep({this.useModularAnalysis});
 
   List<DataId> get dependencies => [
-        idForDill,
-        if (useModularAnalysis) modularDataId,
+        fullDillId,
+        if (useModularAnalysis) modularFullDataId,
       ];
 
   @override
@@ -394,25 +402,16 @@ class ComputeClosedWorldStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose)
       print("\nstep: dart2js compute closed world on $module");
-    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    Iterable<String> dillDependencies =
-        transitiveDependencies.map((m) => '${toUri(m, idForDill)}');
-    List<String> dataDependencies = transitiveDependencies
-        .map((m) => '${toUri(m, modularDataId)}')
-        .toList();
-    dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${Flags.inputDill}=${toUri(module, idForDill)}',
+      '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      if (useModularAnalysis) ...[
-        '${Flags.dillDependencies}=${dillDependencies.join(',')}',
-        '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
-      ],
+      if (useModularAnalysis)
+        '${Flags.readModularAnalysis}=${toUri(module, modularFullDataId)}',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
       Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',

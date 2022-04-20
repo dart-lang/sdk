@@ -229,7 +229,7 @@ class KernelFrontendStrategy {
     }
   }
 
-  void registerModuleData(List<ModuleData> data) {
+  void registerModuleData(ModuleData data) {
     if (data == null) {
       _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     } else {
@@ -452,9 +452,10 @@ class DeserializedModularStrategy extends ModularStrategy {
   final Map<ir.Member, ImpactBuilderData> _cache = {};
 
   DeserializedModularStrategy(
-      this._compilerTask, this._elementMap, List<ModuleData> data) {
-    for (var module in data) {
-      _cache.addAll(module.impactData);
+      this._compilerTask, this._elementMap, ModuleData data) {
+    for (Map<ir.Member, ImpactBuilderData> moduleData
+        in data.impactData.values) {
+      _cache.addAll(moduleData);
     }
   }
 
