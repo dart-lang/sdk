@@ -292,19 +292,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
     }
 
-    if (_commonElements.isLateReadCheck(member)) {
-      _registerBackendImpact(worldImpact, _impacts.lateFieldReadCheck);
-    }
-
-    if (_commonElements.isLateWriteOnceCheck(member)) {
-      _registerBackendImpact(worldImpact, _impacts.lateFieldWriteOnceCheck);
-    }
-
-    if (_commonElements.isLateInitializeOnceCheck(member)) {
-      _registerBackendImpact(
-          worldImpact, _impacts.lateFieldInitializeOnceCheck);
-    }
-
     if (member.isGetter && member.name == Identifiers.runtimeType_) {
       // Enable runtime type support if we discover a getter called
       // runtimeType. We have to enable runtime type before hitting the

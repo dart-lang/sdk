@@ -247,7 +247,7 @@ abstract class CommonElements {
   LibraryEntity get foreignLibrary =>
       _foreignLibrary ??= _env.lookupLibrary(Uris.dart__foreign_helper);
 
-  /// The dart:_rti library.
+  /// The dart:_internal library.
   LibraryEntity get rtiLibrary =>
       _rtiLibrary ??= _env.lookupLibrary(Uris.dart__rti, required: true);
 
@@ -926,23 +926,8 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 
-  FunctionEntity get throwLateFieldNI =>
-      _findLateHelperFunction('throwLateFieldNI');
-
-  FunctionEntity get throwLateFieldAI =>
-      _findLateHelperFunction('throwLateFieldAI');
-
   FunctionEntity get throwLateFieldADI =>
       _findLateHelperFunction('throwLateFieldADI');
-
-  FunctionEntity get throwUnnamedLateFieldNI =>
-      _findLateHelperFunction('throwUnnamedLateFieldNI');
-
-  FunctionEntity get throwUnnamedLateFieldAI =>
-      _findLateHelperFunction('throwUnnamedLateFieldAI');
-
-  FunctionEntity get throwUnnamedLateFieldADI =>
-      _findLateHelperFunction('throwUnnamedLateFieldADI');
 
   bool isExtractTypeArguments(FunctionEntity member) {
     return member.name == 'extractTypeArguments' &&
@@ -1135,9 +1120,6 @@ abstract class CommonElements {
   /// Most foreign helpers are located in the `dart:_foreign_helper` library.
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
-        isLateReadCheck(member) ||
-        isLateWriteOnceCheck(member) ||
-        isLateInitializeOnceCheck(member) ||
         isCreateInvocationMirrorHelper(member);
   }
 
@@ -1157,22 +1139,10 @@ abstract class CommonElements {
       _isTopLevelFunctionNamed('isJsSentinel', member);
 
   /// Returns `true` if [member] is the `_lateReadCheck` function defined in
-  /// dart:_late_helper.
+  /// dart:_internal.
   bool isLateReadCheck(MemberEntity member) =>
       member.library == lateHelperLibrary &&
       _isTopLevelFunctionNamed('_lateReadCheck', member);
-
-  /// Returns `true` if [member] is the `_lateWriteOnceCheck` function defined
-  /// in dart:_late_helper.
-  bool isLateWriteOnceCheck(MemberEntity member) =>
-      member.library == lateHelperLibrary &&
-      _isTopLevelFunctionNamed('_lateWriteOnceCheck', member);
-
-  /// Returns `true` if [member] is the `_lateInitializeOnceCheck` function
-  /// defined in dart:_late_helper.
-  bool isLateInitializeOnceCheck(MemberEntity member) =>
-      member.library == lateHelperLibrary &&
-      _isTopLevelFunctionNamed('_lateInitializeOnceCheck', member);
 
   /// Returns `true` if [member] is the `createSentinel` function defined in
   /// dart:_internal.

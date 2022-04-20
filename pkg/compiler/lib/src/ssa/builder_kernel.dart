@@ -4212,12 +4212,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleForeignCreateJsSentinel(invocation);
     } else if (name == 'isJsSentinel') {
       _handleForeignIsJsSentinel(invocation);
-    } else if (name == '_lateReadCheck') {
-      _handleLateReadCheck(invocation);
-    } else if (name == '_lateWriteOnceCheck') {
-      _handleLateWriteOnceCheck(invocation);
-    } else if (name == '_lateInitializeOnceCheck') {
-      _handleLateInitializeOnceCheck(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -4907,14 +4901,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _handleForeignCreateJsSentinel(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 0, maxPositional: 0, typeArgumentCount: 1)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantNull(closedWorld));
-      return;
-    }
-
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     stack.add(graph.addConstantLateSentinel(closedWorld,
@@ -4922,85 +4908,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _handleForeignIsJsSentinel(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 1, maxPositional: 1)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantNull(closedWorld));
-      return;
-    }
-
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     HInstruction checkedExpression =
         _visitPositionalArguments(invocation.arguments).single;
     push(HIsLateSentinel(checkedExpression, _abstractValueDomain.boolType)
-      ..sourceInformation = sourceInformation);
-  }
-
-  // TODO(fishythefish): Support specialization of late sentinels based on type.
-
-  void _handleLateReadCheck(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 2, maxPositional: 2, typeArgumentCount: 1)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    SourceInformation sourceInformation =
-        _sourceInformationBuilder.buildCall(invocation, invocation);
-
-    List<HInstruction> arguments =
-        _visitPositionalArguments(invocation.arguments);
-    HInstruction value = arguments[0];
-    HInstruction name = options.omitLateNames ? null : arguments[1];
-
-    push(HLateReadCheck(value, name,
-        _abstractValueDomain.excludeLateSentinel(value.instructionType))
-      ..sourceInformation = sourceInformation);
-  }
-
-  void _handleLateWriteOnceCheck(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 2, maxPositional: 2)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    SourceInformation sourceInformation =
-        _sourceInformationBuilder.buildCall(invocation, invocation);
-
-    List<HInstruction> arguments =
-        _visitPositionalArguments(invocation.arguments);
-    HInstruction value = arguments[0];
-    HInstruction name = options.omitLateNames ? null : arguments[1];
-
-    push(HLateWriteOnceCheck(value, name, _abstractValueDomain.dynamicType)
-      ..sourceInformation = sourceInformation);
-  }
-
-  void _handleLateInitializeOnceCheck(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 2, maxPositional: 2)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    SourceInformation sourceInformation =
-        _sourceInformationBuilder.buildCall(invocation, invocation);
-
-    List<HInstruction> arguments =
-        _visitPositionalArguments(invocation.arguments);
-    HInstruction value = arguments[0];
-    HInstruction name = options.omitLateNames ? null : arguments[1];
-
-    push(HLateInitializeOnceCheck(value, name, _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
   }
 
