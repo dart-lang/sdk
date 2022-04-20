@@ -131,20 +131,91 @@ class _TypeStringBuilder {
   _TypeStringBuilder(this._sink);
 
   void write(TypeAnnotation type) {
-    if (type is NamedTypeAnnotation) {
-      _sink.write(type.identifier.name);
-      _sink.writeList(
-        elements: type.typeArguments,
-        write: write,
-        separator: ', ',
-        open: '<',
-        close: '>',
-      );
+    if (type is FunctionTypeAnnotation) {
+      _writeFunctionTypeAnnotation(type);
+    } else if (type is NamedTypeAnnotation) {
+      _writeNamedTypeAnnotation(type);
+    } else if (type is OmittedTypeAnnotation) {
+      _sink.write('OmittedType');
     } else {
       throw UnimplementedError('(${type.runtimeType}) $type');
     }
     if (type.isNullable) {
       _sink.write('?');
+    }
+  }
+
+  void _writeFormalParameter(ParameterDeclaration node) {
+    final String closeSeparator;
+    if (node.isNamed) {
+      _sink.write('{');
+      closeSeparator = '}';
+      if (node.isRequired) {
+        _sink.write('required ');
+      }
+    } else if (!node.isRequired) {
+      _sink.write('[');
+      closeSeparator = ']';
+    } else {
+      closeSeparator = '';
+    }
+
+    write(node.type);
+    _sink.write(' ');
+    _sink.write(node.identifier.name);
+
+    _sink.write(closeSeparator);
+  }
+
+  void _writeFunctionTypeAnnotation(FunctionTypeAnnotation type) {
+    write(type.returnType);
+    _sink.write(' Function');
+
+    _sink.writeList(
+      elements: type.typeParameters,
+      write: _writeTypeParameter,
+      separator: ', ',
+      open: '<',
+      close: '>',
+    );
+
+    _sink.write('(');
+    var hasFormalParameter = false;
+    for (final formalParameter in type.positionalParameters) {
+      if (hasFormalParameter) {
+        _sink.write(', ');
+      }
+      _writeFormalParameter(formalParameter);
+      hasFormalParameter = true;
+    }
+    for (final formalParameter in type.namedParameters) {
+      if (hasFormalParameter) {
+        _sink.write(', ');
+      }
+      _writeFormalParameter(formalParameter);
+      hasFormalParameter = true;
+    }
+    _sink.write(')');
+  }
+
+  void _writeNamedTypeAnnotation(NamedTypeAnnotation type) {
+    _sink.write(type.identifier.name);
+    _sink.writeList(
+      elements: type.typeArguments,
+      write: write,
+      separator: ', ',
+      open: '<',
+      close: '>',
+    );
+  }
+
+  void _writeTypeParameter(TypeParameterDeclaration node) {
+    _sink.write(node.identifier.name);
+
+    final bound = node.bound;
+    if (bound != null) {
+      _sink.write(' extends ');
+      write(bound);
     }
   }
 }
@@ -158,22 +229,24 @@ extension on StringSink {
     String? close,
   }) {
     elements = elements.toList();
-    if (elements.isNotEmpty) {
-      if (open != null) {
-        this.write(open);
+    if (elements.isEmpty) {
+      return;
+    }
+
+    if (open != null) {
+      this.write(open);
+    }
+    var isFirst = true;
+    for (var element in elements) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        this.write(separator);
       }
-      var isFirst = true;
-      for (var element in elements) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          this.write(separator);
-        }
-        write(element);
-      }
-      if (close != null) {
-        this.write(close);
-      }
+      write(element);
+    }
+    if (close != null) {
+      this.write(close);
     }
   }
 }

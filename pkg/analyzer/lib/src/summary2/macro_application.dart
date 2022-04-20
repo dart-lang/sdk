@@ -172,6 +172,30 @@ class LibraryMacroApplier {
     );
   }
 
+  static macro.ParameterDeclarationImpl _buildFormalParameter(
+    FormalParameter node,
+  ) {
+    if (node is DefaultFormalParameter) {
+      node = node.parameter;
+    }
+
+    final macro.TypeAnnotationImpl typeAnnotation;
+    if (node is SimpleFormalParameter) {
+      typeAnnotation = _buildTypeAnnotation(node.type);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+
+    return macro.ParameterDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier:
+          _buildIdentifier(node.identifier!), // TODO(scheglov) might be null
+      isNamed: node.isNamed,
+      isRequired: node.isRequired,
+      type: typeAnnotation,
+    );
+  }
+
   static macro.IdentifierImpl _buildIdentifier(Identifier node) {
     final String name;
     if (node is SimpleIdentifier) {
@@ -185,8 +209,27 @@ class LibraryMacroApplier {
     );
   }
 
-  static macro.TypeAnnotationImpl _buildTypeAnnotation(TypeAnnotation node) {
-    if (node is NamedType) {
+  static macro.TypeAnnotationImpl _buildTypeAnnotation(TypeAnnotation? node) {
+    if (node == null) {
+      return macro.OmittedTypeAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+      );
+    } else if (node is GenericFunctionType) {
+      return macro.FunctionTypeAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        isNullable: node.question != null,
+        namedParameters: node.parameters.parameters
+            .where((e) => e.isNamed)
+            .map(_buildFormalParameter)
+            .toList(),
+        positionalParameters: node.parameters.parameters
+            .where((e) => e.isPositional)
+            .map(_buildFormalParameter)
+            .toList(),
+        returnType: _buildTypeAnnotation(node.returnType),
+        typeParameters: _buildTypeParameters(node.typeParameters),
+      );
+    } else if (node is NamedType) {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: _buildIdentifier(node.name),

@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/macro.dart';
@@ -83,7 +84,8 @@ class MacroElementsTest extends ElementsBaseTest {
       },
       constructorParametersCode: '(this.foo, this.bar)',
       argumentsCode: '(0, const Object())',
-      expectedErrors: 'Argument(annotation: 0, argument: 1)',
+      expectedErrors: 'Argument(annotation: 0, argument: 1, '
+          'message: Not supported: InstanceCreationExpressionImpl)',
     );
   }
 
@@ -385,6 +387,88 @@ class A
 ''');
   }
 
+  test_introspect_types_functionTypeAnnotation_formalParameters_namedOptional_simpleFormalParameter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function(int a, {int? b, int? c})> {}
+''', r'''
+class A
+  superclass: B<void Function(int a, {int? b}, {int? c})>
+''');
+  }
+
+  test_introspect_types_functionTypeAnnotation_formalParameters_namedRequired_simpleFormalParameter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function(int a, {required int b, required int c})> {}
+''', r'''
+class A
+  superclass: B<void Function(int a, {required int b}, {required int c})>
+''');
+  }
+
+  test_introspect_types_functionTypeAnnotation_formalParameters_positionalOptional_simpleFormalParameter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function(int a, [int b, int c])> {}
+''', r'''
+class A
+  superclass: B<void Function(int a, [int b], [int c])>
+''');
+  }
+
+  /// TODO(scheglov) Tests for unnamed positional formal parameters.
+  test_introspect_types_functionTypeAnnotation_formalParameters_positionalRequired_simpleFormalParameter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function(int a, double b)> {}
+''', r'''
+class A
+  superclass: B<void Function(int a, double b)>
+''');
+  }
+
+  test_introspect_types_functionTypeAnnotation_nullable() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function()?> {}
+''', r'''
+class A
+  superclass: B<void Function()?>
+''');
+  }
+
+  test_introspect_types_functionTypeAnnotation_returnType() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function()> {}
+''', r'''
+class A
+  superclass: B<void Function()>
+''');
+  }
+
+  test_introspect_types_functionTypeAnnotation_returnType_omitted() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<Function()> {}
+''', r'''
+class A
+  superclass: B<OmittedType Function()>
+''');
+  }
+
+  test_introspect_types_functionTypeAnnotation_typeParameters() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends B<void Function<T, U extends num>()> {}
+''', r'''
+class A
+  superclass: B<void Function<T, U extends num>()>
+''');
+  }
+
+  test_introspect_types_namedTypeAnnotation_prefixed() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A extends prefix.B {}
+''', r'''
+class A
+  superclass: B
+''');
+  }
+
   test_macroFlag_class() async {
     var library = await buildLibrary(r'''
 macro class A {}
@@ -504,6 +588,14 @@ class A {}
       {'package:test/arguments_text.dart'}
     ]);
 
+    final A = library.definingCompilationUnit.getType('A');
+    if (expectedErrors != null) {
+      expect(_errorsStrForClassElement(A), expectedErrors);
+      return;
+    } else {
+      _assertNoErrorsForClassElement(A);
+    }
+
     if (expected != null) {
       final x = library.parts.single.topLevelVariables.single;
       expect(x.name, 'x');
@@ -514,13 +606,6 @@ class A {}
         print(actual);
       }
       expect(actual, expected);
-    } else if (expectedErrors != null) {
-      var A = library.definingCompilationUnit.getType('A');
-      A as ClassElementImpl;
-      expect(
-        A.macroApplicationErrors.map((e) => e.toStringForTest()).join('\n'),
-        expectedErrors,
-      );
     } else {
       fail("Either 'expected' or 'expectedErrors' must be provided.");
     }
@@ -561,10 +646,26 @@ $declarationCode
       {'package:test/declaration_text.dart'}
     ]);
 
+    _assertNoErrorsForClassElement(
+      library.definingCompilationUnit.getType('A'),
+    );
+
     var x = library.parts.single.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;
     var x_literal = x.constantInitializer as SimpleStringLiteral;
     return x_literal.value;
+  }
+
+  static void _assertNoErrorsForClassElement(ClassElement? element) {
+    var actual = _errorsStrForClassElement(element);
+    expect(actual, isEmpty);
+  }
+
+  static String _errorsStrForClassElement(ClassElement? element) {
+    element as ClassElementImpl;
+    return element.macroApplicationErrors.map((e) {
+      return e.toStringForTest();
+    }).join('\n');
   }
 }

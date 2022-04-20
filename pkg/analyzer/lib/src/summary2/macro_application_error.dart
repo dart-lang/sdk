@@ -33,7 +33,8 @@ class ArgumentMacroApplicationError extends MacroApplicationError {
 
   @override
   String toStringForTest() {
-    return 'Argument(annotation: $annotationIndex, argument: $argumentIndex)';
+    return 'Argument(annotation: $annotationIndex, '
+        'argument: $argumentIndex, message: $message)';
   }
 
   @override
@@ -118,7 +119,7 @@ class UnknownMacroApplicationError extends MacroApplicationError {
 
   @override
   String toStringForTest() {
-    return 'Unknown(annotation: $annotationIndex)';
+    return 'Unknown(annotation: $annotationIndex, message: $message)';
   }
 
   @override
