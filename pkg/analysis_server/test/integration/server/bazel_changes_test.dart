@@ -127,7 +127,9 @@ void main() { my_fun(); }
 
     await processedNotification.future;
     expect(errors, isNotEmpty);
-    expect(errors[0].message, contains('generated.dart'));
+    var error = errors.singleWhere((e) => e.code == 'uri_does_not_exist',
+        orElse: () => throw "'uri_does_not_exist' error was not found");
+    expect(error.message, contains('generated.dart'));
 
     // This seems to be necessary (at least when running the test from source),
     // because it takes a while for the watcher isolate to start.
