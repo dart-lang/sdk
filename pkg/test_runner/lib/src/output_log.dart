@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-const _nonUtf8Error = '[test.dart: This test output contains non-UTF8 data]';
+const _nonUtf8Error = '[test.dart: This test output contains non-UTF8 data.]';
 const _truncatedError =
-    '[test.dart: This test output was too long and was truncated here.';
+    '[test.dart: This test output was too long and was truncated here.]';
 
 /// Records the output from a test.
 class OutputLog implements StreamConsumer<List<int>> {
@@ -37,6 +37,10 @@ class OutputLog implements StreamConsumer<List<int>> {
 
     if (_data.length + data.length > _maxLength) {
       _data.addAll(data.take(_maxLength - _data.length));
+      final newline = utf8.encode("\n");
+      if (_data.last != newline.last) {
+        _data.addAll(newline);
+      }
       _data.addAll(utf8.encode(_truncatedError));
       _wasTruncated = true;
     } else {
@@ -56,6 +60,10 @@ class OutputLog implements StreamConsumer<List<int>> {
       var malformed = utf8.decode(_data, allowMalformed: true);
       _data.clear();
       _data.addAll(utf8.encode(malformed));
+      final newline = utf8.encode("\n");
+      if (_data.last != newline.last) {
+        _data.addAll(newline);
+      }
       _data.addAll(utf8.encode(_nonUtf8Error));
       return true;
     }
