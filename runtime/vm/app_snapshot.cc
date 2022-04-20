@@ -8199,7 +8199,6 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
       TIMELINE_DURATION(thread(), Isolate, "ReadAlloc");
       for (intptr_t i = 0; i < num_clusters_; i++) {
         clusters_[i] = ReadCluster();
-        TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
         clusters_[i]->ReadAlloc(this);
 #if defined(DEBUG)
         intptr_t serializers_next_ref_index_ = Read<int32_t>();
@@ -8215,7 +8214,6 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
       TIMELINE_DURATION(thread(), Isolate, "ReadFill");
       SafepointWriteRwLocker ml(thread(), isolate_group()->program_lock());
       for (intptr_t i = 0; i < num_clusters_; i++) {
-        TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
         clusters_[i]->ReadFill(this, primary);
 #if defined(DEBUG)
         int32_t section_marker = Read<int32_t>();
@@ -8247,7 +8245,6 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   {
     TIMELINE_DURATION(thread(), Isolate, "PostLoad");
     for (intptr_t i = 0; i < num_clusters_; i++) {
-      TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
       clusters_[i]->PostLoad(this, refs, primary);
     }
   }
