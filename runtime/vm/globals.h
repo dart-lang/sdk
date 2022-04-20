@@ -112,7 +112,7 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define SUPPORT_TIMELINE 1
 #endif
 
-#if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_HOST64)
+#if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_X64)
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 

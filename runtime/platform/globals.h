@@ -339,10 +339,10 @@ struct simd128_value_t {
 #endif  // !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM) ||                 \
     defined(TARGET_ARCH_RISCV32)
-#if defined(ARCH_IS_64_BIT) && defined(TARGET_ARCH_ARM)
-// This is simarm_x64 or simarm_arm64, which is the only case where host/target
-// architecture mismatch is allowed. Unless, we're running FFI unit tests.
-#define IS_SIMARM_HOST64 1
+#if defined(HOST_ARCH_X64) && defined(TARGET_ARCH_ARM)
+// This is simarm_x64, which is the only case where host/target architecture
+// mismatch is allowed. Unless, we're running FFI unit tests.
+#define IS_SIMARM_X64 1
 #elif !defined(ARCH_IS_32_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
 #endif  // !defined(ARCH_IS_32_BIT) && !defined(FFI_UNIT_TESTS)
@@ -360,7 +360,7 @@ struct simd128_value_t {
 #elif defined(TARGET_ARCH_ARM)
 #if !defined(HOST_ARCH_ARM)
 #define TARGET_HOST_MISMATCH 1
-#if !defined(IS_SIMARM_HOST64)
+#if !defined(IS_SIMARM_X64)
 #define USING_SIMULATOR 1
 #endif
 #endif

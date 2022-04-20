@@ -54,7 +54,7 @@ vars = {
 
   # Checkout Android dependencies only on Mac and Linux.
   "download_android_deps":
-    "host_os == mac or (host_os == linux and host_cpu == x64)",
+    "(host_os == mac or host_os == linux) and host_cpu == x64",
 
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
@@ -531,7 +531,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/ndk": {
       "packages": [
           {
-            "package": "flutter/android/ndk/${{os}}-amd64",
+            "package": "flutter/android/ndk/${{platform}}",
             "version": "version:r21.0.6113669"
           }
       ],
@@ -542,7 +542,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/build-tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/build-tools/${{os}}-amd64",
+            "package": "flutter/android/sdk/build-tools/${{platform}}",
             "version": "version:30.0.1"
           }
       ],
@@ -553,7 +553,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
      "packages": [
           {
-            "package": "flutter/android/sdk/platform-tools/${{os}}-amd64",
+            "package": "flutter/android/sdk/platform-tools/${{platform}}",
             "version": "version:29.0.2"
           }
       ],
@@ -575,7 +575,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/tools/${{os}}-amd64",
+            "package": "flutter/android/sdk/tools/${{platform}}",
             "version": "version:26.1.1"
           }
       ],
