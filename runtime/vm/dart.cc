@@ -155,7 +155,7 @@ class DartInitializationState {
 static DartInitializationState init_state_;
 
 static void CheckOffsets() {
-#if !defined(IS_SIMARM_X64)
+#if !defined(IS_SIMARM_HOST64)
   // These offsets are embedded in precompiled instructions. We need the
   // compiler and the runtime to agree.
   bool ok = true;
@@ -241,7 +241,7 @@ static void CheckOffsets() {
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
 #undef CHECK_PAYLOAD_SIZEOF
-#endif  // !defined(IS_SIMARM_X64)
+#endif  // !defined(IS_SIMARM_HOST64)
 }
 
 char* Dart::DartInit(const Dart_InitializeParams* params) {
