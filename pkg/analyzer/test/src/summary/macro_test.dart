@@ -237,6 +237,19 @@ foo: null
     );
   }
 
+  test_arguments_typesPhase_type_set() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'Set<Object?>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '({1, 2, 3})',
+      expected: r'''
+foo: {1, 2, 3}
+''',
+    );
+  }
+
   test_arguments_typesPhase_type_string() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'String'},

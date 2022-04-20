@@ -305,20 +305,36 @@ class _ArgumentEvaluation {
         return -operandValue;
       }
     } else if (node is SetOrMapLiteral) {
-      final result = <Object?, Object?>{};
-      for (final element in node.elements) {
-        if (element is! MapLiteralEntry) {
-          _throwError(element, 'MapLiteralEntry expected');
-        }
-        final key = evaluate(element.key);
-        final value = evaluate(element.value);
-        result[key] = value;
-      }
-      return result;
+      return _setOrMapLiteral(node);
     } else if (node is SimpleStringLiteral) {
       return node.value;
     }
     _throwError(node, 'Not supported: ${node.runtimeType}');
+  }
+
+  Object _setOrMapLiteral(SetOrMapLiteral node) {
+    if (node.elements.every((e) => e is Expression)) {
+      final result = <Object?>{};
+      for (final element in node.elements) {
+        if (element is! Expression) {
+          _throwError(element, 'Expression expected');
+        }
+        final value = evaluate(element);
+        result.add(value);
+      }
+      return result;
+    }
+
+    final result = <Object?, Object?>{};
+    for (final element in node.elements) {
+      if (element is! MapLiteralEntry) {
+        _throwError(element, 'MapLiteralEntry expected');
+      }
+      final key = evaluate(element.key);
+      final value = evaluate(element.value);
+      result[key] = value;
+    }
+    return result;
   }
 
   Never _throwError(AstNode node, String message) {
