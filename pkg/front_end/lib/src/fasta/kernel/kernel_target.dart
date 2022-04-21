@@ -476,13 +476,6 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_installDefaultSupertypes);
       installDefaultSupertypes();
 
-      benchmarker
-          ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
-      installSyntheticConstructors(sourceClassBuilders);
-
-      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
-      loader.resolveConstructors(loader.sourceLibraryBuilders);
-
       benchmarker?.enterPhase(BenchmarkPhases.outline_link);
       component =
           link(new List<Library>.of(loader.libraries), nameRoot: nameRoot);
@@ -512,6 +505,13 @@ class KernelTarget extends TargetImplementation {
           _buildForPhase2(augmentationLibraries);
         });
       }
+
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
+      installSyntheticConstructors(sourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
+      loader.resolveConstructors(loader.sourceLibraryBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchyMembers);

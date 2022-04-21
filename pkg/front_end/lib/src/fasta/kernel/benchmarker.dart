@@ -200,6 +200,7 @@ enum BenchmarkPhases {
   incremental_ensurePlatform,
   incremental_invalidate,
   incremental_experimentalInvalidation,
+  incremental_rewriteEntryPointsIfPart,
   incremental_invalidatePrecompiledMacros,
   incremental_cleanup,
   incremental_loadEnsureLoadedComponents,

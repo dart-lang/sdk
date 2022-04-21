@@ -9,7 +9,12 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart'
-    show FreshTypeParameters, Substitution, getFreshTypeParameters, substitute;
+    show
+        FreshTypeParameters,
+        NullabilityAwareFreeTypeVariableEliminator,
+        Substitution,
+        getFreshTypeParameters,
+        substitute;
 
 import 'package:kernel/type_environment.dart';
 
@@ -416,14 +421,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        returnContextType = new TypeVariableEliminator(
-                clientLibrary.isNonNullableByDefault
-                    ? const NeverType.nonNullable()
-                    : const NullType(),
-                clientLibrary.isNonNullableByDefault
-                    ? objectNullableRawType
-                    : objectLegacyRawType)
-            .substituteType(returnContextType!);
+        if (clientLibrary.isNonNullableByDefault) {
+          returnContextType = new NullabilityAwareFreeTypeVariableEliminator(
+                  bottomType: const NeverType.nonNullable(),
+                  topType: objectNullableRawType,
+                  topFunctionType: functionRawType(Nullability.nonNullable))
+              .eliminateToLeast(returnContextType!);
+        } else {
+          returnContextType =
+              new TypeVariableEliminator(const NullType(), objectLegacyRawType)
+                  .substituteType(returnContextType!);
+        }
       }
       gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!);
     }

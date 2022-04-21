@@ -1,0 +1,40 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Importing a package also via file uri gives two libraries with the same
+# file uri --- that shouldn't crash experimental invalidation though.
+
+type: newworld
+worlds:
+  - entry: package:foo/main.dart
+    experiments: alternative-invalidation-strategy
+    checkEntries: false
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "languageVersion": "2.12"
+            }
+          ]
+        }
+      foo/main.dart: |
+        import "package:foo/lib.dart";
+      foo/lib.dart: |
+        import "org-dartlang-test:///foo/main.dart";
+    expectedLibraryCount: 3 # main twice --- one for the package and one for the file uri.
+
+  - entry: package:foo/main.dart
+    experiments: alternative-invalidation-strategy
+    checkEntries: false
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - foo/main.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+    checkInvalidatedFiles: false
