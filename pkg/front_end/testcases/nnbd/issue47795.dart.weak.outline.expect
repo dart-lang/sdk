@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%>
+    ;
+  method m1({core::List<(self::C::X%) → void> xs = const <(core::Object?) → void>[]}) → void
+    ;
+  method m2({covariant-by-class core::List<<Y extends core::List<self::C::X%> = dynamic>(Y) → void> xs = const <Never>[]}) → void
+    ;
+}
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue47795.dart:6:40 -> ListConstant(const <void Function(Object?)*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue47795.dart:7:59 -> ListConstant(const <Never*>[])
+Extra constant evaluation: evaluated: 2, effectively constant: 2
