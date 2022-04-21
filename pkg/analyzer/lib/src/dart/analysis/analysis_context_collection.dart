@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/util/sdk.dart';
 
@@ -25,7 +26,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final ResourceProvider resourceProvider;
 
   /// The instance of macro executor that is used for all macros.
-  final macro.MultiMacroExecutor? macroExecutor = macro.MultiMacroExecutor();
+  final macro.MultiMacroExecutor macroExecutor = macro.MultiMacroExecutor();
+
+  /// The instance of the macro kernel builder.
+  final MacroKernelBuilder macroKernelBuilder = MacroKernelBuilder();
 
   /// The list of analysis contexts.
   @override
@@ -48,7 +52,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
-    MacroKernelBuilder? macroKernelBuilder,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -119,7 +122,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     for (var analysisContext in contexts) {
       analysisContext.driver.dispose();
     }
-    macroExecutor?.close();
+    macroExecutor.close();
+    // If there are other collections, they will have to start it again.
+    KernelCompilationService.dispose();
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].

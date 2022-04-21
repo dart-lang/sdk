@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../summary/macros_environment.dart';
@@ -24,11 +23,6 @@ main() {
 
 @reflectiveTest
 class MacroResolutionTest extends PubPackageResolutionTest {
-  @override
-  MacroKernelBuilder? get macroKernelBuilder {
-    return FrontEndServerMacroKernelBuilder();
-  }
-
   @override
   void setUp() {
     super.setUp();

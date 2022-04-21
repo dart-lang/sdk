@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -63,16 +59,6 @@ class MacroElementsTest extends ElementsBaseTest {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
-    );
-
-    macroKernelBuilder = FrontEndServerMacroKernelBuilder();
-    macroExecutor = macro.MultiMacroExecutor();
-  }
-
-  Future<void> tearDown() async {
-    await macroExecutor?.close();
-    KernelCompilationService.disposeDelayed(
-      const Duration(milliseconds: 100),
     );
   }
 

@@ -68,34 +68,6 @@ class BundleMacroExecutor {
   }
 }
 
-/// Implementation of [MacroKernelBuilder] using `frontend_server`.
-class FrontEndServerMacroKernelBuilder implements MacroKernelBuilder {
-  @override
-  Future<Uint8List> build({
-    required MacroFileSystem fileSystem,
-    required List<MacroLibrary> libraries,
-  }) async {
-    final macroMainContent = macro.bootstrapMacroIsolate(
-      {
-        for (final library in libraries)
-          library.uri.toString(): {
-            for (final c in library.classes) c.name: c.constructors
-          },
-      },
-      macro.SerializationMode.byteDataClient,
-    );
-
-    final macroMainPath = '${libraries.first.path}.macro';
-    final overlayFileSystem = _OverlayMacroFileSystem(fileSystem);
-    overlayFileSystem.overlays[macroMainPath] = macroMainContent;
-
-    return KernelCompilationService.compile(
-      fileSystem: overlayFileSystem,
-      path: macroMainPath,
-    );
-  }
-}
-
 class MacroClass {
   final String name;
   final List<String> constructors;
@@ -140,11 +112,32 @@ abstract class MacroFileSystem {
   MacroFileEntry getFile(String path);
 }
 
-abstract class MacroKernelBuilder {
+class MacroKernelBuilder {
+  const MacroKernelBuilder();
+
   Future<Uint8List> build({
     required MacroFileSystem fileSystem,
     required List<MacroLibrary> libraries,
-  });
+  }) async {
+    final macroMainContent = macro.bootstrapMacroIsolate(
+      {
+        for (final library in libraries)
+          library.uri.toString(): {
+            for (final c in library.classes) c.name: c.constructors
+          },
+      },
+      macro.SerializationMode.byteDataClient,
+    );
+
+    final macroMainPath = '${libraries.first.path}.macro';
+    final overlayFileSystem = _OverlayMacroFileSystem(fileSystem);
+    overlayFileSystem.overlays[macroMainPath] = macroMainContent;
+
+    return KernelCompilationService.compile(
+      fileSystem: overlayFileSystem,
+      path: macroMainPath,
+    );
+  }
 }
 
 class MacroLibrary {

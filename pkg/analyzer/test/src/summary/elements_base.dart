@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
@@ -30,6 +31,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,8 +44,8 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
   /// The shared SDK bundle, computed once and shared among test invocations.
   static _SdkBundle? _sdkBundle;
 
-  MacroKernelBuilder? macroKernelBuilder;
-  macro.MultiMacroExecutor? macroExecutor;
+  /// The instance of macro executor that is used for all macros.
+  final macro.MultiMacroExecutor _macroExecutor = macro.MultiMacroExecutor();
 
   /// The set of features enabled in this test.
   FeatureSet featureSet = FeatureSets.latestWithExperiments;
@@ -180,7 +182,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     var linkResult = await link(
       elementFactory,
       inputLibraries,
-      macroExecutor: macroExecutor,
+      macroExecutor: _macroExecutor,
     );
 
     for (var macroUnit in linkResult.macroGeneratedUnits) {
@@ -202,6 +204,14 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     }
 
     return elementFactory.libraryOfUri2('$testUri');
+  }
+
+  @mustCallSuper
+  Future<void> tearDown() async {
+    await _macroExecutor.close();
+    KernelCompilationService.disposeDelayed(
+      const Duration(milliseconds: 100),
+    );
   }
 
   void _addLibraryUnits(
@@ -315,23 +325,14 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       return;
     }
 
-    final macroKernelBuilder = this.macroKernelBuilder;
-    if (macroKernelBuilder == null) {
-      return;
-    }
-
-    final macroExecutor = this.macroExecutor;
-    if (macroExecutor == null) {
-      return;
-    }
-
+    final macroKernelBuilder = const MacroKernelBuilder();
     var macroKernelBytes = await macroKernelBuilder.build(
       fileSystem: _MacroFileSystem(resourceProvider),
       libraries: macroLibraries,
     );
 
     var bundleMacroExecutor = BundleMacroExecutor(
-      macroExecutor: macroExecutor,
+      macroExecutor: _macroExecutor,
       kernelBytes: macroKernelBytes,
       libraries: macroLibraries.map((e) => e.uri).toSet(),
     );
@@ -368,7 +369,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       await link(
         elementFactory,
         cycleInputLibraries,
-        macroExecutor: macroExecutor,
+        macroExecutor: _macroExecutor,
       );
 
       await _buildMacroLibraries(elementFactory, macroLibraries);
