@@ -151,8 +151,9 @@ Counter rankComparison = Counter('relevance rank comparison');
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  return ArgParser()
-    ..addOption(
+  return ArgParser(
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : 80)
+    ..addFlag(
       'help',
       abbr: 'h',
       help: 'Print this help message.',
