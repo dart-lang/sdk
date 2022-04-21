@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 78;
+  UInt32 formatVersion = 79;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1070,6 +1070,7 @@ type MapEntry {
 
 type AwaitExpression extends Expression {
   Byte tag = 51;
+  FileOffset fileOffset;
   Expression operand;
 }
 

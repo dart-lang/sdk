@@ -186,7 +186,7 @@ class VmTarget extends Target {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     transformAsync.transformLibraries(
         new TypeEnvironment(coreTypes, hierarchy), libraries,
-        productMode: productMode);
+        productMode: productMode, desugarAsync: !flags.compactAsync);
     logger?.call("Transformed async methods");
 
     lowering.transformLibraries(
@@ -208,7 +208,7 @@ class VmTarget extends Target {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
         new TypeEnvironment(coreTypes, hierarchy), procedure,
-        productMode: productMode);
+        productMode: productMode, desugarAsync: flags.supportMirrors);
     logger?.call("Transformed async functions");
 
     lowering.transformProcedure(
@@ -495,6 +495,10 @@ class VmTarget extends Target {
     return _oneByteString ??=
         coreTypes.index.getClass('dart:core', '_OneByteString');
   }
+
+  @override
+  Class? concreteAsyncResultClass(CoreTypes coreTypes) =>
+      coreTypes.futureImplClass;
 
   @override
   ConstantsBackend get constantsBackend => const ConstantsBackend();
