@@ -245,9 +245,9 @@ revisited
 command-line tool to launch dart2js, but also by pub to invoke dart2js as a
 library during `pub-build` and `pub-serve`.
 
-* `lib/compiler.dart`: the compiler API. This API is used by our command-line
-  tool to spawn the dart2js compiler. This API (and everything that is
-  transitively created from it) has no dependencies on `dart:io` so that the
+* `lib/compiler_api.dart`: the compiler API. This API is used by our
+  command-line tool to spawn the dart2js compiler. This API (and everything that
+  is transitively created from it) has no dependencies on `dart:io` so that the
   compiler can be used in contexts where `dart:io` is not available (e.g.
   running in a browser worker) or where `dart:io` is not used explicitly (e.g.
   running as a pub transformer).

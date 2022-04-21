@@ -6,7 +6,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../../compiler.dart';
+import '../../compiler_api.dart' as api;
 import '../closure.dart';
 import '../common.dart';
 import '../common/elements.dart';
@@ -89,7 +89,7 @@ class InferrerEngine {
   final CompilerOptions _options;
   final Progress _progress;
   final DiagnosticReporter _reporter;
-  final CompilerOutput _compilerOutput;
+  final api.CompilerOutput _compilerOutput;
 
   final Set<ConstructorEntity> _generativeConstructorsExposingThis =
       Set<ConstructorEntity>();

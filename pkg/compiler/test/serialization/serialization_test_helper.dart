@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
@@ -39,7 +39,7 @@ void generateJavaScriptCode(
 }
 
 void finishCompileAndCompare(
-    Map<OutputType, Map<String, String>> expectedOutput,
+    Map<api.OutputType, Map<String, String>> expectedOutput,
     OutputCollector actualOutputCollector,
     Compiler compiler,
     SerializationStrategy strategy,
@@ -65,14 +65,14 @@ void finishCompileAndCompare(
   Expect.setEquals(
       expectedOutput.keys, actualOutput.keys, "Output type mismatch.");
 
-  void check(OutputType outputType, Map<String, String> fileMap) {
+  void check(api.OutputType outputType, Map<String, String> fileMap) {
     Map<String, String> newFileMap = actualOutput[outputType];
     Expect.setEquals(fileMap.keys, newFileMap.keys,
         "File mismatch for output type $outputType.");
     fileMap.forEach((String fileName, String code) {
       String newCode = newFileMap[fileName];
       bool Function(int, List<String>, List<String>) filter;
-      if (outputType == OutputType.dumpInfo) {
+      if (outputType == api.OutputType.dumpInfo) {
         filter = (int index, List<String> lines1, List<String> lines2) {
           if (index <= lines1.length && index <= lines2.length) {
             String line1 = lines1[index];
@@ -120,7 +120,7 @@ runTest(
         compiler.forceSerializationForTesting = true;
       });
   Expect.isTrue(result.isSuccess);
-  Map<OutputType, Map<String, String>> expectedOutput = collector.clear();
+  Map<api.OutputType, Map<String, String>> expectedOutput = collector.clear();
 
   OutputCollector collector2 = new OutputCollector();
   CompilationResult result2 = await runCompiler(

@@ -12,7 +12,7 @@ import 'dart:convert' show jsonEncode;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler.dart' as api;
+import '../compiler_api.dart' as api;
 import 'common.dart';
 import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;

@@ -14,7 +14,7 @@ import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler.dart';
+import '../compiler_api.dart' as api;
 import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
@@ -1222,7 +1222,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         .encode(data));
     final name = (compiler.options.outputUri?.pathSegments?.last ?? 'out');
     compiler.outputProvider
-        .createOutputSink(name, 'info.json', OutputType.dumpInfo)
+        .createOutputSink(name, 'info.json', api.OutputType.dumpInfo)
       ..add(jsonBuffer.toString())
       ..close();
     compiler.reporter

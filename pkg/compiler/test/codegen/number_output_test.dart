@@ -6,7 +6,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:async_helper/async_helper.dart';
 import '../helpers/memory_compiler.dart';
@@ -34,7 +34,7 @@ Future test({bool minify}) async {
       options: options);
 
   // Check that we use the shorter exponential representations.
-  String jsOutput = collector.getOutput('', OutputType.js);
+  String jsOutput = collector.getOutput('', api.OutputType.js);
   print(jsOutput);
 
   if (minify) {

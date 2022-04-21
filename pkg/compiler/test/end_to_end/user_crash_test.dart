@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show templateCantReadFile, messageMissingMain;
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import '../helpers/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
@@ -67,7 +67,7 @@ void test(String title, RunResult result,
 
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles: const {'main.dart': 'main() {}'},
-    CompilerDiagnostics diagnostics}) async {
+    api.CompilerDiagnostics diagnostics}) async {
   RunResult result = new RunResult();
   await runZoned(() async {
     try {
@@ -93,7 +93,8 @@ class RunResult {
 
 class CrashingDiagnostics extends DiagnosticCollector {
   @override
-  void report(code, Uri uri, int begin, int end, String text, Diagnostic kind) {
+  void report(
+      code, Uri uri, int begin, int end, String text, api.Diagnostic kind) {
     throw EXCEPTION;
   }
 }

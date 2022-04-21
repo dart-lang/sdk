@@ -6,7 +6,7 @@
 
 library dart2js.diagnostic_listener;
 
-import '../../compiler.dart' as api;
+import '../../compiler_api.dart' as api;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../io/source_information.dart';

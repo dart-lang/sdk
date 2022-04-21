@@ -8,7 +8,8 @@ library dart2js.source_map_builder;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
-import '../../compiler.dart' show CompilerOutput, OutputSink, OutputType;
+import '../../compiler_api.dart' as api
+    show CompilerOutput, OutputSink, OutputType;
 import '../util/util.dart';
 import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
@@ -268,7 +269,7 @@ class SourceMapBuilder {
   /// [sourceLocationsProvider] for the .js code in [locationProvider]
   /// [sourceMapUri] is used to relativizes the URIs of the referenced source
   /// files and the target [fileUri]. [name] and [outputProvider] are used to
-  /// create the [OutputSink] for the source map text.
+  /// create the [api.OutputSink] for the source map text.
   static void outputSourceMap(
       SourceLocationsProvider sourceLocationsProvider,
       LocationProvider locationProvider,
@@ -277,7 +278,7 @@ class SourceMapBuilder {
       String name,
       Uri sourceMapUri,
       Uri fileUri,
-      CompilerOutput compilerOutput) {
+      api.CompilerOutput compilerOutput) {
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     int index = 0;
@@ -302,7 +303,7 @@ class SourceMapBuilder {
           extension = 'js.map.${sourceLocations.name}';
         }
       }
-      compilerOutput.createOutputSink(name, extension, OutputType.sourceMap)
+      compilerOutput.createOutputSink(name, extension, api.OutputType.sourceMap)
         ..add(sourceMap)
         ..close();
       index++;

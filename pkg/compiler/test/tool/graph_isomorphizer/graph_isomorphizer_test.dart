@@ -7,7 +7,7 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import '../../helpers/memory_compiler.dart';
 import '../../../tool/graph_isomorphizer.dart';
@@ -81,8 +81,9 @@ void verifyGraphFileLines(
       memorySourceFiles: expectations,
       options: ['--dump-deferred-graph=deferred_graph.txt'],
       outputProvider: collector);
-  var actual =
-      collector.getOutput("deferred_graph.txt", OutputType.debug).split('\n');
+  var actual = collector
+      .getOutput("deferred_graph.txt", api.OutputType.debug)
+      .split('\n');
 
   // Confirm new graph is isomorphic.
   unorderedListEquals(graphFileLines, actual);

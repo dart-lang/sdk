@@ -8,7 +8,7 @@ library dart2js.test.memory_compiler;
 
 import 'dart:async';
 
-import 'package:compiler/compiler.dart'
+import 'package:compiler/compiler_api.dart' as api
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/common.dart';
@@ -24,7 +24,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
-export 'package:compiler/compiler.dart' show CompilationResult;
+export 'package:compiler/compiler_api.dart' show CompilationResult;
 export 'diagnostic_helper.dart';
 
 String sdkPath = 'sdk/lib';
@@ -40,24 +40,24 @@ Uri sdkPlatformBinariesUri = computePlatformBinariesLocation()
 
 String sdkPlatformBinariesPath = sdkPlatformBinariesUri.toString();
 
-class MultiDiagnostics implements CompilerDiagnostics {
-  final List<CompilerDiagnostics> diagnosticsList;
+class MultiDiagnostics implements api.CompilerDiagnostics {
+  final List<api.CompilerDiagnostics> diagnosticsList;
 
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
   void report(covariant Message message, Uri uri, int begin, int end,
-      String text, Diagnostic kind) {
-    for (CompilerDiagnostics diagnostics in diagnosticsList) {
+      String text, api.Diagnostic kind) {
+    for (api.CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
     }
   }
 }
 
-CompilerDiagnostics createCompilerDiagnostics(
-    CompilerDiagnostics diagnostics, SourceFileProvider provider,
+api.CompilerDiagnostics createCompilerDiagnostics(
+    api.CompilerDiagnostics diagnostics, SourceFileProvider provider,
     {bool showDiagnostics: true, bool verbose: false}) {
-  CompilerDiagnostics handler = diagnostics;
+  api.CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
       handler = new FormattingDiagnosticHandler(provider)
@@ -81,11 +81,11 @@ fe.InitializedCompilerState kernelInitializedCompilerState;
 /// memorySourceFiles can contain a map of string filename to string file
 /// contents or string file name to binary file contents (hence the `dynamic`
 /// type for the second parameter).
-Future<CompilationResult> runCompiler(
+Future<api.CompilationResult> runCompiler(
     {Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     Uri entryPoint,
-    CompilerDiagnostics diagnosticHandler,
-    CompilerOutput outputProvider,
+    api.CompilerDiagnostics diagnosticHandler,
+    api.CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
@@ -111,15 +111,15 @@ Future<CompilationResult> runCompiler(
   bool isSuccess = await compiler.run();
   fe.InitializedCompilerState compilerState =
       kernelInitializedCompilerState = compiler.initializedCompilerState;
-  return new CompilationResult(compiler,
+  return api.CompilationResult(compiler,
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }
 
 Compiler compilerFor(
     {Uri entryPoint,
     Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
-    CompilerDiagnostics diagnosticHandler,
-    CompilerOutput outputProvider,
+    api.CompilerDiagnostics diagnosticHandler,
+    api.CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
