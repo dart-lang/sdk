@@ -1108,6 +1108,16 @@ void AssemblyImageWriter::Finalize() {
 
 static void AddAssemblerIdentifier(ZoneTextBuffer* printer, const char* label) {
   ASSERT(label[0] != '.');
+  if (label[0] == 'L' && printer->length() == 0) {
+    // Assembler treats labels starting with `L` as local which can cause
+    // some issues down the line e.g. on Mac the linker might fail to encode
+    // compact unwind information because multiple functions end up being
+    // treated as a single function. See https://github.com/flutter/flutter/issues/102281.
+    //
+    // Avoid this by prepending an underscore.
+    printer->AddString("_");
+  }
+
   for (char c = *label; c != '\0'; c = *++label) {
 #define OP(dart_name, asm_name)                                                \
   if (strncmp(label, dart_name, strlen(dart_name)) == 0) {                     \
