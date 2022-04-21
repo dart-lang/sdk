@@ -668,6 +668,27 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitLateReadCheck(HLateReadCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    String comment = node.hasName ? "(${temporaryId(node.name)})" : "";
+    return "LateReadCheck$comment: $checkedInput";
+  }
+
+  @override
+  String visitLateWriteOnceCheck(HLateWriteOnceCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    String comment = node.hasName ? "(${temporaryId(node.name)})" : "";
+    return "LateWriteOnceCheck$comment: $checkedInput";
+  }
+
+  @override
+  String visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    String comment = node.hasName ? "(${temporaryId(node.name)})" : "";
+    return "LateInitializeOnceCheck$comment: $checkedInput";
+  }
+
+  @override
   String visitTypeKnown(HTypeKnown node) {
     assert(node.inputs.length <= 2);
     String result =
