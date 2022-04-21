@@ -74,23 +74,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void checkIdentifier(SimpleIdentifier? id,
-      {bool isJustUnderscoresOK = false}) {
-    if (id == null) {
-      return;
-    }
-    if (!hasLeadingUnderscore(id.name)) {
-      return;
-    }
-    if (isJustUnderscoresOK && id.name.isJustUnderscores) {
-      return;
-    }
+  void checkIdentifier(SimpleIdentifier? id) {
+    if (id == null) return;
+    if (!hasLeadingUnderscore(id.name)) return;
+    if (id.name.isJustUnderscores) return;
+
     rule.reportLint(id);
   }
 
   @override
   void visitCatchClause(CatchClause node) {
-    checkIdentifier(node.exceptionParameter, isJustUnderscoresOK: true);
+    checkIdentifier(node.exceptionParameter);
     checkIdentifier(node.stackTraceParameter);
   }
 
@@ -101,13 +95,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    for (var p in node.parameters) {
-      if (p is DefaultFormalParameter) {
-        p = p.parameter;
+    for (var parameter in node.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = parameter.parameter;
       }
       // Named parameters produce a `private_optional_parameter` diagnostic.
-      if (p is! FieldFormalParameter && !p.isNamed) {
-        checkIdentifier(p.identifier, isJustUnderscoresOK: true);
+      if (parameter is! FieldFormalParameter && !parameter.isNamed) {
+        checkIdentifier(parameter.identifier);
       }
     }
   }
@@ -121,8 +115,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    for (var v in node.variables.variables) {
-      checkIdentifier(v.name);
+    for (var variable in node.variables.variables) {
+      checkIdentifier(variable.name);
     }
   }
 }

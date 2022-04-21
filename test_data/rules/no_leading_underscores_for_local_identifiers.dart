@@ -5,6 +5,15 @@
 // test w/ `dart test -N no_leading_underscores_for_local_identifiers`
 
 
+///https://github.com/dart-lang/linter/issues/3126
+void fn0() {
+  for (var _ in []) { } // OK
+  var _ = g(); //OK
+  for (var __ = 0; __ < 1; ++__) { } // OK
+}
+
+int g() => 0;
+
 /// https://github.com/dart-lang/linter/issues/3127
 class P {
   final int _p;
