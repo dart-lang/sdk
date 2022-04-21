@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
@@ -53,7 +53,7 @@ main() {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    String jsOutput = collector.getOutput('', OutputType.js);
+    String jsOutput = collector.getOutput('', api.OutputType.js);
 
     // Skip comments.
     List<String> lines = jsOutput.split("\n");

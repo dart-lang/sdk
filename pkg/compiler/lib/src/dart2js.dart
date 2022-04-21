@@ -13,7 +13,7 @@ import 'dart:isolate' show Isolate;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler.dart' as api;
+import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';

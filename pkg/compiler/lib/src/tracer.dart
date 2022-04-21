@@ -8,7 +8,7 @@ library tracer;
 
 import 'package:kernel/text/indentation.dart' show Indentation;
 
-import '../compiler.dart' as api;
+import '../compiler_api.dart' as api;
 import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;

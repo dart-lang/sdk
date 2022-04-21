@@ -6,7 +6,7 @@
 
 library dart2js.code_output;
 
-import '../../compiler.dart' as api show OutputSink;
+import '../../compiler_api.dart' as api show OutputSink;
 import 'code_output_listener.dart';
 export 'code_output_listener.dart';
 import 'source_information.dart';

@@ -9,7 +9,7 @@ library dart2js.test.memory_source_file_helper;
 import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;
@@ -27,8 +27,8 @@ class MemorySourceFileProvider extends SourceFileProvider {
   MemorySourceFileProvider(Map<String, dynamic> this.memorySourceFiles);
 
   @override
-  Future<Input<List<int>>> readBytesFromUri(
-      Uri resourceUri, InputKind inputKind) {
+  Future<api.Input<List<int>>> readBytesFromUri(
+      Uri resourceUri, api.InputKind inputKind) {
     if (!resourceUri.isScheme('memory')) {
       return super.readBytesFromUri(resourceUri, inputKind);
     }
@@ -37,20 +37,20 @@ class MemorySourceFileProvider extends SourceFileProvider {
 
     var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
-      return new Future.error(new Exception(
+      return Future.error(new Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
-    Input<List<int>> input;
+    api.Input<List<int>> input;
     StringSourceFile stringFile;
     if (source is String) {
       stringFile = new StringSourceFile.fromUri(resourceUri, source);
     }
     switch (inputKind) {
-      case InputKind.UTF8:
+      case api.InputKind.UTF8:
         input = stringFile ?? new Utf8BytesSourceFile(resourceUri, source);
         utf8SourceFiles[resourceUri] = input;
         break;
-      case InputKind.binary:
+      case api.InputKind.binary:
         if (stringFile != null) {
           utf8SourceFiles[resourceUri] = stringFile;
           source = stringFile.data;
@@ -63,7 +63,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
   }
 
   @override
-  Future<Input> readFromUri(Uri resourceUri,
-          {InputKind inputKind: InputKind.UTF8}) =>
+  Future<api.Input> readFromUri(Uri resourceUri,
+          {api.InputKind inputKind: api.InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
 }

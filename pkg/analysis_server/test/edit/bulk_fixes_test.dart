@@ -262,7 +262,6 @@ A f() => new A();
   }
 
   Future<EditBulkFixesResult> _getBulkFixes() async {
-    // TODO(scheglov) Remove this, we want to see if lines change.
     var request = EditBulkFixesParams([workspaceRoot.path]).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     return EditBulkFixesResult.fromResponse(response);

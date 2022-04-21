@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
@@ -163,7 +163,7 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
   }
   if (printCode) {
     print('--code------------------------------------------------------------');
-    print(outputCollector.getOutput('', OutputType.js));
+    print(outputCollector.getOutput('', api.OutputType.js));
     print('------------------------------------------------------------------');
   }
   Compiler compiler = result.compiler;

@@ -14,7 +14,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
-import '../../compiler.dart' as api;
+import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
 import '../common.dart';
 import '../kernel/front_end_adapter.dart';

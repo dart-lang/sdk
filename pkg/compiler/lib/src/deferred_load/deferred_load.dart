@@ -277,7 +277,7 @@ import 'entity_data.dart';
 import 'import_set.dart';
 import 'output_unit.dart';
 
-import '../../compiler.dart' show OutputType;
+import '../../compiler_api.dart' as api show OutputType;
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
 import '../common/metrics.dart'
@@ -471,7 +471,7 @@ class DeferredLoadTask extends CompilerTask {
       }
     }
     compiler.outputProvider.createOutputSink(
-        compiler.options.deferredGraphUri.path, '', OutputType.debug)
+        compiler.options.deferredGraphUri.path, '', api.OutputType.debug)
       ..add(graph.join('\n'))
       ..close();
   }

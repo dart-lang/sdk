@@ -10,7 +10,7 @@
 library test.source_map;
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
@@ -50,14 +50,14 @@ test({String out, String sourceMap, String mapping, String file}) async {
       showDiagnostics: true,
       outputProvider: collector,
       options: options);
-  String jsOutput = collector.getOutput('', OutputType.js);
+  String jsOutput = collector.getOutput('', api.OutputType.js);
   Expect.isNotNull(jsOutput);
   if (mapping != null) {
     find(jsOutput, '//# sourceMappingURL=$mapping', true);
   } else {
     find(jsOutput, '//# sourceMappingURL=', false);
   }
-  String jsSourceMapOutput = collector.getOutput('', OutputType.sourceMap);
+  String jsSourceMapOutput = collector.getOutput('', api.OutputType.sourceMap);
   Expect.isNotNull(jsSourceMapOutput);
   if (file != null) {
     find(jsSourceMapOutput, '"file": "$file"', true);

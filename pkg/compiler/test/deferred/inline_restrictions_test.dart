@@ -8,7 +8,7 @@
 // allow inlining of empty functions and from main.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
@@ -34,11 +34,11 @@ void main() {
     // Test that we actually got different output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
-    String mainOutput = collector.getOutput("", OutputType.js);
+    String mainOutput = collector.getOutput("", api.OutputType.js);
     String lib1Output =
-        collector.getOutput("out_${ou_lib1.name}", OutputType.jsPart);
+        collector.getOutput("out_${ou_lib1.name}", api.OutputType.jsPart);
     String lib3Output =
-        collector.getOutput("out_${ou_lib3.name}", OutputType.jsPart);
+        collector.getOutput("out_${ou_lib3.name}", api.OutputType.jsPart);
 
     // Test that inlineMeAway was inlined and its argument thus dropped.
     //

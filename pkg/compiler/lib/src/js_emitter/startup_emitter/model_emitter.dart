@@ -34,7 +34,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
-import '../../../compiler.dart';
+import '../../../compiler_api.dart' as api;
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements, JElementEnvironment;
 import '../../common/tasks.dart';
@@ -101,7 +101,7 @@ class EmittedCodeFragment {
 class ModelEmitter {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
-  final CompilerOutput _outputProvider;
+  final api.CompilerOutput _outputProvider;
   final DumpInfoTask _dumpInfoTask;
   final Namer _namer;
   final CompilerTask _task;
@@ -424,7 +424,7 @@ var ${startupMetricsGlobal} =
     }
 
     CodeOutput mainOutput = StreamCodeOutput(
-        _outputProvider.createOutputSink('', 'js', OutputType.js),
+        _outputProvider.createOutputSink('', 'js', api.OutputType.js),
         codeOutputListeners);
     emittedOutputBuffers[fragment.outputUnit] = mainOutput;
 
@@ -497,7 +497,7 @@ var ${startupMetricsGlobal} =
     String outputFileName = fragment.outputFileName;
     CodeOutput output = StreamCodeOutput(
         _outputProvider.createOutputSink(
-            outputFileName, deferredExtension, OutputType.jsPart),
+            outputFileName, deferredExtension, api.OutputType.jsPart),
         outputListeners);
 
     writeCodeFragments(fragmentCode, fragmentHashes, output);
@@ -604,7 +604,7 @@ var ${startupMetricsGlobal} =
         "needed for a given deferred library import.";
     mapping.addAll(fragmentMerger.computeDeferredMap(finalizedFragmentsToLoad));
     _outputProvider.createOutputSink(
-        _options.deferredMapUri.path, '', OutputType.deferredMap)
+        _options.deferredMapUri.path, '', api.OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

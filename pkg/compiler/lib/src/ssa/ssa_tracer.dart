@@ -6,7 +6,7 @@
 
 library ssa.tracer;
 
-import '../../compiler.dart' show OutputSink;
+import '../../compiler_api.dart' as api show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show suffixForGetInterceptor;
@@ -20,7 +20,7 @@ import 'nodes.dart';
 class HTracer extends HGraphVisitor with TracerUtil {
   final JClosedWorld closedWorld;
   @override
-  final OutputSink output;
+  final api.OutputSink output;
 
   HTracer(this.output, this.closedWorld);
 
