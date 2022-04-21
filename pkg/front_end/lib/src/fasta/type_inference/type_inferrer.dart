@@ -2287,8 +2287,7 @@ class TypeInferrerImpl implements TypeInferrer {
         explicitTypeArguments == null &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
-    bool useFormalAndActualTypes = inferenceNeeded ||
-        typeChecksNeeded ||
+    bool useFormalAndActualTypes = typeChecksNeeded ||
         isSpecialCasedBinaryOperator ||
         isSpecialCasedTernaryOperator;
 
@@ -2472,6 +2471,7 @@ class TypeInferrerImpl implements TypeInferrer {
         NamedExpression namedArgument = arguments.named[index];
         namedArgument.value = expression..parent = namedArgument;
       }
+      gatherer?.tryConstrainLower(formalType, inferredType);
       if (useFormalAndActualTypes) {
         formalTypes!.add(formalType);
         actualTypes!.add(inferredType);
@@ -2574,8 +2574,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (inferenceNeeded) {
-      gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      typeSchemaEnvironment.upwardsInfer(gatherer, calleeTypeParameters,
+      typeSchemaEnvironment.upwardsInfer(gatherer!, calleeTypeParameters,
           inferredTypes!, libraryBuilder.library);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
