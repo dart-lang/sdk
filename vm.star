@@ -285,6 +285,7 @@ _nightly_builder(
     category = "vm|kernel|wd3",
     channels = ["try"],
     dimensions = windows,
+    properties = [slow_shards],
 )
 _builder(
     "vm-kernel-win-debug-x64",
