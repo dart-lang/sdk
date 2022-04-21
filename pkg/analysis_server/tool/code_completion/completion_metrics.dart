@@ -171,6 +171,11 @@ ArgParser createArgParser() {
             'token can be removed, or the rest of the file can be removed to '
             'test code completion with diverse methods. The default mode is to '
             'complete at the start of the token without modifying the file.')
+    ..addOption(CompletionMetricsOptions.PREFIX_LENGTH,
+        defaultsTo: '0',
+        help: 'The number of characters to include in the prefix. Each '
+            'completion will be requested this many characters in from the '
+            'start of the token being completed.')
     ..addFlag(CompletionMetricsOptions.PRINT_MISSED_COMPLETION_DETAILS,
         defaultsTo: false,
         help:
@@ -1259,6 +1264,8 @@ class CompletionMetricsComputer {
     return expected.length;
   }
 
+  /// Computes completion suggestions for [dartRequest], and returns the
+  /// suggestions, sorted by rank and then by completion text.
   Future<List<protocol.CompletionSuggestion>> _computeCompletionSuggestions(
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
@@ -1425,7 +1432,8 @@ class CompletionMetricsComputer {
       var filePath = result.path;
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
-      final visitor = ExpectedCompletionsVisitor(result);
+      final visitor =
+          ExpectedCompletionsVisitor(result, caretOffset: options.prefixLength);
       _resolvedUnitResult.unit.accept(visitor);
 
       for (var expectedCompletion in visitor.expectedCompletions) {
@@ -1527,9 +1535,14 @@ class CompletionMetricsComputer {
     var length = expectedCompletion.syntacticEntity.length;
     assert(offset >= 0);
     assert(length > 0);
+    var tokenEndOffset = offset + length;
+    if (length >= options.prefixLength) {
+      // Rather than removing the whole token, remove the characters after
+      // the given prefix length.
+      offset += options.prefixLength;
+    }
     if (options.overlay == CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN) {
-      return contents.substring(0, offset) +
-          contents.substring(offset + length);
+      return contents.substring(0, offset) + contents.substring(tokenEndOffset);
     } else if (options.overlay ==
         CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE) {
       return contents.substring(0, offset);
@@ -1635,15 +1648,17 @@ class CompletionMetricsComputer {
     return null;
   }
 
+  /// Returns a [Place] indicating the position of [expectedCompletion] in
+  /// [suggestions].
+  ///
+  /// If [expectedCompletion] is not found, `Place.none()` is returned.
   static Place placementInSuggestionList(
       List<protocol.CompletionSuggestion> suggestions,
       ExpectedCompletion expectedCompletion) {
-    var placeCounter = 1;
-    for (var completionSuggestion in suggestions) {
-      if (expectedCompletion.matches(completionSuggestion)) {
-        return Place(placeCounter, suggestions.length);
+    for (var i = 0; i < suggestions.length; i++) {
+      if (expectedCompletion.matches(suggestions[i])) {
+        return Place(i + 1, suggestions.length);
       }
-      placeCounter++;
     }
     return Place.none();
   }
@@ -1664,6 +1679,12 @@ class CompletionMetricsOptions {
   /// A mode indicating that the token whose offset is the same as the
   /// completion offset should be removed.
   static const String OVERLAY_REMOVE_TOKEN = 'remove-token';
+
+  /// An option controlling how long of a prefix should be used.
+  ///
+  /// This affects the offset of the completion request, and how much content is
+  /// removed in each of the overlay modes.
+  static const String PREFIX_LENGTH = 'prefix-length';
 
   /// A flag that causes detailed information to be printed every time a
   /// completion request fails to produce a suggestions matching the expected
@@ -1704,6 +1725,8 @@ class CompletionMetricsOptions {
   /// The overlay mode that should be used.
   final String overlay;
 
+  final int prefixLength;
+
   /// A flag indicating whether information should be printed every time a
   /// completion request fails to produce a suggestions matching the expected
   /// suggestion.
@@ -1739,6 +1762,7 @@ class CompletionMetricsOptions {
   factory CompletionMetricsOptions(results) {
     return CompletionMetricsOptions._(
         overlay: results[OVERLAY] as String,
+        prefixLength: int.parse(results[PREFIX_LENGTH] as String),
         printMissedCompletionDetails:
             results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
         printMissedCompletionSummary:
@@ -1753,6 +1777,7 @@ class CompletionMetricsOptions {
 
   CompletionMetricsOptions._(
       {required this.overlay,
+      required this.prefixLength,
       required this.printMissedCompletionDetails,
       required this.printMissedCompletionSummary,
       required this.printMissingInformation,
