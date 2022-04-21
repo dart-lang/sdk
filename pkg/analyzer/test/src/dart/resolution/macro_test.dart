@@ -33,9 +33,6 @@ class MacroResolutionTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
 
-    // TODO(scheglov) Dependency tracking for macros is not right yet.
-    useEmptyByteStore();
-
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,

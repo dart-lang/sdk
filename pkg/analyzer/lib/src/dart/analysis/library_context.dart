@@ -160,7 +160,7 @@ class LibraryContext {
         }
       }
 
-      var resolutionKey = '${cycle.transitiveSignature}.linked_bundle';
+      var resolutionKey = '${cycle.apiSignature}.linked_bundle';
       var resolutionBytes = byteStore.get(resolutionKey);
 
       if (resolutionBytes == null) {
@@ -244,7 +244,7 @@ class LibraryContext {
 
       final macroKernelBuilder = this.macroKernelBuilder;
       if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
-        var macroKernelKey = '${cycle.transitiveSignature}.macro_kernel';
+        var macroKernelKey = '${cycle.implSignature}.macro_kernel';
         var macroKernelBytes = byteStore.get(macroKernelKey);
         if (macroKernelBytes == null) {
           macroKernelBytes = await macroKernelBuilder.build(

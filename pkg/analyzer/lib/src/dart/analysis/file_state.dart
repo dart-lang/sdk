@@ -331,7 +331,7 @@ class FileState {
   String get transitiveSignature {
     var librarySignatureBuilder = ApiSignature()
       ..addString(uriStr)
-      ..addString(libraryCycle.transitiveSignature);
+      ..addString(libraryCycle.apiSignature);
     return librarySignatureBuilder.toHex();
   }
 
