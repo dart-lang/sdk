@@ -9,7 +9,6 @@ import '../common.dart';
 import '../constants/values.dart' show BoolConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart' show ClassRelation;
 import '../world.dart';
 import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
@@ -350,34 +349,49 @@ class TypeSystem {
       {bool isCast = true,
       bool excludeNull = false,
       bool excludeLateSentinel = false}) {
-    // Avoid refining an input with an exact type. It we are almost always
+    AbstractValue inferredType = type.type;
+
+    TypeInformation _excludeLateSentinel() {
+      if (!excludeLateSentinel) return type;
+      final newType = NarrowTypeInformation(
+          _abstractValueDomain, type, _abstractValueDomain.dynamicType);
+      allocatedTypes.add(newType);
+      return newType;
+    }
+
+    // Avoid refining an input with an exact type, since we are almost always
     // adding a narrowing to a subtype of the same class or a superclass.
-    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
+    if (_abstractValueDomain.isExact(inferredType).isDefinitelyTrue) {
+      return _excludeLateSentinel();
+    }
 
-    AbstractValueWithPrecision narrowing =
-        _abstractValueDomain.createFromStaticType(annotation,
-            classRelation: ClassRelation.subtype, nullable: isCast);
+    AbstractValue narrowing = _abstractValueDomain
+        .createFromStaticType(annotation, nullable: isCast)
+        .abstractValue;
 
-    AbstractValue abstractValue = narrowing.abstractValue;
     if (excludeNull) {
-      abstractValue = _abstractValueDomain.excludeNull(abstractValue);
-    }
-    if (!excludeLateSentinel) {
-      abstractValue = _abstractValueDomain.includeLateSentinel(abstractValue);
+      narrowing = _abstractValueDomain.excludeNull(narrowing);
     }
 
-    if (_abstractValueDomain.containsAll(abstractValue).isPotentiallyTrue) {
+    if (!excludeLateSentinel) {
+      // Narrowing is an intersection of [AbstractValue]s. Unless
+      // [excludeLateSentinel] is `true`, we include the late sentinel here so
+      // that it is preserved by the intersection.
+      narrowing = _abstractValueDomain.includeLateSentinel(narrowing);
+    }
+
+    if (_abstractValueDomain.containsAll(narrowing).isPotentiallyTrue) {
       // Top, or non-nullable Top.
-      if (_abstractValueDomain.isNull(abstractValue).isPotentiallyTrue) {
-        return type;
+      if (_abstractValueDomain.isNull(narrowing).isPotentiallyTrue) {
+        return _excludeLateSentinel();
       }
-      // If the input is already narrowed to be not-null, there is no value
-      // in adding another narrowing node.
-      if (_isNonNullNarrow(type)) return type;
+      // If the input is already narrowed to be non-null, there is no value in
+      // adding another non-null narrowing node.
+      if (_isNonNullNarrow(type)) return _excludeLateSentinel();
     }
 
     TypeInformation newType =
-        NarrowTypeInformation(_abstractValueDomain, type, abstractValue);
+        NarrowTypeInformation(_abstractValueDomain, type, narrowing);
     allocatedTypes.add(newType);
     return newType;
   }

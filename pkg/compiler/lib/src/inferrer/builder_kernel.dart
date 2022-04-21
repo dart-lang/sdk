@@ -1550,6 +1550,32 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     } else if (_closedWorld.commonElements.isCreateSentinel(member)) {
       handleStaticInvoke(node, selector, member, arguments);
       return _types.lateSentinelType;
+    } else if (_closedWorld.commonElements.isIsSentinel(member)) {
+      handleStaticInvoke(node, selector, member, arguments);
+
+      // Calls to `isSentinel` can only come from the late lowering kernel
+      // transformation.
+      final value = node.arguments.positional.single as ir.VariableGet;
+
+      Local local = _localsMap.getLocalVariable(value.variable);
+      DartType localType = _localsMap.getLocalType(_elementMap, local);
+      LocalState stateWhenSentinel = LocalState.childPath(_state);
+      LocalState stateWhenNotSentinel = LocalState.childPath(_state);
+
+      // Narrow tested variable to late sentinel on true branch.
+      stateWhenSentinel.updateLocal(_inferrer, _capturedAndBoxed, local,
+          _types.lateSentinelType, node, localType);
+
+      // Narrow tested variable to not late sentinel on false branch.
+      TypeInformation currentTypeInformation =
+          stateWhenNotSentinel.readLocal(_inferrer, _capturedAndBoxed, local);
+      stateWhenNotSentinel.updateLocal(_inferrer, _capturedAndBoxed, local,
+          currentTypeInformation, node, localType,
+          excludeLateSentinel: true);
+
+      _setStateAfter(_state, stateWhenSentinel, stateWhenNotSentinel);
+
+      return _types.boolType;
     } else if (member.isConstructor) {
       return handleConstructorInvoke(
           node, node.arguments, selector, member, arguments);
@@ -2420,10 +2446,13 @@ class LocalState {
       ir.Node node,
       DartType staticType,
       {isCast = true,
-      excludeNull = false}) {
+      excludeNull = false,
+      excludeLateSentinel = false}) {
     assert(type != null);
     type = inferrer.types.narrowType(type, staticType,
-        isCast: isCast, excludeNull: excludeNull, excludeLateSentinel: true);
+        isCast: isCast,
+        excludeNull: excludeNull,
+        excludeLateSentinel: excludeLateSentinel);
 
     FieldEntity field = capturedAndBoxed[local];
     if (field != null) {

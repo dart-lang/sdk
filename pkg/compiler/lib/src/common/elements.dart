@@ -1150,6 +1150,12 @@ abstract class CommonElements {
       member.library == internalLibrary &&
       _isTopLevelFunctionNamed('createSentinel', member);
 
+  /// Returns `true` if [member] is the `isSentinel` function defined in
+  /// dart:_internal.
+  bool isIsSentinel(MemberEntity member) =>
+      member.library == internalLibrary &&
+      _isTopLevelFunctionNamed('isSentinel', member);
+
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData) {
     if (nativeBasicData.isJsInteropClass(cls)) {
