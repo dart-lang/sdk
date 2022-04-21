@@ -1237,9 +1237,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (before != now) {
         return null;
       }
-      // TODO(jensj): We should only do this when we're sure we're going to
-      // do it!
-      CompilerContext.current.uriToSource.remove(builder.fileUri);
       missingSources ??= new Set<Uri>();
       missingSources.add(builder.fileUri);
       LibraryBuilder? partOfLibrary = builder.partOfLibrary;
@@ -1322,8 +1319,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     reusedResult.notReusedLibraries.clear();
     reusedResult.notReusedLibraries.addAll(rebuildBodies!);
 
+    // Now we know we're going to do it --- remove old sources.
+    for (Uri fileUri in missingSources!) {
+      CompilerContext.current.uriToSource.remove(fileUri);
+    }
+
     return new ExperimentalInvalidation(
-        rebuildBodies, originalNotReusedLibraries, missingSources!);
+        rebuildBodies, originalNotReusedLibraries, missingSources);
   }
 
   /// Get UriTranslator, and figure out if the packages file was (potentially)
