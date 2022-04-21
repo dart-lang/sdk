@@ -1232,7 +1232,7 @@ class Assembler : public MicroAssembler {
 
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+  void LeaveDartFrame();
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);

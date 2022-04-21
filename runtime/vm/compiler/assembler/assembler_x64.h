@@ -1142,7 +1142,7 @@ class Assembler : public AssemblerBase {
   //   pushq r15
   //   .....
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+  void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set

@@ -1673,15 +1673,13 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   }
 }
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+void Assembler::LeaveDartFrame() {
   if (!FLAG_precompiled_mode) {
-    if (restore_pp == kRestoreCallerPP) {
-      // Restore and untag PP.
-      LoadFromOffset(
-          PP, FP,
-          target::frame_layout.saved_caller_pp_from_fp * target::kWordSize);
-      sub(PP, PP, Operand(kHeapObjectTag));
-    }
+    // Restore and untag PP.
+    LoadFromOffset(
+        PP, FP,
+        target::frame_layout.saved_caller_pp_from_fp * target::kWordSize);
+    sub(PP, PP, Operand(kHeapObjectTag));
   }
   set_constant_pool_allowed(false);
   LeaveFrame();

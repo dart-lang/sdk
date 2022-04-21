@@ -3691,15 +3691,13 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   }
 }
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+void Assembler::LeaveDartFrame() {
   // N.B. The ordering here is important. We must never read beyond SP or
   // it may have already been clobbered by a signal handler.
   if (!FLAG_precompiled_mode) {
-    if (restore_pp == kRestoreCallerPP) {
-      lx(PP, Address(FP, target::frame_layout.saved_caller_pp_from_fp *
-                             target::kWordSize));
-      subi(PP, PP, kHeapObjectTag);
-    }
+    lx(PP, Address(FP, target::frame_layout.saved_caller_pp_from_fp *
+                           target::kWordSize));
+    subi(PP, PP, kHeapObjectTag);
   }
   set_constant_pool_allowed(false);
   subi(SP, FP, 2 * target::kWordSize);
