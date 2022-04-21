@@ -32,3 +32,6 @@ Object _jsObjectToDartObject(WasmAnyRef ref) => unsafeCastOpaque<Object>(ref);
 @patch
 WasmAnyRef _jsObjectFromDartObject(Object object) =>
     unsafeCastOpaque<WasmAnyRef>(object);
+
+@patch
+JSValue allowInterop<F extends Function>(F f) => throw 'unreachable';

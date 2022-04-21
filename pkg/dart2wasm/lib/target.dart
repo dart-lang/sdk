@@ -50,15 +50,16 @@ class WasmTarget extends Target {
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:js_util_wasm',
-        "dart:js_wasm",
+        'dart:js_wasm',
       ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
-        "dart:collection",
-        "dart:typed_data",
+        'dart:collection',
+        'dart:typed_data',
         'dart:js_util_wasm',
-        "dart:js_wasm",
+        'dart:js_wasm',
+        'dart:wasm',
       ];
 
   void _patchHostEndian(CoreTypes coreTypes) {
