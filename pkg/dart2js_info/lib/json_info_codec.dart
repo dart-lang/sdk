@@ -372,7 +372,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      name = info.code.first.text;
+      name = info.code.first.text ?? '';
     } else {
       name = longName(info, useLibraryUri: true, forId: true);
     }
