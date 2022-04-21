@@ -52,6 +52,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:collection/collection.dart';
 
 import 'metrics_util.dart';
 import 'output_utilities.dart';
@@ -300,7 +301,7 @@ enum CompletionGroup {
 /// objects for a run of [CompletionMetricsComputer].
 class CompletionMetrics {
   /// The maximum number of slowest results to collect.
-  static const maxSlowestResults = 5;
+  static const maxSlowestResults = 100;
 
   /// The maximum number of worst results to collect.
   static const maxWorstResults = 5;
@@ -383,7 +384,10 @@ class CompletionMetrics {
   /// where a shadowed element was suggested rather than the visible one.
   Map<String, List<ShadowedCompletion>> shadowedCompletions = {};
 
-  final Map<CompletionGroup, List<CompletionResult>> slowestResults = {};
+  /// A list of the slowest results, sorted from slowest to fastest.
+  ///
+  /// This list contains at most [maxSlowestResults] results.
+  final List<CompletionResult> slowestResults = [];
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
@@ -442,13 +446,10 @@ class CompletionMetrics {
         in map['missingCompletionLocationTables'] as List<dynamic>) {
       metrics.missingCompletionLocationTables.add(element as String);
     }
-    for (var entry in (map['slowestResults'] as Map<String, dynamic>).entries) {
-      var group = CompletionGroup.values[int.parse(entry.key)];
-      var results = (entry.value as List<dynamic>)
-          .map((map) => CompletionResult.fromJson(map as Map<String, dynamic>))
-          .toList();
-      metrics.slowestResults[group] = results;
-    }
+    metrics.slowestResults.addAll([
+      for (var result in map['slowestResults'] as List<dynamic>)
+        CompletionResult.fromJson(result as Map<String, dynamic>),
+    ]);
     for (var entry in (map['worstResults'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
       var results = (entry.value as List<dynamic>)
@@ -488,10 +489,8 @@ class CompletionMetrics {
     missingCompletionLocations.addAll(metrics.missingCompletionLocations);
     missingCompletionLocationTables
         .addAll(metrics.missingCompletionLocationTables);
-    for (var resultList in metrics.slowestResults.values) {
-      for (var result in resultList) {
-        _recordSlowestResult(result);
-      }
+    for (var result in metrics.slowestResults) {
+      _recordSlowestResult(result);
     }
     for (var resultList in metrics.worstResults.values) {
       for (var result in resultList) {
@@ -573,9 +572,8 @@ class CompletionMetrics {
       'missingCompletionLocations': missingCompletionLocations.toList(),
       'missingCompletionLocationTables':
           missingCompletionLocationTables.toList(),
-      'slowestResults': slowestResults.map((key, value) => MapEntry(
-          key.index.toString(),
-          value.map((result) => result.toJson()).toList())),
+      'slowestResults':
+          slowestResults.map((result) => result.toJson()).toList(),
       'worstResults': worstResults.map((key, value) => MapEntry(
           key.index.toString(),
           value.map((result) => result.toJson()).toList())),
@@ -615,18 +613,17 @@ class CompletionMetrics {
     }
   }
 
-  /// If the [result] is took longer than any previously recorded results,
+  /// If the [result] took longer than any previously recorded results,
   /// record it.
   void _recordSlowestResult(CompletionResult result) {
-    var results = slowestResults.putIfAbsent(result.group, () => []);
-    if (results.length >= maxSlowestResults) {
-      if (result.elapsedMS <= results.last.elapsedMS) {
+    if (slowestResults.length >= maxSlowestResults) {
+      if (result.elapsedMS <= slowestResults.last.elapsedMS) {
         return;
       }
-      results.removeLast();
+      slowestResults.removeLast();
     }
-    results.add(result);
-    results.sort((first, second) => second.elapsedMS - first.elapsedMS);
+    slowestResults.add(result);
+    slowestResults.sort((first, second) => second.elapsedMS - first.elapsedMS);
   }
 
   /// Record this elapsed ms count for the average ms count.
@@ -1200,15 +1197,36 @@ class CompletionMetricsComputer {
     }
   }
 
+  /// Prints the results which took the longest amounts of time to compute.
+  ///
+  /// Specifically, only results which are above the 90th percentile, and which
+  /// are in the top [maxSlowestResults] slowest results, are included.
   void printSlowestResults(CompletionMetrics metrics) {
-    var slowestResults = metrics.slowestResults;
-    var entries = slowestResults.entries.toList();
-    entries.sort((first, second) => first.key.name.compareTo(second.key.name));
+    var p90ElapsedMs = metrics.percentileCompletionMS.p90;
+    var slowestResults = metrics.slowestResults
+        .where((element) => element.elapsedMS >= p90ElapsedMs)
+        .toList();
     print('');
     printHeading(2, 'The slowest completion results to compute');
-    for (var entry in entries) {
-      _printSlowestResults('In ${entry.key.name}', entry.value);
+    for (var result in slowestResults) {
+      var expected = result.expectedCompletion;
+      print('');
+      print('* Elapsed ms: ${result.elapsedMS}');
+      print('* Group: ${result.group.name}');
+      print("* Completion: '${expected.completion}'");
+      print('* Completion kind: ${expected.kind}');
+      print('* Element kind: ${expected.elementKind}');
+      print('* Location: ${expected.location}');
     }
+
+    print('');
+    var slowestResultCountByGroup = slowestResults.groupFoldBy(
+        (result) => result.group.name,
+        (int? previous, result) => (previous ?? 0) + 1);
+    slowestResultCountByGroup.forEach((groupName, count) {
+      var countString = count.toString().padLeft(2);
+      print('${groupName.padRight(20)}: $countString result(s)');
+    });
   }
 
   void printWorstResults(CompletionMetrics metrics) {
@@ -1520,26 +1538,6 @@ class CompletionMetricsComputer {
       var removeRest = CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE;
       throw Exception('\'_getOverlayContents\' called with option other than'
           '$removeToken and $removeRest: ${options.overlay}');
-    }
-  }
-
-  void _printSlowestResults(
-      String title, List<CompletionResult> slowestResults) {
-    printHeading(3, title);
-    var needsBlankLine = false;
-    for (var result in slowestResults) {
-      var elapsedMS = result.elapsedMS;
-      var expected = result.expectedCompletion;
-      if (needsBlankLine) {
-        print('');
-      } else {
-        needsBlankLine = true;
-      }
-      print('  Elapsed ms: $elapsedMS');
-      print('  Completion: ${expected.completion}');
-      print('  Completion kind: ${expected.kind}');
-      print('  Element kind: ${expected.elementKind}');
-      print('  Location: ${expected.location}');
     }
   }
 
