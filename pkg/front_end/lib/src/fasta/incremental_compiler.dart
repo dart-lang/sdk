@@ -288,9 +288,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (_resetTicker) {
       _ticker.reset();
     }
-    entryPoints ??= context.options.inputs;
+    List<Uri>? entryPointsSavedForLaterOverwrite = entryPoints;
     return context
         .runInContext<IncrementalCompilerResult>((CompilerContext c) async {
+      List<Uri> entryPoints =
+          entryPointsSavedForLaterOverwrite ?? context.options.inputs;
       if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
         throw new StateError("Initialized for expression compilation: "
             "cannot do another general compile.");
@@ -311,23 +313,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
       _invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult? reusedResult = _computeReusedLibraries(
-          lastGoodKernelTarget,
-          _userBuilders,
-          invalidatedUris,
-          uriTranslator,
-          entryPoints!);
-
-      // Use the reused libraries to re-write entry-points.
-      if (reusedResult.arePartsUsedAsEntryPoints()) {
-        for (int i = 0; i < entryPoints!.length; i++) {
-          Uri entryPoint = entryPoints![i];
-          Uri? redirect =
-              reusedResult.getLibraryUriForPartUsedAsEntryPoint(entryPoint);
-          if (redirect != null) {
-            entryPoints![i] = redirect;
-          }
-        }
-      }
+          lastGoodKernelTarget, _userBuilders, invalidatedUris, uriTranslator);
 
       // Experimental invalidation initialization (e.g. figure out if we can).
       _benchmarker
@@ -336,6 +322,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           await _initializeExperimentalInvalidation(reusedResult, c);
       recorderForTesting?.recordRebuildBodiesCount(
           experimentalInvalidation?.missingSources.length ?? 0);
+
+      _benchmarker
+          ?.enterPhase(BenchmarkPhases.incremental_rewriteEntryPointsIfPart);
+      _rewriteEntryPointsIfPart(entryPoints, reusedResult);
 
       _benchmarker
           ?.enterPhase(BenchmarkPhases.incremental_invalidatePrecompiledMacros);
@@ -375,11 +365,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       while (true) {
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
         currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
-            reusedLibraries, experimentalInvalidation, entryPoints!.first);
+            reusedLibraries, experimentalInvalidation, entryPoints.first);
         Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
             _experimentalInvalidationCreateRebuildBodiesBuilders(
                 currentKernelTarget, experimentalInvalidation, uriTranslator);
-        entryPoints = currentKernelTarget.setEntryPoints(entryPoints!);
+        entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
 
         // TODO(johnniwinther,jensj): Ensure that the internal state of the
         // incremental compiler is consistent across 1 or more macro
@@ -477,7 +467,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               currentKernelTarget,
               data.component != null || fullComponent,
               compiledLibraries,
-              entryPoints!,
+              entryPoints,
               reusedLibraries,
               hierarchy,
               uriTranslator,
@@ -538,6 +528,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           coreTypes: currentKernelTarget.loader.coreTypes,
           neededDillLibraries: neededDillLibraries);
     });
+  }
+
+  void _rewriteEntryPointsIfPart(
+      List<Uri> entryPoints, ReusageResult reusedResult) {
+    for (int i = 0; i < entryPoints.length; i++) {
+      Uri entryPoint = entryPoints[i];
+      LibraryBuilder? parent = reusedResult.partUriToParent[entryPoint];
+      if (parent == null) continue;
+      // TODO(jensj): .contains on a list is O(n).
+      // It will only be done for each entry point that's a part though, i.e.
+      // most likely very rarely.
+      if (reusedResult.reusedLibraries.contains(parent)) {
+        entryPoints[i] = parent.importUri;
+      }
+    }
   }
 
   /// Convert every SourceLibraryBuilder to a DillLibraryBuilder.
@@ -1156,6 +1161,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Figure out if we can (and was asked to) do experimental invalidation.
   /// Note that this returns (future or) [null] if we're not doing experimental
   /// invalidation.
+  ///
+  /// Note that - when doing experimental invalidation - [reusedResult] is
+  /// updated.
   Future<ExperimentalInvalidation?> _initializeExperimentalInvalidation(
       ReusageResult reusedResult, CompilerContext c) async {
     Set<LibraryBuilder>? rebuildBodies;
@@ -1263,7 +1271,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               // to rebuild only the body of.
               // TODO(jensj): We can probably add this to the rebuildBodies
               // list and just rebuild that library too.
-              // print("Usage of mixin in ${lib.importUri}");
               return null;
             }
           }
@@ -2020,8 +2027,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       IncrementalKernelTarget? lastGoodKernelTarget,
       Map<Uri, LibraryBuilder>? _userBuilders,
       Set<Uri?> invalidatedUris,
-      UriTranslator uriTranslator,
-      List<Uri> entryPoints) {
+      UriTranslator uriTranslator) {
     Set<Uri> seenUris = new Set<Uri>();
     List<LibraryBuilder> reusedLibraries = <LibraryBuilder>[];
     for (int i = 0; i < _platformBuilders!.length; i++) {
@@ -2179,26 +2185,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }
-
-    ReusageResult result = new ReusageResult(
-        notReusedLibraries,
-        directlyInvalidated,
-        invalidatedBecauseOfPackageUpdate,
-        reusedLibraries);
-
-    for (Uri entryPoint in entryPoints) {
-      LibraryBuilder? parent = partUriToParent[entryPoint];
-      if (parent == null) continue;
-      // TODO(jensj): .contains on a list is O(n).
-      // It will only be done for each entry point that's a part though, i.e.
-      // most likely very rarely.
-      if (reusedLibraries.contains(parent)) {
-        result.registerLibraryUriForPartUsedAsEntryPoint(
-            entryPoint, parent.importUri);
-      }
-    }
-
-    return result;
+    return new ReusageResult(notReusedLibraries, directlyInvalidated,
+        invalidatedBecauseOfPackageUpdate, reusedLibraries, partUriToParent);
   }
 
   @override
@@ -2312,17 +2300,21 @@ class ReusageResult {
   final Set<LibraryBuilder> directlyInvalidated;
   final bool invalidatedBecauseOfPackageUpdate;
   final List<LibraryBuilder> reusedLibraries;
-  final Map<Uri, Uri> _reusedLibrariesPartsToParentForEntryPoints;
+  final Map<Uri?, LibraryBuilder> partUriToParent;
 
   ReusageResult.reusedLibrariesOnly(this.reusedLibraries)
       : notReusedLibraries = const {},
         directlyInvalidated = const {},
         invalidatedBecauseOfPackageUpdate = false,
-        _reusedLibrariesPartsToParentForEntryPoints = const {};
+        partUriToParent = const {};
 
-  ReusageResult(this.notReusedLibraries, this.directlyInvalidated,
-      this.invalidatedBecauseOfPackageUpdate, this.reusedLibraries)
-      : _reusedLibrariesPartsToParentForEntryPoints = {},
+  ReusageResult(
+      this.notReusedLibraries,
+      this.directlyInvalidated,
+      this.invalidatedBecauseOfPackageUpdate,
+      this.reusedLibraries,
+      this.partUriToParent)
+      :
         // ignore: unnecessary_null_comparison
         assert(notReusedLibraries != null),
         // ignore: unnecessary_null_comparison
@@ -2330,18 +2322,9 @@ class ReusageResult {
         // ignore: unnecessary_null_comparison
         assert(invalidatedBecauseOfPackageUpdate != null),
         // ignore: unnecessary_null_comparison
-        assert(reusedLibraries != null);
-
-  void registerLibraryUriForPartUsedAsEntryPoint(
-      Uri entryPoint, Uri importUri) {
-    _reusedLibrariesPartsToParentForEntryPoints[entryPoint] = importUri;
-  }
-
-  bool arePartsUsedAsEntryPoints() =>
-      _reusedLibrariesPartsToParentForEntryPoints.isNotEmpty;
-
-  Uri? getLibraryUriForPartUsedAsEntryPoint(Uri entryPoint) =>
-      _reusedLibrariesPartsToParentForEntryPoints[entryPoint];
+        assert(reusedLibraries != null),
+        // ignore: unnecessary_null_comparison
+        assert(partUriToParent != null);
 }
 
 class ExperimentalInvalidation {
