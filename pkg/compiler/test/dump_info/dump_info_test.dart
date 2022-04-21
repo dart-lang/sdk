@@ -46,13 +46,15 @@ class Tags {
 class DumpInfoDataComputer extends DataComputer<Features> {
   const DumpInfoDataComputer();
 
+  final JsonEncoder encoder = const JsonEncoder();
+  final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
+
   static const String wildcard = '%';
 
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    JsonEncoder encoder = const JsonEncoder.withIndent('    ');
     var converter = info.AllInfoToJsonConverter(
         isBackwardCompatible: true, filterTreeshaken: false);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
@@ -62,13 +64,21 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     if (functionInfo == null) return;
 
     if (functionInfo is info.FunctionInfo) {
-      features.addElement(
-          Tags.function, encoder.convert(functionInfo.accept(converter)));
+      features.addElement(Tags.function,
+          indentedEncoder.convert(functionInfo.accept(converter)));
+      for (var use in functionInfo.uses) {
+        features.addElement(
+            Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
+      }
     }
 
     if (functionInfo is info.FieldInfo) {
-      features.addElement(
-          Tags.function, encoder.convert(functionInfo.accept(converter)));
+      features.addElement(Tags.function,
+          indentedEncoder.convert(functionInfo.accept(converter)));
+      for (var use in functionInfo.uses) {
+        features.addElement(
+            Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
+      }
     }
 
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -87,17 +97,16 @@ class DumpInfoDataComputer extends DataComputer<Features> {
 
 /// Feature interpreter for Features with Json values.
 ///
-/// The data annotation reader removes whitespace, but this fork adds them
-/// back for readability.
+/// The data annotation reader conserves whitespace visually while ignoring
+/// them during comparison.
 class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
   final String wildcard;
+  final JsonEncoder encoder = const JsonEncoder();
 
   const JsonFeaturesDataInterpreter({this.wildcard});
 
   @override
   String isAsExpected(Features actualFeatures, String expectedData) {
-    JsonEncoder encoder = const JsonEncoder.withIndent('    ');
-
     if (wildcard != null && expectedData == wildcard) {
       return null;
     } else if (expectedData == '') {
@@ -121,8 +130,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
           if (actualValue is List) {
             List actualList = actualValue.toList();
             for (Object expectedObject in expectedValue) {
-              String expectedText =
-                  encoder.convert(jsonDecode('$expectedObject'));
+              String expectedText = encoder.convert(jsonDecode(expectedObject));
               bool matchFound = false;
               if (wildcard != null && expectedText.endsWith(wildcard)) {
                 // Wildcard matcher.
@@ -130,7 +138,9 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                     expectedText.substring(0, expectedText.indexOf(wildcard));
                 List matches = [];
                 for (Object actualObject in actualList) {
-                  if ('$actualObject'.startsWith(prefix)) {
+                  var formattedActualObject =
+                      encoder.convert(jsonDecode(actualObject));
+                  if (formattedActualObject.startsWith(prefix)) {
                     matches.add(actualObject);
                     matchFound = true;
                   }
@@ -140,7 +150,9 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                 }
               } else {
                 for (Object actualObject in actualList) {
-                  if (expectedText == '$actualObject') {
+                  var formattedActualObject =
+                      encoder.convert(jsonDecode(actualObject));
+                  if (expectedText == formattedActualObject) {
                     actualList.remove(actualObject);
                     matchFound = true;
                     break;
