@@ -411,14 +411,12 @@ dart.ci_sandbox_builder(
 )
 dart.ci_sandbox_builder(
     "dart2js-strong-win-x64-firefox",
-    category = "dart2js|firefox|w",
     dimensions = windows,
     enabled = False,
     properties = [firefox, no_android],
 )
 dart.ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
-    category = "dart2js|safari|m",
     dimensions = mac,
     properties = [pinned_xcode, no_android],
 )
@@ -619,21 +617,18 @@ luci.console_view_entry(
 luci.console_view_entry(
     builder = "flutter-engine-linux",
     short_name = "3H",
-    category = "flutter",
     console_view = "flutter-hhh",
 )
 
 luci.console_view_entry(
     builder = "flutter-engine-ios",
     short_name = "ios",
-    category = "flutter",
     console_view = "flutter-hhh",
 )
 
 luci.console_view_entry(
     builder = "flutter-engine-linux-web_tests",
     short_name = "web",
-    category = "flutter",
     console_view = "flutter-hhh",
 )
 
