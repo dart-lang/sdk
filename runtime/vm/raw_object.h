@@ -601,15 +601,25 @@ class UntaggedObject {
     }
   }
 
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
     reinterpret_cast<std::atomic<compressed_type>*>(
         const_cast<compressed_type*>(addr))
         ->store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type, typename compressed_type, std::memory_order order>
+  void StoreCompressedArrayPointer(compressed_type const* addr,
+                                   type value,
+                                   Thread* thread) {
+    reinterpret_cast<std::atomic<compressed_type>*>(
+        const_cast<compressed_type*>(addr))
+        ->store(static_cast<compressed_type>(value), order);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
     }
   }
 
@@ -863,6 +873,10 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreArrayPointer<type, order>(&array_name()[index], value);               \
   }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreArrayPointer<type, order>(&array_name()[index], value, thread);       \
+  }                                                                            \
                                                                                \
  protected:                                                                    \
   type* array_name() { OPEN_ARRAY_START(type, type); }                         \
@@ -880,6 +894,11 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreCompressedArrayPointer<type, Compressed##type, order>(                \
         &array_name()[index], value);                                          \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(                \
+        &array_name()[index], value, thread);                                  \
   }                                                                            \
                                                                                \
  protected:                                                                    \

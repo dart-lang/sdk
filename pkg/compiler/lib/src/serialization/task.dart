@@ -198,7 +198,6 @@ class SerializationTask extends CompilerTask {
       //   DataSource source = new ObjectSource(encoding, useDataKinds: true);
       //   source.registerComponentLookup(new ComponentLookup(component));
       //   ModuleData.fromDataSource(source);
-
       BytesSink bytes = BytesSink();
       DataSinkWriter binarySink =
           DataSinkWriter(BinaryDataSink(bytes), useDataKinds: true);
@@ -211,17 +210,17 @@ class SerializationTask extends CompilerTask {
     }
   }
 
-  Future<List<ModuleData>> deserializeModuleData(ir.Component component) async {
+  Future<ModuleData> deserializeModuleData(ir.Component component) async {
     return await measureIoSubtask('deserialize module data', () async {
       _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
-      List<ModuleData> results = [];
+      final results = ModuleData();
       for (Uri uri in _options.modularAnalysisInputs) {
         api.Input<List<int>> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         DataSourceReader source =
             DataSourceReader(BinaryDataSource(dataInput.data));
         source.registerComponentLookup(ComponentLookup(component));
-        results.add(ModuleData.fromDataSource(source));
+        results.readMoreFromDataSource(source);
       }
       return results;
     });

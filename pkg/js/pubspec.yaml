@@ -6,5 +6,8 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/js
 environment:
   sdk: ">=2.16.0-100.0.dev <3.0.0"
 
+dependencies:
+  meta: ^1.7.0
+
 dev_dependencies:
   lints: any

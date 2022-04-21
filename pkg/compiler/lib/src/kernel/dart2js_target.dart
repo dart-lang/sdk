@@ -235,6 +235,14 @@ class Dart2jsTarget extends Target {
       const Dart2jsDartLibrarySupport();
 }
 
+const implicitlyUsedLibraries = <String>[
+  'dart:_foreign_helper',
+  'dart:_interceptors',
+  'dart:_js_helper',
+  'dart:_late_helper',
+  'dart:js_util'
+];
+
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
 // compile-platform should just specify which libraries to compile instead.
 const requiredLibraries = <String, List<String>>{

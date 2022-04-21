@@ -4,11 +4,13 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'error_listener_test.dart' as error_listener;
 import 'error_reporter_test.dart' as error_reporter;
 import 'error_test.dart' as error_test;
 
 main() {
   defineReflectiveSuite(() {
+    error_listener.main();
     error_reporter.main();
     error_test.main();
   }, name: 'error');

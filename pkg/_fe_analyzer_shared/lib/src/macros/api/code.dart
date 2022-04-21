@@ -251,7 +251,7 @@ extension Join<T extends Object> on List<T> {
           this[i],
           separator,
         ],
-        last,
+        if (isNotEmpty) last,
       ];
 }
 

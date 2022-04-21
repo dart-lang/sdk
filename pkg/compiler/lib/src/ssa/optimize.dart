@@ -1399,24 +1399,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
-  HInstruction visitLateReadCheck(HLateReadCheck node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-    return node;
-  }
-
-  @override
-  HInstruction visitLateWriteOnceCheck(HLateWriteOnceCheck node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-    return node;
-  }
-
-  @override
-  HInstruction visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-    return node;
-  }
-
-  @override
   HInstruction visitTypeKnown(HTypeKnown node) {
     return node.isRedundant(_closedWorld) ? node.checkedInput : node;
   }
@@ -3788,8 +3770,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitNot(HNot instruction) {}
   @override
   void visitNullCheck(HNullCheck instruction) {}
-  @override
-  void visitLateReadCheck(HLateReadCheck instruction) {}
   @override
   void visitParameterValue(HParameterValue instruction) {}
   @override

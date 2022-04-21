@@ -25,7 +25,7 @@ dev_dependencies:
   analyzer_utilities:
     path: ../analyzer_utilities
   http: ^0.13.4
-  pedantic: ^1.9.0
+  lints: any
   test: ^1.6.4
   test_reflective_loader: ^0.2.0
 

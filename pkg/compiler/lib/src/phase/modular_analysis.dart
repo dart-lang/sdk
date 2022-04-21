@@ -53,12 +53,12 @@ KernelToElementMap _createElementMap(
   return elementMap;
 }
 
-ModuleData run(Input input) {
-  final options = input.options;
-  final reporter = input.reporter;
-  final elementMap = _createElementMap(
-      options, reporter, input.environment, input.component, input.libraries);
-  final result = <ir.Member, ImpactBuilderData>{};
+Map<ir.Member, ImpactBuilderData> _computeForLibrary(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    KernelToElementMap elementMap,
+    ir.Library library) {
+  Map<ir.Member, ImpactBuilderData> result = {};
   void computeForMember(ir.Member member) {
     final scopeModel = ScopeModel.from(member, elementMap.constantEvaluator);
     final annotations = processMemberAnnotations(
@@ -68,12 +68,23 @@ ModuleData run(Input input) {
             .impactBuilderData;
   }
 
+  library.members.forEach(computeForMember);
+  for (final cls in library.classes) {
+    cls.members.forEach(computeForMember);
+  }
+  return result;
+}
+
+ModuleData run(Input input) {
+  final options = input.options;
+  final reporter = input.reporter;
+  final elementMap = _createElementMap(
+      options, reporter, input.environment, input.component, input.libraries);
+  Map<Uri, Map<ir.Member, ImpactBuilderData>> result = {};
   for (final library in input.component.libraries) {
     if (!input.moduleLibraries.contains(library.importUri)) continue;
-    library.members.forEach(computeForMember);
-    for (final cls in library.classes) {
-      cls.members.forEach(computeForMember);
-    }
+    result[library.importUri] =
+        _computeForLibrary(options, reporter, elementMap, library);
   }
-  return ModuleData(result);
+  return ModuleData.fromImpactData(result);
 }

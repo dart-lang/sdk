@@ -208,7 +208,7 @@ class CompilerOptions implements DiagnosticOptions {
   Uri? writeModularAnalysisUri;
 
   /// Helper to determine if compiler is being run just for modular analysis.
-  bool get modularMode => writeModularAnalysisUri != null;
+  bool get modularMode => writeModularAnalysisUri != null && !cfeOnly;
 
   List<Uri>? modularAnalysisInputs;
 

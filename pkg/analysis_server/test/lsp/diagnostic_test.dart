@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -376,6 +377,71 @@ version: latest
       final diagnostics = await diagnosticsUpdate;
       expect(diagnostics, hasLength(0));
     }
+  }
+
+  /// Tests that diagnostic ordering is stable when minor changes are made to
+  /// the file that does not alter the diagnostics besides extending their
+  /// range and adding to their messages.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/3934
+  Future<void> test_stableOrder() async {
+    /// Helper to pad out the content in a way that has previously triggered
+    /// this issue.
+    String wrappedContent(String content) => '''
+//
+//
+//
+//
+
+void f() {
+  $content
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_typing_uninitialized_variables
+
+analyzer:
+  language:
+    strict-inference: true
+    ''');
+
+    newFile(mainFilePath, '');
+    await initialize();
+    await openFile(mainFileUri, '');
+
+    // Collect the initial set of diagnostic to compare against.
+    var docVersion = 1;
+    final originalDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await replaceFile(docVersion++, mainFileUri, wrappedContent('final bar;'));
+    final originalDiagnostics = await originalDiagnosticsUpdate;
+
+    // Helper to update the content and verify the same diagnostics are returned
+    // in the same order, despite the changes to offset/message altering
+    // hashcodes.
+    Future<void> verifyDiagnostics(String content) async {
+      final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+      await replaceFile(docVersion++, mainFileUri, wrappedContent(content));
+      final diagnostics = await diagnosticsUpdate;
+      expect(
+        diagnostics!.map((d) => d.code),
+        originalDiagnostics!.map((d) => d.code),
+      );
+    }
+
+    // These changes do not affect the errors being produced (besides offset/
+    // message text) but will cause hashcode changes that previously altered the
+    // returned order.
+    await verifyDiagnostics('final dbar;');
+    await verifyDiagnostics('final dybar;');
+    await verifyDiagnostics('final dynbar;');
+    await verifyDiagnostics('final dynabar;');
+    await verifyDiagnostics('final dynambar;');
+    await verifyDiagnostics('final dynamibar;');
+    await verifyDiagnostics('final dynamicbar;');
   }
 
   Future<void> test_todos_boolean() async {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
@@ -257,7 +255,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    (_errors ??= HashSet<AnalysisError>()).add(error);
+    (_errors ??= {}).add(error);
   }
 }
 

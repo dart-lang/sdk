@@ -26,9 +26,7 @@ main(List<String> args) async {
           FullDillCompilationStep(onlyOnSdk: true),
           ModularAnalysisStep(onlyOnSdk: true),
           ModularAnalysisStep(),
-          // TODO(joshualitt): Re-enable ConcatenateDillStep after it works
-          // correctly alongside modular analysis.
-          // ConcatenateDillsStep(useModularAnalysis: true),
+          ConcatenateDillsStep(useModularAnalysis: true),
           ComputeClosedWorldStep(useModularAnalysis: true),
           GlobalAnalysisStep(),
           Dart2jsCodegenStep(codeId0),

@@ -449,20 +449,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   @override
-  AbstractValue visitLateReadCheck(HLateReadCheck instruction) {
-    HInstruction input = instruction.checkedInput;
-    AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.excludeLateSentinel(inputType);
-    if (inputType != outputType) {
-      // Replace dominated uses of input with uses of this check so the uses
-      // benefit from the stronger type.
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
-    }
-    return outputType;
-  }
-
-  @override
   AbstractValue visitAsCheck(HAsCheck instruction) {
     return _narrowAsCheck(instruction, instruction.checkedInput,
         instruction.checkedType.abstractValue);

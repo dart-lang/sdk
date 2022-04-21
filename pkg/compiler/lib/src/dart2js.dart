@@ -318,15 +318,13 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot use ${Flags.writeModularAnalysis} "
           "and write serialized codegen simultaneously.");
     }
-    if (writeStrategy == WriteStrategy.toKernel) {
-      fail("Cannot use ${Flags.writeModularAnalysis} "
-          "and run the CFE simultaneously.");
-    }
     if (argument != Flags.writeModularAnalysis) {
       writeModularAnalysisUri =
           fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
-    writeStrategy = WriteStrategy.toModularAnalysis;
+    writeStrategy = writeStrategy == WriteStrategy.toKernel
+        ? WriteStrategy.toKernelWithModularAnalysis
+        : WriteStrategy.toModularAnalysis;
   }
 
   void setReadData(String argument) {
@@ -371,10 +369,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setCfeOnly(String argument) {
-    if (writeStrategy == WriteStrategy.toModularAnalysis) {
-      fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized modular analysis simultaneously.");
-    }
     if (writeStrategy == WriteStrategy.toClosedWorld) {
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized closed world simultaneously.");
@@ -387,7 +381,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized codegen simultaneously.");
     }
-    writeStrategy = WriteStrategy.toKernel;
+    writeStrategy = writeStrategy == WriteStrategy.toModularAnalysis
+        ? WriteStrategy.toKernelWithModularAnalysis
+        : WriteStrategy.toKernel;
   }
 
   void setReadCodegen(String argument) {
@@ -825,6 +821,12 @@ Future<api.CompilationResult> compile(List<String> argv,
             "and read serialized codegen simultaneously.");
       }
       break;
+    case WriteStrategy.toKernelWithModularAnalysis:
+      out ??= Uri.base.resolve('out.dill');
+      options.add(Flags.cfeOnly);
+      writeModularAnalysisUri ??= Uri.base.resolve('$out.mdata');
+      options.add('${Flags.writeModularAnalysis}=${writeModularAnalysisUri}');
+      break;
     case WriteStrategy.toModularAnalysis:
       writeModularAnalysisUri ??= Uri.base.resolve('$out.mdata');
       options.add('${Flags.writeModularAnalysis}=${writeModularAnalysisUri}');
@@ -1006,6 +1008,15 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputSize = outputProvider.totalDataWritten;
         String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
+        break;
+      case WriteStrategy.toKernelWithModularAnalysis:
+        processName = 'Compiled';
+        outputName = 'kernel and bytes data';
+        outputSize = outputProvider.totalDataWritten;
+        String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
+        String dataOutput = fe.relativizeUri(
+            Uri.base, writeModularAnalysisUri, Platform.isWindows);
+        summary += 'compiled to dill and data: ${output} and ${dataOutput}.';
         break;
       case WriteStrategy.toModularAnalysis:
         processName = 'Serialized';
@@ -1547,6 +1558,7 @@ enum ReadStrategy {
 
 enum WriteStrategy {
   toKernel,
+  toKernelWithModularAnalysis,
   toModularAnalysis,
   toClosedWorld,
   toData,

@@ -35,5 +35,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///issue46123.dart:
-- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:21:9)
+- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)

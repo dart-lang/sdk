@@ -46,27 +46,45 @@ abstract class ModularStrategy {
       ir.Member node, EnumSet<PragmaAnnotation> pragmaAnnotations);
 }
 
-/// Data computed for an entire compilation module.
+/// [ModuleData] is the data computed modularly, i.e. modularly computed impact
+/// data. Currently, we aggregate this data when computing the closed world, so it
+/// reflects all of the modularly computed data across the entire program.
 class ModuleData {
   static const String tag = 'ModuleData';
 
   // TODO(joshualitt) Support serializing ModularMemberData;
-  final Map<ir.Member, ImpactBuilderData> impactData;
+  final Map<Uri, Map<ir.Member, ImpactBuilderData>> impactData;
 
-  ModuleData(this.impactData);
+  ModuleData([Map<Uri, Map<ir.Member, ImpactBuilderData>> impactData])
+      : this.impactData = impactData ?? {};
 
-  factory ModuleData.fromDataSource(DataSourceReader source) {
+  factory ModuleData.fromImpactData(
+          Map<Uri, Map<ir.Member, ImpactBuilderData>> impactData) =>
+      ModuleData(impactData);
+
+  ModuleData readMoreFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    var impactData = source
-        .readMemberNodeMap(() => ImpactBuilderData.fromDataSource(source));
+    int uriCount = source.readInt();
+    for (int i = 0; i < uriCount; i++) {
+      Uri uri = source.readUri();
+      impactData[uri] = source
+          .readMemberNodeMap(() => ImpactBuilderData.fromDataSource(source));
+    }
     source.end(tag);
-    return ModuleData(impactData);
+    return this;
   }
+
+  factory ModuleData.fromDataSource(DataSourceReader source) =>
+      ModuleData().readMoreFromDataSource(source);
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeMemberNodeMap<ImpactBuilderData>(
-        impactData, (e) => e.toDataSink(sink));
+    sink.writeInt(impactData.keys.length);
+    impactData.forEach((uri, data) {
+      sink.writeUri(uri);
+      sink.writeMemberNodeMap<ImpactBuilderData>(
+          data, (e) => e.toDataSink(sink));
+    });
     sink.end(tag);
   }
 }

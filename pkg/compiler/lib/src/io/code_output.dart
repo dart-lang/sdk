@@ -6,7 +6,7 @@
 
 library dart2js.code_output;
 
-import '../../compiler.dart';
+import '../../compiler.dart' as api show OutputSink;
 import 'code_output_listener.dart';
 export 'code_output_listener.dart';
 import 'source_information.dart';
@@ -223,7 +223,7 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 class StreamCodeOutput extends AbstractCodeOutput {
   @override
   int length = 0;
-  final OutputSink output;
+  final api.OutputSink output;
 
   StreamCodeOutput(this.output, [List<CodeOutputListener> listeners])
       : super(listeners);

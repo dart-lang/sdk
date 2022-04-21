@@ -54,7 +54,7 @@ vars = {
 
   # Checkout Android dependencies only on Mac and Linux.
   "download_android_deps":
-    "(host_os == mac or host_os == linux) and host_cpu == x64",
+    "host_os == mac or (host_os == linux and host_cpu == x64)",
 
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
@@ -144,7 +144,7 @@ vars = {
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
-  "shelf_proxy_rev": "ccd311f64d8689e7a145d703ba267975d6df9e28",
+  "shelf_proxy_rev": "124615d0614b38814970aa9638725d9d6b435268",
   "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
@@ -531,7 +531,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/ndk": {
       "packages": [
           {
-            "package": "flutter/android/ndk/${{platform}}",
+            "package": "flutter/android/ndk/${{os}}-amd64",
             "version": "version:r21.0.6113669"
           }
       ],
@@ -542,7 +542,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/build-tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/build-tools/${{platform}}",
+            "package": "flutter/android/sdk/build-tools/${{os}}-amd64",
             "version": "version:30.0.1"
           }
       ],
@@ -553,7 +553,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
      "packages": [
           {
-            "package": "flutter/android/sdk/platform-tools/${{platform}}",
+            "package": "flutter/android/sdk/platform-tools/${{os}}-amd64",
             "version": "version:29.0.2"
           }
       ],
@@ -575,7 +575,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/tools/${{platform}}",
+            "package": "flutter/android/sdk/tools/${{os}}-amd64",
             "version": "version:26.1.1"
           }
       ],

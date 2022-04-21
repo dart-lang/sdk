@@ -5,6 +5,8 @@
 /// Annotations to mark interfaces to JavaScript.
 library js;
 
+import 'package:meta/meta.dart';
+
 export 'dart:js' show allowInterop, allowInteropCaptureThis;
 
 /// An annotation that indicates a library, class, or member is implemented
@@ -45,3 +47,16 @@ const _Anonymous anonymous = _Anonymous();
 /// These classes should not contain any instance members, inherited or
 /// otherwise, and should instead use static extension members.
 const _StaticInterop staticInterop = _StaticInterop();
+
+/// NOTE: [trustTypes] is an experimental annotation that may disappear at any
+/// point in time. It exists solely to help users who wish to migrate classes
+/// from the older style of JS interop to the new static interop model but wish
+/// to preserve the older semantics for type checks. This annotation must be
+/// used alongside [staticInterop] and it affects any external methods in any
+/// extension to the static interop class.
+@experimental
+class _TrustTypes {
+  const _TrustTypes();
+}
+
+const _TrustTypes trustTypes = _TrustTypes();

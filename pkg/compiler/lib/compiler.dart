@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import 'src/compiler.dart';
+import 'src/compiler.dart' show Compiler;
 import 'src/options.dart' show CompilerOptions;
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
