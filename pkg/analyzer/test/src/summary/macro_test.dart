@@ -563,7 +563,7 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class ArgumentsTextMacro implements ClassTypesMacro {
-${fields.entries.map((e) => '  final${e.value} ${e.key}').join('\n')}
+${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
 
   const ArgumentsTextMacro${constructorParametersCode.trim()};
 
