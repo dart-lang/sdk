@@ -7,7 +7,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
 import '../analysis_server_base.dart';
 
 void main() {
@@ -18,26 +17,26 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisHoverBazelTest extends AbstractAnalysisTest {
+class AnalysisHoverBazelTest extends BazelWorkspaceAnalysisServerTest {
   Future<void> test_bazel_notOwnedUri() async {
-    newFile('/workspace/WORKSPACE', '');
-    projectPath = newFolder('/workspace').path;
-    testFile = convertPath('/workspace/dart/my/lib/test.dart');
-
     newFile(
-      '/workspace/bazel-genfiles/dart/my/lib/test.dart',
+      '$workspaceRootPath/bazel-genfiles/dart/my/lib/test.dart',
       '// generated',
     );
 
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
 
-    addTestFile('''
+    var testFile = newFile('$myPackageLibPath/test.dart', '''
 class A {}
 ''');
 
-    var request = AnalysisGetHoverParams(testFile, 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(response.error, isNotNull);
+    var request = AnalysisGetHoverParams(testFile.path, 0).toRequest('0');
+    var response = await handleRequest(request);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FILE_NOT_ANALYZED,
+    );
   }
 }
 
