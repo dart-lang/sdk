@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -63,16 +60,6 @@ class MacroElementsTest extends ElementsBaseTest {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
-    );
-
-    macroKernelBuilder = FrontEndServerMacroKernelBuilder();
-    macroExecutor = macro.MultiMacroExecutor();
-  }
-
-  Future<void> tearDown() async {
-    await macroExecutor?.close();
-    KernelCompilationService.disposeDelayed(
-      const Duration(milliseconds: 100),
     );
   }
 
@@ -482,6 +469,64 @@ class A
 ''');
   }
 
+  test_macroApplicationErrors_compileTimeError() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  buildTypesForClass(clazz, builder) {
+    unresolved;
+  }
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    final A = library.getType('A') as ClassElementImpl;
+    final error = A.macroApplicationErrors.single;
+    error as UnknownMacroApplicationError;
+
+    expect(error.annotationIndex, 0);
+    expect(error.message, contains('unresolved'));
+    expect(error.stackTrace, contains('executeTypesMacro'));
+  }
+
+  test_macroApplicationErrors_throwsException() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  buildTypesForClass(clazz, builder) {
+    throw 'foo bar';
+  }
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    final A = library.getType('A') as ClassElementImpl;
+    final error = A.macroApplicationErrors.single;
+    error as UnknownMacroApplicationError;
+
+    expect(error.annotationIndex, 0);
+    expect(error.message, 'foo bar');
+    expect(error.stackTrace, contains('MyMacro.buildTypesForClass'));
+  }
+
   test_macroFlag_class() async {
     var library = await buildLibrary(r'''
 macro class A {}
@@ -577,7 +622,7 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class ArgumentsTextMacro implements ClassTypesMacro {
-${fields.entries.map((e) => '  final${e.value} ${e.key}').join('\n')}
+${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
 
   const ArgumentsTextMacro${constructorParametersCode.trim()};
 

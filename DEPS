@@ -77,7 +77,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
-  "async_rev": "3f58c326bd4928fca9ddc10c72b19cb7ac659256",
+  "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
   "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "437e7f06c7e416bed91e16ae1df453555897e945",
@@ -133,7 +133,6 @@ vars = {
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",
   "path_rev": "baedce9d2ca11ea2cdf54395a74eb038087777a4",
-  "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
   "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
@@ -160,7 +159,7 @@ vars = {
   "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
   "test_process_rev": "7c73ec8a8a6e0e63d0ec27d70c21ca4323fb5e8f",
   "test_reflective_loader_rev": "fcfce37666672edac849d2af6dffc0f8df236a94",
-  "test_rev": "b6aba5544628730b7d6a38eae1aef9117a1bb235",
+  "test_rev": "d54846bc2b5cfa4e1445fda85c5e48a00940aa68",
   "typed_data_rev": "29ce5a92b03326d0b8035916ac04f528874994bd",
   "usage_rev": "e85d575d6decb921c57a43b9844bba3607479f56",
   "vector_math_rev": "0cbed0914d49a6a44555e6d5444c438a4a4c3fc1",
@@ -380,8 +379,6 @@ deps = {
       "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_rev"),
-  Var("dart_root") + "/third_party/pkg/pedantic":
-      Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_rev"),
   Var("dart_root") + "/third_party/pkg/platform":
        Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/pool":

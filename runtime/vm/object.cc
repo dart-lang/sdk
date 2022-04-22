@@ -15811,7 +15811,7 @@ void ICData::AssertInvariantsAreSatisfied() const {
     ASSERT(array.At(sentinel_start + entry_length - 1) ==
            smi_illegal_cid().ptr());
     ASSERT(ICData::CachedEmptyICDataArray(num_args, is_tracking_exactness()) ==
-           entries());
+           array.ptr());
   } else {
     ASSERT(array.At(sentinel_start + entry_length - 1) == ptr());
   }

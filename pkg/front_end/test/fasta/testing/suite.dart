@@ -1576,6 +1576,7 @@ class FuzzCompiles
     }
 
     List<Uri> originalUris = List<Uri>.of(fs.data.keys);
+    uriLoop:
     for (Uri uri in originalUris) {
       print("Work on $uri");
       LibraryBuilder? builder = builders[uri];
@@ -1599,14 +1600,21 @@ class FuzzCompiles
 
       // Put each chunk into its own file.
       StringBuffer headerSb = new StringBuffer();
+      StringBuffer orgFileOnlyHeaderSb = new StringBuffer();
       List<FuzzAstVisitorSorterChunk> nonHeaderChunks = [];
 
+      print("Found ${fuzzAstVisitorSorter.chunks.length} chunks...");
+
       for (FuzzAstVisitorSorterChunk chunk in fuzzAstVisitorSorter.chunks) {
-        if (chunk.originalType == FuzzOriginalType.Import ||
+        if (chunk.originalType == FuzzOriginalType.PartOf) {
+          print("Skipping part...");
+          continue uriLoop;
+        } else if (chunk.originalType == FuzzOriginalType.Part) {
+          // The part declaration should only be in the "main" file.
+          orgFileOnlyHeaderSb.writeln(chunk.getSource());
+        } else if (chunk.originalType == FuzzOriginalType.Import ||
             chunk.originalType == FuzzOriginalType.Export ||
             chunk.originalType == FuzzOriginalType.LibraryName ||
-            chunk.originalType == FuzzOriginalType.Part ||
-            chunk.originalType == FuzzOriginalType.PartOf ||
             chunk.originalType == FuzzOriginalType.LanguageVersion) {
           headerSb.writeln(chunk.getSource());
         } else {
@@ -1625,14 +1633,12 @@ class FuzzCompiles
         // exports, etc.
         StringBuffer sb = new StringBuffer();
         sb.writeln(headerSb.toString());
-        for (int i = 0; i < totalSubFiles; i++) {
-          if (i == currentSubFile) continue;
-          sb.writeln("import '${getUriForChunk(i)}';");
-          sb.writeln("export '${getUriForChunk(i)}';");
-        }
+        sb.writeln("import '${uri.pathSegments.last}';");
         sb.writeln(chunk.getSource());
         fs.data[getUriForChunk(currentSubFile)] =
             utf8.encode(sb.toString()) as Uint8List;
+        print(" => Split into ${getUriForChunk(currentSubFile)}:\n"
+            "${sb.toString()}\n-------------\n");
         currentSubFile++;
       }
 
@@ -1640,9 +1646,11 @@ class FuzzCompiles
       StringBuffer sb = new StringBuffer();
       sb.writeln(headerSb.toString());
       for (int i = 0; i < totalSubFiles; i++) {
-        sb.writeln("import '${getUriForChunk(i)}';");
-        sb.writeln("export '${getUriForChunk(i)}';");
+        sb.writeln("import '${getUriForChunk(i).pathSegments.last}';");
+        sb.writeln("export '${getUriForChunk(i).pathSegments.last}';");
       }
+      sb.writeln(orgFileOnlyHeaderSb.toString());
+      print(" => Main file becomes:\n${sb.toString()}\n-------------\n");
       fs.data[uri] = utf8.encode(sb.toString()) as Uint8List;
     }
 
@@ -1715,6 +1723,13 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
         enableExtensionMethods: true,
         enableNonNullable: nnbd);
     accept(ast);
+
+    if (metadataStart == null &&
+        ast.token.precedingComments != null &&
+        chunks.isEmpty) {
+      _chunkOutLanguageVersionComment(ast.token);
+    }
+
     if (metadataStart != null) {
       String metadata = asString.substring(
           metadataStart!.charOffset, metadataEndInclusive!.charEnd);

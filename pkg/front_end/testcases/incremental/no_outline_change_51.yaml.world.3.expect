@@ -1,0 +1,28 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+//
+// Problems in library:
+//
+// org-dartlang-test:///lib.dart:3:10: Error: Method not found: 'foo'.
+//   return foo();
+//          ^^^
+//
+
+  import "org-dartlang-test:///main.dart";
+
+  static method baz() → dart.core::String {
+    return invalid-expression "org-dartlang-test:///lib.dart:3:10: Error: Method not found: 'foo'.\n  return foo();\n         ^^^";
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  part part.dart;
+  static method main() → dynamic {
+    dart.core::print(lib::baz());
+  }
+  static method /* from org-dartlang-test:///part.dart */ bar() → dart.core::String {
+    return "bar";
+  }
+}

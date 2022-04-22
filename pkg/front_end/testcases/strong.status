@@ -17,14 +17,13 @@ const_functions/const_functions_list: SemiFuzzCrash
 generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 
 # These tests have "privacy issues" and isn't compatiable with splitting files (fuzzing):
-constructor_tearoffs/lowering/typedef_from: semiFuzzFailureOnForceRebuildBodies # parts not supported
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method
 dartdevc/factory_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 dartdevc/private_covariant: semiFuzzFailureOnForceRebuildBodies # private method in class
 late_lowering/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 late_lowering/issue41436/issue41436: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 late_lowering/issue41922: semiFuzzFailureOnForceRebuildBodies # private field
-late_lowering/private_members: semiFuzzFailureOnForceRebuildBodies # parts not supported
+late_lowering/private_members: semiFuzzFailureOnForceRebuildBodies # private class
 macros/inject_constructor: semiFuzzFailureOnForceRebuildBodies # Macro injection --- think it might introduce a class in a file?
 nnbd/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 nnbd/issue42504: semiFuzzFailureOnForceRebuildBodies # private class

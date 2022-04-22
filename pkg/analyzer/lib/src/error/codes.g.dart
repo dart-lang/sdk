@@ -9018,6 +9018,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the message of the exception
+   * 1: the stack trace
+   */
+  static const CompileTimeErrorCode MACRO_EXECUTION_EXCEPTION =
+      CompileTimeErrorCode(
+    'MACRO_EXECUTION_EXCEPTION',
+    "Exception during macro execution: {0}\n{1}",
+    correctionMessage: "Re-install the Dart or Flutter SDK.",
+  );
+
+  /**
    * No parameters.
    */
   // #### Description

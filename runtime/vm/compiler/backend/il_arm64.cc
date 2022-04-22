@@ -1360,8 +1360,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Restore the pre-aligned SP.
     __ mov(SPREG, saved_fp_or_sp);
   } else {
-    // Although PP is a callee-saved register, it may have been moved by the GC.
-    __ LeaveDartFrame(compiler::kRestoreCallerPP);
+    __ LeaveDartFrame();
 
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).

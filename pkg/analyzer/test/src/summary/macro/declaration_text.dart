@@ -145,7 +145,7 @@ class _TypeStringBuilder {
     }
   }
 
-  void _writeFormalParameter(ParameterDeclaration node) {
+  void _writeFormalParameter(FunctionTypeParameter node) {
     final String closeSeparator;
     if (node.isNamed) {
       _sink.write('{');
@@ -161,8 +161,10 @@ class _TypeStringBuilder {
     }
 
     write(node.type);
-    _sink.write(' ');
-    _sink.write(node.identifier.name);
+    if (node.name != null) {
+      _sink.write(' ');
+      _sink.write(node.name);
+    }
 
     _sink.write(closeSeparator);
   }

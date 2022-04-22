@@ -78,7 +78,7 @@ Future<void> main(List<String> args) async {
       print(ends.toList());
       throw '$name is missing or ambiguous';
     }
-    print('Startup.$name(RunTime): $micros us.');
+    print('Startup.$name(RunTimeRaw): $micros us.');
   }
 
   report('CreateIsolateGroupAndSetupHelper', null);

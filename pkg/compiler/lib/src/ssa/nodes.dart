@@ -105,6 +105,9 @@ abstract class HVisitor<R> {
   R visitPrimitiveCheck(HPrimitiveCheck node);
   R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
+  R visitLateReadCheck(HLateReadCheck node);
+  R visitLateWriteOnceCheck(HLateWriteOnceCheck node);
+  R visitLateInitializeOnceCheck(HLateInitializeOnceCheck node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
 
@@ -590,6 +593,13 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
   visitNullCheck(HNullCheck node) => visitCheck(node);
+  @override
+  visitLateReadCheck(HLateReadCheck node) => visitCheck(node);
+  @override
+  visitLateWriteOnceCheck(HLateWriteOnceCheck node) => visitCheck(node);
+  @override
+  visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) =>
+      visitCheck(node);
   @override
   visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
@@ -1100,6 +1110,10 @@ abstract class HInstruction implements Spannable {
   static const int IS_LATE_SENTINEL_TYPECODE = 58;
   static const int STRING_CONCAT_TYPECODE = 59;
   static const int STRINGIFY_TYPECODE = 60;
+
+  static const int LATE_READ_CHECK_TYPECODE = 61;
+  static const int LATE_WRITE_ONCE_CHECK_TYPECODE = 62;
+  static const int LATE_INITIALIZE_ONCE_CHECK_TYPECODE = 63;
 
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
@@ -3674,6 +3688,121 @@ class HNullCheck extends HCheck {
     String fieldString = field == null ? '' : ', $field';
     String selectorString = selector == null ? '' : ', $selector';
     return 'HNullCheck($checkedInput$fieldString$selectorString)';
+  }
+}
+
+/// A check for a late sentinel to determine if a late field may be read from or
+/// written to.
+abstract class HLateCheck extends HCheck {
+  final HInstruction name;
+
+  HLateCheck(HInstruction input, this.name, AbstractValue type)
+      : super([input, if (name != null) name], type);
+
+  bool get hasName => name != null;
+
+  @override
+  bool isControlFlow() => true;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+}
+
+/// A check that a late field has been initialized and can therefore be read.
+class HLateReadCheck extends HLateCheck {
+  HLateReadCheck(HInstruction input, HInstruction name, AbstractValue type)
+      : super(input, name, type);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateReadCheck(this);
+
+  @override
+  int typeCode() => HInstruction.LATE_READ_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLateReadCheck;
+
+  @override
+  bool dataEquals(HLateReadCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isLateSentinel(inputType).isDefinitelyFalse;
+  }
+
+  @override
+  String toString() {
+    return 'HLateReadCheck($checkedInput)';
+  }
+}
+
+/// A check that a late final field has not been initialized yet and can
+/// therefore be written to.
+///
+/// The difference between [HLateWriteOnceCheck] and [HLateInitializeOnceCheck]
+/// is that the latter occurs on writes performed as part of the initializer
+/// expression.
+class HLateWriteOnceCheck extends HLateCheck {
+  HLateWriteOnceCheck(HInstruction input, HInstruction name, AbstractValue type)
+      : super(input, name, type);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateWriteOnceCheck(this);
+
+  @override
+  int typeCode() => HInstruction.LATE_WRITE_ONCE_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLateWriteOnceCheck;
+
+  @override
+  bool dataEquals(HLateWriteOnceCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isLateSentinel(inputType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() {
+    return 'HLateWriteOnceCheck($checkedInput)';
+  }
+}
+
+/// A check that a late final field has not been initialized yet and can
+/// therefore be initialized.
+///
+/// The difference between [HLateWriteOnceCheck] and [HLateInitializeOnceCheck]
+/// is that the latter occurs on writes performed as part of the initializer
+/// expression.
+class HLateInitializeOnceCheck extends HLateCheck {
+  HLateInitializeOnceCheck(
+      HInstruction input, HInstruction name, AbstractValue type)
+      : super(input, name, type);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateInitializeOnceCheck(this);
+
+  @override
+  int typeCode() => HInstruction.LATE_INITIALIZE_ONCE_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLateInitializeOnceCheck;
+
+  @override
+  bool dataEquals(HLateInitializeOnceCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isLateSentinel(inputType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() {
+    return 'HLateInitializeOnceCheck($checkedInput)';
   }
 }
 

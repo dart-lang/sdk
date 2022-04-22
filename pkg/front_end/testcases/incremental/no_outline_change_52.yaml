@@ -1,0 +1,48 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Use it as a mixin, though, so we cannot neccesarily rebuild the bodies only.
+# Have the thing being mixed in be in a part.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        part 'part.dart';
+      part.dart: |
+        part of 'main.dart';
+        class Foo {
+          method() {
+            print("A");
+          }
+        }
+      lib.dart: |
+        import 'main.dart';
+
+        class Bar extends Object with Foo {
+          method2() {
+            method();
+          }
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - part.dart
+    sources:
+      part.dart: |
+        part of 'main.dart';
+        class Foo {
+          method() {
+            print("B");
+          }
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: false

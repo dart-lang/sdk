@@ -6,7 +6,19 @@ library _late_helper;
 
 import 'dart:_internal' show LateError, createSentinel, isSentinel;
 
+@pragma('dart2js:tryInline')
+void throwLateFieldNI(String fieldName) => throw LateError.fieldNI(fieldName);
+@pragma('dart2js:tryInline')
+void throwLateFieldAI(String fieldName) => throw LateError.fieldAI(fieldName);
+@pragma('dart2js:tryInline')
 void throwLateFieldADI(String fieldName) => throw LateError.fieldADI(fieldName);
+
+@pragma('dart2js:tryInline')
+void throwUnnamedLateFieldNI() => throw LateError.fieldNI('');
+@pragma('dart2js:tryInline')
+void throwUnnamedLateFieldAI() => throw LateError.fieldAI('');
+@pragma('dart2js:tryInline')
+void throwUnnamedLateFieldADI() => throw LateError.fieldADI('');
 
 /// A boxed variable used for lowering uninitialized `late` variables when they
 /// are locals or statics.
@@ -113,19 +125,8 @@ class _InitializedCell {
 // Helpers for lowering late instance fields:
 // TODO(fishythefish): Support specialization of sentinels based on type.
 
-@pragma('dart2js:noInline')
-@pragma('dart2js:as:trust')
-T _lateReadCheck<T>(Object? value, String name) {
-  if (isSentinel(value)) throw LateError.fieldNI(name);
-  return value as T;
-}
+external T _lateReadCheck<T>(Object? value, String name);
 
-@pragma('dart2js:noInline')
-void _lateWriteOnceCheck(Object? value, String name) {
-  if (!isSentinel(value)) throw LateError.fieldAI(name);
-}
+external void _lateWriteOnceCheck(Object? value, String name);
 
-@pragma('dart2js:noInline')
-void _lateInitializeOnceCheck(Object? value, String name) {
-  if (!isSentinel(value)) throw LateError.fieldADI(name);
-}
+external void _lateInitializeOnceCheck(Object? value, String name);

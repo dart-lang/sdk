@@ -8,23 +8,44 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
-const String TEST = r"""
+const String TEST_DIRECT = r"""
 class Foo {
   late int x;
 }
 
-int foo() {
+int test() {
   final foo = Foo();
   foo.x = 40;
+  return foo.x + 2;
+  // present: '42'
+  // absent: '+ 2'
+  // absent: 'add'
+}
+""";
+
+const String TEST_INDIRECT = r"""
+class Foo {
+  late int x;
+}
+
+int entry() {
+  final foo = Foo();
+  foo.x = 40;
+  return test(foo);
+}
+
+@pragma('dart2js:noInline')
+int test(Foo foo) {
   return foo.x + 2;
   // present: '+ 2'
   // absent: 'add'
 }
 """;
 
-Future check(String test) {
+Future check(String test, {String entry: 'test'}) {
   return compile(test,
-      entry: 'foo',
+      entry: entry,
+      methodName: 'test',
       check: checkerForAbsentPresent(test),
       disableTypeInference: false,
       disableInlining: false,
@@ -33,6 +54,7 @@ Future check(String test) {
 
 void main() {
   asyncTest(() async {
-    await check(TEST);
+    await check(TEST_DIRECT);
+    await check(TEST_INDIRECT, entry: 'entry');
   });
 }

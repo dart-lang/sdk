@@ -15,9 +15,8 @@ Future<Uri> findRoot() async {
     var segments = current.pathSegments;
     var index = segments.lastIndexOf('sdk');
     if (index == -1) {
-      print("error: cannot find the root of the Dart SDK");
       exitCode = 1;
-      return null;
+      throw "error: cannot find the root of the Dart SDK";
     }
     current = current.resolve("../" * (segments.length - index - 1));
     if (await File.fromUri(current.resolve("sdk/DEPS")).exists()) {

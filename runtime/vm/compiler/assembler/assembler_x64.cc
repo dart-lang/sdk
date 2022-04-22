@@ -2017,13 +2017,11 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   }
 }
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+void Assembler::LeaveDartFrame() {
   // Restore caller's PP register that was pushed in EnterDartFrame.
   if (!FLAG_precompiled_mode) {
-    if (restore_pp == kRestoreCallerPP) {
-      movq(PP, Address(RBP, (target::frame_layout.saved_caller_pp_from_fp *
-                             target::kWordSize)));
-    }
+    movq(PP, Address(RBP, (target::frame_layout.saved_caller_pp_from_fp *
+                           target::kWordSize)));
   }
   set_constant_pool_allowed(false);
   LeaveFrame();

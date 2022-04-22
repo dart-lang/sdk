@@ -24,29 +24,29 @@ abstract class Test {
 
 class RunnerOptions {
   /// Name of the test suite being run.
-  String suiteName;
+  final String suiteName;
 
   /// Configuration name to use when writing result logs.
-  String configurationName;
+  final String? configurationName;
 
   /// Filter used to only run tests that match the filter name.
-  String filter;
+  final String? filter;
 
   /// Where log files are emitted.
   ///
   /// Note that all shards currently emit the same filenames, so two shards
   /// shouldn't be given the same [logDir] otherwise they will overwrite each
   /// other's log files.
-  Uri logDir;
+  final Uri? logDir;
 
   /// Of [shards], which shard is currently being executed.
-  int shard;
+  final int shard;
 
   /// How many shards will be used to run a suite.
-  int shards;
+  final int shards;
 
   /// Whether to print verbose information.
-  bool verbose;
+  final bool verbose;
 
   /// Template used to help developers reproduce the issue.
   ///
@@ -54,23 +54,34 @@ class RunnerOptions {
   ///   * %executable is replaced with `Platform.executable`
   ///   * %script is replaced with the current `Platform.script`
   ///   * %name is replaced with the test name.
-  String reproTemplate;
+  final String reproTemplate;
+
+  RunnerOptions(
+      {required this.suiteName,
+      this.configurationName,
+      this.filter,
+      this.logDir,
+      required this.shard,
+      required this.shards,
+      required this.verbose,
+      required this.reproTemplate});
 }
 
 class _TestOutcome {
   /// Unique test name.
-  String name;
+  final String name;
 
-  /// Whether, after running the test, the test matches its expectations. Null
-  /// before the test is executed.
-  bool matchedExpectations;
+  /// Whether, after running the test, the test matches its expectations.
+  late bool matchedExpectations;
 
   /// Additional output emitted by the test, only used when expectations don't
   /// match and more details need to be provided.
-  String output;
+  String? output;
 
   /// Time used to run the test.
-  Duration elapsedTime;
+  late Duration elapsedTime;
+
+  _TestOutcome(this.name);
 }
 
 Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
@@ -91,13 +102,13 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
     var test = sortedTests[i];
     var name = test.name;
     if (options.verbose) stdout.write('$name: ');
-    if (options.filter != null && !name.contains(options.filter)) {
+    if (options.filter != null && !name.contains(options.filter!)) {
       if (options.verbose) stdout.write('skipped\n');
       continue;
     }
 
     var watch = new Stopwatch()..start();
-    var outcome = new _TestOutcome()..name = test.name;
+    var outcome = new _TestOutcome(test.name);
     try {
       await test.run();
       if (options.verbose) stdout.write('pass\n');
@@ -153,7 +164,7 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
   }
 
   // Ensure the directory URI ends with a path separator.
-  var logDir = Directory.fromUri(options.logDir).uri;
+  var logDir = Directory.fromUri(options.logDir!).uri;
   var resultJsonUri = logDir.resolve('results.json');
   var logsJsonUri = logDir.resolve('logs.json');
   File.fromUri(resultJsonUri)

@@ -729,7 +729,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
           instruction is HBoolConversion ||
-          instruction is HNullCheck) {
+          instruction is HNullCheck ||
+          instruction is HLateReadCheck) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
           needsAssignment = false;
@@ -3017,6 +3018,94 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
+  void visitLateReadCheck(HLateReadCheck node) {
+    // We generate code roughly equivalent to invoking:
+    //
+    // T _lateReadCheck<T>(T value, String name) {
+    //   if (isSentinel(value)) throw LateError.fieldNI(name);
+    //   return value;
+    // }
+
+    assert(!node.isRedundant(_closedWorld));
+
+    final sourceInformation = node.sourceInformation;
+
+    _emitIsLateSentinel(node.checkedInput, sourceInformation);
+    final condition = pop();
+
+    if (node.hasName) {
+      use(node.name);
+      _pushCallStatic(
+          _commonElements.throwLateFieldNI, [pop()], sourceInformation);
+    } else {
+      _pushCallStatic(
+          _commonElements.throwUnnamedLateFieldNI, const [], sourceInformation);
+    }
+
+    final lateError =
+        pop().toStatement().withSourceInformation(sourceInformation);
+    pushStatement(js.If.noElse(condition, lateError)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
+  void visitLateWriteOnceCheck(HLateWriteOnceCheck node) {
+    // We generate code roughly equivalent to invoking:
+    //
+    // void _lateWriteOnceCheck(Object? value, String name) {
+    //   if (!isSentinel(value)) throw LateError.fieldAI(name);
+    // }
+
+    assert(!node.isRedundant(_closedWorld));
+
+    final sourceInformation = node.sourceInformation;
+    _emitIsLateSentinel(node.checkedInput, sourceInformation, inverse: true);
+    final condition = pop();
+
+    if (node.hasName) {
+      use(node.name);
+      _pushCallStatic(
+          _commonElements.throwLateFieldAI, [pop()], sourceInformation);
+    } else {
+      _pushCallStatic(
+          _commonElements.throwUnnamedLateFieldAI, [], sourceInformation);
+    }
+    final lateError =
+        pop().toStatement().withSourceInformation(sourceInformation);
+    pushStatement(js.If.noElse(condition, lateError)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
+  void visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) {
+    // We generate code roughly equivalent to invoking:
+    //
+    // void _lateInitializeOnceCheck(Object? value, String name) {
+    //   if (!isSentinel(value)) throw LateError.fieldADI(name);
+    // }
+
+    assert(!node.isRedundant(_closedWorld));
+
+    final sourceInformation = node.sourceInformation;
+    _emitIsLateSentinel(node.checkedInput, sourceInformation, inverse: true);
+    final condition = pop();
+
+    if (node.hasName) {
+      use(node.name);
+      _pushCallStatic(
+          _commonElements.throwLateFieldADI, [pop()], sourceInformation);
+    } else {
+      _pushCallStatic(
+          _commonElements.throwUnnamedLateFieldADI, [], sourceInformation);
+    }
+
+    final lateError =
+        pop().toStatement().withSourceInformation(sourceInformation);
+    pushStatement(js.If.noElse(condition, lateError)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
   void visitTypeKnown(HTypeKnown node) {
     // [HTypeKnown] instructions are removed before generating code.
     assert(false);
@@ -3299,9 +3388,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         StaticUse.directInvoke(method, selector.callStructure, null));
   }
 
-  _emitIsLateSentinel(HIsLateSentinel node, SourceInformation sourceInformation,
+  _emitIsLateSentinel(HInstruction input, SourceInformation sourceInformation,
       {inverse = false}) {
-    use(node.inputs[0]);
+    use(input);
     js.Expression value = pop();
     js.Expression sentinel =
         _emitter.constantReference(LateSentinelConstantValue());
@@ -3311,5 +3400,5 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsLateSentinel(HIsLateSentinel node) =>
-      _emitIsLateSentinel(node, node.sourceInformation);
+      _emitIsLateSentinel(node.inputs.single, node.sourceInformation);
 }

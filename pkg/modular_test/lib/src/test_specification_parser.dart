@@ -72,15 +72,15 @@ TestSpecification parseTestSpecification(String contents) {
     if (key is! String) {
       _invalidSpecification("key: '$key' is not a string");
     }
-    normalizedMap[key] = [];
+    final values = normalizedMap[key] = [];
     if (value is String) {
-      normalizedMap[key].add(value);
+      values.add(value);
     } else if (value is List) {
       value.forEach((entry) {
         if (entry is! String) {
           _invalidSpecification("entry: '$entry' is not a string");
         }
-        normalizedMap[key].add(entry);
+        values.add(entry);
       });
     } else {
       _invalidSpecification(

@@ -9,7 +9,6 @@ library locals_handler;
 import 'dart:collection' show IterableMixin;
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
-import '../elements/types.dart';
 import '../ir/util.dart';
 import '../util/util.dart';
 import 'inferrer_engine.dart';
@@ -342,12 +341,12 @@ class LocalsHandler {
   LocalsHandler.deepCopyOf(LocalsHandler other)
       : _locals = VariableScope.deepCopyOf(other._locals);
 
-  TypeInformation use(InferrerEngine inferrer, Local local) {
+  TypeInformation use(Local local) {
     return _locals[local];
   }
 
   void update(InferrerEngine inferrer, Local local, TypeInformation type,
-      ir.Node node, DartType staticType, LocalsHandler tryBlock) {
+      LocalsHandler tryBlock) {
     if (tryBlock != null) {
       // We don't know if an assignment in a try block
       // will be executed, so all assignments in that block are

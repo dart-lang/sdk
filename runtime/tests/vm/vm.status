@@ -37,6 +37,7 @@ dart_2/hash_map_probes_limit_test: Pass, Slow # Test includes large program comp
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart_2/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart_2/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
+dart_2/isolates/reload_many_isolates_live_and_die_test: Pass, Slow # Launches subprocesses, makes 2 kernel compilations and use reload.
 dart_2/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart_2/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart_2/print_object_layout_test: Pass, Slow # Spawns several subprocesses
@@ -280,6 +281,7 @@ dart_2/snapshot_version_test: RuntimeError # Please triage.
 dart/data_uri_spawn_test: Skip # Timeout
 dart/kernel_determinism_test: SkipSlow
 dart_2/data_uri_spawn_test: Skip # Timeout
+dart_2/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart_2/kernel_determinism_test: SkipSlow
 
 [ $compiler != dartk && $compiler != none ]

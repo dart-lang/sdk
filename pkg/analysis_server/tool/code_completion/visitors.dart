@@ -127,6 +127,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// The result of resolving the file being visited.
   final ResolvedUnitResult result;
 
+  /// The offset from the location of each entity passed to
+  /// [safelyRecordEntity], to be used as the column for each
+  /// [ExpectedCompletion] created.
+  final int _caretOffset;
+
   /// The completions that are expected to be produced in the file being
   /// visited.
   final List<ExpectedCompletion> expectedCompletions = [];
@@ -144,7 +149,8 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// comment don't yield an error like Dart syntax mistakes would yield.
   final bool _doExpectCommentRefs = false;
 
-  ExpectedCompletionsVisitor(this.result);
+  ExpectedCompletionsVisitor(this.result, {required int caretOffset})
+      : _caretOffset = caretOffset;
 
   /// Return the path of the file that is being visited.
   String get filePath => result.path;
@@ -160,6 +166,9 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
       var location = lineInfo.getLocation(entity.offset);
       var lineNumber = location.lineNumber;
       var columnNumber = location.columnNumber;
+      if (entity.length >= _caretOffset) {
+        columnNumber += _caretOffset;
+      }
 
       bool isKeyword() => kind == protocol.CompletionSuggestionKind.KEYWORD;
 

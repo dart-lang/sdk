@@ -183,10 +183,8 @@ class ContextManagerImpl implements ContextManager {
   final Map<Folder, AnalysisDriver> driverMap =
       HashMap<Folder, AnalysisDriver>();
 
-  /// Stream subscription we are using to watch each analysis root directory for
-  /// changes.
-  final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
-      <Folder, StreamSubscription<WatchEvent>>{};
+  /// Subscriptions to watch included resources for changes.
+  final List<StreamSubscription<WatchEvent>> watcherSubscriptions = [];
 
   /// For each folder, stores the subscription to the Bazel workspace so that we
   /// can establish watches for the generated files.
@@ -468,10 +466,16 @@ class ContextManagerImpl implements ContextManager {
           var rootFolder = analysisContext.contextRoot.root;
           driverMap[rootFolder] = driver;
 
-          var watcher = rootFolder.watch();
-          watchers.add(watcher);
-          changeSubscriptions[rootFolder] = watcher.changes
-              .listen(_handleWatchEvent, onError: _handleWatchInterruption);
+          for (final included in analysisContext.contextRoot.included) {
+            final watcher = included.watch();
+            watchers.add(watcher);
+            watcherSubscriptions.add(
+              watcher.changes.listen(
+                _handleWatchEvent,
+                onError: _handleWatchInterruption,
+              ),
+            );
+          }
 
           _watchBazelFilesIfNeeded(rootFolder, driver);
 
@@ -582,7 +586,6 @@ class ContextManagerImpl implements ContextManager {
   void _destroyAnalysisContext(DriverBasedAnalysisContext context) {
     context.driver.dispose();
     var rootFolder = context.contextRoot.root;
-    changeSubscriptions.remove(rootFolder)?.cancel();
     var watched = bazelWatchedPathsPerFolder.remove(rootFolder);
     if (watched != null) {
       for (var path in watched.paths) {
@@ -597,6 +600,9 @@ class ContextManagerImpl implements ContextManager {
   void _destroyAnalysisContexts() {
     var collection = _collection;
     if (collection != null) {
+      for (final subscription in watcherSubscriptions) {
+        subscription.cancel();
+      }
       for (var analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }

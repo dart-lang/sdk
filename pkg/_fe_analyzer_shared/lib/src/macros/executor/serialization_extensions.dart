@@ -40,6 +40,9 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.functionTypeAnnotation:
         moveNext();
         return _expectFunctionTypeAnnotation(id) as T;
+      case RemoteInstanceKind.functionTypeParameter:
+        moveNext();
+        return _expectFunctionTypeParameter(id) as T;
       case RemoteInstanceKind.identifier:
         moveNext();
         return _expectIdentifier(id) as T;
@@ -101,6 +104,15 @@ extension DeserializerExtensions on Deserializer {
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  FunctionTypeParameter _expectFunctionTypeParameter(int id) =>
+      new FunctionTypeParameterImpl(
+        id: id,
+        isNamed: expectBool(),
+        isRequired: (this..moveNext()).expectBool(),
+        name: (this..moveNext()).expectNullableString(),
+        type: RemoteInstance.deserialize(this),
       );
 
   Identifier _expectIdentifier(int id) => new IdentifierImpl(
@@ -294,7 +306,7 @@ extension DeserializerExtensions on Deserializer {
         return new ParameterCode(
             defaultValue: (this..moveNext()).expectNullableCode(),
             keywords: _readStringList(),
-            name: (this..moveNext()).expectString(),
+            name: (this..moveNext()).expectNullableString(),
             type: (this..moveNext()).expectNullableCode()) as T;
       case CodeKind.typeParameter:
         return new TypeParameterCode(
@@ -384,7 +396,7 @@ extension SerializeCode on Code {
         }
         serializer
           ..endList()
-          ..addString(self.name);
+          ..addNullableString(self.name);
         self.type.serializeNullable(serializer);
         return;
       case CodeKind.typeParameter:
