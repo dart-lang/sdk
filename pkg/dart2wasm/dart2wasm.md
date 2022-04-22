@@ -12,6 +12,7 @@ where *options* include:
 | --------------------------------------- | ------- | ----------- |
 | `--dart-sdk=`*path*                     | relative to script | The location of the `sdk` directory inside the Dart SDK, containing the core library sources.
 | `--`[`no-`]`export-all`                 | no      | Export all functions; otherwise, just export `main`.
+| `--`[`no-`]`import-shared-memory`       | no      | Import a shared memory buffer. If this is on, `--shared-memory-max-pages` must also be specified.
 | `--`[`no-`]`inlining`                   | no      | Inline small functions.
 | `--`[`no-`]`lazy-constants`             | no      | Instantiate constants lazily.
 | `--`[`no-`]`local-nullability`          | no      | Use non-nullable types for non-nullable locals and temporaries.
@@ -22,6 +23,7 @@ where *options* include:
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
 | `--`[`no-`]`runtime-types`              | no      | Use RTTs for allocations and casts.
+| `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
 | `--`[`no-`]`string-data-segments`       | no      | Use experimental array init from data segment for string constants.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.
 

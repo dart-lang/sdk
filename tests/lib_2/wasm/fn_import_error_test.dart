@@ -40,7 +40,7 @@ void main() {
 
   // Wrong kind of import.
   Expect.throws(
-      () => mod.instantiate().addMemory("env", "someFn", mod.createMemory(10)),
+      () => mod.instantiate().addMemory(false, "env", "someFn", mod.createMemory(10)),
       (Exception e) => "$e".contains("Import is not a memory"));
 
   // Wrong namespace.
