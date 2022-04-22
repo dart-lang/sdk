@@ -28,7 +28,6 @@ regress/utf_16_le_content.crash: SemiFuzzCrash
 static_field_lowering/opt_in: SemiFuzzFailure
 
 # These tests have "privacy issues" and isn't compatiable with splitting files (fuzzing):
-constructor_tearoffs/lowering/typedef_from: semiFuzzFailureOnForceRebuildBodies # parts not supported
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method
 dartdevc/factory_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 dartdevc/private_covariant: semiFuzzFailureOnForceRebuildBodies # private method in class
@@ -47,20 +46,17 @@ general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libr
 general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
 general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
 general/nested_lib_spec/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/part_as_entry_point: semiFuzzFailureOnForceRebuildBodies # parts not supported
-general/private_members: semiFuzzFailureOnForceRebuildBodies # parts not supported
+general/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc).
 general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private method in class
 general/redirecting_factory_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
-general/redirecting_factory_invocation_metadata: semiFuzzFailureOnForceRebuildBodies # parts not supported
 general/store_load: semiFuzzFailureOnForceRebuildBodies # private field in class
-general/top_level_accessors: semiFuzzFailureOnForceRebuildBodies # parts not supported
 general/typedef: semiFuzzFailureOnForceRebuildBodies # private typedef
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: semiFuzzFailureOnForceRebuildBodies # private field
 late_lowering/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 
 late_lowering/issue41436/issue41436: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 late_lowering/issue41922: semiFuzzFailureOnForceRebuildBodies # private field
-late_lowering/private_members: semiFuzzFailureOnForceRebuildBodies # parts not supported
+late_lowering/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc)
 macros/inject_constructor: semiFuzzFailureOnForceRebuildBodies # Macro injection --- think it might introduce a class in a file?
 nnbd_mixed/issue46518: semiFuzzFailureOnForceRebuildBodies # private method
 nnbd_mixed/no_null_shorting_explicit_extension: semiFuzzFailureOnForceRebuildBodies # private field in class
