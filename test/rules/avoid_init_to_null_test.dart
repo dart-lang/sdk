@@ -16,26 +16,49 @@ main() {
 @reflectiveTest
 class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
+  List<String> get experiments => [EnableString.super_parameters];
 
   @override
   String get lintRule => 'avoid_init_to_null';
 
-  test_superInit() async {
+  test_nullableStringInit() async {
     await assertDiagnostics(r'''
 class A {
   String? a;
-  A({this.a});
+  A({this.a = null});
+}
+''', [
+      lint('avoid_init_to_null', 28, 13),
+    ]);
+  }
+
+  test_superInit_2() async {
+    await assertDiagnostics(r'''
+class A {
+  String? a;
+  A({this.a = null});
+}
+class B extends A {
+  B({super.a = null});
+}
+''', [
+      lint('avoid_init_to_null', 28, 13),
+      lint('avoid_init_to_null', 72, 14),
+    ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/3349
+  test_superInit_nolint() async {
+    await assertNoDiagnostics(r'''
+class A {
+  String? a;
+  A({this.a = ''});
 }
 
 class B extends A {
   B({super.a = null});
 }
-''', [
-      lint('avoid_init_to_null', 66, 14),
-    ]);
+''');
   }
 }
 
