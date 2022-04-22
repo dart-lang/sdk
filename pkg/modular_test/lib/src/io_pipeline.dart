@@ -41,17 +41,17 @@ class IOPipeline extends Pipeline<IOModularStep> {
   /// libraries), and not modules that are test specific. File names will be
   /// specific enough so that we can keep separate the artifacts created from
   /// running tools under different configurations (with different flags).
-  Uri _resultsFolderUri;
-  Uri get resultFolderUriForTesting => _resultsFolderUri;
+  Uri? _resultsFolderUri;
+  Uri? get resultFolderUriForTesting => _resultsFolderUri;
 
   /// A unique number to denote the current modular test configuration.
   ///
   /// When using [cacheSharedModules], a test can resuse the output of a
   /// previous run of this pipeline if that output was generated with the same
   /// configuration.
-  int _currentConfiguration;
+  int? _currentConfiguration;
 
-  final ConfigurationRegistry _registry;
+  final ConfigurationRegistry? _registry;
 
   /// Whether to keep alive the temporary folder used to store intermediate
   /// results in order to inspect it later in test.
@@ -65,13 +65,13 @@ class IOPipeline extends Pipeline<IOModularStep> {
 
   @override
   Future<void> run(ModularTest test) async {
-    var resultsDir = null;
+    Directory? resultsDir;
     if (_resultsFolderUri == null) {
       resultsDir = await Directory.systemTemp.createTemp('modular_test_res-');
       _resultsFolderUri = resultsDir.uri;
     }
     if (cacheSharedModules) {
-      _currentConfiguration = _registry.computeConfigurationId(test);
+      _currentConfiguration = _registry!.computeConfigurationId(test);
     }
     await super.run(test);
     if (resultsDir != null &&
@@ -90,7 +90,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
   Future<void> cleanup() async {
     if (_resultsFolderUri == null) return;
     if (saveIntermediateResultsForTesting || cacheSharedModules) {
-      await Directory.fromUri(_resultsFolderUri).delete(recursive: true);
+      await Directory.fromUri(_resultsFolderUri!).delete(recursive: true);
       _resultsFolderUri = null;
     }
   }
@@ -98,11 +98,12 @@ class IOPipeline extends Pipeline<IOModularStep> {
   @override
   Future<void> runStep(IOModularStep step, Module module,
       Map<Module, Set<DataId>> visibleData, List<String> flags) async {
+    final resultsFolderUri = _resultsFolderUri!;
     if (cacheSharedModules && module.isShared) {
       // If all expected outputs are already available, skip the step.
       bool allCachedResultsFound = true;
       for (var dataId in step.resultData) {
-        var cachedFile = File.fromUri(_resultsFolderUri
+        var cachedFile = File.fromUri(resultsFolderUri
             .resolve(_toFileName(module, dataId, configSpecific: true)));
         if (!await cachedFile.exists()) {
           allCachedResultsFound = false;
@@ -121,8 +122,8 @@ class IOPipeline extends Pipeline<IOModularStep> {
     var stepFolder =
         await Directory.systemTemp.createTemp('modular_test_${stepId}-');
     for (var module in visibleData.keys) {
-      for (var dataId in visibleData[module]) {
-        var assetUri = _resultsFolderUri
+      for (var dataId in visibleData[module]!) {
+        var assetUri = resultsFolderUri
             .resolve(_toFileName(module, dataId, configSpecific: true));
         await File.fromUri(assetUri).copy(
             stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath());
@@ -147,7 +148,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
         throw StateError(
             "Step '${step.runtimeType}' didn't produce an output file");
       }
-      await outputFile.copy(_resultsFolderUri
+      await outputFile.copy(resultsFolderUri
           .resolve(_toFileName(module, dataId, configSpecific: true))
           .toFilePath());
     }

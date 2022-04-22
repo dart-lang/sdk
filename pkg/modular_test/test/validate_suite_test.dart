@@ -8,17 +8,8 @@ import 'package:modular_test/src/suite.dart';
 
 main() {
   test('module test is not empty', () {
-    expect(
-        () => ModularTest([], null, []), throwsA(TypeMatcher<ArgumentError>()));
-
     var m = Module("a", [], Uri.parse("app:/"), []);
     expect(() => ModularTest([], m, []), throwsA(TypeMatcher<ArgumentError>()));
-  });
-
-  test('module test must have a main module', () {
-    var m = Module("a", [], Uri.parse("app:/"), []);
-    expect(() => ModularTest([m], null, []),
-        throwsA(TypeMatcher<ArgumentError>()));
   });
 
   test('package must depend on package', () {

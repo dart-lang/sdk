@@ -17,15 +17,7 @@ class ModularTest {
   final List<String> flags;
 
   ModularTest(this.modules, this.mainModule, this.flags) {
-    if (mainModule == null) {
-      throw ArgumentError("main module was null");
-    }
-    if (flags == null) {
-      throw ArgumentError("flags was null");
-    }
-    if (modules == null || modules.length == 0) {
-      throw ArgumentError("modules cannot be null or empty");
-    }
+    if (modules.isEmpty) throw ArgumentError("modules cannot be empty");
     for (var module in modules) {
       module._validate();
     }
@@ -52,7 +44,7 @@ class Module {
 
   /// The file containing the main entry method, if any. Stored as a relative
   /// [Uri] from [rootUri].
-  final Uri mainSource;
+  final Uri? mainSource;
 
   /// Whether this module is also available as a package import, where the
   /// package name matches the module name.
@@ -63,7 +55,7 @@ class Module {
 
   /// When [isPackage], the base where all package URIs are resolved against.
   /// Stored as a relative [Uri] from [rootUri].
-  final Uri packageBase;
+  final Uri? packageBase;
 
   /// Whether this is the main entry module of a test.
   bool isMain;

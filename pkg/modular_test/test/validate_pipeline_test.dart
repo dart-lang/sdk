@@ -83,5 +83,5 @@ class _NoopPipeline extends Pipeline {
   @override
   Future<void> runStep(ModularStep step, Module module,
           Map<Module, Set<DataId>> visibleData, List<String> flags) =>
-      null;
+      Future.value(null);
 }
