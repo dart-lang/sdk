@@ -12,8 +12,10 @@ import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
 import 'package:analysis_server/src/handler/legacy/edit_format.dart';
 import 'package:analysis_server/src/handler/legacy/edit_format_if_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_available_refactorings.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_refactoring.dart';
 import 'package:analysis_server/src/handler/legacy/edit_get_statement_completion.dart';
 import 'package:analysis_server/src/handler/legacy/edit_import_elements.dart';
 import 'package:analysis_server/src/handler/legacy/edit_is_postfix_completion_applicable.dart';
@@ -43,19 +45,9 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
 /// Instances of the class [EditDomainHandler] implement a [RequestHandler]
 /// that handles requests in the edit domain.
 class EditDomainHandler extends AbstractRequestHandler {
-  /// The workspace for rename refactorings.
-  RefactoringWorkspace? refactoringWorkspace;
-
-  /// The object used to manage uncompleted refactorings.
-  _RefactoringManager? refactoringManager;
-
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  EditDomainHandler(AnalysisServer server) : super(server) {
-    refactoringWorkspace =
-        RefactoringWorkspace(server.driverMap.values, server.searchEngine);
-    _newRefactoringManager();
-  }
+  EditDomainHandler(super.server);
 
   @override
   Response? handleRequest(
@@ -72,7 +64,8 @@ class EditDomainHandler extends AbstractRequestHandler {
         EditGetAssistsHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
-        _getAvailableRefactorings(request);
+        EditGetAvailableRefactoringsHandler(server, request, cancellationToken)
+            .handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
         EditBulkFixes(server, request, cancellationToken).handle();
@@ -81,7 +74,8 @@ class EditDomainHandler extends AbstractRequestHandler {
         EditGetFixesHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
-        return _getRefactoring(request, cancellationToken);
+        EditGetRefactoringHandler(server, request, cancellationToken).handle();
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
         EditImportElementsHandler(server, request, cancellationToken).handle();
         return Response.DELAYED_RESPONSE;
@@ -117,95 +111,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     return null;
   }
-
-  Future<void> _getAvailableRefactorings(Request request) async {
-    var params = EditGetAvailableRefactoringsParams.fromRequest(request);
-    var file = params.file;
-    var offset = params.offset;
-    var length = params.length;
-
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    // add refactoring kinds
-    var kinds = <RefactoringKind>[];
-    // Check nodes.
-    final searchEngine = server.searchEngine;
-    {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        // Try EXTRACT_LOCAL_VARIABLE.
-        if (ExtractLocalRefactoring(resolvedUnit, offset, length)
-            .isAvailable()) {
-          kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
-        }
-        // Try EXTRACT_METHOD.
-        if (ExtractMethodRefactoring(searchEngine, resolvedUnit, offset, length)
-            .isAvailable()) {
-          kinds.add(RefactoringKind.EXTRACT_METHOD);
-        }
-        // Try EXTRACT_WIDGETS.
-        if (ExtractWidgetRefactoring(searchEngine, resolvedUnit, offset, length)
-            .isAvailable()) {
-          kinds.add(RefactoringKind.EXTRACT_WIDGET);
-        }
-      }
-    }
-    // check elements
-    {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          // try CONVERT_METHOD_TO_GETTER
-          if (element is ExecutableElement) {
-            Refactoring refactoring = ConvertMethodToGetterRefactoring(
-                searchEngine, resolvedUnit.session, element);
-            var status = await refactoring.checkInitialConditions();
-            if (!status.hasFatalError) {
-              kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
-            }
-          }
-          // try RENAME
-          final refactoringWorkspace = this.refactoringWorkspace;
-          if (refactoringWorkspace != null) {
-            var renameRefactoring = RenameRefactoring.create(
-                refactoringWorkspace, resolvedUnit, element);
-            if (renameRefactoring != null) {
-              kinds.add(RefactoringKind.RENAME);
-            }
-          }
-        }
-      }
-    }
-    // respond
-    var result = EditGetAvailableRefactoringsResult(kinds);
-    server.sendResponse(result.toResponse(request.id));
-  }
-
-  Response _getRefactoring(
-      Request request, CancellationToken cancellationToken) {
-    final refactoringManager = this.refactoringManager;
-    if (refactoringManager == null) {
-      return Response.unsupportedFeature(request.id, 'Search is not enabled.');
-    }
-    if (refactoringManager.hasPendingRequest) {
-      refactoringManager.cancel();
-      _newRefactoringManager();
-    }
-    refactoringManager.getRefactoring(request, cancellationToken);
-    return Response.DELAYED_RESPONSE;
-  }
-
-  /// Initializes [refactoringManager] with a new instance.
-  void _newRefactoringManager() {
-    final refactoringWorkspace = this.refactoringWorkspace;
-    if (refactoringWorkspace != null) {
-      refactoringManager = _RefactoringManager(server, refactoringWorkspace);
-    }
-  }
 }
 
 /// An object managing a single [Refactoring] instance.
@@ -216,7 +121,7 @@ class EditDomainHandler extends AbstractRequestHandler {
 ///
 /// Once new set of parameters is received, the previous [Refactoring] instance
 /// is invalidated and a new one is created and initialized.
-class _RefactoringManager {
+class RefactoringManager {
   static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
       <RefactoringProblem>[];
 
@@ -238,7 +143,7 @@ class _RefactoringManager {
   Request? request;
   EditGetRefactoringResult? result;
 
-  _RefactoringManager(this.server, this.refactoringWorkspace)
+  RefactoringManager(this.server, this.refactoringWorkspace)
       : searchEngine = refactoringWorkspace.searchEngine {
     _reset();
   }
@@ -615,6 +520,6 @@ class _RefactoringManager {
   }
 }
 
-/// [_RefactoringManager] throws instances of this class internally to stop
+/// [RefactoringManager] throws instances of this class internally to stop
 /// processing in a manager that was reset.
 class _ResetError {}

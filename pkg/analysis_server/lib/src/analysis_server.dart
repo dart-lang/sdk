@@ -50,6 +50,7 @@ import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -143,6 +144,12 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The state used by the completion domain handlers.
   final CompletionState completionState = CompletionState();
+
+  /// The workspace for rename refactorings.
+  late RefactoringWorkspace refactoringWorkspace;
+
+  /// The object used to manage uncompleted refactorings.
+  late RefactoringManager? _refactoringManager;
 
   /// The context used by the execution domain handlers.
   final ExecutionContext executionContext = ExecutionContext();
@@ -266,6 +273,8 @@ class AnalysisServer extends AbstractAnalysisServer {
       CompletionDomainHandler(this),
       FlutterDomainHandler(this)
     ];
+    refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
+    _newRefactoringManager();
   }
 
   /// The analytics instance; note, this object can be `null`.
@@ -290,6 +299,18 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
+  }
+
+  RefactoringManager? get refactoringManager {
+    var refactoringManager = _refactoringManager;
+    if (refactoringManager == null) {
+      return null;
+    }
+    if (refactoringManager.hasPendingRequest) {
+      refactoringManager.cancel();
+      _newRefactoringManager();
+    }
+    return _refactoringManager;
   }
 
   String get sdkPath {
@@ -690,6 +711,11 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   bool _hasFlutterServiceSubscription(FlutterService service, String file) {
     return flutterServices[service]?.contains(file) ?? false;
+  }
+
+  /// Initializes [_refactoringManager] with a new instance.
+  void _newRefactoringManager() {
+    _refactoringManager = RefactoringManager(this, refactoringWorkspace);
   }
 
   Future<void> _scheduleAnalysisImplementedNotification() async {
