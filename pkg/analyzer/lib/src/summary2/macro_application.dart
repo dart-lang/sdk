@@ -181,7 +181,7 @@ class LibraryMacroApplier {
     );
   }
 
-  static macro.ParameterDeclarationImpl _buildFormalParameter(
+  static macro.FunctionTypeParameterImpl _buildFormalParameter(
     FormalParameter node,
   ) {
     if (node is DefaultFormalParameter) {
@@ -195,12 +195,11 @@ class LibraryMacroApplier {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
 
-    return macro.ParameterDeclarationImpl(
+    return macro.FunctionTypeParameterImpl(
       id: macro.RemoteInstance.uniqueId,
-      identifier:
-          _buildIdentifier(node.identifier!), // TODO(scheglov) might be null
       isNamed: node.isNamed,
       isRequired: node.isRequired,
+      name: node.identifier?.name,
       type: typeAnnotation,
     );
   }

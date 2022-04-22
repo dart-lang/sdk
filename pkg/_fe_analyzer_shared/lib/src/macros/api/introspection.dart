@@ -35,10 +35,10 @@ abstract class FunctionTypeAnnotation implements TypeAnnotation {
   TypeAnnotation get returnType;
 
   /// The positional parameters for this function.
-  Iterable<ParameterDeclaration> get positionalParameters;
+  Iterable<FunctionTypeParameter> get positionalParameters;
 
   /// The named parameters for this function.
-  Iterable<ParameterDeclaration> get namedParameters;
+  Iterable<FunctionTypeParameter> get namedParameters;
 
   /// The type parameters for this function.
   Iterable<TypeParameterDeclaration> get typeParameters;
@@ -197,8 +197,9 @@ abstract class VariableDeclaration implements Declaration {
 abstract class FieldDeclaration
     implements VariableDeclaration, ClassMemberDeclaration {}
 
-/// Parameter introspection information.
-abstract class ParameterDeclaration implements Declaration {
+/// General parameter introspection information, see the subtypes
+/// [FunctionTypeParameter] and [ParameterDeclaration].
+abstract class Parameter {
   /// The type of this parameter.
   TypeAnnotation get type;
 
@@ -214,6 +215,16 @@ abstract class ParameterDeclaration implements Declaration {
   /// Note that the original default value will not be included, as it is not a
   /// part of this API.
   ParameterCode get code;
+}
+
+/// Parameters of normal functions/methods, which always have an identifier.
+abstract class ParameterDeclaration implements Parameter, Declaration {}
+
+/// Function type parameters don't always have names, and it is never useful to
+/// get an [Identifier] for them, so they do not implement [Declaration] and
+/// instead have an optional name.
+abstract class FunctionTypeParameter implements Parameter {
+  String? get name;
 }
 
 /// Type parameter introspection information.

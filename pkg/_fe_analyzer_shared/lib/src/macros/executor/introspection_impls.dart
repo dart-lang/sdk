@@ -94,21 +94,21 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
           typeParam.code,
       ],
       positionalParameters: [
-        for (ParameterDeclaration positional in positionalParameters)
+        for (FunctionTypeParameter positional in positionalParameters)
           positional.code,
       ],
       namedParameters: [
-        for (ParameterDeclaration named in namedParameters) named.code,
+        for (FunctionTypeParameter named in namedParameters) named.code,
       ],
     );
     return isNullable ? underlyingType.asNullable : underlyingType;
   }
 
   @override
-  final List<ParameterDeclarationImpl> namedParameters;
+  final List<FunctionTypeParameterImpl> namedParameters;
 
   @override
-  final List<ParameterDeclarationImpl> positionalParameters;
+  final List<FunctionTypeParameterImpl> positionalParameters;
 
   @override
   final TypeAnnotationImpl returnType;
@@ -137,13 +137,13 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     returnType.serialize(serializer);
 
     serializer.startList();
-    for (ParameterDeclarationImpl param in positionalParameters) {
+    for (FunctionTypeParameterImpl param in positionalParameters) {
       param.serialize(serializer);
     }
     serializer.endList();
 
     serializer.startList();
-    for (ParameterDeclarationImpl param in namedParameters) {
+    for (FunctionTypeParameterImpl param in namedParameters) {
       param.serialize(serializer);
     }
     serializer.endList();
@@ -219,6 +219,50 @@ class ParameterDeclarationImpl extends DeclarationImpl
   @override
   ParameterCode get code =>
       new ParameterCode(name: identifier.name, type: type.code, keywords: [
+        if (isNamed && isRequired) 'required',
+      ]);
+}
+
+class FunctionTypeParameterImpl extends RemoteInstance
+    implements FunctionTypeParameter {
+  @override
+  final bool isNamed;
+
+  @override
+  final bool isRequired;
+
+  @override
+  final String? name;
+
+  @override
+  final TypeAnnotationImpl type;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.functionTypeParameter;
+
+  FunctionTypeParameterImpl({
+    required int id,
+    required this.isNamed,
+    required this.isRequired,
+    required this.name,
+    required this.type,
+  }) : super(id);
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode.isClient) return;
+
+    serializer.addBool(isNamed);
+    serializer.addBool(isRequired);
+    serializer.addNullableString(name);
+    type.serialize(serializer);
+  }
+
+  @override
+  ParameterCode get code =>
+      new ParameterCode(name: name, type: type.code, keywords: [
         if (isNamed && isRequired) 'required',
       ]);
 }

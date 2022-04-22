@@ -57,16 +57,21 @@ class FunctionBodyCode extends Code {
   FunctionBodyCode.fromParts(List<Object> parts) : super.fromParts(parts);
 }
 
-/// A piece of code identifying a syntactically valid function parameter.
+/// A piece of code identifying a syntactically valid function or function type
+/// parameter.
 ///
 /// There is no distinction here made between named and positional parameters.
+///
+/// There is also no distinction between function type parameters and normal
+/// function parameters, so the [name] is nullable (it is not required for
+/// positional function type parameters).
 ///
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid parameter lists.
 class ParameterCode implements Code {
   final Code? defaultValue;
   final List<String> keywords;
-  final String name;
+  final String? name;
   final TypeAnnotationCode? type;
 
   @override
@@ -82,7 +87,7 @@ class ParameterCode implements Code {
           type!,
           ' ',
         ],
-        name,
+        if (name != null) name!,
         if (defaultValue != null) ...[
           ' = ',
           defaultValue!,
@@ -92,7 +97,7 @@ class ParameterCode implements Code {
   ParameterCode({
     this.defaultValue,
     this.keywords = const [],
-    required this.name,
+    this.name,
     this.type,
   });
 }
