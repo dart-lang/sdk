@@ -133,7 +133,6 @@ vars = {
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",
   "path_rev": "baedce9d2ca11ea2cdf54395a74eb038087777a4",
-  "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
   "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
@@ -380,8 +379,6 @@ deps = {
       "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_rev"),
-  Var("dart_root") + "/third_party/pkg/pedantic":
-      Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_rev"),
   Var("dart_root") + "/third_party/pkg/platform":
        Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/pool":

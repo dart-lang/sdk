@@ -233,9 +233,9 @@ class Package implements Comparable<Package> {
 
     var extraDevDeclarations = Set<String>.from(_declaredDevDependencies)
       ..removeAll(devdeps);
-    // Remove package:pedantic and package:lints as they are often declared as
-    // dev dependencies in order to bring in their analysis_options.yaml files.
-    extraDevDeclarations.removeAll(['lints', 'pedantic']);
+    // Remove package:lints - it's often declared as a dev dependency in order
+    // to bring in analysis_options configuration files.
+    extraDevDeclarations.removeAll(['lints']);
     if (extraDevDeclarations.isNotEmpty) {
       out('  ${_printSet(extraDevDeclarations)} declared in '
           "'dev_dependencies:' but not used in dev dirs.");
