@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -466,6 +467,64 @@ class A extends prefix.B {}
 class A
   superclass: B
 ''');
+  }
+
+  test_macroApplicationErrors_compileTimeError() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  buildTypesForClass(clazz, builder) {
+    unresolved;
+  }
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    final A = library.getType('A') as ClassElementImpl;
+    final error = A.macroApplicationErrors.single;
+    error as UnknownMacroApplicationError;
+
+    expect(error.annotationIndex, 0);
+    expect(error.message, contains('unresolved'));
+    expect(error.stackTrace, contains('executeTypesMacro'));
+  }
+
+  test_macroApplicationErrors_throwsException() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  buildTypesForClass(clazz, builder) {
+    throw 'foo bar';
+  }
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    final A = library.getType('A') as ClassElementImpl;
+    final error = A.macroApplicationErrors.single;
+    error as UnknownMacroApplicationError;
+
+    expect(error.annotationIndex, 0);
+    expect(error.message, 'foo bar');
+    expect(error.stackTrace, contains('MyMacro.buildTypesForClass'));
   }
 
   test_macroFlag_class() async {

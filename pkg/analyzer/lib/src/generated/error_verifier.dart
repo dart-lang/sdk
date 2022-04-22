@@ -46,6 +46,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -445,6 +446,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
+      _reportMacroApplicationErrors(
+        annotations: node.metadata,
+        macroErrors: element.macroApplicationErrors,
+      );
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
@@ -5171,6 +5176,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return parameter.parameter.identifier;
     }
     return null;
+  }
+
+  void _reportMacroApplicationErrors({
+    required List<Annotation> annotations,
+    required List<MacroApplicationError> macroErrors,
+  }) {
+    for (final macroError in macroErrors) {
+      if (macroError.annotationIndex < annotations.length) {
+        final applicationNode = annotations[macroError.annotationIndex];
+        if (macroError is UnknownMacroApplicationError) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION,
+            applicationNode,
+            [
+              macroError.message,
+              macroError.stackTrace,
+            ],
+          );
+        } else {
+          // TODO(scheglov) Other implementations.
+          throw UnimplementedError('(${macroError.runtimeType}) $macroError');
+        }
+      }
+    }
   }
 
   void _withEnclosingExecutable(

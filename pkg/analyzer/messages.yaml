@@ -7917,6 +7917,13 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
+  MACRO_EXECUTION_EXCEPTION:
+    problemMessage: "Exception during macro execution: {0}\n{1}"
+    correctionMessage: Re-install the Dart or Flutter SDK.
+    comment: |-
+      Parameters:
+      0: the message of the exception
+      1: the stack trace
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.

@@ -8,8 +8,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,11 +22,6 @@ main() {
 
 @reflectiveTest
 class AnalysisDriverCachingTest extends PubPackageResolutionTest {
-  @override
-  MacroKernelBuilder? get macroKernelBuilder {
-    return FrontEndServerMacroKernelBuilder();
-  }
-
   String get testFilePathPlatform => convertPath(testFilePath);
 
   List<Set<String>> get _linkedCycles {
@@ -43,14 +36,6 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
-    );
-  }
-
-  @override
-  Future<void> tearDown() async {
-    await super.tearDown();
-    KernelCompilationService.disposeDelayed(
-      const Duration(milliseconds: 100),
     );
   }
 

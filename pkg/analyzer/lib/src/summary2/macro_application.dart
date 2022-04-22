@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart';
@@ -69,12 +70,20 @@ class LibraryMacroApplier {
                           }
                         } on MacroApplicationError catch (e) {
                           classElement.macroApplicationErrors.add(e);
+                        } on macro.RemoteException catch (e) {
+                          classElement.macroApplicationErrors.add(
+                            UnknownMacroApplicationError(
+                              annotationIndex: i,
+                              message: e.error,
+                              stackTrace: e.stackTrace ?? '<null>',
+                            ),
+                          );
                         } catch (e, stackTrace) {
                           classElement.macroApplicationErrors.add(
                             UnknownMacroApplicationError(
                               annotationIndex: i,
-                              stackTrace: stackTrace.toString(),
                               message: e.toString(),
+                              stackTrace: stackTrace.toString(),
                             ),
                           );
                         }

@@ -608,6 +608,8 @@ CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
   status: needsEvaluation
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: needsEvaluation
+CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION:
+  status: needsEvaluation
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsEvaluation
 CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS:
