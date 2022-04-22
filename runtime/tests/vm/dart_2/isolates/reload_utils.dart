@@ -20,6 +20,11 @@ bool get currentVmSupportsReload {
       !executable.contains('dart_precompiled_runtime');
 }
 
+bool get runningInSimulator {
+  final executable = Platform.executable;
+  return executable.contains('SIM');
+}
+
 final includeIn = RegExp(r'//\s+@include-in-reload-([0-9]+)([+]?)\s*$');
 
 Future<List<String>> generateDills(String tempDir, String testDartFile) async {

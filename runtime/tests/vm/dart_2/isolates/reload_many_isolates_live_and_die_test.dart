@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 import 'reload_utils.dart';
 
-const N = 20;
+final N = runningInSimulator ? 2 : 20;
 
 main() async {
   if (!currentVmSupportsReload) return;
