@@ -46,11 +46,11 @@ class ContinuationVariables {
 
 void transformLibraries(
     TypeEnvironment typeEnvironment, List<Library> libraries,
-    {required bool productMode}) {
+    {required bool productMode, required bool desugarAsync}) {
   var helper =
       new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
-  var rewriter = new RecursiveContinuationRewriter(
-      helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
+  var rewriter = new RecursiveContinuationRewriter(helper,
+      new StatefulStaticTypeContext.stacked(typeEnvironment), desugarAsync);
   for (var library in libraries) {
     rewriter.rewriteLibrary(library);
   }
@@ -58,21 +58,21 @@ void transformLibraries(
 
 Component transformComponent(
     TypeEnvironment typeEnvironment, Component component,
-    {required bool productMode}) {
+    {required bool productMode, required bool desugarAsync}) {
   var helper =
       new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
-  var rewriter = new RecursiveContinuationRewriter(
-      helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
+  var rewriter = new RecursiveContinuationRewriter(helper,
+      new StatefulStaticTypeContext.stacked(typeEnvironment), desugarAsync);
   return rewriter.rewriteComponent(component);
 }
 
 Procedure transformProcedure(
     TypeEnvironment typeEnvironment, Procedure procedure,
-    {required bool productMode}) {
+    {required bool productMode, required bool desugarAsync}) {
   var helper =
       new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
-  var rewriter = new RecursiveContinuationRewriter(
-      helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
+  var rewriter = new RecursiveContinuationRewriter(helper,
+      new StatefulStaticTypeContext.stacked(typeEnvironment), desugarAsync);
   return rewriter.transform(procedure);
 }
 
@@ -86,8 +86,12 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
       new VariableDeclaration(ContinuationVariables.awaitContextVar);
 
   StatefulStaticTypeContext staticTypeContext;
+  final bool desugarAsync;
+  final bool desugarAwaitFor;
 
-  RecursiveContinuationRewriter(this.helper, this.staticTypeContext);
+  RecursiveContinuationRewriter(
+      this.helper, this.staticTypeContext, this.desugarAsync,
+      {this.desugarAwaitFor = false});
 
   Component rewriteComponent(Component node) {
     return transform(node);
@@ -135,17 +139,27 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.SyncYielding:
-        node.transformOrRemoveChildren(
-            new RecursiveContinuationRewriter(helper, staticTypeContext));
+        node.transformOrRemoveChildren(new RecursiveContinuationRewriter(
+            helper, staticTypeContext, desugarAsync));
         return node;
       case AsyncMarker.SyncStar:
-        return new SyncStarFunctionRewriter(helper, node, staticTypeContext)
+        return new SyncStarFunctionRewriter(
+                helper, node, staticTypeContext, desugarAsync)
             .rewrite();
       case AsyncMarker.Async:
-        return new AsyncFunctionRewriter(helper, node, staticTypeContext)
-            .rewrite();
+        if (desugarAsync) {
+          return new AsyncFunctionRewriter(
+                  helper, node, staticTypeContext, desugarAsync)
+              .rewrite();
+        } else {
+          node.transformOrRemoveChildren(new RecursiveContinuationRewriter(
+              helper, staticTypeContext, desugarAsync,
+              desugarAwaitFor: true));
+          return node;
+        }
       case AsyncMarker.AsyncStar:
-        return new AsyncStarFunctionRewriter(helper, node, staticTypeContext)
+        return new AsyncStarFunctionRewriter(
+                helper, node, staticTypeContext, desugarAsync)
             .rewrite();
     }
   }
@@ -153,7 +167,125 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
   @override
   TreeNode visitForInStatement(ForInStatement stmt, TreeNode? removalSentinel) {
     if (stmt.isAsync) {
-      return super.visitForInStatement(stmt, removalSentinel);
+      if (!desugarAwaitFor) {
+        return super.visitForInStatement(stmt, removalSentinel);
+      }
+      // Transform
+      //
+      //   await for (T variable in <stream-expression>) { ... }
+      //
+      // To (in product mode):
+      //
+      //   {
+      //     :stream = <stream-expression>;
+      //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
+      //     try {
+      //       while (await :for-iterator.moveNext()) {
+      //         T <variable> = :for-iterator.current;
+      //         ...
+      //       }
+      //     } finally {
+      //       if (:for-iterator._subscription != null)
+      //           await :for-iterator.cancel();
+      //     }
+      //   }
+      //
+      // Or (in non-product mode):
+      //
+      //   {
+      //     :stream = <stream-expression>;
+      //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
+      //     try {
+      //       while (let _ = _asyncStarMoveNextHelper(:stream) in
+      //           await :for-iterator.moveNext()) {
+      //         T <variable> = :for-iterator.current;
+      //         ...
+      //       }
+      //     } finally {
+      //       if (:for-iterator._subscription != null)
+      //           await :for-iterator.cancel();
+      //     }
+      //   }
+      var valueVariable = stmt.variable;
+
+      var streamVariable = new VariableDeclaration(ContinuationVariables.stream,
+          initializer: stmt.iterable,
+          type: stmt.iterable.getStaticType(staticTypeContext));
+
+      final streamIteratorType = new InterfaceType(helper.streamIteratorClass,
+          staticTypeContext.nullable, [valueVariable.type]);
+      var forIteratorVariable = VariableDeclaration(
+          ContinuationVariables.forIterator,
+          initializer: new ConstructorInvocation(
+              helper.streamIteratorConstructor,
+              new Arguments(<Expression>[new VariableGet(streamVariable)],
+                  types: [valueVariable.type])),
+          type: streamIteratorType);
+
+      // await :for-iterator.moveNext()
+      var condition = new AwaitExpression(new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(forIteratorVariable),
+          helper.streamIteratorMoveNext.name,
+          new Arguments([]),
+          interfaceTarget: helper.streamIteratorMoveNext,
+          functionType:
+              helper.streamIteratorMoveNext.getterType as FunctionType))
+        ..fileOffset = stmt.fileOffset;
+
+      Expression whileCondition;
+      if (helper.productMode) {
+        whileCondition = condition;
+      } else {
+        // _asyncStarMoveNextHelper(:stream)
+        var asyncStarMoveNextCall = new StaticInvocation(
+            helper.asyncStarMoveNextHelper,
+            new Arguments([new VariableGet(streamVariable)]))
+          ..fileOffset = stmt.fileOffset;
+
+        // let _ = asyncStarMoveNextCall in (condition)
+        whileCondition = new Let(
+            new VariableDeclaration(null, initializer: asyncStarMoveNextCall),
+            condition);
+      }
+
+      // T <variable> = :for-iterator.current;
+      valueVariable.initializer = new InstanceGet(InstanceAccessKind.Instance,
+          VariableGet(forIteratorVariable), helper.streamIteratorCurrent.name,
+          interfaceTarget: helper.streamIteratorCurrent,
+          resultType: valueVariable.type)
+        ..fileOffset = stmt.bodyOffset;
+      valueVariable.initializer!.parent = valueVariable;
+
+      var whileBody = new Block(<Statement>[valueVariable, stmt.body]);
+      var tryBody = new WhileStatement(whileCondition, whileBody);
+
+      // if (:for-iterator._subscription != null) await :for-iterator.cancel();
+      final DartType subscriptionType =
+          Substitution.fromInterfaceType(streamIteratorType).substituteType(
+              helper.coreTypes.streamIteratorSubscription.getterType);
+      var tryFinalizer = new IfStatement(
+          new Not(new EqualsNull(new InstanceGet(
+              InstanceAccessKind.Instance,
+              VariableGet(forIteratorVariable),
+              helper.coreTypes.streamIteratorSubscription.name,
+              interfaceTarget: helper.coreTypes.streamIteratorSubscription,
+              resultType: subscriptionType))),
+          new ExpressionStatement(new AwaitExpression(new InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(forIteratorVariable),
+              helper.streamIteratorCancel.name,
+              new Arguments(<Expression>[]),
+              interfaceTarget: helper.streamIteratorCancel,
+              functionType:
+                  helper.streamIteratorCancel.getterType as FunctionType))),
+          null);
+
+      var tryFinally = new TryFinally(tryBody, tryFinalizer);
+
+      var block = new Block(
+          <Statement>[streamVariable, forIteratorVariable, tryFinally]);
+      return transform(block);
     }
 
     // Transform
@@ -238,8 +370,10 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   int capturedCatchDepth = 0; // Deepest yield point within a catch-block.
 
   ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction,
-      StatefulStaticTypeContext staticTypeContext)
-      : super(helper, staticTypeContext);
+      StatefulStaticTypeContext staticTypeContext, bool desugarAsync,
+      {bool desugarAwaitFor = false})
+      : super(helper, staticTypeContext, desugarAsync,
+            desugarAwaitFor: desugarAwaitFor);
 
   /// Given a container [type], which is an instantiation of the given
   /// [containerClass] extract its element type.
@@ -394,7 +528,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
   final VariableDeclaration iteratorParameter;
 
   SyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
-      StatefulStaticTypeContext staticTypeContext)
+      StatefulStaticTypeContext staticTypeContext, bool desugarAsync)
       : iteratorParameter =
             VariableDeclaration(ContinuationVariables.iteratorParam)
               ..type = InterfaceType(
@@ -404,7 +538,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
                 // code.
                 const DynamicType(),
               ]),
-        super(helper, enclosingFunction, staticTypeContext);
+        super(helper, enclosingFunction, staticTypeContext, desugarAsync,
+            desugarAwaitFor: false);
 
   FunctionNode rewrite() {
     // We need to preserve the original parameters passed to the sync* function
@@ -548,7 +683,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   ExpressionLifter? expressionRewriter;
 
   AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
-      StatefulStaticTypeContext staticTypeContext)
+      StatefulStaticTypeContext staticTypeContext, bool desugarAsync)
       : nestedClosureVariable =
             VariableDeclaration(ContinuationVariables.asyncOp,
                 type: FunctionType([
@@ -567,7 +702,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
                   helper.coreTypes
                       .stackTraceRawType(staticTypeContext.nonNullable),
                 ], const DynamicType(), staticTypeContext.nonNullable)),
-        super(helper, enclosingFunction, staticTypeContext) {}
+        super(helper, enclosingFunction, staticTypeContext, desugarAsync,
+            desugarAwaitFor: true) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
@@ -978,132 +1114,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   @override
-  TreeNode visitForInStatement(ForInStatement stmt, TreeNode? removalSentinel) {
-    if (stmt.isAsync) {
-      // Transform
-      //
-      //   await for (T variable in <stream-expression>) { ... }
-      //
-      // To (in product mode):
-      //
-      //   {
-      //     :stream = <stream-expression>;
-      //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
-      //     try {
-      //       while (await :for-iterator.moveNext()) {
-      //         T <variable> = :for-iterator.current;
-      //         ...
-      //       }
-      //     } finally {
-      //       if (:for-iterator._subscription != null)
-      //           await :for-iterator.cancel();
-      //     }
-      //   }
-      //
-      // Or (in non-product mode):
-      //
-      //   {
-      //     :stream = <stream-expression>;
-      //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
-      //     try {
-      //       while (let _ = _asyncStarMoveNextHelper(:stream) in
-      //           await :for-iterator.moveNext()) {
-      //         T <variable> = :for-iterator.current;
-      //         ...
-      //       }
-      //     } finally {
-      //       if (:for-iterator._subscription != null)
-      //           await :for-iterator.cancel();
-      //     }
-      //   }
-      var valueVariable = stmt.variable;
-
-      var streamVariable = new VariableDeclaration(ContinuationVariables.stream,
-          initializer: stmt.iterable,
-          type: stmt.iterable.getStaticType(staticTypeContext));
-
-      final streamIteratorType = new InterfaceType(helper.streamIteratorClass,
-          staticTypeContext.nullable, [valueVariable.type]);
-      var forIteratorVariable = VariableDeclaration(
-          ContinuationVariables.forIterator,
-          initializer: new ConstructorInvocation(
-              helper.streamIteratorConstructor,
-              new Arguments(<Expression>[new VariableGet(streamVariable)],
-                  types: [valueVariable.type])),
-          type: streamIteratorType);
-
-      // await :for-iterator.moveNext()
-      var condition = new AwaitExpression(new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          VariableGet(forIteratorVariable),
-          helper.streamIteratorMoveNext.name,
-          new Arguments([]),
-          interfaceTarget: helper.streamIteratorMoveNext,
-          functionType:
-              helper.streamIteratorMoveNext.getterType as FunctionType))
-        ..fileOffset = stmt.fileOffset;
-
-      Expression whileCondition;
-      if (helper.productMode) {
-        whileCondition = condition;
-      } else {
-        // _asyncStarMoveNextHelper(:stream)
-        var asyncStarMoveNextCall = new StaticInvocation(
-            helper.asyncStarMoveNextHelper,
-            new Arguments([new VariableGet(streamVariable)]))
-          ..fileOffset = stmt.fileOffset;
-
-        // let _ = asyncStarMoveNextCall in (condition)
-        whileCondition = new Let(
-            new VariableDeclaration(null, initializer: asyncStarMoveNextCall),
-            condition);
-      }
-
-      // T <variable> = :for-iterator.current;
-      valueVariable.initializer = new InstanceGet(InstanceAccessKind.Instance,
-          VariableGet(forIteratorVariable), helper.streamIteratorCurrent.name,
-          interfaceTarget: helper.streamIteratorCurrent,
-          resultType: valueVariable.type)
-        ..fileOffset = stmt.bodyOffset;
-      valueVariable.initializer!.parent = valueVariable;
-
-      var whileBody = new Block(<Statement>[valueVariable, stmt.body]);
-      var tryBody = new WhileStatement(whileCondition, whileBody);
-
-      // if (:for-iterator._subscription != null) await :for-iterator.cancel();
-      final DartType subscriptionType =
-          Substitution.fromInterfaceType(streamIteratorType).substituteType(
-              helper.coreTypes.streamIteratorSubscription.getterType);
-      var tryFinalizer = new IfStatement(
-          new Not(new EqualsNull(new InstanceGet(
-              InstanceAccessKind.Instance,
-              VariableGet(forIteratorVariable),
-              helper.coreTypes.streamIteratorSubscription.name,
-              interfaceTarget: helper.coreTypes.streamIteratorSubscription,
-              resultType: subscriptionType))),
-          new ExpressionStatement(new AwaitExpression(new InstanceInvocation(
-              InstanceAccessKind.Instance,
-              VariableGet(forIteratorVariable),
-              helper.streamIteratorCancel.name,
-              new Arguments(<Expression>[]),
-              interfaceTarget: helper.streamIteratorCancel,
-              functionType:
-                  helper.streamIteratorCancel.getterType as FunctionType))),
-          null);
-
-      var tryFinally = new TryFinally(tryBody, tryFinalizer);
-
-      var block = new Block(
-          <Statement>[streamVariable, forIteratorVariable, tryFinally]);
-      transform<Statement>(block);
-      return removalSentinel ?? EmptyStatement();
-    } else {
-      super.visitForInStatement(stmt, removalSentinel);
-      return removalSentinel ?? EmptyStatement();
-    }
-  }
-
-  @override
   TreeNode visitSwitchStatement(
       SwitchStatement stmt, TreeNode? removalSentinel) {
     stmt.expression = expressionRewriter!.rewrite(stmt.expression, statements)
@@ -1200,8 +1210,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration? controllerVariable;
 
   AsyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
-      StatefulStaticTypeContext staticTypeContext)
-      : super(helper, enclosingFunction, staticTypeContext);
+      StatefulStaticTypeContext staticTypeContext, bool desugarAsync)
+      : super(helper, enclosingFunction, staticTypeContext, desugarAsync);
 
   FunctionNode rewrite() {
     var statements = <Statement>[];
@@ -1355,8 +1365,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   late bool canReturnFuture;
 
   AsyncFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
-      StatefulStaticTypeContext staticTypeContext)
-      : super(helper, enclosingFunction, staticTypeContext);
+      StatefulStaticTypeContext staticTypeContext, bool desugarAsync)
+      : super(helper, enclosingFunction, staticTypeContext, desugarAsync);
 
   FunctionNode rewrite() {
     var statements = <Statement>[];

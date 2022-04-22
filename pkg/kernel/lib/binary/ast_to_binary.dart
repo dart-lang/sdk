@@ -1986,6 +1986,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitAwaitExpression(AwaitExpression node) {
     writeByte(Tag.AwaitExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.operand);
   }
 

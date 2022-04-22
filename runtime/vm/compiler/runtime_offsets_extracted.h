@@ -2815,11 +2815,11 @@ static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     36;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 32;
 static constexpr dart::compiler::target::word FinalizerBase_all_entries_offset =
-    20;
+    24;
 static constexpr dart::compiler::target::word FinalizerBase_detachments_offset =
-    16;
+    20;
 static constexpr dart::compiler::target::word
-    FinalizerBase_entries_collected_offset = 24;
+    FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word FinalizerBase_isolate_offset = 8;
 static constexpr dart::compiler::target::word FinalizerEntry_detach_offset = 12;
 static constexpr dart::compiler::target::word
@@ -3411,11 +3411,11 @@ static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     36;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 32;
 static constexpr dart::compiler::target::word FinalizerBase_all_entries_offset =
-    20;
+    24;
 static constexpr dart::compiler::target::word FinalizerBase_detachments_offset =
-    16;
+    20;
 static constexpr dart::compiler::target::word
-    FinalizerBase_entries_collected_offset = 24;
+    FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word FinalizerBase_isolate_offset = 8;
 static constexpr dart::compiler::target::word FinalizerEntry_detach_offset = 12;
 static constexpr dart::compiler::target::word
@@ -7542,11 +7542,11 @@ static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     36;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 32;
 static constexpr dart::compiler::target::word FinalizerBase_all_entries_offset =
-    20;
+    24;
 static constexpr dart::compiler::target::word FinalizerBase_detachments_offset =
-    16;
+    20;
 static constexpr dart::compiler::target::word
-    FinalizerBase_entries_collected_offset = 24;
+    FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word FinalizerBase_isolate_offset = 8;
 static constexpr dart::compiler::target::word FinalizerEntry_detach_offset = 12;
 static constexpr dart::compiler::target::word
@@ -8132,11 +8132,11 @@ static constexpr dart::compiler::target::word Finalizer_type_arguments_offset =
     36;
 static constexpr dart::compiler::target::word Finalizer_callback_offset = 32;
 static constexpr dart::compiler::target::word FinalizerBase_all_entries_offset =
-    20;
+    24;
 static constexpr dart::compiler::target::word FinalizerBase_detachments_offset =
-    16;
+    20;
 static constexpr dart::compiler::target::word
-    FinalizerBase_entries_collected_offset = 24;
+    FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word FinalizerBase_isolate_offset = 8;
 static constexpr dart::compiler::target::word FinalizerEntry_detach_offset = 12;
 static constexpr dart::compiler::target::word
@@ -11957,11 +11957,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_all_entries_offset = 20;
+    AOT_FinalizerBase_all_entries_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_detachments_offset = 16;
+    AOT_FinalizerBase_detachments_offset = 20;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_entries_collected_offset = 24;
+    AOT_FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word AOT_FinalizerBase_isolate_offset =
     8;
 static constexpr dart::compiler::target::word AOT_FinalizerEntry_detach_offset =
@@ -12625,11 +12625,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_all_entries_offset = 20;
+    AOT_FinalizerBase_all_entries_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_detachments_offset = 16;
+    AOT_FinalizerBase_detachments_offset = 20;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_entries_collected_offset = 24;
+    AOT_FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word AOT_FinalizerBase_isolate_offset =
     8;
 static constexpr dart::compiler::target::word AOT_FinalizerEntry_detach_offset =
@@ -16612,11 +16612,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_all_entries_offset = 20;
+    AOT_FinalizerBase_all_entries_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_detachments_offset = 16;
+    AOT_FinalizerBase_detachments_offset = 20;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_entries_collected_offset = 24;
+    AOT_FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word AOT_FinalizerBase_isolate_offset =
     8;
 static constexpr dart::compiler::target::word AOT_FinalizerEntry_detach_offset =
@@ -17273,11 +17273,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Finalizer_callback_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_all_entries_offset = 20;
+    AOT_FinalizerBase_all_entries_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_detachments_offset = 16;
+    AOT_FinalizerBase_detachments_offset = 20;
 static constexpr dart::compiler::target::word
-    AOT_FinalizerBase_entries_collected_offset = 24;
+    AOT_FinalizerBase_entries_collected_offset = 28;
 static constexpr dart::compiler::target::word AOT_FinalizerBase_isolate_offset =
     8;
 static constexpr dart::compiler::target::word AOT_FinalizerEntry_detach_offset =

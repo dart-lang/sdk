@@ -15,6 +15,7 @@ dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for te
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/data_uri_import_test/none: SkipByDesign
+dart/disassemble_aot_test: Pass, Slow # Spawns several subprocesses
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
@@ -30,6 +31,7 @@ dart_2/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for 
 dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/byte_array_optimized_test: Pass, Slow
 dart_2/data_uri_import_test/none: SkipByDesign
+dart_2/disassemble_aot_test: Pass, Slow # Spawns several subprocesses
 dart_2/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart_2/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.

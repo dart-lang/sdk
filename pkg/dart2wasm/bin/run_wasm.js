@@ -64,12 +64,29 @@ function arrayFromDartList(list, reader) {
     return array;
 }
 
+// TODO(joshualitt): Once we can properly return functions, then we can also try
+// returning a regular closure with some custom keys and a special symbol to
+// disambiguate it from other functions. I suspect this will also be necessary
+// for CSP.
+class WrappedDartCallback extends Function {
+    constructor(dartCallback, exportFunctionName) {
+        super('dartCallback', '...args',
+            `return dartInstance.exports['${exportFunctionName}'](
+                dartCallback, ...args.map(dartify));`);
+        this.bound = this.bind(this, dartCallback);
+        this.bound.dartCallback = dartCallback;
+        return this.bound;
+    }
+}
+
 // Recursively converts a JS object into a Dart object.
 function dartify(object) {
     if (typeof object === "string") {
         return stringToDartString(object);
     } else if (object instanceof Array) {
         return arrayToDartList(object);
+    } else if (object instanceof WrappedDartCallback) {
+        return object.dartCallback;
     } else if (object instanceof Object) {
         return dartInstance.exports.$boxJSValue(object);
     } else {
@@ -104,6 +121,9 @@ var dart2wasm = {
     arrayToDartList: arrayToDartList,
     stringFromDartString: stringFromDartString,
     stringToDartString: stringToDartString,
+    wrapDartCallback: function(dartCallback, exportFunctionName) {
+        return new WrappedDartCallback(dartCallback, exportFunctionName);
+    },
     dartify: dartify,
     newObject: function() {
         return {};

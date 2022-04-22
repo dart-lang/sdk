@@ -49,9 +49,18 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _getPropertyTarget;
   final Procedure _setPropertyTarget;
   final Procedure _jsifyTarget;
+  final Procedure _jsifyRawTarget;
   final Procedure _dartifyTarget;
   final Procedure _newObjectTarget;
+  final Procedure _wrapDartCallbackTarget;
+  final Procedure _allowInteropTarget;
   final Class _jsValueClass;
+  final Class _wasmAnyRefClass;
+  final Class _objectClass;
+  final Class _pragmaClass;
+  final Field _pragmaName;
+  final Field _pragmaOptions;
+  int _callbackTrampolineN = 1;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
@@ -71,12 +80,23 @@ class JsUtilWasmOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util_wasm', 'setProperty'),
         _jsifyTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util_wasm', 'jsify'),
+        _jsifyRawTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util_wasm', 'jsifyRaw'),
         _dartifyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util_wasm', 'dartify'),
+        _wrapDartCallbackTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util_wasm', '_wrapDartCallback'),
         _newObjectTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util_wasm', 'newObject'),
+        _allowInteropTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util_wasm', 'allowInterop'),
         _jsValueClass =
             _coreTypes.index.getClass('dart:js_util_wasm', 'JSValue'),
+        _wasmAnyRefClass = _coreTypes.index.getClass('dart:wasm', 'WasmAnyRef'),
+        _objectClass = _coreTypes.objectClass,
+        _pragmaClass = _coreTypes.pragmaClass,
+        _pragmaName = _coreTypes.pragmaName,
+        _pragmaOptions = _coreTypes.pragmaOptions,
         _staticTypeContext = StatefulStaticTypeContext.stacked(
             TypeEnvironment(_coreTypes, hierarchy)) {}
 
@@ -95,6 +115,16 @@ class JsUtilWasmOptimizer extends Transformer {
     _staticTypeContext.enterMember(node);
     node.transformChildren(this);
     _staticTypeContext.leaveMember(node);
+    return node;
+  }
+
+  @override
+  StaticInvocation visitStaticInvocation(StaticInvocation node) {
+    if (node.target == _allowInteropTarget) {
+      Expression argument = node.arguments.positional.single;
+      DartType functionType = argument.getStaticType(_staticTypeContext);
+      return _allowInterop(node.target, functionType as FunctionType, argument);
+    }
     return node;
   }
 
@@ -184,8 +214,98 @@ class JsUtilWasmOptimizer extends Transformer {
   DartType get _nonNullableJSValueType =>
       _jsValueClass.getThisType(_coreTypes, Nullability.nonNullable);
 
-  Expression _jsifyVariable(VariableDeclaration variable) =>
-      StaticInvocation(_jsifyTarget, Arguments([VariableGet(variable)]));
+  Expression _dartify(Expression expression) =>
+      StaticInvocation(_dartifyTarget, Arguments([expression]));
+
+  /// Creates a callback trampoline for the given [function]. This callback
+  /// trampoline expects a Dart callback as its first argument, followed by all
+  /// of the arguments to the Dart callback as Dart objects. The trampoline will
+  /// cast all incoming Dart objects to the appropriate types, dispatch, and
+  /// then `jsifyRaw` any returned value. [_createCallbackTrampoline] Returns a
+  /// [String] function name representing the name of the wrapping function.
+  /// TODO(joshualitt): Share callback trampolines if the [FunctionType]
+  /// matches.
+  String _createCallbackTrampoline(Procedure node, FunctionType function) {
+    int fileOffset = node.fileOffset;
+    Library library = node.enclosingLibrary;
+
+    // Create arguments for each positional parameter in the function. These
+    // arguments will be converted in JS to Dart objects. The generated wrapper
+    // will cast each argument to the correct type.  The first argument to this
+    // function will be the Dart callback, which will be cast to the supplied
+    // [FunctionType] before being invoked.
+    int parameterId = 1;
+    DartType nonNullableObjectType =
+        _objectClass.getThisType(_coreTypes, Nullability.nonNullable);
+    final callbackVariable =
+        VariableDeclaration('callback', type: nonNullableObjectType);
+    List<VariableDeclaration> positionalParameters = [callbackVariable];
+    List<Expression> callbackArguments = [];
+    DartType nullableObjectType =
+        _objectClass.getThisType(_coreTypes, Nullability.nullable);
+    for (DartType type in function.positionalParameters) {
+      VariableDeclaration variable =
+          VariableDeclaration('x${parameterId++}', type: nullableObjectType);
+      positionalParameters.add(variable);
+      callbackArguments.add(AsExpression(VariableGet(variable), type));
+    }
+
+    // Create a new procedure for the callback trampoline. This procedure will
+    // be exported from Wasm to JS so it can be called from JS. The argument
+    // returned from the supplied callback will be converted with `jsifyRaw` to
+    // a native JS value before being returned to JS.
+    DartType nullableWasmAnyRefType =
+        _wasmAnyRefClass.getThisType(_coreTypes, Nullability.nullable);
+    final callbackTrampolineName =
+        '|_callbackTrampoline${_callbackTrampolineN++}';
+    final callbackTrampolineImportName = '\$$callbackTrampolineName';
+    final callbackTrampoline = Procedure(
+        Name(callbackTrampolineName, library),
+        ProcedureKind.Method,
+        FunctionNode(
+            ReturnStatement(StaticInvocation(
+                _jsifyRawTarget,
+                Arguments([
+                  FunctionInvocation(
+                      FunctionAccessKind.FunctionType,
+                      AsExpression(VariableGet(callbackVariable), function),
+                      Arguments(callbackArguments),
+                      functionType: function),
+                ]))),
+            positionalParameters: positionalParameters,
+            returnType: nullableWasmAnyRefType)
+          ..fileOffset = fileOffset,
+        isStatic: true,
+        fileUri: node.fileUri)
+      ..fileOffset = fileOffset
+      ..isNonNullableByDefault = true;
+    callbackTrampoline.addAnnotation(
+        ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
+      _pragmaName.fieldReference: StringConstant('wasm:export'),
+      _pragmaOptions.fieldReference:
+          StringConstant(callbackTrampolineImportName)
+    })));
+    library.addProcedure(callbackTrampoline);
+    return callbackTrampolineImportName;
+  }
+
+  /// Lowers a [StaticInvocation] of `allowInterop` to
+  /// [_createCallbackTrampoline] followed by `_wrapDartCallback`.
+  StaticInvocation _allowInterop(
+      Procedure node, FunctionType type, Expression argument) {
+    String callbackTrampolineName = _createCallbackTrampoline(node, type);
+    return StaticInvocation(_wrapDartCallbackTarget,
+        Arguments([argument, StringLiteral(callbackTrampolineName)]));
+  }
+
+  Expression _jsifyVariable(Procedure node, VariableDeclaration variable) {
+    if (variable.type is FunctionType) {
+      return _allowInterop(
+          node, variable.type as FunctionType, VariableGet(variable));
+    } else {
+      return StaticInvocation(_jsifyTarget, Arguments([VariableGet(variable)]));
+    }
+  }
 
   StaticInvocation get _globalThis =>
       StaticInvocation(_globalThisTarget, Arguments([]));
@@ -233,15 +353,14 @@ class JsUtilWasmOptimizer extends Transformer {
           _globalThis,
           StringLiteral(constructorName),
           ListLiteral(
-              function.positionalParameters.map(_jsifyVariable).toList(),
+              function.positionalParameters
+                  .map((arg) => _jsifyVariable(node, arg))
+                  .toList(),
               typeArgument: _nonNullableJSValueType)
         ]))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(callConstructorInvocation);
   }
-
-  Expression _dartify(Expression expression) =>
-      StaticInvocation(_dartifyTarget, Arguments([expression]));
 
   /// Returns a new [Expression] for the given [node] external getter.
   ///
@@ -274,8 +393,10 @@ class JsUtilWasmOptimizer extends Transformer {
   /// `js_util_wasm.setProperty([object], [setterName], [value])`.
   Expression _setProperty(Procedure node, Expression object, String setterName,
           VariableDeclaration value) =>
-      StaticInvocation(_setPropertyTarget,
-          Arguments([object, StringLiteral(setterName), _jsifyVariable(value)]))
+      StaticInvocation(
+          _setPropertyTarget,
+          Arguments(
+              [object, StringLiteral(setterName), _jsifyVariable(node, value)]))
         ..fileOffset = node.fileOffset;
 
   /// Returns a new function body for the given [node] external setter.
@@ -306,7 +427,8 @@ class JsUtilWasmOptimizer extends Transformer {
         Arguments([
           object,
           StringLiteral(methodName),
-          ListLiteral(values.map(_jsifyVariable).toList(),
+          ListLiteral(
+              values.map((value) => _jsifyVariable(node, value)).toList(),
               typeArgument: _nullableJSValueType)
         ])))
       ..fileOffset = node.fileOffset;

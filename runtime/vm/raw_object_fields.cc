@@ -195,6 +195,20 @@ namespace dart {
   F(WeakProperty, value_)                                                      \
   F(WeakReference, target_)                                                    \
   F(WeakReference, type_arguments_)                                            \
+  F(Finalizer, detachments_)                                                   \
+  F(Finalizer, all_entries_)                                                   \
+  F(Finalizer, entries_collected_)                                             \
+  F(Finalizer, callback_)                                                      \
+  F(Finalizer, type_arguments_)                                                \
+  F(NativeFinalizer, detachments_)                                             \
+  F(NativeFinalizer, all_entries_)                                             \
+  F(NativeFinalizer, entries_collected_)                                       \
+  F(NativeFinalizer, callback_)                                                \
+  F(FinalizerEntry, value_)                                                    \
+  F(FinalizerEntry, detach_)                                                   \
+  F(FinalizerEntry, token_)                                                    \
+  F(FinalizerEntry, finalizer_)                                                \
+  F(FinalizerEntry, next_)                                                     \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
   F(PointerBase, data_)                                                        \

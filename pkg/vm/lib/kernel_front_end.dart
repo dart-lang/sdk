@@ -80,6 +80,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null);
+  args.addFlag('compact-async',
+      help: 'Enable new compact async/await implementation.', defaultsTo: null);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -200,6 +202,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
+  final bool compactAsync = options['compact-async'] ?? false /*aot*/;
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
@@ -283,7 +286,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
-      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
+      supportMirrors: supportMirrors ?? !(aot || minimalKernel),
+      compactAsync: compactAsync);
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -612,14 +616,16 @@ Future<void> autoDetectNullSafetyMode(
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
     bool nullSafety = false,
-    bool supportMirrors = true}) {
+    bool supportMirrors = true,
+    bool compactAsync = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
       enableNullSafety: nullSafety,
-      supportMirrors: supportMirrors);
+      supportMirrors: supportMirrors,
+      compactAsync: compactAsync);
   return getTarget(targetName, targetFlags);
 }
 

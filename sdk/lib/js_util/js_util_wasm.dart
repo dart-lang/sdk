@@ -38,6 +38,15 @@ external WasmAnyRef _jsStringFromDartString(String string);
 @pragma("wasm:import", "dart2wasm.stringToDartString")
 external String _jsStringToDartString(WasmAnyRef string);
 
+@pragma("wasm:import", "dart2wasm.wrapDartCallback")
+external WasmAnyRef _wrapDartCallbackRaw(
+    WasmAnyRef callback, WasmAnyRef trampolineName);
+
+JSValue? _wrapDartCallback(Object callback, String trampolineName) {
+  return JSValue(_wrapDartCallbackRaw(
+      callback.toJS().toAnyRef(), trampolineName.toJS().toAnyRef()));
+}
+
 /// Raw public JS functions.
 /// These are public temporarily to give performance conscious users an escape
 /// hatch while we decide what this API will actually look like. They may
@@ -162,3 +171,11 @@ JSValue? setProperty(JSValue o, String name, JSValue? value) => JSValue.box(
 JSValue? callMethodVarArgs(JSValue o, String method, List<JSValue?> args) =>
     JSValue.box(callMethodVarArgsRaw(
         o.toAnyRef(), method.toJS().toAnyRef(), args.toJS().toAnyRef()));
+
+/// Returns a wrapped version of [f] suitable for calling from JS. Use [dartify]
+/// to convert back to Dart.
+/// TODO(joshualitt): This is significantly different from the implementation of
+/// [allowInterop] on other web backends. We will need to come up with a unified
+/// semantics or Dart programs will not be able to work correctly across
+/// different web backends.
+external JSValue allowInterop<F extends Function>(F f);

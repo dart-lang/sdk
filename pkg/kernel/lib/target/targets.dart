@@ -16,11 +16,13 @@ class TargetFlags {
   final bool trackWidgetCreation;
   final bool enableNullSafety;
   final bool supportMirrors;
+  final bool compactAsync;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
-      this.supportMirrors = true});
+      this.supportMirrors = true,
+      this.compactAsync = false});
 
   @override
   bool operator ==(other) {
@@ -28,7 +30,8 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         enableNullSafety == other.enableNullSafety &&
-        supportMirrors == other.supportMirrors;
+        supportMirrors == other.supportMirrors &&
+        compactAsync == other.compactAsync;
   }
 
   @override
@@ -37,6 +40,7 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ compactAsync.hashCode));
     return hash;
   }
 }
@@ -546,6 +550,8 @@ abstract class Target {
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
+
+  Class? concreteAsyncResultClass(CoreTypes coreTypes) => null;
 
   ConstantsBackend get constantsBackend;
 

@@ -372,7 +372,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      name = info.code.first.text;
+      name = info.code.first.text ?? '';
     } else {
       name = longName(info, useLibraryUri: true, forId: true);
     }
@@ -427,7 +427,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     };
   }
 
-  Map _visitDependencyInfo(DependencyInfo info) =>
+  Map visitDependencyInfo(DependencyInfo info) =>
       {'id': idFor(info.target).serializedId, 'mask': info.mask};
 
   Map _visitAllInfoHolding(AllInfo allInfo) {
@@ -435,7 +435,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     void helper(CodeInfo info) {
       if (info.uses.isEmpty) return;
       map[idFor(info).serializedId] = info.uses
-          .map(_visitDependencyInfo)
+          .map(visitDependencyInfo)
           .toList()
         ..sort((a, b) => a['id'].compareTo(b['id']));
     }

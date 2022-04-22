@@ -2602,7 +2602,8 @@ class BinaryBuilder {
   }
 
   Expression _readAwaitExpression() {
-    return new AwaitExpression(readExpression());
+    int offset = readOffset();
+    return new AwaitExpression(readExpression())..fileOffset = offset;
   }
 
   Expression _readFunctionExpression() {
