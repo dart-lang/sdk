@@ -1028,8 +1028,10 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
     Report::LongJump(language_error);
   }
 
+  const auto& name =
+      String::Handle(parsed_function_->function().UserVisibleName());
   const Function& target = Function::ZoneHandle(
-      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf));
+      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf, name));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address
