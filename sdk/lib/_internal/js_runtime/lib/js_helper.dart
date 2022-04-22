@@ -2768,7 +2768,7 @@ final String _thisScriptBaseUrl = _computeBaseUrl();
 
 String _computeBaseUrl() {
   String script = thisScript!;
-  return JS('', '#.substring(0, #.lastIndexOf("/"))', script, script);
+  return JS('', '#.substring(0, #.lastIndexOf("/") + 1)', script, script);
 }
 
 /// Trusted Type policy [1] for generating validated URLs for scripts for
@@ -2810,10 +2810,13 @@ Object _computePolicy() {
 Object _getBasedScriptUrl(String component) {
   final base = _thisScriptBaseUrl;
   final encodedComponent = _encodeURIComponent(component);
-  final url = '$base/$encodedComponent';
+  final url = '$base$encodedComponent';
   final policy = _deferredLoadingTrustedTypesPolicy;
   return JS('', '#.createScriptURL(#)', policy, url);
 }
+
+Object getBasedScriptUrlForTesting(String component) =>
+    _getBasedScriptUrl(component);
 
 String _encodeURIComponent(String component) {
   return JS('', 'self.encodeURIComponent(#)', component);

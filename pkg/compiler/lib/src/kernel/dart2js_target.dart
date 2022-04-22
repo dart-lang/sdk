@@ -43,9 +43,11 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web/native'),
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',
+  'generated_tests/web/internal/deferred_url_test',
   RegExp(r'(?<!generated_)tests/web_2/native'),
   RegExp(r'(?<!generated_)tests/web_2/internal'),
   'generated_tests/web_2/native/native_test',
+  'generated_tests/web_2/internal/deferred_url_test',
 ];
 
 bool allowedNativeTest(Uri uri) {
