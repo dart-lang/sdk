@@ -3651,6 +3651,50 @@ class B extends A1 with A2 {
     assertSuggestMethod('y2', 'A2', 'int');
   }
 
+  Future<void> test_inherited_static_field() async {
+    addTestSource('''
+class A {
+  static int f1 = 1;
+  int f2 = 2;
+}
+class B extends A {
+  static int f3 = 3;
+  int f4 = 4;
+
+  void m() {
+    f^
+  }
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('f1');
+    assertSuggestField('f2', 'int');
+    assertSuggestField('f3', 'int');
+    assertSuggestField('f4', 'int');
+  }
+
+  Future<void> test_inherited_static_method() async {
+    addTestSource('''
+class A {
+  static void m1() {};
+  void m2() {};
+}
+class B extends A {
+  static void m3() {};
+  void m4() {};
+
+  void test() {
+    m^
+  }
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('m1');
+    assertSuggestMethod('m2', 'A', 'void');
+    assertSuggestMethod('m3', 'B', 'void');
+    assertSuggestMethod('m4', 'B', 'void');
+  }
+
   Future<void> test_InstanceCreationExpression() async {
     addTestSource('''
 class A {foo(){var f; {var x;}}}
