@@ -166,9 +166,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   final DiagnosticReporter reporter;
   // For error reporting only.
-  Spannable get spannable {
-    return (_spannable == null) ? NO_LOCATION_SPANNABLE : _spannable;
-  }
+  Spannable get spannable => _spannable ?? NO_LOCATION_SPANNABLE;
 
   Spannable _spannable;
 

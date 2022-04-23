@@ -143,7 +143,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         () => NativeBehavior.readFromDataSource(source),
         emptyAsNull: true);
     Set<FunctionEntity> nativeMethods =
-        source.readMembers<FunctionEntity>(emptyAsNull: true)?.toSet();
+        source.readMembersOrNull<FunctionEntity>()?.toSet();
     Set<Selector> oneShotInterceptors = source
         .readList(() => Selector.readFromDataSource(source), emptyAsNull: true)
         ?.toSet();

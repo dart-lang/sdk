@@ -29,7 +29,7 @@ int nativeOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-SourceSpan? computeSourceSpanFromTreeNode(ir.TreeNode node) {
+SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
   // TODO(johnniwinther): Use [ir.Location] directly as a [SourceSpan].
   Uri? uri;
   late int offset;
@@ -44,7 +44,7 @@ SourceSpan? computeSourceSpanFromTreeNode(ir.TreeNode node) {
   if (uri != null) {
     return SourceSpan(uri, offset, offset + 1);
   }
-  return null;
+  return SourceSpan.unknown();
 }
 
 /// Returns the `AsyncMarker` corresponding to `node.asyncMarker`.

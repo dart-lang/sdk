@@ -13,6 +13,7 @@ import 'package:dart2wasm/translator.dart';
 
 final Map<String, void Function(TranslatorOptions, bool)> boolOptionMap = {
   "export-all": (o, value) => o.exportAll = value,
+  "import-shared-memory": (o, value) => o.importSharedMemory = value,
   "inlining": (o, value) => o.inlining = value,
   "lazy-constants": (o, value) => o.lazyConstants = value,
   "local-nullability": (o, value) => o.localNullability = value,
@@ -27,6 +28,7 @@ final Map<String, void Function(TranslatorOptions, bool)> boolOptionMap = {
   "string-data-segments": (o, value) => o.stringDataSegments = value,
 };
 final Map<String, void Function(TranslatorOptions, int)> intOptionMap = {
+  "shared-memory-max-pages": (o, value) => o.sharedMemoryMaxPages = value,
   "watch": (o, value) => (o.watchPoints ??= []).add(value),
 };
 
@@ -81,6 +83,11 @@ Future<int> main(List<String> args) async {
   }
   if (intOptionFun != null) {
     usage("Missing argument to ${args.last}");
+  }
+
+  if (options.importSharedMemory && options.sharedMemoryMaxPages == null) {
+    usage("--shared-memory-max-pages must be "
+        "specified if --import-shared-memory is used.");
   }
 
   if (nonOptions.length != 2) usage("Requires two file arguments");

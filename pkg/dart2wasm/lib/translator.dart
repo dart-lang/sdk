@@ -27,6 +27,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// Options controlling the translation.
 class TranslatorOptions {
   bool exportAll = false;
+  bool importSharedMemory = false;
   bool inlining = false;
   int inliningLimit = 3;
   bool lazyConstants = false;
@@ -38,6 +39,7 @@ class TranslatorOptions {
   bool printKernel = false;
   bool printWasm = false;
   bool runtimeTypes = false;
+  int? sharedMemoryMaxPages;
   bool stringDataSegments = false;
   List<int>? watchPoints = null;
 
@@ -127,7 +129,8 @@ class Translator {
   // Lazily create exception tag if used.
   late final w.Tag exceptionTag = createExceptionTag();
   // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = m.importMemory("ffi", "memory", 0);
+  late final w.Memory ffiMemory = m.importMemory("ffi", "memory",
+      options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};

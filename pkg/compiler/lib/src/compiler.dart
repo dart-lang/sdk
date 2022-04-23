@@ -25,6 +25,8 @@ import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
+import 'diagnostics/compiler_diagnostics_facade.dart'
+    show CompilerDiagnosticsFacade;
 import 'diagnostics/messages.dart' show Message;
 import 'dump_info.dart' show DumpInfoStateData, DumpInfoTask;
 import 'elements/entities.dart';
@@ -63,7 +65,7 @@ import 'world.dart' show JClosedWorld;
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
-class Compiler {
+class Compiler implements CompilerDiagnosticsFacade {
   final Measurer measurer;
   final api.CompilerInput provider;
   final api.CompilerDiagnostics handler;
@@ -76,6 +78,7 @@ class Compiler {
   GenericTask userProviderTask;
 
   /// Options provided from command-line arguments.
+  @override // CompilerDiagnosticsFacade
   final CompilerOptions options;
 
   // These internal flags are used to stop compilation after a specific phase.
@@ -102,8 +105,6 @@ class Compiler {
 
   final Environment environment;
 
-  Entity get currentElement => _reporter.currentElement;
-
   List<CompilerTask> tasks;
   GenericTask loadKernelTask;
   fe.InitializedCompilerState initializedCompilerState;
@@ -128,6 +129,7 @@ class Compiler {
   static const int PHASE_COMPILING = 3;
   int phase;
 
+  @override // CompilerDiagnosticsFacade
   bool compilationFailed = false;
 
   psc.ConstraintData programSplitConstraintsData;
@@ -756,6 +758,7 @@ class Compiler {
         'Compiled ', enqueuer.processedEntities.length, ' methods.');
   }
 
+  @override // CompilerDiagnosticsFacade
   void reportDiagnostic(DiagnosticMessage message,
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
@@ -768,7 +771,7 @@ class Compiler {
       DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
     var span = diagnosticMessage.sourceSpan;
     var message = diagnosticMessage.message;
-    if (span == null || span.uri == null) {
+    if (span.isUnknown) {
       callUserHandler(message, null, null, null, '$message', kind);
     } else {
       callUserHandler(
@@ -820,6 +823,7 @@ class Compiler {
     return !BENIGN_ERRORS.contains(message.message.kind);
   }
 
+  @override // CompilerDiagnosticsFacade
   void fatalDiagnosticReported(DiagnosticMessage message,
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     if (markCompilationAsFailed(message, kind)) {
@@ -827,7 +831,22 @@ class Compiler {
     }
   }
 
+  /// Compute a [SourceSpan] from spannable using the [currentElement] as
+  /// context.
+  @override // CompilerDiagnosticsFacade
+  SourceSpan spanFromSpannable(
+      Spannable spannable, Entity /*?*/ currentElement) {
+    SourceSpan span;
+    if (phase == Compiler.PHASE_COMPILING) {
+      span = backendStrategy.spanFromSpannable(spannable, currentElement);
+    } else {
+      span = frontendStrategy.spanFromSpannable(spannable, currentElement);
+    }
+    return span;
+  }
+
   /// Helper for determining whether [element] is declared within 'user code'.
+  @override // CompilerDiagnosticsFacade
   bool inUserCode(Entity element) {
     return element == null || _uriFromElement(element) != null;
   }
@@ -837,6 +856,7 @@ class Compiler {
   /// For a package library with canonical URI 'package:foo/bar/baz.dart' the
   /// return URI is 'package:foo'. For non-package libraries the returned URI is
   /// the canonical URI of the library itself.
+  @override // CompilerDiagnosticsFacade
   Uri getCanonicalUri(Entity element) {
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return null;

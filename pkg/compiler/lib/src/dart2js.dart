@@ -14,6 +14,7 @@ import 'dart:isolate' show Isolate;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
+import '../compiler_api_unmigrated.dart' as api_unmigrated;
 import 'commandline_options.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
@@ -1270,7 +1271,7 @@ Usage: dart compile js [arguments] <dart entry point>
 
     -O3
        Enables optimizations that respect the language semantics only on
-       programs that don't ever throw any subtype of `Error`.  These
+       programs that do not ever throw any subtype of `Error`.  These
        optimizations improve the generated code, but they may cause programs to
        behave unexpectedly if this assumption is not met.  To use this
        option, we recommend that you properly test your application first
@@ -1433,7 +1434,7 @@ typedef CompileFunc = Future<api.CompilationResult> Function(
     api.CompilerOutput compilerOutput);
 
 ExitFunc exitFunc = exit;
-CompileFunc compileFunc = api.compile;
+CompileFunc compileFunc = api_unmigrated.compile;
 
 /// If `true` a '.deps' file will be generated after compilation.
 ///
