@@ -109,6 +109,16 @@ void f(C c) {
 ''', 'int');
   }
 
+  Future<void> test_argumentList_named_second() async {
+    await assertContextType('''
+void f({String p1, int p2}) {}
+
+void g() {
+  f(p1: '', p2: ^);
+}
+''', 'int');
+  }
+
   Future<void> test_argumentList_named_unresolved_hasNamedParameters() async {
     await assertContextType('''
 void f({int i}) {}
