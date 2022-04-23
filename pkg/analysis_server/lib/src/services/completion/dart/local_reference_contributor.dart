@@ -99,36 +99,42 @@ class LocalReferenceContributor extends DartCompletionContributor {
     var opType = request.opType;
     if (!isFunctionalArgument) {
       for (var accessor in type.accessors) {
-        if (visibilityTracker._isVisible(accessor.declaration)) {
-          if (accessor.isGetter) {
-            if (opType.includeReturnValueSuggestions) {
-              memberBuilder.addSuggestionForAccessor(
-                  accessor: accessor, inheritanceDistance: inheritanceDistance);
-            }
-          } else {
-            if (opType.includeVoidReturnSuggestions) {
-              memberBuilder.addSuggestionForAccessor(
-                  accessor: accessor, inheritanceDistance: inheritanceDistance);
+        if (!accessor.isStatic) {
+          if (visibilityTracker._isVisible(accessor.declaration)) {
+            if (accessor.isGetter) {
+              if (opType.includeReturnValueSuggestions) {
+                memberBuilder.addSuggestionForAccessor(
+                    accessor: accessor,
+                    inheritanceDistance: inheritanceDistance);
+              }
+            } else {
+              if (opType.includeVoidReturnSuggestions) {
+                memberBuilder.addSuggestionForAccessor(
+                    accessor: accessor,
+                    inheritanceDistance: inheritanceDistance);
+              }
             }
           }
         }
       }
     }
     for (var method in type.methods) {
-      if (visibilityTracker._isVisible(method.declaration)) {
-        if (!method.returnType.isVoid) {
-          if (opType.includeReturnValueSuggestions) {
-            memberBuilder.addSuggestionForMethod(
-                method: method,
-                inheritanceDistance: inheritanceDistance,
-                kind: classMemberSuggestionKind);
-          }
-        } else {
-          if (opType.includeVoidReturnSuggestions) {
-            memberBuilder.addSuggestionForMethod(
-                method: method,
-                inheritanceDistance: inheritanceDistance,
-                kind: classMemberSuggestionKind);
+      if (!method.isStatic) {
+        if (visibilityTracker._isVisible(method.declaration)) {
+          if (!method.returnType.isVoid) {
+            if (opType.includeReturnValueSuggestions) {
+              memberBuilder.addSuggestionForMethod(
+                  method: method,
+                  inheritanceDistance: inheritanceDistance,
+                  kind: classMemberSuggestionKind);
+            }
+          } else {
+            if (opType.includeVoidReturnSuggestions) {
+              memberBuilder.addSuggestionForMethod(
+                  method: method,
+                  inheritanceDistance: inheritanceDistance,
+                  kind: classMemberSuggestionKind);
+            }
           }
         }
       }
