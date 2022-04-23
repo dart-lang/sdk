@@ -11,6 +11,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
+import '../diagnostics/spannable_with_entity.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -1037,7 +1038,7 @@ class HBasicBlock extends HInstructionList {
   toString() => 'HBasicBlock($id)';
 }
 
-abstract class HInstruction implements Spannable {
+abstract class HInstruction implements SpannableWithEntity {
   Entity sourceElement;
   SourceInformation sourceInformation;
 
@@ -1118,6 +1119,12 @@ abstract class HInstruction implements Spannable {
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
+
+  @override
+  Entity /*?*/ get sourceEntity => sourceElement;
+
+  @override
+  SourceSpan /*?*/ get sourceSpan => sourceInformation?.sourceSpan;
 
   @override
   int get hashCode => id;

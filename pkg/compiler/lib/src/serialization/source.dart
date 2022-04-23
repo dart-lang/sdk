@@ -899,7 +899,7 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed member from this data source.
-  IndexedMember readMember() {
+  IndexedMember /*!*/ readMember() {
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
@@ -914,15 +914,24 @@ class DataSourceReader {
   }
 
   /// Reads a list of references to indexed members from this data source.
-  /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMembers].
-  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false}) {
+  List<E /*!*/ > readMembers<E extends MemberEntity /*!*/ >() {
+    return readMembersOrNull() ?? List.empty();
+  }
+
+  /// Reads a list of references to indexed members from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeMembers].
+  List<E /*!*/ > readMembersOrNull<E extends MemberEntity /*!*/ >() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<E> list = List<E>.filled(count, null);
-    for (int i = 0; i < count; i++) {
+    if (count == 0) return null;
+    MemberEntity firstMember = readMember();
+    List<E> list = List<E>.filled(count, firstMember);
+    for (int i = 1; i < count; i++) {
       MemberEntity member = readMember();
       list[i] = member;
     }

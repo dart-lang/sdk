@@ -2,26 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.diagnostic_listener;
 
 import '../../compiler_api.dart' as api;
-import '../compiler.dart' show Compiler;
+import 'compiler_diagnostics_facade.dart';
 import '../elements/entities.dart';
-import '../io/source_information.dart';
 import '../options.dart';
-import '../ssa/nodes.dart' show HInstruction;
 import 'messages.dart';
 import 'source_span.dart' show SourceSpan;
 import 'spannable.dart';
+import 'spannable_with_entity.dart';
 
 class DiagnosticReporter {
-  final Compiler _compiler;
+  final CompilerDiagnosticsFacade _compiler;
 
   CompilerOptions get options => _compiler.options;
 
-  Entity _currentElement;
+  Entity? _currentElement;
   bool _hasCrashed = false;
 
   /// `true` if the last diagnostic was filtered, in which case the
@@ -34,12 +31,12 @@ class DiagnosticReporter {
 
   DiagnosticReporter(this._compiler);
 
-  Entity get currentElement => _currentElement;
+  Entity? get currentElement => _currentElement;
 
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map<String, String> arguments = const {}]) {
     SourceSpan span = spanFromSpannable(spannable);
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind]!;
     Message message = template.message(arguments, options);
     return DiagnosticMessage(span, spannable, message);
   }
@@ -91,8 +88,8 @@ class DiagnosticReporter {
       switch (kind) {
         case api.Diagnostic.WARNING:
         case api.Diagnostic.HINT:
-          Entity element = _elementFromSpannable(message.spannable);
-          if (!_compiler.inUserCode(element)) {
+          Entity? element = _elementFromSpannable(message.spannable);
+          if (element != null && !_compiler.inUserCode(element)) {
             Uri uri = _compiler.getCanonicalUri(element);
             if (options.showPackageWarningsFor(uri)) {
               _reportDiagnostic(message, infos, kind);
@@ -139,7 +136,7 @@ class DiagnosticReporter {
   /// value from [f].  If an error occurs then report it as having occurred
   /// during compilation of [element].  Can be nested.
   dynamic withCurrentElement(Entity element, dynamic f()) {
-    Entity old = currentElement;
+    Entity? old = currentElement;
     _currentElement = element;
     try {
       return f();
@@ -176,19 +173,10 @@ class DiagnosticReporter {
         api.Diagnostic.CRASH);
   }
 
-  /// Using [frontendStrategy] to compute a [SourceSpan] from spannable using
-  /// the [currentElement] as context.
+  /// Use the compiler context [SourceSpan] from spannable using the
+  /// [currentElement] as context.
   SourceSpan _spanFromStrategy(Spannable spannable) {
-    SourceSpan span;
-    if (_compiler.phase == Compiler.PHASE_COMPILING) {
-      span = _compiler.backendStrategy
-          .spanFromSpannable(spannable, currentElement);
-    } else {
-      span = _compiler.frontendStrategy
-          .spanFromSpannable(spannable, currentElement);
-    }
-    if (span != null) return span;
-    throw 'No error location.';
+    return _compiler.spanFromSpannable(spannable, currentElement);
   }
 
   /// Creates a [SourceSpan] for [node] in scope of the current element.
@@ -197,28 +185,30 @@ class DiagnosticReporter {
   /// tokens can be found within the tokens of the current element.
   SourceSpan spanFromSpannable(Spannable spannable) {
     if (spannable == CURRENT_ELEMENT_SPANNABLE) {
-      spannable = currentElement;
+      if (currentElement == null) return SourceSpan.unknown();
+      spannable = currentElement!;
     } else if (spannable == NO_LOCATION_SPANNABLE) {
-      if (currentElement == null) return null;
-      spannable = currentElement;
+      if (currentElement == null) return SourceSpan.unknown();
+      spannable = currentElement!;
     }
     if (spannable is SourceSpan) {
       return spannable;
-    } else if (spannable is HInstruction) {
-      Entity element = spannable.sourceElement;
-      if (element == null) element = currentElement;
-      SourceInformation position = spannable.sourceInformation;
-      if (position != null) return position.sourceSpan;
-      return _spanFromStrategy(element);
-    } else {
-      return _spanFromStrategy(spannable);
     }
+    if (spannable is SpannableWithEntity) {
+      SourceSpan? span = spannable.sourceSpan;
+      if (span != null) return span;
+      Entity? element = spannable.sourceEntity ?? currentElement;
+      if (element == null) return SourceSpan.unknown();
+      return _spanFromStrategy(element);
+    }
+    return _spanFromStrategy(spannable);
   }
 
-  dynamic internalError(Spannable spannable, reason) {
+  dynamic internalError(Spannable? spannable, reason) {
     String message = tryToString(reason);
     _reportDiagnosticInternal(
-        createMessage(spannable, MessageKind.GENERIC, {'text': message}),
+        createMessage(spannable ?? SourceSpan.unknown(), MessageKind.GENERIC,
+            {'text': message}),
         const <DiagnosticMessage>[],
         api.Diagnostic.CRASH);
     throw 'Internal Error: $message';
@@ -233,27 +223,29 @@ class DiagnosticReporter {
   }
 
   void _pleaseReportCrash() {
-    print(MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]
+    print(MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]!
         .message({'buildId': _compiler.options.buildId}, options));
   }
 
   /// Finds the approximate [Element] for [node]. [currentElement] is used as
   /// the default value.
-  Entity _elementFromSpannable(Spannable node) {
-    Entity element;
+  Entity? _elementFromSpannable(Spannable? node) {
+    Entity? element;
     if (node is Entity) {
       element = node;
-    } else if (node is HInstruction) {
-      element = node.sourceElement;
+    } else if (node is SpannableWithEntity) {
+      element = node.sourceEntity;
     }
     return element ?? currentElement;
   }
 
   void log(message) {
-    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
+    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]!
         .message({'text': '$message'}, options);
-    _reportDiagnostic(DiagnosticMessage(null, null, msg),
-        const <DiagnosticMessage>[], api.Diagnostic.VERBOSE_INFO);
+    _reportDiagnostic(
+        DiagnosticMessage(SourceSpan.unknown(), NO_LOCATION_SPANNABLE, msg),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.VERBOSE_INFO);
   }
 
   String tryToString(object) {
@@ -264,7 +256,7 @@ class DiagnosticReporter {
     }
   }
 
-  Future onError(Uri uri, error, StackTrace stackTrace) {
+  Future onError(Uri? uri, error, StackTrace stackTrace) {
     try {
       if (!_hasCrashed) {
         _hasCrashed = true;
@@ -273,7 +265,7 @@ class DiagnosticReporter {
         } else {
           _reportDiagnostic(
               createMessage(
-                  SourceSpan(uri, 0, 0), MessageKind.COMPILER_CRASHED),
+                  SourceSpan(uri ?? Uri(), 0, 0), MessageKind.COMPILER_CRASHED),
               const <DiagnosticMessage>[],
               api.Diagnostic.CRASH);
         }
@@ -302,14 +294,17 @@ class DiagnosticReporter {
         } else if (info.hints == 0) {
           kind = MessageKind.HIDDEN_WARNINGS;
         }
-        MessageTemplate template = MessageTemplate.TEMPLATES[kind];
+        MessageTemplate template = MessageTemplate.TEMPLATES[kind]!;
         Message message = template.message({
           'warnings': info.warnings.toString(),
           'hints': info.hints.toString(),
           'uri': uri.toString(),
         }, options);
-        _reportDiagnostic(DiagnosticMessage(null, null, message),
-            const <DiagnosticMessage>[], api.Diagnostic.HINT);
+        _reportDiagnostic(
+            DiagnosticMessage(
+                SourceSpan.unknown(), NO_LOCATION_SPANNABLE, message),
+            const <DiagnosticMessage>[],
+            api.Diagnostic.HINT);
       });
     }
   }

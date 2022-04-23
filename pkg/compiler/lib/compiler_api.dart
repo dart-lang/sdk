@@ -2,19 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library compiler;
 
 import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-
-import 'src/compiler.dart' show Compiler;
-import 'src/options.dart' show CompilerOptions;
-
-// Unless explicitly allowed, passing [:null:] for any argument to the
-// methods of library will result in an Error being thrown.
 
 /// Kind of diagnostics that the compiler can report.
 class Diagnostic {
@@ -115,7 +107,7 @@ abstract class CompilerInput {
   /// scanner is more efficient in this case. In either case, the data structure
   /// is expected to hold a zero element at the last position. If this is not
   /// the case, the entire data structure is copied before scanning.
-  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8});
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind = InputKind.UTF8});
 }
 
 /// Output types used in `CompilerOutput.createOutputSink`.
@@ -154,7 +146,7 @@ abstract class OutputSink {
 /// Sink interface used for generating binary data from the compiler.
 abstract class BinaryOutputSink {
   /// Writes indices [start] to [end] of [buffer] to the sink.
-  void write(List<int> buffer, [int start = 0, int end]);
+  void write(List<int> buffer, [int start = 0, int? end]);
 
   /// Closes the sink.
   void close();
@@ -193,7 +185,7 @@ abstract class CompilerDiagnostics {
   /// is the [Message] used to create the diagnostic, if available, from which
   /// the [MessageKind] is accessible.
   void report(
-      var code, Uri uri, int begin, int end, String text, Diagnostic kind);
+      var code, Uri? uri, int? begin, int? end, String text, Diagnostic kind);
 }
 
 /// Information resulting from the compilation.
@@ -211,44 +203,8 @@ class CompilationResult {
   /// Shared state between compilations.
   ///
   /// This is used to speed up batch mode.
-  final fe.InitializedCompilerState kernelInitializedCompilerState;
+  final fe.InitializedCompilerState? kernelInitializedCompilerState;
 
   CompilationResult(this.compiler,
-      {this.isSuccess: true, this.kernelInitializedCompilerState: null});
-}
-
-/// Returns a future that completes to a [CompilationResult] when the Dart
-/// sources in [options] have been compiled.
-///
-/// The generated compiler output is obtained by providing a [compilerOutput].
-///
-/// If the compilation fails, the future's `CompilationResult.isSuccess` is
-/// `false` and [CompilerDiagnostics.report] on [compilerDiagnostics]
-/// is invoked at least once with `kind == Diagnostic.ERROR` or
-/// `kind == Diagnostic.CRASH`.
-Future<CompilationResult> compile(
-    CompilerOptions compilerOptions,
-    CompilerInput compilerInput,
-    CompilerDiagnostics compilerDiagnostics,
-    CompilerOutput compilerOutput) {
-  if (compilerOptions == null) {
-    throw new ArgumentError("compilerOptions must be non-null");
-  }
-  if (compilerInput == null) {
-    throw new ArgumentError("compilerInput must be non-null");
-  }
-  if (compilerDiagnostics == null) {
-    throw new ArgumentError("compilerDiagnostics must be non-null");
-  }
-  if (compilerOutput == null) {
-    throw new ArgumentError("compilerOutput must be non-null");
-  }
-
-  var compiler = Compiler(
-      compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
-  return compiler.run().then((bool success) {
-    return new CompilationResult(compiler,
-        isSuccess: success,
-        kernelInitializedCompilerState: compiler.initializedCompilerState);
-  });
+      {this.isSuccess = true, this.kernelInitializedCompilerState});
 }

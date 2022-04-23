@@ -11,7 +11,14 @@ class SourceSpan implements Spannable {
   final int begin;
   final int end;
 
-  const SourceSpan(this.uri, this.begin, this.end);
+  SourceSpan(this.uri, this.begin, this.end);
+
+  factory SourceSpan.unknown() => _unknown;
+
+  static final SourceSpan _unknown = SourceSpan(Uri(), 0, 0);
+
+  bool get isUnknown => this == _unknown;
+  bool get isKnown => !isUnknown;
 
   @override
   int get hashCode {
@@ -22,7 +29,7 @@ class SourceSpan implements Spannable {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! SourceSpan) return false;
-    return uri == other.uri && begin == other.begin && end == other.end;
+    return begin == other.begin && end == other.end && uri == other.uri;
   }
 
   @override

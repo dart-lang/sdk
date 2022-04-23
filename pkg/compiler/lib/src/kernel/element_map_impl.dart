@@ -161,12 +161,12 @@ class KernelToElementMap implements IrToElementMap {
       } else if (spannable is JLocal) {
         return getSourceSpan(spannable.memberContext, currentElement);
       }
-      return null;
+      return SourceSpan.unknown();
     }
 
     SourceSpan sourceSpan = fromSpannable(spannable);
-    sourceSpan ??= fromSpannable(currentElement);
-    return sourceSpan;
+    if (sourceSpan.isKnown) return sourceSpan;
+    return fromSpannable(currentElement);
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
