@@ -524,15 +524,6 @@ class CancelCorrectionException {
   CancelCorrectionException({this.exception});
 }
 
-/// Describes the location for a newly created [ClassMember].
-class ClassMemberLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  ClassMemberLocation(this.prefix, this.offset, this.suffix);
-}
-
 class CorrectionUtils {
   final CompilationUnit unit;
   final LibraryElement _library;
@@ -979,7 +970,7 @@ class CorrectionUtils {
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
-  ClassMemberLocation newCaseClauseAtEndLocation(SwitchStatement statement) {
+  InsertionLocation newCaseClauseAtEndLocation(SwitchStatement statement) {
     var blockStartLine = getLineThis(statement.leftBracket.offset);
     var blockEndLine = getLineThis(statement.end);
     var offset = blockEndLine;
@@ -991,10 +982,10 @@ class CorrectionUtils {
       offset = statement.leftBracket.end;
       suffix = getLinePrefix(statement.offset);
     }
-    return ClassMemberLocation(prefix, offset, suffix);
+    return InsertionLocation(prefix, offset, suffix);
   }
 
-  ClassMemberLocation? prepareEnumNewConstructorLocation(
+  InsertionLocation? prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
     var indent = getIndent(1);
@@ -1003,7 +994,7 @@ class CorrectionUtils {
         .where((e) => e is FieldDeclaration || e is ConstructorDeclaration)
         .lastOrNull;
     if (targetMember != null) {
-      return ClassMemberLocation(
+      return InsertionLocation(
         endOfLine + endOfLine + indent,
         targetMember.end,
         '',
@@ -1012,7 +1003,7 @@ class CorrectionUtils {
 
     var semicolon = enumDeclaration.semicolon;
     if (semicolon != null) {
-      return ClassMemberLocation(
+      return InsertionLocation(
         endOfLine + endOfLine + indent,
         semicolon.end,
         '',
@@ -1020,14 +1011,14 @@ class CorrectionUtils {
     }
 
     var lastConstant = enumDeclaration.constants.last;
-    return ClassMemberLocation(
+    return InsertionLocation(
       ';$endOfLine$endOfLine$indent',
       lastConstant.end,
       '',
     );
   }
 
-  ClassMemberLocation? prepareNewClassMemberLocation(
+  InsertionLocation? prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
       bool Function(ClassMember existingMember) shouldSkip) {
     var indent = getIndent(1);
@@ -1046,18 +1037,18 @@ class CorrectionUtils {
     }
     // After the last target member.
     if (targetMember != null) {
-      return ClassMemberLocation(
+      return InsertionLocation(
           endOfLine + endOfLine + indent, targetMember.end, '');
     }
     // At the beginning of the class.
     var suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
         ? endOfLine
         : '';
-    return ClassMemberLocation(
+    return InsertionLocation(
         endOfLine + indent, _getLeftBracket(declaration)!.end, suffix);
   }
 
-  ClassMemberLocation? prepareNewConstructorLocation(
+  InsertionLocation? prepareNewConstructorLocation(
       AnalysisSession session, ClassDeclaration classDeclaration) {
     final sortConstructorsFirst = session.analysisContext.analysisOptions
         .isLintEnabled(LintNames.sort_constructors_first);
@@ -1070,13 +1061,13 @@ class CorrectionUtils {
     return prepareNewClassMemberLocation(classDeclaration, shouldSkip);
   }
 
-  ClassMemberLocation? prepareNewFieldLocation(
+  InsertionLocation? prepareNewFieldLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
         declaration, (member) => member is FieldDeclaration);
   }
 
-  ClassMemberLocation? prepareNewGetterLocation(
+  InsertionLocation? prepareNewGetterLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
         declaration,
@@ -1086,7 +1077,7 @@ class CorrectionUtils {
             member is MethodDeclaration && member.isGetter);
   }
 
-  ClassMemberLocation? prepareNewMethodLocation(
+  InsertionLocation? prepareNewMethodLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
         declaration,
@@ -1094,6 +1085,30 @@ class CorrectionUtils {
             member is FieldDeclaration ||
             member is ConstructorDeclaration ||
             member is MethodDeclaration);
+  }
+
+  /// Return the location of a new statement in the given [block], as the
+  /// first statement if [first] is `true`, or the last one if `false`.
+  InsertionLocation prepareNewStatementLocation(Block block, bool first) {
+    var statements = block.statements;
+    var empty = statements.isEmpty;
+    var last = empty || first ? block.leftBracket : statements.last;
+
+    var linePrefix = getLinePrefix(last.offset);
+    var indent = getIndent(1);
+    String prefix;
+    String suffix;
+    if (empty) {
+      prefix = endOfLine + linePrefix + indent;
+      suffix = endOfLine + linePrefix;
+    } else if (first) {
+      prefix = endOfLine + linePrefix + indent;
+      suffix = '';
+    } else {
+      prefix = endOfLine + linePrefix;
+      suffix = '';
+    }
+    return InsertionLocation(prefix, last.end, suffix);
   }
 
   /// Returns the source with indentation changed from [oldIndent] to
@@ -1379,6 +1394,14 @@ class CorrectionUtils_InsertDesc {
   int offset = 0;
   String prefix = '';
   String suffix = '';
+}
+
+class InsertionLocation {
+  final String prefix;
+  final int offset;
+  final String suffix;
+
+  InsertionLocation(this.prefix, this.offset, this.suffix);
 }
 
 /// Utilities to work with [Token]s.

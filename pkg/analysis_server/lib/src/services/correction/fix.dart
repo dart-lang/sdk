@@ -93,6 +93,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add cast',
   );
+  static const ADD_CALL_SUPER = FixKind(
+    'dart.fix.add.callSuper',
+    DartFixKindPriority.DEFAULT,
+    "Add 'super.{0}'",
+  );
   static const ADD_CONST = FixKind(
     'dart.fix.add.const',
     DartFixKindPriority.DEFAULT,
