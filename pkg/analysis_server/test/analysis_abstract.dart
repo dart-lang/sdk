@@ -7,7 +7,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -16,7 +15,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -42,7 +40,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   late MockServerChannel serverChannel;
   late TestPluginManager pluginManager;
   late AnalysisServer server;
-  late RequestHandler handler;
 
   final List<GeneralAnalysisService> generalServices =
       <GeneralAnalysisService>[];
@@ -54,10 +51,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   late String testCode;
 
   AbstractAnalysisTest();
-
-  AnalysisDomainHandler get analysisHandler =>
-      server.handlers.singleWhere((handler) => handler is AnalysisDomainHandler)
-          as AnalysisDomainHandler;
 
   AnalysisOptions get analysisOptions => testDiver.analysisOptions;
 
@@ -76,13 +69,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     var request =
         AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     await waitResponse(request);
-  }
-
-  void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
-    generalServices.add(service);
-    var request =
-        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
-    handleSuccessfulRequest(request);
   }
 
   String addTestFile(String content) {
@@ -144,14 +130,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     return offset;
   }
 
-  /// Validates that the given [request] is handled successfully.
-  Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
-    handler ??= this.handler;
-    var response = handler.handleRequest(request, NotCancelableToken())!;
-    expect(response, isResponseSuccess(request.id));
-    return response;
-  }
-
   String modifyTestFile(String content) {
     modifyFile(testFile, content);
     testCode = content;
@@ -162,18 +140,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     if (notification.event == SERVER_NOTIFICATION_ERROR) {
       fail('${notification.toJson()}');
     }
-  }
-
-  void removeGeneralAnalysisSubscription(GeneralAnalysisService service) {
-    generalServices.remove(service);
-    var request =
-        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
-  void setPriorityFiles(List<String> files) {
-    var request = AnalysisSetPriorityFilesParams(files).toRequest('0');
-    handleSuccessfulRequest(request);
   }
 
   Future<Response> setRoots({
@@ -202,7 +168,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     pluginManager = TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
-    handler = analysisHandler;
     serverChannel.notifications.listen(processNotification);
   }
 
