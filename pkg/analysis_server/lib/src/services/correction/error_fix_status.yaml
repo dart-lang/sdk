@@ -1340,8 +1340,7 @@ HintCode.MIXIN_ON_SEALED_CLASS:
 HintCode.MUST_BE_IMMUTABLE:
   status: needsEvaluation
 HintCode.MUST_CALL_SUPER:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/33985
+  status: hasFix
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   status: needsEvaluation
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:

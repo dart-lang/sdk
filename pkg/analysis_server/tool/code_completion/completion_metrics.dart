@@ -743,7 +743,9 @@ class CompletionMetricsComputer {
     }
   }
 
-  int forEachExpectedCompletion(
+  /// Gathers various metrics for the completion [request] which resulted in
+  /// [suggestions], with [expectedCompletion] as the expected completion.
+  int gatherMetricsForSuggestions(
       DartCompletionRequest request,
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
@@ -1349,6 +1351,9 @@ class CompletionMetricsComputer {
       }
     }
 
+    // Note that some routes sort suggestions before responding differently.
+    // The Cider and legacy handlers use [fuzzyFilterSort], which does not match
+    // [completionComparator].
     suggestions.sort(completionComparator);
     return suggestions;
   }
@@ -1479,7 +1484,7 @@ class CompletionMetricsComputer {
           );
           stopwatch.stop();
 
-          return forEachExpectedCompletion(
+          return gatherMetricsForSuggestions(
               request,
               listener,
               expectedCompletion,
