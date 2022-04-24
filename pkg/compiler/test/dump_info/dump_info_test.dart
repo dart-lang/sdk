@@ -52,21 +52,41 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   static const String wildcard = '%';
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
+  void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
-    var converter = info.AllInfoToJsonConverter(
+      {bool verbose}) {
+    final converter = info.AllInfoToJsonConverter(
         isBackwardCompatible: true, filterTreeshaken: false);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     Features features = new Features();
-    var functionInfo = dumpInfoState.entityToInfo[member];
+    final libraryInfo = dumpInfoState.entityToInfo[library];
+    if (libraryInfo == null) return;
+
+    features.addElement(
+        Tags.library, indentedEncoder.convert(libraryInfo.accept(converter)));
+
+    final id = LibraryId(library.canonicalUri);
+    actualMap[id] = new ActualData<Features>(
+        id, features, library.canonicalUri, -1, library);
+  }
+
+  @override
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose: false}) {
+    final converter = info.AllInfoToJsonConverter(
+        isBackwardCompatible: true, filterTreeshaken: false);
+    DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
+
+    Features features = new Features();
+    final functionInfo = dumpInfoState.entityToInfo[member];
     if (functionInfo == null) return;
 
     if (functionInfo is info.FunctionInfo) {
       features.addElement(Tags.function,
           indentedEncoder.convert(functionInfo.accept(converter)));
-      for (var use in functionInfo.uses) {
+      for (final use in functionInfo.uses) {
         features.addElement(
             Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
       }
@@ -75,7 +95,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     if (functionInfo is info.FieldInfo) {
       features.addElement(Tags.function,
           indentedEncoder.convert(functionInfo.accept(converter)));
-      for (var use in functionInfo.uses) {
+      for (final use in functionInfo.uses) {
         features.addElement(
             Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
       }
@@ -138,7 +158,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                     expectedText.substring(0, expectedText.indexOf(wildcard));
                 List matches = [];
                 for (Object actualObject in actualList) {
-                  var formattedActualObject =
+                  final formattedActualObject =
                       encoder.convert(jsonDecode(actualObject));
                   if (formattedActualObject.startsWith(prefix)) {
                     matches.add(actualObject);
@@ -150,7 +170,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                 }
               } else {
                 for (Object actualObject in actualList) {
-                  var formattedActualObject =
+                  final formattedActualObject =
                       encoder.convert(jsonDecode(actualObject));
                   if (expectedText == formattedActualObject) {
                     actualList.remove(actualObject);
