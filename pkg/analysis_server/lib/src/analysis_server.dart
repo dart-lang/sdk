@@ -15,7 +15,6 @@ import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
@@ -23,6 +22,18 @@ import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_imported_elements.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_navigation.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_signature.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_reanalyze.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_analysis_roots.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_general_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_priority_files.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_update_content.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_update_options.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_enable.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_is_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
@@ -36,6 +47,7 @@ import 'package:analysis_server/src/handler/legacy/execution_map_uri.dart';
 import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/kythe_get_kythe_entries.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -87,6 +99,23 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
   static final Map<String, HandlerGenerator> handlerGenerators = {
+    ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
+    ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
+    ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS:
+        AnalysisGetImportedElementsHandler.new,
+    ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES: UnsupportedRequestHandler.new,
+    ANALYSIS_REQUEST_GET_NAVIGATION: AnalysisGetNavigationHandler.new,
+    ANALYSIS_REQUEST_GET_REACHABLE_SOURCES: UnsupportedRequestHandler.new,
+    ANALYSIS_REQUEST_GET_SIGNATURE: AnalysisGetSignatureHandler.new,
+    ANALYSIS_REQUEST_REANALYZE: AnalysisReanalyzeHandler.new,
+    ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS: AnalysisSetAnalysisRootsHandler.new,
+    ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS:
+        AnalysisSetGeneralSubscriptionsHandler.new,
+    ANALYSIS_REQUEST_SET_PRIORITY_FILES: AnalysisSetPriorityFilesHandler.new,
+    ANALYSIS_REQUEST_SET_SUBSCRIPTIONS: AnalysisSetSubscriptionsHandler.new,
+    ANALYSIS_REQUEST_UPDATE_CONTENT: AnalysisUpdateContentHandler.new,
+    ANALYSIS_REQUEST_UPDATE_OPTIONS: AnalysisUpdateOptionsHandler.new,
+    //
     ANALYTICS_REQUEST_IS_ENABLED: AnalyticsIsEnabledHandler.new,
     ANALYTICS_REQUEST_ENABLE: AnalyticsEnableHandler.new,
     ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
@@ -267,7 +296,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         .listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
-      AnalysisDomainHandler(this),
       EditDomainHandler(this),
       SearchDomainHandler(this),
       CompletionDomainHandler(this),
