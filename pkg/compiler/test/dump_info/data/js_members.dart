@@ -1,3 +1,15 @@
+/*library: library=[{
+  "id": "library/memory:sdk/tests/web/native/main.dart::",
+  "kind": "library",
+  "name": "js_parameters_test",
+  "size": 1891,
+  "children": [
+    "class/memory:sdk/tests/web/native/main.dart::Bar",
+    "class/memory:sdk/tests/web/native/main.dart::Foo",
+    "function/memory:sdk/tests/web/native/main.dart::main"
+  ],
+  "canonicalUri": "memory:sdk/tests/web/native/main.dart"
+}]*/
 @JS()
 library js_parameters_test;
 

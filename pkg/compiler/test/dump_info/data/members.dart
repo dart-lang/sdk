@@ -1,3 +1,18 @@
+/*library: library=[{
+  "id": "library/memory:sdk/tests/web/native/main.dart::",
+  "kind": "library",
+  "name": "<unnamed>",
+  "size": 475,
+  "children": [
+    "class/memory:sdk/tests/web/native/main.dart::A",
+    "class/memory:sdk/tests/web/native/main.dart::C",
+    "classType/memory:sdk/tests/web/native/main.dart::A",
+    "field/memory:sdk/tests/web/native/main.dart::constList",
+    "function/memory:sdk/tests/web/native/main.dart::F",
+    "function/memory:sdk/tests/web/native/main.dart::main"
+  ],
+  "canonicalUri": "memory:sdk/tests/web/native/main.dart"
+}]*/
 class C {
   /*member: C.value:
    function=[{
