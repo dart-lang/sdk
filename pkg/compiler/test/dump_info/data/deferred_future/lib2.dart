@@ -15,6 +15,20 @@
 
 // @dart = 2.7
 
+/*class: A:class=[{
+  "id": "class/memory:sdk/tests/web/native/lib2.dart::A",
+  "kind": "class",
+  "name": "A",
+  "size": 68,
+  "outputUnit": "outputUnit/1",
+  "parent": "library/memory:sdk/tests/web/native/lib2.dart::",
+  "modifiers": {
+    "abstract": false
+  },
+  "children": [
+    "function/memory:sdk/tests/web/native/lib2.dart::A.method"
+  ]
+}]*/
 class A {
   const A();
 

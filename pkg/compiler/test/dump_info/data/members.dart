@@ -13,6 +13,25 @@
   ],
   "canonicalUri": "memory:sdk/tests/web/native/main.dart"
 }]*/
+/*class: C:class=[{
+  "id": "class/memory:sdk/tests/web/native/main.dart::C",
+  "kind": "class",
+  "name": "C",
+  "size": 46,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "modifiers": {
+    "abstract": false
+  },
+  "children": [
+    "field/memory:sdk/tests/web/native/main.dart::C.counter",
+    "field/memory:sdk/tests/web/native/main.dart::C.value",
+    "field/memory:sdk/tests/web/native/main.dart::C.y",
+    "function/memory:sdk/tests/web/native/main.dart::C.C._default",
+    "function/memory:sdk/tests/web/native/main.dart::C.C.create",
+    "function/memory:sdk/tests/web/native/main.dart::C.compute"
+  ]
+}]*/
 class C {
   /*member: C.value:
    function=[{
@@ -186,6 +205,31 @@ class C {
 }]*/
 void F() {}
 
+/*class: A:
+ class=[{
+  "id": "class/memory:sdk/tests/web/native/main.dart::A",
+  "kind": "class",
+  "name": "A",
+  "size": 46,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "modifiers": {
+    "abstract": false
+  },
+  "children": [
+    "field/memory:sdk/tests/web/native/main.dart::A.a",
+    "function/memory:sdk/tests/web/native/main.dart::A.A"
+  ]
+}],
+ classType=[{
+  "id": "classType/memory:sdk/tests/web/native/main.dart::A",
+  "kind": "classType",
+  "name": "A",
+  "size": 0,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::"
+}]
+*/
 class A {
   /*member: A.a:function=[{
   "id": "field/memory:sdk/tests/web/native/main.dart::A.a",

@@ -20,6 +20,22 @@ import 'package:expect/expect.dart';
 external void eval(String code);
 
 @JS()
+/*class: Foo:class=[{
+  "id": "class/memory:sdk/tests/web/native/main.dart::Foo",
+  "kind": "class",
+  "name": "Foo",
+  "size": 54,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "modifiers": {
+    "abstract": false
+  },
+  "children": [
+    "function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs",
+    "function/memory:sdk/tests/web/native/main.dart::Foo.singleArg",
+    "function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg"
+  ]
+}]*/
 class Foo {
   external factory Foo();
   /*member: Foo.singleArg:function=[{
@@ -117,6 +133,18 @@ class Foo {
 }
 
 @JS()
+/*class: Bar:class=[{
+  "id": "class/memory:sdk/tests/web/native/main.dart::Bar",
+  "kind": "class",
+  "name": "Bar",
+  "size": 54,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "modifiers": {
+    "abstract": false
+  },
+  "children": []
+}]*/
 class Bar {
   external static singleArg(a);
   external static singlePositionalArg([dynamic? a]);
