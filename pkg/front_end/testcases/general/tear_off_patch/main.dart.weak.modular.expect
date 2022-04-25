@@ -1,0 +1,92 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  #C1;
+  #C2;
+  #C3;
+  #C4;
+  #C5;
+  #C6;
+  #C7;
+  #C8;
+  #C9;
+  #C10;
+  #C11;
+  #C12;
+}
+
+library /*isNonNullableByDefault*/;
+import self as test;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+typedef Alias<T extends core::num> = test::Class<T>;
+typedef AliasImpl<T extends core::num> = test::ClassImpl<T>;
+@#C13
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C14, #C15]/*isLegacy*/;
+  @#C13
+  constructor •({core::bool defaultValue = #C16, required test::Class::T% value = #C17}) → test::Class<test::Class::T%>
+    : super core::Object::•() {
+    core::print("patch Class");
+  }
+  @#C13
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact<T extends core::Object? = dynamic>({core::bool defaultValue = #C16, required test::Class::fact::T% value = #C17}) → test::Class<test::Class::fact::T%>
+    return new test::ClassImpl::•<test::Class::fact::T%>(defaultValue: defaultValue, value: value);
+  @#C13
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = #C17, required test::Class::redirect::T% value = #C17}) → test::Class<test::Class::redirect::T%>
+    return new test::ClassImpl::•<test::Class::redirect::T%>(defaultValue: defaultValue, value: value);
+  @#C13
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = #C17, required test::Class::redirect2::T% value = #C17}) → test::Class<test::Class::redirect2::T%>
+    return new test::ClassImpl::patched<test::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
+}
+@#C13
+class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements test::Class<test::ClassImpl::T%> {
+  constructor •({core::bool defaultValue = #C16, required test::ClassImpl::T% value = #C17}) → test::ClassImpl<test::ClassImpl::T%>
+    : super core::Object::•()
+    ;
+  @#C13
+  constructor patched({core::bool defaultValue = #C16, required test::ClassImpl::T% value = #C17}) → test::ClassImpl<test::ClassImpl::T%>
+    : super core::Object::•() {
+    core::print("patch ClassImpl");
+  }
+}
+static method _#Alias#new#tearOff<T extends core::num>({core::bool defaultValue = #C16, required test::_#Alias#new#tearOff::T value = #C17}) → test::Class<test::_#Alias#new#tearOff::T>
+  return new test::Class::•<test::_#Alias#new#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#Alias#fact#tearOff<T extends core::num>({core::bool defaultValue = #C16, required test::_#Alias#fact#tearOff::T value = #C17}) → test::Class<test::_#Alias#fact#tearOff::T>
+  return test::Class::fact<test::_#Alias#fact#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue = #C16, required test::_#Alias#redirect#tearOff::T value = #C17}) → test::Class<test::_#Alias#redirect#tearOff::T>
+  return test::Class::redirect<test::_#Alias#redirect#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue = #C16, required test::_#Alias#redirect2#tearOff::T value = #C17}) → test::Class<test::_#Alias#redirect2#tearOff::T>
+  return test::Class::redirect2<test::_#Alias#redirect2#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#AliasImpl#new#tearOff<T extends core::num>({core::bool defaultValue = #C16, required test::_#AliasImpl#new#tearOff::T value = #C17}) → test::ClassImpl<test::_#AliasImpl#new#tearOff::T>
+  return new test::ClassImpl::•<test::_#AliasImpl#new#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#AliasImpl#patched#tearOff<T extends core::num>({core::bool defaultValue = #C16, required test::_#AliasImpl#patched#tearOff::T value = #C17}) → test::ClassImpl<test::_#AliasImpl#patched#tearOff::T>
+  return new test::ClassImpl::patched<test::_#AliasImpl#patched#tearOff::T>(defaultValue: defaultValue, value: value);
+
+constants  {
+  #C1 = constructor-tearoff test::Class::•
+  #C2 = constructor-tearoff test::Class::fact
+  #C3 = redirecting-factory-tearoff test::Class::redirect
+  #C4 = redirecting-factory-tearoff test::Class::redirect2
+  #C5 = constructor-tearoff test::ClassImpl::•
+  #C6 = constructor-tearoff test::ClassImpl::patched
+  #C7 = static-tearoff test::_#Alias#new#tearOff
+  #C8 = static-tearoff test::_#Alias#fact#tearOff
+  #C9 = static-tearoff test::_#Alias#redirect#tearOff
+  #C10 = static-tearoff test::_#Alias#redirect2#tearOff
+  #C11 = static-tearoff test::_#AliasImpl#new#tearOff
+  #C12 = static-tearoff test::_#AliasImpl#patched#tearOff
+  #C13 = _in::_Patch {}
+  #C14 = constructor-tearoff test::Class::redirect
+  #C15 = constructor-tearoff test::Class::redirect2
+  #C16 = true
+  #C17 = null
+}

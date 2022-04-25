@@ -67,6 +67,8 @@ dependency_overrides:
     path: ../meta
   dart2js_info:
     path: ../dart2js_info
+  smith:
+    path: ../smith
 
   # Packages brought in via DEPS
   args:

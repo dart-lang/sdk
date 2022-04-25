@@ -27,7 +27,11 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart'
-    show DelayedDefaultValueCloner, TypeDependency;
+    show
+        DelayedDefaultValueCloner,
+        TypeDependency,
+        finishConstructorPatch,
+        finishProcedurePatch;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
@@ -202,8 +206,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       updatePrivateMemberName(_constructor, libraryBuilder);
 
       if (_constructorTearOff != null) {
-        buildConstructorTearOffProcedure(_constructorTearOff!, _constructor,
-            classBuilder.cls, libraryBuilder);
+        buildConstructorTearOffProcedure(
+            tearOff: _constructorTearOff!,
+            declarationConstructor: constructor,
+            implementationConstructor: _constructor,
+            enclosingClass: classBuilder.cls,
+            libraryBuilder: libraryBuilder);
       }
 
       _hasBeenBuilt = true;
@@ -660,20 +668,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   void _finishPatch() {
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin.constructor.fileUri = fileUri;
-    origin.constructor.startFileOffset = _constructor.startFileOffset;
-    origin.constructor.fileOffset = _constructor.fileOffset;
-    origin.constructor.fileEndOffset = _constructor.fileEndOffset;
-    origin.constructor.annotations
-        .forEach((m) => m.fileOffset = _constructor.fileOffset);
+    finishConstructorPatch(origin.constructor, _constructor);
 
-    origin.constructor.isExternal = _constructor.isExternal;
-    origin.constructor.function = _constructor.function;
-    origin.constructor.function.parent = origin.constructor;
-    origin.constructor.initializers = _constructor.initializers;
-    setParents(origin.constructor.initializers, origin.constructor);
+    if (_constructorTearOff != null) {
+      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff!);
+    }
   }
 
   @override

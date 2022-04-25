@@ -1,0 +1,12 @@
+{
+  "none": {
+    "libraries": {
+      "test": {
+        "patches": [
+          "patch_lib.dart"
+        ],
+        "uri": "origin_lib.dart"
+      }
+    }
+  }
+}

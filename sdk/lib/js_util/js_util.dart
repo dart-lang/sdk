@@ -17,6 +17,10 @@ import 'dart:async' show Completer;
 import 'dart:_js_helper'
     show convertDartClosureToJS, assertInterop, assertInteropArgs;
 
+// Examples can assume:
+// class JS { const JS(); }
+// class Promise<T> {}
+
 /// Recursively converts a JSON-like collection to JavaScript compatible
 /// representation.
 ///
@@ -305,9 +309,11 @@ class NullRejectionException implements Exception {
 /// @JS()
 /// external Promise<num> get threePromise; // Resolves to 3
 ///
-/// final Future<num> threeFuture = promiseToFuture(threePromise);
+/// void main() async {
+///   final Future<num> threeFuture = promiseToFuture(threePromise);
 ///
-/// final three = await threeFuture; // == 3
+///   final three = await threeFuture; // == 3
+/// }
 /// ```
 Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();

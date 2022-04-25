@@ -349,9 +349,9 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
             abbr: 'p',
             valueHelp: 'path',
             help:
-                '''Get package locations from the specified file instead of .packages.
+                '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
-For example: dart compile $name --packages=/tmp/pkgs main.dart'''),
+For example: dart compile $name --packages=/tmp/pkgs.json main.dart'''),
         super(name, description, verbose, hidden: hidden);
 }
 
