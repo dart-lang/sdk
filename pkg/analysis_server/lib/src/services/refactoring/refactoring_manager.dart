@@ -4,24 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
-import 'package:analysis_server/src/handler/legacy/edit_format.dart';
-import 'package:analysis_server/src/handler/legacy/edit_format_if_enabled.dart';
-import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
-import 'package:analysis_server/src/handler/legacy/edit_get_available_refactorings.dart';
-import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
-import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.dart';
-import 'package:analysis_server/src/handler/legacy/edit_get_refactoring.dart';
-import 'package:analysis_server/src/handler/legacy/edit_get_statement_completion.dart';
-import 'package:analysis_server/src/handler/legacy/edit_import_elements.dart';
-import 'package:analysis_server/src/handler/legacy/edit_is_postfix_completion_applicable.dart';
-import 'package:analysis_server/src/handler/legacy/edit_list_postfix_completion_templates.dart';
-import 'package:analysis_server/src/handler/legacy/edit_organize_directives.dart';
-import 'package:analysis_server/src/handler/legacy/edit_sort_members.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisError, Element;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -41,77 +25,6 @@ bool test_simulateRefactoringException_init = false;
 bool test_simulateRefactoringReset_afterCreateChange = false;
 bool test_simulateRefactoringReset_afterFinalConditions = false;
 bool test_simulateRefactoringReset_afterInitialConditions = false;
-
-/// Instances of the class [EditDomainHandler] implement a [RequestHandler]
-/// that handles requests in the edit domain.
-class EditDomainHandler extends AbstractRequestHandler {
-  /// Initialize a newly created handler to handle requests for the given
-  /// [server].
-  EditDomainHandler(super.server);
-
-  @override
-  Response? handleRequest(
-      Request request, CancellationToken cancellationToken) {
-    try {
-      var requestName = request.method;
-      if (requestName == EDIT_REQUEST_FORMAT) {
-        EditFormatHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_FORMAT_IF_ENABLED) {
-        EditFormatIfEnabledHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
-        EditGetAssistsHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
-        EditGetAvailableRefactoringsHandler(server, request, cancellationToken)
-            .handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
-        EditBulkFixes(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_FIXES) {
-        EditGetFixesHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
-        EditGetRefactoringHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
-        EditImportElementsHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
-        EditOrganizeDirectivesHandler(server, request, cancellationToken)
-            .handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_SORT_MEMBERS) {
-        EditSortMembersHandler(server, request, cancellationToken).handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_STATEMENT_COMPLETION) {
-        EditGetStatementCompletionHandler(server, request, cancellationToken)
-            .handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE) {
-        EditIsPostfixCompletionApplicableHandler(
-                server, request, cancellationToken)
-            .handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_POSTFIX_COMPLETION) {
-        EditGetPostfixCompletionHandler(server, request, cancellationToken)
-            .handle();
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName ==
-          EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
-        EditListPostfixCompletionTemplatesHandler(
-                server, request, cancellationToken)
-            .handle();
-        return Response.DELAYED_RESPONSE;
-      }
-    } on RequestFailure catch (exception) {
-      return exception.response;
-    }
-    return null;
-  }
-}
 
 /// An object managing a single [Refactoring] instance.
 ///

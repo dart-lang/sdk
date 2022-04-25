@@ -19,7 +19,6 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
@@ -40,6 +39,20 @@ import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_timing.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
+import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_format.dart';
+import 'package:analysis_server/src/handler/legacy/edit_format_if_enabled.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_available_refactorings.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_refactoring.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_statement_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_import_elements.dart';
+import 'package:analysis_server/src/handler/legacy/edit_is_postfix_completion_applicable.dart';
+import 'package:analysis_server/src/handler/legacy/edit_list_postfix_completion_templates.dart';
+import 'package:analysis_server/src/handler/legacy/edit_organize_directives.dart';
+import 'package:analysis_server/src/handler/legacy/edit_sort_members.dart';
 import 'package:analysis_server/src/handler/legacy/execution_create_context.dart';
 import 'package:analysis_server/src/handler/legacy/execution_delete_context.dart';
 import 'package:analysis_server/src/handler/legacy/execution_get_suggestions.dart';
@@ -63,6 +76,7 @@ import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -123,6 +137,25 @@ class AnalysisServer extends AbstractAnalysisServer {
     //
     DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
     DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
+    //
+    EDIT_REQUEST_FORMAT: EditFormatHandler.new,
+    EDIT_REQUEST_FORMAT_IF_ENABLED: EditFormatIfEnabledHandler.new,
+    EDIT_REQUEST_GET_ASSISTS: EditGetAssistsHandler.new,
+    EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
+        EditGetAvailableRefactoringsHandler.new,
+    EDIT_REQUEST_BULK_FIXES: EditBulkFixes.new,
+    EDIT_REQUEST_GET_FIXES: EditGetFixesHandler.new,
+    EDIT_REQUEST_GET_REFACTORING: EditGetRefactoringHandler.new,
+    EDIT_REQUEST_IMPORT_ELEMENTS: EditImportElementsHandler.new,
+    EDIT_REQUEST_ORGANIZE_DIRECTIVES: EditOrganizeDirectivesHandler.new,
+    EDIT_REQUEST_SORT_MEMBERS: EditSortMembersHandler.new,
+    EDIT_REQUEST_GET_STATEMENT_COMPLETION:
+        EditGetStatementCompletionHandler.new,
+    EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE:
+        EditIsPostfixCompletionApplicableHandler.new,
+    EDIT_REQUEST_GET_POSTFIX_COMPLETION: EditGetPostfixCompletionHandler.new,
+    EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES:
+        EditListPostfixCompletionTemplatesHandler.new,
     //
     EXECUTION_REQUEST_CREATE_CONTEXT: ExecutionCreateContextHandler.new,
     EXECUTION_REQUEST_DELETE_CONTEXT: ExecutionDeleteContextHandler.new,
@@ -296,7 +329,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         .listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
-      EditDomainHandler(this),
       SearchDomainHandler(this),
       CompletionDomainHandler(this),
       FlutterDomainHandler(this)

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring_manager.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
