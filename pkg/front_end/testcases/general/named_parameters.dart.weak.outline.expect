@@ -5,9 +5,9 @@ import "dart:core" as core;
 class Superclass extends core::Object {
   synthetic constructor •() → self::Superclass
     ;
-  method foo({dynamic alpha, dynamic beta}) → dynamic
+  method foo({dynamic alpha = null, dynamic beta = null}) → dynamic
     ;
-  method bar({dynamic beta, dynamic alpha}) → dynamic
+  method bar({dynamic beta = null, dynamic alpha = null}) → dynamic
     ;
   method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic
     ;
@@ -15,9 +15,9 @@ class Superclass extends core::Object {
 class Subclass extends self::Superclass {
   synthetic constructor •() → self::Subclass
     ;
-  method foo({dynamic beta, dynamic alpha}) → dynamic
+  method foo({dynamic beta = null, dynamic alpha = null}) → dynamic
     ;
-  method bar({dynamic alpha, dynamic beta}) → dynamic
+  method bar({dynamic alpha = null, dynamic beta = null}) → dynamic
     ;
   method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic
     ;

@@ -125,7 +125,7 @@ class CustomMap extends core::Object implements core::Map<core::String, core::St
   @core::override
   method removeWhere((core::String, core::String) → core::bool predicate) → void
     ;
-  method update(covariant-by-class core::String key, covariant-by-class (core::String) → core::String update, {covariant-by-class () →? core::String ifAbsent}) → core::String
+  method update(covariant-by-class core::String key, covariant-by-class (core::String) → core::String update, {covariant-by-class () →? core::String ifAbsent = null}) → core::String
     ;
   method map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((core::String, core::String) → core::MapEntry<self::CustomMap::map::K2%, self::CustomMap::map::V2%> f) → core::Map<self::CustomMap::map::K2%, self::CustomMap::map::V2%>
     ;

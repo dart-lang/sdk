@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///value_class_support_lib.dart";
 
 class Animal extends core::Object {
   final field core::int numberOfLegs;
-  constructor •({required core::int numberOfLegs}) → self::Animal
+  constructor •({required core::int numberOfLegs = null}) → self::Animal
     ;
 }
 @val::valueClass

@@ -1,0 +1,28 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  class A extends dart.core::Object {
+    final field dart.core::int? a;
+    constructor •([dart.core::int? a = #C1]) → lib::A
+      : lib::A::a = a, super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  class B extends dart.core::Object {
+    synthetic constructor •() → main::B
+      : super dart.core::Object::•()
+      ;
+  }
+  class C extends lib::A implements main::B /*isEliminatedMixin*/  {
+    synthetic constructor •([dart.core::int? a = #C1]) → main::C
+      : super lib::A::•(a)
+      ;
+  }
+}
+constants  {
+  #C1 = null
+}

@@ -10,7 +10,7 @@ class Default extends core::Object /*hasConstConstructor*/  {
 }
 class Settings extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Settings::•]/*isLegacy*/;
-  static factory •({self::Sidebar sidebar}) → self::Settings
+  static factory •({self::Sidebar sidebar = null}) → self::Settings
     return self::_SSettings::•(sidebar: sidebar);
 }
 class Sidebar extends core::Object {
@@ -20,7 +20,7 @@ class Sidebar extends core::Object {
 }
 abstract class _SSettings extends core::Object implements self::Settings {
   static final field dynamic _redirecting# = <dynamic>[self::_SSettings::•]/*isLegacy*/;
-  static factory •({self::Sidebar sidebar}) → self::_SSettings
+  static factory •({self::Sidebar sidebar = null}) → self::_SSettings
     return new self::_$_SSettings::•(sidebar: sidebar);
 }
 class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {

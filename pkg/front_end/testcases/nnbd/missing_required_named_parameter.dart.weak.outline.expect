@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field ({required s: core::String}) → void f;
-  constructor •({required core::int x}) → self::A
+  constructor •({required core::int x = null}) → self::A
     ;
-  method foo({required core::int y}) → dynamic
+  method foo({required core::int y = null}) → dynamic
     ;
 }
 static field ({required s: core::String}) → void g;

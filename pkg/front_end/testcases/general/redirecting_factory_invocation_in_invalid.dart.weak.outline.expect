@@ -16,7 +16,7 @@ class Class2 extends self::Class1 {
   final field self::Class2 _c2;
   constructor •(self::Class2 _c2) → self::Class2
     ;
-  method method({dynamic a}) → dynamic
+  method method({dynamic a = null}) → dynamic
     ;
   get call() → core::int
     ;

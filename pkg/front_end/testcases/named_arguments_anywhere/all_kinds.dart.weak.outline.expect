@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 typedef B = self::A;
 class A extends core::Object {
-  constructor •(core::int x, core::int y, {required core::int z}) → self::A
+  constructor •(core::int x, core::int y, {required core::int z = null}) → self::A
     ;
   static factory foo(core::int x, core::int y, {required core::int z}) → self::A
     ;
   get property() → (core::int, core::int, {required z: core::int}) → void
     ;
-  method bar(core::int x, core::int y, {required core::int z}) → void
+  method bar(core::int x, core::int y, {required core::int z = null}) → void
     ;
 }
 class Test extends self::A {

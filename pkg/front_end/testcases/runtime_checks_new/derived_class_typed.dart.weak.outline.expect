@@ -7,7 +7,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
     ;
   method f(covariant-by-class self::B::T* x) → void
     ;
-  method g({covariant-by-class self::B::T* x}) → void
+  method g({covariant-by-class self::B::T* x = null}) → void
     ;
   method h<covariant-by-class U extends self::B::T*>() → void
     ;

@@ -221,9 +221,9 @@ abstract class LegacyClass extends in_2::Super implements in_2::SuperExtra {
   synthetic constructor •() → in_::LegacyClass*
     : super in_2::Super::•()
     ;
-  abstract member-signature method nullabilityMethod(core::int* i, {core::int* j}) → core::int*; -> in_2::Super::nullabilityMethod
+  abstract member-signature method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*; -> in_2::Super::nullabilityMethod
   abstract member-signature get nullabilityGetter() → core::int*; -> in_2::Super::nullabilityGetter
-  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
+  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j = #C1]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -240,9 +240,9 @@ abstract class LegacyClassQ extends in_2::SuperQ implements in_2::SuperExtra {
   synthetic constructor •() → in_::LegacyClassQ*
     : super in_2::SuperQ::•()
     ;
-  abstract member-signature method nullabilityMethod(core::int* i, {core::int* j}) → core::int*; -> in_2::SuperQ::nullabilityMethod
+  abstract member-signature method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*; -> in_2::SuperQ::nullabilityMethod
   abstract member-signature get nullabilityGetter() → core::int*; -> in_2::SuperQ::nullabilityGetter
-  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
+  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j = #C1]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -259,7 +259,7 @@ abstract class _LegacyMixedIn&Object&Super = core::Object with in_2::Super /*isA
   const synthetic constructor •() → in_::_LegacyMixedIn&Object&Super*
     : super core::Object::•()
     ;
-  mixin-super-stub method nullabilityMethod(core::int* i, {core::int* j}) → core::int*
+  mixin-super-stub method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*
     return super.{in_2::Super::nullabilityMethod}(i, j: j);
   mixin-super-stub get nullabilityGetter() → core::int*
     return super.{in_2::Super::nullabilityGetter};
@@ -282,13 +282,13 @@ abstract class LegacyMixedIn extends in_::_LegacyMixedIn&Object&Super implements
   synthetic constructor •() → in_::LegacyMixedIn*
     : super in_::_LegacyMixedIn&Object&Super::•()
     ;
-  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
+  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j = #C1]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
 }
 abstract class _LegacyMixedInQ&Object&SuperQ = core::Object with in_2::SuperQ /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → in_::_LegacyMixedInQ&Object&SuperQ*
     : super core::Object::•()
     ;
-  mixin-super-stub method nullabilityMethod(core::int* i, {core::int* j}) → core::int*
+  mixin-super-stub method nullabilityMethod(core::int* i, {core::int* j = #C1}) → core::int*
     return super.{in_2::SuperQ::nullabilityMethod}(i, j: j);
   mixin-super-stub get nullabilityGetter() → core::int*
     return super.{in_2::SuperQ::nullabilityGetter};
@@ -311,5 +311,9 @@ abstract class LegacyMixedInQ extends in_::_LegacyMixedInQ&Object&SuperQ impleme
   synthetic constructor •() → in_::LegacyMixedInQ*
     : super in_::_LegacyMixedInQ&Object&SuperQ::•()
     ;
-  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
+  abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j = #C1]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
+}
+
+constants  {
+  #C1 = null
 }

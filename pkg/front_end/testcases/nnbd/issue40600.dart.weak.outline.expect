@@ -14,7 +14,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
   covariant-by-class final field self::B<self::A::X%> b;
   synthetic constructor •() → self::A<self::A::X%>
     ;
-  method foo([covariant-by-class FutureOr<self::A::X%>? x]) → dynamic
+  method foo([covariant-by-class FutureOr<self::A::X%>? x = null]) → dynamic
     ;
 }
 class C<T extends core::Object? = dynamic> extends core::Object {

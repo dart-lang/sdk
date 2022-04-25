@@ -27,7 +27,8 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/src/printer.dart' show AstPrinter, AstTextStrategy;
+import 'package:kernel/src/printer.dart'
+    show AstPrinter, AstTextStrategy, defaultAstTextStrategy;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/target/targets.dart';
@@ -2539,8 +2540,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         switch (op) {
           case 'toString':
             // Default value for toString() of instances.
-            return new StringConstant(
-                "Instance of '${receiver.classReference.toStringInternal()}'");
+            return new StringConstant("Instance of "
+                "'${receiver.classReference.toText(defaultAstTextStrategy)}'");
         }
       }
     }

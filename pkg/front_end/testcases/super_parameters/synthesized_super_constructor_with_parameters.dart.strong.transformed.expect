@@ -161,7 +161,7 @@ class B9 extends core::Object {
     ;
 }
 class C9 extends syn::A9 implements self::B9 /*isEliminatedMixin*/  {
-  synthetic constructor •([core::int? a]) → self::C9
+  synthetic constructor •([core::int? a = #C3]) → self::C9
     : super syn::A9::•(a)
     ;
 }
@@ -210,7 +210,7 @@ class B8 extends core::Object {
     ;
 }
 class C8 extends syn::A8 implements syn::B8 /*isEliminatedMixin*/  {
-  synthetic constructor •({core::int? a}) → syn::C8
+  synthetic constructor •({core::int? a = #C3}) → syn::C8
     : super syn::A8::•(a: a)
     ;
 }

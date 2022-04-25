@@ -46,7 +46,7 @@ class Iterable<E extends core::Object? = dynamic> extends core::Object {
   final field iss::Iterable::E% element;
   constructor •(iss::Iterable::E% element) → iss::Iterable<iss::Iterable::E%>
     ;
-  method singleWhere((iss::Iterable::E%) → core::bool test, {covariant-by-class () →? iss::Iterable::E% orElse}) → iss::Iterable::E%
+  method singleWhere((iss::Iterable::E%) → core::bool test, {covariant-by-class () →? iss::Iterable::E% orElse = null}) → iss::Iterable::E%
     ;
 }
 static method foo(() → iss::Map<core::String, core::String> f) → void

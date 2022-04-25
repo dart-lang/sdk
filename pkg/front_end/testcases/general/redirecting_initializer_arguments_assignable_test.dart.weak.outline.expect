@@ -22,7 +22,7 @@ class Foo<T extends self::X*> extends core::Object {
     ;
   constructor fromT(self::Foo::T* _init) → self::Foo<self::Foo::T*>*
     ;
-  constructor _internal({self::Foo::T* x}) → self::Foo<self::Foo::T*>*
+  constructor _internal({self::Foo::T* x = null}) → self::Foo<self::Foo::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

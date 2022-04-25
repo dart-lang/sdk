@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::A::bar]/*isLegacy*/;
-  constructor •(core::int x, core::bool y, {required core::String z}) → self::A
+  constructor •(core::int x, core::bool y, {required core::String z = null}) → self::A
     ;
   constructor foo() → self::A
     ;

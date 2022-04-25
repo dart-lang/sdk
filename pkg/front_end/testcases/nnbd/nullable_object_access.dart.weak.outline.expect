@@ -20,7 +20,7 @@ abstract class Class extends core::Object {
     return super.{core::Object::noSuchMethod}(invocation);
   forwarding-stub forwarding-semi-stub operator /* signature-type: (self::Class) → core::bool */ ==(covariant-by-declaration core::Object o) → core::bool
     return super.{core::Object::==}(o);
-  abstract method toString({core::Object o}) → core::String;
+  abstract method toString({core::Object o = null}) → core::String;
 }
 static method main() → dynamic
   ;

@@ -23,7 +23,7 @@ class C<U extends core::Object* = dynamic> extends core::Object implements self:
     ;
   method f1(covariant-by-class core::int* x) → void
     ;
-  method f2(covariant-by-class core::int* x, [covariant-by-class self::C::U* y]) → void
+  method f2(covariant-by-class core::int* x, [covariant-by-class self::C::U* y = null]) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -41,7 +41,7 @@ class D<U extends core::Object* = dynamic> extends self::C<self::D::U*> {
     ;
   method f1(covariant-by-class core::int* x) → void
     ;
-  method f2(covariant-by-class core::int* x, [covariant-by-class self::D::U* y]) → void
+  method f2(covariant-by-class core::int* x, [covariant-by-class self::D::U* y = null]) → void
     ;
 }
 static method g1(self::C<core::num*>* c) → void

@@ -17,7 +17,7 @@ class Class1 extends self::Super1 {
 class Super2 extends core::Object {
   synthetic constructor •() → self::Super2
     ;
-  method call(core::int a, [core::int? b]) → core::int
+  method call(core::int a, [core::int? b = null]) → core::int
     ;
 }
 class Class2 extends self::Super2 {
@@ -29,7 +29,7 @@ class Class2 extends self::Super2 {
 class Super3 extends core::Object {
   synthetic constructor •() → self::Super3
     ;
-  method call(core::int a, {core::int? b, core::int? c}) → core::int
+  method call(core::int a, {core::int? b = null, core::int? c = null}) → core::int
     ;
 }
 class Class3 extends self::Super3 {

@@ -17,7 +17,7 @@ class F0 extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class F1 extends core::Object {
-  constructor •({core::List<core::int*>* a}) → self::F1*
+  constructor •({core::List<core::int*>* a = null}) → self::F1*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -59,7 +59,7 @@ class F3 extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class F4 extends core::Object {
-  constructor •({core::Iterable<core::Iterable<core::int*>*>* a}) → self::F4*
+  constructor •({core::Iterable<core::Iterable<core::int*>*>* a = null}) → self::F4*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

@@ -8,7 +8,7 @@ class A extends core::Object {
     ;
   method foo(core::int n) → core::num
     ;
-  method bar({required core::int x}) → core::num
+  method bar({required core::int x = null}) → core::num
     ;
   set baz(core::int x) → void
     ;
@@ -17,7 +17,7 @@ abstract class B<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::X%>
     ;
   abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
-  abstract method bar({required covariant-by-class self::B::X% x}) → self::B::X%;
+  abstract method bar({required covariant-by-class self::B::X% x = null}) → self::B::X%;
   abstract set baz(covariant-by-class self::B::X% x) → void;
   abstract set boz(covariant-by-class self::B::X% x) → void;
 }

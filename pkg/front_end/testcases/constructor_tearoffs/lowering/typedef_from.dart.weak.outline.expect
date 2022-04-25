@@ -10,7 +10,7 @@ class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic
   static final field dynamic _redirecting# = <dynamic>[self::Class::redirect]/*isLegacy*/;
   constructor •(self::Class::S% a, self::Class::T% b) → self::Class<self::Class::S%, self::Class::T%>
     ;
-  constructor named(self::Class::S% a, [self::Class::T? b, core::int c = 42]) → self::Class<self::Class::S%, self::Class::T%>
+  constructor named(self::Class::S% a, [self::Class::T? b = null, core::int c = 42]) → self::Class<self::Class::S%, self::Class::T%>
     ;
   static method _#new#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#new#tearOff::S% a, self::Class::_#new#tearOff::T% b) → self::Class<self::Class::_#new#tearOff::S%, self::Class::_#new#tearOff::T%>
     return new self::Class::•<self::Class::_#new#tearOff::S%, self::Class::_#new#tearOff::T%>(a, b);

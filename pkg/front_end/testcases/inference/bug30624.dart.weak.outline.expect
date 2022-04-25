@@ -5,17 +5,17 @@ import "dart:core" as core;
 class C<E extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::E*>*
     ;
-  method barA([(self::C::E*, self::C::E*) →* core::int* cmp]) → void
+  method barA([(self::C::E*, self::C::E*) →* core::int* cmp = null]) → void
     ;
-  method barB([(self::C::E*, self::C::E*) →* core::int* cmp]) → void
+  method barB([(self::C::E*, self::C::E*) →* core::int* cmp = null]) → void
     ;
-  method barC([(self::C::E*, self::C::E*) →* core::int* cmp]) → void
+  method barC([(self::C::E*, self::C::E*) →* core::int* cmp = null]) → void
     ;
-  method barD([(self::C::E*, self::C::E*) →* core::int* cmp]) → void
+  method barD([(self::C::E*, self::C::E*) →* core::int* cmp = null]) → void
     ;
-  method barE([(self::C::E*, self::C::E*) →* core::int* cmp]) → void
+  method barE([(self::C::E*, self::C::E*) →* core::int* cmp = null]) → void
     ;
-  method barF([(self::C::E*, self::C::E*) →* core::int* cmp]) → void
+  method barF([(self::C::E*, self::C::E*) →* core::int* cmp = null]) → void
     ;
   static method _default(dynamic a, dynamic b) → core::int*
     ;

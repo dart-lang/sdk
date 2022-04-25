@@ -8,7 +8,7 @@ import "org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart"
 class Super extends core::Object {
   synthetic constructor •() → self::Super
     ;
-  method method({required covariant-by-declaration core::int named}) → void
+  method method({required covariant-by-declaration core::int named = null}) → void
     ;
 }
 abstract class _Class&Super&Mixin = self::Super with req::Mixin /*isAnonymousMixin*/  {
@@ -26,7 +26,7 @@ class Class extends self::_Class&Super&Mixin {
 class SubClass extends self::Class {
   synthetic constructor •() → self::SubClass
     ;
-  method method({required covariant-by-declaration core::int named}) → void
+  method method({required covariant-by-declaration core::int named = null}) → void
     ;
 }
 static method main() → dynamic
@@ -37,7 +37,7 @@ import self as req;
 import "dart:core" as core;
 
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
-  method method({core::int* named}) → void
+  method method({core::int* named = null}) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

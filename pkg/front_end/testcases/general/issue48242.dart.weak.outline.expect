@@ -8,7 +8,7 @@ abstract class Base extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class TestFailure<A extends core::Object? = dynamic> extends self::Base /*isMixinDeclaration*/  {
   @core::override
-  abstract method methodWithDefaultImpl({covariant-by-class self::TestFailure::A? nameParam}) → core::Object?;
+  abstract method methodWithDefaultImpl({covariant-by-class self::TestFailure::A? nameParam = null}) → core::Object?;
 }
 static method main() → void
   ;

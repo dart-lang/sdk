@@ -62,17 +62,17 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → nsm::A<nsm::A::T%>
     ;
   abstract method _method1(core::int a, core::int b, covariant-by-class nsm::A::T% c, covariant-by-class nsm::A::T% d) → void;
-  abstract method _method2({core::int a, core::int b, covariant-by-class nsm::A::T% c, covariant-by-class nsm::A::T% d}) → void;
+  abstract method _method2({core::int a = null, core::int b = null, covariant-by-class nsm::A::T% c = null, covariant-by-class nsm::A::T% d = null}) → void;
   abstract method _method3(core::int a, covariant-by-class nsm::A::T% b) → void;
-  abstract method _method4({core::int a, covariant-by-class nsm::A::T% b}) → void;
+  abstract method _method4({core::int a = null, covariant-by-class nsm::A::T% b = null}) → void;
 }
 abstract class B extends core::Object {
   synthetic constructor •() → nsm::B
     ;
   abstract method _method1(core::int x, covariant-by-declaration core::int y, core::int z, covariant-by-declaration core::int w) → void;
-  abstract method _method2({core::int a, covariant-by-declaration core::int b, core::int c, covariant-by-declaration core::int d}) → void;
+  abstract method _method2({core::int a = null, covariant-by-declaration core::int b = null, core::int c = null, covariant-by-declaration core::int d = null}) → void;
   abstract method _method3(covariant-by-declaration core::int x, core::int y) → void;
-  abstract method _method4({covariant-by-declaration core::int a, core::int b}) → void;
+  abstract method _method4({covariant-by-declaration core::int a = null, core::int b = null}) → void;
 }
 abstract class C1 extends core::Object implements nsm::A<core::int>, nsm::B {
   synthetic constructor •() → nsm::C1

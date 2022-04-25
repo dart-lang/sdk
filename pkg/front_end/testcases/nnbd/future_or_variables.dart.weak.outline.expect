@@ -13,9 +13,9 @@ class Class1 extends core::Object {
   static field FutureOr<FutureOr<dynamic>>staticField3;
   synthetic constructor •() → self::Class1
     ;
-  method instanceMethod1([FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3]) → void
+  method instanceMethod1([FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null]) → void
     ;
-  method instanceMethod2({FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3}) → void
+  method instanceMethod2({FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null}) → void
     ;
   static method staticMethod1([FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3]) → void
     ;

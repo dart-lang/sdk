@@ -59,6 +59,13 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy, ForTestingClassInfo;
 
+import 'package:kernel/src/equivalence.dart'
+    show
+        EquivalenceResult,
+        EquivalenceStrategy,
+        EquivalenceVisitor,
+        checkEquivalence;
+
 import 'package:kernel/target/targets.dart'
     show
         LateLowering,
@@ -110,6 +117,7 @@ const Expectation UnexpectedInitializationError =
     const Expectation.fail("UnexpectedInitializationError");
 const Expectation ReachableLibrariesError =
     const Expectation.fail("ReachableLibrariesError");
+const Expectation EquivalenceError = const Expectation.fail("EquivalenceError");
 const Expectation UriToSourceError = const Expectation.fail("UriToSourceError");
 const Expectation MissingPlatformLibraries =
     const Expectation.fail("MissingPlatformLibraries");
@@ -761,6 +769,16 @@ class NewWorldTest {
         }
       }
 
+      if (world["compareToPrevious"] == true && newestWholeComponent != null) {
+        EquivalenceResult result = checkEquivalence(
+            newestWholeComponent!, component!,
+            strategy: const Strategy());
+        if (!result.isEquivalent) {
+          return new Result<TestData>(
+              data, EquivalenceError, result.toString());
+        }
+      }
+
       newestWholeComponentData = util.postProcess(component!);
       newestWholeComponent = component;
       String actualSerialized = componentToStringSdkFiltered(component!);
@@ -1132,6 +1150,31 @@ class NewWorldTest {
       }
     }
     return new Result<TestData>.pass(data);
+  }
+}
+
+class Strategy extends EquivalenceStrategy {
+  const Strategy();
+
+  @override
+  bool checkComponent_libraries(
+      EquivalenceVisitor visitor, Component node, Component other) {
+    return visitor.checkSets(node.libraries.toSet(), other.libraries.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'libraries');
+  }
+
+  @override
+  bool checkClass_procedures(
+      EquivalenceVisitor visitor, Class node, Class other) {
+    // Check procedures as a set instead of a list to allow for reordering.
+    return visitor.checkSets(node.procedures.toSet(), other.procedures.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
+  }
+
+  @override
+  bool checkVariableDeclaration_binaryOffsetNoTag(EquivalenceVisitor visitor,
+      VariableDeclaration node, VariableDeclaration other) {
+    return true;
   }
 }
 

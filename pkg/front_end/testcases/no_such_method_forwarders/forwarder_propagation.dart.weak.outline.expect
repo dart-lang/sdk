@@ -10,7 +10,7 @@ abstract class A extends core::Object {
     ;
   abstract set foo(core::int* value) → void;
   abstract get bar() → core::int*;
-  abstract method baz(core::int* x, {core::String* y, core::double* z}) → void;
+  abstract method baz(core::int* x, {core::String* y = null, core::double* z = null}) → void;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

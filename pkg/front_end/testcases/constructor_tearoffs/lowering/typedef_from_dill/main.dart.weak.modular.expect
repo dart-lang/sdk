@@ -74,7 +74,7 @@ static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tea
   return mai::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
 static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#new#tearOff::Y%>
   return new mai::A::•<self::_#H#new#tearOff::Y%>();
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → mai::A<self::_#H#named#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b = #C9]) → mai::A<self::_#H#named#tearOff::Y%>
   return new mai::A::named<self::_#H#named#tearOff::Y%>(a, b);
 
 constants  {
@@ -86,4 +86,5 @@ constants  {
   #C6 = static-tearoff mai::_#F#named#tearOff
   #C7 = static-tearoff mai::_#F#fact#tearOff
   #C8 = static-tearoff mai::_#F#redirect#tearOff
+  #C9 = null
 }

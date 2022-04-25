@@ -17,7 +17,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isLegacy*/;
-  constructor gen({core::int i}) → self::C
+  constructor gen({core::int i = null}) → self::C
     ;
   static factory fact({core::int i}) → self::C
     ;

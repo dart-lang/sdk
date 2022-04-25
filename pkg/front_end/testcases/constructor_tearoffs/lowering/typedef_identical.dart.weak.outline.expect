@@ -37,7 +37,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[typ::A::redirect]/*isLegacy*/;
   constructor •() → typ::A<typ::A::T%>
     ;
-  constructor named(typ::A::T% a, [core::int? b]) → typ::A<typ::A::T%>
+  constructor named(typ::A::T% a, [core::int? b = null]) → typ::A<typ::A::T%>
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#new#tearOff::T%>
     return new typ::A::•<typ::A::_#new#tearOff::T%>();
