@@ -44,9 +44,9 @@ class Direct extends core::Object {
     ;
   method positional(covariant-by-declaration core::int? a, core::int? b, covariant-by-declaration core::int? c, core::int? d, core::int? e) → void
     ;
-  method optional([covariant-by-declaration core::int? a, core::int? b, covariant-by-declaration core::int? c, core::int? d]) → void
+  method optional([covariant-by-declaration core::int? a = null, core::int? b = null, covariant-by-declaration core::int? c = null, core::int? d = null]) → void
     ;
-  method named({covariant-by-declaration core::int? a, core::int? b, covariant-by-declaration core::int? c, core::int? d}) → void
+  method named({covariant-by-declaration core::int? a = null, core::int? b = null, covariant-by-declaration core::int? c = null, core::int? d = null}) → void
     ;
 }
 class Inherited extends self::Direct {

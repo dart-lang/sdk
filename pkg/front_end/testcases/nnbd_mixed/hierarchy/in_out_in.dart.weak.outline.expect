@@ -144,7 +144,7 @@ class Super extends core::Object {
 abstract class SuperExtra extends core::Object {
   synthetic constructor •() → in_2::SuperExtra
     ;
-  method optionalArgumentsMethod(core::int i, [core::int? j]) → core::int
+  method optionalArgumentsMethod(core::int i, [core::int? j = null]) → core::int
     ;
 }
 abstract class SuperQ extends core::Object {

@@ -230,7 +230,7 @@ import "dart:core" as core;
 class Super extends core::Object {
   synthetic constructor •() → in_2::Super
     ;
-  method nullabilityMethod(core::int i, {required core::int j}) → core::int
+  method nullabilityMethod(core::int i, {required core::int j = #C1}) → core::int
     ;
   get nullabilityGetter() → core::int
     ;
@@ -242,13 +242,13 @@ class Super extends core::Object {
 abstract class SuperExtra extends core::Object {
   synthetic constructor •() → in_2::SuperExtra
     ;
-  method optionalArgumentsMethod(core::int i, [core::int? j]) → core::int
+  method optionalArgumentsMethod(core::int i, [core::int? j = #C1]) → core::int
     ;
 }
 abstract class SuperQ extends core::Object {
   synthetic constructor •() → in_2::SuperQ
     ;
-  method nullabilityMethod(core::int? i, {core::int? j}) → core::int?
+  method nullabilityMethod(core::int? i, {core::int? j = #C1}) → core::int?
     ;
   get nullabilityGetter() → core::int?
     ;
@@ -256,4 +256,8 @@ abstract class SuperQ extends core::Object {
     ;
   method optionalArgumentsMethod(core::int? i) → core::int?
     ;
+}
+
+constants  {
+  #C1 = null
 }

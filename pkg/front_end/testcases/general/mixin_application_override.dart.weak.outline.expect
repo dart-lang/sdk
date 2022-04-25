@@ -128,7 +128,7 @@ import "dart:core" as core;
 class S extends core::Object {
   synthetic constructor •() → self::S
     ;
-  method foo([dynamic x]) → dynamic
+  method foo([dynamic x = null]) → dynamic
     ;
 }
 class M extends core::Object {

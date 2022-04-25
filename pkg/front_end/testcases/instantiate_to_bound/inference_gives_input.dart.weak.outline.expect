@@ -17,7 +17,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B<T extends core::num*, S extends core::List<self::B::T*>* = core::List<core::num*>*> extends self::A<self::B::T*> {
-  constructor •([self::B::T* x]) → self::B<self::B::T*, self::B::S*>*
+  constructor •([self::B::T* x = null]) → self::B<self::B::T*, self::B::S*>*
     ;
 }
 static method main() → dynamic

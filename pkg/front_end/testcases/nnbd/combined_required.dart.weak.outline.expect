@@ -5,17 +5,17 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  method method1({required core::int a}) → void
+  method method1({required core::int a = null}) → void
     ;
-  method method2({core::int? a, required core::int b}) → void
+  method method2({core::int? a = null, required core::int b = null}) → void
     ;
 }
 class B extends core::Object {
   synthetic constructor •() → self::B
     ;
-  method method1({required covariant-by-declaration core::int a}) → void
+  method method1({required covariant-by-declaration core::int a = null}) → void
     ;
-  method method2({covariant-by-declaration core::int? a, required core::int b}) → void
+  method method2({covariant-by-declaration core::int? a = null, required core::int b = null}) → void
     ;
 }
 class C extends self::A implements self::B {
@@ -29,9 +29,9 @@ class C extends self::A implements self::B {
 class D extends self::C {
   synthetic constructor •() → self::D
     ;
-  method method1({required covariant-by-declaration core::int a}) → void
+  method method1({required covariant-by-declaration core::int a = null}) → void
     ;
-  method method2({covariant-by-declaration core::int? a, required core::int b}) → void
+  method method2({covariant-by-declaration core::int? a = null, required core::int b = null}) → void
     ;
 }
 static method main() → dynamic

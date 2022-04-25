@@ -43,7 +43,7 @@ class MockCat2 extends self::MockCat {
 class MockCat3 extends self::MockCat2 implements self::Cat {
   synthetic constructor •() → self::MockCat3*
     ;
-  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount}) → core::bool*
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount = null}) → core::bool*
     return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
 }
 class MockCat4 extends self::MockCat2 implements self::HungryCat {
@@ -55,7 +55,7 @@ class MockCat4 extends self::MockCat2 implements self::HungryCat {
 abstract class HungryCat extends core::Object {
   synthetic constructor •() → self::HungryCat*
     ;
-  abstract method eatFood(core::String* food, {core::double* amount, core::double* yetAnother}) → core::bool*;
+  abstract method eatFood(core::String* food, {core::double* amount = null, core::double* yetAnother = null}) → core::bool*;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

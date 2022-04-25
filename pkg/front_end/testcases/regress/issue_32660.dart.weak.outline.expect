@@ -44,7 +44,7 @@ class A extends core::Object {
 class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
-  method foo(core::int* x, {core::int* y}) → dynamic
+  method foo(core::int* x, {core::int* y = null}) → dynamic
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -83,7 +83,7 @@ class D extends core::Object {
 class E extends self::D {
   synthetic constructor •() → self::E*
     ;
-  abstract method foo(core::int* x, {core::int* y}) → dynamic;
+  abstract method foo(core::int* x, {core::int* y = null}) → dynamic;
   method noSuchMethod(core::Invocation* i) → dynamic
     ;
 }

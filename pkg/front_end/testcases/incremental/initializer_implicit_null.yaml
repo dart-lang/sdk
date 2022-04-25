@@ -1,0 +1,29 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Recompiling with no change shouldn't change the initializer - even from
+# null to Constant(null).
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "lib.dart";
+        class B {}
+        class C = A with B;
+      lib.dart: |
+        class A {
+          final int? a;
+          A([this.a]);
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    compareToPrevious: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2

@@ -49,25 +49,25 @@ class Operators2 extends core::Object {
 class Operators3 extends core::Object {
   synthetic constructor •() → self::Operators3
     ;
-  operator >>>([dynamic a]) → dynamic
+  operator >>>([dynamic a = null]) → dynamic
     ;
 }
 class Operators4 extends core::Object {
   synthetic constructor •() → self::Operators4
     ;
-  operator >>>({dynamic a}) → dynamic
+  operator >>>({dynamic a = null}) → dynamic
     ;
 }
 class Operators5 extends core::Object {
   synthetic constructor •() → self::Operators5
     ;
-  operator >>>(dynamic a, [dynamic b]) → dynamic
+  operator >>>(dynamic a, [dynamic b = null]) → dynamic
     ;
 }
 class Operators6 extends core::Object {
   synthetic constructor •() → self::Operators6
     ;
-  operator >>>(dynamic a, {dynamic b}) → dynamic
+  operator >>>(dynamic a, {dynamic b = null}) → dynamic
     ;
 }
 class Operators7 extends core::Object {

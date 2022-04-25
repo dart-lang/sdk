@@ -44,12 +44,12 @@ class A extends core::Object {
 abstract class I extends core::Object {
   synthetic constructor •() → self::I
     ;
-  abstract method foo([dynamic a]) → void;
+  abstract method foo([dynamic a = null]) → void;
 }
 abstract class B extends self::A {
   synthetic constructor •() → self::B
     ;
-  abstract method foo([dynamic a]) → void;
+  abstract method foo([dynamic a = null]) → void;
 }
 class C extends self::B {
   synthetic constructor •() → self::C

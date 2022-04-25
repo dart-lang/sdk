@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind, FormalParameterKindExtension;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, Expression, VariableDeclaration;
+    show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -219,23 +219,23 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// formal parameter on a const constructor or instance method.
   void buildOutlineExpressions(SourceLibraryBuilder library,
       List<DelayedActionPerformer> delayedActionPerformers) {
-    if (initializerToken != null) {
-      // For modular compilation we need to include default values for optional
-      // and named parameters in several cases:
-      // * for const constructors to enable constant evaluation,
-      // * for instance methods because these might be needed to generated
-      //   noSuchMethod forwarders, and
-      // * for generative constructors to support forwarding constructors
-      //   in mixin applications.
-      bool needsDefaultValues = false;
-      if (parent is ConstructorBuilder) {
-        needsDefaultValues = true;
-      } else if (parent is SourceFactoryBuilder) {
-        needsDefaultValues = parent!.isFactory && parent!.isConst;
-      } else {
-        needsDefaultValues = parent!.isClassInstanceMember;
-      }
-      if (needsDefaultValues) {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases:
+    // * for const constructors to enable constant evaluation,
+    // * for instance methods because these might be needed to generated
+    //   noSuchMethod forwarders, and
+    // * for generative constructors to support forwarding constructors
+    //   in mixin applications.
+    bool needsDefaultValues = false;
+    if (parent is ConstructorBuilder) {
+      needsDefaultValues = true;
+    } else if (parent is SourceFactoryBuilder) {
+      needsDefaultValues = parent!.isFactory && parent!.isConst;
+    } else {
+      needsDefaultValues = parent!.isClassInstanceMember;
+    }
+    if (needsDefaultValues) {
+      if (initializerToken != null) {
         final ClassBuilder classBuilder = parent!.parent as ClassBuilder;
         Scope scope = classBuilder.scope;
         BodyBuilder bodyBuilder = library.loader
@@ -255,6 +255,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             library.library);
         initializerWasInferred = true;
         bodyBuilder.performBacklogComputations(delayedActionPerformers);
+      } else if (kind != FormalParameterKind.requiredPositional) {
+        // As done by BodyBuilder.endFormalParameter.
+        variable!.initializer = new NullLiteral()..parent = variable;
       }
     }
     initializerToken = null;

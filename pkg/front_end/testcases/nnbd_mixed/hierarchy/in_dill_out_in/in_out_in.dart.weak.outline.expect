@@ -149,7 +149,7 @@ import "dart:core" as core;
 class Super extends core::Object {
   synthetic constructor •() → in_2::Super
     ;
-  method nullabilityMethod(core::int i, {required core::int j}) → core::int
+  method nullabilityMethod(core::int i, {required core::int j = #C1}) → core::int
     ;
   get nullabilityGetter() → core::int
     ;
@@ -161,13 +161,13 @@ class Super extends core::Object {
 abstract class SuperExtra extends core::Object {
   synthetic constructor •() → in_2::SuperExtra
     ;
-  method optionalArgumentsMethod(core::int i, [core::int? j]) → core::int
+  method optionalArgumentsMethod(core::int i, [core::int? j = #C1]) → core::int
     ;
 }
 abstract class SuperQ extends core::Object {
   synthetic constructor •() → in_2::SuperQ
     ;
-  method nullabilityMethod(core::int? i, {core::int? j}) → core::int?
+  method nullabilityMethod(core::int? i, {core::int? j = #C1}) → core::int?
     ;
   get nullabilityGetter() → core::int?
     ;
@@ -224,7 +224,7 @@ abstract class _LegacyMixedIn&Object&Super extends core::Object implements in_2:
   const synthetic constructor •() → in_::_LegacyMixedIn&Object&Super*
     : super core::Object::•()
     ;
-  method /*isNonNullableByDefault, from org-dartlang-testcase:///in_out_in_lib1.dart */ nullabilityMethod(core::int i, {required core::int j}) → core::int
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///in_out_in_lib1.dart */ nullabilityMethod(core::int i, {required core::int j = #C1}) → core::int
     ;
   get /*isNonNullableByDefault, from org-dartlang-testcase:///in_out_in_lib1.dart */ nullabilityGetter() → core::int
     ;
@@ -252,7 +252,7 @@ abstract class _LegacyMixedInQ&Object&SuperQ extends core::Object implements in_
   const synthetic constructor •() → in_::_LegacyMixedInQ&Object&SuperQ*
     : super core::Object::•()
     ;
-  method /*isNonNullableByDefault, from org-dartlang-testcase:///in_out_in_lib1.dart */ nullabilityMethod(core::int? i, {core::int? j}) → core::int?
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///in_out_in_lib1.dart */ nullabilityMethod(core::int? i, {core::int? j = #C1}) → core::int?
     ;
   get /*isNonNullableByDefault, from org-dartlang-testcase:///in_out_in_lib1.dart */ nullabilityGetter() → core::int?
     ;
@@ -275,4 +275,8 @@ abstract class LegacyMixedInQ extends in_::_LegacyMixedInQ&Object&SuperQ impleme
   synthetic constructor •() → in_::LegacyMixedInQ*
     ;
   abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
+}
+
+constants  {
+  #C1 = null
 }

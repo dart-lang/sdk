@@ -686,167 +686,167 @@ class Operators3 extends core::Object {
     ;
   operator ==([core::Object a = 0]) → core::bool
     ;
-  operator <([dynamic a]) → dynamic
+  operator <([dynamic a = null]) → dynamic
     ;
-  operator >([dynamic a]) → dynamic
+  operator >([dynamic a = null]) → dynamic
     ;
-  operator <=([dynamic a]) → dynamic
+  operator <=([dynamic a = null]) → dynamic
     ;
-  operator >=([dynamic a]) → dynamic
+  operator >=([dynamic a = null]) → dynamic
     ;
-  operator -([dynamic a]) → dynamic
+  operator -([dynamic a = null]) → dynamic
     ;
-  operator +([dynamic a]) → dynamic
+  operator +([dynamic a = null]) → dynamic
     ;
-  operator /([dynamic a]) → dynamic
+  operator /([dynamic a = null]) → dynamic
     ;
-  operator ~/([dynamic a]) → dynamic
+  operator ~/([dynamic a = null]) → dynamic
     ;
-  operator *([dynamic a]) → dynamic
+  operator *([dynamic a = null]) → dynamic
     ;
-  operator %([dynamic a]) → dynamic
+  operator %([dynamic a = null]) → dynamic
     ;
-  operator |([dynamic a]) → dynamic
+  operator |([dynamic a = null]) → dynamic
     ;
-  operator ^([dynamic a]) → dynamic
+  operator ^([dynamic a = null]) → dynamic
     ;
-  operator &([dynamic a]) → dynamic
+  operator &([dynamic a = null]) → dynamic
     ;
-  operator <<([dynamic a]) → dynamic
+  operator <<([dynamic a = null]) → dynamic
     ;
-  operator >>([dynamic a]) → dynamic
+  operator >>([dynamic a = null]) → dynamic
     ;
-  operator []=([dynamic a, dynamic b]) → void
+  operator []=([dynamic a = null, dynamic b = null]) → void
     ;
-  operator []([dynamic a]) → dynamic
+  operator []([dynamic a = null]) → dynamic
     ;
-  operator ~([dynamic a]) → dynamic
+  operator ~([dynamic a = null]) → dynamic
     ;
 }
 class Operators4 extends core::Object {
   synthetic constructor •() → self::Operators4
     ;
-  operator ==({dynamic a}) → core::bool
+  operator ==({dynamic a = null}) → core::bool
     ;
-  operator <({dynamic a}) → dynamic
+  operator <({dynamic a = null}) → dynamic
     ;
-  operator >({dynamic a}) → dynamic
+  operator >({dynamic a = null}) → dynamic
     ;
-  operator <=({dynamic a}) → dynamic
+  operator <=({dynamic a = null}) → dynamic
     ;
-  operator >=({dynamic a}) → dynamic
+  operator >=({dynamic a = null}) → dynamic
     ;
-  operator -({dynamic a}) → dynamic
+  operator -({dynamic a = null}) → dynamic
     ;
-  operator +({dynamic a}) → dynamic
+  operator +({dynamic a = null}) → dynamic
     ;
-  operator /({dynamic a}) → dynamic
+  operator /({dynamic a = null}) → dynamic
     ;
-  operator ~/({dynamic a}) → dynamic
+  operator ~/({dynamic a = null}) → dynamic
     ;
-  operator *({dynamic a}) → dynamic
+  operator *({dynamic a = null}) → dynamic
     ;
-  operator %({dynamic a}) → dynamic
+  operator %({dynamic a = null}) → dynamic
     ;
-  operator |({dynamic a}) → dynamic
+  operator |({dynamic a = null}) → dynamic
     ;
-  operator ^({dynamic a}) → dynamic
+  operator ^({dynamic a = null}) → dynamic
     ;
-  operator &({dynamic a}) → dynamic
+  operator &({dynamic a = null}) → dynamic
     ;
-  operator <<({dynamic a}) → dynamic
+  operator <<({dynamic a = null}) → dynamic
     ;
-  operator >>({dynamic a}) → dynamic
+  operator >>({dynamic a = null}) → dynamic
     ;
-  operator []=({dynamic a, dynamic b}) → void
+  operator []=({dynamic a = null, dynamic b = null}) → void
     ;
-  operator []({dynamic a}) → dynamic
+  operator []({dynamic a = null}) → dynamic
     ;
-  operator ~({dynamic a}) → dynamic
+  operator ~({dynamic a = null}) → dynamic
     ;
 }
 class Operators5 extends core::Object {
   synthetic constructor •() → self::Operators5
     ;
-  operator ==(core::Object a, [dynamic b]) → core::bool
+  operator ==(core::Object a, [dynamic b = null]) → core::bool
     ;
-  operator <(dynamic a, [dynamic b]) → dynamic
+  operator <(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator >(dynamic a, [dynamic b]) → dynamic
+  operator >(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator <=(dynamic a, [dynamic b]) → dynamic
+  operator <=(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator >=(dynamic a, [dynamic b]) → dynamic
+  operator >=(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator -(dynamic a, [dynamic b]) → dynamic
+  operator -(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator +(dynamic a, [dynamic b]) → dynamic
+  operator +(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator /(dynamic a, [dynamic b]) → dynamic
+  operator /(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator ~/(dynamic a, [dynamic b]) → dynamic
+  operator ~/(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator *(dynamic a, [dynamic b]) → dynamic
+  operator *(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator %(dynamic a, [dynamic b]) → dynamic
+  operator %(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator |(dynamic a, [dynamic b]) → dynamic
+  operator |(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator ^(dynamic a, [dynamic b]) → dynamic
+  operator ^(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator &(dynamic a, [dynamic b]) → dynamic
+  operator &(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator <<(dynamic a, [dynamic b]) → dynamic
+  operator <<(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator >>(dynamic a, [dynamic b]) → dynamic
+  operator >>(dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator []=(dynamic a, dynamic b, [dynamic c]) → void
+  operator []=(dynamic a, dynamic b, [dynamic c = null]) → void
     ;
-  operator [](dynamic a, [dynamic b]) → dynamic
+  operator [](dynamic a, [dynamic b = null]) → dynamic
     ;
-  operator ~(dynamic a, [dynamic b]) → dynamic
+  operator ~(dynamic a, [dynamic b = null]) → dynamic
     ;
 }
 class Operators6 extends core::Object {
   synthetic constructor •() → self::Operators6
     ;
-  operator ==(core::Object a, {dynamic b}) → core::bool
+  operator ==(core::Object a, {dynamic b = null}) → core::bool
     ;
-  operator <(dynamic a, {dynamic b}) → dynamic
+  operator <(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator >(dynamic a, {dynamic b}) → dynamic
+  operator >(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator <=(dynamic a, {dynamic b}) → dynamic
+  operator <=(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator >=(dynamic a, {dynamic b}) → dynamic
+  operator >=(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator -(dynamic a, {dynamic b}) → dynamic
+  operator -(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator +(dynamic a, {dynamic b}) → dynamic
+  operator +(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator /(dynamic a, {dynamic b}) → dynamic
+  operator /(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator ~/(dynamic a, {dynamic b}) → dynamic
+  operator ~/(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator *(dynamic a, {dynamic b}) → dynamic
+  operator *(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator %(dynamic a, {dynamic b}) → dynamic
+  operator %(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator |(dynamic a, {dynamic b}) → dynamic
+  operator |(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator ^(dynamic a, {dynamic b}) → dynamic
+  operator ^(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator &(dynamic a, {dynamic b}) → dynamic
+  operator &(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator <<(dynamic a, {dynamic b}) → dynamic
+  operator <<(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator >>(dynamic a, {dynamic b}) → dynamic
+  operator >>(dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator []=(dynamic a, dynamic b, {dynamic c}) → void
+  operator []=(dynamic a, dynamic b, {dynamic c = null}) → void
     ;
-  operator [](dynamic a, {dynamic b}) → dynamic
+  operator [](dynamic a, {dynamic b = null}) → dynamic
     ;
-  operator ~(dynamic a, {dynamic b}) → dynamic
+  operator ~(dynamic a, {dynamic b = null}) → dynamic
     ;
 }
 class Operators7 extends core::Object {

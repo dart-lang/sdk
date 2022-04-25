@@ -31,10 +31,10 @@ class Class<@self::Const::internal() T extends core::Object? = dynamic> extends 
   constructor •() → self::Class<self::Class::T%>
     ;
   @self::Const::internal()
-  method method1<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, [dynamic o2]) → dynamic
+  method method1<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, [dynamic o2 = null]) → dynamic
     ;
   @self::Const::internal()
-  method method2<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, {dynamic o2}) → dynamic
+  method method2<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, {dynamic o2 = null}) → dynamic
     ;
 }
 @self::Const::internal()
