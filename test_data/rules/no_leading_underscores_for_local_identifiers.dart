@@ -4,6 +4,23 @@
 
 // test w/ `dart test -N no_leading_underscores_for_local_identifiers`
 
+/// https://github.com/dart-lang/linter/issues/3360
+int _g() { // OK (not local)
+  int _bar() { // LINT
+    return 10;
+  }
+  var x = () {
+    _foo() { }; // LINT
+  };
+  return _bar();
+}
+
+class _A { // OK
+  int _a() { // OK
+    int _bar() => 10; // LINT
+    return _bar();
+  }
+}
 
 ///https://github.com/dart-lang/linter/issues/3126
 void fn0() {
