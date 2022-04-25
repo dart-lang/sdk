@@ -614,7 +614,22 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     DartType typeArgument = node.typeArgument.accept(this);
     if (useCounter == before) return node;
-    return new FutureOrType(typeArgument, node.declaredNullability);
+
+    // The top-level nullability of a FutureOr should remain the same, with the
+    // exception of the case of [Nullability.undetermined].  In that case it
+    // remains undetermined if the nullability of [typeArgument] is
+    // undetermined, and otherwise it should become [Nullability.nonNullable].
+    Nullability nullability;
+    if (node.declaredNullability == Nullability.undetermined) {
+      if (typeArgument.nullability == Nullability.undetermined) {
+        nullability = Nullability.undetermined;
+      } else {
+        nullability = Nullability.nonNullable;
+      }
+    } else {
+      nullability = node.declaredNullability;
+    }
+    return new FutureOrType(typeArgument, nullability);
   }
 
   @override
