@@ -17,7 +17,7 @@ per-file CHANGELOG.md,AUTHORS,.gitattributes,.gitconfig,.gitignore=*
 per-file CONTRIBUTING.md,LICENSE,PATENT_GRANT,README.*,SECURITY.md=file:/tools/OWNERS_PRODUCT
 
 # Top level build files
-per-file .clang-format,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_VM
+per-file .clang-format,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_BUILD
 
 # Generated file
 per-file .packages=*
