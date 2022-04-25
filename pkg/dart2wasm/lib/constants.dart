@@ -670,7 +670,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     translator.functions.allocateClass(info.classId);
     return createConstant(constant, info.nonNullableType, (function, b) {
       ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-      w.ValueType typeListExpectedType = info.struct.fields[3].type.unpacked;
+      w.ValueType typeListExpectedType =
+          info.struct.fields[FieldIndex.typeTypeArguments].type.unpacked;
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);

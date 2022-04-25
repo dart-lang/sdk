@@ -13,6 +13,7 @@ import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -113,6 +114,7 @@ class Translator {
   late final DispatchTable dispatchTable;
   late final Globals globals;
   late final Constants constants;
+  late final Types types;
   late final FunctionCollector functions;
 
   // Information about the program used and updated by the various phases.
@@ -259,6 +261,7 @@ class Translator {
 
     globals = Globals(this);
     constants = Constants(this);
+    types = Types(this);
 
     dispatchTable.build();
 

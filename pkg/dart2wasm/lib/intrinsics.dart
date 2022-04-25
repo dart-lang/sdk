@@ -976,7 +976,8 @@ class Intrinsifier {
       w.Local receiver = paramLocals[0];
       ClassInfo info = translator.classInfo[translator.typeClass]!;
       translator.functions.allocateClass(info.classId);
-      w.ValueType typeListExpectedType = info.struct.fields[3].type.unpacked;
+      w.ValueType typeListExpectedType =
+          info.struct.fields[FieldIndex.typeTypeArguments].type.unpacked;
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
