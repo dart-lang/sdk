@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:devtools_shared/devtools_server.dart';
+import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -29,21 +32,51 @@ FutureOr<Handler> defaultHandler({
   ClientManager? clientManager,
   Handler? notFoundHandler,
 }) {
-  // Serves the web assets for DevTools.
-  final devtoolsAssetHandler = createStaticHandler(
+  // When served through DDS, the app root is /devtools/.
+  // This variable is used in base href and must start and end with `/`.
+  var appRoot = dds != null ? '/devtools/' : '/';
+  if (dds?.authCodesEnabled ?? false) {
+    appRoot = '/${dds!.authCode}$appRoot';
+  }
+
+  const defaultDocument = 'index.html';
+  final indexFile = File(path.join(buildDir, defaultDocument));
+
+  // Serves the static web assets for DevTools.
+  final devtoolsStaticAssetHandler = createStaticHandler(
     buildDir,
-    defaultDocument: 'index.html',
+    defaultDocument: defaultDocument,
   );
+
+  /// A wrapper around [devtoolsStaticAssetHandler] that handles serving
+  /// index.html up for / and non-file requests like /memory, /inspector, etc.
+  /// with the correct base href for the DevTools root.
+  final devtoolsAssetHandler = (Request request) {
+    // To avoid hard-coding a set of page names here (or needing access to one
+    // from DevTools, assume any single-segment path with no extension is a
+    // DevTools page that needs to serve up index.html).
+    final pathSegments = request.url.pathSegments;
+    final isValidRootPage = pathSegments.isEmpty ||
+        (pathSegments.length == 1 && !pathSegments[0].contains('.'));
+    if (isValidRootPage) {
+      return _serveStaticFile(
+        request,
+        indexFile,
+        'text/html',
+        baseHref: appRoot,
+      );
+    }
+
+    return devtoolsStaticAssetHandler(request);
+  };
 
   // Support DevTools client-server interface via SSE.
   // Note: the handler path needs to match the full *original* path, not the
   // current request URL (we remove '/devtools' in the initial router but we
   // need to include it here).
-  final devToolsSseHandlerPath = dds != null ? '/devtools/api/sse' : '/api/sse';
+  final devToolsSseHandlerPath = '${appRoot}api/sse';
   final devToolsApiHandler = SseHandler(
-    (dds?.authCodesEnabled ?? false)
-        ? Uri.parse('/${dds!.authCode}$devToolsSseHandlerPath')
-        : Uri.parse(devToolsSseHandlerPath),
+    Uri.parse(devToolsSseHandlerPath),
     keepAlive: sseKeepAlive,
   );
 
@@ -78,7 +111,7 @@ FutureOr<Handler> defaultHandler({
     return ServerApi.handle(request);
   };
 
-  return (request) {
+  return (Request request) {
     if (notFoundHandler != null) {
       final pathSegments = request.url.pathSegments;
       if (pathSegments.isEmpty || pathSegments.first != 'devtools') {
@@ -89,4 +122,31 @@ FutureOr<Handler> defaultHandler({
     }
     return devtoolsHandler(request);
   };
+}
+
+/// Serves [file] for all requests.
+///
+/// If [baseHref] is provided, any existing `<base href="">` tag will be
+/// rewritten with this path.
+Future<Response> _serveStaticFile(
+  Request request,
+  File file,
+  String contentType, {
+  String? baseHref,
+}) async {
+  final headers = {HttpHeaders.contentTypeHeader: contentType};
+  var contents = file.readAsStringSync();
+
+  if (baseHref != null) {
+    assert(baseHref.startsWith('/'));
+    assert(baseHref.endsWith('/'));
+    // Replace the base href to match where the app is being served from.
+    final baseHrefPattern = RegExp(r'<base href="\/"\s?\/?>');
+    contents = contents.replaceFirst(
+      baseHrefPattern,
+      '<base href="${htmlEscape.convert(baseHref)}">',
+    );
+  }
+
+  return Response.ok(contents, headers: headers);
 }
