@@ -166,6 +166,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _requestedLibraries =
       <String, List<Completer<ResolvedLibraryResult>>>{};
 
+  /// The queue of requests for completion.
+  final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
+
   /// The task that discovers available files.  If this field is not `null`,
   /// and the task is not completed, it should be performed and completed
   /// before any name searching task.
@@ -401,6 +404,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   AnalysisDriverPriority get workPriority {
+    if (_resolveForCompletionRequests.isNotEmpty) {
+      return AnalysisDriverPriority.completion;
+    }
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
@@ -1044,6 +1050,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _discoverDartCore();
     }
 
+    if (_resolveForCompletionRequests.isNotEmpty) {
+      final request = _resolveForCompletionRequests.removeLast();
+      try {
+        final result = _resolveForCompletion(request);
+        request.completer.complete(result);
+      } catch (exception, stackTrace) {
+        _reportException(request.path, exception, stackTrace);
+        request.completer.completeError(exception, stackTrace);
+        _clearLibraryContextAfterException();
+      }
+      return;
+    }
+
     // Analyze a requested file.
     if (_requestedFiles.isNotEmpty) {
       String path = _requestedFiles.keys.first;
@@ -1311,54 +1330,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required int offset,
     required OperationPerformanceImpl performance,
   }) async {
-    if (!_isAbsolutePath(path)) {
-      return null;
-    }
-
-    if (!_fsState.hasUri(path)) {
-      return null;
-    }
-
-    // Process pending changes.
-    while (_fileTracker.verifyChangedFilesIfNeeded()) {}
-
-    var file = _fsState.getFileForPath(path);
-
-    var library = file.isPart ? file.library : file;
-    if (library == null) {
-      return null;
-    }
-
-    await libraryContext.load(library);
-    var unitElement = libraryContext.computeUnitElement(library, file)
-        as CompilationUnitElementImpl;
-
-    var analysisResult = LibraryAnalyzer(
-      analysisOptions as AnalysisOptionsImpl,
-      declaredVariables,
-      sourceFactory,
-      libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-      libraryContext.elementFactory.analysisSession.inheritanceManager,
-      library,
-      testingData: testingData,
-    ).analyzeForCompletion(
-      file: file,
+    final request = _ResolveForCompletionRequest(
+      path: path,
       offset: offset,
-      unitElement: unitElement,
       performance: performance,
     );
-
-    return ResolvedForCompletionResultImpl(
-      analysisSession: currentSession,
-      path: path,
-      uri: file.uri,
-      exists: file.exists,
-      content: file.content,
-      lineInfo: file.lineInfo,
-      parsedUnit: analysisResult.parsedUnit,
-      unitElement: unitElement,
-      resolvedNodes: analysisResult.resolvedNodes,
-    );
+    _resolveForCompletionRequests.add(request);
+    _scheduler.notify(this);
+    return request.completer.future;
   }
 
   void _addDeclaredVariablesToSignature(ApiSignature buffer) {
@@ -1869,6 +1848,57 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
   }
 
+  Future<ResolvedForCompletionResultImpl?> _resolveForCompletion(
+    _ResolveForCompletionRequest request,
+  ) async {
+    final path = request.path;
+    if (!_isAbsolutePath(path)) {
+      return null;
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
+
+    var file = _fsState.getFileForPath(path);
+
+    var library = file.isPart ? file.library : file;
+    if (library == null) {
+      return null;
+    }
+
+    await libraryContext.load(library);
+    var unitElement = libraryContext.computeUnitElement(library, file)
+        as CompilationUnitElementImpl;
+
+    var analysisResult = LibraryAnalyzer(
+      analysisOptions as AnalysisOptionsImpl,
+      declaredVariables,
+      sourceFactory,
+      libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+      libraryContext.elementFactory.analysisSession.inheritanceManager,
+      library,
+      testingData: testingData,
+    ).analyzeForCompletion(
+      file: file,
+      offset: request.offset,
+      unitElement: unitElement,
+      performance: request.performance,
+    );
+
+    return ResolvedForCompletionResultImpl(
+      analysisSession: currentSession,
+      path: path,
+      uri: file.uri,
+      exists: file.exists,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      parsedUnit: analysisResult.parsedUnit,
+      unitElement: unitElement,
+      resolvedNodes: analysisResult.resolvedNodes,
+    );
+  }
+
   /// Serialize the given [resolvedUnit] errors and index into bytes.
   Uint8List _serializeResolvedUnit(
       CompilationUnit resolvedUnit, List<AnalysisError> errors) {
@@ -2002,7 +2032,8 @@ enum AnalysisDriverPriority {
   generalChanged,
   changedFiles,
   priority,
-  interactive
+  interactive,
+  completion
 }
 
 /// Instances of this class schedule work in multiple [AnalysisDriver]s so that
@@ -2617,4 +2648,17 @@ class _FilesReferencingNameTask {
     completer.complete(referencingFiles);
     return true;
   }
+}
+
+class _ResolveForCompletionRequest {
+  final String path;
+  final int offset;
+  final OperationPerformanceImpl performance;
+  final Completer<ResolvedForCompletionResultImpl?> completer = Completer();
+
+  _ResolveForCompletionRequest({
+    required this.path,
+    required this.offset,
+    required this.performance,
+  });
 }
