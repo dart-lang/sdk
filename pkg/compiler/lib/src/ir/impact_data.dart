@@ -575,6 +575,12 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
+    // Evaluate any [ir.UnevaluatedConstant]s to ensure they are processed for
+    // impacts correctly.
+    // TODO(joshualitt): Remove this when we have CFE constants.
+    if (node.constant is ir.UnevaluatedConstant) {
+      _elementMap.constantEvaluator.evaluate(staticTypeContext, node);
+    }
     ir.LibraryDependency import = getDeferredImport(node);
     ConstantImpactVisitor(this, import, node, staticTypeContext)
         .visitConstant(node.constant);
