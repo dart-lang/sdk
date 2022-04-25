@@ -9,7 +9,7 @@ part of dart.ffi;
 /// A dynamically loaded library is a mapping from symbols to memory addresses.
 /// These memory addresses can be accessed through [lookup].
 class DynamicLibrary {
-  /// Creates a dynamic library holding all global symbols.
+  /// Creates a [DynamicLibrary] holding all global symbols.
   ///
   /// Any symbol in a library currently loaded with global visibility
   /// (including the executable itself) may be resolved through this library.
@@ -17,8 +17,10 @@ class DynamicLibrary {
   /// This feature is not available on Windows.
   external factory DynamicLibrary.process();
 
-  /// Creates a dynamic library containing all the symbols of the running
+  /// Creates a [DynamicLibrary] containing all the symbols of the running
   /// executable.
+  ///
+  /// This is useful for using dart:ffi with static libraries.
   external factory DynamicLibrary.executable();
 
   /// Loads a library file and provides access to its symbols.
