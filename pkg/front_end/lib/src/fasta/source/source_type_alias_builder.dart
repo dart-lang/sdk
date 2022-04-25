@@ -4,7 +4,6 @@
 
 library fasta.source_type_alias_builder;
 
-import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -24,6 +23,7 @@ import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
@@ -275,14 +275,14 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Procedure, Member>? _tearOffDependencies;
 
   void buildTypedefTearOffs(
-      SourceLibraryBuilder library, void Function(Procedure) f) {
+      SourceLibraryBuilder libraryBuilder, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
     DartType? targetType = typedef.type;
     if (declaration is ClassBuilder &&
         targetType is InterfaceType &&
         typedef.typeParameters.isNotEmpty &&
-        !isProperRenameForClass(
-            library.loader.typeEnvironment, typedef, library.library)) {
+        !isProperRenameForClass(libraryBuilder.loader.typeEnvironment, typedef,
+            libraryBuilder.library)) {
       tearOffs = {};
       _tearOffDependencies = {};
       declaration
@@ -295,19 +295,31 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           Name targetName =
               new Name(constructorName, declaration.libraryBuilder.library);
           Reference? tearOffReference;
-          if (library.referencesFromIndexed != null) {
-            tearOffReference = library.referencesFromIndexed!
+          if (libraryBuilder.referencesFromIndexed != null) {
+            tearOffReference = libraryBuilder.referencesFromIndexed!
                 .lookupGetterReference(typedefTearOffName(name, constructorName,
-                    library.referencesFromIndexed!.library));
+                    libraryBuilder.referencesFromIndexed!.library));
           }
 
           Procedure tearOff = tearOffs![targetName] =
-              createTypedefTearOffProcedure(name, constructorName, library,
-                  target.fileUri, target.fileOffset, tearOffReference);
+              createTypedefTearOffProcedure(
+                  name,
+                  constructorName,
+                  libraryBuilder,
+                  target.fileUri,
+                  target.fileOffset,
+                  tearOffReference);
           _tearOffDependencies![tearOff] = target;
 
-          buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
-              typedef.typeParameters, targetType.typeArguments, library);
+          buildTypedefTearOffProcedure(
+              tearOff: tearOff,
+              declarationConstructor: target,
+              // TODO(johnniwinther): Handle patched constructors.
+              implementationConstructor: target,
+              enclosingClass: declaration.cls,
+              typeParameters: typedef.typeParameters,
+              typeArguments: targetType.typeArguments,
+              libraryBuilder: libraryBuilder);
           f(tearOff);
         }
       });

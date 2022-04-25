@@ -16,6 +16,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -470,20 +471,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   int finishPatch() {
     if (!isPatch) return 0;
 
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin.procedure.fileUri = fileUri;
-    origin.procedure.startFileOffset = _procedure.startFileOffset;
-    origin.procedure.fileOffset = _procedure.fileOffset;
-    origin.procedure.fileEndOffset = _procedure.fileEndOffset;
-    origin.procedure.annotations
-        .forEach((m) => m.fileOffset = _procedure.fileOffset);
-
-    origin.procedure.isAbstract = _procedure.isAbstract;
-    origin.procedure.isExternal = _procedure.isExternal;
-    origin.procedure.function = _procedure.function;
-    origin.procedure.function.parent = origin.procedure;
-    origin.procedure.isRedirectingFactory = _procedure.isRedirectingFactory;
+    finishProcedurePatch(origin.procedure, _procedure);
     return 1;
   }
 

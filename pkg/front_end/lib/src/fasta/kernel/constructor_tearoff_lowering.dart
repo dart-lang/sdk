@@ -159,22 +159,41 @@ Procedure createTypedefTearOffProcedure(
       reference);
 }
 
-/// Creates the parameters and body for [tearOff] based on [constructor] in
-/// [enclosingClass].
-void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
-    Class enclosingClass, SourceLibraryBuilder libraryBuilder) {
+/// Creates the parameters and body for [tearOff] based on
+/// [declarationConstructor] in [enclosingClass].
+///
+/// The [declarationConstructor] is the origin constructor and
+/// [implementationConstructor] is the patch constructor, if patched, otherwise
+/// it is the [declarationConstructor].
+void buildConstructorTearOffProcedure(
+    {required Procedure tearOff,
+    required Member declarationConstructor,
+    required Member implementationConstructor,
+    required Class enclosingClass,
+    required SourceLibraryBuilder libraryBuilder}) {
   assert(
-      constructor is Constructor ||
-          (constructor is Procedure && constructor.isFactory) ||
-          (constructor is Procedure && constructor.isStatic),
-      "Unexpected constructor tear off target $constructor "
-      "(${constructor.runtimeType}).");
+      declarationConstructor is Constructor ||
+          (declarationConstructor is Procedure &&
+              declarationConstructor.isFactory) ||
+          (declarationConstructor is Procedure &&
+              declarationConstructor.isStatic),
+      "Unexpected constructor tear off target $declarationConstructor "
+      "(${declarationConstructor.runtimeType}).");
+  assert(
+      declarationConstructor is Constructor ||
+          (declarationConstructor is Procedure &&
+              declarationConstructor.isFactory) ||
+          (declarationConstructor is Procedure &&
+              declarationConstructor.isStatic),
+      "Unexpected constructor tear off target $declarationConstructor "
+      "(${declarationConstructor.runtimeType}).");
+
+  FunctionNode function = implementationConstructor.function!;
 
   int fileOffset = tearOff.fileOffset;
 
-  FunctionNode function = constructor.function!;
   List<TypeParameter> classTypeParameters;
-  if (constructor is Constructor) {
+  if (declarationConstructor is Constructor) {
     // Generative constructors implicitly have the type parameters of the
     // enclosing class.
     classTypeParameters = enclosingClass.typeParameters;
@@ -189,37 +208,54 @@ void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
 
   List<DartType> typeArguments = freshTypeParameters.freshTypeArguments;
   Substitution substitution = freshTypeParameters.substitution;
-  _createParameters(tearOff, constructor, substitution, libraryBuilder);
+  _createParameters(tearOff, implementationConstructor, function, substitution,
+      libraryBuilder);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-  _createTearOffBody(tearOff, constructor, arguments);
+  _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
   updatePrivateMemberName(tearOff, libraryBuilder);
 }
 
 /// Creates the parameters and body for [tearOff] for a typedef tearoff of
-/// [constructor] in [enclosingClass] with [typeParameters] as the typedef
-/// parameters and [typeArguments] as the arguments passed to the
+/// [declarationConstructor] in [enclosingClass] with [typeParameters] as the
+/// typedef parameters and [typeArguments] as the arguments passed to the
 /// [enclosingClass].
+///
+/// The [declarationConstructor] is the origin constructor and
+/// [implementationConstructor] is the patch constructor, if patched, otherwise
+/// it is the [declarationConstructor].
 void buildTypedefTearOffProcedure(
-    Procedure tearOff,
-    Member constructor,
-    Class enclosingClass,
-    List<TypeParameter> typeParameters,
-    List<DartType> typeArguments,
-    SourceLibraryBuilder libraryBuilder) {
+    {required Procedure tearOff,
+    required Member declarationConstructor,
+    required Member implementationConstructor,
+    required Class enclosingClass,
+    required List<TypeParameter> typeParameters,
+    required List<DartType> typeArguments,
+    required SourceLibraryBuilder libraryBuilder}) {
   assert(
-      constructor is Constructor ||
-          (constructor is Procedure && constructor.isFactory) ||
-          (constructor is Procedure && constructor.isStatic),
-      "Unexpected constructor tear off target $constructor "
-      "(${constructor.runtimeType}).");
+      declarationConstructor is Constructor ||
+          (declarationConstructor is Procedure &&
+              declarationConstructor.isFactory) ||
+          (declarationConstructor is Procedure &&
+              declarationConstructor.isStatic),
+      "Unexpected constructor tear off target $declarationConstructor "
+      "(${declarationConstructor.runtimeType}).");
+  assert(
+      implementationConstructor is Constructor ||
+          (implementationConstructor is Procedure &&
+              implementationConstructor.isFactory) ||
+          (implementationConstructor is Procedure &&
+              implementationConstructor.isStatic),
+      "Unexpected constructor tear off target $implementationConstructor "
+      "(${declarationConstructor.runtimeType}).");
+
+  FunctionNode function = implementationConstructor.function!;
 
   int fileOffset = tearOff.fileOffset;
 
-  FunctionNode function = constructor.function!;
   List<TypeParameter> classTypeParameters;
-  if (constructor is Constructor) {
+  if (declarationConstructor is Constructor) {
     // Generative constructors implicitly have the type parameters of the
     // enclosing class.
     classTypeParameters = enclosingClass.typeParameters;
@@ -242,37 +278,43 @@ void buildTypedefTearOffProcedure(
   }
   _createParameters(
       tearOff,
-      constructor,
+      implementationConstructor,
+      function,
       Substitution.fromPairs(classTypeParameters, typeArguments),
       libraryBuilder);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-  _createTearOffBody(tearOff, constructor, arguments);
+  _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
   updatePrivateMemberName(tearOff, libraryBuilder);
 }
 
 /// Creates the parameters for the redirecting factory [tearOff] based on the
-/// [redirectingConstructor] declaration.
+/// [declarationConstructor] declaration.
+///
+/// The [declarationConstructor] is the [Procedure] for the origin constructor
+/// and [implementationConstructorFunctionNode] is the [FunctionNode] for the
+/// implementation constructor. If the constructor is patched, these are not
+/// connected until [Builder.finishPatch].
 FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
-    Procedure tearOff,
-    Procedure redirectingConstructor,
-    SourceLibraryBuilder libraryBuilder) {
-  assert(redirectingConstructor.isRedirectingFactory);
-  FunctionNode function = redirectingConstructor.function;
+    {required Procedure tearOff,
+    required Procedure implementationConstructor,
+    required SourceLibraryBuilder libraryBuilder}) {
+  assert(implementationConstructor.isRedirectingFactory);
+  FunctionNode function = implementationConstructor.function;
   FreshTypeParameters freshTypeParameters =
       _createFreshTypeParameters(function.typeParameters, tearOff.function);
   Substitution substitution = freshTypeParameters.substitution;
-  _createParameters(
-      tearOff, redirectingConstructor, substitution, libraryBuilder);
+  _createParameters(tearOff, implementationConstructor, function, substitution,
+      libraryBuilder);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
   updatePrivateMemberName(tearOff, libraryBuilder);
   return freshTypeParameters;
 }
 
-/// Creates the body for the redirecting factory [tearOff] with the target
-/// [constructor] and [typeArguments].
+/// Creates the body for the redirecting factory [tearOff] with the [target]
+/// constructor and [typeArguments].
 ///
 /// Returns the [DelayedDefaultValueCloner] object need to perform default value
 /// computation.
@@ -355,9 +397,12 @@ FreshTypeParameters _createFreshTypeParameters(
 /// Creates the parameters for the [tearOff] lowering based of the parameters
 /// in [constructor] and using the [substitution] to compute the parameter and
 /// return types.
-void _createParameters(Procedure tearOff, Member constructor,
-    Substitution substitution, SourceLibraryBuilder libraryBuilder) {
-  FunctionNode function = constructor.function!;
+void _createParameters(
+    Procedure tearOff,
+    Member constructor,
+    FunctionNode function,
+    Substitution substitution,
+    SourceLibraryBuilder libraryBuilder) {
   for (VariableDeclaration constructorParameter
       in function.positionalParameters) {
     VariableDeclaration tearOffParameter = new VariableDeclaration(

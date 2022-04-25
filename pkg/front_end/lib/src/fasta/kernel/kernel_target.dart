@@ -1092,8 +1092,12 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnum: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.libraryBuilder);
+      buildConstructorTearOffProcedure(
+          tearOff: constructorTearOff,
+          declarationConstructor: constructor,
+          implementationConstructor: constructor,
+          enclosingClass: classBuilder.cls,
+          libraryBuilder: classBuilder.libraryBuilder);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
@@ -1170,8 +1174,12 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnum:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.libraryBuilder);
+      buildConstructorTearOffProcedure(
+          tearOff: constructorTearOff,
+          declarationConstructor: constructor,
+          implementationConstructor: constructor,
+          enclosingClass: classBuilder.cls,
+          libraryBuilder: classBuilder.libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);

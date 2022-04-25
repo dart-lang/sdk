@@ -300,3 +300,39 @@ class TypeDependency {
     _hasBeenInferred = true;
   }
 }
+
+/// Copies properties, function parameters and body from the [patch] constructor
+/// to its [origin].
+void finishConstructorPatch(Constructor origin, Constructor patch) {
+  // TODO(ahe): restore file-offset once we track both origin and patch file
+  // URIs. See https://github.com/dart-lang/sdk/issues/31579
+  origin.fileUri = patch.fileUri;
+  origin.startFileOffset = patch.startFileOffset;
+  origin.fileOffset = patch.fileOffset;
+  origin.fileEndOffset = patch.fileEndOffset;
+  origin.annotations.forEach((m) => m.fileOffset = patch.fileOffset);
+
+  origin.isExternal = patch.isExternal;
+  origin.function = patch.function;
+  origin.function.parent = origin;
+  origin.initializers = patch.initializers;
+  setParents(origin.initializers, origin);
+}
+
+/// Copies properties, function parameters and body from the [patch] procedure
+/// to its [origin].
+void finishProcedurePatch(Procedure origin, Procedure patch) {
+  // TODO(ahe): restore file-offset once we track both origin and patch file
+  // URIs. See https://github.com/dart-lang/sdk/issues/31579
+  origin.fileUri = patch.fileUri;
+  origin.startFileOffset = patch.startFileOffset;
+  origin.fileOffset = patch.fileOffset;
+  origin.fileEndOffset = patch.fileEndOffset;
+  origin.annotations.forEach((m) => m.fileOffset = patch.fileOffset);
+
+  origin.isAbstract = patch.isAbstract;
+  origin.isExternal = patch.isExternal;
+  origin.function = patch.function;
+  origin.function.parent = origin;
+  origin.isRedirectingFactory = patch.isRedirectingFactory;
+}
