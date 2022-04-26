@@ -278,7 +278,6 @@ class ObjectPointerVisitor;
   V(Values, "values")                                                          \
   V(WeakSerializationReference, "WeakSerializationReference")                  \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
-  V(_AsyncStreamController, "_AsyncStreamController")                          \
   V(_BufferingStreamSubscription, "_BufferingStreamSubscription")              \
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
@@ -381,6 +380,7 @@ class ObjectPointerVisitor;
   V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
   V(_SyncIterator, "_SyncIterator")                                            \
+  V(_SyncStreamController, "_SyncStreamController")                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Type, "_Type")                                                            \
   V(_FunctionType, "_FunctionType")                                            \
