@@ -15,7 +15,6 @@ import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
@@ -72,6 +71,10 @@ import 'package:analysis_server/src/handler/legacy/search_find_member_references
 import 'package:analysis_server/src/handler/legacy/search_find_top_level_declarations.dart';
 import 'package:analysis_server/src/handler/legacy/search_get_element_declarations.dart';
 import 'package:analysis_server/src/handler/legacy/search_get_type_hierarchy.dart';
+import 'package:analysis_server/src/handler/legacy/server_cancel_request.dart';
+import 'package:analysis_server/src/handler/legacy/server_get_version.dart';
+import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -201,6 +204,11 @@ class AnalysisServer extends AbstractAnalysisServer {
     SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS:
         SearchGetElementDeclarationsHandler.new,
     SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
+    //
+    SERVER_REQUEST_GET_VERSION: ServerGetVersionHandler.new,
+    SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
+    SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
+    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -210,10 +218,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A flag indicating the value of the 'analyzing' parameter sent in the last
   /// status message to the client.
   bool statusAnalyzing = false;
-
-  /// A list of the request handlers used to handle the requests sent to this
-  /// server.
-  late List<RequestHandler> handlers;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = HashSet<ServerService>();
@@ -364,9 +368,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     );
     debounceRequests(channel, discardedRequests)
         .listen(handleRequest, onDone: done, onError: error);
-    handlers = <server.RequestHandler>[
-      ServerDomainHandler(this),
-    ];
     refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
     _newRefactoringManager();
   }
@@ -452,19 +453,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         var handler = generator(this, request, cancellationToken);
         handler.handle();
       } else {
-        // TODO(brianwilkerson) When all the handlers are in [handlerGenerators]
-        //  remove local variable and for loop below.
-        var count = handlers.length;
-        for (var i = 0; i < count; i++) {
-          var response = handlers[i].handleRequest(request, cancellationToken);
-          if (response == Response.DELAYED_RESPONSE) {
-            return;
-          }
-          if (response != null) {
-            sendResponse(response);
-            return;
-          }
-        }
         sendResponse(Response.unknownRequest(request));
       }
     }, (exception, stackTrace) {
