@@ -116,30 +116,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     unimplemented(node, node.runtimeType, const []);
   }
 
-  /// Generate code for the body of the member.
+  /// Generate code for the member.
   void generate() {
     closures = Closures(this);
 
     Member member = this.member;
 
     if (reference.isTearOffReference) {
-      // Tear-off getter
-      w.DefinedFunction closureFunction =
-          translator.getTearOffFunction(member as Procedure);
-
-      int parameterCount = member.function.requiredParameterCount;
-      w.DefinedGlobal global = translator.makeFunctionRef(closureFunction);
-
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
-      translator.functions.allocateClass(info.classId);
-
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      b.local_get(paramLocals[0]);
-      b.global_get(global);
-      translator.struct_new(b, parameterCount);
-      b.end();
-      return;
+      return generateTearOffGetter(member as Procedure);
     }
 
     if (intrinsifier.generateMemberIntrinsic(
@@ -160,57 +144,84 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     if (member is Field) {
       if (member.isStatic) {
-        // Static field initializer function
-        assert(reference == member.fieldReference);
-        closures.findCaptures(member);
-        closures.collectContexts(member);
-        closures.buildContexts();
-
-        w.Global global = translator.globals.getGlobal(member);
-        w.Global? flag = translator.globals.getGlobalInitializedFlag(member);
-        wrap(member.initializer!, global.type.type);
-        b.global_set(global);
-        if (flag != null) {
-          b.i32_const(1);
-          b.global_set(flag);
-        }
-        b.global_get(global);
-        translator.convertType(
-            function, global.type.type, function.type.outputs.single);
-        b.end();
-        return;
-      }
-
-      // Implicit getter or setter
-      w.StructType struct =
-          translator.classInfo[member.enclosingClass!]!.struct;
-      int fieldIndex = translator.fieldIndex[member]!;
-      w.ValueType fieldType = struct.fields[fieldIndex].type.unpacked;
-
-      void getThis() {
-        w.Local thisLocal = paramLocals[0];
-        w.RefType structType = w.RefType.def(struct, nullable: true);
-        b.local_get(thisLocal);
-        translator.convertType(function, thisLocal.type, structType);
-      }
-
-      if (reference.isImplicitGetter) {
-        // Implicit getter
-        getThis();
-        b.struct_get(struct, fieldIndex);
-        translator.convertType(function, fieldType, returnType);
+        return generateStaticFieldInitializer(member);
       } else {
-        // Implicit setter
-        w.Local valueLocal = paramLocals[1];
-        getThis();
-        b.local_get(valueLocal);
-        translator.convertType(function, valueLocal.type, fieldType);
-        b.struct_set(struct, fieldIndex);
+        return generateImplicitAccessor(member);
       }
-      b.end();
-      return;
     }
 
+    return generateBody(member);
+  }
+
+  void generateTearOffGetter(Procedure procedure) {
+    w.DefinedFunction closureFunction =
+        translator.getTearOffFunction(procedure);
+
+    int parameterCount = procedure.function.requiredParameterCount;
+    w.DefinedGlobal global = translator.makeFunctionRef(closureFunction);
+
+    ClassInfo info = translator.classInfo[translator.functionClass]!;
+    translator.functions.allocateClass(info.classId);
+
+    b.i32_const(info.classId);
+    b.i32_const(initialIdentityHash);
+    b.local_get(paramLocals[0]);
+    b.global_get(global);
+    translator.struct_new(b, parameterCount);
+    b.end();
+  }
+
+  void generateStaticFieldInitializer(Field field) {
+    // Static field initializer function
+    assert(reference == field.fieldReference);
+    closures.findCaptures(field);
+    closures.collectContexts(field);
+    closures.buildContexts();
+
+    w.Global global = translator.globals.getGlobal(field);
+    w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
+    wrap(field.initializer!, global.type.type);
+    b.global_set(global);
+    if (flag != null) {
+      b.i32_const(1);
+      b.global_set(flag);
+    }
+    b.global_get(global);
+    translator.convertType(
+        function, global.type.type, function.type.outputs.single);
+    b.end();
+  }
+
+  void generateImplicitAccessor(Field field) {
+    // Implicit getter or setter
+    w.StructType struct = translator.classInfo[field.enclosingClass!]!.struct;
+    int fieldIndex = translator.fieldIndex[field]!;
+    w.ValueType fieldType = struct.fields[fieldIndex].type.unpacked;
+
+    void getThis() {
+      w.Local thisLocal = paramLocals[0];
+      w.RefType structType = w.RefType.def(struct, nullable: true);
+      b.local_get(thisLocal);
+      translator.convertType(function, thisLocal.type, structType);
+    }
+
+    if (reference.isImplicitGetter) {
+      // Implicit getter
+      getThis();
+      b.struct_get(struct, fieldIndex);
+      translator.convertType(function, fieldType, returnType);
+    } else {
+      // Implicit setter
+      w.Local valueLocal = paramLocals[1];
+      getThis();
+      b.local_get(valueLocal);
+      translator.convertType(function, valueLocal.type, fieldType);
+      b.struct_set(struct, fieldIndex);
+    }
+    b.end();
+  }
+
+  void generateBody(Member member) {
     ParameterInfo paramInfo = translator.paramInfoFor(reference);
     bool hasThis = member.isInstanceMember || member is Constructor;
     int typeParameterOffset = hasThis ? 1 : 0;

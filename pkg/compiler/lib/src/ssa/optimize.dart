@@ -12,7 +12,6 @@ import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';

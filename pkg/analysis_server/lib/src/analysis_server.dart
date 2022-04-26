@@ -19,7 +19,6 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';
@@ -58,13 +57,21 @@ import 'package:analysis_server/src/handler/legacy/execution_delete_context.dart
 import 'package:analysis_server/src/handler/legacy/execution_get_suggestions.dart';
 import 'package:analysis_server/src/handler/legacy/execution_map_uri.dart';
 import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/flutter_get_widget_description.dart';
+import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
 import 'package:analysis_server/src/handler/legacy/kythe_get_kythe_entries.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_member_references.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_top_level_declarations.dart';
+import 'package:analysis_server/src/handler/legacy/search_get_element_declarations.dart';
+import 'package:analysis_server/src/handler/legacy/search_get_type_hierarchy.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
-import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/debounce_requests.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
@@ -163,7 +170,25 @@ class AnalysisServer extends AbstractAnalysisServer {
     EXECUTION_REQUEST_MAP_URI: ExecutionMapUriHandler.new,
     EXECUTION_REQUEST_SET_SUBSCRIPTIONS: ExecutionSetSubscriptionsHandler.new,
     //
+    FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION:
+        FlutterGetWidgetDescriptionHandler.new,
+    FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE:
+        FlutterSetWidgetPropertyValueHandler.new,
+    FLUTTER_REQUEST_SET_SUBSCRIPTIONS: FlutterSetSubscriptionsHandler.new,
+    //
     KYTHE_REQUEST_GET_KYTHE_ENTRIES: KytheGetKytheEntriesHandler.new,
+    //
+    SEARCH_REQUEST_FIND_ELEMENT_REFERENCES:
+        SearchFindElementReferencesHandler.new,
+    SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS:
+        SearchFindMemberDeclarationsHandler.new,
+    SEARCH_REQUEST_FIND_MEMBER_REFERENCES:
+        SearchFindMemberReferencesHandler.new,
+    SEARCH_REQUEST_FIND_TOP_LEVEL_DECLARATIONS:
+        SearchFindTopLevelDeclarationsHandler.new,
+    SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS:
+        SearchGetElementDeclarationsHandler.new,
+    SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -329,9 +354,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         .listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
-      SearchDomainHandler(this),
       CompletionDomainHandler(this),
-      FlutterDomainHandler(this)
     ];
     refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
     _newRefactoringManager();

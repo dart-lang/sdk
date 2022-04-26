@@ -1042,9 +1042,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    mallocUsed = map['_mallocUsed'];
-    mallocCapacity = map['_mallocCapacity'];
-    mallocImplementation = map['_mallocImplementation'];
+    mallocUsed = map['_mallocUsed'] ?? -1;
+    mallocCapacity = map['_mallocCapacity'] ?? -1;
+    mallocImplementation = map['_mallocImplementation'] ?? 'unknown';
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];

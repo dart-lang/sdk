@@ -858,7 +858,10 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   ExpressionImpl _expression;
 
   /// Initialize a newly created await expression.
-  AwaitExpressionImpl(this.awaitKeyword, this._expression) {
+  AwaitExpressionImpl({
+    required this.awaitKeyword,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 

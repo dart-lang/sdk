@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_SERVICE_H_
 #define RUNTIME_VM_SERVICE_H_
 
+#include <atomic>
+
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
@@ -73,17 +75,20 @@ class StreamInfo {
 
   const char* id() const { return id_; }
 
-  void set_enabled(bool value) { enabled_ = value; }
-  bool enabled() const { return enabled_; }
+  void set_enabled(bool value) { enabled_ = value ? 1 : 0; }
+  bool enabled() const { return !!enabled_; }
 
   void set_include_private_members(bool value) {
     include_private_members_ = value;
   }
   bool include_private_members() const { return include_private_members_; }
 
+  // This may get access by multiple threads, but relaxed access is ok.
+  static intptr_t enabled_offset() { return OFFSET_OF(StreamInfo, enabled_); }
+
  private:
   const char* id_;
-  bool enabled_;
+  std::atomic<intptr_t> enabled_;
   bool include_private_members_;
 };
 

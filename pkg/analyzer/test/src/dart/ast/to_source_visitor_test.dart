@@ -88,8 +88,13 @@ class ToSourceVisitorTest {
   }
 
   void test_visitAwaitExpression() {
-    _assertSource("await e",
-        AstTestFactory.awaitExpression(AstTestFactory.identifier3("e")));
+    var findNode = _parseStringToFindNode(r'''
+void f() async => await e;
+''');
+    _assertSource(
+      'await e',
+      findNode.awaitExpression('await e'),
+    );
   }
 
   void test_visitBinaryExpression() {

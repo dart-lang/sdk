@@ -656,10 +656,15 @@ void Class::CheckReload(const Class& replacement,
               TypeParametersChanged(context->zone(), *this, replacement));
       return;
     }
+  }
+
+  if (is_finalized() || is_allocate_finalized()) {
+    auto thread = Thread::Current();
 
     // Ensure the replacement class is also finalized.
-    const Error& error =
-        Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
+    const Error& error = Error::Handle(
+        is_allocate_finalized() ? replacement.EnsureIsAllocateFinalized(thread)
+                                : replacement.EnsureIsFinalized(thread));
     if (!error.IsNull()) {
       context->group_reload_context()->AddReasonForCancelling(
           new (context->zone())

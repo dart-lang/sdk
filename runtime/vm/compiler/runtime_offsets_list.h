@@ -186,6 +186,7 @@
   FIELD(SingleTargetCache, upper_limit_offset)                                 \
   FIELD(StoreBufferBlock, pointers_offset)                                     \
   FIELD(StoreBufferBlock, top_offset)                                          \
+  FIELD(StreamInfo, enabled_offset)                                            \
   FIELD(String, hash_offset)                                                   \
   FIELD(String, length_offset)                                                 \
   FIELD(SubtypeTestCache, cache_offset)                                        \
@@ -213,6 +214,7 @@
   FIELD(Thread, dart_stream_offset)                                            \
   FIELD(Thread, dispatch_table_array_offset)                                   \
   FIELD(Thread, double_truncate_round_supported_offset)                        \
+  FIELD(Thread, service_extension_stream_offset)                               \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \

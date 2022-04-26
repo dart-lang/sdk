@@ -27,6 +27,9 @@ void log(String message,
     StackTrace? stackTrace}) {}
 
 @patch
+bool get extensionStreamHasListener => false;
+
+@patch
 void _postEvent(String eventKind, String eventData) {}
 
 @patch

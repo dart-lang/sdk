@@ -24,6 +24,9 @@ import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 
+import 'serialization_interfaces.dart' as migrated
+    show DataSourceReader, DataSinkWriter;
+
 part 'sink.dart';
 part 'source.dart';
 part 'binary_sink.dart';

@@ -58,6 +58,7 @@ class RuntimeEntry;
 class Smi;
 class StackResource;
 class StackTrace;
+class StreamInfo;
 class String;
 class TimelineStream;
 class TypeArguments;
@@ -510,6 +511,11 @@ class Thread : public ThreadState {
   // Offset of Dart TimelineStream object.
   static intptr_t dart_stream_offset() {
     return OFFSET_OF(Thread, dart_stream_);
+  }
+
+  // Offset of the Dart VM Service Extension StreamInfo object.
+  static intptr_t service_extension_stream_offset() {
+    return OFFSET_OF(Thread, service_extension_stream_);
   }
 
   // Is |this| executing Dart code?
@@ -1173,6 +1179,7 @@ class Thread : public ThreadState {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
+  StreamInfo* service_extension_stream_;
   IsolateGroup* isolate_group_ = nullptr;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;

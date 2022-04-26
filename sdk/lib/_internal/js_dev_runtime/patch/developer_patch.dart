@@ -11,7 +11,6 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:isolate';
 
-var _issuedPostEventWarning = false;
 var _issuedRegisterExtensionWarning = false;
 final _developerSupportWarning = 'from dart:developer is only supported in '
     'build/run/test environments where the developer event method hooks have '
@@ -117,15 +116,10 @@ _invokeExtension(String methodName, String encodedJson) {
 }
 
 @patch
+bool get extensionStreamHasListener => _debuggerAttached;
+
+@patch
 void _postEvent(String eventKind, String eventData) {
-  if (!_debuggerAttached) {
-    if (!_issuedPostEventWarning) {
-      var message = 'postEvent() $_developerSupportWarning';
-      JS('', 'console.warn(#)', message);
-      _issuedPostEventWarning = true;
-    }
-    return;
-  }
   // TODO(46377) Update this check when we have a documented API for DDC apps.
   if (JS<bool>('!', r'!!#.$emitDebugEvent', dart.global_)) {
     // See hooks assigned by package:dwds:

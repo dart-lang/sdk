@@ -11,7 +11,6 @@ import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
-import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';

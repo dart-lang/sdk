@@ -10,17 +10,10 @@
 library entities.parameter_structure_methods;
 
 import '../serialization/serialization.dart';
-import '../universe/call_structure.dart' show CallStructure;
 import 'entities.dart';
 import 'types.dart' show FunctionType;
 
 extension UnmigratedParameterStructureInstanceMethods on ParameterStructure {
-  /// Returns the [CallStructure] corresponding to a call site passing all
-  /// parameters both required and optional.
-  CallStructure get callStructure {
-    return CallStructure(totalParameters, namedParameters, typeParameters);
-  }
-
   /// Serializes this [ParameterStructure] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     final tag = ParameterStructure.tag;

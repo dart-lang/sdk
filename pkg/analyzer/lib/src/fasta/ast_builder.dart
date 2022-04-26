@@ -702,8 +702,13 @@ class AstBuilder extends StackListener {
     assert(optional('await', awaitKeyword));
     debugEvent("AwaitExpression");
 
-    var expression = pop() as Expression;
-    push(ast.awaitExpression(awaitKeyword, expression));
+    var expression = pop() as ExpressionImpl;
+    push(
+      AwaitExpressionImpl(
+        awaitKeyword: awaitKeyword,
+        expression: expression,
+      ),
+    );
   }
 
   @override

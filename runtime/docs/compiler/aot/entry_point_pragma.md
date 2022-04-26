@@ -35,7 +35,7 @@ Any one of the following forms may be attached to a class:
 ```dart
 @pragma("vm:entry-point")
 @pragma("vm:entry-point", true/false)
-@pragma("vm:entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 class C { ... }
 ```
 
@@ -54,7 +54,7 @@ getters, setters and constructors):
 ```dart
 @pragma("vm:entry-point")
 @pragma("vm:entry-point", true/false)
-@pragma("vm:entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 @pragma("vm:entry-point", "get")
 @pragma("vm:entry-point", "call")
 void foo() { ... }
@@ -83,7 +83,7 @@ three forms may be attached to static fields.
 @pragma("vm:entry-point")
 @pragma("vm:entry-point", null)
 @pragma("vm:entry-point", true/false)
-@pragma("vm:entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 @pragma("vm:entry-point", "get"/"set")
 int foo;
 ```

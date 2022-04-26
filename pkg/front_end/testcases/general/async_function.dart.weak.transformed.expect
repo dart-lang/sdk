@@ -121,10 +121,10 @@ static method asyncStarString() → asy::Stream<core::String> /* originally asyn
             return null;
           else
             [yield] null;
-          if(:controller.{asy::_AsyncStarStreamController::addStream}(self::asyncStarString2()){(asy::Stream<core::String>) → core::bool})
+          :controller.{asy::_AsyncStarStreamController::addStream}(self::asyncStarString2()){(asy::Stream<core::String>) → void};
+          [yield] null;
+          if(_in::unsafeCast<core::bool>(:result_or_exception))
             return null;
-          else
-            [yield] null;
           [yield] let dynamic #t1 = asy::_awaitHelper(self::asyncString(), :async_op_then, :async_op_error) in null;
           if(:controller.{asy::_AsyncStarStreamController::add}(_in::unsafeCast<core::String>(:result_or_exception)){(core::String) → core::bool})
             return null;

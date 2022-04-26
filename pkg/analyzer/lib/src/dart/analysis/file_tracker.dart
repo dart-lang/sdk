@@ -150,57 +150,67 @@ class FileTracker {
 
   /// Verify the API signature for the file with the given [path], and decide
   /// which linked libraries should be invalidated, and files reanalyzed.
-  FileState verifyApiSignature(String path) {
+  void verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
 
       var file = _fsState.getFileForPath(path);
-      var apiChanged = file.refresh();
-      if (apiChanged) {
-        _logger.writeln('API signatures mismatch found.');
-        // TODO(scheglov) schedule analysis of only affected files
-        var pendingChangedFiles = <String>{};
-        var pendingImportFiles = <String>{};
-        var pendingErrorFiles = <String>{};
-        var pendingFiles = <String>{};
 
-        // Add the changed file.
-        if (addedFiles.contains(path)) {
-          pendingChangedFiles.add(path);
-        }
-
-        // Add files that directly import the changed file.
-        for (String addedPath in addedFiles) {
-          FileState addedFile = _fsState.getFileForPath(addedPath);
-          if (addedFile.importedFiles.contains(file)) {
-            pendingImportFiles.add(addedPath);
+      var changeKind = file.refresh();
+      switch (changeKind) {
+        case FileStateRefreshResult.nothing:
+          return;
+        case FileStateRefreshResult.contentChanged:
+          if (file.mightBeExecutedByMacroClass) {
+            break;
           }
-        }
-
-        // Add files with errors or warnings that might be fixed.
-        for (String addedPath in addedFiles) {
-          FileState addedFile = _fsState.getFileForPath(addedPath);
-          if (addedFile.hasErrorOrWarning) {
-            pendingErrorFiles.add(addedPath);
-          }
-        }
-
-        // Add all previous pending files.
-        pendingChangedFiles.addAll(_pendingChangedFiles);
-        pendingImportFiles.addAll(_pendingImportFiles);
-        pendingErrorFiles.addAll(_pendingErrorFiles);
-        pendingFiles.addAll(_pendingFiles);
-
-        // Add all the rest.
-        pendingFiles.addAll(addedFiles);
-
-        // Replace pending files.
-        _pendingChangedFiles = pendingChangedFiles;
-        _pendingImportFiles = pendingImportFiles;
-        _pendingErrorFiles = pendingErrorFiles;
-        _pendingFiles = pendingFiles;
+          return;
+        case FileStateRefreshResult.apiChanged:
+          break;
       }
-      return file;
+
+      _logger.writeln('API signatures mismatch found.');
+      // TODO(scheglov) schedule analysis of only affected files
+      var pendingChangedFiles = <String>{};
+      var pendingImportFiles = <String>{};
+      var pendingErrorFiles = <String>{};
+      var pendingFiles = <String>{};
+
+      // Add the changed file.
+      if (addedFiles.contains(path)) {
+        pendingChangedFiles.add(path);
+      }
+
+      // Add files that directly import the changed file.
+      for (String addedPath in addedFiles) {
+        FileState addedFile = _fsState.getFileForPath(addedPath);
+        if (addedFile.importedFiles.contains(file)) {
+          pendingImportFiles.add(addedPath);
+        }
+      }
+
+      // Add files with errors or warnings that might be fixed.
+      for (String addedPath in addedFiles) {
+        FileState addedFile = _fsState.getFileForPath(addedPath);
+        if (addedFile.hasErrorOrWarning) {
+          pendingErrorFiles.add(addedPath);
+        }
+      }
+
+      // Add all previous pending files.
+      pendingChangedFiles.addAll(_pendingChangedFiles);
+      pendingImportFiles.addAll(_pendingImportFiles);
+      pendingErrorFiles.addAll(_pendingErrorFiles);
+      pendingFiles.addAll(_pendingFiles);
+
+      // Add all the rest.
+      pendingFiles.addAll(addedFiles);
+
+      // Replace pending files.
+      _pendingChangedFiles = pendingChangedFiles;
+      _pendingImportFiles = pendingImportFiles;
+      _pendingErrorFiles = pendingErrorFiles;
+      _pendingFiles = pendingFiles;
     });
   }
 

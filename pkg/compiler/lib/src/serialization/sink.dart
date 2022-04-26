@@ -36,7 +36,7 @@ abstract class DataSink {
 ///
 /// To be used with [DataSourceReader] to read and write serialized data.
 /// Serialization format is deferred to provided [DataSink].
-class DataSinkWriter {
+class DataSinkWriter implements migrated.DataSinkWriter {
   final DataSink _sinkWriter;
 
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
@@ -108,6 +108,7 @@ class DataSinkWriter {
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void begin(String tag) {
     if (tagFrequencyMap != null) {
       tagFrequencyMap[tag] ??= 0;
@@ -120,10 +121,11 @@ class DataSinkWriter {
     }
   }
 
-  /// Registers that the section [tag] starts.
+  /// Registers that the section [tag] ends.
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void end(Object tag) {
     if (useDataKinds) {
       _sinkWriter.endTag(tag);
@@ -170,6 +172,7 @@ class DataSinkWriter {
   }
 
   /// Writes the boolean [value] to this data sink.
+  @override
   void writeBool(bool value) {
     assert(value != null);
     _writeDataKind(DataKind.bool);
@@ -181,6 +184,7 @@ class DataSinkWriter {
   }
 
   /// Writes the non-negative 30 bit integer [value] to this data sink.
+  @override
   void writeInt(int value) {
     assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
@@ -192,6 +196,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readIntOrNull].
+  @override
   void writeIntOrNull(int value) {
     writeBool(value != null);
     if (value != null) {
@@ -200,6 +205,7 @@ class DataSinkWriter {
   }
 
   /// Writes the string [value] to this data sink.
+  @override
   void writeString(String value) {
     assert(value != null);
     _writeDataKind(DataKind.string);
@@ -214,6 +220,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStringOrNull].
+  @override
   void writeStringOrNull(String value) {
     writeBool(value != null);
     if (value != null) {
@@ -227,6 +234,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStringMap].
+  @override
   void writeStringMap<V>(Map<String, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -246,6 +254,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStrings].
+  @override
   void writeStrings(Iterable<String> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -262,12 +271,14 @@ class DataSinkWriter {
   // TODO(johnniwinther): Change the signature to
   // `void writeEnum<E extends Enum<E>>(E value);` when an interface for enums
   // is added to the language.
+  @override
   void writeEnum(dynamic value) {
     _writeDataKind(DataKind.enumValue);
     _sinkWriter.writeEnum(value);
   }
 
   /// Writes the URI [value] to this data sink.
+  @override
   void writeUri(Uri value) {
     assert(value != null);
     _writeDataKind(DataKind.uri);
@@ -676,6 +687,7 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to the indexed library [value] to this data sink.
+  @override
   void writeLibrary(IndexedLibrary value) {
     _entityWriter.writeLibraryToDataSink(this, value);
   }
@@ -685,6 +697,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLibraryOrNull].
+  @override
   void writeLibraryOrNull(IndexedLibrary value) {
     writeBool(value != null);
     if (value != null) {
@@ -713,6 +726,7 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to the indexed class [value] to this data sink.
+  @override
   void writeClass(IndexedClass value) {
     _entityWriter.writeClassToDataSink(this, value);
   }
@@ -722,6 +736,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readClassOrNull].
+  @override
   void writeClassOrNull(IndexedClass value) {
     writeBool(value != null);
     if (value != null) {
@@ -822,6 +837,7 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to the indexed type variable [value] to this data sink.
+  @override
   void writeTypeVariable(IndexedTypeVariable value) {
     _entityWriter.writeTypeVariableToDataSink(this, value);
   }

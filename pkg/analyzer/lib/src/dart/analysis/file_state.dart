@@ -148,6 +148,11 @@ class FileState {
   /// might be fixed by a change to another file.
   bool hasErrorOrWarning = false;
 
+  /// Set to `true` if this file contains code that might be executed by
+  /// a macro - declares a macro class itself, or is directly or indirectly
+  /// imported into a library that declares one.
+  bool mightBeExecutedByMacroClass = false;
+
   FileState._(
     this._fsState,
     this.path,
@@ -375,8 +380,8 @@ class FileState {
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
-  /// Return `true` if the API signature changed since the last refresh.
-  bool refresh() {
+  /// Return how the file changed since the last refresh.
+  FileStateRefreshResult refresh() {
     counterFileStateRefresh++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
@@ -386,12 +391,11 @@ class FileState {
 
     _invalidateCurrentUnresolvedData();
 
-    {
-      var rawFileState = _fsState._fileContentCache.get(path);
-      _content = rawFileState.content;
-      _exists = rawFileState.exists;
-      _contentHash = rawFileState.contentHash;
-    }
+    final rawFileState = _fsState._fileContentCache.get(path);
+    final contentChanged = _contentHash != rawFileState.contentHash;
+    _content = rawFileState.content;
+    _exists = rawFileState.exists;
+    _contentHash = rawFileState.contentHash;
 
     // Prepare the unlinked bundle key.
     {
@@ -468,8 +472,14 @@ class FileState {
       timerFileStateRefresh.stop();
     }
 
-    // Return whether the API signature changed.
-    return apiSignatureChanged;
+    // Return how the file changed.
+    if (apiSignatureChanged) {
+      return FileStateRefreshResult.apiChanged;
+    } else if (contentChanged) {
+      return FileStateRefreshResult.contentChanged;
+    } else {
+      return FileStateRefreshResult.nothing;
+    }
   }
 
   @override
@@ -698,6 +708,17 @@ class FileState {
       uri: directive.uri.stringValue ?? '',
     );
   }
+}
+
+enum FileStateRefreshResult {
+  /// No changes to the content, so no changes at all.
+  nothing,
+
+  /// The content changed, but the API of the file is the same.
+  contentChanged,
+
+  /// The content changed, and the API of the file is different.
+  apiChanged,
 }
 
 @visibleForTesting

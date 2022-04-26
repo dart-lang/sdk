@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.call_structure;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart' show ParameterStructure;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart';
 import 'selector.dart' show Selector;
 
@@ -75,7 +73,7 @@ class CallStructure {
   }
 
   factory CallStructure(int argumentCount,
-      [List<String> namedArguments, int typeArgumentCount = 0]) {
+      [List<String>? namedArguments, int typeArgumentCount = 0]) {
     if (namedArguments == null || namedArguments.isEmpty) {
       return CallStructure.unnamed(argumentCount, typeArgumentCount);
     }
@@ -87,7 +85,7 @@ class CallStructure {
   factory CallStructure.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int argumentCount = source.readInt();
-    List<String> namedArguments = source.readStrings() /*!*/;
+    List<String> namedArguments = source.readStrings()!;
     int typeArgumentCount = source.readInt();
     source.end(tag);
     return CallStructure(argumentCount, namedArguments, typeArgumentCount);
@@ -245,7 +243,7 @@ class _NamedCallStructure extends CallStructure {
   final List<String> namedArguments;
 
   /// The list of ordered named arguments is computed lazily. Initially `null`.
-  List<String> /*?*/ _orderedNamedArguments;
+  List<String>? _orderedNamedArguments;
 
   _NamedCallStructure(int argumentCount, this.namedArguments,
       int typeArgumentCount, this._orderedNamedArguments)

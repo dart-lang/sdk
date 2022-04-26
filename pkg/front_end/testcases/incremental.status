@@ -8,3 +8,4 @@
 #strongmode_mixins_2: Crash
 
 changing_modules_16: Crash
+late_lowering: EquivalenceError
