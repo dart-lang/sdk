@@ -118,7 +118,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       io.exit(1);
     });
 
-    Future<Map<String, BulkFix>> _applyAllEdits() async {
+    Future<Map<String, BulkFix>> applyAllEdits() async {
       var detailsMap = <String, BulkFix>{};
       List<SourceFileEdit> edits;
       var pass = 0;
@@ -134,7 +134,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       return detailsMap;
     }
 
-    var detailsMap = await _applyAllEdits();
+    var detailsMap = await applyAllEdits();
     await server.shutdown();
 
     if (computeFixesProgress != null) {
