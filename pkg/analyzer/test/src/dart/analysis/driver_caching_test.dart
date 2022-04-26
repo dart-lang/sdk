@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/stream.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -353,25 +356,7 @@ void f() {
   }
 
   test_macro_libraryElement_changeMacroCode() async {
-    File newFileWithFixedNameMacro(String className) {
-      return newFile('$testPackageLibPath/my_macro.dart', '''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      '$className',
-      DeclarationCode.fromString('class $className {}'),
-    );
-  }
-}
-''');
-    }
-
-    final macroFile = newFileWithFixedNameMacro('MacroA');
+    final macroFile = _newFileWithFixedNameMacro('MacroA');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'my_macro.dart';
@@ -407,7 +392,7 @@ export 'a.dart';
     _assertContainsLinkedCycle({b.path}, andClear: true);
 
     // The macro will generate `MacroB`.
-    newFileWithFixedNameMacro('MacroB');
+    _newFileWithFixedNameMacro('MacroB');
 
     // Notify about changes.
     analysisContext.changeFile(macroFile.path);
@@ -426,6 +411,158 @@ export 'a.dart';
 
     _assertContainsLinkedCycle({a.path});
     _assertContainsLinkedCycle({b.path}, andClear: true);
+  }
+
+  test_macro_reanalyze_errors_changeCodeUsedByMacro_importedLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+String getClassName() => 'MacroA';
+''');
+
+    newFile('$testPackageLibPath/my_macro.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'a.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    final className = getClassName();
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+
+    var user = newFile('$testPackageLibPath/user.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    var analysisContext = contextFor(a.path);
+    var analysisDriver = driverFor(a.path);
+
+    var userErrors = analysisDriver.results
+        .whereType<ErrorsResult>()
+        .where((event) => event.path == user.path);
+
+    // We get errors when the file is added.
+    analysisDriver.addFile(user.path);
+    assertErrorsInList((await userErrors.first).errors, []);
+
+    // The macro will generate `MacroB`.
+    newFile('$testPackageLibPath/a.dart', r'''
+String getClassName() => 'MacroB';
+''');
+
+    // Notify about changes.
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The change to the macro cause re-analysis of the user file.
+    assertErrorsInList((await userErrors.first).errors, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
+  }
+
+  test_macro_reanalyze_errors_changeCodeUsedByMacro_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'my_macro.dart';
+String getClassName() => 'MacroA';
+''');
+
+    newFile('$testPackageLibPath/my_macro.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+part 'a.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    final className = getClassName();
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+
+    var user = newFile('$testPackageLibPath/user.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    var analysisContext = contextFor(a.path);
+    var analysisDriver = driverFor(a.path);
+
+    var userErrors = analysisDriver.results
+        .whereType<ErrorsResult>()
+        .where((event) => event.path == user.path);
+
+    // We get errors when the file is added.
+    analysisDriver.addFile(user.path);
+    assertErrorsInList((await userErrors.first).errors, []);
+
+    // The macro will generate `MacroB`.
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'my_macro.dart';
+String getClassName() => 'MacroB';
+''');
+
+    // Notify about changes.
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The change to the macro cause re-analysis of the user file.
+    assertErrorsInList((await userErrors.first).errors, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
+  }
+
+  test_macro_reanalyze_errors_changeMacroCode() async {
+    var macroFile = _newFileWithFixedNameMacro('MacroA');
+
+    var user = newFile('$testPackageLibPath/user.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    var analysisContext = contextFor(user.path);
+    var analysisDriver = driverFor(user.path);
+
+    var userErrors = analysisDriver.results
+        .whereType<ErrorsResult>()
+        .where((event) => event.path == user.path);
+
+    // We get errors when the file is added.
+    analysisDriver.addFile(user.path);
+    assertErrorsInList((await userErrors.first).errors, []);
+
+    // The macro will generate `MacroB`.
+    _newFileWithFixedNameMacro('MacroB');
+
+    // Notify about changes.
+    analysisContext.changeFile(macroFile.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The change to the macro cause re-analysis of the user file.
+    assertErrorsInList((await userErrors.first).errors, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
   }
 
   test_macro_resolvedUnit_changeCodeUsedByMacro() async {
@@ -479,53 +616,6 @@ String getClassName() => 'MacroB';
     ]);
   }
 
-  test_macro_resolvedUnit_changeMacroCode() async {
-    File newFileWithFixedNameMacro(String className) {
-      return newFile('$testPackageLibPath/my_macro.dart', '''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      '$className',
-      DeclarationCode.fromString('class $className {}'),
-    );
-  }
-}
-''');
-    }
-
-    var macroFile = newFileWithFixedNameMacro('MacroA');
-
-    // The macro will generate `MacroA`, so no errors.
-    await assertNoErrorsInCode('''
-import 'my_macro.dart';
-
-@MyMacro()
-class A {}
-
-void f(MacroA a) {}
-''');
-
-    // The macro will generate `MacroB`.
-    newFileWithFixedNameMacro('MacroB');
-
-    // Notify about changes.
-    var analysisContext = contextFor(macroFile.path);
-    analysisContext.changeFile(macroFile.path);
-    await analysisContext.applyPendingFileChanges();
-
-    // Resolve the test file, it still references `MacroA`, but the updated
-    // macro generates `MacroB` now, so we have an error.
-    await resolveTestFile();
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
-    ]);
-  }
-
   void _assertContainsLinkedCycle(Set<String> expectedPosix,
       {bool andClear = false}) {
     var expected = expectedPosix.map(convertPath).toSet();
@@ -559,6 +649,23 @@ void f(MacroA a) {}
         .currentSession
         .getErrors(testFilePathConverted) as ErrorsResult;
     return errorsResult.errors;
+  }
+
+  File _newFileWithFixedNameMacro(String className) {
+    return newFile('$testPackageLibPath/my_macro.dart', '''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
   }
 }
 

@@ -63,6 +63,11 @@ class LibraryCycle {
     return false;
   }();
 
+  /// Set to `true` if this library cycle contains code that might be executed
+  /// by a macro - declares a macro class itself, or is directly or indirectly
+  /// imported into a cycle that declares one.
+  bool mightBeExecutedByMacroClass = false;
+
   LibraryCycle({
     required this.libraries,
     required this.directDependencies,
@@ -87,6 +92,23 @@ class LibraryCycle {
     }
     for (var directDependency in directDependencies) {
       directDependency._directUsers.remove(this);
+    }
+  }
+
+  /// Mark this cycle and its dependencies are potentially executed by a macro.
+  void markMightBeExecutedByMacroClass() {
+    if (!mightBeExecutedByMacroClass) {
+      mightBeExecutedByMacroClass = true;
+      // Mark each file of the cycle.
+      for (final library in libraries) {
+        for (final file in library.libraryFiles) {
+          file.mightBeExecutedByMacroClass = true;
+        }
+      }
+      // Recursively mark all dependencies.
+      for (final dependency in directDependencies) {
+        dependency.markMightBeExecutedByMacroClass();
+      }
     }
   }
 
@@ -182,6 +204,10 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       apiSignature: apiSignature.toHex(),
       implSignature: implSignature.toHex(),
     );
+
+    if (cycle.hasMacroClass) {
+      cycle.markMightBeExecutedByMacroClass();
+    }
 
     // Set the instance into the libraries.
     for (var node in scc) {

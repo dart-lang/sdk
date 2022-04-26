@@ -744,8 +744,8 @@ class A {}
     newFile(path, r'''
 class B {}
 ''');
-    bool apiSignatureChanged = file.refresh();
-    expect(apiSignatureChanged, isTrue);
+    final changeKind = file.refresh();
+    expect(changeKind, FileStateRefreshResult.apiChanged);
 
     expect(file.definedTopLevelNames, contains('B'));
     expect(file.apiSignature, isNot(signature));
@@ -771,8 +771,8 @@ class C {
   }
 }
 ''');
-    bool apiSignatureChanged = file.refresh();
-    expect(apiSignatureChanged, isFalse);
+    final changeKind = file.refresh();
+    expect(changeKind, FileStateRefreshResult.contentChanged);
 
     expect(file.apiSignature, signature);
   }
