@@ -1053,7 +1053,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_resolveForCompletionRequests.isNotEmpty) {
       final request = _resolveForCompletionRequests.removeLast();
       try {
-        final result = _resolveForCompletion(request);
+        final result = await _resolveForCompletion(request);
         request.completer.complete(result);
       } catch (exception, stackTrace) {
         _reportException(request.path, exception, stackTrace);
