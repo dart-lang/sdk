@@ -27,7 +27,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
 
 /// The handler for the `completion.getSuggestions2` request.
-class CompletionGetSuggestions2Handler extends LegacyHandler
+class CompletionGetSuggestions2Handler extends CompletionHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
@@ -107,6 +107,10 @@ class CompletionGetSuggestions2Handler extends LegacyHandler
 
   @override
   Future<void> handle() async {
+    if (completionIsDisabled) {
+      return;
+    }
+
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
     var offset = params.offset;

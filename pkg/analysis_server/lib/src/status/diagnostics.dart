@@ -10,7 +10,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -356,13 +355,8 @@ class CompletionPage extends AbstractCompletionPage {
 
   CompletionPage(super.site, this.server);
 
-  CompletionDomainHandler get completionDomain => server.handlers
-          .firstWhere((handler) => handler is CompletionDomainHandler)
-      as CompletionDomainHandler;
-
   @override
-  path.Context get pathContext =>
-      completionDomain.server.resourceProvider.pathContext;
+  path.Context get pathContext => server.resourceProvider.pathContext;
 
   @override
   List<CompletionPerformance> get performanceItems =>
