@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -16,7 +15,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -171,15 +169,6 @@ class AnalysisServerTest with ResourceProviderMixin {
     expect(await getUriNotExistErrors(), hasLength(0));
   }
 
-  Future test_echo() {
-    server.handlers = [EchoHandler(server)];
-    var request = Request('my22', 'echo');
-    return channel.sendRequest(request).then((Response response) {
-      expect(response.id, equals('my22'));
-      expect(response.error, isNull);
-    });
-  }
-
   Future test_serverStatusNotifications_hasFile() async {
     server.serverServices.add(ServerService.STATUS);
 
@@ -285,7 +274,6 @@ analyzer:
   }
 
   Future test_shutdown() {
-    server.handlers = [ServerDomainHandler(server)];
     var request = Request('my28', SERVER_REQUEST_SHUTDOWN);
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my28'));
@@ -293,39 +281,7 @@ analyzer:
     });
   }
 
-  Future test_slowEcho_cancelled() async {
-    server.handlers = [
-      ServerDomainHandler(server),
-      EchoHandler(server),
-    ];
-    // Send the normal request.
-    var responseFuture = channel.sendRequest(Request('my22', 'slowEcho'));
-    // Send a cancellation for it for waiting for it to complete.
-    channel.sendRequest(
-      Request(
-        'my23',
-        'server.cancelRequest',
-        {'id': 'my22'},
-      ),
-    );
-    var response = await responseFuture;
-    expect(response.id, equals('my22'));
-    expect(response.error, isNull);
-    expect(response.result!['cancelled'], isTrue);
-  }
-
-  Future test_slowEcho_notCancelled() {
-    server.handlers = [EchoHandler(server)];
-    var request = Request('my22', 'slowEcho');
-    return channel.sendRequest(request).then((Response response) {
-      expect(response.id, equals('my22'));
-      expect(response.error, isNull);
-      expect(response.result!['cancelled'], isFalse);
-    });
-  }
-
   Future test_unknownRequest() {
-    server.handlers = [EchoHandler(server)];
     var request = Request('my22', 'randomRequest');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));
@@ -345,33 +301,5 @@ analyzer:
     final packagePath = '/packages/$name';
     final file = newFile('$packagePath/lib/$name.dart', content);
     return file.parent;
-  }
-}
-
-class EchoHandler implements RequestHandler {
-  final AnalysisServer server;
-
-  EchoHandler(this.server);
-
-  @override
-  Response? handleRequest(
-      Request request, CancellationToken cancellationToken) {
-    if (request.method == 'echo') {
-      return Response(request.id, result: {'echo': true});
-    } else if (request.method == 'slowEcho') {
-      _slowEcho(request, cancellationToken);
-      return Response.DELAYED_RESPONSE;
-    }
-    return null;
-  }
-
-  void _slowEcho(Request request, CancellationToken cancellationToken) async {
-    for (var i = 0; i < 100; i++) {
-      if (cancellationToken.isCancellationRequested) {
-        server.sendResponse(Response(request.id, result: {'cancelled': true}));
-      }
-      await Future.delayed(const Duration(milliseconds: 10));
-    }
-    server.sendResponse(Response(request.id, result: {'cancelled': false}));
   }
 }

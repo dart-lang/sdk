@@ -17,7 +17,7 @@ Set<String> computeReferencedNames(CompilationUnit unit) {
 Set<String> computeSubtypedNames(CompilationUnit unit) {
   Set<String> subtypedNames = <String>{};
 
-  void _addSubtypedName(NamedType? type) {
+  void addSubtypedName(NamedType? type) {
     if (type != null) {
       Identifier name = type.name;
       if (name is SimpleIdentifier) {
@@ -28,25 +28,25 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     }
   }
 
-  void _addSubtypedNames(List<NamedType>? types) {
-    types?.forEach(_addSubtypedName);
+  void addSubtypedNames(List<NamedType>? types) {
+    types?.forEach(addSubtypedName);
   }
 
   for (CompilationUnitMember declaration in unit.declarations) {
     if (declaration is ClassDeclaration) {
-      _addSubtypedName(declaration.extendsClause?.superclass);
-      _addSubtypedNames(declaration.withClause?.mixinTypes);
-      _addSubtypedNames(declaration.implementsClause?.interfaces);
+      addSubtypedName(declaration.extendsClause?.superclass);
+      addSubtypedNames(declaration.withClause?.mixinTypes);
+      addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is ClassTypeAlias) {
-      _addSubtypedName(declaration.superclass);
-      _addSubtypedNames(declaration.withClause.mixinTypes);
-      _addSubtypedNames(declaration.implementsClause?.interfaces);
+      addSubtypedName(declaration.superclass);
+      addSubtypedNames(declaration.withClause.mixinTypes);
+      addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is EnumDeclaration) {
-      _addSubtypedNames(declaration.withClause?.mixinTypes);
-      _addSubtypedNames(declaration.implementsClause?.interfaces);
+      addSubtypedNames(declaration.withClause?.mixinTypes);
+      addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is MixinDeclaration) {
-      _addSubtypedNames(declaration.onClause?.superclassConstraints);
-      _addSubtypedNames(declaration.implementsClause?.interfaces);
+      addSubtypedNames(declaration.onClause?.superclassConstraints);
+      addSubtypedNames(declaration.implementsClause?.interfaces);
     }
   }
 

@@ -12,7 +12,6 @@ import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -21,9 +20,6 @@ void main() {
         SocketServerTest.createAnalysisServer_successful);
     test('createAnalysisServer_alreadyStarted',
         SocketServerTest.createAnalysisServer_alreadyStarted);
-    test('requestHandler_exception', SocketServerTest.requestHandler_exception);
-    test('requestHandler_futureException',
-        SocketServerTest.requestHandler_futureException);
   });
 }
 
@@ -66,39 +62,6 @@ class SocketServerTest {
     });
   }
 
-  static Future requestHandler_exception() {
-    var channel = MockServerChannel();
-    var server = _createSocketServer(channel);
-    channel.expectMsgCount(notificationCount: 1);
-    expect(
-        channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
-    var handler = _MockRequestHandler(false);
-    server.analysisServer!.handlers = [handler];
-    var request = ServerGetVersionParams().toRequest('0');
-    return channel.sendRequest(request).then((Response response) {
-      expect(response.id, equals('0'));
-      var error = response.error!;
-      expect(error.code, equals(RequestErrorCode.SERVER_ERROR));
-      expect(error.message, equals('mock request exception'));
-      expect(error.stackTrace, isNotNull);
-      expect(error.stackTrace, isNotEmpty);
-      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
-    });
-  }
-
-  static Future requestHandler_futureException() async {
-    var channel = MockServerChannel();
-    var server = _createSocketServer(channel);
-    var handler = _MockRequestHandler(true);
-    server.analysisServer!.handlers = [handler];
-    var request = ServerGetVersionParams().toRequest('0');
-    var response = await channel.sendRequest(request, throwOnError: false);
-    expect(response.id, equals('0'));
-    expect(response.error, isNull);
-    channel.expectMsgCount(responseCount: 2, notificationCount: 2);
-    expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
-  }
-
   static SocketServer _createSocketServer(MockServerChannel channel) {
     final errorNotifier = ErrorNotifier();
     final server = SocketServer(
@@ -115,24 +78,5 @@ class SocketServerTest {
     AnalysisEngine.instance.instrumentationService = errorNotifier;
 
     return server;
-  }
-}
-
-class _MockRequestHandler implements RequestHandler {
-  final bool futureException;
-
-  _MockRequestHandler(this.futureException);
-
-  @override
-  Response handleRequest(Request request, CancellationToken cancellationToken) {
-    if (futureException) {
-      Future(throwException);
-      return Response(request.id);
-    }
-    throw 'mock request exception';
-  }
-
-  void throwException() {
-    throw 'mock future exception';
   }
 }

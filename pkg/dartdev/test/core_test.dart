@@ -25,7 +25,7 @@ void main() {
 }
 
 void _dartdevCommand() {
-  void _assertDartdevCommandProperties(
+  void assertDartdevCommandProperties(
       DartdevCommand command, String name, String expectedUsagePath,
       [int subcommandCount = 0]) {
     expect(command, isNotNull);
@@ -37,62 +37,62 @@ void _dartdevCommand() {
   }
 
   test('analyze', () {
-    _assertDartdevCommandProperties(AnalyzeCommand(), 'analyze', 'analyze');
+    assertDartdevCommandProperties(AnalyzeCommand(), 'analyze', 'analyze');
   });
 
   test('compile', () {
-    _assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 5);
+    assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 5);
   });
 
   test('compile/js', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['js'] as DartdevCommand,
         'js',
         'compile/js');
   });
 
   test('compile/jit-snapshot', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['jit-snapshot'] as DartdevCommand,
         'jit-snapshot',
         'compile/jit-snapshot');
   });
 
   test('compile/kernel', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['kernel'] as DartdevCommand,
         'kernel',
         'compile/kernel');
   });
 
   test('compile/exe', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['exe'] as DartdevCommand,
         'exe',
         'compile/exe');
   });
 
   test('compile/aot-snapshot', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['aot-snapshot'] as DartdevCommand,
         'aot-snapshot',
         'compile/aot-snapshot');
   });
 
   test('create', () {
-    _assertDartdevCommandProperties(CreateCommand(), 'create', 'create');
+    assertDartdevCommandProperties(CreateCommand(), 'create', 'create');
   });
 
   test('fix', () {
-    _assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
+    assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
   });
 
   test('run', () {
-    _assertDartdevCommandProperties(RunCommand(verbose: false), 'run', 'run');
+    assertDartdevCommandProperties(RunCommand(verbose: false), 'run', 'run');
   });
 
   test('test', () {
-    _assertDartdevCommandProperties(TestCommand(), 'test', 'test');
+    assertDartdevCommandProperties(TestCommand(), 'test', 'test');
   });
 }
 

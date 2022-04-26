@@ -242,27 +242,27 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
   }
 
   test_interfaceType_typeArguments() {
-    void _equal(DartType T1, DartType T2) {
-      this._equal(listNone(T1), listNone(T2));
+    void equal(DartType T1, DartType T2) {
+      _equal(listNone(T1), listNone(T2));
     }
 
-    void _notEqual(DartType T1, DartType T2) {
-      this._notEqual(listNone(T1), listNone(T2));
+    void notEqual(DartType T1, DartType T2) {
+      _notEqual(listNone(T1), listNone(T2));
     }
 
-    _notEqual(intNone, boolNone);
+    notEqual(intNone, boolNone);
 
-    _equal(intNone, intNone);
-    _notEqual(intNone, intQuestion);
-    _equal(intNone, intStar);
+    equal(intNone, intNone);
+    notEqual(intNone, intQuestion);
+    equal(intNone, intStar);
 
-    _notEqual(intQuestion, intNone);
-    _equal(intQuestion, intQuestion);
-    _notEqual(intQuestion, intStar);
+    notEqual(intQuestion, intNone);
+    equal(intQuestion, intQuestion);
+    notEqual(intQuestion, intStar);
 
-    _equal(intStar, intNone);
-    _notEqual(intStar, intQuestion);
-    _equal(intStar, intStar);
+    equal(intStar, intNone);
+    notEqual(intStar, intQuestion);
+    equal(intStar, intStar);
   }
 
   test_never() {

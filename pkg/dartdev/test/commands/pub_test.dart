@@ -17,7 +17,7 @@ void pub() {
 
   tearDown(() async => await p.dispose());
 
-  void _assertPubHelpInvoked(ProcessResult result) {
+  void assertPubHelpInvoked(ProcessResult result) {
     expect(result, isNotNull);
     expect(result.exitCode, 0);
     expect(result.stdout, contains('Work with packages'));
@@ -35,11 +35,11 @@ void pub() {
   });
 
   test('--help', () async {
-    _assertPubHelpInvoked(await project().run(['pub', '--help']));
+    assertPubHelpInvoked(await project().run(['pub', '--help']));
   });
 
   test('-h', () async {
-    _assertPubHelpInvoked(await project().run(['pub', '-h']));
+    assertPubHelpInvoked(await project().run(['pub', '-h']));
   });
 
   test('help cache', () async {
