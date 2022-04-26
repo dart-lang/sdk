@@ -2085,27 +2085,27 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var bElementStar = class_(name: 'B', superType: aStar);
     var bElementNone = class_(name: 'B', superType: aNone);
 
-    InterfaceType _bTypeStarElement(NullabilitySuffix nullability) {
+    InterfaceType bTypeStarElement(NullabilitySuffix nullability) {
       return interfaceType(
         bElementStar,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceType _bTypeNoneElement(NullabilitySuffix nullability) {
+    InterfaceType bTypeNoneElement(NullabilitySuffix nullability) {
       return interfaceType(
         bElementNone,
         nullabilitySuffix: nullability,
       );
     }
 
-    var bStarQuestion = _bTypeStarElement(NullabilitySuffix.question);
-    var bStarStar = _bTypeStarElement(NullabilitySuffix.star);
-    var bStarNone = _bTypeStarElement(NullabilitySuffix.none);
+    var bStarQuestion = bTypeStarElement(NullabilitySuffix.question);
+    var bStarStar = bTypeStarElement(NullabilitySuffix.star);
+    var bStarNone = bTypeStarElement(NullabilitySuffix.none);
 
-    var bNoneQuestion = _bTypeNoneElement(NullabilitySuffix.question);
-    var bNoneStar = _bTypeNoneElement(NullabilitySuffix.star);
-    var bNoneNone = _bTypeNoneElement(NullabilitySuffix.none);
+    var bNoneQuestion = bTypeNoneElement(NullabilitySuffix.question);
+    var bNoneStar = bTypeNoneElement(NullabilitySuffix.star);
+    var bNoneNone = bTypeNoneElement(NullabilitySuffix.none);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
       expect(typeSystem.getLeastUpperBound(type1, type2), expected);

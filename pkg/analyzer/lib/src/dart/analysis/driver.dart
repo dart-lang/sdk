@@ -1935,24 +1935,24 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               files: contextFiles);
       var bytes = contextBuilder.toBuffer();
 
-      String _twoDigits(int n) {
+      String twoDigits(int n) {
         if (n >= 10) return '$n';
         return '0$n';
       }
 
-      String _threeDigits(int n) {
+      String threeDigits(int n) {
         if (n >= 100) return '$n';
         if (n >= 10) return '0$n';
         return '00$n';
       }
 
       DateTime time = DateTime.now();
-      String m = _twoDigits(time.month);
-      String d = _twoDigits(time.day);
-      String h = _twoDigits(time.hour);
-      String min = _twoDigits(time.minute);
-      String sec = _twoDigits(time.second);
-      String ms = _threeDigits(time.millisecond);
+      String m = twoDigits(time.month);
+      String d = twoDigits(time.day);
+      String h = twoDigits(time.hour);
+      String min = twoDigits(time.minute);
+      String sec = twoDigits(time.second);
+      String ms = threeDigits(time.millisecond);
       String key = 'exception_${time.year}$m${d}_$h$min${sec}_$ms';
 
       _byteStore.put(key, bytes);
