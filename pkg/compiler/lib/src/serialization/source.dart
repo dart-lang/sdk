@@ -36,7 +36,7 @@ abstract class DataSource {
 ///
 /// To be used with [DataSinkWriter] to read and write serialized data.
 /// Deserialization format is deferred to provided [DataSource].
-class DataSourceReader {
+class DataSourceReader implements migrated.DataSourceReader {
   final DataSource _sourceReader;
 
   static final List<ir.DartType> emptyListOfDartTypes =
@@ -102,6 +102,7 @@ class DataSourceReader {
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void begin(String tag) {
     if (useDataKinds) _sourceReader.begin(tag);
   }
@@ -110,6 +111,7 @@ class DataSourceReader {
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void end(String tag) {
     if (useDataKinds) _sourceReader.end(tag);
   }
@@ -226,6 +228,7 @@ class DataSourceReader {
     return list;
   }
 
+  @override
   bool readBool() {
     _checkDataKind(DataKind.bool);
     return _readBool();
@@ -239,6 +242,7 @@ class DataSourceReader {
   }
 
   /// Reads a non-negative 30 bit integer value from this data source.
+  @override
   int readInt() {
     _checkDataKind(DataKind.uint30);
     return _sourceReader.readInt();
@@ -249,6 +253,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeIntOrNull].
+  @override
   int readIntOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -258,6 +263,7 @@ class DataSourceReader {
   }
 
   /// Reads a string value from this data source.
+  @override
   String readString() {
     _checkDataKind(DataKind.string);
     return _readString();
@@ -271,6 +277,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringOrNull].
+  @override
   String readStringOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -284,6 +291,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStrings].
+  @override
   List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -300,6 +308,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringMap].
+  @override
   Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -321,12 +330,14 @@ class DataSourceReader {
   ///    ...
   ///    Foo foo = source.readEnum(Foo.values);
   ///
+  @override
   E readEnum<E>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
     return _sourceReader.readEnum(values);
   }
 
   /// Reads a URI value from this data source.
+  @override
   Uri readUri() {
     _checkDataKind(DataKind.uri);
     return _readUri();
@@ -814,12 +825,14 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed library from this data source.
+  @override
   IndexedLibrary readLibrary() {
     return _entityReader.readLibraryFromDataSource(this, entityLookup);
   }
 
   /// Reads a reference to a potentially `null` indexed library from this data
   /// source.
+  @override
   IndexedLibrary readLibraryOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -849,12 +862,14 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed class from this data source.
+  @override
   IndexedClass readClass() {
     return _entityReader.readClassFromDataSource(this, entityLookup);
   }
 
   /// Reads a reference to a potentially `null` indexed class from this data
   /// source.
+  @override
   IndexedClass readClassOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -958,6 +973,7 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed type variable from this data source.
+  @override
   IndexedTypeVariable readTypeVariable() {
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }
