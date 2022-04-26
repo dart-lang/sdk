@@ -121,11 +121,6 @@ class AstTestFactory {
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
 
-  static AwaitExpressionImpl awaitExpression(Expression expression) =>
-      astFactory.awaitExpression(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "await"),
-          expression);
-
   static BlockImpl block([List<Statement> statements = const []]) =>
       astFactory.block(
           TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),

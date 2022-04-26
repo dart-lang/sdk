@@ -265,8 +265,11 @@ class AstBinaryReader {
   }
 
   AwaitExpression _readAwaitExpression() {
-    var expression = readNode() as Expression;
-    return astFactory.awaitExpression(Tokens.await_(), expression);
+    var expression = readNode() as ExpressionImpl;
+    return AwaitExpressionImpl(
+      awaitKeyword: Tokens.await_(),
+      expression: expression,
+    );
   }
 
   BinaryExpression _readBinaryExpression() {

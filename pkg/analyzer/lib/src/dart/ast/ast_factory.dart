@@ -79,10 +79,6 @@ class AstFactoryImpl {
       AssignmentExpressionImpl(leftHandSide as ExpressionImpl, operator,
           rightHandSide as ExpressionImpl);
 
-  AwaitExpressionImpl awaitExpression(
-          Token awaitKeyword, Expression expression) =>
-      AwaitExpressionImpl(awaitKeyword, expression as ExpressionImpl);
-
   BinaryExpressionImpl binaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
       BinaryExpressionImpl(
