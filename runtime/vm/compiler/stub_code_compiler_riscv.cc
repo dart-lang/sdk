@@ -1189,15 +1189,17 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
                     target::Array::data_offset() - kHeapObjectTag);
     // R3: iterator which initially points to the start of the variable
     // data area to be initialized.
-    Label loop, done;
+    Label loop;
     __ Bind(&loop);
-    // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ bgeu(T3, T4, &done);
-    __ sx(NULL_REG, Address(T3, 0));
-    __ sx(NULL_REG, Address(T3, target::kCompressedWordSize));
-    __ AddImmediate(T3, 2 * target::kCompressedWordSize);
-    __ j(&loop);  // Loop until T3 == T4.
-    __ Bind(&done);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kCompressedWordSize) {
+      __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                            Address(T3, offset), NULL_REG);
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ addi(T3, T3, target::kObjectAlignment);
+    __ bltu(T3, T4, &loop);
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1873,15 +1875,18 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       __ AddImmediate(kFieldReg, AllocateObjectABI::kResultReg,
                       target::Instance::first_field_offset());
-      Label done, init_loop;
-      __ Bind(&init_loop);
-      __ CompareRegisters(kFieldReg, kNewTopReg);
-      __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
-      __ sx(NULL_REG, Address(kFieldReg, 0));
-      __ addi(kFieldReg, kFieldReg, target::kCompressedWordSize);
-      __ j(&init_loop);
-
-      __ Bind(&done);
+      Label loop;
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kCompressedWordSize) {
+        __ StoreCompressedIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                              Address(kFieldReg, offset),
+                                              NULL_REG);
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ addi(kFieldReg, kFieldReg, target::kObjectAlignment);
+      __ bltu(kFieldReg, kNewTopReg, &loop);
     }  // kFieldReg = T4
 
     if (is_cls_parameterized) {
@@ -3627,13 +3632,16 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ AddImmediate(T3, A0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         A0, FieldAddress(A0, target::PointerBase::data_offset()), T3);
-    Label init_loop, done;
-    __ Bind(&init_loop);
-    __ bgeu(T3, T4, &done);
-    __ sx(ZR, Address(T3, 0));
-    __ addi(T3, T3, target::kWordSize);
-    __ j(&init_loop);
-    __ Bind(&done);
+    Label loop;
+    __ Bind(&loop);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kWordSize) {
+      __ sx(ZR, Address(T3, offset));
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ addi(T3, T3, target::kObjectAlignment);
+    __ bltu(T3, T4, &loop);
 
     __ Ret();
 

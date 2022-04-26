@@ -552,7 +552,11 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       ASSERT(STRING_STARTS_WITH(format, "opc"));
       if (instr->Bit(26) == 0) {
         if (instr->Bit(31) == 0) {
-          Print("w");
+          if (instr->Bit(30) == 1) {
+            Print("sw");
+          } else {
+            Print("w");
+          }
         } else {
           // 64-bit width is most commonly used, no need to print "x".
         }

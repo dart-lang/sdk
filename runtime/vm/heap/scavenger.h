@@ -33,6 +33,11 @@ static constexpr intptr_t kNewPageSize = 512 * KB;
 static constexpr intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
 static constexpr intptr_t kNewPageMask = ~(kNewPageSize - 1);
 
+// Simplify initialization in allocation stubs by ensuring it is safe
+// to overshoot the object end by up to kAllocationRedZoneSize. (Just as the
+// stack red zone allows one to overshoot the stack pointer.)
+static constexpr intptr_t kAllocationRedZoneSize = kObjectAlignment;
+
 // A page containing new generation objects.
 class NewPage {
  public:
@@ -40,7 +45,7 @@ class NewPage {
   void Deallocate();
 
   uword start() const { return memory_->start(); }
-  uword end() const { return memory_->end(); }
+  uword end() const { return memory_->end() - kAllocationRedZoneSize; }
   bool Contains(uword addr) const { return memory_->Contains(addr); }
   void WriteProtect(bool read_only) {
     memory_->Protect(read_only ? VirtualMemory::kReadOnly

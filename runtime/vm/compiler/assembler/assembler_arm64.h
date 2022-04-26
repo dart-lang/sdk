@@ -2717,7 +2717,7 @@ class Assembler : public AssemblerBase {
         opc = B31;
         break;
       case kFourBytes:
-        opc = B30;
+        opc = op == LDP ? B30 : 0;
         break;
       case kUnsignedFourBytes:
         opc = 0;

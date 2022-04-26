@@ -1376,15 +1376,22 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
                     target::Array::data_offset() - kHeapObjectTag);
     // R3: iterator which initially points to the start of the variable
     // data area to be initialized.
-    Label loop, done;
+#if defined(DART_COMPRESSED_POINTERS)
+    const Register kWordOfNulls = TMP;
+    __ andi(kWordOfNulls, NULL_REG, Immediate(0xFFFFFFFF));
+    __ orr(kWordOfNulls, kWordOfNulls, Operand(kWordOfNulls, LSL, 32));
+#else
+    const Register kWordOfNulls = NULL_REG;
+#endif
+    Label loop;
     __ Bind(&loop);
-    // TODO(cshapiro): StoreIntoObjectNoBarrier
+    ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
+    __ stp(kWordOfNulls, kWordOfNulls,
+           Address(R3, 2 * target::kWordSize, Address::PairPostIndex));
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
     __ CompareRegisters(R3, R7);
-    __ b(&done, CS);
-    __ str(NULL_REG, Address(R3), kObjectBytes);  // Store if unsigned lower.
-    __ AddImmediate(R3, target::kCompressedWordSize);
-    __ b(&loop);  // Loop until R3 == R7.
-    __ Bind(&done);
+    __ b(&loop, UNSIGNED_LESS);
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1697,17 +1704,25 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // Initialize the context variables.
     // R0: new object.
     // R1: number of context variables.
-    {
-      Label loop, done;
-      __ AddImmediate(R3, R0,
-                      target::Context::variable_offset(0) - kHeapObjectTag);
-      __ Bind(&loop);
-      __ subs(R1, R1, Operand(1));
-      __ b(&done, MI);
-      __ str(NULL_REG, Address(R3, R1, UXTX, Address::Scaled), kObjectBytes);
-      __ b(&loop, NE);  // Loop if R1 not zero.
-      __ Bind(&done);
-    }
+    __ AddImmediate(R3, R0,
+                    target::Context::variable_offset(0) - kHeapObjectTag);
+#if defined(DART_COMPRESSED_POINTERS)
+    const Register kWordOfNulls = TMP;
+    __ andi(kWordOfNulls, NULL_REG, Immediate(0xFFFFFFFF));
+    __ orr(kWordOfNulls, kWordOfNulls, Operand(kWordOfNulls, LSL, 32));
+#else
+    const Register kWordOfNulls = NULL_REG;
+#endif
+    Label loop;
+    __ Bind(&loop);
+    ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
+    __ stp(kWordOfNulls, kWordOfNulls,
+           Address(R3, 2 * target::kWordSize, Address::PairPostIndex));
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ subs(R1, R1,
+            Operand(target::kObjectAlignment / target::kCompressedWordSize));
+    __ b(&loop, HI);
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -2047,20 +2062,24 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     // Initialize the remaining words of the object.
     {
       const Register kFieldReg = R4;
-
       __ AddImmediate(kFieldReg, AllocateObjectABI::kResultReg,
                       target::Instance::first_field_offset());
-      Label done, init_loop;
-      __ Bind(&init_loop);
+#if defined(DART_COMPRESSED_POINTERS)
+      const Register kWordOfNulls = TMP;
+      __ andi(kWordOfNulls, NULL_REG, Immediate(0xFFFFFFFF));
+      __ orr(kWordOfNulls, kWordOfNulls, Operand(kWordOfNulls, LSL, 32));
+#else
+      const Register kWordOfNulls = NULL_REG;
+#endif
+      Label loop;
+      __ Bind(&loop);
+      ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
+      __ stp(kWordOfNulls, kWordOfNulls,
+             Address(kFieldReg, 2 * target::kWordSize, Address::PairPostIndex));
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
       __ CompareRegisters(kFieldReg, kNewTopReg);
-      __ b(&done, UNSIGNED_GREATER_EQUAL);
-      __ str(
-          NULL_REG,
-          Address(kFieldReg, target::kCompressedWordSize, Address::PostIndex),
-          kObjectBytes);
-      __ b(&init_loop);
-
-      __ Bind(&done);
+      __ b(&loop, UNSIGNED_LESS);
     }  // kFieldReg = R4
 
     if (is_cls_parameterized) {
@@ -3832,14 +3851,12 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ AddImmediate(R2, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         R0, FieldAddress(R0, target::PointerBase::data_offset()), R2);
-    Label init_loop, done;
-    __ Bind(&init_loop);
+    Label loop;
+    __ Bind(&loop);
+    ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
+    __ stp(ZR, ZR, Address(R2, 2 * target::kWordSize, Address::PairPostIndex));
     __ cmp(R2, Operand(R1));
-    __ b(&done, CS);
-    __ str(ZR, Address(R2, 0));
-    __ add(R2, R2, Operand(target::kWordSize));
-    __ b(&init_loop);
-    __ Bind(&done);
+    __ b(&loop, UNSIGNED_LESS);
 
     __ Ret();
 

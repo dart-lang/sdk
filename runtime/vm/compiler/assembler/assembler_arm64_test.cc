@@ -751,6 +751,92 @@ ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(LoadStorePairUnsigned32, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R2, 0xAABBCCDDEEFF9988);
+  __ LoadImmediate(R3, 0xBBCCDDEEFF998877);
+  __ sub(SP, SP, Operand(4 * target::kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
+  __ stp(R2, R3,
+         Address(SP, 2 * sizeof(uint32_t), Address::PairOffset,
+                 compiler::kUnsignedFourBytes),
+         kUnsignedFourBytes);
+  __ ldp(R0, R1,
+         Address(SP, 2 * sizeof(uint32_t), Address::PairOffset,
+                 kUnsignedFourBytes),
+         kUnsignedFourBytes);
+  __ add(SP, SP, Operand(4 * target::kWordSize));
+  __ sub(R0, R0, Operand(R1));
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStorePairUnsigned32, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-278523631, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov sp, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0x9988\n"
+      "movk r2, #0xeeff lsl 16\n"
+      "movk r2, #0xccdd lsl 32\n"
+      "movk r2, #0xaabb lsl 48\n"
+      "movz r3, #0x8877\n"
+      "movk r3, #0xff99 lsl 16\n"
+      "movk r3, #0xddee lsl 32\n"
+      "movk r3, #0xbbcc lsl 48\n"
+      "sub sp, sp, #0x20\n"
+      "and csp, sp, 0xfffffffffffffff0\n"
+      "stpw r2, r3, [sp, #8]\n"
+      "ldpw r0, r1, [sp, #8]\n"
+      "add sp, sp, #0x20\n"
+      "sub r0, r0, r1\n"
+      "mov csp, sp\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadStorePairSigned32, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R2, 0xAABBCCDDEEFF9988);
+  __ LoadImmediate(R3, 0xBBCCDDEEFF998877);
+  __ sub(SP, SP, Operand(4 * target::kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
+  __ stp(R2, R3,
+         Address(SP, 2 * sizeof(int32_t), Address::PairOffset, kFourBytes),
+         kFourBytes);
+  __ ldp(R0, R1,
+         Address(SP, 2 * sizeof(int32_t), Address::PairOffset, kFourBytes),
+         kFourBytes);
+  __ add(SP, SP, Operand(4 * target::kWordSize));
+  __ sub(R0, R0, Operand(R1));
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStorePairSigned32, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-278523631, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov sp, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0x9988\n"
+      "movk r2, #0xeeff lsl 16\n"
+      "movk r2, #0xccdd lsl 32\n"
+      "movk r2, #0xaabb lsl 48\n"
+      "movz r3, #0x8877\n"
+      "movk r3, #0xff99 lsl 16\n"
+      "movk r3, #0xddee lsl 32\n"
+      "movk r3, #0xbbcc lsl 48\n"
+      "sub sp, sp, #0x20\n"
+      "and csp, sp, 0xfffffffffffffff0\n"
+      "stpw r2, r3, [sp, #8]\n"
+      "ldpsw r0, r1, [sp, #8]\n"
+      "add sp, sp, #0x20\n"
+      "sub r0, r0, r1\n"
+      "mov csp, sp\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
   __ SetupDartSP();
   __ LoadImmediate(R2, 12);
