@@ -3240,7 +3240,8 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const;
 
-  bool IsFinalizerForceOptimized() const;
+  // Whether this function's |recognized_kind| requires optimization.
+  bool RecognizedKindForceOptimize() const;
 
   bool CanBeInlined() const;
 
@@ -3547,44 +3548,6 @@ class Function : public Object {
     NoSafepointScope no_safepoint;
     return function->untag()->kind_tag_.Read<KindBits>() ==
            UntaggedFunction::kFfiTrampoline;
-  }
-
-  bool IsFfiLoad() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiLoadInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiLoadPointer;
-  }
-
-  bool IsFfiStore() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiStoreInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiStorePointer;
-  }
-
-  bool IsFfiFromAddress() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kFfiFromAddress;
-  }
-
-  bool IsFfiGetAddress() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kFfiGetAddress;
-  }
-
-  bool IsFfiAsExternalTypedData() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiAsExternalTypedDataInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiAsExternalTypedDataDouble;
-  }
-
-  bool IsGetNativeField() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kGetNativeField;
-  }
-
-  bool IsUtf8Scan() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kUtf8DecoderScan;
   }
 
   // Recognise async functions like:

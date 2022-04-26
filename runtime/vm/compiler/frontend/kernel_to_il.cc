@@ -952,6 +952,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
+    case MethodRecognizer::kExtensionStreamHasListener:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
@@ -1488,6 +1489,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 #else
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
+    } break;
+    case MethodRecognizer::kExtensionStreamHasListener: {
+#ifdef PRODUCT
+      body += Constant(Bool::False());
+#else
+      body += LoadServiceExtensionStream();
+      body += RawLoadField(compiler::target::StreamInfo::enabled_offset());
+      // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
+      // relaxed order access, which is acceptable for this use case.
+      body += IntToBool();
+#endif  // PRODUCT
     } break;
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:
@@ -4074,6 +4086,14 @@ Fragment FlowGraphBuilder::LoadIsolate() {
   Fragment body;
   body += LoadThread();
   body += LoadUntagged(compiler::target::Thread::isolate_offset());
+  return body;
+}
+
+Fragment FlowGraphBuilder::LoadServiceExtensionStream() {
+  Fragment body;
+  body += LoadThread();
+  body +=
+      LoadUntagged(compiler::target::Thread::service_extension_stream_offset());
   return body;
 }
 

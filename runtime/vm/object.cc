@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
@@ -8097,31 +8098,66 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::ForceOptimize() const {
-  return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-         IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
-         IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField() ||
-         IsFinalizerForceOptimized();
+  return RecognizedKindForceOptimize() || IsFfiTrampoline() ||
+         IsTypedDataViewFactory();
 }
 
-bool Function::IsFinalizerForceOptimized() const {
-  // Either because of unboxed/untagged data, or because we don't want the GC
-  // to trigger in between.
+bool Function::RecognizedKindForceOptimize() const {
   switch (recognized_kind()) {
+    // Uses unboxed/untagged data not supported in unoptimized.
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
-      // Unboxed/untagged representation not supported in unoptimized.
-      return true;
+    case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kFfiLoadInt8:
+    case MethodRecognizer::kFfiLoadInt16:
+    case MethodRecognizer::kFfiLoadInt32:
+    case MethodRecognizer::kFfiLoadInt64:
+    case MethodRecognizer::kFfiLoadUint8:
+    case MethodRecognizer::kFfiLoadUint16:
+    case MethodRecognizer::kFfiLoadUint32:
+    case MethodRecognizer::kFfiLoadUint64:
+    case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
+    case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
+    case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiStoreInt8:
+    case MethodRecognizer::kFfiStoreInt16:
+    case MethodRecognizer::kFfiStoreInt32:
+    case MethodRecognizer::kFfiStoreInt64:
+    case MethodRecognizer::kFfiStoreUint8:
+    case MethodRecognizer::kFfiStoreUint16:
+    case MethodRecognizer::kFfiStoreUint32:
+    case MethodRecognizer::kFfiStoreUint64:
+    case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
+    case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
+    case MethodRecognizer::kFfiStorePointer:
+    case MethodRecognizer::kFfiFromAddress:
+    case MethodRecognizer::kFfiGetAddress:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt8:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt16:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt32:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt64:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint8:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint16:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint32:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint64:
+    case MethodRecognizer::kFfiAsExternalTypedDataFloat:
+    case MethodRecognizer::kFfiAsExternalTypedDataDouble:
+    case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kUtf8DecoderScan:
+    // Prevent the GC from running so that the operation is atomic from
+    // a GC point of view. Always double check implementation in
+    // kernel_to_il.cc that no GC can happen in between the relevant IL
+    // instructions.
+    // TODO(https://dartbug.com/48527): Support inlining.
     case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
-      // Prevent the GC from running so that the operation is atomic from
-      // a GC point of view. Always double check implementation in
-      // kernel_to_il.cc that no GC can happen in between the relevant IL
-      // instructions.
-      // TODO(https://dartbug.com/48527): Support inlining.
-      return true;
+    // Both unboxed/untagged data and atomic-to-GC operation.
     case MethodRecognizer::kFinalizerEntry_allocate:
-      // Both of the above reasons.
       return true;
     default:
       return false;
@@ -14538,6 +14574,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
