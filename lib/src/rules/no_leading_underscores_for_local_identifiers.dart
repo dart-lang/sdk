@@ -65,7 +65,6 @@ class NoLeadingUnderscoresForLocalIdentifiers extends LintRule
     registry.addDeclaredIdentifier(this, visitor);
     registry.addFormalParameterList(this, visitor);
     registry.addForPartsWithDeclarations(this, visitor);
-    registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
