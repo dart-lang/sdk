@@ -43,11 +43,6 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
 import 'package:pub_semver/pub_semver.dart';
 
-var counterFileStateRefresh = 0;
-var counterUnlinkedBytes = 0;
-var counterUnlinkedLinkedBytes = 0;
-var timerFileStateRefresh = Stopwatch();
-
 /// A library from [SummaryDataStore].
 class ExternalLibrary {
   final Uri uri;
@@ -382,13 +377,6 @@ class FileState {
   ///
   /// Return how the file changed since the last refresh.
   FileStateRefreshResult refresh() {
-    counterFileStateRefresh++;
-
-    var timerWasRunning = timerFileStateRefresh.isRunning;
-    if (!timerWasRunning) {
-      timerFileStateRefresh.start();
-    }
-
     _invalidateCurrentUnresolvedData();
 
     final rawFileState = _fsState._fileContentCache.get(path);
@@ -468,10 +456,6 @@ class FileState {
       files.add(this);
     }
 
-    if (!timerWasRunning) {
-      timerFileStateRefresh.stop();
-    }
-
     // Return how the file changed.
     if (apiSignatureChanged) {
       return FileStateRefreshResult.apiChanged;
@@ -528,8 +512,6 @@ class FileState {
       );
       var bytes = driverUnlinkedUnit.toBytes();
       _fsState._byteStore.put(_unlinkedKey!, bytes);
-      counterUnlinkedBytes += bytes.length;
-      counterUnlinkedLinkedBytes += bytes.length;
       return driverUnlinkedUnit;
     });
   }

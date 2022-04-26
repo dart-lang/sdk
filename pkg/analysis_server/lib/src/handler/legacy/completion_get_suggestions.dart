@@ -24,6 +24,10 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
 
   @override
   Future<void> handle() async {
+    if (completionIsDisabled) {
+      return;
+    }
+
     var budget = CompletionBudget(server.completionState.budgetDuration);
 
     // extract and validate params

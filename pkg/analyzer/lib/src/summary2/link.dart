@@ -25,8 +25,6 @@ import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 
-var timerLinkingLinkingBundle = Stopwatch();
-
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
 Future<LinkResult> link(
   LinkedElementFactory elementFactory,
@@ -85,10 +83,7 @@ class Linker {
     }
 
     await _buildOutlines();
-
-    timerLinkingLinkingBundle.start();
     _writeLibraries();
-    timerLinkingLinkingBundle.stop();
   }
 
   void _buildEnumChildren() {

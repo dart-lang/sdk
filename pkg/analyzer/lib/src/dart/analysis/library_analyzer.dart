@@ -52,13 +52,6 @@ import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 
-var timerLibraryAnalyzer = Stopwatch();
-var timerLibraryAnalyzerConst = Stopwatch();
-var timerLibraryAnalyzerFreshUnit = Stopwatch();
-var timerLibraryAnalyzerResolve = Stopwatch();
-var timerLibraryAnalyzerSplicer = Stopwatch();
-var timerLibraryAnalyzerVerify = Stopwatch();
-
 class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
   final List<AstNode> resolvedNodes;
@@ -112,7 +105,6 @@ class LibraryAnalyzer {
       errors = _filterIgnoredErrors(file, errors);
       results.add(UnitAnalysisResult(file, unit, errors));
     });
-    timerLibraryAnalyzer.stop();
     return results;
   }
 
@@ -258,7 +250,6 @@ class LibraryAnalyzer {
   /// Compute diagnostics in [units], including errors and warnings, hints,
   /// lints, and a few other cases.
   void _computeDiagnostics(Map<FileState, CompilationUnitImpl> units) {
-    timerLibraryAnalyzerVerify.start();
     units.forEach((file, unit) {
       _computeVerifyErrors(file, unit);
     });
@@ -313,7 +304,6 @@ class LibraryAnalyzer {
         _analysisOptions.unignorableNames,
       ).reportErrors();
     }
-    timerLibraryAnalyzerVerify.stop();
   }
 
   void _computeHints(
@@ -575,15 +565,12 @@ class LibraryAnalyzer {
 
   /// Parse and resolve all files in [_library].
   Map<FileState, CompilationUnitImpl> _parseAndResolve() {
-    timerLibraryAnalyzer.start();
     var units = <FileState, CompilationUnitImpl>{};
 
     // Parse all files.
-    timerLibraryAnalyzerFreshUnit.start();
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    timerLibraryAnalyzerFreshUnit.stop();
 
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library]!.featureSet;
@@ -592,18 +579,13 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
     });
-    timerLibraryAnalyzerResolve.stop();
-
-    timerLibraryAnalyzerConst.start();
 
     _computeConstants(units.values);
-    timerLibraryAnalyzerConst.stop();
 
     return units;
   }

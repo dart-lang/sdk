@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// The handler for the `completion.getSuggestionDetails2` request.
-class CompletionGetSuggestionDetails2Handler extends LegacyHandler {
+class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
   /// The identifiers of the latest `getSuggestionDetails2` request.
   /// We use it to abort previous requests.
   int _latestGetSuggestionDetailsId = 0;
@@ -24,6 +24,10 @@ class CompletionGetSuggestionDetails2Handler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
+    if (completionIsDisabled) {
+      return;
+    }
+
     var params = CompletionGetSuggestionDetails2Params.fromRequest(request);
 
     var file = params.file;
