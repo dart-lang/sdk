@@ -130,7 +130,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             offset,
             triggerCharacter,
             token,
-            maxResults: maxResults,
           );
         },
       );
@@ -294,9 +293,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     OperationPerformanceImpl performance,
     int offset,
     String? triggerCharacter,
-    CancellationToken token, {
-    required int maxResults,
-  }) async {
+    CancellationToken token,
+  ) async {
     final useSuggestionSets =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
 
