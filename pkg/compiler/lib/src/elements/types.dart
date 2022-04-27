@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
-import '../common/elements.dart';
 import '../common/names.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart' show equalElements, equalSets, identicalElements;
 import 'entities.dart';
 
@@ -39,8 +36,8 @@ extension on DataSourceReader {
 }
 
 extension on DataSinkWriter {
-  void _writeDartTypes(List<DartType /*!*/ > types,
-      List<FunctionTypeVariable /*!*/ > functionTypeVariables) {
+  void _writeDartTypes(
+      List<DartType> types, List<FunctionTypeVariable> functionTypeVariables) {
     writeInt(types.length);
     for (DartType type in types) {
       type.writeToDataSink(this, functionTypeVariables);
@@ -53,12 +50,12 @@ abstract class DartType {
 
   static DartType readFromDataSource(DataSourceReader source,
       List<FunctionTypeVariable> functionTypeVariables) {
-    DartType type = readFromDataSourceOrNull(source, functionTypeVariables);
+    DartType? type = readFromDataSourceOrNull(source, functionTypeVariables);
     if (type == null) throw StateError('Unexpected null DartType');
     return type;
   }
 
-  static DartType readFromDataSourceOrNull(DataSourceReader source,
+  static DartType? readFromDataSourceOrNull(DataSourceReader source,
       List<FunctionTypeVariable> functionTypeVariables) {
     DartTypeKind kind = source.readEnum(DartTypeKind.values);
     switch (kind) {
@@ -91,11 +88,10 @@ abstract class DartType {
       case DartTypeKind.futureOr:
         return FutureOrType._readFromDataSource(source, functionTypeVariables);
     }
-    throw UnsupportedError('Unexpected DartTypeKind $kind');
   }
 
-  void writeToDataSink(DataSinkWriter sink,
-      List<FunctionTypeVariable /*!*/ > functionTypeVariables);
+  void writeToDataSink(
+      DataSinkWriter sink, List<FunctionTypeVariable> functionTypeVariables);
 
   /// Returns the base type if this is a [LegacyType] or [NullableType] and
   /// returns this type otherwise.
@@ -124,12 +120,12 @@ abstract class DartType {
   /// Calls the visit method on [visitor] corresponding to this type.
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument);
 
-  bool _equals(DartType other, _Assumptions assumptions);
+  bool _equals(DartType other, _Assumptions? assumptions);
 
   @override
   String toString() => toStructuredText(null, null);
 
-  String toStructuredText(DartTypes dartTypes, CompilerOptions options) =>
+  String toStructuredText(DartTypes? dartTypes, CompilerOptions? options) =>
       _DartTypeToStringVisitor(dartTypes, options).run(this);
 }
 
@@ -163,7 +159,7 @@ class _Assumptions {
   }
 
   void _removeAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
-    Set<FunctionTypeVariable> set = _assumptionMap[a];
+    Set<FunctionTypeVariable>? set = _assumptionMap[a];
     if (set != null) {
       set.remove(b);
       if (set.isEmpty) {
@@ -209,7 +205,7 @@ class _Assumptions {
 }
 
 class LegacyType extends DartType {
-  final DartType /*!*/ baseType;
+  final DartType baseType;
 
   const LegacyType._(this.baseType);
 
@@ -253,18 +249,18 @@ class LegacyType extends DartType {
   }
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) {
+  bool _equals(DartType other, _Assumptions? assumptions) {
     if (identical(this, other)) return true;
     if (other is! LegacyType) return false;
     return _equalsInternal(other, assumptions);
   }
 
-  bool _equalsInternal(LegacyType other, _Assumptions assumptions) =>
+  bool _equalsInternal(LegacyType other, _Assumptions? assumptions) =>
       baseType._equals(other.baseType, assumptions);
 }
 
 class NullableType extends DartType {
-  final DartType /*!*/ baseType;
+  final DartType baseType;
 
   const NullableType._(this.baseType);
 
@@ -308,23 +304,25 @@ class NullableType extends DartType {
   }
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) {
+  bool _equals(DartType other, _Assumptions? assumptions) {
     if (identical(this, other)) return true;
     if (other is! NullableType) return false;
     return _equalsInternal(other, assumptions);
   }
 
-  bool _equalsInternal(NullableType other, _Assumptions assumptions) =>
+  bool _equalsInternal(NullableType other, _Assumptions? assumptions) =>
       baseType._equals(other.baseType, assumptions);
 }
 
 class InterfaceType extends DartType {
-  final ClassEntity /*!*/ element;
-  final List<DartType /*!*/ > typeArguments;
+  final ClassEntity element;
+  final List<DartType> typeArguments;
 
   InterfaceType._allocate(this.element, this.typeArguments);
 
   factory InterfaceType._(ClassEntity element, List<DartType> typeArguments) {
+    // TODO(48820): Remove:
+    // ignore: unnecessary_null_comparison
     assert(typeArguments.every((e) => e != null));
     if (typeArguments.isEmpty) typeArguments = const [];
     return InterfaceType._allocate(element, typeArguments);
@@ -371,8 +369,7 @@ class InterfaceType extends DartType {
   int get hashCode {
     int hash = element.hashCode;
     for (DartType argument in typeArguments) {
-      int argumentHash = argument != null ? argument.hashCode : 0;
-      hash = 17 * hash + 3 * argumentHash;
+      hash = 17 * hash + 3 * argument.hashCode;
     }
     return hash;
   }
@@ -385,13 +382,13 @@ class InterfaceType extends DartType {
   }
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) {
+  bool _equals(DartType other, _Assumptions? assumptions) {
     if (identical(this, other)) return true;
     if (other is! InterfaceType) return false;
     return _equalsInternal(other, assumptions);
   }
 
-  bool _equalsInternal(InterfaceType other, _Assumptions assumptions) {
+  bool _equalsInternal(InterfaceType other, _Assumptions? assumptions) {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
   }
@@ -436,7 +433,7 @@ class TypeVariableType extends DartType {
       other is TypeVariableType && identical(other.element, element);
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) => this == other;
+  bool _equals(DartType other, _Assumptions? assumptions) => this == other;
 }
 
 /// A type variable declared on a function type.
@@ -454,7 +451,8 @@ class FunctionTypeVariable extends DartType {
   final int index;
 
   /// The bound of this function type variable.
-  DartType _bound;
+  // TODO(48820): `bound` getter/setter can be a late final field.
+  DartType? _bound;
 
   FunctionTypeVariable._(this.index);
 
@@ -478,9 +476,9 @@ class FunctionTypeVariable extends DartType {
     }
   }
 
-  DartType /*!*/ get bound {
+  DartType get bound {
     assert(_bound != null, "Bound has not been set.");
-    return _bound;
+    return _bound!;
   }
 
   void set bound(DartType value) {
@@ -492,7 +490,7 @@ class FunctionTypeVariable extends DartType {
   int get hashCode => index * 113; // ignore bound which can have cycles.
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) {
+  bool _equals(DartType other, _Assumptions? assumptions) {
     if (identical(this, other)) return true;
     if (other is! FunctionTypeVariable) return false;
     if (assumptions != null) return assumptions.isAssumed(this, other);
@@ -529,7 +527,7 @@ class NeverType extends DartType {
   bool operator ==(other) => identical(this, other) || other is NeverType;
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) => this == other;
+  bool _equals(DartType other, _Assumptions? assumptions) => this == other;
 }
 
 class VoidType extends DartType {
@@ -556,7 +554,7 @@ class VoidType extends DartType {
   bool operator ==(other) => identical(this, other) || other is VoidType;
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) => this == other;
+  bool _equals(DartType other, _Assumptions? assumptions) => this == other;
 }
 
 class DynamicType extends DartType {
@@ -583,7 +581,7 @@ class DynamicType extends DartType {
   bool operator ==(other) => identical(this, other) || other is DynamicType;
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) => this == other;
+  bool _equals(DartType other, _Assumptions? assumptions) => this == other;
 }
 
 class ErasedType extends DartType {
@@ -610,7 +608,7 @@ class ErasedType extends DartType {
   bool operator ==(other) => identical(this, other) || other is ErasedType;
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) => this == other;
+  bool _equals(DartType other, _Assumptions? assumptions) => this == other;
 }
 
 /// Represents a type which is simultaneously top and bottom.
@@ -648,13 +646,13 @@ class AnyType extends DartType {
   bool operator ==(other) => identical(this, other) || other is AnyType;
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) => this == other;
+  bool _equals(DartType other, _Assumptions? assumptions) => this == other;
 }
 
 class FunctionType extends DartType {
   final DartType returnType;
-  final List<DartType /*!*/ > parameterTypes;
-  final List<DartType /*!*/ > optionalParameterTypes;
+  final List<DartType> parameterTypes;
+  final List<DartType> optionalParameterTypes;
 
   /// The names of all named parameters ordered lexicographically.
   final List<String> namedParameters;
@@ -664,9 +662,9 @@ class FunctionType extends DartType {
 
   /// The types of the named parameters in the order corresponding to the
   /// [namedParameters].
-  final List<DartType /*!*/ > namedParameterTypes;
+  final List<DartType> namedParameterTypes;
 
-  final List<FunctionTypeVariable /*!*/ > typeVariables;
+  final List<FunctionTypeVariable> typeVariables;
 
   FunctionType._allocate(
       this.returnType,
@@ -676,6 +674,8 @@ class FunctionType extends DartType {
       this.requiredNamedParameters,
       this.namedParameterTypes,
       this.typeVariables) {
+    // TODO(48820): Remove:
+    // ignore: unnecessary_null_comparison
     assert(returnType != null, 'Invalid return type in $this.');
     assert(!parameterTypes.contains(null), 'Invalid parameter types in $this.');
     assert(!optionalParameterTypes.contains(null),
@@ -691,12 +691,12 @@ class FunctionType extends DartType {
 
   factory FunctionType._(
       DartType returnType,
-      List<DartType /*!*/ > parameterTypes,
-      List<DartType /*!*/ > optionalParameterTypes,
-      List<String /*!*/ > namedParameters,
-      Set<String /*!*/ > requiredNamedParameters,
-      List<DartType /*!*/ > namedParameterTypes,
-      List<FunctionTypeVariable /*!*/ > typeVariables) {
+      List<DartType> parameterTypes,
+      List<DartType> optionalParameterTypes,
+      List<String> namedParameters,
+      Set<String> requiredNamedParameters,
+      List<DartType> namedParameterTypes,
+      List<FunctionTypeVariable> typeVariables) {
     // Canonicalize empty collections to constants to save storage.
     if (parameterTypes.isEmpty) parameterTypes = const [];
     if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
@@ -823,13 +823,13 @@ class FunctionType extends DartType {
   }
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) {
+  bool _equals(DartType other, _Assumptions? assumptions) {
     if (identical(this, other)) return true;
     if (other is! FunctionType) return false;
     return _equalsInternal(other, assumptions);
   }
 
-  bool _equalsInternal(FunctionType other, _Assumptions assumptions) {
+  bool _equalsInternal(FunctionType other, _Assumptions? assumptions) {
     if (typeVariables.length != other.typeVariables.length) return false;
     assumptions ??= _Assumptions();
     assumptions.assumePairs(typeVariables, other.typeVariables);
@@ -856,7 +856,7 @@ class FunctionType extends DartType {
 }
 
 class FutureOrType extends DartType {
-  final DartType /*!*/ typeArgument;
+  final DartType typeArgument;
 
   const FutureOrType._(this.typeArgument);
 
@@ -897,18 +897,19 @@ class FutureOrType extends DartType {
   }
 
   @override
-  bool _equals(DartType other, _Assumptions assumptions) {
+  bool _equals(DartType other, _Assumptions? assumptions) {
     if (identical(this, other)) return true;
     if (other is! FutureOrType) return false;
     return _equalsInternal(other, assumptions);
   }
 
-  bool _equalsInternal(FutureOrType other, _Assumptions assumptions) {
+  bool _equalsInternal(FutureOrType other, _Assumptions? assumptions) {
     return typeArgument._equals(other.typeArgument, assumptions);
   }
 }
 
-bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
+bool _equalTypes(
+    List<DartType> a, List<DartType> b, _Assumptions? assumptions) {
   if (a.length != b.length) return false;
   for (int index = 0; index < a.length; index++) {
     if (!a[index]._equals(b[index], assumptions)) {
@@ -921,36 +922,34 @@ bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
 abstract class DartTypeVisitor<R, A> {
   const DartTypeVisitor();
 
-  R /*!*/ visit(covariant DartType type, A argument) =>
-      type.accept(this, argument);
+  R visit(covariant DartType type, A argument) => type.accept(this, argument);
 
-  R /*!*/ visitLegacyType(covariant LegacyType type, A argument);
+  R visitLegacyType(covariant LegacyType type, A argument);
 
-  R /*!*/ visitNullableType(covariant NullableType type, A argument);
+  R visitNullableType(covariant NullableType type, A argument);
 
-  R /*!*/ visitNeverType(covariant NeverType type, A argument);
+  R visitNeverType(covariant NeverType type, A argument);
 
-  R /*!*/ visitVoidType(covariant VoidType type, A argument);
+  R visitVoidType(covariant VoidType type, A argument);
 
-  R /*!*/ visitTypeVariableType(covariant TypeVariableType type, A argument);
+  R visitTypeVariableType(covariant TypeVariableType type, A argument);
 
-  R /*!*/ visitFunctionTypeVariable(
-      covariant FunctionTypeVariable type, A argument);
+  R visitFunctionTypeVariable(covariant FunctionTypeVariable type, A argument);
 
-  R /*!*/ visitFunctionType(covariant FunctionType type, A argument);
+  R visitFunctionType(covariant FunctionType type, A argument);
 
-  R /*!*/ visitInterfaceType(covariant InterfaceType type, A argument);
+  R visitInterfaceType(covariant InterfaceType type, A argument);
 
-  R /*!*/ visitDynamicType(covariant DynamicType type, A argument);
+  R visitDynamicType(covariant DynamicType type, A argument);
 
-  R /*!*/ visitErasedType(covariant ErasedType type, A argument);
+  R visitErasedType(covariant ErasedType type, A argument);
 
-  R /*!*/ visitAnyType(covariant AnyType type, A argument);
+  R visitAnyType(covariant AnyType type, A argument);
 
-  R /*!*/ visitFutureOrType(covariant FutureOrType type, A argument);
+  R visitFutureOrType(covariant FutureOrType type, A argument);
 }
 
-class _LegacyErasureVisitor extends DartTypeVisitor<DartType /*!*/, Null> {
+class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
   final DartTypes _dartTypes;
 
   _LegacyErasureVisitor(this._dartTypes);
@@ -1024,6 +1023,7 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType /*!*/, Null> {
         identical(namedParameterTypes, type.namedParameterTypes) &&
         erasableTypeVariables.isEmpty) return type;
 
+    // TODO(48820): Can we avoid the cast?
     return _dartTypes.subst(
         erasedTypeVariables,
         erasableTypeVariables,
@@ -1034,7 +1034,7 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType /*!*/, Null> {
             type.namedParameters,
             type.requiredNamedParameters,
             namedParameterTypes,
-            typeVariables));
+            typeVariables)) as FunctionType;
   }
 
   @override
@@ -1062,13 +1062,13 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType /*!*/, Null> {
 }
 
 abstract class DartTypeSubstitutionVisitor<A>
-    extends DartTypeVisitor<DartType /*!*/, A> {
+    extends DartTypeVisitor<DartType, A> {
   DartTypes get dartTypes;
 
   // The input type is a DAG and we must preserve the sharing.
   final Map<DartType, DartType> _map = Map.identity();
 
-  DartType _mapped(DartType oldType, DartType /*!*/ newType) {
+  DartType _mapped(DartType oldType, DartType newType) {
     assert(_map[oldType] == null);
     return _map[oldType] = newType;
   }
@@ -1093,7 +1093,7 @@ abstract class DartTypeSubstitutionVisitor<A>
 
   @override
   DartType visitLegacyType(covariant LegacyType type, A argument) {
-    DartType probe = _map[type];
+    DartType? probe = _map[type];
     if (probe != null) return probe;
 
     DartType newBaseType = visit(type.baseType, argument);
@@ -1106,7 +1106,7 @@ abstract class DartTypeSubstitutionVisitor<A>
 
   @override
   DartType visitNullableType(covariant NullableType type, A argument) {
-    DartType probe = _map[type];
+    DartType? probe = _map[type];
     if (probe != null) return probe;
 
     DartType newBaseType = visit(type.baseType, argument);
@@ -1130,7 +1130,7 @@ abstract class DartTypeSubstitutionVisitor<A>
       covariant FunctionTypeVariable type, A argument) {
     // Function type variables are added to the map only for type variables that
     // need to be replaced with updated bounds.
-    DartType probe = _map[type];
+    DartType? probe = _map[type];
     if (probe != null) return probe;
     return substituteFunctionTypeVariable(type, argument, true);
   }
@@ -1140,7 +1140,7 @@ abstract class DartTypeSubstitutionVisitor<A>
 
   @override
   DartType visitFunctionType(covariant FunctionType type, A argument) {
-    DartType probe = _map[type];
+    DartType? probe = _map[type];
     if (probe != null) return probe;
 
     List<FunctionTypeVariable> newTypeVariables =
@@ -1190,9 +1190,8 @@ abstract class DartTypeSubstitutionVisitor<A>
     // indirectly changed by the substitution of F. When D is replaced by `D2
     // extends Map<B,G>`, C must be replaced by `C2 extends D2`.
 
-    List<FunctionTypeVariable /*?*/ > undecided =
-        List.of(variables, growable: false);
-    List<FunctionTypeVariable> newVariables;
+    List<FunctionTypeVariable?> undecided = List.of(variables, growable: false);
+    List<FunctionTypeVariable>? newVariables;
 
     _DependencyCheck<A> dependencyCheck = _DependencyCheck<A>(this, argument);
 
@@ -1200,7 +1199,7 @@ abstract class DartTypeSubstitutionVisitor<A>
     while (changed) {
       changed = false;
       for (int i = 0; i < undecided.length; i++) {
-        FunctionTypeVariable variable = undecided[i];
+        FunctionTypeVariable? variable = undecided[i];
         if (variable == null) continue;
         if (dependencyCheck.run(variable.bound)) {
           changed = true;
@@ -1233,7 +1232,7 @@ abstract class DartTypeSubstitutionVisitor<A>
       return type;
     }
 
-    DartType probe = _map[type];
+    DartType? probe = _map[type];
     if (probe != null) return probe;
 
     List<DartType> newTypeArguments = _substTypes(typeArguments, argument);
@@ -1256,7 +1255,7 @@ abstract class DartTypeSubstitutionVisitor<A>
 
   @override
   DartType visitFutureOrType(covariant FutureOrType type, A argument) {
-    DartType probe = _map[type];
+    DartType? probe = _map[type];
     if (probe != null) return probe;
 
     DartType newTypeArgument = visit(type.typeArgument, argument);
@@ -1268,7 +1267,7 @@ abstract class DartTypeSubstitutionVisitor<A>
   }
 
   List<DartType> _substTypes(List<DartType> types, A argument) {
-    List<DartType> result;
+    List<DartType>? result;
     for (int i = 0; i < types.length; i++) {
       DartType oldType = types[i];
       DartType newType = visit(oldType, argument);
@@ -1297,7 +1296,7 @@ class _DependencyCheck<A> extends DartTypeStructuralPredicateVisitor {
   bool handleFreeFunctionTypeVariable(FunctionTypeVariable type) {
     // Function type variables are added to the map for type variables that need
     // to be replaced with updated bounds.
-    DartType probe = _substitutionVisitor._map[type];
+    DartType? probe = _substitutionVisitor._map[type];
     if (probe != null) return probe != type;
     return !identical(
         type,
@@ -1310,7 +1309,7 @@ class _DependencyCheck<A> extends DartTypeStructuralPredicateVisitor {
 /// visit returns `true`.  The default handlers return `false` which will search
 /// the whole structure unless overridden.
 abstract class DartTypeStructuralPredicateVisitor
-    extends DartTypeVisitor<bool, List<FunctionTypeVariable> /*?*/ > {
+    extends DartTypeVisitor<bool, List<FunctionTypeVariable>?> {
   const DartTypeStructuralPredicateVisitor();
 
   bool run(DartType type) => visit(type, null);
@@ -1330,30 +1329,30 @@ abstract class DartTypeStructuralPredicateVisitor
   bool handleFutureOrType(FutureOrType type) => false;
 
   @override
-  bool visitLegacyType(LegacyType type, List<FunctionTypeVariable> bindings) =>
+  bool visitLegacyType(LegacyType type, List<FunctionTypeVariable>? bindings) =>
       handleLegacyType(type) || visit(type.baseType, bindings);
 
   @override
   bool visitNullableType(
-          NullableType type, List<FunctionTypeVariable> bindings) =>
+          NullableType type, List<FunctionTypeVariable>? bindings) =>
       handleNullableType(type) || visit(type.baseType, bindings);
 
   @override
-  bool visitNeverType(NeverType type, List<FunctionTypeVariable> bindings) =>
+  bool visitNeverType(NeverType type, List<FunctionTypeVariable>? bindings) =>
       handleNeverType(type);
 
   @override
-  bool visitVoidType(VoidType type, List<FunctionTypeVariable> bindings) =>
+  bool visitVoidType(VoidType type, List<FunctionTypeVariable>? bindings) =>
       handleVoidType(type);
 
   @override
   bool visitTypeVariableType(
-          TypeVariableType type, List<FunctionTypeVariable> bindings) =>
+          TypeVariableType type, List<FunctionTypeVariable>? bindings) =>
       handleTypeVariableType(type);
 
   @override
   bool visitFunctionTypeVariable(
-      FunctionTypeVariable type, List<FunctionTypeVariable> bindings) {
+      FunctionTypeVariable type, List<FunctionTypeVariable>? bindings) {
     return bindings != null && bindings.indexOf(type) >= 0
         ? handleBoundFunctionTypeVariable(type)
         : handleFreeFunctionTypeVariable(type);
@@ -1361,7 +1360,7 @@ abstract class DartTypeStructuralPredicateVisitor
 
   @override
   bool visitFunctionType(
-      FunctionType type, List<FunctionTypeVariable> bindings) {
+      FunctionType type, List<FunctionTypeVariable>? bindings) {
     if (handleFunctionType(type)) return true;
     List<FunctionTypeVariable> typeVariables = type.typeVariables;
     if (typeVariables.isNotEmpty) {
@@ -1383,32 +1382,32 @@ abstract class DartTypeStructuralPredicateVisitor
 
   @override
   bool visitInterfaceType(
-      InterfaceType type, List<FunctionTypeVariable> bindings) {
+      InterfaceType type, List<FunctionTypeVariable>? bindings) {
     if (handleInterfaceType(type)) return true;
     return _visitAll(type.typeArguments, bindings);
   }
 
   @override
   bool visitDynamicType(
-          DynamicType type, List<FunctionTypeVariable> bindings) =>
+          DynamicType type, List<FunctionTypeVariable>? bindings) =>
       handleDynamicType(type);
 
   @override
-  bool visitErasedType(ErasedType type, List<FunctionTypeVariable> bindings) =>
+  bool visitErasedType(ErasedType type, List<FunctionTypeVariable>? bindings) =>
       handleErasedType(type);
 
   @override
-  bool visitAnyType(AnyType type, List<FunctionTypeVariable> bindings) =>
+  bool visitAnyType(AnyType type, List<FunctionTypeVariable>? bindings) =>
       handleAnyType(type);
 
   @override
   bool visitFutureOrType(
-      FutureOrType type, List<FunctionTypeVariable> bindings) {
+      FutureOrType type, List<FunctionTypeVariable>? bindings) {
     if (handleFutureOrType(type)) return true;
     return visit(type.typeArgument, bindings);
   }
 
-  bool _visitAll(List<DartType> types, List<FunctionTypeVariable> bindings) {
+  bool _visitAll(List<DartType> types, List<FunctionTypeVariable>? bindings) {
     for (DartType type in types) {
       if (visit(type, bindings)) return true;
     }
@@ -1461,33 +1460,36 @@ class SimpleDartTypeSubstitutionVisitor
 }
 
 class _DeferredName {
-  String name;
+  String? name;
   _DeferredName();
   @override
-  String toString() => name;
+  String toString() => name!;
 }
 
 class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
-  final DartTypes _dartTypes; // May be null.
-  final CompilerOptions _options; // May be null.
+  final DartTypes? _dartTypes; // May be null.
+  final CompilerOptions? _options; // May be null.
   final List _fragments = []; // Strings and _DeferredNames
   bool _lastIsIdentifier = false;
-  List<FunctionTypeVariable> _boundVariables;
-  Map<FunctionTypeVariable, _DeferredName> _variableToName;
-  Set<FunctionType> _genericFunctions;
+  List<FunctionTypeVariable>? _boundVariables;
+  Map<FunctionTypeVariable, _DeferredName>? _variableToName;
+  Set<FunctionType>? _genericFunctions;
 
   _DartTypeToStringVisitor(this._dartTypes, this._options);
 
   String run(DartType type) {
     _visit(type);
-    if (_variableToName != null &&
-        _variableToName.values.any((deferred) => deferred.name == null)) {
+    final variableToName = _variableToName;
+    if (variableToName != null &&
+        variableToName.values.any((deferred) => deferred.name == null)) {
       // Assign names to _DeferredNames that were not assigned while visiting a
       // generic function type.
-      Set<String> usedNames =
-          _variableToName.values.map((deferred) => deferred.name).toSet();
+      Set<String> usedNames = {
+        for (final deferred in variableToName.values)
+          if (deferred.name != null) deferred.name!
+      };
       int startGroup = (_genericFunctions?.length ?? 0) + 1;
-      for (var entry in _variableToName.entries) {
+      for (var entry in variableToName.entries) {
         if (entry.value.name != null) continue;
         for (int group = startGroup;; group++) {
           String name = _functionTypeVariableName(entry.key, group);
@@ -1539,7 +1541,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
     // internal notion. The language specification does not define a '*' token
     // in the type language, and no such token should be surfaced to users.
     // For debugging, pass `--debug-print-legacy-stars` to emit the '*'.
-    if (_options == null || _options.printLegacyStars) {
+    if (_options == null || _options!.printLegacyStars) {
       _token('*');
     }
   }
@@ -1577,14 +1579,14 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, _) {
-    _identifier(type.element.typeDeclaration.name);
+    _identifier(type.element.typeDeclaration!.name!);
     _token('.');
-    _identifier(type.element.name);
+    _identifier(type.element.name!);
   }
 
   _DeferredName _nameFor(FunctionTypeVariable type) {
     _variableToName ??= Map.identity();
-    return _variableToName[type] ??= _DeferredName();
+    return _variableToName![type] ??= _DeferredName();
   }
 
   @override
@@ -1594,7 +1596,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
     // A3, etc).
     _token('#');
     _deferredNameIdentifier(_nameFor(type));
-    if (_boundVariables == null || !_boundVariables.contains(type)) {
+    if (_boundVariables == null || !_boundVariables!.contains(type)) {
       _token('/*free*/');
     }
   }
@@ -1603,13 +1605,12 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   void visitFunctionType(covariant FunctionType type, _) {
     if (type.typeVariables.isNotEmpty) {
       // Enter function type variable scope.
-      _boundVariables ??= [];
-      _boundVariables.addAll(type.typeVariables);
+      (_boundVariables ??= []).addAll(type.typeVariables);
       // Assign names for the function type variables. We could have already
       // assigned names for this node if we are printing a DAG.
-      _genericFunctions ??= Set.identity();
-      if (_genericFunctions.add(type)) {
-        int group = _genericFunctions.length;
+      final genericFunctions = _genericFunctions ??= Set.identity();
+      if (genericFunctions.add(type)) {
+        int group = genericFunctions.length;
         for (FunctionTypeVariable variable in type.typeVariables) {
           _DeferredName deferredName = _nameFor(variable);
           // If there is a structural error where one FunctionTypeVariable is
@@ -1628,7 +1629,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
         needsComma = _comma(needsComma);
         _visit(typeVariable);
         DartType bound = typeVariable.bound;
-        if (_dartTypes == null || !_dartTypes.isTopType(bound)) {
+        if (_dartTypes == null || !_dartTypes!.isTopType(bound)) {
           _token(' extends ');
           _visit(bound);
         }
@@ -1695,17 +1696,29 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   }
 }
 
+/// The subset of CommonElements methods needed for DartTypes.
+// TODO(48820): Replace with CommonElements once that is migrated.
+abstract class CommonElementsForDartTypes {
+  InterfaceType get nullType;
+  InterfaceType get intType;
+  InterfaceType get doubleType;
+  InterfaceType get functionType;
+  InterfaceType get objectType;
+  InterfaceType get jsJavaScriptFunctionType;
+  InterfaceType futureType(DartType elementType);
+}
+
 /// Basic interface for the Dart type system.
 abstract class DartTypes {
   /// The types defined in 'dart:core'.
-  CommonElements get commonElements;
+  CommonElementsForDartTypes get commonElements;
 
   bool get useLegacySubtyping;
 
   DartType bottomType() =>
       useLegacySubtyping ? commonElements.nullType : neverType();
 
-  DartType legacyType(DartType /*!*/ baseType) {
+  DartType legacyType(DartType baseType) {
     DartType result;
     if (isStrongTopType(baseType) ||
         baseType.isNull ||
@@ -1718,7 +1731,7 @@ abstract class DartTypes {
     return result;
   }
 
-  DartType nullableType(DartType /*!*/ baseType) {
+  DartType nullableType(DartType baseType) {
     bool _isNullable(DartType t) =>
         // Note that we can assume null safety is enabled here.
         t.isNull ||
@@ -1752,7 +1765,7 @@ abstract class DartTypes {
   }
 
   InterfaceType interfaceType(
-          ClassEntity element, List<DartType /*!*/ > typeArguments) =>
+          ClassEntity element, List<DartType> typeArguments) =>
       InterfaceType._(element, typeArguments);
 
   // TODO(fishythefish): Normalize `T extends Never` to `Never`.
@@ -1775,12 +1788,12 @@ abstract class DartTypes {
 
   FunctionType functionType(
       DartType returnType,
-      List<DartType /*!*/ > parameterTypes,
-      List<DartType /*!*/ > optionalParameterTypes,
+      List<DartType> parameterTypes,
+      List<DartType> optionalParameterTypes,
       List<String> namedParameters,
       Set<String> requiredNamedParameters,
-      List<DartType /*!*/ > namedParameterTypes,
-      List<FunctionTypeVariable /*!*/ > typeVariables) {
+      List<DartType> namedParameterTypes,
+      List<FunctionTypeVariable> typeVariables) {
     FunctionType type = FunctionType._(
         returnType,
         parameterTypes,
@@ -1797,7 +1810,7 @@ abstract class DartTypes {
         : subst(
             List<DartType>.filled(normalizableVariables.length, neverType()),
             normalizableVariables,
-            type);
+            type) as FunctionType;
   }
 
   DartType futureOrType(DartType typeArgument) {
@@ -1914,7 +1927,7 @@ abstract class DartTypes {
     /// Based on
     /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md.
     /// See also [_isSubtype] in `dart:_rti`.
-    bool _isSubtype(DartType s, DartType t, _Assumptions env) {
+    bool _isSubtype(DartType s, DartType t, _Assumptions? env) {
       // Reflexivity:
       if (s == t) return true;
       if (env != null &&
@@ -1938,7 +1951,7 @@ abstract class DartTypes {
         if (_isSubtype(getTypeVariableBound(s.element), t, env)) return true;
       }
       if (s is FunctionTypeVariable) {
-        if (_isSubtype(s._bound, t, env)) return true;
+        if (_isSubtype(s.bound, t, env)) return true;
       }
 
       // Left Null:
@@ -2137,7 +2150,7 @@ abstract class DartTypes {
       // Interface Compositionality + Super-Interface:
       if (s is InterfaceType) {
         if (t is InterfaceType) {
-          InterfaceType instance =
+          InterfaceType? instance =
               s.element == t.element ? s : asInstanceOf(s, t.element);
           if (instance == null) return false;
           List<DartType> sArgs = instance.typeArguments;
@@ -2178,7 +2191,7 @@ abstract class DartTypes {
   /// subtype of [cls].
   ///
   /// For example: `asInstanceOf(List<String>, Iterable) = Iterable<String>`.
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
+  InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls);
 
   /// Return [base] where the type variable of `context.element` are replaced
   /// by the type arguments of [context].
@@ -2195,7 +2208,7 @@ abstract class DartTypes {
 
   /// Returns the supertype of [cls], i.e. the type in the `extends` clause of
   /// [cls].
-  InterfaceType getSupertype(ClassEntity cls);
+  InterfaceType? getSupertype(ClassEntity cls);
 
   /// Returns all supertypes of [cls].
   // TODO(johnniwinther): This should include `Function` if [cls] declares
@@ -2207,7 +2220,7 @@ abstract class DartTypes {
 
   /// Returns the type of the `call` method on [type], or `null` if the class
   /// of [type] does not have a `call` method.
-  FunctionType getCallType(InterfaceType type);
+  FunctionType? getCallType(InterfaceType type);
 
   /// Checks the type arguments of [type] against the type variable bounds
   /// declared on `type.element`. Calls [checkTypeVariableBound] on each type
@@ -2221,11 +2234,12 @@ abstract class DartTypes {
 
   /// Returns the [ClassEntity] which declares the type variables occurring in
   // [type], or `null` if [type] does not contain class type variables.
-  static ClassEntity getClassContext(DartType type) {
-    ClassEntity contextClass;
+  static ClassEntity? getClassContext(DartType type) {
+    ClassEntity? contextClass;
     type.forEachTypeVariable((TypeVariableType typeVariable) {
-      if (typeVariable.element.typeDeclaration is! ClassEntity) return;
-      contextClass = typeVariable.element.typeDeclaration;
+      final typeDeclaration = typeVariable.element.typeDeclaration;
+      if (typeDeclaration is! ClassEntity) return;
+      contextClass = typeDeclaration;
     });
     // GENERIC_METHODS: When generic method support is complete enough to
     // include a runtime value for method type variables this must be updated.
@@ -2268,7 +2282,7 @@ abstract class DartTypes {
 
   /// Returns `true` if [type] occuring in a program with no sound null safety
   /// cannot accept `null` under sound rules.
-  bool isNonNullableIfSound(DartType /*!*/ type) {
+  bool isNonNullableIfSound(DartType type) {
     if (type is DynamicType ||
         type is VoidType ||
         type is AnyType ||

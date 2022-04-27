@@ -26,6 +26,8 @@ import '../js_model/type_recipe.dart' show TypeRecipe;
 
 import 'serialization_interfaces.dart' as migrated
     show DataSourceReader, DataSinkWriter;
+import 'tags.dart';
+export 'tags.dart';
 
 part 'sink.dart';
 part 'source.dart';

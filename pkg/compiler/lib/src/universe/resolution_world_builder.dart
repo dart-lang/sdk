@@ -530,19 +530,19 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// the usage changes for each member.
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     if (staticUse.kind == StaticUseKind.CLOSURE) {
-      Local localFunction = staticUse.element;
+      Local /*!*/ localFunction = staticUse.element;
       FunctionType type =
           _elementEnvironment.getLocalFunctionType(localFunction);
       if (type.typeVariables.isNotEmpty) {
         _genericLocalFunctions.add(localFunction);
       }
-      _localFunctions.add(staticUse.element);
+      _localFunctions.add(localFunction);
       return;
     } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
-      if (staticUse.typeArguments?.isNotEmpty ?? false) {
+      final typeArguments = staticUse.typeArguments;
+      if (typeArguments != null && typeArguments.isNotEmpty) {
         registerDynamicInvocation(
-            Selector.call(Names.call, staticUse.callStructure),
-            staticUse.typeArguments);
+            Selector.call(Names.call, staticUse.callStructure), typeArguments);
       }
       return;
     }

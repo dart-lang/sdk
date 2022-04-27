@@ -1130,7 +1130,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.interfaces;
+    return data.interfaces /*!*/;
   }
 
   MemberDefinition getMemberDefinitionInternal(covariant IndexedMember member) {

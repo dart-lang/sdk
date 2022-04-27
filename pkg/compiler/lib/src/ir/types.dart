@@ -33,7 +33,7 @@ class KernelDartTypes extends DartTypes {
 
   @override
   Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
-    return elementMap.getOrderedTypeSet(cls).supertypes;
+    return elementMap.getOrderedTypeSet(cls).supertypes ?? const [];
   }
 
   @override

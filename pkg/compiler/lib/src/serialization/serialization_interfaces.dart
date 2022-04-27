@@ -4,6 +4,8 @@
 
 import '../elements/entities.dart';
 
+export 'tags.dart';
+
 /// NNBD-migrated interface for methods of DataSinkWriter.
 ///
 /// This is a pure interface or facade for DataSinkWriter.

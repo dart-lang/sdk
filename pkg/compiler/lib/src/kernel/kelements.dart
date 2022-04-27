@@ -282,7 +282,7 @@ class KLocalFunction implements Local {
   final MemberEntity memberContext;
   final Entity executableContext;
   final ir.LocalFunction node;
-  FunctionType functionType;
+  /*late final*/ FunctionType functionType;
 
   KLocalFunction(
       this.name, this.memberContext, this.executableContext, this.node);
@@ -299,8 +299,8 @@ class KLocalTypeVariable implements TypeVariableEntity {
   final String name;
   @override
   final int index;
-  DartType bound;
-  DartType defaultType;
+  /*late final*/ DartType bound;
+  /*late final*/ DartType defaultType;
 
   KLocalTypeVariable(this.typeDeclaration, this.name, this.index);
 
