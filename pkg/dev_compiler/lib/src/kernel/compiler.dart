@@ -905,13 +905,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     js_ast.Expression emitDeferredType(DartType t,
         {bool emitNullability = true}) {
-      js_ast.Expression _emitDeferredType(DartType t,
+      js_ast.Expression emitDeferredType(DartType t,
           {bool emitNullability = true}) {
         if (t is InterfaceType) {
           _declareBeforeUse(t.classNode);
           if (t.typeArguments.isNotEmpty) {
-            var typeRep = _emitGenericClassType(
-                t, t.typeArguments.map(_emitDeferredType));
+            var typeRep =
+                _emitGenericClassType(t, t.typeArguments.map(emitDeferredType));
             return emitNullability
                 ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
                 : typeRep;
@@ -922,13 +922,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (normalizedType is FutureOrType) {
             _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
             var typeRep = _emitFutureOrTypeWithArgument(
-                _emitDeferredType(normalizedType.typeArgument));
+                emitDeferredType(normalizedType.typeArgument));
             return emitNullability
                 ? _emitNullabilityWrapper(
                     typeRep, normalizedType.declaredNullability)
                 : typeRep;
           }
-          return _emitDeferredType(normalizedType,
+          return emitDeferredType(normalizedType,
               emitNullability: emitNullability);
         } else if (t is TypeParameterType) {
           return _emitTypeParameterType(t, emitNullability: emitNullability);
@@ -940,7 +940,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var savedEmittingDeferredType = _emittingDeferredType;
       _emittingDeferredType = true;
       var deferredClassRep =
-          _emitDeferredType(t, emitNullability: emitNullability);
+          emitDeferredType(t, emitNullability: emitNullability);
       _emittingDeferredType = savedEmittingDeferredType;
       return deferredClassRep;
     }
