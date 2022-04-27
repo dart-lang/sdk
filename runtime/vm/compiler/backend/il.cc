@@ -5474,10 +5474,36 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  auto& stub = Code::ZoneHandle(StubCode::InstantiateType().ptr());
+  if (type().IsTypeParameter()) {
+    const auto& type_parameter = TypeParameter::Cast(type());
+    const bool is_function_parameter = type_parameter.IsFunctionTypeParameter();
+
+    switch (type_parameter.nullability()) {
+      case Nullability::kNonNullable:
+        stub = is_function_parameter
+                   ? StubCode::InstantiateTypeNonNullableFunctionTypeParameter()
+                         .ptr()
+                   : StubCode::InstantiateTypeNonNullableClassTypeParameter()
+                         .ptr();
+        break;
+      case Nullability::kNullable:
+        stub =
+            is_function_parameter
+                ? StubCode::InstantiateTypeNullableFunctionTypeParameter().ptr()
+                : StubCode::InstantiateTypeNullableClassTypeParameter().ptr();
+        break;
+      case Nullability::kLegacy:
+        stub =
+            is_function_parameter
+                ? StubCode::InstantiateTypeLegacyFunctionTypeParameter().ptr()
+                : StubCode::InstantiateTypeLegacyClassTypeParameter().ptr();
+        break;
+    }
+  }
   __ LoadObject(InstantiateTypeABI::kTypeReg, type());
-  compiler->GenerateStubCall(source(), StubCode::InstantiateType(),
-                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
-                             env());
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
 }
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(

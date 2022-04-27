@@ -157,7 +157,8 @@ class Thread;
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
-  V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)
+  V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
+  V(TypePtr, dynamic_type_, Type::dynamic_type().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.

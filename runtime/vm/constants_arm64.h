@@ -173,6 +173,7 @@ struct InstantiationABI {
   static const Register kFunctionTypeArgumentsReg = R1;
   static const Register kResultTypeArgumentsReg = R0;
   static const Register kResultTypeReg = R0;
+  static const Register kScratchReg = R8;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
