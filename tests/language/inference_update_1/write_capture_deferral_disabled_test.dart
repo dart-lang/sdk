@@ -52,4 +52,19 @@ withIdentical_rhs(int? i) {
   }
 }
 
+class B {
+  B(Object? x, void Function() g, Object? y);
+  B.redirectingConstructorInvocation(int? i)
+      : this(i!, () {
+          i = null;
+        }, i..expectStaticType<Exactly<int?>>());
+}
+
+class C extends B {
+  C.superConstructorInvocation(int? i)
+      : super(i!, () {
+          i = null;
+        }, i..expectStaticType<Exactly<int?>>());
+}
+
 main() {}
