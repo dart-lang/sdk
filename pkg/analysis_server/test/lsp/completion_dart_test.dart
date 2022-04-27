@@ -1117,6 +1117,53 @@ void f() {
     expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
   }
 
+  Future<void> test_namedArg_flutterChildren() async {
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(c^);
+''';
+
+    final expectedContent = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(children: [^],);
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['children: []'],
+      applyEditsFor: 'children: []',
+      expectedContent: expectedContent,
+    );
+  }
+
+  Future<void> test_namedArg_flutterChildren_existingValue() async {
+    // Flutter's widget classes have special handling that adds `[]` after the
+    // children named arg, but this should not occur if there's already a value
+    // for this named arg.
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(c^: []);
+''';
+
+    final expectedContent = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(children: []);
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['children'],
+      applyEditsFor: 'children',
+      expectedContent: expectedContent,
+    );
+  }
+
   Future<void> test_namedArg_insertReplaceRanges() async {
     /// Helper to check multiple completions in the same template file.
     Future<void> check(
