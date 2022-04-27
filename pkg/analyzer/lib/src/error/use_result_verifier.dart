@@ -168,7 +168,8 @@ class UseResultVerifier {
       }
     }
 
-    if (parent is AwaitExpression ||
+    if (parent is AsExpression ||
+        parent is AwaitExpression ||
         parent is ConditionalExpression ||
         parent is ForElement ||
         parent is IfElement ||

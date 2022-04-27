@@ -21,6 +21,44 @@ class UnusedResultTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_as() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {}
+class B extends A {}
+
+B createB() {
+  return createA() as B;
+}
+
+@UseResult('')
+A createA() {
+  return B();
+}
+''');
+  }
+
+  test_as_without_usage() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {}
+class B extends A {}
+
+void test() {
+  createA() as B;
+}
+
+@UseResult('')
+A createA() {
+  return B();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 83, 7),
+    ]);
+  }
+
   test_field_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
