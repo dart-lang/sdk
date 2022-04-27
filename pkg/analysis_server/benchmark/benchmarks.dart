@@ -118,7 +118,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
 
   @override
   BenchMarkResult combine(BenchMarkResult other) {
-    BenchMarkResult _combine(BenchMarkResult? a, BenchMarkResult? b) {
+    BenchMarkResult combine(BenchMarkResult? a, BenchMarkResult? b) {
       if (a == null) return b!;
       if (b == null) return a;
       return a.combine(b);
@@ -133,7 +133,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
         .toList();
 
     for (var key in keys) {
-      combined.add(key, _combine(results[key], o.results[key]));
+      combined.add(key, combine(results[key], o.results[key]));
     }
 
     return combined;

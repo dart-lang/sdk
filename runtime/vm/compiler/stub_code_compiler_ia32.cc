@@ -928,17 +928,19 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ leal(EBX, FieldAddress(AllocateArrayABI::kResultReg, EBX, TIMES_1, 0));
     __ leal(EDI, FieldAddress(AllocateArrayABI::kResultReg,
                               target::Array::header_size()));
-    Label done;
-    Label init_loop;
-    __ Bind(&init_loop);
+    Label loop;
+    __ Bind(&loop);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kWordSize) {
+      // No generational barrier needed, since we are storing null.
+      __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                  Address(EDI, offset), NullObject());
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ addl(EDI, Immediate(target::kObjectAlignment));
     __ cmpl(EDI, EBX);
-    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-    // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg, Address(EDI, 0),
-                                NullObject());
-    __ addl(EDI, Immediate(target::kWordSize));
-    __ jmp(&init_loop, Assembler::kNearJump);
-    __ Bind(&done);
+    __ j(UNSIGNED_LESS, &loop);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1570,16 +1572,18 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       // ECX: next word to be initialized.
       // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
       //                                       (if is_cls_parameterized).
-      Label init_loop;
-      Label done;
-      __ Bind(&init_loop);
+      Label loop;
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kWordSize) {
+        __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                    Address(ECX, offset), NullObject());
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ addl(ECX, Immediate(target::kObjectAlignment));
       __ cmpl(ECX, EBX);
-      __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
-                                  Address(ECX, 0), NullObject());
-      __ addl(ECX, Immediate(target::kWordSize));
-      __ jmp(&init_loop, Assembler::kNearJump);
-      __ Bind(&done);
+      __ j(UNSIGNED_LESS, &loop);
     }
     if (is_cls_parameterized) {
       // AllocateObjectABI::kResultReg: new object (tagged).
@@ -3066,14 +3070,17 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         EAX, FieldAddress(EAX, target::PointerBase::data_offset()), EDI);
-    Label done, init_loop;
-    __ Bind(&init_loop);
+    Label loop;
+    __ Bind(&loop);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kWordSize) {
+      __ movl(Address(EDI, offset), ECX);
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ addl(EDI, Immediate(target::kObjectAlignment));
     __ cmpl(EDI, EBX);
-    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-    __ movl(Address(EDI, 0), ECX);
-    __ addl(EDI, Immediate(target::kWordSize));
-    __ jmp(&init_loop, Assembler::kNearJump);
-    __ Bind(&done);
+    __ j(UNSIGNED_LESS, &loop);
 
     __ ret();
 

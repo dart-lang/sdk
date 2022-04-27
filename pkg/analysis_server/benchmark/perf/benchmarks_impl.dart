@@ -75,7 +75,7 @@ class AnalysisBenchmark extends Benchmark {
     var completionCount = 0;
     var stopwatch = Stopwatch()..start();
 
-    Future _complete(int offset) async {
+    Future complete(int offset) async {
       await test.complete(filePath, offset, isWarmUp: false);
       completionCount++;
     }
@@ -86,11 +86,11 @@ class AnalysisBenchmark extends Benchmark {
       var index =
           contents.indexOf(RegExp(r'\..*;$', multiLine: true), startIndex);
 
-      await _complete(index - 10);
-      await _complete(index - 1);
-      await _complete(index);
-      await _complete(index + 1);
-      await _complete(index + 10);
+      await complete(index - 10);
+      await complete(index - 1);
+      await complete(index);
+      await complete(index + 1);
+      await complete(index + 10);
 
       if (i + 1 < kGroupCount) {
         // mutate

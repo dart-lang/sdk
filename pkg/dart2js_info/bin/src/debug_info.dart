@@ -303,15 +303,15 @@ void compareGraphs(AllInfo info) {
   // differently than 'deps' links
   int inUsesNotInDependencies = 0;
   int inDependenciesNotInUses = 0;
-  _sameEdges(f) {
+  sameEdges(f) {
     var targets1 = g1.targetsOf(f).toSet();
     var targets2 = g2.targetsOf(f).toSet();
     inUsesNotInDependencies += targets1.difference(targets2).length;
     inDependenciesNotInUses += targets2.difference(targets1).length;
   }
 
-  info.functions.forEach(_sameEdges);
-  info.fields.forEach(_sameEdges);
+  info.functions.forEach(sameEdges);
+  info.fields.forEach(sameEdges);
   if (inUsesNotInDependencies == 0 && inDependenciesNotInUses == 0) {
     _pass('dependency data is consistent');
   } else {

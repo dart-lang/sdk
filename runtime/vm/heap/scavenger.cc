@@ -865,23 +865,32 @@ Scavenger::~Scavenger() {
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
-  if (reason != GCReason::kNewSpace) {
-    // If we GC for a reason other than new-space being full, that's not an
-    // indication that new-space is too small.
-    return old_size_in_words;
+  bool grow = false;
+  if (2 * heap_->isolate_group()->MutatorCount() >
+      (old_size_in_words / kNewPageSizeInWords)) {
+    // Not enough TLABs to give two to each mutator.
+    grow = true;
   }
 
-  if (stats_history_.Size() != 0) {
-    double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
-    if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
-      // Too much survived last time; grow new-space in the hope that a greater
-      // fraction of objects will become unreachable before new-space becomes
-      // full.
-      return Utils::Minimum(max_semi_capacity_in_words_,
-                            old_size_in_words * FLAG_new_gen_growth_factor);
+  if (reason == GCReason::kNewSpace) {
+    // If we GC for a reason other than new-space being full (i.e., full
+    // collection for old-space or store-buffer overflow), that's not an
+    // indication that new-space is too small.
+    if (stats_history_.Size() != 0) {
+      double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
+      if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
+        // Too much survived last time; grow new-space in the hope that a
+        // greater fraction of objects will become unreachable before new-space
+        // becomes full.
+        grow = true;
+      }
     }
   }
 
+  if (grow) {
+    return Utils::Minimum(max_semi_capacity_in_words_,
+                          old_size_in_words * FLAG_new_gen_growth_factor);
+  }
   return old_size_in_words;
 }
 

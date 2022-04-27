@@ -1285,22 +1285,19 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ LoadObject(R12, NullObject());
     __ leaq(RDI, FieldAddress(AllocateArrayABI::kResultReg,
                               target::Array::header_size()));
-    Label done;
-    Label init_loop;
-    __ Bind(&init_loop);
+    Label loop;
+    __ Bind(&loop);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kCompressedWordSize) {
+      // No generational barrier needed, since we are storing null.
+      __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                            Address(RDI, offset), R12);
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ addq(RDI, Immediate(target::kObjectAlignment));
     __ cmpq(RDI, RCX);
-#if defined(DEBUG)
-    static auto const kJumpLength = Assembler::kFarJump;
-#else
-    static auto const kJumpLength = Assembler::kNearJump;
-#endif  // DEBUG
-    __ j(ABOVE_EQUAL, &done, kJumpLength);
-    // No generational barrier needed, since we are storing null.
-    __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                          Address(RDI, 0), R12);
-    __ addq(RDI, Immediate(target::kCompressedWordSize));
-    __ jmp(&init_loop, kJumpLength);
-    __ Bind(&done);
+    __ j(UNSIGNED_LESS, &loop);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1977,21 +1974,19 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ LoadObject(kNullReg, NullObject());
 
       // Loop until the whole object is initialized.
-      Label init_loop;
-      Label done;
-      __ Bind(&init_loop);
+      Label loop;
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kCompressedWordSize) {
+        __ StoreCompressedIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                              Address(kNextFieldReg, offset),
+                                              kNullReg);
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ addq(kNextFieldReg, Immediate(target::kObjectAlignment));
       __ cmpq(kNextFieldReg, kNewTopReg);
-#if defined(DEBUG)
-      static auto const kJumpLength = Assembler::kFarJump;
-#else
-      static auto const kJumpLength = Assembler::kNearJump;
-#endif  // DEBUG
-      __ j(ABOVE_EQUAL, &done, kJumpLength);
-      __ StoreCompressedIntoObjectNoBarrier(
-          AllocateObjectABI::kResultReg, Address(kNextFieldReg, 0), kNullReg);
-      __ addq(kNextFieldReg, Immediate(target::kCompressedWordSize));
-      __ jmp(&init_loop, Assembler::kNearJump);
-      __ Bind(&done);
+      __ j(UNSIGNED_LESS, &loop);
     }  // kNextFieldReg = RDI, kNullReg = R10
 
     if (is_cls_parameterized) {
@@ -3774,18 +3769,19 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* RDI: iterator which initially points to the start of the variable */
     /* RBX: scratch register. */
     /* data area to be initialized. */
-    __ xorq(RBX, RBX); /* Zero. */
+    __ pxor(XMM0, XMM0); /* Zero. */
     __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         RAX, FieldAddress(RAX, target::PointerBase::data_offset()), RDI);
-    Label done, init_loop;
-    __ Bind(&init_loop);
+    Label loop;
+    __ Bind(&loop);
+    ASSERT(target::kObjectAlignment == kFpuRegisterSize);
+    __ movups(Address(RDI, 0), XMM0);
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ addq(RDI, Immediate(target::kObjectAlignment));
     __ cmpq(RDI, RCX);
-    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-    __ movq(Address(RDI, 0), RBX);
-    __ addq(RDI, Immediate(target::kWordSize));
-    __ jmp(&init_loop, Assembler::kNearJump);
-    __ Bind(&done);
+    __ j(UNSIGNED_LESS, &loop, Assembler::kNearJump);
 
     __ ret();
 

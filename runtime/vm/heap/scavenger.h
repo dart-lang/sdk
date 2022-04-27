@@ -33,6 +33,11 @@ static constexpr intptr_t kNewPageSize = 512 * KB;
 static constexpr intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
 static constexpr intptr_t kNewPageMask = ~(kNewPageSize - 1);
 
+// Simplify initialization in allocation stubs by ensuring it is safe
+// to overshoot the object end by up to kAllocationRedZoneSize. (Just as the
+// stack red zone allows one to overshoot the stack pointer.)
+static constexpr intptr_t kAllocationRedZoneSize = kObjectAlignment;
+
 // A page containing new generation objects.
 class NewPage {
  public:
@@ -40,7 +45,7 @@ class NewPage {
   void Deallocate();
 
   uword start() const { return memory_->start(); }
-  uword end() const { return memory_->end(); }
+  uword end() const { return memory_->end() - kAllocationRedZoneSize; }
   bool Contains(uword addr) const { return memory_->Contains(addr); }
   void WriteProtect(bool read_only) {
     memory_->Protect(read_only ? VirtualMemory::kReadOnly
@@ -54,6 +59,7 @@ class NewPage {
 
   uword object_start() const { return start() + ObjectStartOffset(); }
   uword object_end() const { return owner_ != nullptr ? owner_->top() : top_; }
+  intptr_t used() const { return object_end() - object_start(); }
   void VisitObjects(ObjectVisitor* visitor) const {
     uword addr = object_start();
     uword end = object_end();
@@ -180,6 +186,13 @@ class SemiSpace {
   bool Contains(uword addr) const;
   void WriteProtect(bool read_only);
 
+  intptr_t used_in_words() const {
+    intptr_t size = 0;
+    for (const NewPage* p = head_; p != nullptr; p = p->next()) {
+      size += p->used();
+    }
+    return size >> kWordSizeLog2;
+  }
   intptr_t capacity_in_words() const { return capacity_in_words_; }
   intptr_t max_capacity_in_words() const { return max_capacity_in_words_; }
 
@@ -281,7 +294,7 @@ class Scavenger {
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
-    return to_->capacity_in_words();
+    return to_->used_in_words();
   }
   int64_t CapacityInWords() const { return to_->max_capacity_in_words(); }
   int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }

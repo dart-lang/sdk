@@ -30,9 +30,8 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
-      String _format(AnalysisError e) =>
-          '${e.location.startLine}: ${e.message}';
-      filesErrors[getFile(decoded.file)] = decoded.errors.map(_format).toList();
+      String format(AnalysisError e) => '${e.location.startLine}: ${e.message}';
+      filesErrors[getFile(decoded.file)] = decoded.errors.map(format).toList();
     }
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       navigationCount++;

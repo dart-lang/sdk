@@ -176,7 +176,7 @@ class CompletionRunner {
           output.writeln();
         }
 
-        void _printCounts(List<int> counts) {
+        void printCounts(List<int> counts) {
           var nearTopCount = 0;
           for (var i = 0; i < counts.length; i++) {
             var count = counts[i];
@@ -188,10 +188,10 @@ class CompletionRunner {
 
         output.writeln();
         output.writeln('By position in the list');
-        _printCounts(indexCount);
+        printCounts(indexCount);
         output.writeln();
         output.writeln('By position in the list (filtered by first character)');
-        _printCounts(filteredIndexCount);
+        printCounts(filteredIndexCount);
         output.writeln();
       }
     }

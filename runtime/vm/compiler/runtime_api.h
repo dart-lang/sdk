@@ -63,7 +63,7 @@ namespace compiler {
 // constants and introduce compilation errors when used.
 //
 // target::kWordSize and target::ObjectAlignment give access to
-// word size and object aligment offsets for the target.
+// word size and object alignment offsets for the target.
 //
 // Similarly kHostWordSize gives access to the host word size.
 class InvalidClass {};

@@ -573,6 +573,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
+  intptr_t MutatorCount() const {
+    ASSERT(Thread::Current()->IsAtSafepoint());  // Otherwise lock is needed.
+    return active_mutators_;
+  }
 
   bool HasTagHandler() const { return library_tag_handler() != nullptr; }
   ObjectPtr CallTagHandler(Dart_LibraryTag tag,

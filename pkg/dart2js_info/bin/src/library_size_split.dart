@@ -131,12 +131,12 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     var realTotal = info.program.size;
     var longest = 0;
     var rows = <_Row>[];
-    _addRow(String label, int value) {
+    addRow(String label, int value) {
       rows.add(_Row(label, value));
       longest = max(longest, label.length);
     }
 
-    _printRow(_Row row) {
+    printRow(_Row row) {
       if (row is _Divider) {
         print(' ${'-' * (longest + 18)}');
         return;
@@ -157,14 +157,14 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
         lastCluster = entry.cluster;
       }
       var size = entry.size;
-      _addRow(name, size);
+      addRow(name, size);
     }
     rows.add(const _Divider());
-    _addRow("All libraries (excludes preambles, statics & consts)", allLibs);
-    _addRow("Shared consts", allConstants);
-    _addRow("Total accounted", allLibs + allConstants);
-    _addRow("Program Size", realTotal);
-    rows.forEach(_printRow);
+    addRow("All libraries (excludes preambles, statics & consts)", allLibs);
+    addRow("Shared consts", allConstants);
+    addRow("Total accounted", allLibs + allConstants);
+    addRow("Program Size", realTotal);
+    rows.forEach(printRow);
   }
 }
 
