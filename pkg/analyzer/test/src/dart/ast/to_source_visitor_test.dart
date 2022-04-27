@@ -233,7 +233,6 @@ var v = a * (b + c);
     _assertSource("abstract macro class C {}", declaration);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
   void test_visitClassDeclaration_augment() {
     var findNode = _parseStringToFindNode(r'''
 augment class A {}
@@ -461,7 +460,6 @@ macro class A {}
             isMacro: true));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
   void test_visitClassTypeAlias_augment() {
     var findNode = _parseStringToFindNode(r'''
 augment class A = S with M;

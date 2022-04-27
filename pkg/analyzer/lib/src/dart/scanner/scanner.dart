@@ -221,5 +221,7 @@ class Scanner {
               enableExtensionMethods:
                   featureSet.isEnabled(Feature.extension_methods),
               enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-              enableNonNullable: featureSet.isEnabled(Feature.non_nullable));
+              enableNonNullable: featureSet.isEnabled(Feature.non_nullable),
+              forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
+            );
 }

@@ -15,7 +15,6 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
   void test_class_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {}
