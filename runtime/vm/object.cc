@@ -3364,8 +3364,11 @@ intptr_t Class::ComputeNumTypeArguments() const {
     for (; i < num_overlapping_type_args; i++) {
       sup_type_arg = sup_type_args.TypeAt(sup_type_args_length -
                                           num_overlapping_type_args + i);
-      ASSERT(!sup_type_arg.IsNull());
-      if (!sup_type_arg.IsTypeParameter()) break;
+      // 'sup_type_arg' can be null if type arguments are currently being
+      // finalized in ClassFinalizer::ExpandAndFinalizeTypeArguments.
+      // Type arguments which are not filled yet do not correspond to
+      // the type parameters and cannot be reused.
+      if (sup_type_arg.IsNull() || !sup_type_arg.IsTypeParameter()) break;
       // The only type parameters appearing in the type arguments of the super
       // type are those declared by this class. Their finalized indices depend
       // on the number of type arguments being computed here. Therefore, they
