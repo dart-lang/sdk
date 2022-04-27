@@ -35,8 +35,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// such as `runInTerminal`.
   final _serverToClientRequestCompleters = <int, Completer<Object?>>{};
 
-  BaseDebugAdapter(this._channel) {
-    _channel.listen(_handleIncomingMessage);
+  BaseDebugAdapter(this._channel, {Function? onError}) {
+    _channel.listen(_handleIncomingMessage, onError: onError);
   }
 
   /// Parses arguments for [attachRequest] into a type of [TAttachArgs].

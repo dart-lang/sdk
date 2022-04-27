@@ -33,6 +33,7 @@ class DapServer {
     this.enableAuthCodes = true,
     this.test = false,
     this.logger,
+    Function? onError,
   }) : channel = ByteStreamServerChannel(_input, _output, logger) {
     adapter = test
         ? DartTestDebugAdapter(
@@ -41,6 +42,7 @@ class DapServer {
             enableDds: enableDds,
             enableAuthCodes: enableAuthCodes,
             logger: logger,
+            onError: onError,
           )
         : DartCliDebugAdapter(
             channel,
@@ -48,6 +50,7 @@ class DapServer {
             enableDds: enableDds,
             enableAuthCodes: enableAuthCodes,
             logger: logger,
+            onError: onError,
           );
   }
 

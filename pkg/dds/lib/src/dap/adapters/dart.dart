@@ -419,7 +419,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     this.enableDds = true,
     this.enableAuthCodes = true,
     this.logger,
-  }) : super(channel) {
+    Function? onError,
+  }) : super(channel, onError: onError) {
     channel.closed.then((_) => shutdown());
 
     _isolateManager = IsolateManager(this);
