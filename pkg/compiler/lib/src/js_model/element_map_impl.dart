@@ -358,8 +358,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     source.begin(classDataTag);
     entityLookup.forEachClass((int index, JClass cls) {
       JClassEnv env = JClassEnv.readFromDataSource(source);
+      classes.preRegisterByIndex(index, cls, env);
       JClassData data = JClassData.readFromDataSource(source);
-      classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
+      classes.postRegisterData(cls, data);
+      classMap[env.cls] = cls;
       if (cls is! JRecord && cls is! JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);

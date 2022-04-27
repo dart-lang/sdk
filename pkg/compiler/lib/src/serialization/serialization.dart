@@ -4,6 +4,7 @@
 
 // @dart = 2.10
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
@@ -41,6 +42,19 @@ part 'object_source.dart';
 
 abstract class StringInterner {
   String internString(String string);
+}
+
+class ValueInterner {
+  final Map<DartType, DartType> _dartTypeMap = HashMap();
+  final Map<ir.DartType, ir.DartType> _dartTypeNodeMap = HashMap();
+
+  DartType internDartType(DartType dartType) {
+    return _dartTypeMap[dartType] ??= dartType;
+  }
+
+  ir.DartType internDartTypeNode(ir.DartType dartType) {
+    return _dartTypeNodeMap[dartType] ??= dartType;
+  }
 }
 
 /// Data class representing cache information for a given [T] which can be

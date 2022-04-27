@@ -43,6 +43,7 @@ class DataSourceReader implements migrated.DataSourceReader {
       List<ir.DartType>.empty();
 
   final bool useDataKinds;
+  final ValueInterner /*?*/ interner;
   DataSourceIndices importedIndices;
   EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
@@ -71,7 +72,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   DataSourceReader(this._sourceReader,
-      {this.useDataKinds = false, this.importedIndices}) {
+      {this.useDataKinds = false, this.importedIndices, this.interner}) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
     _memberNodeIndex = _createSource<_MemberData>();
@@ -659,7 +660,8 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// Reads a type from this data source.
   DartType /*!*/ readDartType() {
     _checkDataKind(DataKind.dartType);
-    return DartType.readFromDataSource(this, []);
+    final type = DartType.readFromDataSource(this, []);
+    return interner?.internDartType(type) ?? type;
   }
 
   /// Reads a nullable type from this data source.
@@ -703,7 +705,8 @@ class DataSourceReader implements migrated.DataSourceReader {
   @override
   ir.DartType /*?*/ readDartTypeNodeOrNull() {
     _checkDataKind(DataKind.dartTypeNode);
-    return _readDartTypeNode([]);
+    final type = _readDartTypeNode([]);
+    return interner?.internDartTypeNode(type) ?? type;
   }
 
   ir.DartType _readDartTypeNode(List<ir.TypeParameter> functionTypeVariables) {
