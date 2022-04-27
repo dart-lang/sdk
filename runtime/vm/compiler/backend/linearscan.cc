@@ -2185,7 +2185,8 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     TRACE_ALLOC(THR_Print("found hint %s for v%" Pd ": free until %" Pd "\n",
                           hint.Name(), unallocated->vreg(), free_until));
   } else {
-    for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
+    for (intptr_t i = 0; i < NumberOfRegisters(); ++i) {
+      intptr_t reg = (i + kRegisterAllocationBias) % NumberOfRegisters();
       if (!blocked_registers_[reg] && (registers_[reg]->length() == 0)) {
         candidate = reg;
         free_until = kMaxPosition;
@@ -2196,7 +2197,8 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
 
   ASSERT(0 <= kMaxPosition);
   if (free_until != kMaxPosition) {
-    for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
+    for (intptr_t i = 0; i < NumberOfRegisters(); ++i) {
+      intptr_t reg = (i + kRegisterAllocationBias) % NumberOfRegisters();
       if (blocked_registers_[reg] || (reg == candidate)) continue;
       const intptr_t intersection =
           FirstIntersectionWithAllocated(reg, unallocated);
@@ -2258,7 +2260,8 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
                             unallocated->vreg(),
                             extra_loop_info_[loop_info->id()]->start,
                             extra_loop_info_[loop_info->id()]->end));
-      for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
+      for (intptr_t i = 0; i < NumberOfRegisters(); ++i) {
+        intptr_t reg = (i + kRegisterAllocationBias) % NumberOfRegisters();
         if (blocked_registers_[reg] || (reg == candidate) ||
             used_on_backedge[reg]) {
           continue;
@@ -2371,7 +2374,8 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
   intptr_t free_until = 0;
   intptr_t blocked_at = kMaxPosition;
 
-  for (int reg = 0; reg < NumberOfRegisters(); ++reg) {
+  for (int i = 0; i < NumberOfRegisters(); ++i) {
+    int reg = (i + kRegisterAllocationBias) % NumberOfRegisters();
     if (blocked_registers_[reg]) continue;
     if (UpdateFreeUntil(reg, unallocated, &free_until, &blocked_at)) {
       candidate = reg;
@@ -2581,7 +2585,8 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
 }
 
 void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
-  for (intptr_t reg = 0; reg < NumberOfRegisters(); reg++) {
+  for (intptr_t i = 0; i < NumberOfRegisters(); ++i) {
+    intptr_t reg = (i + kRegisterAllocationBias) % NumberOfRegisters();
     if (registers_[reg]->is_empty()) continue;
 
     intptr_t first_evicted = -1;
@@ -2704,7 +2709,8 @@ void FlowGraphAllocator::PrepareForAllocation(
   ASSERT(unallocated_.is_empty());
   unallocated_.AddArray(unallocated);
 
-  for (intptr_t reg = 0; reg < number_of_registers; reg++) {
+  for (intptr_t i = 0; i < NumberOfRegisters(); ++i) {
+    intptr_t reg = (i + kRegisterAllocationBias) % NumberOfRegisters();
     blocked_registers_[reg] = blocked_registers[reg];
     ASSERT(registers_[reg]->is_empty());
 

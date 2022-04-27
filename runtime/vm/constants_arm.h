@@ -574,6 +574,8 @@ constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
 constexpr int kNumberOfDartAvailableCpuRegs =
     kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
+// No reason to prefer certain registers on ARM.
+constexpr int kRegisterAllocationBias = 0;
 const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =

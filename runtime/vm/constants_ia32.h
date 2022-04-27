@@ -278,6 +278,8 @@ const intptr_t kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+// No reason to prefer certain registers on IA32.
+constexpr int kRegisterAllocationBias = 0;
 
 const RegList kAbiPreservedCpuRegs = (1 << EDI) | (1 << ESI) | (1 << EBX);
 

@@ -346,14 +346,16 @@ void FlowGraphCompiler::EmitPrologue() {
     }
 
     __ Comment("Initialize spill slots");
+    const intptr_t fp_to_sp_delta =
+        num_locals + compiler::target::frame_layout.dart_fixed_frame_size;
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg =
           slot_index == args_desc_slot ? ARGS_DESC_REG : NULL_REG;
-      __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
-      // TODO(riscv): Using an SP-relative address instead of an FP-relative
-      // address would allow for compressed instructions.
+      // SP-relative addresses allow for compressed instructions.
+      __ StoreToOffset(value_reg, SP,
+                       (slot_index + fp_to_sp_delta) * kWordSize);
     }
   }
 

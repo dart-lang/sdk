@@ -469,14 +469,14 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-#if defined(DEBUG)
-  compiler::Label stack_ok;
-  __ Comment("Stack Check");
   const intptr_t fp_sp_dist =
       (compiler::target::frame_layout.first_local_from_fp + 1 -
        compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
+#if defined(DEBUG)
+  compiler::Label stack_ok;
+  __ Comment("Stack Check");
   __ sub(TMP, SP, FP);
   __ CompareImmediate(TMP, fp_sp_dist);
   __ BranchIf(EQ, &stack_ok, compiler::Assembler::kNearJump);
@@ -487,7 +487,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
     compiler->EmitYieldPositionMetadata(source(), yield_index());
   }
-  __ LeaveDartFrame();  // Disallows constant pool use.
+  __ LeaveDartFrame(fp_sp_dist);  // Disallows constant pool use.
   __ ret();
   // This ReturnInstr may be emitted out of order by the optimizer. The next
   // block may be a target expecting a properly set constant pool pointer.

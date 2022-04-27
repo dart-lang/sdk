@@ -355,6 +355,8 @@ const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
 constexpr int kNumberOfDartAvailableCpuRegs =
     kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
+// Low numbered registers sometimes require fewer prefixes.
+constexpr int kRegisterAllocationBias = 0;
 constexpr int kStoreBufferWrapperSize = 13;
 
 #if defined(DART_TARGET_OS_WINDOWS)
