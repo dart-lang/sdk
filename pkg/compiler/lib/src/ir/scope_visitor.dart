@@ -826,9 +826,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitFunctionNode(ir.FunctionNode node) {
-    VariableUse parameterUsage = node.parent is ir.Member
-        ? VariableUse.memberParameter(node.parent)
-        : VariableUse.localParameter(node.parent);
+    final parent = node.parent;
+    VariableUse parameterUsage = parent is ir.Member
+        ? VariableUse.memberParameter(parent)
+        : VariableUse.localParameter(parent);
     visitNodesInContext(node.typeParameters, parameterUsage);
     for (ir.VariableDeclaration declaration in node.positionalParameters) {
       _handleVariableDeclaration(declaration, parameterUsage);
@@ -838,9 +839,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     }
     visitInContext(
         node.returnType,
-        node.parent is ir.Member
-            ? VariableUse.memberReturnType(node.parent)
-            : VariableUse.localReturnType(node.parent));
+        parent is ir.Member
+            ? VariableUse.memberReturnType(parent)
+            : VariableUse.localReturnType(parent));
     if (node.body != null) {
       visitNode(node.body);
     }

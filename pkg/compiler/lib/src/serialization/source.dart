@@ -176,6 +176,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// deserialization of `ir.TreeNode`s using the `readTreeNode*InContext`
   /// methods.
+  @override
   T inMemberContext<T>(ir.Member context, T f()) {
     ir.Member oldMemberContext = _currentMemberContext;
     _MemberData oldMemberData = _currentMemberData;
@@ -591,15 +592,26 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Reads a map from kernel tree nodes to [V] values in the known [context]
   /// from this data source, calling [f] to read each value from the data
-  /// source. If [emptyAsNull] is `true`, `null` is returned instead of an empty
-  /// map.
+  /// source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMapInContext].
-  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f()) {
+    return readTreeNodeMapInContextOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from kernel tree nodes to [V] values in the known [context]
+  /// from this data source, calling [f] to read each value from the data
+  /// source. `null` is returned for an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeTreeNodeMapInContext].
+  @override
+  Map<K, V> /*?*/ readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(
+      V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNodeInContextInternal(currentMemberData);
@@ -678,11 +690,20 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Reads a kernel type node from this data source. If [allowNull], the
   /// returned type is allowed to be `null`.
-  ir.DartType readDartTypeNode({bool allowNull = false}) {
+  @override
+  ir.DartType /*!*/ readDartTypeNode() {
     _checkDataKind(DataKind.dartTypeNode);
-    ir.DartType type = _readDartTypeNode([]);
-    assert(type != null || allowNull);
+    ir.DartType type = readDartTypeNodeOrNull();
+    if (type == null) throw UnsupportedError('Unexpected `null` DartTypeNode');
     return type;
+  }
+
+  /// Reads a kernel type node from this data source. The returned type is
+  /// allowed to be `null`.
+  @override
+  ir.DartType /*?*/ readDartTypeNodeOrNull() {
+    _checkDataKind(DataKind.dartTypeNode);
+    return _readDartTypeNode([]);
   }
 
   ir.DartType _readDartTypeNode(List<ir.TypeParameter> functionTypeVariables) {

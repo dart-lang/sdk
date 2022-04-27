@@ -1361,21 +1361,18 @@ class KernelGlobalTypeInferenceElementData
       AbstractValueDomain abstractValueDomain) {
     return source.inMemberContext(context, () {
       source.begin(tag);
-      Map<ir.TreeNode, AbstractValue> sendMap = source.readTreeNodeMapInContext(
-          () => abstractValueDomain.readAbstractValueFromDataSource(source),
-          emptyAsNull: true);
+      Map<ir.TreeNode, AbstractValue> sendMap =
+          source.readTreeNodeMapInContextOrNull(() =>
+              abstractValueDomain.readAbstractValueFromDataSource(source));
       Map<ir.ForInStatement, AbstractValue> iteratorMap =
-          source.readTreeNodeMapInContext(
-              () => abstractValueDomain.readAbstractValueFromDataSource(source),
-              emptyAsNull: true);
+          source.readTreeNodeMapInContextOrNull(() =>
+              abstractValueDomain.readAbstractValueFromDataSource(source));
       Map<ir.ForInStatement, AbstractValue> currentMap =
-          source.readTreeNodeMapInContext(
-              () => abstractValueDomain.readAbstractValueFromDataSource(source),
-              emptyAsNull: true);
+          source.readTreeNodeMapInContextOrNull(() =>
+              abstractValueDomain.readAbstractValueFromDataSource(source));
       Map<ir.ForInStatement, AbstractValue> moveNextMap =
-          source.readTreeNodeMapInContext(
-              () => abstractValueDomain.readAbstractValueFromDataSource(source),
-              emptyAsNull: true);
+          source.readTreeNodeMapInContextOrNull(() =>
+              abstractValueDomain.readAbstractValueFromDataSource(source));
       source.end(tag);
       return KernelGlobalTypeInferenceElementData.internal(
           sendMap, iteratorMap, currentMap, moveNextMap);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' as ir show DartType, Member, TreeNode;
+
 import '../elements/entities.dart';
 
 export 'tags.dart';
@@ -57,6 +59,12 @@ abstract class DataSinkWriter {
   void writeLibrary(covariant LibraryEntity value); // IndexedLibrary
   void writeLibraryOrNull(covariant LibraryEntity? value); // IndexedLibrary
 
+  void writeDartTypeNode(ir.DartType value);
+  void writeDartTypeNodeOrNull(ir.DartType? value);
+
+  void inMemberContext(ir.Member context, void f());
+  void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V>? map, void f(V value),
+      {bool allowNull = false});
 }
 
 /// Migrated interface for methods of DataSourceReader.
@@ -80,4 +88,11 @@ abstract class DataSourceReader {
 
   LibraryEntity readLibrary(); // IndexedLibrary;
   LibraryEntity? readLibraryOrNull(); // IndexedLibrary;
+
+  ir.DartType readDartTypeNode();
+  ir.DartType? readDartTypeNodeOrNull();
+
+  T inMemberContext<T>(ir.Member context, T f());
+  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f());
+  Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(V f());
 }
