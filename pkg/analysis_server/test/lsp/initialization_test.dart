@@ -25,6 +25,16 @@ void main() {
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerTest {
+  /// Waits for any in-progress analysis context rebuild.
+  ///
+  /// Pumps the event queue before and after, to ensure any server code that
+  /// runs after the rebuild has had chance to run.
+  Future<void> get contextRebuildComplete async {
+    await pumpEventQueue(times: 5000);
+    await server.analysisContextsRebuilt;
+    await pumpEventQueue(times: 5000);
+  }
+
   TextDocumentRegistrationOptions registrationOptionsFor(
     List<Registration> registrations,
     Method method,
@@ -561,7 +571,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening both files should only add the project folder once.
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Closing only one of the files should not remove the project folder
@@ -576,7 +586,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // the context.
     resetContextBuildCounter();
     await closeFile(file2Uri);
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([]));
     expect(server.contextManager.driverMap, hasLength(0));
     expectContextBuilds();
@@ -611,7 +621,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Opening a file nested within the project should add the project folder.
     await openFile(nestedFileUri, '');
-    await pumpEventQueue(times: 500);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Ensure the file was cached in each driver. This happens as a result of
@@ -851,7 +861,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening both files should only add the project folder once.
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expect(server.contextManager.driverMap, hasLength(1));
 
@@ -867,7 +877,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // the context.
     resetContextBuildCounter();
     await closeFile(file2Uri);
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([]));
     expect(server.contextManager.driverMap, hasLength(0));
     expectContextBuilds();
@@ -909,6 +919,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening a file nested within the project should cause the project folder
     // to be added
     await openFile(nestedFileUri, '');
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Ensure the file was cached in each driver. This happens as a result of

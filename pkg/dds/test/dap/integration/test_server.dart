@@ -33,7 +33,10 @@ class InProcessDapTestServer extends DapTestServer {
   StreamSink<List<int>> get sink => stdinController.sink;
   Stream<List<int>> get stream => stdoutController.stream;
 
-  InProcessDapTestServer._(List<String> args) {
+  InProcessDapTestServer._(
+    List<String> args, {
+    Function? onError,
+  }) {
     _server = DapServer(
       stdinController.stream,
       stdoutController.sink,
@@ -42,6 +45,7 @@ class InProcessDapTestServer extends DapTestServer {
       ipv6: args.contains('--ipv6'),
       enableAuthCodes: !args.contains('--no-auth-codes'),
       test: args.contains('--test'),
+      onError: onError,
     );
   }
 
@@ -52,11 +56,15 @@ class InProcessDapTestServer extends DapTestServer {
 
   static Future<InProcessDapTestServer> create({
     Logger? logger,
+    Function? onError,
     List<String>? additionalArgs,
   }) async {
-    return InProcessDapTestServer._([
-      ...?additionalArgs,
-    ]);
+    return InProcessDapTestServer._(
+      [
+        ...?additionalArgs,
+      ],
+      onError: onError,
+    );
   }
 }
 
@@ -74,12 +82,19 @@ class OutOfProcessDapTestServer extends DapTestServer {
 
   OutOfProcessDapTestServer._(
     this._process,
-    Logger? logger,
-  ) {
-    // Treat anything written to stderr as the DAP crashing and fail the test.
+    Logger? logger, {
+    Function? onError,
+  }) {
+    // Handle any stderr from the process. If an error handler was provided by
+    // the test, call it. Otherwise throw to fail the test as it's likely
+    // unexpected.
     _process.stderr.transform(utf8.decoder).listen((error) {
       logger?.call(error);
-      throw error;
+      if (onError != null) {
+        onError(error);
+      } else {
+        throw error;
+      }
     });
     unawaited(_process.exitCode.then((code) {
       final message = 'Out-of-process DAP server terminated with code $code';
@@ -99,6 +114,7 @@ class OutOfProcessDapTestServer extends DapTestServer {
 
   static Future<OutOfProcessDapTestServer> create({
     Logger? logger,
+    Function? onError,
     List<String>? additionalArgs,
   }) async {
     final ddsEntryScript =
@@ -115,8 +131,8 @@ class OutOfProcessDapTestServer extends DapTestServer {
       ...?additionalArgs,
     ];
 
-    final _process = await Process.start(Platform.resolvedExecutable, args);
+    final process = await Process.start(Platform.resolvedExecutable, args);
 
-    return OutOfProcessDapTestServer._(_process, logger);
+    return OutOfProcessDapTestServer._(process, logger, onError: onError);
   }
 }

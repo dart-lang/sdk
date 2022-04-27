@@ -5,13 +5,16 @@
 import 'dart:async';
 import 'dart:convert';
 
-class InvalidEncodingError {
-  final String headers;
-  InvalidEncodingError(this.headers);
+import 'exceptions.dart';
 
-  @override
-  String toString() =>
-      'Encoding in supplied headers is not supported.\n\nHeaders:\n$headers';
+class InvalidEncodingException extends InvalidHeadersException {
+  InvalidEncodingException(String headers)
+      : super('Encoding in supplied headers is not supported.', headers);
+}
+
+class InvalidHeadersException extends DebugAdapterException {
+  InvalidHeadersException(String message, String headers)
+      : super('$message\n\nHeaders:\n$headers');
 }
 
 /// Transforms a stream of LSP/DAP data in the form:
@@ -36,23 +39,30 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
         input = stream.expand((b) => b).listen(
           (codeUnit) {
             buffer.add(codeUnit);
-            if (isParsingHeaders && _endsWithCrLfCrLf(buffer)) {
-              headers = _parseHeaders(buffer);
-              buffer.clear();
-              isParsingHeaders = false;
-            } else if (!isParsingHeaders &&
-                buffer.length >= headers!.contentLength) {
-              // UTF-8 is the default - and only supported - encoding for LSP.
-              // The string 'utf8' is valid since it was published in the original spec.
-              // Any other encodings should be rejected with an error.
-              if ([null, 'utf-8', 'utf8']
-                  .contains(headers?.encoding?.toLowerCase())) {
-                _output.add(utf8.decode(buffer));
-              } else {
-                _output.addError(InvalidEncodingError(headers!.rawHeaders));
+            try {
+              if (isParsingHeaders && _endsWithCrLfCrLf(buffer)) {
+                headers = _parseHeaders(buffer);
+                buffer.clear();
+                isParsingHeaders = false;
+              } else if (!isParsingHeaders &&
+                  buffer.length >= headers!.contentLength) {
+                // UTF-8 is the default - and only supported - encoding for LSP.
+                // The string 'utf8' is valid since it was published in the original spec.
+                // Any other encodings should be rejected with an error.
+                if ([null, 'utf-8', 'utf8']
+                    .contains(headers?.encoding?.toLowerCase())) {
+                  _output.add(utf8.decode(buffer));
+                } else {
+                  _output.addError(
+                    InvalidEncodingException(headers!.rawHeaders),
+                  );
+                }
+                buffer.clear();
+                isParsingHeaders = true;
               }
-              buffer.clear();
-              isParsingHeaders = true;
+            } on DebugAdapterException catch (e) {
+              _output.addError(e);
+              _output.close();
             }
           },
           onError: _output.addError,
@@ -96,8 +106,10 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
           'The stream has utf8 content:\n${utf8.decode(buffer)}');
     }
     final headers = asString.split('\r\n');
-    final lengthHeader =
-        headers.firstWhere((h) => h.startsWith('Content-Length'));
+    final lengthHeader = headers.firstWhere(
+        (h) => h.startsWith('Content-Length'),
+        orElse: () => throw InvalidHeadersException(
+            'No Content-Length header was supplied', asString));
     final length = lengthHeader.split(':').last.trim();
     final contentTypeHeader = headers
         .firstWhere((h) => h.startsWith('Content-Type'), orElse: () => '');

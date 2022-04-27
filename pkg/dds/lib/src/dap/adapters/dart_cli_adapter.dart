@@ -34,12 +34,14 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     bool enableDds = true,
     bool enableAuthCodes = true,
     Logger? logger,
+    Function? onError,
   }) : super(
           channel,
           ipv6: ipv6,
           enableDds: enableDds,
           enableAuthCodes: enableAuthCodes,
           logger: logger,
+          onError: onError,
         );
 
   /// Whether the VM Service closing should be used as a signal to terminate the
