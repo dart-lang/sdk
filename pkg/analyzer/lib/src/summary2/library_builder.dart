@@ -182,8 +182,14 @@ class LibraryBuilder {
       return;
     }
 
-    var applier = LibraryMacroApplier(this);
-    var augmentationLibrary = await applier.executeMacroTypesPhase();
+    final macroExecutor = linker.macroExecutor;
+    if (macroExecutor == null) {
+      return;
+    }
+
+    var applier = LibraryMacroApplier(macroExecutor, this);
+    await applier.buildApplications();
+    var augmentationLibrary = await applier.executeTypesPhase();
     if (augmentationLibrary == null) {
       return;
     }
