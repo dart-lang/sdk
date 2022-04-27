@@ -324,6 +324,9 @@ class Serializer : public ThreadStackResource {
   void Write(T value) {
     BaseWriteStream::Raw<sizeof(T), T>::Write(stream_, value);
   }
+  void WriteRefId(intptr_t value) {
+    stream_->WriteRefId(value);
+  }
   void WriteUnsigned(intptr_t value) { stream_->WriteUnsigned(value); }
   void WriteUnsigned64(uint64_t value) { stream_->WriteUnsigned(value); }
 
@@ -341,7 +344,7 @@ class Serializer : public ThreadStackResource {
 
   void WriteRootRef(ObjectPtr object, const char* name = nullptr) {
     intptr_t id = RefId(object);
-    WriteUnsigned(id);
+    WriteRefId(id);
     if (profile_writer_ != nullptr) {
       profile_writer_->AddRoot(GetProfileId(object), name);
     }
@@ -359,7 +362,7 @@ class Serializer : public ThreadStackResource {
 
   void WriteElementRef(ObjectPtr object, intptr_t index) {
     AttributeElementRef(object, index);
-    WriteUnsigned(RefId(object));
+    WriteRefId(RefId(object));
   }
 
   void AttributePropertyRef(ObjectPtr object, const char* property) {
@@ -369,12 +372,12 @@ class Serializer : public ThreadStackResource {
 
   void WritePropertyRef(ObjectPtr object, const char* property) {
     AttributePropertyRef(object, property);
-    WriteUnsigned(RefId(object));
+    WriteRefId(RefId(object));
   }
 
   void WriteOffsetRef(ObjectPtr object, intptr_t offset) {
     intptr_t id = RefId(object);
-    WriteUnsigned(id);
+    WriteRefId(id);
     if (profile_writer_ != nullptr) {
       if (auto const property = offsets_table_->FieldNameForOffset(
               object_currently_writing_.cid_, offset)) {
@@ -634,6 +637,7 @@ class Deserializer : public ThreadStackResource {
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
+  intptr_t ReadRefId() { return stream_.ReadRefId(); }
   intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
   uint64_t ReadUnsigned64() { return stream_.ReadUnsigned<uint64_t>(); }
   void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
@@ -673,7 +677,7 @@ class Deserializer : public ThreadStackResource {
   static intptr_t CodeIndexToClusterIndex(const InstructionsTable& table,
                                           intptr_t code_index);
 
-  ObjectPtr ReadRef() { return Ref(ReadUnsigned()); }
+  ObjectPtr ReadRef() { return Ref(ReadRefId()); }
 
   template <typename T, typename... P>
   void ReadFromTo(T obj, P&&... params) {
