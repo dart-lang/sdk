@@ -40,7 +40,7 @@ class DocumentColorHandler
   }
 
   ErrorOr<List<ColorInformation>> _getColors(ResolvedUnitResult unit) {
-    ColorInformation _toColorInformation(ColorReference reference) {
+    ColorInformation toColorInformation(ColorReference reference) {
       return ColorInformation(
         range: toRange(unit.lineInfo, reference.offset, reference.length),
         color: Color(
@@ -56,6 +56,6 @@ class DocumentColorHandler
 
     final computer = ColorComputer(unit);
     final colors = computer.compute();
-    return success(colors.map(_toColorInformation).toList());
+    return success(colors.map(toColorInformation).toList());
   }
 }

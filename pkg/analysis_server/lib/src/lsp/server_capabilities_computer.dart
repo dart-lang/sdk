@@ -522,14 +522,14 @@ class ServerCapabilitiesComputer {
     // the hashcode of their registration options to allow for multiple
     // registrations of a single method.
 
-    String _registrationHash(Registration registration) =>
+    String registrationHash(Registration registration) =>
         '${registration.method}${registration.registerOptions.hashCode}';
 
     final newRegistrationsMap = Map.fromEntries(
-        newRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+        newRegistrations.map((r) => MapEntry(r, registrationHash(r))));
     final newRegistrationsJsons = newRegistrationsMap.values.toSet();
     final currentRegistrationsMap = Map.fromEntries(
-        currentRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+        currentRegistrations.map((r) => MapEntry(r, registrationHash(r))));
     final currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
     final registrationsToAdd = newRegistrationsMap.entries
