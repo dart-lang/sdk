@@ -139,6 +139,12 @@ namespace dart {
   V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
   V(InstantiateType)                                                           \
+  V(InstantiateTypeNonNullableClassTypeParameter)                              \
+  V(InstantiateTypeNullableClassTypeParameter)                                 \
+  V(InstantiateTypeLegacyClassTypeParameter)                                   \
+  V(InstantiateTypeNonNullableFunctionTypeParameter)                           \
+  V(InstantiateTypeNullableFunctionTypeParameter)                              \
+  V(InstantiateTypeLegacyFunctionTypeParameter)                                \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \

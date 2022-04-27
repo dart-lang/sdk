@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:10:3: Error: Inferred type argument 'C<dynamic> Function(C<dynamic>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:13:3: Error: Inferred type argument 'C<dynamic> Function(C<dynamic>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
 //  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   A a = throw 42; // Error.
@@ -10,7 +10,7 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef A<X extends G<C<X>>> = C<X>;
 //           ^
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:10:3: Context: If you want 'A<C<dynamic> Function(C<dynamic>)>' to be a super-bounded type, note that the inverted type 'A<G<C<Never>>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:13:3: Context: If you want 'A<C<dynamic> Function(C<dynamic>)>' to be a super-bounded type, note that the inverted type 'A<G<C<Never>>>' must then satisfy its bounds, which it does not.
 //  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
 //   A a = throw 42; // Error.
 //   ^
@@ -20,6 +20,8 @@ import "dart:core" as core;
 
 typedef G<invariant X extends core::Object? = dynamic> = (X%) → X%;
 typedef A<X extends (self::C<X>) → self::C<X> = (self::C<dynamic>) → self::C<dynamic>> = self::C<X>;
+typedef H<invariant X extends core::Object? = dynamic> = self::C<(X%) → X%>;
+typedef B<X extends self::C<(X) → X> = self::C<(dynamic) → dynamic>> = self::C<X>;
 class C<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::X%>
     : super core::Object::•()
@@ -27,7 +29,12 @@ class C<X extends core::Object? = dynamic> extends core::Object {
 }
 static method test() → dynamic {
   self::C<(self::C<dynamic>) → self::C<dynamic>> a = throw 42;
+  self::C<self::C<(dynamic) → dynamic>> b = throw 42;
 }
 static method main() → dynamic {}
 static method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
   return new self::C::•<self::_#A#new#tearOff::X>();
+static method _#H#new#tearOff<invariant X extends core::Object? = dynamic>() → self::C<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>
+  return new self::C::•<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>();
+static method _#B#new#tearOff<X extends self::C<(self::_#B#new#tearOff::X) → self::_#B#new#tearOff::X> = self::C<(dynamic) → dynamic>>() → self::C<self::_#B#new#tearOff::X>
+  return new self::C::•<self::_#B#new#tearOff::X>();

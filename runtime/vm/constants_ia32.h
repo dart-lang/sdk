@@ -111,6 +111,7 @@ struct InstantiationABI {
   static const Register kFunctionTypeArgumentsReg = ECX;
   static const Register kResultTypeArgumentsReg = EAX;
   static const Register kResultTypeReg = EAX;
+  static const Register kScratchReg = EDI;  // On ia32 we don't use CODE_REG.
 };
 
 // Calling convention when calling SubtypeTestCacheStub.

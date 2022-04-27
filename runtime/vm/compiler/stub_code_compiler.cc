@@ -270,7 +270,7 @@ void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
 #endif
 }
 
-void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
+static void BuildInstantiateTypeRuntimeCall(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(Object::null_object());
   __ PushRegister(InstantiateTypeABI::kTypeReg);
@@ -281,6 +281,135 @@ void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
   __ PopRegister(InstantiateTypeABI::kResultTypeReg);
   __ LeaveStubFrame();
   __ Ret();
+}
+
+static void BuildInstantiateTypeParameterStub(Assembler* assembler,
+                                              Nullability nullability,
+                                              bool is_function_parameter) {
+  Label runtime_call, return_dynamic, type_parameter_value_is_not_type;
+
+  if (is_function_parameter) {
+    __ CompareObject(InstantiateTypeABI::kFunctionTypeArgumentsReg,
+                     TypeArguments::null_object());
+    __ BranchIf(EQUAL, &return_dynamic);
+    __ LoadFieldFromOffset(
+        InstantiateTypeABI::kResultTypeReg, InstantiateTypeABI::kTypeReg,
+        target::TypeParameter::index_offset(), kUnsignedByte);
+    __ LoadIndexedCompressed(InstantiateTypeABI::kResultTypeReg,
+                             InstantiateTypeABI::kFunctionTypeArgumentsReg,
+                             target::TypeArguments::types_offset(),
+                             InstantiateTypeABI::kResultTypeReg);
+  } else {
+    __ CompareObject(InstantiateTypeABI::kInstantiatorTypeArgumentsReg,
+                     TypeArguments::null_object());
+    __ BranchIf(EQUAL, &return_dynamic);
+    __ LoadFieldFromOffset(
+        InstantiateTypeABI::kResultTypeReg, InstantiateTypeABI::kTypeReg,
+        target::TypeParameter::index_offset(), kUnsignedByte);
+    __ LoadIndexedCompressed(InstantiateTypeABI::kResultTypeReg,
+                             InstantiateTypeABI::kInstantiatorTypeArgumentsReg,
+                             target::TypeArguments::types_offset(),
+                             InstantiateTypeABI::kResultTypeReg);
+  }
+
+  __ LoadClassId(InstantiateTypeABI::kScratchReg,
+                 InstantiateTypeABI::kResultTypeReg);
+
+  // The loaded value from the TAV can be [Type], [FunctionType] or [TypeRef].
+
+  // Handle [Type]s.
+  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeCid);
+  __ BranchIf(NOT_EQUAL, &type_parameter_value_is_not_type);
+  switch (nullability) {
+    case Nullability::kNonNullable:
+      __ Ret();
+      break;
+    case Nullability::kNullable:
+      __ CompareTypeNullabilityWith(
+          InstantiateTypeABI::kResultTypeReg,
+          static_cast<int8_t>(Nullability::kNullable));
+      __ BranchIf(NOT_EQUAL, &runtime_call);
+      __ Ret();
+      break;
+    case Nullability::kLegacy:
+      __ CompareTypeNullabilityWith(
+          InstantiateTypeABI::kResultTypeReg,
+          static_cast<int8_t>(Nullability::kNonNullable));
+      __ BranchIf(EQUAL, &runtime_call);
+      __ Ret();
+  }
+
+  // Handle [FunctionType]s.
+  __ Bind(&type_parameter_value_is_not_type);
+  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kFunctionTypeCid);
+  __ BranchIf(NOT_EQUAL, &runtime_call);
+  switch (nullability) {
+    case Nullability::kNonNullable:
+      __ Ret();
+      break;
+    case Nullability::kNullable:
+      __ CompareFunctionTypeNullabilityWith(
+          InstantiateTypeABI::kResultTypeReg,
+          static_cast<int8_t>(Nullability::kNullable));
+      __ BranchIf(NOT_EQUAL, &runtime_call);
+      __ Ret();
+      break;
+    case Nullability::kLegacy:
+      __ CompareFunctionTypeNullabilityWith(
+          InstantiateTypeABI::kResultTypeReg,
+          static_cast<int8_t>(Nullability::kNonNullable));
+      __ BranchIf(EQUAL, &runtime_call);
+      __ Ret();
+  }
+
+  // The TAV was null, so the value of the type parameter is "dynamic".
+  __ Bind(&return_dynamic);
+  __ LoadObject(InstantiateTypeABI::kResultTypeReg, Type::dynamic_type());
+  __ Ret();
+
+  __ Bind(&runtime_call);
+  BuildInstantiateTypeRuntimeCall(assembler);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeNonNullableClassTypeParameterStub(
+    Assembler* assembler) {
+  BuildInstantiateTypeParameterStub(assembler, Nullability::kNonNullable,
+                                    /*is_function_parameter=*/false);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeNullableClassTypeParameterStub(
+    Assembler* assembler) {
+  BuildInstantiateTypeParameterStub(assembler, Nullability::kNullable,
+                                    /*is_function_parameter=*/false);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeLegacyClassTypeParameterStub(
+    Assembler* assembler) {
+  BuildInstantiateTypeParameterStub(assembler, Nullability::kLegacy,
+                                    /*is_function_parameter=*/false);
+}
+
+void StubCodeCompiler::
+    GenerateInstantiateTypeNonNullableFunctionTypeParameterStub(
+        Assembler* assembler) {
+  BuildInstantiateTypeParameterStub(assembler, Nullability::kNonNullable,
+                                    /*is_function_parameter=*/true);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeNullableFunctionTypeParameterStub(
+    Assembler* assembler) {
+  BuildInstantiateTypeParameterStub(assembler, Nullability::kNullable,
+                                    /*is_function_parameter=*/true);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeLegacyFunctionTypeParameterStub(
+    Assembler* assembler) {
+  BuildInstantiateTypeParameterStub(assembler, Nullability::kLegacy,
+                                    /*is_function_parameter=*/true);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
+  BuildInstantiateTypeRuntimeCall(assembler);
 }
 
 void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {

@@ -33,6 +33,7 @@ struct InstantiateTypeABI {
   static constexpr Register kFunctionTypeArgumentsReg =
       InstantiationABI::kFunctionTypeArgumentsReg;
   static constexpr Register kResultTypeReg = InstantiationABI::kResultTypeReg;
+  static constexpr Register kScratchReg = InstantiationABI::kScratchReg;
 };
 
 class RegisterNames {
