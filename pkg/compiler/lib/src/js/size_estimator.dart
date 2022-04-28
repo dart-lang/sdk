@@ -678,6 +678,11 @@ class SizeEstimator implements NodeVisitor {
         // We cannot remove parenthesis for "*" because of precision issues.
         rightPrecedenceRequirement = UNARY;
         break;
+      case "**":
+        leftPrecedenceRequirement = EXPONENTIATION;
+        // We cannot remove parenthesis for "**" because of precision issues.
+        rightPrecedenceRequirement = UNARY;
+        break;
       default:
         throw UnsupportedError("Forgot operator: $op");
     }

@@ -28,7 +28,8 @@ const RELATIONAL = EQUALITY + 1;
 const SHIFT = RELATIONAL + 1;
 const ADDITIVE = SHIFT + 1;
 const MULTIPLICATIVE = ADDITIVE + 1;
-const UNARY = MULTIPLICATIVE + 1;
+const EXPONENTIATION = MULTIPLICATIVE + 1;
+const UNARY = EXPONENTIATION + 1;
 const LEFT_HAND_SIDE = UNARY + 1;
 const CALL = LEFT_HAND_SIDE;
 // We always emit `new` with parenthesis, so it uses ACCESS as its precedence.

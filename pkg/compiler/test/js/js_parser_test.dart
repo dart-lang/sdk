@@ -258,4 +258,12 @@ void main() {
   bar() {
   }
 }""");
+
+  // Exponentiation operator.
+  testExpression("a ** b");
+  //* Parsed with incorrect association:
+  testExpression("a ** b ** c", "(a ** b) ** c");
+  testExpression("(a ** b) ** c", "(a ** b) ** c");
+  testExpression("a ** (b ** c)", "a ** b ** c");
+  testExpression("a **= b");
 }

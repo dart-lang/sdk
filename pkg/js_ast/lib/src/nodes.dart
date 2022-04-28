@@ -1638,6 +1638,8 @@ class Binary extends Expression {
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
+      case '**':
+        return EXPONENTIATION;
       case '*':
       case '/':
       case '%':
