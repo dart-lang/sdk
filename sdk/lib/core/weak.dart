@@ -173,7 +173,7 @@ abstract class Finalizer<T> {
 
   /// Attaches this finalizer to [value].
   ///
-  /// When [value] is longer accessible to the program,
+  /// When [value] is no longer accessible to the program,
   /// while still having an attachement to this finalizer,
   /// the callback of this finalizer *may* be called
   /// with [finalizationToken] as argument.
