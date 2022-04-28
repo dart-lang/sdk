@@ -1,0 +1,35 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Recompiling with no change shouldn't change anything.
+# http://dartbug.com/48894
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        // @dart=2.5
+
+        import 'lib.dart';
+
+        class LegacyClass extends Class implements Interface {}
+      lib.dart: |
+        abstract class Interface {
+          int method5c([int a = 0, int? b]);
+          int method7b({int a: 0, int? b});
+        }
+        class Class {
+          int method5c([int a = 0, int? b]) => 0;
+          int method7b({int a = 0, int? b}) => 0;
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    compareToPrevious: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2
