@@ -3592,10 +3592,21 @@ void Class::AddInvocationDispatcher(const String& target_name,
   auto& cache = Array::Handle(zone, invocation_dispatcher_cache());
   InvocationDispatcherTable dispatchers(cache);
   intptr_t i = 0;
-  for (auto dispatcher : dispatchers) {
-    if (dispatcher.Get<kInvocationDispatcherName>() == String::null()) {
+#if defined(DEBUG)
+  auto& function = Function::Handle();
+#endif
+  for (auto entry : dispatchers) {
+    if (entry.Get<kInvocationDispatcherName>() == String::null()) {
       break;
     }
+
+#if defined(DEBUG)
+    // Check for duplicate entries in the cache.
+    function = entry.Get<kInvocationDispatcherFunction>();
+    ASSERT(entry.Get<kInvocationDispatcherName>() != target_name.ptr() ||
+           function.kind() != dispatcher.kind() ||
+           entry.Get<kInvocationDispatcherArgsDesc>() != args_desc.ptr());
+#endif  // defined(DEBUG)
     i++;
   }
   if (i == dispatchers.Length()) {
@@ -3973,8 +3984,12 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
 
   const bool needs_dyn_forwarder =
       kernel::NeedsDynamicInvocationForwarder(*this);
+  if (!needs_dyn_forwarder) {
+    return ptr();
+  }
+
   if (!allow_add) {
-    return needs_dyn_forwarder ? Function::null() : ptr();
+    return Function::null();
   }
 
   // If we failed to find it and possibly need to create it, use a write lock.
@@ -3988,10 +4003,8 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   if (!result.IsNull()) return result.ptr();
 
   // Otherwise create it & add it.
-  result = needs_dyn_forwarder ? CreateDynamicInvocationForwarder(mangled_name)
-                               : ptr();
+  result = CreateDynamicInvocationForwarder(mangled_name);
   owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
-
   return result.ptr();
 }
 
