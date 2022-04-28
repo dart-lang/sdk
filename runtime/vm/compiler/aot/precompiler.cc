@@ -2266,10 +2266,6 @@ void Precompiler::DropFunctions() {
         }
       }
       if (retained_functions.Length() > 0) {
-        // Last entry must be null.
-        retained_functions.Add(Object::null_object());
-        retained_functions.Add(Object::null_object());
-        retained_functions.Add(Object::null_object());
         functions = Array::MakeFixedLength(retained_functions);
       } else {
         functions = Object::empty_array().ptr();
