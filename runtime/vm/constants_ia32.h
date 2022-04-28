@@ -31,7 +31,7 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 };
 
-// Low and high bytes registers of the the first four general purpose registers.
+// Low and high bytes registers of the first four general purpose registers.
 // The other four general purpose registers do not have byte registers.
 enum ByteRegister {
   AL = 0,

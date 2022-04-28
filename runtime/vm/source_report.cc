@@ -118,7 +118,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   }
 
   // There is an idiom where static utility classes are given a private
-  // constructor to prevent the the class from being instantiated. Ignore these
+  // constructor to prevent the class from being instantiated. Ignore these
   // constructors so that they don't lower the coverage rate. See #47021.
   SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   if (func.kind() == UntaggedFunction::kConstructor &&

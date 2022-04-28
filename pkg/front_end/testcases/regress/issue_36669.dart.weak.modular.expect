@@ -2,15 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_36669.dart:11:7: Error: The superclass, 'NoUnnamedConstuctor with MixMeIn', has no unnamed constructor that takes no arguments.
-// class Foo extends NoUnnamedConstuctor with MixMeIn {}
+// pkg/front_end/testcases/regress/issue_36669.dart:11:7: Error: The superclass, 'NoUnnamedConstructor with MixMeIn', has no unnamed constructor that takes no arguments.
+// class Foo extends NoUnnamedConstructor with MixMeIn {}
 //       ^
 //
 import self as self;
 import "dart:core" as core;
 
-class NoUnnamedConstuctor extends core::Object {
-  constructor _() → self::NoUnnamedConstuctor*
+class NoUnnamedConstructor extends core::Object {
+  constructor _() → self::NoUnnamedConstructor*
     : super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -39,12 +39,12 @@ class MixMeIn extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class _Foo&NoUnnamedConstuctor&MixMeIn = self::NoUnnamedConstuctor with self::MixMeIn /*isAnonymousMixin*/  {
-  synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn*
-    : super self::NoUnnamedConstuctor::_()
+abstract class _Foo&NoUnnamedConstructor&MixMeIn = self::NoUnnamedConstructor with self::MixMeIn /*isAnonymousMixin*/  {
+  synthetic constructor _() → self::_Foo&NoUnnamedConstructor&MixMeIn*
+    : super self::NoUnnamedConstructor::_()
     ;
 }
-class Foo extends self::_Foo&NoUnnamedConstuctor&MixMeIn {
+class Foo extends self::_Foo&NoUnnamedConstructor&MixMeIn {
   synthetic constructor •() → self::Foo*
     : invalid-initializer
     ;
