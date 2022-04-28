@@ -98,6 +98,30 @@ class ReadStream : public ValueObject {
     return Read<T>(kEndUnsignedByteMarker);
   }
 
+  intptr_t ReadRefId() {
+    const int8_t* cursor = reinterpret_cast<const int8_t*>(current_);
+    intptr_t result = 0;
+    intptr_t byte;
+    // clang-format off
+#define STAGE                                                                  \
+    byte = *cursor++;              /* ldrsb byte, [result], 1  */              \
+    result = byte + (result << 7); /* add result, byte, result lsl 7 */        \
+    if (byte < 0) goto done;       /* tbnz byte, 63, done */
+    STAGE  // 0-7
+    STAGE  // 8-14
+    STAGE  // 15-21
+    STAGE  // 22-28
+#undef STAGE
+    ASSERT(byte < 0);  // 256MB is enough for anyone...
+    // clang-format on
+  done:
+    current_ = reinterpret_cast<const uint8_t*>(cursor);
+    // With big-endian order and the has-more marker being 0, the correction
+    // factor to remove the last-byte marker is a constant, which can be folded
+    // in to subsequent load offsets.
+    return result + 128;
+  }
+
   intptr_t Position() const { return current_ - buffer_; }
   void SetPosition(intptr_t value) {
     ASSERT((end_ - buffer_) >= value);
@@ -372,6 +396,21 @@ class BaseWriteStream : public ValueObject {
       value = value >> kDataBitsPerByte;
     }
     WriteByte(static_cast<uint8_t>(value + kEndUnsignedByteMarker));
+  }
+
+  void WriteRefId(intptr_t value) {
+    ASSERT(Utils::IsUint(28, value));  // 256MB is enough for anyone...
+    EnsureSpace(4);
+    if ((value >> 21) != 0) {
+      *current_++ = (value >> 21) & 127;
+    }
+    if ((value >> 14) != 0) {
+      *current_++ = (value >> 14) & 127;
+    }
+    if ((value >> 7) != 0) {
+      *current_++ = (value >> 7) & 127;
+    }
+    *current_++ = ((value >> 0) & 127) | 128;
   }
 
   void WriteBytes(const void* addr, intptr_t len) {

@@ -90,11 +90,12 @@ class FeatureOptions {
   /// Whether or not the CFE should evaluate constants.
   FeatureOption cfeConstants = FeatureOption('cfe-constants');
 
+  /// Whether or not to intern composite values during deserialization
+  /// (e.g. DartType).
+  FeatureOption internValues = FeatureOption('intern-composite-values');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
-  late final List<FeatureOption> shipped = [
-    newHolders,
-    legacyJavaScript,
-  ];
+  late final List<FeatureOption> shipped = [newHolders, legacyJavaScript];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
@@ -107,6 +108,7 @@ class FeatureOptions {
     newDumpInfo,
     simpleAsyncToFuture,
     cfeConstants,
+    internValues,
   ];
 
   /// Forces canary feature on. This must run after [Option].parse.

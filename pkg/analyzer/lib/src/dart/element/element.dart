@@ -48,7 +48,7 @@ import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData
+    with TypeParameterizedElementMixin, HasCompletionData, MacroTargetElement
     implements ClassElement {
   /// The superclass of the class, or `null` for [Object].
   InterfaceType? _supertype;
@@ -77,9 +77,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// This callback is set during mixins inference to handle reentrant calls.
   List<InterfaceType>? Function(AbstractClassElementImpl)?
       mixinInferenceCallback;
-
-  /// Errors registered while applying macros to this element.
-  List<MacroApplicationError> macroApplicationErrors = [];
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -4153,6 +4150,11 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitLocalVariableElement(this);
+}
+
+mixin MacroTargetElement {
+  /// Errors registered while applying macros to this element.
+  List<MacroApplicationError> macroApplicationErrors = [];
 }
 
 /// A concrete implementation of a [MethodElement].

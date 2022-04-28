@@ -34,6 +34,8 @@ const UntaggedFrame invalid_frame_layout = {
     /*.first_local_from_fp = */ -1,
     /*.dart_fixed_frame_size = */ -1,
     /*.saved_caller_pp_from_fp = */ -1,
+    /*.saved_caller_fp_from_fp = */ -1,
+    /*.saved_caller_pc_from_fp = */ -1,
     /*.code_from_fp = */ -1,
     /*.exit_link_slot_from_entry_fp = */ -1,
 };
@@ -46,6 +48,8 @@ const UntaggedFrame default_frame_layout = {
     /*.first_local_from_fp = */ kFirstLocalSlotFromFp,
     /*.dart_fixed_frame_size = */ kDartFrameFixedSize,
     /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
+    /*.saved_caller_fp_from_fp = */ kSavedCallerFpSlotFromFp,
+    /*.saved_caller_pc_from_fp = */ kSavedCallerPcSlotFromFp,
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
     /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
@@ -60,7 +64,9 @@ const UntaggedFrame bare_instructions_frame_layout = {
     /*.dart_fixed_frame_size =*/kDartFrameFixedSize -
         2,                              // No saved CODE, PP slots.
     /*.saved_caller_pp_from_fp = */ 0,  // No saved PP slot.
-    /*.code_from_fp = */ 0,             // No saved CODE
+    /*.saved_caller_fp_from_fp = */ kSavedCallerFpSlotFromFp,
+    /*.saved_caller_pc_from_fp = */ kSavedCallerPcSlotFromFp,
+    /*.code_from_fp = */ 0,  // No saved CODE
     /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
 

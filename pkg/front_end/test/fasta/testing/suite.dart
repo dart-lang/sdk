@@ -68,20 +68,25 @@ import 'package:kernel/ast.dart'
     show
         AwaitExpression,
         BasicLiteral,
+        Class,
         Component,
         Constant,
         ConstantExpression,
         Expression,
         FileUriExpression,
         FileUriNode,
+        InstanceInvocation,
+        InstanceSet,
         InvalidExpression,
         Library,
         LibraryPart,
         Member,
         Node,
         NonNullableByDefaultCompiledMode,
+        Reference,
         TreeNode,
         UnevaluatedConstant,
+        VariableDeclaration,
         Version,
         Visitor,
         VisitorVoidMixin;
@@ -91,6 +96,15 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart'
     show RecursiveResultVisitor, loadComponentFromBytes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
+import 'package:kernel/src/equivalence.dart'
+    show
+        EquivalenceResult,
+        EquivalenceStrategy,
+        EquivalenceVisitor,
+        ReferenceName,
+        checkEquivalence;
+
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart'
@@ -103,6 +117,7 @@ import 'package:kernel/target/targets.dart'
         TestTargetFlags,
         TestTargetMixin,
         TestTargetWrapper;
+
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 import 'package:testing/testing.dart'
@@ -1371,9 +1386,37 @@ class FuzzCompiles
             "${newUserLibraries.map((e) => e.toString()).join("\n")}\n\n"
             "${originalCompileString}");
       }
+
+      if (!compareComponents(component, newComponent)) {
+        return new Result<ComponentResult>(originalCompilationResult,
+            semiFuzzFailure, "Fuzzed component changed in an unexpected way.");
+      }
     }
 
     return null;
+  }
+
+  bool compareComponents(Component a, Component b) {
+    if (a.libraries.length != b.libraries.length) {
+      print("Not the same number of libraries.");
+      return false;
+    }
+    a.libraries.sort((l1, l2) {
+      return "${l1.importUri}".compareTo("${l2.importUri}");
+    });
+    b.libraries.sort((l1, l2) {
+      return "${l1.importUri}".compareTo("${l2.importUri}");
+    });
+    for (int i = 0; i < a.libraries.length; i++) {
+      EquivalenceResult result = checkEquivalence(
+          a.libraries[i], b.libraries[i],
+          strategy: const Strategy());
+      if (!result.isEquivalent) {
+        print(result.toString());
+        return false;
+      }
+    }
+    return true;
   }
 
   bool canSerialize(Component component) {
@@ -1667,6 +1710,83 @@ class FuzzCompiles
     compilationSetup.options.clearFileSystemCache();
     compilationSetup.compilerOptions.fileSystem = orgFileSystem;
     return null;
+  }
+}
+
+class Strategy extends EquivalenceStrategy {
+  const Strategy();
+
+  @override
+  bool checkLibrary_procedures(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return visitor.checkSets(node.procedures.toSet(), other.procedures.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
+  }
+
+  @override
+  bool checkClass_procedures(
+      EquivalenceVisitor visitor, Class node, Class other) {
+    return visitor.checkSets(node.procedures.toSet(), other.procedures.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
+  }
+
+  @override
+  bool checkLibrary_additionalExports(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return visitor.checkSets(
+        node.additionalExports.toSet(),
+        other.additionalExports.toSet(),
+        visitor.matchReferences,
+        visitor.checkReferences,
+        'additionalExports');
+  }
+
+  @override
+  bool checkVariableDeclaration_binaryOffsetNoTag(EquivalenceVisitor visitor,
+      VariableDeclaration node, VariableDeclaration other) {
+    return true;
+  }
+
+  /// Allow assuming references like
+  /// "_Class&Superclass&Mixin::@methods::method4" and
+  /// "Mixin::@methods::method4" are equal (an interfaceTargetReference change
+  /// that often occur on recompile in regards to mixins).
+  ///
+  /// Copied from incremental_dart2js_load_from_dill_test.dart
+  bool _isMixinOrCloneReference(EquivalenceVisitor visitor, Reference? a,
+      Reference? b, String propertyName) {
+    if (a != null && b != null) {
+      ReferenceName thisName = ReferenceName.fromReference(a)!;
+      ReferenceName otherName = ReferenceName.fromReference(b)!;
+      if (thisName.isMember &&
+          otherName.isMember &&
+          thisName.memberName == otherName.memberName) {
+        String? thisClassName = thisName.declarationName;
+        String? otherClassName = otherName.declarationName;
+        if (thisClassName != null &&
+            otherClassName != null &&
+            thisClassName.contains('&${otherClassName}')) {
+          visitor.assumeReferences(a, b);
+        }
+      }
+    }
+    return visitor.checkReferences(a, b, propertyName);
+  }
+
+  @override
+  bool checkInstanceInvocation_interfaceTargetReference(
+      EquivalenceVisitor visitor,
+      InstanceInvocation node,
+      InstanceInvocation other) {
+    return _isMixinOrCloneReference(visitor, node.interfaceTargetReference,
+        other.interfaceTargetReference, 'interfaceTargetReference');
+  }
+
+  @override
+  bool checkInstanceSet_interfaceTargetReference(
+      EquivalenceVisitor visitor, InstanceSet node, InstanceSet other) {
+    return _isMixinOrCloneReference(visitor, node.interfaceTargetReference,
+        other.interfaceTargetReference, 'interfaceTargetReference');
   }
 }
 

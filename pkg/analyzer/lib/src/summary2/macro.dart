@@ -58,13 +58,14 @@ class BundleMacroExecutor {
     required String className,
     required String constructorName,
     required macro.Arguments arguments,
-    required macro.Declaration declaration,
     required macro.IdentifierResolver identifierResolver,
+    required macro.DeclarationKind declarationKind,
+    required macro.Declaration declaration,
   }) async {
     var instanceIdentifier = await macroExecutor.instantiateMacro(
         libraryUri, className, constructorName, arguments);
-    return MacroClassInstance._(
-        this, identifierResolver, declaration, instanceIdentifier);
+    return MacroClassInstance._(this, identifierResolver, instanceIdentifier,
+        declarationKind, declaration);
   }
 }
 
@@ -81,20 +82,26 @@ class MacroClass {
 class MacroClassInstance {
   final BundleMacroExecutor _bundleExecutor;
   final macro.IdentifierResolver _identifierResolver;
-  final macro.Declaration _declaration;
   final macro.MacroInstanceIdentifier _instanceIdentifier;
+  final macro.DeclarationKind _declarationKind;
+  final macro.Declaration _declaration;
 
   MacroClassInstance._(
     this._bundleExecutor,
     this._identifierResolver,
-    this._declaration,
     this._instanceIdentifier,
+    this._declarationKind,
+    this._declaration,
   );
 
   Future<macro.MacroExecutionResult> executeTypesPhase() async {
     macro.MacroExecutor executor = _bundleExecutor.macroExecutor;
     return await executor.executeTypesPhase(
         _instanceIdentifier, _declaration, _identifierResolver);
+  }
+
+  bool shouldExecute(macro.Phase phase) {
+    return _instanceIdentifier.shouldExecute(_declarationKind, phase);
   }
 }
 

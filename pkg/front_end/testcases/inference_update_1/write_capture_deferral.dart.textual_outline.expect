@@ -1,0 +1,22 @@
+withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {}
+withNamedArguments(
+    int? i, void Function({required void Function() g, Object? x}) f) {}
+withIdentical_lhs(int? i) {}
+withIdentical_rhs(int? i) {}
+
+class B {
+  B(Object? x, void Function() g, Object? y);
+  B.redirectingConstructorInvocation(int? i)
+      : this(i!, () {
+          i = null;
+        }, i);
+}
+
+class C extends B {
+  C.superConstructorInvocation(int? i)
+      : super(i!, () {
+          i = null;
+        }, i);
+}
+
+main() {}

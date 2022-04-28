@@ -100,10 +100,13 @@ class SerializationTask extends CompilerTask {
   final api.CompilerInput _provider;
   final api.CompilerOutput _outputProvider;
   final _stringInterner = _StringInterner();
+  final ValueInterner /*?*/ _valueInterner;
 
   SerializationTask(this._options, this._reporter, this._provider,
       this._outputProvider, Measurer measurer)
-      : super(measurer);
+      : _valueInterner =
+            _options.features.internValues.isEnabled ? ValueInterner() : null,
+        super(measurer);
 
   @override
   String get name => 'Serialization';
@@ -204,7 +207,7 @@ class SerializationTask extends CompilerTask {
       data.toDataSink(binarySink);
       binarySink.close();
       var source = DataSourceReader(BinaryDataSource(bytes.builder.toBytes()),
-          useDataKinds: true);
+          useDataKinds: true, interner: _valueInterner);
       source.registerComponentLookup(ComponentLookup(component));
       ModuleData.fromDataSource(source);
     }
@@ -217,8 +220,10 @@ class SerializationTask extends CompilerTask {
       for (Uri uri in _options.modularAnalysisInputs) {
         api.Input<List<int>> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
-        DataSourceReader source =
-            DataSourceReader(BinaryDataSource(dataInput.data));
+        DataSourceReader source = DataSourceReader(
+          BinaryDataSource(dataInput.data),
+          interner: _valueInterner,
+        );
         source.registerComponentLookup(ComponentLookup(component));
         results.readMoreFromDataSource(source);
       }
@@ -247,7 +252,8 @@ class SerializationTask extends CompilerTask {
           _options.readClosedWorldUri,
           inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
-          BinaryDataSource(dataInput.data, stringInterner: _stringInterner));
+          BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
+          interner: _valueInterner);
       var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
           environment, abstractValueStrategy, component, source);
       return ClosedWorldAndIndices(closedWorld, source.exportIndices());
@@ -282,6 +288,7 @@ class SerializationTask extends CompilerTask {
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
+          interner: _valueInterner,
           importedIndices: closedWorldAndIndices.indices);
       return deserializeGlobalTypeInferenceResultsFromSource(
           _options,
@@ -362,6 +369,7 @@ class SerializationTask extends CompilerTask {
       Map<MemberEntity, CodegenResult> results) {
     DataSourceReader source = DataSourceReader(
         BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
+        interner: _valueInterner,
         importedIndices: importedIndices);
     backendStrategy.prepareCodegenReader(source);
     Map<MemberEntity, CodegenResult> codegenResults =

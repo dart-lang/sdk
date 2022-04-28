@@ -245,6 +245,10 @@ enum Variance { legacyCovariant, covariant, contravariant, invariant }
 // TODO(johnniwinther): Remove factory constructors from the set of
 // constructors.
 abstract class ConstructorEntity extends FunctionEntity {
+  // Constructors always have an enclosing class.
+  @override
+  ClassEntity get enclosingClass;
+
   /// Whether this is a generative constructor, possibly redirecting.
   bool get isGenerativeConstructor;
 

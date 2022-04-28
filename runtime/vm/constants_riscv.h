@@ -411,6 +411,8 @@ constexpr intptr_t kNumberOfReservedCpuRegisters = 14;
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
 constexpr int kNumberOfDartAvailableCpuRegs = 18;
+// Registers X8-15 (S0-1,A0-5) have more compressed instructions available.
+constexpr int kRegisterAllocationBias = 8;
 // Registers available to Dart that are not preserved by runtime calls.
 constexpr RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;

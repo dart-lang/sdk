@@ -3704,8 +3704,33 @@ void Assembler::LeaveDartFrame() {
   lx(FP, Address(SP, 0 * target::kWordSize));
   lx(RA, Address(SP, 1 * target::kWordSize));
   addi(SP, SP, 2 * target::kWordSize);
+}
 
-  // TODO(riscv): When we know the stack depth, we can avoid updating SP twice.
+void Assembler::LeaveDartFrame(intptr_t fp_sp_dist) {
+  intptr_t pp_offset =
+      target::frame_layout.saved_caller_pp_from_fp * target::kWordSize -
+      fp_sp_dist;
+  intptr_t fp_offset =
+      target::frame_layout.saved_caller_fp_from_fp * target::kWordSize -
+      fp_sp_dist;
+  intptr_t ra_offset =
+      target::frame_layout.saved_caller_pc_from_fp * target::kWordSize -
+      fp_sp_dist;
+  if (!IsITypeImm(pp_offset) || !IsITypeImm(fp_offset) ||
+      !IsITypeImm(ra_offset)) {
+    // Shorter to update SP twice than generate large immediates.
+    LeaveDartFrame();
+    return;
+  }
+
+  if (!FLAG_precompiled_mode) {
+    lx(PP, Address(SP, pp_offset));
+    subi(PP, PP, kHeapObjectTag);
+  }
+  set_constant_pool_allowed(false);
+  lx(FP, Address(SP, fp_offset));
+  lx(RA, Address(SP, ra_offset));
+  addi(SP, SP, -fp_sp_dist);
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,

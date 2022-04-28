@@ -563,7 +563,7 @@ abstract class ZoneDelegate {
 /// an existing zone which was created earlier using [Zone.fork].
 ///
 /// Developers can create a new zone that overrides some of the functionality of
-/// an existing zone. For example, custom zones can replace of modify the
+/// an existing zone. For example, custom zones can replace or modify the
 /// behavior of `print`, timers, microtasks or how uncaught errors are handled.
 ///
 /// The [Zone] class is not subclassable, but users can provide custom zones by

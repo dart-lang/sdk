@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
@@ -13,95 +14,71 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 
 class LibraryMacroApplier {
+  final MultiMacroExecutor macroExecutor;
   final LibraryBuilder libraryBuilder;
+
+  final Map<MacroTargetElement, List<MacroApplication>> _applications =
+      Map.identity();
 
   final Map<ClassDeclaration, macro.ClassDeclaration> _classDeclarations = {};
 
-  LibraryMacroApplier(this.libraryBuilder);
+  LibraryMacroApplier(this.macroExecutor, this.libraryBuilder);
 
-  /// TODO(scheglov) check `shouldExecute`.
-  /// TODO(scheglov) check `supportsDeclarationKind`.
-  Future<String?> executeMacroTypesPhase() async {
-    var macroResults = <macro.MacroExecutionResult>[];
-    for (var unitElement in libraryBuilder.element.units) {
-      for (var classElement in unitElement.classes) {
+  Linker get _linker => libraryBuilder.linker;
+
+  /// Fill [_applications]s with macro applications.
+  Future<void> buildApplications() async {
+    for (final unitElement in libraryBuilder.element.units) {
+      for (final classElement in unitElement.classes) {
         classElement as ClassElementImpl;
-        var classNode = libraryBuilder.linker.elementNodes[classElement];
+        final classNode = _linker.elementNodes[classElement];
         // TODO(scheglov) support other declarations
         if (classNode is ClassDeclaration) {
-          var annotationList = classNode.metadata;
-          for (var i = 0; i < annotationList.length; i++) {
-            final annotation = annotationList[i];
-            var annotationNameNode = annotation.name;
-            var argumentsNode = annotation.arguments;
-            if (annotationNameNode is SimpleIdentifier &&
-                argumentsNode != null) {
-              // TODO(scheglov) Create a Scope.
-              for (var import in libraryBuilder.element.imports) {
-                var importedLibrary = import.importedLibrary;
-                if (importedLibrary is LibraryElementImpl) {
-                  var importedUri = importedLibrary.source.uri;
-                  if (!libraryBuilder.linker.builders
-                      .containsKey(importedUri)) {
-                    var lookupResult = importedLibrary.scope.lookup(
-                      annotationNameNode.name,
-                    );
-                    var getter = lookupResult.getter;
-                    if (getter is ClassElementImpl && getter.isMacro) {
-                      var macroExecutor = importedLibrary.bundleMacroExecutor;
-                      if (macroExecutor != null) {
-                        try {
-                          final arguments = _buildArguments(
-                            annotationIndex: i,
-                            node: argumentsNode,
-                          );
-                          final macroResult = await _runSingleMacro(
-                            macroExecutor,
-                            getClassDeclaration(classNode),
-                            getter,
-                            arguments,
-                          );
-                          if (macroResult.isNotEmpty) {
-                            macroResults.add(macroResult);
-                          }
-                        } on MacroApplicationError catch (e) {
-                          classElement.macroApplicationErrors.add(e);
-                        } on macro.RemoteException catch (e) {
-                          classElement.macroApplicationErrors.add(
-                            UnknownMacroApplicationError(
-                              annotationIndex: i,
-                              message: e.error,
-                              stackTrace: e.stackTrace ?? '<null>',
-                            ),
-                          );
-                        } catch (e, stackTrace) {
-                          classElement.macroApplicationErrors.add(
-                            UnknownMacroApplicationError(
-                              annotationIndex: i,
-                              message: e.toString(),
-                              stackTrace: stackTrace.toString(),
-                            ),
-                          );
-                        }
-                      }
-                    }
+          await _buildApplications(
+            classElement,
+            classNode.metadata,
+            () => getClassDeclaration(classNode),
+          );
+        }
+      }
+    }
+  }
+
+  Future<String?> executeTypesPhase() async {
+    final results = <macro.MacroExecutionResult>[];
+    for (final unitElement in libraryBuilder.element.units) {
+      for (final classElement in unitElement.classes) {
+        classElement as ClassElementImpl;
+        final applications = _applications[classElement];
+        if (applications != null) {
+          for (final application in applications) {
+            if (application.shouldExecute(macro.Phase.types)) {
+              await _runWithCatchingExceptions(
+                () async {
+                  final result = await application.instance.executeTypesPhase();
+                  if (result.isNotEmpty) {
+                    results.add(result);
                   }
-                }
-              }
+                },
+                annotationIndex: application.annotationIndex,
+                onError: (error) {
+                  classElement.macroApplicationErrors.add(error);
+                },
+              );
             }
           }
         }
       }
     }
 
-    var macroExecutor = libraryBuilder.linker.macroExecutor;
-    if (macroExecutor != null && macroResults.isNotEmpty) {
-      var code = macroExecutor.buildAugmentationLibrary(
-        macroResults,
+    if (results.isNotEmpty) {
+      final code = macroExecutor.buildAugmentationLibrary(
+        results,
         _resolveIdentifier,
         _inferOmittedType,
       );
@@ -110,8 +87,101 @@ class LibraryMacroApplier {
     return null;
   }
 
+  /// TODO(scheglov) Do we need this caching?
+  /// Or do we need it only during macro applications creation?
   macro.ClassDeclaration getClassDeclaration(ClassDeclaration node) {
     return _classDeclarations[node] ??= _buildClassDeclaration(node);
+  }
+
+  /// If there are any macro applications in [annotations], record for the
+  /// [targetElement] in [_applications], for future execution.
+  Future<void> _buildApplications(
+    MacroTargetElement targetElement,
+    List<Annotation> annotations,
+    macro.Declaration Function() getDeclaration,
+  ) async {
+    final applications = <MacroApplication>[];
+    for (var i = 0; i < annotations.length; i++) {
+      final annotation = annotations[i];
+      final macroElement = _importedMacroElement(annotation.name);
+      final argumentsNode = annotation.arguments;
+      if (macroElement is ClassElementImpl && argumentsNode != null) {
+        final importedLibrary = macroElement.library;
+        final macroExecutor = importedLibrary.bundleMacroExecutor;
+        if (macroExecutor != null) {
+          await _runWithCatchingExceptions(
+            () async {
+              final arguments = _buildArguments(
+                annotationIndex: i,
+                node: argumentsNode,
+              );
+              final declaration = getDeclaration();
+              final macroInstance = await macroExecutor.instantiate(
+                libraryUri: macroElement.librarySource.uri,
+                className: macroElement.name,
+                constructorName: '', // TODO
+                arguments: arguments,
+                identifierResolver: _FakeIdentifierResolver(),
+                declarationKind: macro.DeclarationKind.clazz,
+                declaration: declaration,
+              );
+              applications.add(
+                MacroApplication(
+                  annotationIndex: i,
+                  instance: macroInstance,
+                ),
+              );
+            },
+            annotationIndex: i,
+            onError: (error) {
+              targetElement.macroApplicationErrors.add(error);
+            },
+          );
+        }
+      }
+    }
+    if (applications.isNotEmpty) {
+      _applications[targetElement] = applications;
+    }
+  }
+
+  /// Return the macro element referenced by the [node].
+  ElementImpl? _importedMacroElement(Identifier node) {
+    final String? prefix;
+    final String name;
+    if (node is PrefixedIdentifier) {
+      prefix = node.prefix.name;
+      name = node.identifier.name;
+    } else if (node is SimpleIdentifier) {
+      prefix = null;
+      name = node.name;
+    } else {
+      throw StateError('${node.runtimeType} $node');
+    }
+
+    for (final import in libraryBuilder.element.imports) {
+      if (import.prefix?.name != prefix) {
+        continue;
+      }
+
+      final importedLibrary = import.importedLibrary;
+      if (importedLibrary == null) {
+        continue;
+      }
+
+      // Skip if a library that is being linked.
+      final importedUri = importedLibrary.source.uri;
+      if (_linker.builders.containsKey(importedUri)) {
+        continue;
+      }
+
+      final lookupResult = importedLibrary.scope.lookup(name);
+      final element = lookupResult.getter;
+      if (element is ClassElementImpl && element.isMacro) {
+        return element;
+      }
+    }
+    return null;
   }
 
   macro.TypeAnnotation _inferOmittedType(
@@ -122,23 +192,6 @@ class LibraryMacroApplier {
 
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
     throw UnimplementedError();
-  }
-
-  Future<macro.MacroExecutionResult> _runSingleMacro(
-    BundleMacroExecutor macroExecutor,
-    macro.Declaration declaration,
-    ClassElementImpl classElement,
-    macro.Arguments arguments,
-  ) async {
-    var macroInstance = await macroExecutor.instantiate(
-      libraryUri: classElement.librarySource.uri,
-      className: classElement.name,
-      constructorName: '', // TODO
-      arguments: arguments,
-      declaration: declaration,
-      identifierResolver: _FakeIdentifierResolver(),
-    );
-    return await macroInstance.executeTypesPhase();
   }
 
   static macro.Arguments _buildArguments({
@@ -278,6 +331,47 @@ class LibraryMacroApplier {
       return const [];
     }
   }
+
+  /// Run the [body], report exceptions as [MacroApplicationError]s to [onError].
+  static Future<void> _runWithCatchingExceptions<T>(
+    Future<T> Function() body, {
+    required int annotationIndex,
+    required void Function(MacroApplicationError) onError,
+  }) async {
+    try {
+      await body();
+    } on MacroApplicationError catch (e) {
+      onError(e);
+    } on macro.RemoteException catch (e) {
+      onError(
+        UnknownMacroApplicationError(
+          annotationIndex: annotationIndex,
+          message: e.error,
+          stackTrace: e.stackTrace ?? '<null>',
+        ),
+      );
+    } catch (e, stackTrace) {
+      onError(
+        UnknownMacroApplicationError(
+          annotationIndex: annotationIndex,
+          message: e.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
+    }
+  }
+}
+
+class MacroApplication {
+  final int annotationIndex;
+  final MacroClassInstance instance;
+
+  MacroApplication({
+    required this.annotationIndex,
+    required this.instance,
+  });
+
+  bool shouldExecute(macro.Phase phase) => instance.shouldExecute(phase);
 }
 
 /// Helper class for evaluating arguments for a single constructor based

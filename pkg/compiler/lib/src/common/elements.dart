@@ -17,7 +17,7 @@ import '../universe/selector.dart' show Selector;
 import 'names.dart' show Identifiers, Uris;
 
 /// The common elements and types in Dart.
-abstract class CommonElements {
+abstract class CommonElements implements CommonElementsForDartTypes {
   final DartTypes dartTypes;
   final ElementEnvironment _env;
   ClassEntity _objectClass;
@@ -332,6 +332,7 @@ abstract class CommonElements {
   DynamicType get dynamicType => _env.dynamicType;
 
   /// The `Object` type defined in 'dart:core'.
+  @override // CommonElementsForDartTypes
   InterfaceType get objectType => _getRawType(objectClass);
 
   /// The `bool` type defined in 'dart:core'.
@@ -341,9 +342,11 @@ abstract class CommonElements {
   InterfaceType get numType => _getRawType(numClass);
 
   /// The `int` type defined in 'dart:core'.
+  @override // CommonElementsForDartTypes
   InterfaceType get intType => _getRawType(intClass);
 
   /// The `double` type defined in 'dart:core'.
+  @override // CommonElementsForDartTypes
   InterfaceType get doubleType => _getRawType(doubleClass);
 
   /// The `String` type defined in 'dart:core'.
@@ -353,9 +356,11 @@ abstract class CommonElements {
   InterfaceType get symbolType => _getRawType(symbolClass);
 
   /// The `Function` type defined in 'dart:core'.
+  @override // CommonElementsForDartTypes
   InterfaceType get functionType => _getRawType(functionClass);
 
   /// The `Null` type defined in 'dart:core'.
+  @override // CommonElementsForDartTypes
   InterfaceType get nullType => _getRawType(nullClass);
 
   /// The `Type` type defined in 'dart:core'.
@@ -418,6 +423,7 @@ abstract class CommonElements {
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
+  @override // CommonElementsForDartTypes
   InterfaceType futureType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(futureClass);
@@ -701,6 +707,7 @@ abstract class CommonElements {
   ClassEntity get jsJavaScriptFunctionClass => _jsJavaScriptFunctionClass ??=
       _findInterceptorsClass('JavaScriptFunction');
 
+  @override // CommonElementsForDartTypes
   InterfaceType get jsJavaScriptFunctionType =>
       _getRawType(jsJavaScriptFunctionClass);
 
@@ -1567,7 +1574,7 @@ abstract class ElementEnvironment {
   InterfaceType getThisType(ClassEntity cls);
 
   /// Returns the instantiation of [cls] to bounds.
-  InterfaceType getClassInstantiationToBounds(ClassEntity cls);
+  InterfaceType /*!*/ getClassInstantiationToBounds(ClassEntity cls);
 
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
@@ -1595,7 +1602,7 @@ abstract class ElementEnvironment {
   FunctionType getLocalFunctionType(Local local);
 
   /// Returns the type of [field].
-  DartType getFieldType(FieldEntity field);
+  DartType /*!*/ getFieldType(FieldEntity field);
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);

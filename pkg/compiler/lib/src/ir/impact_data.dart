@@ -2122,7 +2122,7 @@ class _RuntimeTypeUse {
     source.begin(tag);
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
     ir.DartType receiverType = source.readDartTypeNode();
-    ir.DartType argumentType = source.readDartTypeNode(allowNull: true);
+    ir.DartType argumentType = source.readDartTypeNodeOrNull();
     source.end(tag);
     return _RuntimeTypeUse(kind, receiverType, argumentType);
   }
@@ -2131,7 +2131,7 @@ class _RuntimeTypeUse {
     sink.begin(tag);
     sink.writeEnum(kind);
     sink.writeDartTypeNode(receiverType);
-    sink.writeDartTypeNode(argumentType, allowNull: true);
+    sink.writeDartTypeNodeOrNull(argumentType);
     sink.end(tag);
   }
 }

@@ -241,6 +241,46 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
     return register(entity, data, env);
   }
 
+  void _preRegister<E0 extends E, V0 extends V>(E0 entity, V0 env) {
+    assert(
+        !_closed, "Trying to register $entity @ ${_list.length} when closed.");
+    assert(entity != null);
+    assert(entity._index == null);
+    assert(
+        _list.length == _env.length,
+        'Env list length ${_env.length} inconsistent '
+        'with entity list length ${_list.length}.');
+    entity._index = _list.length;
+    _list.add(entity);
+    _size++;
+    assert(env != null);
+    _env.add(env);
+  }
+
+  /// Registers a new [entity] with an associated environment [env] by the given
+  /// [index]. [postRegisterData] should be called with the same [entity] after
+  /// this is called and before any other entity is registered.
+  void preRegisterByIndex<E0 extends E, V0 extends V>(
+      int index, E0 entity, V0 env) {
+    assert(index >= _list.length);
+    _list.length = _data.length = _env.length = index;
+    _preRegister(entity, env);
+  }
+
+  /// Registers an [entity] with an associated [data] object. This should only
+  /// be used if the entity was pre-registered with [preRegisterByIndex].
+  void postRegisterData<E0 extends E, D0 extends D>(E0 entity, D0 data) {
+    assert(
+        !_closed, "Trying to register $entity @ ${_list.length} when closed.");
+    assert(entity != null);
+    assert(
+        (_list.length - 1) == _data.length,
+        'Data list length ${_data.length} inconsistent '
+        'with entity list length ${_list.length}.');
+    assert(data != null);
+    _data.add(data);
+  }
+
   /// Calls [f] for each non-null entity with its corresponding data object and
   /// environment.
   void forEach<E0 extends E, D0 extends D, V0 extends V>(

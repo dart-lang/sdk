@@ -482,10 +482,11 @@ class TypeVariableTests {
   void _propagateTests() {
     void processTypeVariableType(TypeVariableType type) {
       TypeVariableEntity variable = type.element;
-      if (variable.typeDeclaration is ClassEntity) {
-        _getClassNode(variable.typeDeclaration).markTest();
+      final typeDeclaration = variable.typeDeclaration;
+      if (typeDeclaration is ClassEntity) {
+        _getClassNode(typeDeclaration).markTest();
       } else {
-        _getMethodNode(variable.typeDeclaration).markTest();
+        _getMethodNode(typeDeclaration).markTest();
       }
     }
 

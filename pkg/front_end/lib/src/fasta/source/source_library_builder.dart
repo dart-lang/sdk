@@ -463,6 +463,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
+  bool get isInferenceUpdate1Enabled =>
+      libraryFeatures.inferenceUpdate1.isSupported &&
+      languageVersion.version >=
+          libraryFeatures.inferenceUpdate1.enabledVersion;
+
   bool? _isNonNullableByDefault;
 
   @override

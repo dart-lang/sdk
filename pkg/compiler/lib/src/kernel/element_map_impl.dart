@@ -673,7 +673,8 @@ class KernelToElementMap implements IrToElementMap {
     return data.getFunctionType(this);
   }
 
-  List<TypeVariableType> _getFunctionTypeVariables(IndexedFunction function) {
+  List<TypeVariableType> /*!*/ _getFunctionTypeVariables(
+      IndexedFunction function) {
     assert(checkFamily(function));
     KFunctionData data = members.getData(function);
     return data.getFunctionTypeVariables(this);
@@ -786,7 +787,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   @override
-  OrderedTypeSet getOrderedTypeSet(IndexedClass cls) {
+  OrderedTypeSet /*!*/ getOrderedTypeSet(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -808,10 +809,11 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   @override
-  Iterable<InterfaceType> getInterfaces(IndexedClass cls) {
+  Iterable<InterfaceType> /*!*/ getInterfaces(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
+    assert(data.interfaces != null);
     return data.interfaces;
   }
 
@@ -1164,7 +1166,7 @@ class KernelToElementMap implements IrToElementMap {
   List<ConstantValue> getMetadata(
       ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
-    List<ConstantValue> metadata = <ConstantValue>[];
+    List<ConstantValue /*!*/ > metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.

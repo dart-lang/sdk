@@ -1,0 +1,30 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Recompiling with no change shouldn't change anything.
+# http://dartbug.com/48891
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class Class2 with TestMixin<String> {}
+      lib.dart: |
+        mixin TestMixin<T> {
+          Future<T> test(Future<T> fetch) async {
+            final response = await fetch;
+            return response as T;
+          }
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    compareToPrevious: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2

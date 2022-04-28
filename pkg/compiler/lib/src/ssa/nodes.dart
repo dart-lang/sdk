@@ -4321,7 +4321,7 @@ AbstractBool _typeTest(
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  bool _nullIs(DartType type) =>
+  bool _nullIs(DartType /*!*/ type) =>
       dartTypes.isStrongTopType(type) ||
       type is LegacyType &&
           (type.baseType.isObject || type.baseType is NeverType) ||

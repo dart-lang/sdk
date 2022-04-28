@@ -63,6 +63,131 @@ class MacroElementsTest extends ElementsBaseTest {
     );
   }
 
+  test_application_newInstance_withoutPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        constructors
+          synthetic @-1
+  parts
+    package:test/_macro_types.dart
+      classes
+        class MyClass @6
+          constructors
+            synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
+  test_application_newInstance_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+
+@prefix.MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    package:test/a.dart as prefix @19
+  definingUnit
+    classes
+      class A @52
+        metadata
+          Annotation
+            atSign: @ @28
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: prefix @29
+                staticElement: self::@prefix::prefix
+                staticType: null
+              period: . @35
+              identifier: SimpleIdentifier
+                token: MyMacro @36
+                staticElement: package:test/a.dart::@class::MyMacro
+                staticType: null
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @43
+              rightParenthesis: ) @44
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        constructors
+          synthetic @-1
+  parts
+    package:test/_macro_types.dart
+      classes
+        class MyClass @6
+          constructors
+            synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
   test_arguments_error() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -257,65 +382,6 @@ foo: aaa
 foo: aaabbbccc
 ''',
     );
-  }
-
-  test_build_types() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromString('class MyClass {}'),
-    );
-  }
-}
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-
-@MyMacro()
-class A {}
-''', preBuildSequence: [
-      {'package:test/a.dart'}
-    ]);
-
-    checkElementText(
-        library,
-        r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class A @35
-        metadata
-          Annotation
-            atSign: @ @18
-            name: SimpleIdentifier
-              token: MyMacro @19
-              staticElement: package:test/a.dart::@class::MyMacro
-              staticType: null
-            arguments: ArgumentList
-              leftParenthesis: ( @26
-              rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
-        constructors
-          synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @6
-          constructors
-            synthetic @-1
-  exportScope
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
-''',
-        withExportScope: true);
   }
 
   test_introspect_types_ClassDeclaration_interfaces() async {

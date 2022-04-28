@@ -233,8 +233,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
-    Future<void> _forEachPath(
-        void Function(ResolvedUnitResult) callback) async {
+    Future<void> forEachPath(void Function(ResolvedUnitResult) callback) async {
       for (var testPath in testPaths) {
         var result = await driver!.currentSession.getResolvedUnit(testPath!)
             as ResolvedUnitResult;
@@ -242,10 +241,10 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
       }
     }
 
-    await _forEachPath(migration.prepareInput);
+    await forEachPath(migration.prepareInput);
     expect(migration.unmigratedDependencies, isEmpty);
-    await _forEachPath(migration.processInput);
-    await _forEachPath(migration.finalizeInput);
+    await forEachPath(migration.processInput);
+    await forEachPath(migration.finalizeInput);
     migration.finish();
     // Build the migration info.
     var info = instrumentationListener.data;

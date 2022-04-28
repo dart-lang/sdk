@@ -49,6 +49,23 @@ void main(List<String> args) {
     platform('pkg/_fe_analyzer_shared/test/inheritance'),
   ];
 
+  // Validate that all the given directories exist.
+  var hasMissingDirectories = false;
+  for (var path in [
+    ...packageDirs,
+    ...cfePackageDirs,
+    ...feAnalyzerSharedPackageDirs
+  ]) {
+    if (!Directory(join(repoRoot, path)).existsSync()) {
+      stderr.writeln("Unable to locate directory: '$path'.");
+      hasMissingDirectories = true;
+    }
+  }
+
+  if (hasMissingDirectories) {
+    exit(1);
+  }
+
   var packages = <Package>[
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),

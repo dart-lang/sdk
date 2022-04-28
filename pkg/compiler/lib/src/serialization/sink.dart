@@ -544,7 +544,9 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeMapInContext].
-  void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
+  @override
+  void writeTreeNodeMapInContext<V>(
+      Map<ir.TreeNode, V> /*?*/ map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
@@ -640,11 +642,18 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     }
   }
 
-  /// Writes the kernel type node [value] to this data sink. If [allowNull] is
-  /// `true`, [value] is allowed to be `null`.
-  void writeDartTypeNode(ir.DartType value, {bool allowNull = false}) {
+  /// Writes the kernel type node [value] to this data sink.
+  @override
+  void writeDartTypeNode(ir.DartType /*!*/ value) {
     _writeDataKind(DataKind.dartTypeNode);
-    _writeDartTypeNode(value, [], allowNull: allowNull);
+    _writeDartTypeNode(value, [], allowNull: false);
+  }
+
+  /// Writes the kernel type node [value] to this data sink, `null` permitted.
+  @override
+  void writeDartTypeNodeOrNull(ir.DartType /*?*/ value) {
+    _writeDataKind(DataKind.dartTypeNode);
+    _writeDartTypeNode(value, [], allowNull: true);
   }
 
   void _writeDartTypeNode(
@@ -1231,6 +1240,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// serialization of `ir.TreeNode`s using the `writeTreeNode*InContext`
   /// methods.
+  @override
   void inMemberContext(ir.Member context, void f()) {
     ir.Member oldMemberContext = _currentMemberContext;
     _MemberData oldMemberData = _currentMemberData;

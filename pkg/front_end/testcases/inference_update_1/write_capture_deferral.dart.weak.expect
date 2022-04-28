@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  constructor •(core::Object? x, () → void g, core::Object? y) → self::B
+    : super core::Object::•()
+    ;
+  constructor redirectingConstructorInvocation(core::int? i) → self::B
+    : this self::B::•(i!, () → void {
+      i = null;
+    }, i{core::int})
+    ;
+}
+class C extends self::B {
+  constructor superConstructorInvocation(core::int? i) → self::C
+    : super self::B::•(i!, () → void {
+      i = null;
+    }, i{core::int})
+    ;
+}
+static method withUnnamedArguments(core::int? i, (() → void, core::Object?) → void f) → dynamic {
+  if(!(i == null)) {
+    f(() → void {
+      i = null;
+    }, i{core::int}){(() → void, core::Object?) → void};
+    i;
+  }
+}
+static method withNamedArguments(core::int? i, ({required g: () → void, x: core::Object?}) → void f) → dynamic {
+  if(!(i == null)) {
+    f(g: () → void {
+      i = null;
+    }, x: i{core::int}){({required g: () → void, x: core::Object?}) → void};
+    i;
+  }
+}
+static method withIdentical_lhs(core::int? i) → dynamic {
+  if(!(i == null)) {
+    i{core::int};
+    core::identical(() → Null {
+      i = null;
+    }, i{core::int});
+    i;
+  }
+}
+static method withIdentical_rhs(core::int? i) → dynamic {
+  if(!(i == null)) {
+    core::identical(i{core::int}, () → Null {
+      i = null;
+    });
+    i;
+  }
+}
+static method main() → dynamic {}

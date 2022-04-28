@@ -222,6 +222,7 @@ downstream
 draw
 dry
 dsemi
+dskip
 dumping
 dumps
 dupe
@@ -340,6 +341,7 @@ implemen
 implementor
 implementors
 imprecision
+improvement
 inclosure
 inconsistencies
 increasing

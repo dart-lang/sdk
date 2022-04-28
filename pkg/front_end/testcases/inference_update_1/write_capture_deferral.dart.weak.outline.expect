@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  constructor •(core::Object? x, () → void g, core::Object? y) → self::B
+    ;
+  constructor redirectingConstructorInvocation(core::int? i) → self::B
+    ;
+}
+class C extends self::B {
+  constructor superConstructorInvocation(core::int? i) → self::C
+    ;
+}
+static method withUnnamedArguments(core::int? i, (() → void, core::Object?) → void f) → dynamic
+  ;
+static method withNamedArguments(core::int? i, ({required g: () → void, x: core::Object?}) → void f) → dynamic
+  ;
+static method withIdentical_lhs(core::int? i) → dynamic
+  ;
+static method withIdentical_rhs(core::int? i) → dynamic
+  ;
+static method main() → dynamic
+  ;

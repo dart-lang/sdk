@@ -622,7 +622,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   DartType _getDartTypeIfValid(ir.DartType type) {
-    if (type is ir.InvalidType) return null;
+    if (type is ir.InvalidType) return dartTypes.dynamicType();
     return _elementMap.getDartType(type);
   }
 
@@ -5186,7 +5186,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // we could assert that the trailing arguments are all null.
     // TODO(jacobr): rewrite named arguments to an object literal matching
     // the factory constructor case.
-    List<HInstruction> inputs = arguments.where((arg) => arg != null).toList();
+    List<HInstruction /*!*/ > inputs =
+        arguments.where((arg) => arg != null).toList();
 
     var nativeBehavior = NativeBehavior()..sideEffects.setAllSideEffects();
 

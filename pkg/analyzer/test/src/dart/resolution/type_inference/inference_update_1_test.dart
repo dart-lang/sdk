@@ -356,4 +356,34 @@ void f({required void Function() g, Object? x}) {}
     // regardless of whether the experiment is enabled.
     assertType(findNode.simple('i; // (2)'), 'int?');
   }
+
+  test_write_capture_deferred_redirecting_constructor() async {
+    await assertNoErrorsInCode('''
+class C {
+  C(int? i) : this.other(i!, () { i = null; }, i);
+  C.other(Object? x, void Function() g, Object? y);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
+
+  test_write_capture_deferred_super_constructor() async {
+    await assertNoErrorsInCode('''
+class B {
+  B(Object? x, void Function() g, Object? y);
+}
+class C extends B {
+  C(int? i) : super(i!, () { i = null; }, i);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
 }

@@ -860,7 +860,8 @@ class SuggestionBuilder {
     // Optionally add Flutter child widget details.
     // todo (pq): revisit this special casing; likely it can be generalized away
     var element = parameter.enclosingElement;
-    if (element is ConstructorElement) {
+    // If appendColon is false, default values should never be appended.
+    if (element is ConstructorElement && appendColon) {
       if (Flutter.instance.isWidget(element.enclosingElement)) {
         // Don't bother with nullability. It won't affect default list values.
         var defaultValue =
