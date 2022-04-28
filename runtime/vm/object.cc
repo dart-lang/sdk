@@ -13260,6 +13260,10 @@ void Library::DropDependenciesAndCaches() const {
   untag()->set_exported_names(Array::null());
   untag()->set_loaded_scripts(Array::null());
   untag()->set_dependencies(Array::null());
+#if defined(PRODUCT)
+  // used_scripts is only used by vm-service.
+  untag()->set_used_scripts(GrowableObjectArray::null());
+#endif
 }
 
 void Library::AddImport(const Namespace& ns) const {
