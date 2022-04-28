@@ -16,6 +16,13 @@ static_field_lowering/opt_in: SemiFuzzFailure
 const_functions/const_functions_list: SemiFuzzCrash
 generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 
+dart2js/mixin_from_opt_in/main: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
+dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
+late_lowering/private_members: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242285
+macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
+nnbd/constants: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242441
+nnbd/flutter_issue64155: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242443
+
 # These tests have "privacy issues" and isn't compatiable with splitting files (fuzzing):
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method
 dartdevc/factory_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
@@ -32,6 +39,7 @@ nnbd/issue44595: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd/nullable_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd/nullable_setter: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
+dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError

@@ -10,6 +10,32 @@ nnbd_mixed/mixed_mixin: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 
+dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+general/flutter_issue64155: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242443
+general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
+general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
+late_lowering/issue41436b: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242445
+late_lowering/issue41436c/issue41436c: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242445
+late_lowering/late_override: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242445
+late_lowering/private_members: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242285
+macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
+nnbd_mixed/const_canonical_type: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
+nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
+nnbd_mixed/hierarchy/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
+nnbd_mixed/issue43988/main: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd_mixed/issue43988/main.no_link: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd_mixed/member_inheritance_from_opt_in: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd/constants: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+nnbd/flutter_issue64155: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242443
+no_such_method_forwarders/abstract_accessors_from_field_one_defined: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/abstract_accessors_from_field_with_substitution: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/default_argument_values: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+variance/generic_covariance_sound_variance: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 dart2js/late_fields: SemiFuzzFailure
