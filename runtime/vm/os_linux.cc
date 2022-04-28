@@ -29,6 +29,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/os_thread.h"
+#include "vm/timeline.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -496,10 +497,23 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   return result;
 }
 
-int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
-  return OS::GetCurrentThreadCPUMicros();
+int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
+#if defined(SUPPORT_TIMELINE)
+  if (Timeline::recorder_discards_clock_values()) return -1;
+  return GetCurrentMonotonicMicros();
+#else
+  return -1;
+#endif
 }
 
+int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
+#if defined(SUPPORT_TIMELINE)
+  if (Timeline::recorder_discards_clock_values()) return -1;
+  return OS::GetCurrentThreadCPUMicros();
+#else
+  return -1;
+#endif
+}
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_linux.cc
 intptr_t OS::ActivationFrameAlignment() {

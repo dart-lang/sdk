@@ -174,7 +174,14 @@ class Timeline : public AllStatic {
   static void Cleanup();
 
   // Access the global recorder. Not thread safe.
-  static TimelineEventRecorder* recorder();
+  static TimelineEventRecorder* recorder() { return recorder_; }
+
+  static bool recorder_discards_clock_values() {
+    return recorder_discards_clock_values_;
+  }
+  static void set_recorder_discards_clock_values(bool value) {
+    recorder_discards_clock_values_ = value;
+  }
 
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
@@ -204,6 +211,7 @@ class Timeline : public AllStatic {
  private:
   static TimelineEventRecorder* recorder_;
   static MallocGrowableArray<char*>* enabled_streams_;
+  static bool recorder_discards_clock_values_;
 
 #define TIMELINE_STREAM_DECLARE(name, fuchsia_name)                            \
   static TimelineStream stream_##name##_;
@@ -293,26 +301,27 @@ class TimelineEvent {
   // Marks the beginning of an asynchronous operation with |async_id|.
   void AsyncBegin(const char* label,
                   int64_t async_id,
-                  int64_t micros = OS::GetCurrentMonotonicMicros());
+                  int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   // Marks an instantaneous event associated with |async_id|.
-  void AsyncInstant(const char* label,
-                    int64_t async_id,
-                    int64_t micros = OS::GetCurrentMonotonicMicros());
+  void AsyncInstant(
+      const char* label,
+      int64_t async_id,
+      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   // Marks the end of an asynchronous operation associated with |async_id|.
   void AsyncEnd(const char* label,
                 int64_t async_id,
-                int64_t micros = OS::GetCurrentMonotonicMicros());
+                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void DurationBegin(
       const char* label,
-      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
       int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
   void DurationEnd(
-      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
       int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void Instant(const char* label,
-               int64_t micros = OS::GetCurrentMonotonicMicros());
+               int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Duration(const char* label,
                 int64_t start_micros,
@@ -322,28 +331,28 @@ class TimelineEvent {
 
   void Begin(
       const char* label,
-      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
       int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void End(const char* label,
-           int64_t micros = OS::GetCurrentMonotonicMicros(),
+           int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
            int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void Counter(const char* label,
-               int64_t micros = OS::GetCurrentMonotonicMicros());
+               int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void FlowBegin(const char* label,
                  int64_t async_id,
-                 int64_t micros = OS::GetCurrentMonotonicMicros());
+                 int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   void FlowStep(const char* label,
                 int64_t async_id,
-                int64_t micros = OS::GetCurrentMonotonicMicros());
+                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
   void FlowEnd(const char* label,
                int64_t async_id,
-               int64_t micros = OS::GetCurrentMonotonicMicros());
+               int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void Metadata(const char* label,
-                int64_t micros = OS::GetCurrentMonotonicMicros());
+                int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline());
 
   void CompleteWithPreSerializedArgs(char* args_json);
 
