@@ -1,0 +1,33 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Offset should be correct and not change when nothing changes. A type literal
+# constants FunctionType really shouldn't point to a TypedefType (and if it does
+# it shouldn't change when recompiling with no change).
+# http://dartbug.com/48890
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib2.dart";
+      lib1.dart: |
+        // Stuff here to change the offset.
+        const genericFunctionTypeLiteral1 = td1;
+        typedef td1 = T Function<T>(T);
+      lib2.dart: |
+        const genericFunctionTypeLiteral2 = td2;
+        typedef td2 = T Function<T>(T);
+        typedef td3 = T1 Function<T1, T2>(T2);
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    worldType: updated
+    compareToPrevious: true
+    expectInitializeFromDill: false
+    invalidate:
+      - lib2.dart
+    expectedLibraryCount: 3
