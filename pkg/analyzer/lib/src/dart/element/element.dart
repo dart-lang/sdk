@@ -2343,6 +2343,14 @@ abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
+  bool get isTempAugmentation {
+    return hasModifier(Modifier.TEMP_AUGMENTATION);
+  }
+
+  set isTempAugmentation(bool value) {
+    setModifier(Modifier.TEMP_AUGMENTATION, value);
+  }
+
   @override
   LibraryElementImpl? get library => thisOrAncestorOfType();
 
@@ -4373,6 +4381,10 @@ class Modifier implements Comparable<Modifier> {
   /// will be marked as being synthetic.
   static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 24);
 
+  /// Indicates that the element was appended to this enclosing element to
+  /// simulate temporary the effect of applying augmentation.
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 25);
+
   static const List<Modifier> values = [
     ABSTRACT,
     ASYNCHRONOUS,
@@ -4396,7 +4408,8 @@ class Modifier implements Comparable<Modifier> {
     SETTER,
     STATIC,
     SIMPLY_BOUNDED,
-    SYNTHETIC
+    SYNTHETIC,
+    TEMP_AUGMENTATION,
   ];
 
   /// The name of this modifier.

@@ -415,7 +415,9 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isPositive);
+      if (!e.isTempAugmentation) {
+        expect(e.nameOffset, isPositive);
+      }
     }
   }
 
@@ -689,6 +691,8 @@ class _ElementWriter {
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
+    e as PropertyAccessorElementImpl;
+
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
@@ -714,7 +718,9 @@ class _ElementWriter {
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
-      expect(e.nameOffset, isPositive);
+      if (!e.isTempAugmentation) {
+        expect(e.nameOffset, isPositive);
+      }
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -747,6 +753,8 @@ class _ElementWriter {
   }
 
   void _writePropertyInducingElement(PropertyInducingElement e) {
+    e as PropertyInducingElementImpl;
+
     DartType type = e.type;
     expect(type, isNotNull);
 
@@ -760,7 +768,9 @@ class _ElementWriter {
         _assertSyntheticAccessorEnclosing(e, e.setter!);
       }
 
-      expect(e.nameOffset, isPositive);
+      if (!e.isTempAugmentation) {
+        expect(e.nameOffset, isPositive);
+      }
       _assertNonSyntheticElementSelf(e);
     }
 
