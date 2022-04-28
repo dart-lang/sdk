@@ -8,9 +8,11 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
 // TODO(48820): Spannable was imported from `../common.dart`.
 import '../diagnostics/spannable.dart' show Spannable;
+import '../serialization/serialization_interfaces.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'names.dart';
+import 'types.dart' show FunctionType;
 
 /// Abstract interface for entities.
 ///
@@ -350,6 +352,46 @@ class ParameterStructure {
       requiredNamedParameters,
       typeParameters,
     );
+  }
+
+  static ParameterStructure fromType(FunctionType type) {
+    return ParameterStructure(
+        type.parameterTypes.length,
+        type.parameterTypes.length + type.optionalParameterTypes.length,
+        type.namedParameters,
+        type.requiredNamedParameters,
+        type.typeVariables.length);
+  }
+
+  /// Deserializes a [ParameterStructure] object from [source].
+  static readFromDataSource(DataSourceReader source) {
+    final tag = ParameterStructure.tag;
+    source.begin(tag);
+    int requiredPositionalParameters = source.readInt();
+    int positionalParameters = source.readInt();
+    List<String> namedParameters = source.readStrings()!;
+    Set<String> requiredNamedParameters =
+        source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
+    int typeParameters = source.readInt();
+    source.end(tag);
+    return ParameterStructure(
+        requiredPositionalParameters,
+        positionalParameters,
+        namedParameters,
+        requiredNamedParameters,
+        typeParameters);
+  }
+
+  /// Serializes this [ParameterStructure] to [sink].
+  void writeToDataSink(DataSinkWriter sink) {
+    final tag = ParameterStructure.tag;
+    sink.begin(tag);
+    sink.writeInt(requiredPositionalParameters);
+    sink.writeInt(positionalParameters);
+    sink.writeStrings(namedParameters);
+    sink.writeStrings(requiredNamedParameters);
+    sink.writeInt(typeParameters);
+    sink.end(tag);
   }
 
   /// The number of optional parameters (positional or named).
