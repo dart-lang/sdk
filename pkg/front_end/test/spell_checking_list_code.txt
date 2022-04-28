@@ -248,6 +248,7 @@ configs
 configured
 connectivity
 consideration
+considering
 constness
 constraining
 consult
@@ -1441,6 +1442,7 @@ unset
 unshadowed
 unsortable
 unsound
+unsubstituted
 untouched
 unwrapper
 unwraps

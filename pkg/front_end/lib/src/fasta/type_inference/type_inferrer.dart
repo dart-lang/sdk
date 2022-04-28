@@ -250,6 +250,9 @@ class TypeInferrerImpl implements TypeInferrer {
 
   CoreTypes get coreTypes => engine.coreTypes;
 
+  bool get isInferenceUpdate1Enabled =>
+      libraryBuilder.isInferenceUpdate1Enabled;
+
   bool get isNonNullableByDefault => libraryBuilder.isNonNullableByDefault;
 
   NnbdMode get nnbdMode => libraryBuilder.loader.nnbdMode;
@@ -2395,10 +2398,41 @@ class TypeInferrerImpl implements TypeInferrer {
       hoistingEndIndex = 0;
     }
 
+    ExpressionInferenceResult inferArgument(
+        DartType formalType, Expression argumentExpression,
+        {required bool isNamed}) {
+      DartType inferredFormalType = substitution != null
+          ? substitution.substituteType(formalType)
+          : formalType;
+      if (!isNamed) {
+        if (isSpecialCasedBinaryOperator) {
+          inferredFormalType =
+              typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
+                  typeContext, receiverType!, inferredFormalType,
+                  isNonNullableByDefault: isNonNullableByDefault);
+        } else if (isSpecialCasedTernaryOperator) {
+          inferredFormalType =
+              typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
+                  typeContext, receiverType!, inferredFormalType,
+                  isNonNullableByDefault: isNonNullableByDefault);
+        }
+      }
+      return inferExpression(
+          argumentExpression,
+          isNonNullableByDefault
+              ? inferredFormalType
+              : legacyErasure(inferredFormalType),
+          inferenceNeeded ||
+              isSpecialCasedBinaryOperator ||
+              isSpecialCasedTernaryOperator ||
+              typeChecksNeeded);
+    }
+
     List<EqualityInfo<VariableDeclaration, DartType>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;
+    List<_DeferredParamInfo>? deferredFunctionLiterals;
     for (int evaluationOrderIndex = 0;
         evaluationOrderIndex < argumentsEvaluationOrder.length;
         evaluationOrderIndex++) {
@@ -2421,60 +2455,77 @@ class TypeInferrerImpl implements TypeInferrer {
         formalType = getNamedParameterType(calleeType, namedArgument.name);
         argumentExpression = namedArgument.value;
       }
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
-      if (isExpression) {
-        if (isImplicitExtensionMember && index == 0) {
-          assert(
-              receiverType != null,
-              "No receiver type provided for implicit extension member "
-              "invocation.");
-          continue;
-        }
-        if (isSpecialCasedBinaryOperator) {
-          inferredFormalType =
-              typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
-                  typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: isNonNullableByDefault);
-        } else if (isSpecialCasedTernaryOperator) {
-          inferredFormalType =
-              typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
-                  typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: isNonNullableByDefault);
-        }
+      if (isExpression && isImplicitExtensionMember && index == 0) {
+        assert(
+            receiverType != null,
+            "No receiver type provided for implicit extension member "
+            "invocation.");
+        continue;
       }
-      ExpressionInferenceResult result = inferExpression(
-          argumentExpression,
-          isNonNullableByDefault
-              ? inferredFormalType
-              : legacyErasure(inferredFormalType),
-          inferenceNeeded ||
-              isSpecialCasedBinaryOperator ||
-              isSpecialCasedTernaryOperator ||
-              typeChecksNeeded);
-      DartType inferredType = identical(result.inferredType, noInferredType) ||
-              isNonNullableByDefault
-          ? result.inferredType
-          : legacyErasure(result.inferredType);
-      if (localHoistedExpressions != null &&
-          evaluationOrderIndex >= hoistingEndIndex) {
-        hoistedExpressions = null;
-      }
-      Expression expression =
-          _hoist(result.expression, inferredType, hoistedExpressions);
-      identicalInfo
-          ?.add(flowAnalysis.equalityOperand_end(expression, inferredType));
-      if (isExpression) {
-        arguments.positional[index] = expression..parent = arguments;
+      if (isInferenceUpdate1Enabled &&
+          argumentExpression is FunctionExpression) {
+        (deferredFunctionLiterals ??= []).add(new _DeferredParamInfo(
+            formalType: formalType,
+            argumentExpression: argumentExpression,
+            isNamed: !isExpression,
+            evaluationOrderIndex: evaluationOrderIndex,
+            index: index));
+        // We don't have `identical` info yet, so fill it in with `null` for
+        // now.  Later, when we visit the function literal, we'll replace it.
+        identicalInfo?.add(null);
+        if (useFormalAndActualTypes) {
+          formalTypes!.add(formalType);
+          // We don't have an inferred type yet, so fill it in with UnknownType
+          // for now.  Later, when we infer a type, we'll replace it.
+          actualTypes!.add(const UnknownType());
+        }
       } else {
-        NamedExpression namedArgument = arguments.named[index];
-        namedArgument.value = expression..parent = namedArgument;
+        ExpressionInferenceResult result = inferArgument(
+            formalType, argumentExpression,
+            isNamed: !isExpression);
+        DartType inferredType = _computeInferredType(result);
+        if (localHoistedExpressions != null &&
+            evaluationOrderIndex >= hoistingEndIndex) {
+          hoistedExpressions = null;
+        }
+        Expression expression =
+            _hoist(result.expression, inferredType, hoistedExpressions);
+        identicalInfo
+            ?.add(flowAnalysis.equalityOperand_end(expression, inferredType));
+        if (isExpression) {
+          arguments.positional[index] = expression..parent = arguments;
+        } else {
+          NamedExpression namedArgument = arguments.named[index];
+          namedArgument.value = expression..parent = namedArgument;
+        }
+        gatherer?.tryConstrainLower(formalType, inferredType);
+        if (useFormalAndActualTypes) {
+          formalTypes!.add(formalType);
+          actualTypes!.add(inferredType);
+        }
       }
-      gatherer?.tryConstrainLower(formalType, inferredType);
-      if (useFormalAndActualTypes) {
-        formalTypes!.add(formalType);
-        actualTypes!.add(inferredType);
+    }
+    if (deferredFunctionLiterals != null) {
+      for (_DeferredParamInfo deferredArgument in deferredFunctionLiterals) {
+        ExpressionInferenceResult result = inferArgument(
+            deferredArgument.formalType, deferredArgument.argumentExpression,
+            isNamed: deferredArgument.isNamed);
+        DartType inferredType = _computeInferredType(result);
+        Expression expression = result.expression;
+        identicalInfo?[deferredArgument.evaluationOrderIndex] =
+            flowAnalysis.equalityOperand_end(expression, inferredType);
+        if (deferredArgument.isNamed) {
+          NamedExpression namedArgument =
+              arguments.named[deferredArgument.index];
+          namedArgument.value = expression..parent = namedArgument;
+        } else {
+          arguments.positional[deferredArgument.index] = expression
+            ..parent = arguments;
+        }
+        gatherer?.tryConstrainLower(deferredArgument.formalType, inferredType);
+        if (useFormalAndActualTypes) {
+          actualTypes![deferredArgument.evaluationOrderIndex] = inferredType;
+        }
       }
     }
     if (identicalInfo != null) {
@@ -4718,6 +4769,11 @@ class TypeInferrerImpl implements TypeInferrer {
   Expression createEqualsNull(int fileOffset, Expression left) {
     return new EqualsNull(left)..fileOffset = fileOffset;
   }
+
+  DartType _computeInferredType(ExpressionInferenceResult result) =>
+      identical(result.inferredType, noInferredType) || isNonNullableByDefault
+          ? result.inferredType
+          : legacyErasure(result.inferredType);
 }
 
 class TypeInferrerImplBenchmarked implements TypeInferrer {
@@ -5876,4 +5932,34 @@ class ImplicitInstantiation {
 
   ImplicitInstantiation(
       this.typeArguments, this.functionType, this.instantiatedType);
+}
+
+/// Information about an invocation argument that needs to be resolved later due
+/// to the fact that it's a function literal and the `inference-update-1`
+/// feature is enabled.
+class _DeferredParamInfo {
+  /// The (unsubstituted) type of the formal parameter corresponding to this
+  /// argument.
+  final DartType formalType;
+
+  /// The function literal expression.
+  final FunctionExpression argumentExpression;
+
+  /// Indicates whether this is a named argument.
+  final bool isNamed;
+
+  /// The index into the full argument list (considering both named and unnamed
+  /// arguments) of the function literal expression.
+  final int evaluationOrderIndex;
+
+  /// The index into either [Arguments.named] or [Arguments.positional] of the
+  /// function literal expression (depending upon the value of [isNamed]).
+  final int index;
+
+  _DeferredParamInfo(
+      {required this.formalType,
+      required this.argumentExpression,
+      required this.isNamed,
+      required this.evaluationOrderIndex,
+      required this.index});
 }
