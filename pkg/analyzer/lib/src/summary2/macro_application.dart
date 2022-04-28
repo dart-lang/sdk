@@ -49,8 +49,6 @@ class LibraryMacroApplier {
     }
   }
 
-  /// TODO(scheglov) check `shouldExecute`.
-  /// TODO(scheglov) check `supportsDeclarationKind`.
   Future<String?> executeTypesPhase() async {
     final results = <macro.MacroExecutionResult>[];
     for (final unitElement in libraryBuilder.element.units) {
@@ -59,18 +57,20 @@ class LibraryMacroApplier {
         final applications = _applications[classElement];
         if (applications != null) {
           for (final application in applications) {
-            await _runWithCatchingExceptions(
-              () async {
-                final result = await application.instance.executeTypesPhase();
-                if (result.isNotEmpty) {
-                  results.add(result);
-                }
-              },
-              annotationIndex: application.annotationIndex,
-              onError: (error) {
-                classElement.macroApplicationErrors.add(error);
-              },
-            );
+            if (application.shouldExecute(macro.Phase.types)) {
+              await _runWithCatchingExceptions(
+                () async {
+                  final result = await application.instance.executeTypesPhase();
+                  if (result.isNotEmpty) {
+                    results.add(result);
+                  }
+                },
+                annotationIndex: application.annotationIndex,
+                onError: (error) {
+                  classElement.macroApplicationErrors.add(error);
+                },
+              );
+            }
           }
         }
       }
@@ -121,8 +121,9 @@ class LibraryMacroApplier {
                 className: macroElement.name,
                 constructorName: '', // TODO
                 arguments: arguments,
-                declaration: declaration,
                 identifierResolver: _FakeIdentifierResolver(),
+                declarationKind: macro.DeclarationKind.clazz,
+                declaration: declaration,
               );
               applications.add(
                 MacroApplication(
@@ -369,6 +370,8 @@ class MacroApplication {
     required this.annotationIndex,
     required this.instance,
   });
+
+  bool shouldExecute(macro.Phase phase) => instance.shouldExecute(phase);
 }
 
 /// Helper class for evaluating arguments for a single constructor based
