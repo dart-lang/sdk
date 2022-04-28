@@ -99,6 +99,8 @@ import 'binary_md_dill_reader.dart' show DillComparer;
 
 import "incremental_utils.dart" as util;
 
+import 'testing_utils.dart' show checkEnvironment;
+
 import 'utils/io_utils.dart' show computeRepoDir;
 
 void main([List<String> arguments = const []]) =>
@@ -240,12 +242,22 @@ final Expectation InitializedFromDillMismatch =
 final Expectation NNBDModeMismatch = staticExpectationSet["NNBDModeMismatch"];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "addDebugBreaks",
+    "skipTests",
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
+  Set<String> skipTests = environment["skipTests"]?.split(",").toSet() ?? {};
   return new Future.value(new Context(
-      environment["updateExpectations"] == "true",
-      environment["addDebugBreaks"] == "true"));
+    environment["updateExpectations"] == "true",
+    environment["addDebugBreaks"] == "true",
+    skipTests,
+  ));
 }
 
 class Context extends ChainContext {
@@ -261,7 +273,23 @@ class Context extends ChainContext {
   /// iteration (or 'world run') when doing a "new world test".
   final bool breakBetween;
 
-  Context(this.updateExpectations, this.breakBetween);
+  final Set<String> skipTests;
+
+  Context(this.updateExpectations, this.breakBetween, this.skipTests);
+
+  @override
+  Stream<TestDescription> list(Chain suite) {
+    if (skipTests.isEmpty) return super.list(suite);
+    return filterSkipped(super.list(suite));
+  }
+
+  Stream<TestDescription> filterSkipped(Stream<TestDescription> all) async* {
+    await for (TestDescription testDescription in all) {
+      if (!skipTests.contains(testDescription.shortName)) {
+        yield testDescription;
+      }
+    }
+  }
 
   @override
   Future<void> cleanUp(TestDescription description, Result result) async {
