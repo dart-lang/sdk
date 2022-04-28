@@ -878,6 +878,13 @@ class NewWorldTest {
         }
       }
 
+      util.postProcessComponent(component!);
+      String actualSerialized = componentToStringSdkFiltered(component!);
+      print("*****\n\ncomponent:\n"
+          "${actualSerialized}\n\n\n");
+      result = checkExpectFile(data, worldNum, "", context, actualSerialized);
+      if (result != null) return result;
+
       if (world["compareToPrevious"] == true && newestWholeComponent != null) {
         EquivalenceResult result = checkEquivalence(
             newestWholeComponent!, component!,
@@ -890,9 +897,6 @@ class NewWorldTest {
 
       newestWholeComponentData = util.postProcess(component!);
       newestWholeComponent = component;
-      String actualSerialized = componentToStringSdkFiltered(component!);
-      print("*****\n\ncomponent:\n"
-          "${actualSerialized}\n\n\n");
 
       if (world["uriToSourcesDoesntInclude"] != null) {
         for (String filename in world["uriToSourcesDoesntInclude"]) {
@@ -927,8 +931,6 @@ class NewWorldTest {
         }
       }
 
-      result = checkExpectFile(data, worldNum, "", context, actualSerialized);
-      if (result != null) return result;
       if (world["skipClassHierarchyTest"] != true) {
         result = checkClassHierarchy(compilerResult, data, worldNum, context);
         if (result != null) return result;

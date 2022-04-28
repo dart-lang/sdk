@@ -21,6 +21,11 @@ import 'package:kernel/kernel.dart'
         Reference;
 
 List<int> postProcess(Component c) {
+  postProcessComponent(c);
+  return serializeComponent(c);
+}
+
+void postProcessComponent(Component c) {
   c.libraries.sort((l1, l2) {
     return "${l1.fileUri}".compareTo("${l2.fileUri}");
   });
@@ -34,8 +39,6 @@ List<int> postProcess(Component c) {
     });
     library.problemsAsJson?.sort();
   }
-
-  return serializeComponent(c);
 }
 
 void throwOnEmptyMixinBodies(Component component) {
