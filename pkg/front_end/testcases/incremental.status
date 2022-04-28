@@ -10,3 +10,4 @@
 changing_modules_16: Crash
 late_lowering: EquivalenceError
 constant_fileoffset_and_typedef: EquivalenceError
+no_change_but_changed_type: EquivalenceError
