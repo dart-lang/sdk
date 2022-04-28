@@ -313,10 +313,14 @@ class ReadStream : public ValueObject {
   }
 
  private:
+  ReadStream(const uint8_t* buffer, const uint8_t* current, const uint8_t* end)
+      : buffer_(buffer), current_(current), end_(end) {}
+
   const uint8_t* buffer_;
   const uint8_t* current_;
   const uint8_t* end_;
 
+  friend class Deserializer;
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 
