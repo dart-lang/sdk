@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -17,9 +15,9 @@ import 'scope.dart';
 /// a [VariableScopeModel] that can respond to queries about how a particular
 /// variable is being used at any point in the code.
 class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
-    with VariableCollectorMixin, ir.VisitorNullMixin<EvaluationComplexity> {
+    with VariableCollectorMixin, ir.VisitorThrowingMixin<EvaluationComplexity> {
   final Dart2jsConstantEvaluator _constantEvaluator;
-  ir.StaticTypeContext _staticTypeContext;
+  late final ir.StaticTypeContext _staticTypeContext;
 
   ir.TypeEnvironment get _typeEnvironment => _constantEvaluator.typeEnvironment;
   ir.CoreTypes get _coreTypes => _typeEnvironment.coreTypes;
@@ -40,25 +38,26 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       _model.closuresToGenerate;
 
   /// The local variables that have been declared in the current scope.
+  // Initialized to a const value since it should be assigned in `enterNewScope`
+  // before collecting variables.
   List<ir.Node /* ir.VariableDeclaration | TypeParameterTypeWithContext */ >
-      _scopeVariables;
+      _scopeVariables = const [];
 
   /// Pointer to the context in which this closure is executed.
   /// For example, in the expression `var foo = () => 3 + i;`, the executable
   /// context as we walk the nodes in that expression is the ir.Field `foo`.
-  ir.TreeNode _executableContext;
+  ir.TreeNode? _executableContext;
 
   /// A flag to indicate if we are currently inside a closure.
   bool _isInsideClosure = false;
 
   /// Pointer to the original node where this closure builder started.
-  ir.Node _outermostNode;
+  ir.TreeNode? _outermostNode;
 
   /// Keep track of the mutated local variables so that we don't need to box
   /// non-mutated variables. We know these are only VariableDeclarations because
   /// type variable types and `this` types can't be mutated!
-  final Set<ir.VariableDeclaration> _mutatedVariables =
-      Set<ir.VariableDeclaration>();
+  final Set<ir.VariableDeclaration> _mutatedVariables = {};
 
   /// The set of variables that are accessed in some form, whether they are
   /// mutated or not.
@@ -71,9 +70,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   bool _inTry = false;
 
   /// The current scope we are in.
-  KernelScopeInfo _currentScopeInfo;
+  KernelScopeInfo? __currentScopeInfo;
+  KernelScopeInfo get _currentScopeInfo => __currentScopeInfo!;
 
-  bool _hasThisLocal;
+  bool _hasThisLocal = false;
 
   /// Keeps track of the number of boxes that we've created so that they each
   /// have unique names.
@@ -84,7 +84,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   /// This is updated in the visitor to distinguish between unconditional
   /// type variable usage, such as type literals and is tests, and conditional
   /// type variable usage, such as type argument in method invocations.
-  VariableUse _currentTypeUsage;
+  VariableUse? _currentTypeUsage;
 
   ScopeModelBuilder(this._constantEvaluator);
 
@@ -133,7 +133,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
 
   EvaluationComplexity visitNode(ir.Node node) {
-    return node?.accept(this);
+    return node.accept(this);
   }
 
   /// Tries to evaluate [node] as a constant expression.
@@ -158,7 +158,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   /// the children of the parent node, which lead to a O(n^2) complexity that
   /// is severe and observable for instance for large list literals.
   EvaluationComplexity _evaluateImplicitConstant(ir.Expression node) {
-    ir.Constant constant = _constantEvaluator.evaluate(_staticTypeContext, node,
+    ir.Constant? constant = _constantEvaluator.evaluateOrNull(
+        _staticTypeContext, node,
         requireConstant: false, replaceImplicitConstant: false);
     if (constant != null) {
       return EvaluationComplexity.constant(constant);
@@ -167,7 +168,13 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   /// The evaluation complexity of the last visited expression.
-  EvaluationComplexity _lastExpressionComplexity;
+  // TODO(48820): Pre-NNBD we gained some benefit from the `null` default
+  // value. It is too painful to add `!` after every access so this is
+  // initialized to a 'harmless' value.  Should we add an invalid value
+  // 'ExpressionComplexity.invalid()` and check in the combiner and other
+  // use-sites that the value is not 'invalid'?
+  EvaluationComplexity _lastExpressionComplexity =
+      const EvaluationComplexity.constant();
 
   /// Visit [node] and returns the corresponding `ConstantExpression` if [node]
   /// evaluated to a constant.
@@ -182,7 +189,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   ir.Expression _handleExpression(ir.Expression node) {
     _lastExpressionComplexity = visitNode(node);
     if (_lastExpressionComplexity.isFreshConstant) {
-      return ir.ConstantExpression(_lastExpressionComplexity.constant,
+      return ir.ConstantExpression(_lastExpressionComplexity.constant!,
           node.getStaticType(_staticTypeContext))
         ..fileOffset = node.fileOffset
         ..parent = node.parent;
@@ -232,10 +239,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     }
     if (!capturedVariablesForScope.isEmpty) {
       assert(_model.scopeInfo != null);
-      KernelScopeInfo from = _model.scopeInfo;
+      KernelScopeInfo from = _model.scopeInfo!;
 
       KernelCapturedScope capturedScope;
-      var nodeBox = NodeBox(getBoxName(), _executableContext);
+      var nodeBox = NodeBox(getBoxName(), _executableContext!);
       if (node is ir.ForStatement ||
           node is ir.ForInStatement ||
           node is ir.WhileStatement ||
@@ -281,7 +288,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   /// Perform book-keeping with the current set of local variables that have
   /// been seen thus far before entering this new scope.
-  void enterNewScope(ir.Node node, void visitNewScope()) {
+  void enterNewScope(ir.TreeNode node, void visitNewScope()) {
     List<ir.Node> oldScopeVariables = _scopeVariables;
     _scopeVariables = <ir.Node>[];
     visitNewScope();
@@ -345,7 +352,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
     visitInContext(node.type, usage);
     if (node.initializer != null) {
-      node.initializer = _handleExpression(node.initializer);
+      node.initializer = _handleExpression(node.initializer!);
     }
   }
 
@@ -365,7 +372,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       VariableUse usage) {
     assert(variable is ir.VariableDeclaration ||
         variable is TypeVariableTypeWithContext);
-    assert(usage != null);
+    assert((usage as dynamic) != null); // TODO(48820): Remove.
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -377,7 +384,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         _currentScopeInfo.freeVariables.add(variable);
       } else {
         _currentScopeInfo.freeVariablesForRti
-            .putIfAbsent(variable, () => Set<VariableUse>())
+            .putIfAbsent(variable as TypeVariableTypeWithContext,
+                () => Set<VariableUse>())
             .add(usage);
       }
     }
@@ -405,13 +413,13 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
             // context in that case.
             typeParameter.parent?.parent);
 
-    ir.TreeNode context = _executableContext;
+    ir.TreeNode? context = _executableContext;
     if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
       // This is a closure in a factory constructor.  Since there is no
       // [:this:], we have to mark the type arguments as free variables to
       // capture them in the closure.
       _useTypeVariableAsLocal(
-          typeVariable(context.enclosingLibrary), _currentTypeUsage);
+          typeVariable(context.enclosingLibrary), _currentTypeUsage!);
     }
 
     if (context is ir.Member && context is! ir.Field) {
@@ -422,10 +430,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       // the type arguments are available in locals.
 
       if (_hasThisLocal) {
-        _registerNeedsThis(_currentTypeUsage);
+        _registerNeedsThis(_currentTypeUsage!);
       } else {
         _useTypeVariableAsLocal(
-            typeVariable(context.enclosingLibrary), _currentTypeUsage);
+            typeVariable(context.enclosingLibrary), _currentTypeUsage!);
       }
     }
 
@@ -517,7 +525,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       // condition or body are indeed flagged as mutated.
       visitInVariableScope(node, () {
         if (node.condition != null) {
-          node.condition = _handleExpression(node.condition);
+          node.condition = _handleExpression(node.condition!);
         }
         visitNode(node.body);
       });
@@ -532,7 +540,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         }
       }
     });
-    KernelCapturedScope scope = _scopesCapturedInClosureMap[node];
+    KernelCapturedScope? scope = _scopesCapturedInClosureMap[node];
     if (scope != null) {
       _scopesCapturedInClosureMap[node] = KernelCapturedLoopScope(
           scope.boxedVariables,
@@ -582,15 +590,15 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   void visitInvokable(ir.TreeNode node, void f()) {
     assert(node is ir.Member || node is ir.LocalFunction);
     bool oldIsInsideClosure = _isInsideClosure;
-    ir.TreeNode oldExecutableContext = _executableContext;
-    KernelScopeInfo oldScopeInfo = _currentScopeInfo;
+    ir.TreeNode? oldExecutableContext = _executableContext;
+    KernelScopeInfo? oldScopeInfo = __currentScopeInfo;
 
     // _outermostNode is only null the first time we enter the body of the
     // field, constructor, or method that is being analyzed.
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
 
-    _currentScopeInfo = KernelScopeInfo(_hasThisLocal);
+    __currentScopeInfo = KernelScopeInfo(_hasThisLocal);
 
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
@@ -606,7 +614,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
     // Restore old values.
     _isInsideClosure = oldIsInsideClosure;
-    _currentScopeInfo = oldScopeInfo;
+    __currentScopeInfo = oldScopeInfo;
     _executableContext = oldExecutableContext;
 
     // Mark all free variables as captured and expect to encounter them in the
@@ -641,9 +649,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     if (variable is TypeVariableTypeWithContext) {
       return variable.context == _executableContext;
     }
-    ir.TreeNode node = variable;
+    ir.TreeNode? node = variable as ir.TreeNode;
     while (node != _outermostNode && node != _executableContext) {
-      node = node.parent;
+      node = node!.parent;
     }
     return node == _executableContext;
   }
@@ -651,9 +659,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitField(ir.Field node) {
     _currentTypeUsage = VariableUse.fieldType;
-    EvaluationComplexity complexity;
+    late final EvaluationComplexity complexity;
     visitInvokable(node, () {
-      node.initializer = _handleExpression(node.initializer);
+      assert(node.initializer != null);
+      node.initializer = _handleExpression(node.initializer!);
       complexity = _lastExpressionComplexity;
     });
     _currentTypeUsage = null;
@@ -742,12 +751,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitTypeParameterType(ir.TypeParameterType node) {
-    _analyzeTypeVariable(node, _currentTypeUsage);
+    _analyzeTypeVariable(node, _currentTypeUsage!);
     return const EvaluationComplexity.lazy();
   }
 
   EvaluationComplexity visitInContext(ir.Node node, VariableUse use) {
-    VariableUse oldCurrentTypeUsage = _currentTypeUsage;
+    VariableUse? oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;
     EvaluationComplexity complexity = visitNode(node);
     _currentTypeUsage = oldCurrentTypeUsage;
@@ -756,7 +765,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   EvaluationComplexity visitNodesInContext(
       List<ir.Node> nodes, VariableUse use) {
-    VariableUse oldCurrentTypeUsage = _currentTypeUsage;
+    VariableUse? oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;
     EvaluationComplexity complexity = visitNodes(nodes);
     _currentTypeUsage = oldCurrentTypeUsage;
@@ -829,7 +838,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     final parent = node.parent;
     VariableUse parameterUsage = parent is ir.Member
         ? VariableUse.memberParameter(parent)
-        : VariableUse.localParameter(parent);
+        : VariableUse.localParameter(parent as ir.LocalFunction?);
     visitNodesInContext(node.typeParameters, parameterUsage);
     for (ir.VariableDeclaration declaration in node.positionalParameters) {
       _handleVariableDeclaration(declaration, parameterUsage);
@@ -841,9 +850,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         node.returnType,
         parent is ir.Member
             ? VariableUse.memberReturnType(parent)
-            : VariableUse.localReturnType(parent));
+            : VariableUse.localReturnType(parent as ir.LocalFunction));
     if (node.body != null) {
-      visitNode(node.body);
+      visitNode(node.body!);
     }
     return const EvaluationComplexity.lazy();
   }
@@ -1264,10 +1273,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitCatch(ir.Catch node) {
     visitInContext(node.guard, VariableUse.explicit);
     if (node.exception != null) {
-      visitNode(node.exception);
+      visitNode(node.exception!);
     }
     if (node.stackTrace != null) {
-      visitNode(node.stackTrace);
+      visitNode(node.stackTrace!);
     }
     visitInVariableScope(node, () {
       visitNode(node.body);
@@ -1311,7 +1320,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     visitInVariableScope(node, () {
       node.condition = _handleExpression(node.condition);
       if (node.message != null) {
-        node.message = _handleExpression(node.message);
+        node.message = _handleExpression(node.message!);
       }
     });
     return const EvaluationComplexity.lazy();
@@ -1320,7 +1329,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitReturnStatement(ir.ReturnStatement node) {
     if (node.expression != null) {
-      node.expression = _handleExpression(node.expression);
+      node.expression = _handleExpression(node.expression!);
     }
     return const EvaluationComplexity.lazy();
   }
@@ -1377,7 +1386,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitLocalInitializer(ir.LocalInitializer node) {
-    node.variable.initializer = _handleExpression(node.variable.initializer);
+    if (node.variable.initializer != null) {
+      node.variable.initializer = _handleExpression(node.variable.initializer!);
+    }
     return const EvaluationComplexity.lazy();
   }
 
@@ -1414,7 +1425,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     if (conditionComplexity.isFreshConstant) {}
     visitNode(node.then);
     if (node.otherwise != null) {
-      visitNode(node.otherwise);
+      visitNode(node.otherwise!);
     }
     return const EvaluationComplexity.lazy();
   }
@@ -1435,13 +1446,14 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       (node is ir.Procedure && node.isFactory);
 
   void _analyzeTypeVariable(ir.TypeParameterType type, VariableUse usage) {
-    assert(usage != null);
-    if (_outermostNode is ir.Member) {
+    assert((usage as dynamic) != null); // TODO(48820): Remove.
+    final outermost = _outermostNode;
+    if (outermost is ir.Member) {
       TypeVariableTypeWithContext typeVariable =
-          TypeVariableTypeWithContext(type, _outermostNode);
+          TypeVariableTypeWithContext(type, outermost);
       switch (typeVariable.kind) {
         case TypeVariableKind.cls:
-          if (_isFieldOrConstructor(_outermostNode)) {
+          if (_isFieldOrConstructor(outermost)) {
             // Class type variable used in a field or constructor.
             _useTypeVariableAsLocal(typeVariable, usage);
           } else {
@@ -1479,8 +1491,8 @@ enum ComplexityLevel {
 
 class EvaluationComplexity {
   final ComplexityLevel level;
-  final Set<ir.Field> fields;
-  final ir.Constant constant;
+  final Set<ir.Field>? fields;
+  final ir.Constant? constant;
 
   const EvaluationComplexity.constant([this.constant])
       : level = ComplexityLevel.constant,
@@ -1504,7 +1516,7 @@ class EvaluationComplexity {
       return const EvaluationComplexity.lazy();
     } else if (isEager || other.isEager) {
       if (fields != null && other.fields != null) {
-        fields.addAll(other.fields);
+        fields!.addAll(other.fields!);
         return this;
       } else if (fields != null) {
         return this;
@@ -1550,7 +1562,7 @@ class EvaluationComplexity {
         sb.write('eager');
         if (fields != null) {
           sb.write('&fields=[');
-          List<String> names = fields.map((f) => f.name.text).toList()..sort();
+          List<String> names = fields!.map((f) => f.name.text).toList()..sort();
           sb.write(names.join(','));
           sb.write(']');
         }

@@ -1144,7 +1144,8 @@ class KernelToElementMap implements IrToElementMap {
       }
       return NullConstantValue();
     }
-    ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+    ir.Constant constant = constantEvaluator.evaluateOrNull(
+        staticTypeContext, node,
         requireConstant: requireConstant);
     if (constant == null) {
       if (requireConstant) {

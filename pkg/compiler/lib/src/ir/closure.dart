@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/text/ast_to_text.dart' as ir show debugNodeToString;
@@ -11,7 +9,7 @@ import 'package:kernel/text/ast_to_text.dart' as ir show debugNodeToString;
 /// Collection of scope data collected for a single member.
 class ClosureScopeModel {
   /// Collection [ScopeInfo] data for the member.
-  KernelScopeInfo scopeInfo;
+  KernelScopeInfo? scopeInfo;
 
   /// Collected [CapturedScope] data for nodes.
   Map<ir.Node, KernelCapturedScope> capturedScopesMap =
@@ -33,7 +31,7 @@ class KernelScopeInfo {
   final Set<ir.VariableDeclaration> boxedVariables;
   // If boxedVariables is empty, this will be null, because no variables will
   // need to be boxed.
-  final NodeBox capturedVariablesAccessor;
+  final NodeBox? capturedVariablesAccessor;
 
   /// The set of variables that were defined in another scope, but are used in
   /// this scope. The items in this set are either of type VariableDeclaration
@@ -101,7 +99,7 @@ class KernelScopeInfo {
 class KernelCapturedScope extends KernelScopeInfo {
   KernelCapturedScope(
       Set<ir.VariableDeclaration> boxedVariables,
-      NodeBox capturedVariablesAccessor,
+      NodeBox? capturedVariablesAccessor,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
           freeVariables,
@@ -126,8 +124,8 @@ class KernelCapturedScope extends KernelScopeInfo {
             _empty,
             null,
             _empty,
-            scope.freeVariables.where(
-                (ir.Node variable) => variable is TypeVariableTypeWithContext),
+            Set.of(scope.freeVariables.where(
+                (ir.Node variable) => variable is TypeVariableTypeWithContext)),
             scope.freeVariablesForRti,
             scope.thisUsedAsFreeVariable,
             scope.thisUsedAsFreeVariableIfNeedsRti,
@@ -144,7 +142,7 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
 
   KernelCapturedLoopScope(
       Set<ir.VariableDeclaration> boxedVariables,
-      NodeBox capturedVariablesAccessor,
+      NodeBox? capturedVariablesAccessor,
       this.boxedLoopVariables,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
@@ -230,10 +228,10 @@ enum VariableUseKind {
 
 class VariableUse {
   final VariableUseKind kind;
-  final ir.Member member;
-  final ir.LocalFunction localFunction;
-  final ir.Expression invocation;
-  final ir.Instantiation instantiation;
+  final ir.Member? member;
+  final ir.LocalFunction? localFunction;
+  final ir.Expression? invocation;
+  final ir.Instantiation? instantiation;
 
   const VariableUse._simple(this.kind)
       : this.member = null,
@@ -345,48 +343,51 @@ enum TypeVariableKind { cls, method, local, function }
 /// A fake ir.Node that holds the TypeParameterType as well as the context in
 /// which it occurs.
 class TypeVariableTypeWithContext implements ir.Node {
-  final ir.TreeNode context;
+  final ir.TreeNode? context;
   final ir.TypeParameterType type;
   final TypeVariableKind kind;
-  final ir.TreeNode typeDeclaration;
+  final ir.TreeNode? typeDeclaration;
 
   /// [context] can be either an ir.Member or a ir.FunctionDeclaration or
   /// ir.FunctionExpression.
   factory TypeVariableTypeWithContext(
-      ir.TypeParameterType type, ir.TreeNode context) {
+      ir.TypeParameterType type, ir.TreeNode? context) {
     TypeVariableKind kind;
-    ir.TreeNode typeDeclaration = type.parameter.parent;
+    ir.TreeNode? typeDeclaration = type.parameter.parent;
     if (typeDeclaration == null) {
       // We have a function type variable, like `T` in `void Function<T>(int)`.
       kind = TypeVariableKind.function;
     } else if (typeDeclaration is ir.Class) {
       // We have a class type variable, like `T` in `class Class<T> { ... }`.
       kind = TypeVariableKind.cls;
-    } else if (typeDeclaration.parent is ir.Member) {
-      ir.Member member = typeDeclaration.parent;
-      if (member is ir.Constructor ||
-          (member is ir.Procedure && member.isFactory)) {
-        // We have a synthesized generic method type variable for a class type
-        // variable.
-        // TODO(johnniwinther): Handle constructor/factory type variables as
-        // method type variables.
-        kind = TypeVariableKind.cls;
-        typeDeclaration = member.enclosingClass;
+    } else {
+      final parent = typeDeclaration.parent;
+      if (parent is ir.Member) {
+        ir.Member member = parent;
+        if (member is ir.Constructor ||
+            (member is ir.Procedure && member.isFactory)) {
+          // We have a synthesized generic method type variable for a class type
+          // variable.
+          // TODO(johnniwinther): Handle constructor/factory type variables as
+          // method type variables.
+          kind = TypeVariableKind.cls;
+          typeDeclaration = member.enclosingClass;
+        } else {
+          // We have a generic method type variable, like `T` in
+          // `m<T>() { ... }`.
+          kind = TypeVariableKind.method;
+          typeDeclaration = parent;
+          context = typeDeclaration;
+        }
       } else {
-        // We have a generic method type variable, like `T` in
-        // `m<T>() { ... }`.
-        kind = TypeVariableKind.method;
-        typeDeclaration = typeDeclaration.parent;
+        // We have a generic local function type variable, like `T` in
+        // `m() { local<T>() { ... } ... }`.
+        assert(parent is ir.LocalFunction,
+            "Unexpected type declaration: $typeDeclaration");
+        kind = TypeVariableKind.local;
+        typeDeclaration = parent;
         context = typeDeclaration;
       }
-    } else {
-      // We have a generic local function type variable, like `T` in
-      // `m() { local<T>() { ... } ... }`.
-      assert(typeDeclaration.parent is ir.LocalFunction,
-          "Unexpected type declaration: $typeDeclaration");
-      kind = TypeVariableKind.local;
-      typeDeclaration = typeDeclaration.parent;
-      context = typeDeclaration;
     }
     return TypeVariableTypeWithContext.internal(
         type, context, kind, typeDeclaration);
@@ -424,8 +425,8 @@ class TypeVariableTypeWithContext implements ir.Node {
 
   @override
   String toStringInternal() =>
-      'type=${type.toStringInternal()},context=${context.toStringInternal()},'
-      'kind=$kind,typeDeclaration=${typeDeclaration.toStringInternal()}';
+      'type=${type.toStringInternal()},context=${context!.toStringInternal()},'
+      'kind=$kind,typeDeclaration=${typeDeclaration!.toStringInternal()}';
 
   @override
   String toText(ir.AstTextStrategy strategy) => type.toText(strategy);

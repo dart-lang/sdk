@@ -1492,7 +1492,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // computation.
       ir.StaticTypeContext staticTypeContext =
           getStaticTypeContext(memberContext);
-      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+      ir.Constant constant = constantEvaluator.evaluateOrNull(
+          staticTypeContext, node,
           requireConstant: requireConstant);
       if (constant == null) {
         if (requireConstant) {
