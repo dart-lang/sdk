@@ -1,0 +1,35 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Recompiling shouldn't change the InstanceInvocation.interfaceTargetReference.
+# http://dartbug.com/48892
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        main() {
+          Y y = new Y();
+          y.foo();
+        }
+      lib1.dart: |
+        class X {
+          void foo() => print("foo");
+        }
+        class Y implements X {
+          void noSuchMethod(Invocation _) {
+            print("Hello from noSuchMethod");
+          }
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    compareToPrevious: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2
