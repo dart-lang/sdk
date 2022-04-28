@@ -84,6 +84,15 @@ testDependencyCycle(Map<T, U> Function<T, U>(T Function(U), U Function(T)) f) {
       .expectStaticType<Exactly<Map<List<Object?>, Set<Object?>>>>();
 }
 
+testNecessaryDueToWrongExplicitParameterType(List<int> list) {
+  var a = list.fold(
+      0,
+      (x, int y) =>
+          (x..expectStaticType<Exactly<int>>()) +
+          (y..expectStaticType<Exactly<int>>()));
+  a.expectStaticType<Exactly<int>>();
+}
+
 testPropagateFromContravariantReturnType(
     U Function<T, U>(void Function(T) Function(), U Function(T)) f) {
   f(() => (int i) {}, (x) => [x]..expectStaticType<Exactly<List<int>>>())

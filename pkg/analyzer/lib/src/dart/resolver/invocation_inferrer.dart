@@ -23,8 +23,8 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   List<FormalParameter> parameters =
       functionExpression.parameters?.parameters ?? const [];
   Set<Object> result = {};
+  int unnamedParameterIndex = 0;
   for (var formalParameter in parameters) {
-    int unnamedParameterIndex = 0;
     var key = formalParameter.isNamed
         ? formalParameter.identifier?.name ?? ''
         : unnamedParameterIndex++;
