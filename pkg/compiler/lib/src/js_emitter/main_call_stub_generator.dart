@@ -6,6 +6,7 @@
 
 library dart2js.js_emitter.main_call_stub_generator;
 
+import 'package:compiler/src/options.dart';
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
 import '../common/elements.dart';
@@ -16,8 +17,12 @@ import '../js/js.dart' show js;
 import 'code_emitter_task.dart' show Emitter;
 
 class MainCallStubGenerator {
-  static jsAst.Statement generateInvokeMain(CommonElements commonElements,
-      Emitter emitter, FunctionEntity main, bool requiresStartupMetrics) {
+  static jsAst.Statement generateInvokeMain(
+      CommonElements commonElements,
+      Emitter emitter,
+      FunctionEntity main,
+      bool requiresStartupMetrics,
+      CompilerOptions options) {
     jsAst.Expression mainAccess = emitter.staticFunctionAccess(main);
     jsAst.Expression currentScriptAccess =
         emitter.generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
@@ -96,6 +101,10 @@ class MainCallStubGenerator {
         if (#startupMetrics) {
           init.#startupMetricsEmbeddedGlobal.add('callMainMs');
         }
+        if (#isCollectingRuntimeMetrics) {
+          self.#runtimeMetricsContainer = self.#runtimeMetricsContainer || Object.create(null);
+          self.#runtimeMetricsContainer[currentScript.src] = init.#runtimeMetricsEmbeddedGlobal;
+        }
         var callMain = #mainCallClosure;
         if (typeof dartMainRunner === "function") {
           dartMainRunner(callMain, []);
@@ -105,6 +114,9 @@ class MainCallStubGenerator {
       })''', {
       'currentScript': currentScriptAccess,
       'mainCallClosure': mainCallClosure,
+      'isCollectingRuntimeMetrics': options.experimentalTrackAllocations,
+      'runtimeMetricsContainer': embeddedNames.RUNTIME_METRICS_CONTAINER,
+      'runtimeMetricsEmbeddedGlobal': embeddedNames.RUNTIME_METRICS,
       'startupMetrics': requiresStartupMetrics,
       'startupMetricsEmbeddedGlobal': embeddedNames.STARTUP_METRICS,
     });

@@ -46,6 +46,11 @@ if (#startupMetrics) {
       .add("dartProgramMs");
 }
 
+if (#isCollectingRuntimeMetrics) {
+  dartProgram.$RUNTIME_METRICS = Object.create(null);
+  var allocations = dartProgram.$RUNTIME_METRICS['allocations'] = Object.create(null);
+}
+
 // Copies the own properties from [from] to [to].
 function copyProperties(from, to) {
   var keys = Object.keys(from);
@@ -420,10 +425,6 @@ function initializeDeferredHunk(hunk) {
   hunk(hunkHelpers, #embeddedGlobalsObject, holders, #staticState);
 }
 
-if (#isTrackingAllocations) {
-  var allocations = #deferredGlobal['allocations'] = {};
-}
-
 // Creates the holders.
 #holders;
 
@@ -523,7 +524,9 @@ const String _directAccessTestExpression = r'''
 /// This template is used for Dart 2.
 const String _deferredBoilerplate = '''
 function(hunkHelpers, #embeddedGlobalsObject, holdersList, #staticState) {
-
+if (#isCollectingRuntimeMetrics) {
+  var allocations = #embeddedGlobalsObject.#runtimeMetrics['allocations'];
+}
 // Builds the holders. They only contain the data for new holders.
 // If names are not set on functions, we do it now. Finally, updates the
 // holders of the main-fragment. Uses the provided holdersList to access the
@@ -751,8 +754,7 @@ class FragmentEmitter {
       //'stubName': js.string(_namer.stubNameField),
       //'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
       //'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
-      'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
-      'isTrackingAllocations': _options.experimentalTrackAllocations,
+      'isCollectingRuntimeMetrics': _options.experimentalTrackAllocations,
       'prototypes': emitPrototypes(fragment),
       'inheritance': emitInheritance(fragment),
       'aliases': emitInstanceMethodAliases(fragment),
@@ -808,7 +810,9 @@ class FragmentEmitter {
     js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': js.Parameter('init'),
+      'isCollectingRuntimeMetrics': _options.experimentalTrackAllocations,
       'staticState': DeferredHolderParameter(),
+      'runtimeMetrics': RUNTIME_METRICS,
       'updateHolders': updateHolders,
       'prototypes': fragment.classPrototypes,
       'closures': fragment.closurePrototypes,
@@ -1873,6 +1877,12 @@ class FragmentEmitter {
       // Copy the metrics object that was stored on the main unit IIFE.
       globals.add(js.Property(
           js.string(STARTUP_METRICS), js.js('dartProgram.$STARTUP_METRICS')));
+    }
+
+    if (_options.experimentalTrackAllocations) {
+      // Copy the metrics object that was stored on the main unit IIFE.
+      globals.add(js.Property(
+          js.string(RUNTIME_METRICS), js.js('dartProgram.$RUNTIME_METRICS')));
     }
 
     js.ObjectInitializer globalsObject =

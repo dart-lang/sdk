@@ -27,6 +27,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        RUNTIME_METRICS,
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
@@ -368,19 +369,11 @@ class ModelEmitter {
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
-  List<js.Statement> buildDeferredInitializerGlobal() {
-    return [
-      js.js.statement(
-          'self.#deferredInitializers = '
-          'self.#deferredInitializers || Object.create(null);',
-          {'deferredInitializers': deferredInitializersGlobal}),
-      if (_options.experimentalTrackAllocations)
-        js.js.statement(
-            'self.#deferredInitializers["allocations"] = '
-            'self.#deferredInitializers["allocations"] '
-            '|| Object.create(null)',
-            {'deferredInitializers': deferredInitializersGlobal})
-    ];
+  js.Statement buildDeferredInitializerGlobal() {
+    return js.js.statement(
+        'self.#deferredInitializers = '
+        'self.#deferredInitializers || Object.create(null);',
+        {'deferredInitializers': deferredInitializersGlobal});
   }
 
   js.Statement buildStartupMetrics() {
@@ -431,7 +424,7 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
-      if (isSplit) ...buildDeferredInitializerGlobal(),
+      if (isSplit) buildDeferredInitializerGlobal(),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
       code
@@ -566,10 +559,7 @@ var ${startupMetricsGlobal} =
 
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
-      if (isFirst) ...buildDeferredInitializerGlobal(),
-      if (_options.experimentalTrackAllocations)
-        js.js.statement("var allocations = #deferredGlobal['allocations']",
-            {'deferredGlobal': deferredInitializersGlobal}),
+      if (isFirst) buildDeferredInitializerGlobal(),
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 
