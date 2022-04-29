@@ -5,25 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-
-/// An abstract implementation of a request handler.
-abstract class AbstractRequestHandler
-    with RequestHandlerMixin<AnalysisServer>
-    implements RequestHandler {
-  /// The analysis server that is using this handler to process requests.
-  @override
-  final AnalysisServer server;
-
-  /// Initialize a newly created request handler to be associated with the given
-  /// analysis [server].
-  AbstractRequestHandler(this.server);
-}
 
 mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
   /// The analysis server that is using this handler to process requests.

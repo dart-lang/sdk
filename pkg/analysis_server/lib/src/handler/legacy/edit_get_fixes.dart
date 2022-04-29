@@ -6,11 +6,11 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';

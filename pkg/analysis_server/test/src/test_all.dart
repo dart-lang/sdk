@@ -6,7 +6,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'cider/test_all.dart' as cider;
 import 'computer/test_all.dart' as computer;
-import 'domain_abstract_test.dart' as domain_abstract;
 import 'domains/test_all.dart' as domains;
 import 'flutter/test_all.dart' as flutter;
 import 'g3/test_all.dart' as g3;
@@ -20,7 +19,6 @@ void main() {
   defineReflectiveSuite(() {
     cider.main();
     computer.main();
-    domain_abstract.main();
     domains.main();
     flutter.main();
     g3.main();

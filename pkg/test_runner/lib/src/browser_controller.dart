@@ -261,8 +261,6 @@ abstract class Browser {
 }
 
 abstract class WebDriverBrowser extends Browser {
-  static int _nextPort = 4444;
-  final int _port = _nextPort++;
   WebDriver _driver;
 
   String get driverExecutable;
@@ -272,11 +270,12 @@ abstract class WebDriverBrowser extends Browser {
   @override
   Future<bool> start(String url) async {
     _logEvent('Starting $this browser on: $url');
+    var port = await _findUnusedPort();
     if (!await startBrowserProcess(
-        driverExecutable, ['--port', '$_port', ...driverArguments])) {
+        driverExecutable, ['--port', '$port', ...driverArguments])) {
       return false;
     }
-    await _createDriver();
+    await _createDriver(port);
     await _driver.get(url);
     try {
       _logEvent('Got version: ${await version}');
@@ -287,13 +286,13 @@ abstract class WebDriverBrowser extends Browser {
     return true;
   }
 
-  Future<void> _createDriver() async {
+  Future<void> _createDriver(int port) async {
     for (var i = 5; i >= 0; i--) {
       // Give the driver process some time to be ready to accept connections.
       await Future.delayed(const Duration(seconds: 1));
       try {
         _driver = await createDriver(
-            uri: Uri.parse('http://localhost:$_port/'),
+            uri: Uri.parse('http://localhost:$port/'),
             desired: desiredCapabilities);
       } catch (error) {
         if (i > 0) {
@@ -307,6 +306,24 @@ abstract class WebDriverBrowser extends Browser {
       }
       if (_driver != null) break;
     }
+  }
+
+  /// Returns a port that is probably, but not definitely, not in use.
+  ///
+  /// This has a built-in race condition: another process may bind this port at
+  /// any time after this call has returned.
+  static Future<int> _findUnusedPort() async {
+    int port;
+    ServerSocket socket;
+    try {
+      socket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0,
+          v6Only: true);
+    } on SocketException {
+      socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    }
+    port = socket.port;
+    await socket.close();
+    return port;
   }
 
   @override
