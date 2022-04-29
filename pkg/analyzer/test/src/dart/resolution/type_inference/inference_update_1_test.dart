@@ -110,6 +110,30 @@ test() {
         _isEnabled ? 'List<int>' : 'List<dynamic>');
   }
 
+  test_horizontal_inference_necessary_due_to_wrong_explicit_parameter_type() async {
+    // In this example, horizontal type inference is needed because although the
+    // type of `y` is explicit, it's actually `x` that would have needed to be
+    // explicit.
+    await assertErrorsInCode('''
+test(List<int> list) {
+  var a = list.fold(0, (x, int y) => x + y);
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      if (!_isEnabled)
+        error(
+            CompileTimeErrorCode
+                .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+            62,
+            1),
+    ]);
+    assertType(findElement.localVar('a').type, _isEnabled ? 'int' : 'dynamic');
+    assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
+    assertType(findElement.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').staticElement?.enclosingElement.name,
+        _isEnabled ? 'num' : null);
+  }
+
   test_horizontal_inference_propagate_to_earlier_closure() async {
     await assertErrorsInCode('''
 U f<T, U>(U Function(T) g, T Function() h) => throw '';
