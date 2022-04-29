@@ -1998,8 +1998,9 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Label* trace,
                                      Register temp_reg,
-                                     Label* trace) {
+                                     JumpDistance distance) {
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
@@ -2034,7 +2035,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg));
     RELEASE_ASSERT((target::Thread::top_offset() + target::kWordSize) ==
                    target::Thread::end_offset());
     ldp(instance_reg, temp_reg,
@@ -2076,7 +2077,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp1));
     // Potential new object start.
     ldr(instance, Address(THR, target::Thread::top_offset()));
     AddImmediateSetFlags(end_address, instance, instance_size);
@@ -2103,6 +2104,20 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  Label loop, done;
+  __ cbz(&done, size);
+  __ Bind(&loop);
+  __ ldr(temp, Address(src, target::kWordSize, Address::PostIndex));
+  __ str(temp, Address(dst, target::kWordSize, Address::PostIndex));
+  __ subs(size, size, Operand(target::kWordSize));
+  __ b(&loop, NOT_ZERO);
+  __ Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {

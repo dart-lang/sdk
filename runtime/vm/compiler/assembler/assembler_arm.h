@@ -385,6 +385,8 @@ class Assembler : public AssemblerBase {
   void Bind(Label* label);
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
+  // Unconditional jump to a given address in register.
+  void Jump(Register target) { bx(target); }
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { Branch(address); }
 
@@ -415,9 +417,6 @@ class Assembler : public AssemblerBase {
     // We don't run TSAN bots on 32 bit.
   }
 
-  void CompareWithFieldValue(Register value, FieldAddress address) {
-    CompareWithMemoryValue(value, address);
-  }
   void CompareWithCompressedFieldFromOffset(Register value,
                                             Register base,
                                             int32_t offset) {
@@ -818,6 +817,9 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void AddRegisters(Register dest, Register src) {
+    add(dest, dest, Operand(src));
+  }
   void SubImmediate(Register rd,
                     Register rn,
                     int32_t value,
@@ -826,7 +828,24 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubRegisters(Register dest, Register src) {
+    sub(dest, dest, Operand(src));
+  }
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
+  void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
+    AndImmediate(rd, rd, imm, cond);
+  }
+  void OrImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
+  void OrImmediate(Register rd, int32_t imm, Condition cond = AL) {
+    OrImmediate(rd, rd, imm, cond);
+  }
+  void LslImmediate(Register rd, Register rn, int32_t shift) {
+    ASSERT((shift >= 0) && (shift < kBitsPerInt32));
+    Lsl(rd, rn, Operand(shift));
+  }
+  void LslImmediate(Register rd, int32_t shift) {
+    LslImmediate(rd, rd, shift);
+  }
 
   // Test rn and immediate. May clobber IP.
   void TestImmediate(Register rn, int32_t imm, Condition cond = AL);
@@ -1051,6 +1070,10 @@ class Assembler : public AssemblerBase {
                           Condition cond = AL) {
     StoreToOffset(reg, base, offset - kHeapObjectTag, type, cond);
   }
+  void StoreZero(const Address& address, Register temp) {
+    mov(temp, Operand(0));
+    str(temp, address);
+  }
   void LoadSFromOffset(SRegister reg,
                        Register base,
                        int32_t offset,
@@ -1136,6 +1159,14 @@ class Assembler : public AssemblerBase {
                     JumpDistance distance = kFarJump) {
     cmp(rn, Operand(0));
     b(label, ZERO);
+  }
+  void BranchIfBit(Register rn,
+                   intptr_t bit_number,
+                   Condition condition,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
+    tst(rn, Operand(1 << bit_number));
+    b(label, condition);
   }
 
   void MoveRegister(Register rd, Register rm, Condition cond) {
@@ -1368,6 +1399,13 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(Register stats_addr_reg, Label* trace);
 
+  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // which will allocate in the runtime where tracing occurs.
+  void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -1382,6 +1420,14 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  // Copy [size] bytes from [src] address to [dst] address.
+  // [size] should be a multiple of word size.
+  // Clobbers [src], [dst], [size] and [temp] registers.
+  void CopyMemoryWords(Register src,
+                       Register dst,
+                       Register size,
+                       Register temp);
 
   // This emits an PC-relative call of the form "blr.<cond> <offset>".  The
   // offset is not yet known and needs therefore relocation to the right place

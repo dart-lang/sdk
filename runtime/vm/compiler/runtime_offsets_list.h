@@ -190,6 +190,12 @@
   FIELD(String, hash_offset)                                                   \
   FIELD(String, length_offset)                                                 \
   FIELD(SubtypeTestCache, cache_offset)                                        \
+  FIELD(SuspendState, error_callback_offset)                                   \
+  FIELD(SuspendState, frame_size_offset)                                       \
+  FIELD(SuspendState, future_offset)                                           \
+  FIELD(SuspendState, payload_offset)                                          \
+  FIELD(SuspendState, pc_offset)                                               \
+  FIELD(SuspendState, then_callback_offset)                                    \
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
@@ -275,6 +281,11 @@
                                                                                \
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
+  FIELD(Thread, suspend_state_await_async_entry_point_offset)                  \
+  FIELD(Thread, suspend_state_init_async_entry_point_offset)                   \
+  FIELD(Thread, suspend_state_return_async_entry_point_offset)                 \
+  FIELD(Thread, suspend_state_return_async_not_future_entry_point_offset)      \
+  FIELD(Thread, suspend_state_handle_exception_entry_point_offset)             \
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \
   FIELD(Thread, top_resource_offset)                                           \
@@ -416,6 +427,7 @@
   SIZEOF(Sentinel, InstanceSize, UntaggedSentinel)                             \
   SIZEOF(SingleTargetCache, InstanceSize, UntaggedSingleTargetCache)           \
   SIZEOF(StackTrace, InstanceSize, UntaggedStackTrace)                         \
+  SIZEOF(SuspendState, HeaderSize, UntaggedSuspendState)                       \
   SIZEOF(String, InstanceSize, UntaggedString)                                 \
   SIZEOF(SubtypeTestCache, InstanceSize, UntaggedSubtypeTestCache)             \
   SIZEOF(LoadingUnit, InstanceSize, UntaggedLoadingUnit)                       \
@@ -439,6 +451,7 @@
   PAYLOAD_SIZEOF(CompressedStackMaps, InstanceSize, HeaderSize)                \
   PAYLOAD_SIZEOF(InstructionsSection, InstanceSize, HeaderSize)                \
   PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)                      \
+  PAYLOAD_SIZEOF(SuspendState, InstanceSize, HeaderSize)                       \
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \

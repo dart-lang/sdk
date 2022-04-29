@@ -450,6 +450,15 @@ void FlowGraphCompiler::EmitPrologue() {
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : EAX;
       __ movl(compiler::Address(EBP, slot_index * kWordSize), value_reg);
     }
+  } else if (parsed_function().suspend_state_var() != nullptr) {
+    // Initialize synthetic :suspend_state variable early
+    // as it may be accessed by GC and exception handling before
+    // InitAsync stub is called.
+    const intptr_t slot_index =
+        compiler::target::frame_layout.FrameSlotForVariable(
+            parsed_function().suspend_state_var());
+    __ LoadObject(EAX, Object::null_object());
+    __ movl(compiler::Address(EBP, slot_index * kWordSize), EAX);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -461,6 +470,14 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   } else {
     __ Call(stub);
   }
+  AddStubCallTarget(stub);
+}
+
+void FlowGraphCompiler::EmitJumpToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  __ LoadObject(CODE_REG, stub);
+  __ jmp(compiler::FieldAddress(CODE_REG,
+                                compiler::target::Code::entry_point_offset()));
   AddStubCallTarget(stub);
 }
 
@@ -625,7 +642,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
+  if (function.PrologueNeedsArgumentsDescriptor()) {
     __ LoadObject(EDX, arguments_descriptor);
   } else {
     __ xorl(EDX, EDX);  // GC safe smi zero because of stub.

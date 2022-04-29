@@ -165,6 +165,12 @@ class FlowGraph : public ZoneAllocated {
 
   bool IsIrregexpFunction() const { return function().IsIrregexpFunction(); }
 
+  LocalVariable* SuspendStateVar() const {
+    return parsed_function().suspend_state_var();
+  }
+
+  intptr_t SuspendStateEnvIndex() const { return EnvIndex(SuspendStateVar()); }
+
   LocalVariable* CurrentContextVar() const {
     return parsed_function().current_context_var();
   }
@@ -184,6 +190,14 @@ class FlowGraph : public ZoneAllocated {
   intptr_t EnvIndex(const LocalVariable* variable) const {
     ASSERT(!variable->is_captured());
     return num_direct_parameters_ - variable->index().value();
+  }
+
+  // Context and :suspend_state variables are never pruned and
+  // artificially kept alive.
+  bool IsImmortalVariable(intptr_t env_index) const {
+    return (env_index == CurrentContextEnvIndex()) ||
+           (SuspendStateVar() != nullptr &&
+            env_index == SuspendStateEnvIndex());
   }
 
   static bool NeedsPairLocation(Representation representation) {

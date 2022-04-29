@@ -15,6 +15,7 @@
 
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/stack_frame.h"
 
 #define __ assembler->
 
@@ -1271,6 +1272,434 @@ void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
   __ PopRegister(DoubleToIntegerStubABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
+}
+
+static intptr_t SuspendStateFpOffset() {
+  return compiler::target::frame_layout.FrameSlotForVariableIndex(
+             SuspendState::kSuspendStateVarIndex) *
+         compiler::target::kWordSize;
+}
+
+void StubCodeCompiler::GenerateSuspendStub(
+    Assembler* assembler,
+    intptr_t suspend_entry_point_offset) {
+  const Register kArgument = SuspendStubABI::kArgumentReg;
+  const Register kTemp = SuspendStubABI::kTempReg;
+  const Register kFrameSize = SuspendStubABI::kFrameSizeReg;
+  const Register kSuspendState = SuspendStubABI::kSuspendStateReg;
+  const Register kFuture = SuspendStubABI::kFutureReg;
+  const Register kSrcFrame = SuspendStubABI::kSrcFrameReg;
+  const Register kDstFrame = SuspendStubABI::kDstFrameReg;
+  Label alloc_slow_case, alloc_done, init_done, old_gen_object, call_await;
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
+#endif
+
+  __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+
+  __ AddImmediate(
+      kFrameSize, FPREG,
+      -target::frame_layout.last_param_from_entry_sp * target::kWordSize);
+  __ SubRegisters(kFrameSize, SPREG);
+
+  __ EnterStubFrame();
+
+  __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
+  __ BranchIf(EQUAL, &init_done);
+
+  __ MoveRegister(kFuture, kSuspendState);
+  __ Comment("Allocate SuspendState");
+
+  // Check for allocation tracing.
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(kSuspendStateCid, &alloc_slow_case, kTemp));
+
+  // Compute the rounded instance size.
+  const intptr_t fixed_size_plus_alignment_padding =
+      (target::SuspendState::HeaderSize() +
+       target::ObjectAlignment::kObjectAlignment - 1);
+  __ AddImmediate(kTemp, kFrameSize, fixed_size_plus_alignment_padding);
+  __ AndImmediate(kTemp, -target::ObjectAlignment::kObjectAlignment);
+
+  // Now allocate the object.
+  __ LoadFromOffset(kSuspendState, Address(THR, target::Thread::top_offset()));
+  __ AddRegisters(kTemp, kSuspendState);
+  // Check if the allocation fits into the remaining space.
+  __ CompareWithMemoryValue(kTemp, Address(THR, target::Thread::end_offset()));
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, &alloc_slow_case);
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  __ StoreToOffset(kTemp, Address(THR, target::Thread::top_offset()));
+  __ SubRegisters(kTemp, kSuspendState);
+  __ AddImmediate(kSuspendState, kHeapObjectTag);
+
+  // Calculate the size tag.
+  {
+    Label size_tag_overflow, done;
+    __ CompareImmediate(kTemp, target::UntaggedObject::kSizeTagMaxSizeTag);
+    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
+    __ LslImmediate(kTemp, target::UntaggedObject::kTagBitsSizeTagPos -
+                               target::ObjectAlignment::kObjectAlignmentLog2);
+    __ Jump(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ LoadImmediate(kTemp, 0);
+
+    __ Bind(&done);
+    uword tags = target::MakeTagWordForNewSpaceObject(kSuspendStateCid, 0);
+    __ OrImmediate(kTemp, tags);
+    __ StoreToOffset(
+        kTemp,
+        FieldAddress(kSuspendState, target::Object::tags_offset()));  // Tags.
+  }
+
+  __ StoreToOffset(
+      kFrameSize,
+      FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+  __ StoreCompressedIntoObjectNoBarrier(
+      kSuspendState,
+      FieldAddress(kSuspendState, target::SuspendState::future_offset()),
+      kFuture);
+
+  {
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+    const Register kNullReg = NULL_REG;
+#else
+    const Register kNullReg = kTemp;
+    __ LoadObject(kNullReg, NullObject());
+#endif
+    __ StoreCompressedIntoObjectNoBarrier(
+        kSuspendState,
+        FieldAddress(kSuspendState,
+                     target::SuspendState::then_callback_offset()),
+        kNullReg);
+    __ StoreCompressedIntoObjectNoBarrier(
+        kSuspendState,
+        FieldAddress(kSuspendState,
+                     target::SuspendState::error_callback_offset()),
+        kNullReg);
+  }
+
+  __ Bind(&alloc_done);
+
+  __ Comment("Save SuspendState to frame");
+  __ LoadFromOffset(kTemp, Address(FPREG, kSavedCallerFpSlotFromFp *
+                                              compiler::target::kWordSize));
+  __ StoreToOffset(kSuspendState, Address(kTemp, SuspendStateFpOffset()));
+
+  __ Bind(&init_done);
+  __ Comment("Copy frame to SuspendState");
+
+  __ LoadFromOffset(
+      kTemp, Address(FPREG, kSavedCallerPcSlotFromFp * target::kWordSize));
+  __ StoreToOffset(
+      kTemp, FieldAddress(kSuspendState, target::SuspendState::pc_offset()));
+
+  if (kSrcFrame == THR) {
+    __ PushRegister(THR);
+  }
+  __ AddImmediate(kSrcFrame, FPREG, kCallerSpSlotFromFp * target::kWordSize);
+  __ AddImmediate(kDstFrame, kSuspendState,
+                  target::SuspendState::payload_offset() - kHeapObjectTag);
+  __ CopyMemoryWords(kSrcFrame, kDstFrame, kFrameSize, kTemp);
+  if (kSrcFrame == THR) {
+    __ PopRegister(THR);
+  }
+
+#ifdef DEBUG
+  {
+    Label okay;
+    __ LoadFromOffset(
+        kTemp,
+        FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+    __ AddRegisters(kTemp, kSuspendState);
+    __ LoadFromOffset(
+        kTemp, FieldAddress(kTemp, target::SuspendState::payload_offset() +
+                                       SuspendStateFpOffset()));
+    __ CompareRegisters(kTemp, kSuspendState);
+    __ BranchIf(EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+#endif
+
+  // Push arguments for _SuspendState._await* method.
+  __ PushRegister(kSuspendState);
+  __ PushRegister(kArgument);
+
+  // Write barrier.
+  __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
+                 ZERO, &old_gen_object);
+
+  __ Bind(&call_await);
+  __ Comment("Call _SuspendState._await method");
+  __ Call(Address(THR, suspend_entry_point_offset));
+
+  __ LeaveStubFrame();
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
+  // Drop caller frame on all architectures except x86 which needs to maintain
+  // call/return balance to avoid performance regressions.
+  __ LeaveDartFrame();
+#endif
+  __ Ret();
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // Slow path is executed with Dart and stub frames still on the stack.
+  SPILLS_LR_TO_FRAME({});
+  SPILLS_LR_TO_FRAME({});
+#endif
+  __ Bind(&alloc_slow_case);
+  __ Comment("SuspendState Allocation slow case");
+  __ PushRegister(kArgument);   // Save argument.
+  __ PushRegister(kFrameSize);  // Save frame size.
+  __ PushObject(NullObject());  // Make space on stack for the return value.
+  __ SmiTag(kFrameSize);
+  __ PushRegister(kFrameSize);  // Pass frame size to runtime entry.
+  __ PushRegister(kFuture);     // Pass future.
+  __ CallRuntime(kAllocateSuspendStateRuntimeEntry, 2);
+  __ Drop(2);                     // Drop arguments
+  __ PopRegister(kSuspendState);  // Get result.
+  __ PopRegister(kFrameSize);     // Restore frame size.
+  __ PopRegister(kArgument);      // Restore argument.
+  __ Jump(&alloc_done);
+
+  __ Bind(&old_gen_object);
+  __ Comment("Old gen SuspendState slow case");
+  {
+#if defined(TARGET_ARCH_IA32)
+    LeafRuntimeScope rt(assembler, /*frame_size=*/2 * target::kWordSize,
+                        /*preserve_registers=*/false);
+    __ movl(Address(ESP, 1 * target::kWordSize), THR);
+    __ movl(Address(ESP, 0 * target::kWordSize), kSuspendState);
+#else
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    __ MoveRegister(CallingConventions::ArgumentRegisters[0], kSuspendState);
+    __ MoveRegister(CallingConventions::ArgumentRegisters[1], THR);
+#endif
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
+  }
+  __ Jump(&call_await);
+}
+
+void StubCodeCompiler::GenerateAwaitAsyncStub(Assembler* assembler) {
+  GenerateSuspendStub(
+      assembler,
+      target::Thread::suspend_state_await_async_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
+    Assembler* assembler,
+    intptr_t init_entry_point_offset) {
+  const Register kTypeArgs = InitSuspendableFunctionStubABI::kTypeArgsReg;
+
+  __ EnterStubFrame();
+  __ LoadObject(ARGS_DESC_REG, ArgumentsDescriptorBoxed(/*type_args_len=*/1,
+                                                        /*num_arguments=*/0));
+  __ PushRegister(kTypeArgs);
+  __ Call(Address(THR, init_entry_point_offset));
+  __ LeaveStubFrame();
+
+  // Set :suspend_state in the caller frame.
+  __ StoreToOffset(CallingConventions::kReturnReg,
+                   Address(FPREG, SuspendStateFpOffset()));
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateInitAsyncStub(Assembler* assembler) {
+  GenerateInitSuspendableFunctionStub(
+      assembler, target::Thread::suspend_state_init_async_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
+  const Register kSuspendState = ResumeStubABI::kSuspendStateReg;
+  const Register kTemp = ResumeStubABI::kTempReg;
+  const Register kFrameSize = ResumeStubABI::kFrameSizeReg;
+  const Register kSrcFrame = ResumeStubABI::kSrcFrameReg;
+  const Register kDstFrame = ResumeStubABI::kDstFrameReg;
+  const Register kResumePc = ResumeStubABI::kResumePcReg;
+  const Register kException = ResumeStubABI::kExceptionReg;
+  const Register kStackTrace = ResumeStubABI::kStackTraceReg;
+  Label rethrow_exception;
+
+  // Top of the stack on entry:
+  // ... [SuspendState] [value] [exception] [stackTrace] [ReturnAddress]
+
+  __ EnterDartFrame(0);
+
+  const intptr_t param_offset =
+      target::frame_layout.param_end_from_fp * target::kWordSize;
+  __ LoadFromOffset(kSuspendState,
+                    Address(FPREG, param_offset + 4 * target::kWordSize));
+#ifdef DEBUG
+  {
+    Label okay;
+    __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
+    __ BranchIf(EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+#endif
+
+  __ LoadFromOffset(
+      kFrameSize,
+      FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+#ifdef DEBUG
+  {
+    Label okay;
+    __ MoveRegister(kTemp, kFrameSize);
+    __ AddRegisters(kTemp, kSuspendState);
+    __ LoadFromOffset(
+        kTemp, FieldAddress(kTemp, target::SuspendState::payload_offset() +
+                                       SuspendStateFpOffset()));
+    __ CompareRegisters(kTemp, kSuspendState);
+    __ BranchIf(EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+#endif
+  // Do not copy fixed frame between the first local and FP.
+  __ AddImmediate(kFrameSize, (target::frame_layout.first_local_from_fp + 1) *
+                                  target::kWordSize);
+  __ SubRegisters(SPREG, kFrameSize);
+
+  __ Comment("Copy frame from SuspendState");
+  __ AddImmediate(kSrcFrame, kSuspendState,
+                  target::SuspendState::payload_offset() - kHeapObjectTag);
+  __ MoveRegister(kDstFrame, SPREG);
+  __ CopyMemoryWords(kSrcFrame, kDstFrame, kFrameSize, kTemp);
+
+  __ Comment("Transfer control");
+
+  __ LoadFromOffset(kResumePc, FieldAddress(kSuspendState,
+                                            target::SuspendState::pc_offset()));
+  __ StoreZero(FieldAddress(kSuspendState, target::SuspendState::pc_offset()),
+               kTemp);
+
+  __ LoadFromOffset(kException,
+                    Address(FPREG, param_offset + 2 * target::kWordSize));
+  __ CompareObject(kException, NullObject());
+  __ BranchIf(NOT_EQUAL, &rethrow_exception);
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  // Adjust resume PC to skip extra epilogue generated on x86
+  // right after the call to suspend stub in order to maintain
+  // call/return balance.
+  __ AddImmediate(kResumePc, SuspendStubABI::kResumePcDistance);
+#endif
+
+  __ LoadFromOffset(CallingConventions::kReturnReg,
+                    Address(FPREG, param_offset + 3 * target::kWordSize));
+
+  __ Jump(kResumePc);
+
+  __ Comment("Rethrow exception");
+  __ Bind(&rethrow_exception);
+
+  __ LoadFromOffset(kStackTrace,
+                    Address(FPREG, param_offset + 1 * target::kWordSize));
+
+  // Adjust stack/LR/RA as if suspended Dart function called
+  // stub with kResumePc as a return address.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  __ PushRegister(kResumePc);
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ MoveRegister(LR, kResumePc));
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  __ MoveRegister(RA, kResumePc);
+#else
+#error Unknown target
+#endif
+
+#if !defined(TARGET_ARCH_IA32)
+  __ set_constant_pool_allowed(false);
+#endif
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make room for (unused) result.
+  __ PushRegister(kException);
+  __ PushRegister(kStackTrace);
+  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateReturnStub(Assembler* assembler,
+                                          intptr_t return_entry_point_offset) {
+  const Register kSuspendState = ReturnStubABI::kSuspendStateReg;
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
+#endif
+
+  __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+  __ LeaveDartFrame();
+
+  __ EnterStubFrame();
+  __ PushRegister(kSuspendState);
+  __ PushRegister(CallingConventions::kReturnReg);
+  __ Call(Address(THR, return_entry_point_offset));
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateReturnAsyncStub(Assembler* assembler) {
+  GenerateReturnStub(
+      assembler,
+      target::Thread::suspend_state_return_async_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateReturnAsyncNotFutureStub(Assembler* assembler) {
+  GenerateReturnStub(
+      assembler,
+      target::Thread::
+          suspend_state_return_async_not_future_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
+  const Register kSuspendState = AsyncExceptionHandlerStubABI::kSuspendStateReg;
+  ASSERT(kSuspendState != kExceptionObjectReg);
+  ASSERT(kSuspendState != kStackTraceObjectReg);
+  Label rethrow_exception;
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
+#endif
+
+  __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+
+  // Check if suspend_state is initialized. Otherwise
+  // exception was thrown from the prologue code and
+  // should be synchronuously propagated.
+  __ CompareObject(kSuspendState, NullObject());
+  __ BranchIf(EQUAL, &rethrow_exception);
+
+  __ LeaveDartFrame();
+  __ EnterStubFrame();
+  __ PushRegister(kSuspendState);
+  __ PushRegister(kExceptionObjectReg);
+  __ PushRegister(kStackTraceObjectReg);
+  __ Call(Address(
+      THR,
+      target::Thread::suspend_state_handle_exception_entry_point_offset()));
+  __ LeaveStubFrame();
+  __ Ret();
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // Rethrow case is used when Dart frame is still on the stack.
+  SPILLS_LR_TO_FRAME({});
+#endif
+  __ Comment("Rethrow exception");
+  __ Bind(&rethrow_exception);
+  __ LeaveDartFrame();
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make room for (unused) result.
+  __ PushRegister(kExceptionObjectReg);
+  __ PushRegister(kStackTraceObjectReg);
+  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
+  __ Breakpoint();
 }
 
 }  // namespace compiler

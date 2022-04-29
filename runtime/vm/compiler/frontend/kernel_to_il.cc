@@ -309,8 +309,7 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
   // => We therefore create a block for the body (fresh try index) and another
   //    join block (with current try index).
   Fragment body;
-  JoinEntryInstr* entry = new (Z)
-      JoinEntryInstr(AllocateBlockId(), try_handler_index, GetNextDeoptId());
+  JoinEntryInstr* entry = BuildJoinEntry(try_handler_index);
   body += LoadLocal(parsed_function_->current_context_var());
   body += StoreLocal(TokenPosition::kNoSource, CurrentCatchContext());
   body += Drop();
@@ -835,6 +834,9 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
   V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
   V(ObjectArrayLength, Array_length)                                           \
+  V(SuspendState_getFuture, SuspendState_future)                               \
+  V(SuspendState_getThenCallback, SuspendState_then_callback)                  \
+  V(SuspendState_getErrorCallback, SuspendState_error_callback)                \
   V(TypedDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                 \
   V(TypedDataViewTypedData, TypedDataView_typed_data)                          \
   V(TypedListBaseLength, TypedDataBase_length)                                 \
@@ -850,6 +852,9 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
+  V(SuspendState_setFuture, SuspendState_future)                               \
+  V(SuspendState_setThenCallback, SuspendState_then_callback)                  \
+  V(SuspendState_setErrorCallback, SuspendState_error_callback)                \
   V(WeakProperty_setKey, WeakProperty_key)                                     \
   V(WeakProperty_setValue, WeakProperty_value)                                 \
   V(WeakReference_setTarget, WeakReference_target)
@@ -864,6 +869,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
+    case MethodRecognizer::kSuspendState_resume:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
     case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
@@ -1012,6 +1018,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kSuspendState_resume: {
+      const Code& resume_stub =
+          Code::ZoneHandle(Z, IG->object_store()->resume_stub());
+      body += NullConstant();
+      body += TailCall(resume_stub);
+      break;
+    }
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
@@ -1704,7 +1717,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     }
   }
 
-  body += Return(TokenPosition::kNoSource, /* omit_result_type_check = */ true);
+  if (body.is_open()) {
+    body +=
+        Return(TokenPosition::kNoSource, /* omit_result_type_check = */ true);
+  }
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
@@ -4180,6 +4196,14 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
 
 Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
   BitCastInstr* instr = new (Z) BitCastInstr(from, to, Pop());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment FlowGraphBuilder::Call1ArgStub(TokenPosition position,
+                                        Call1ArgStubInstr::StubId stub_id) {
+  Call1ArgStubInstr* instr = new (Z) Call1ArgStubInstr(
+      InstructionSource(position), stub_id, Pop(), GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

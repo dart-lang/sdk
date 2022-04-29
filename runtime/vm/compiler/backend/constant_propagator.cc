@@ -1460,6 +1460,10 @@ void ConstantPropagator::VisitBitCast(BitCastInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitCall1ArgStub(Call1ArgStubInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitLoadThread(LoadThreadInstr* instr) {
   SetValue(instr, non_constant_);
 }

@@ -2030,28 +2030,40 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
-  function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                             FunctionNodeHelper::kSync);
-  switch (function_node_helper.dart_async_marker_) {
-    case FunctionNodeHelper::kSyncStar:
-      function.set_modifier(UntaggedFunction::kSyncGen);
-      function.set_is_visible(!FLAG_lazy_async_stacks);
-      break;
-    case FunctionNodeHelper::kAsync:
-      function.set_modifier(UntaggedFunction::kAsync);
-      function.set_is_inlinable(!FLAG_lazy_async_stacks);
-      function.set_is_visible(!FLAG_lazy_async_stacks);
-      break;
-    case FunctionNodeHelper::kAsyncStar:
-      function.set_modifier(UntaggedFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_lazy_async_stacks);
-      function.set_is_visible(!FLAG_lazy_async_stacks);
-      break;
-    default:
-      // no special modifier
-      break;
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
+    if (!FLAG_precompiled_mode) {
+      FATAL("Compact async functions are only supported in AOT mode.");
+    }
+    function.set_modifier(UntaggedFunction::kAsync);
+    function.set_is_debuggable(true);
+    function.set_is_inlinable(false);
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncFunction());
+  } else {
+    ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
+    function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                               FunctionNodeHelper::kSync);
+    switch (function_node_helper.dart_async_marker_) {
+      case FunctionNodeHelper::kSyncStar:
+        function.set_modifier(UntaggedFunction::kSyncGen);
+        function.set_is_visible(!FLAG_lazy_async_stacks);
+        break;
+      case FunctionNodeHelper::kAsync:
+        function.set_modifier(UntaggedFunction::kAsync);
+        function.set_is_inlinable(!FLAG_lazy_async_stacks);
+        function.set_is_visible(!FLAG_lazy_async_stacks);
+        break;
+      case FunctionNodeHelper::kAsyncStar:
+        function.set_modifier(UntaggedFunction::kAsyncGen);
+        function.set_is_inlinable(!FLAG_lazy_async_stacks);
+        function.set_is_visible(!FLAG_lazy_async_stacks);
+        break;
+      default:
+        // no special modifier
+        break;
+    }
+    ASSERT(!function.IsCompactAsyncFunction());
   }
-  ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
 
   if (!native_name.IsNull()) {
     function.set_native_name(native_name);

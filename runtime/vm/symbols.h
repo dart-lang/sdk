@@ -244,6 +244,7 @@ class ObjectPointerVisitor;
   V(StringBase, "_StringBase")                                                 \
   V(Struct, "Struct")                                                          \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
+  V(SuspendStateVar, ":suspend_state_var")                                     \
   V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
@@ -379,6 +380,7 @@ class ObjectPointerVisitor;
   V(_StreamController, "_StreamController")                                    \
   V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
+  V(_SuspendState, "_SuspendState")                                            \
   V(_SyncIterator, "_SyncIterator")                                            \
   V(_SyncStreamController, "_SyncStreamController")                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
@@ -408,13 +410,16 @@ class ObjectPointerVisitor;
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_WeakReferenceImpl, "_WeakReferenceImpl")                                  \
   V(_typedDataBase, "_typedDataBase")                                          \
+  V(_awaitAsync, "_awaitAsync")                                                \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
+  V(_handleException, "_handleException")                                      \
   V(_handleMessage, "_handleMessage")                                          \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
   V(_handleNativeFinalizerMessage, "_handleNativeFinalizerMessage")            \
   V(_hasValue, "_hasValue")                                                    \
+  V(_initAsync, "_initAsync")                                                  \
   V(_instanceOf, "_instanceOf")                                                \
   V(_listGetAt, "_listGetAt")                                                  \
   V(_listLength, "_listLength")                                                \
@@ -432,6 +437,8 @@ class ObjectPointerVisitor;
   V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \
+  V(_returnAsync, "_returnAsync")                                              \
+  V(_returnAsyncNotFuture, "_returnAsyncNotFuture")                            \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(_scanFlags, "_scanFlags")                                                  \

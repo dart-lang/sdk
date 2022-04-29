@@ -2082,6 +2082,41 @@ void FlowGraphAllocator::Spill(LiveRange* range) {
   ConvertAllUses(range);
 }
 
+void FlowGraphAllocator::AllocateSpillSlotForSuspendState() {
+  if (flow_graph_.parsed_function().suspend_state_var() == nullptr) {
+    return;
+  }
+
+  spill_slots_.Add(kMaxPosition);
+  quad_spill_slots_.Add(false);
+  untagged_spill_slots_.Add(false);
+
+#if defined(DEBUG)
+  const intptr_t stack_index =
+      -compiler::target::frame_layout.VariableIndexForFrameSlot(
+          compiler::target::frame_layout.FrameSlotForVariable(
+              flow_graph_.parsed_function().suspend_state_var()));
+  ASSERT(stack_index == spill_slots_.length() - 1);
+#endif
+}
+
+void FlowGraphAllocator::UpdateStackmapsForSuspendState() {
+  if (flow_graph_.parsed_function().suspend_state_var() == nullptr) {
+    return;
+  }
+
+  const intptr_t stack_index =
+      -compiler::target::frame_layout.VariableIndexForFrameSlot(
+          compiler::target::frame_layout.FrameSlotForVariable(
+              flow_graph_.parsed_function().suspend_state_var()));
+  ASSERT(stack_index >= 0);
+
+  for (intptr_t i = 0, n = safepoints_.length(); i < n; ++i) {
+    Instruction* safepoint_instr = safepoints_[i];
+    safepoint_instr->locs()->SetStackBit(stack_index);
+  }
+}
+
 intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
     intptr_t reg,
     LiveRange* unallocated) {
@@ -3102,11 +3137,11 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
     return;
   }
 
-  // Optional parameter handling needs special changes to become frameless.
+  // Copying of parameters needs special changes to become frameless.
   // Specifically we need to rebase IL instructions which directly access frame
   // ({Load,Store}IndexedUnsafeInstr) to use SP rather than FP.
   // For now just always give such functions a frame.
-  if (flow_graph_.parsed_function().function().HasOptionalParameters()) {
+  if (flow_graph_.parsed_function().function().MakesCopyOfParameters()) {
     return;
   }
 
@@ -3211,7 +3246,14 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   NumberInstructions();
 
+  // Reserve spill slot for :suspend_state synthetic variable before
+  // reserving spill slots for parameter variables.
+  AllocateSpillSlotForSuspendState();
+
   BuildLiveRanges();
+
+  // Update stackmaps after all safepoints are collected.
+  UpdateStackmapsForSuspendState();
 
   if (FLAG_print_ssa_liveranges && CompilerState::ShouldTrace()) {
     const Function& function = flow_graph_.function();

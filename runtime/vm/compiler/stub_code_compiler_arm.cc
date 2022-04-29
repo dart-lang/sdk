@@ -1040,8 +1040,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ b(&slow_case, HI);
 
     const intptr_t cid = kArrayCid;
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(R4, &slow_case));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &slow_case, R4));
 
     const intptr_t fixed_size_plus_alignment_padding =
         target::Array::header_size() +
@@ -1346,8 +1345,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   ASSERT(kSmiTagShift == 1);
   __ bic(R2, R2, Operand(target::ObjectAlignment::kObjectAlignment - 1));
 
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R8, kContextCid));
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R8, slow_case));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, slow_case, R8));
   // Now allocate the object.
   // R1: number of context variables.
   // R2: object size.
@@ -3432,8 +3430,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
 
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label call_runtime;
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R2, cid));
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(R2, &call_runtime));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, R2));
     __ mov(R2, Operand(AllocateTypedDataArrayABI::kLengthReg));
     /* Check that length is a positive Smi. */
     /* R2: requested array length argument. */

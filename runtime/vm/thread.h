@@ -166,6 +166,13 @@ class Thread;
   CACHED_NON_VM_STUB_LIST(V)                                                   \
   CACHED_VM_STUBS_LIST(V)
 
+#define CACHED_FUNCTION_ENTRY_POINTS_LIST(V)                                   \
+  V(suspend_state_init_async)                                                  \
+  V(suspend_state_await_async)                                                 \
+  V(suspend_state_return_async)                                                \
+  V(suspend_state_return_async_not_future)                                     \
+  V(suspend_state_handle_exception)
+
 // This assertion marks places which assume that boolean false immediate
 // follows bool true in the CACHED_VM_OBJECTS_LIST
 #define ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE()                                  \
@@ -724,6 +731,13 @@ class Thread : public ThreadState {
   static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
 
+#define DEFINE_OFFSET_METHOD(name)                                             \
+  static intptr_t name##_entry_point_offset() {                                \
+    return OFFSET_OF(Thread, name##_entry_point_);                             \
+  }
+  CACHED_FUNCTION_ENTRY_POINTS_LIST(DEFINE_OFFSET_METHOD)
+#undef DEFINE_OFFSET_METHOD
+
 #if defined(DEBUG)
   // For asserts only. Has false positives when running with a simulator or
   // SafeStack.
@@ -1152,6 +1166,10 @@ class Thread : public ThreadState {
 #if !defined(TARGET_ARCH_IA32)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
+
+#define DECLARE_MEMBERS(name) uword name##_entry_point_ = 0;
+  CACHED_FUNCTION_ENTRY_POINTS_LIST(DECLARE_MEMBERS)
+#undef DECLARE_MEMBERS
 
   // JumpToExceptionHandler state:
   ObjectPtr active_exception_;

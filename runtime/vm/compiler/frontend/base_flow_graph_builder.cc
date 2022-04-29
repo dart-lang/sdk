@@ -284,7 +284,7 @@ Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
 
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
-  return Fragment(new (Z) TailCallInstr(code, arg_desc));
+  return Fragment(new (Z) TailCallInstr(code, arg_desc)).closed();
 }
 
 void BaseFlowGraphBuilder::InlineBailout(const char* reason) {

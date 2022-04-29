@@ -1592,8 +1592,7 @@ static void TryAllocateString(Assembler* assembler,
   __ cmp(length_reg, Operand(0));
   __ b(failure, LT);
 
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R0, cid));
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R0, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, R0));
   __ mov(R8, Operand(length_reg));  // Save the length register.
   if (cid == kOneByteStringCid) {
     __ SmiUntag(length_reg);

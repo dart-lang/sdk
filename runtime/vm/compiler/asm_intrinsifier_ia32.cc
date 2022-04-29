@@ -1626,8 +1626,7 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpl(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(cid, EAX, failure, Assembler::kFarJump));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, EAX));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }

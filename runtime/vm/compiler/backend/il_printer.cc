@@ -1356,6 +1356,21 @@ void TailCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(")");
 }
 
+void Call1ArgStubInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  const char* name = "";
+  switch (stub_id_) {
+    case StubId::kInitAsync:
+      name = "InitAsync";
+      break;
+    case StubId::kAwaitAsync:
+      name = "AwaitAsync";
+      break;
+  }
+  f->Printf("%s(", name);
+  operand()->PrintTo(f);
+  f->AddString(")");
+}
+
 void PushArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }

@@ -259,6 +259,10 @@ class CompileType : public ZoneAllocated {
   // can be uninstantiated.
   bool CanBeSmi();
 
+  // Returns true if a value of this CompileType can contain a Future
+  // instance.
+  bool CanBeFuture();
+
   bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   void PrintTo(BaseTextBuffer* f) const;

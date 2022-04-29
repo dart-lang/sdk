@@ -3061,7 +3061,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       ExceptionHandlersPtr handlers = objects_[i];
       s->AssignRef(handlers);
       AutoTraceObject(handlers);
-      const intptr_t length = handlers->untag()->num_entries_;
+      const intptr_t length = handlers->untag()->num_entries();
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::ExceptionHandlers::InstanceSize(length);
@@ -3073,8 +3073,10 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       ExceptionHandlersPtr handlers = objects_[i];
       AutoTraceObject(handlers);
-      const intptr_t length = handlers->untag()->num_entries_;
-      s->WriteUnsigned(length);
+      const intptr_t packed_fields = handlers->untag()->packed_fields_;
+      const intptr_t length =
+          UntaggedExceptionHandlers::NumEntriesBits::decode(packed_fields);
+      s->WriteUnsigned(packed_fields);
       WriteCompressedField(handlers, handled_types_data);
       for (intptr_t j = 0; j < length; j++) {
         const ExceptionHandlerInfo& info = handlers->untag()->data()[j];
@@ -3117,10 +3119,12 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ExceptionHandlersPtr handlers =
           static_cast<ExceptionHandlersPtr>(d.Ref(id));
-      const intptr_t length = d.ReadUnsigned();
+      const intptr_t packed_fields = d.ReadUnsigned();
+      const intptr_t length =
+          UntaggedExceptionHandlers::NumEntriesBits::decode(packed_fields);
       Deserializer::InitializeHeader(handlers, kExceptionHandlersCid,
                                      ExceptionHandlers::InstanceSize(length));
-      handlers->untag()->num_entries_ = length;
+      handlers->untag()->packed_fields_ = packed_fields;
       handlers->untag()->handled_types_data_ =
           static_cast<ArrayPtr>(d.ReadRef());
       for (intptr_t j = 0; j < length; j++) {
@@ -5683,6 +5687,8 @@ class VMSerializationRoots : public SerializationRoots {
                      "LocalVarDescriptors", "<empty>");
     s->AddBaseObject(Object::empty_exception_handlers().ptr(),
                      "ExceptionHandlers", "<empty>");
+    s->AddBaseObject(Object::empty_async_exception_handlers().ptr(),
+                     "ExceptionHandlers", "<empty async>");
 
     for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
       s->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5794,6 +5800,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::empty_descriptors().ptr());
     d->AddBaseObject(Object::empty_var_descriptors().ptr());
     d->AddBaseObject(Object::empty_exception_handlers().ptr());
+    d->AddBaseObject(Object::empty_async_exception_handlers().ptr());
 
     for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
       d->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);

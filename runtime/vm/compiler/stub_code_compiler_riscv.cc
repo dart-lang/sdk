@@ -1103,7 +1103,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ BranchIf(HI, &slow_case);
 
     const intptr_t cid = kArrayCid;
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, T4, &slow_case));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, &slow_case, T4));
 
     // Calculate and align allocation size.
     // Load new object start and calculate next object start.
@@ -1431,7 +1431,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ AddImmediate(T2, fixed_size_plus_alignment_padding);
   __ andi(T2, T2, ~(target::ObjectAlignment::kObjectAlignment - 1));
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, T4, slow_case));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, slow_case, T4));
   // Now allocate the object.
   // T1: number of context variables.
   // T2: object size.
@@ -3562,7 +3562,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
 
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label call_runtime;
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, T3, &call_runtime));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, T3));
     __ mv(T3, AllocateTypedDataArrayABI::kLengthReg);
     /* Check that length is a positive Smi. */
     /* T3: requested array length argument. */

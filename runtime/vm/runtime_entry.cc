@@ -709,6 +709,19 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   arguments.SetReturn(cloned_ctx);
 }
 
+// Allocate a SuspendState object.
+// Arg0: frame size.
+// Arg1: future.
+// Return value: newly allocated object.
+DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
+  const Smi& frame_size = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& future = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const SuspendState& result = SuspendState::Handle(
+      zone, SuspendState::New(frame_size.Value(), future,
+                              SpaceForRuntimeAllocation()));
+  arguments.SetReturn(result);
+}
+
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
                            const Instance& instance,

@@ -120,7 +120,8 @@ const Class& Float32x4Class();
 const Class& Float64x2Class();
 const Class& Int32x4Class();
 const Class& ClosureClass();
-const Array& OneArgArgumentsDescriptor();
+const Array& ArgumentsDescriptorBoxed(intptr_t type_args_len,
+                                      intptr_t num_arguments);
 
 template <typename To, typename From>
 const To& CastHandle(const From& from) {
@@ -987,6 +988,21 @@ class StackTrace : public AllStatic {
   FINAL_CLASS();
 };
 
+class SuspendState : public AllStatic {
+ public:
+  static word frame_size_offset();
+  static word pc_offset();
+  static word future_offset();
+  static word then_callback_offset();
+  static word error_callback_offset();
+  static word payload_offset();
+
+  static word HeaderSize();
+  static word InstanceSize();
+  static word InstanceSize(word payload_size);
+  FINAL_CLASS();
+};
+
 class Integer : public AllStatic {
  public:
   static word InstanceSize();
@@ -1221,6 +1237,12 @@ class Thread : public AllStatic {
 #undef DECLARE_CONSTANT_OFFSET_GETTER
 
   static word random_offset();
+
+  static word suspend_state_init_async_entry_point_offset();
+  static word suspend_state_await_async_entry_point_offset();
+  static word suspend_state_return_async_entry_point_offset();
+  static word suspend_state_return_async_not_future_entry_point_offset();
+  static word suspend_state_handle_exception_entry_point_offset();
 
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);

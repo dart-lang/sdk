@@ -187,6 +187,7 @@ void ParsedFunction::AllocateVariables() {
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
   const intptr_t num_params = num_fixed_params + num_opt_params;
+  const bool copy_parameters = function().MakesCopyOfParameters();
 
   // Before we start allocating indices to variables, we'll setup the
   // parameters array, which can be used to access the raw parameters (i.e. not
@@ -212,7 +213,7 @@ void ParsedFunction::AllocateVariables() {
         raw_parameter->set_needs_covariant_check_in_method();
       }
       raw_parameter->set_type_check_mode(variable->type_check_mode());
-      if (function().HasOptionalParameters()) {
+      if (copy_parameters) {
         bool ok = scope->AddVariable(raw_parameter);
         ASSERT(ok);
 
@@ -261,33 +262,30 @@ void ParsedFunction::AllocateVariables() {
 
   // The copy parameters implementation will still write to local variables
   // which we assign indices as with the old CopyParams implementation.
-  VariableIndex parameter_index_start;
-  VariableIndex reamining_local_variables_start;
+  VariableIndex first_local_index;
   {
     // Compute start indices to parameters and locals, and the number of
     // parameters to copy.
-    if (num_opt_params == 0) {
-      parameter_index_start = first_parameter_index_ =
-          VariableIndex(num_params);
-      reamining_local_variables_start = VariableIndex(0);
+    if (!copy_parameters) {
+      ASSERT(suspend_state_var() == nullptr);
+      first_parameter_index_ = VariableIndex(num_params);
+      first_local_index = VariableIndex(0);
     } else {
-      parameter_index_start = first_parameter_index_ = VariableIndex(0);
-      reamining_local_variables_start = VariableIndex(-num_params);
+      // :suspend_state variable is inserted at the fixed slot
+      // before the copied parameters.
+      const intptr_t reserved_var_slot_count =
+          (suspend_state_var() != nullptr) ? 1 : 0;
+      first_parameter_index_ = VariableIndex(-reserved_var_slot_count);
+      first_local_index =
+          VariableIndex(first_parameter_index_.value() - num_params);
     }
-  }
-
-  if (function_type_arguments_ != NULL && num_opt_params > 0) {
-    reamining_local_variables_start =
-        VariableIndex(reamining_local_variables_start.value() - 1);
   }
 
   // Allocate parameters and local variables, either in the local frame or
   // in the context(s).
   bool found_captured_variables = false;
-  VariableIndex first_local_index =
-      VariableIndex(parameter_index_start.value() > 0 ? 0 : -num_params);
   VariableIndex next_free_index = scope->AllocateVariables(
-      function(), parameter_index_start, num_params, first_local_index, NULL,
+      function(), first_parameter_index_, num_params, first_local_index, NULL,
       &found_captured_variables);
 
   num_stack_locals_ = -next_free_index.value();

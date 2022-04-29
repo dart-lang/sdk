@@ -447,6 +447,7 @@ class Object {
   V(PcDescriptors, empty_descriptors)                                          \
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
+  V(ExceptionHandlers, empty_async_exception_handlers)                         \
   V(Array, extractor_parameter_types)                                          \
   V(Array, extractor_parameter_names)                                          \
   V(Sentinel, sentinel)                                                        \
@@ -2891,7 +2892,12 @@ class Function : public Object {
 
   static intptr_t code_offset() { return OFFSET_OF(UntaggedFunction, code_); }
 
-  uword entry_point() const { return untag()->entry_point_; }
+  uword entry_point() const {
+    return EntryPointOf(ptr());
+  }
+  static uword EntryPointOf(const FunctionPtr function) {
+    return function->untag()->entry_point_;
+  }
 
   static intptr_t entry_point_offset(
       CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
@@ -3161,6 +3167,12 @@ class Function : public Object {
   intptr_t NumParameters() const;
   // Returns the number of implicit parameters, e.g., this for instance methods.
   intptr_t NumImplicitParameters() const;
+
+  // Returns true if parameters of this function are copied into the frame
+  // in the function prologue.
+  bool MakesCopyOfParameters() const {
+    return HasOptionalParameters() || IsCompactAsyncFunction();
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
@@ -3556,6 +3568,12 @@ class Function : public Object {
   //   }
   bool IsAsyncFunction() const {
     return modifier() == UntaggedFunction::kAsync;
+  }
+
+  // TODO(alexmarkov): replace this predicate with IsAsyncFunction() after
+  // old async functions are removed.
+  bool IsCompactAsyncFunction() const {
+    return IsAsyncFunction() && is_debuggable();
   }
 
   // Recognise synthetic sync-yielding functions like the inner-most:
@@ -6219,6 +6237,9 @@ class ExceptionHandlers : public Object {
   static const intptr_t kInvalidPcOffset = 0;
 
   intptr_t num_entries() const;
+
+  bool has_async_handler() const;
+  void set_has_async_handler(bool value) const;
 
   void GetHandlerInfo(intptr_t try_index, ExceptionHandlerInfo* info) const;
 
@@ -11761,6 +11782,63 @@ class StackTrace : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
   friend class Class;
   friend class DebuggerStackTrace;
+};
+
+class SuspendState : public Instance {
+ public:
+  // :suspend_state local variable index
+  static constexpr intptr_t kSuspendStateVarIndex = 0;
+
+  static intptr_t HeaderSize() { return sizeof(UntaggedSuspendState); }
+  static intptr_t UnroundedSize(SuspendStatePtr ptr) {
+    return UnroundedSize(ptr->untag()->frame_size_);
+  }
+  static intptr_t UnroundedSize(intptr_t frame_size) {
+    return HeaderSize() + frame_size;
+  }
+  static intptr_t InstanceSize() {
+    ASSERT_EQUAL(sizeof(UntaggedSuspendState),
+                 OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t frame_size) {
+    return RoundedAllocationSize(UnroundedSize(frame_size));
+  }
+
+  static intptr_t frame_size_offset() {
+    return OFFSET_OF(UntaggedSuspendState, frame_size_);
+  }
+  static intptr_t pc_offset() { return OFFSET_OF(UntaggedSuspendState, pc_); }
+  static intptr_t future_offset() {
+    return OFFSET_OF(UntaggedSuspendState, future_);
+  }
+  static intptr_t then_callback_offset() {
+    return OFFSET_OF(UntaggedSuspendState, then_callback_);
+  }
+  static intptr_t error_callback_offset() {
+    return OFFSET_OF(UntaggedSuspendState, error_callback_);
+  }
+  static intptr_t payload_offset() {
+    return UntaggedSuspendState::payload_offset();
+  }
+
+  static SuspendStatePtr New(intptr_t frame_size,
+                             const Instance& future,
+                             Heap::Space space = Heap::kNew);
+
+  InstancePtr future() const { return untag()->future(); }
+  uword pc() const { return untag()->pc_; }
+
+  // Returns Code object corresponding to the suspended function.
+  CodePtr GetCodeObject() const;
+
+ private:
+  void set_frame_size(intptr_t frame_size) const;
+  void set_pc(uword pc) const;
+  void set_future(const Instance& future) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
+  friend class Class;
 };
 
 class RegExpFlags {

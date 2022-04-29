@@ -3161,6 +3161,19 @@ void Assembler::AndImmediate(Register rd,
   }
 }
 
+void Assembler::OrImmediate(Register rd,
+                            Register rs,
+                            int32_t imm,
+                            Condition cond) {
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    orr(rd, rs, Operand(o), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    orr(rd, rs, Operand(TMP), cond);
+  }
+}
+
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -3516,6 +3529,14 @@ void Assembler::MaybeTraceAllocation(Register stats_addr_reg, Label* trace) {
   b(trace, NE);
 }
 
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
 void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3621,6 +3642,21 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  Label loop, done;
+  __ cmp(size, Operand(0));
+  __ b(&done, EQUAL);
+  __ Bind(&loop);
+  __ ldr(temp, Address(src, target::kWordSize, Address::PostIndex));
+  __ str(temp, Address(dst, target::kWordSize, Address::PostIndex));
+  __ subs(size, size, Operand(target::kWordSize));
+  __ b(&loop, NOT_ZERO);
+  __ Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(Condition cond,

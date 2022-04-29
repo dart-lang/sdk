@@ -149,6 +149,7 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   LocalVariable* controller = nullptr;
   LocalVariable* chained_future = nullptr;
   LocalVariable* is_sync = nullptr;
+  LocalVariable* suspend_state_var = nullptr;
   for (intptr_t i = 0; i < num_variables(); i++) {
     LocalVariable* variable = VariableAt(i);
     if (variable->owner() == this) {
@@ -163,6 +164,10 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
           chained_future = variable;
         } else if (variable->name().Equals(Symbols::is_sync())) {
           is_sync = variable;
+        }
+      } else {
+        if (variable->name().Equals(Symbols::SuspendStateVar())) {
+          suspend_state_var = variable;
         }
       }
     }
@@ -218,6 +223,12 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
     ASSERT(is_sync->index().value() == Context::kIsSyncIndex);
   }
 
+  if (suspend_state_var != nullptr) {
+    suspend_state_var->set_index(
+        VariableIndex(SuspendState::kSuspendStateVarIndex));
+    ASSERT(next_index.value() == SuspendState::kSuspendStateVarIndex - 1);
+  }
+
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
     pos++;
@@ -253,8 +264,10 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
           *found_captured_variables = true;
         }
       } else {
-        variable->set_index(next_index);
-        next_index = VariableIndex(next_index.value() - 1);
+        if (variable != suspend_state_var) {
+          variable->set_index(next_index);
+          next_index = VariableIndex(next_index.value() - 1);
+        }
       }
     }
     pos++;

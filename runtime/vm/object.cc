@@ -55,6 +55,7 @@
 #include "vm/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -949,6 +950,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
   cls.set_num_type_arguments_unsafe(1);
+  // In order to be able to canonicalize arguments descriptors early.
+  cls.set_is_prefinalized();
   cls =
       Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate_group);
   isolate_group->object_store()->set_growable_object_array_class(cls);
@@ -1090,8 +1093,24 @@ void Object::Init(IsolateGroup* isolate_group) {
         empty_exception_handlers_,
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
     empty_exception_handlers_->StoreNonPointer(
-        &empty_exception_handlers_->untag()->num_entries_, 0);
+        &empty_exception_handlers_->untag()->packed_fields_, 0);
     empty_exception_handlers_->SetCanonical();
+  }
+
+  // Empty exception handlers for async/async* functions.
+  {
+    uword address =
+        heap->Allocate(thread, ExceptionHandlers::InstanceSize(0), Heap::kOld);
+    InitializeObject(address, kExceptionHandlersCid,
+                     ExceptionHandlers::InstanceSize(0),
+                     ExceptionHandlers::ContainsCompressedPointers());
+    ExceptionHandlers::initializeHandle(
+        empty_async_exception_handlers_,
+        static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
+    empty_async_exception_handlers_->StoreNonPointer(
+        &empty_async_exception_handlers_->untag()->packed_fields_,
+        UntaggedExceptionHandlers::AsyncHandlerBit::update(true, 0));
+    empty_async_exception_handlers_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty type arguments object.
@@ -1239,6 +1258,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(empty_var_descriptors_->IsLocalVarDescriptors());
   ASSERT(!empty_exception_handlers_->IsSmi());
   ASSERT(empty_exception_handlers_->IsExceptionHandlers());
+  ASSERT(!empty_async_exception_handlers_->IsSmi());
+  ASSERT(empty_async_exception_handlers_->IsExceptionHandlers());
   ASSERT(!sentinel_->IsSmi());
   ASSERT(sentinel_->IsSentinel());
   ASSERT(!transition_sentinel_->IsSmi());
@@ -2039,6 +2060,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterClass(cls, Symbols::FutureOr(), lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<SuspendState, RTN::SuspendState>(isolate_group);
+    RegisterPrivateClass(cls, Symbols::_SuspendState(), lib);
+    pending_classes.Add(cls);
+
     // Pre-register the developer library so we can place the vm class
     // UserTag there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
@@ -2542,6 +2567,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
     cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
     cls = Class::New<StackTrace, RTN::StackTrace>(isolate_group);
+    cls = Class::New<SuspendState, RTN::SuspendState>(isolate_group);
     cls = Class::New<RegExp, RTN::RegExp>(isolate_group);
     cls = Class::New<Number, RTN::Number>(isolate_group);
 
@@ -15358,7 +15384,18 @@ intptr_t LocalVarDescriptors::Length() const {
 }
 
 intptr_t ExceptionHandlers::num_entries() const {
-  return untag()->num_entries_;
+  return untag()->num_entries();
+}
+
+bool ExceptionHandlers::has_async_handler() const {
+  return UntaggedExceptionHandlers::AsyncHandlerBit::decode(
+      untag()->packed_fields_);
+}
+
+void ExceptionHandlers::set_has_async_handler(bool value) const {
+  StoreNonPointer(&untag()->packed_fields_,
+                  UntaggedExceptionHandlers::AsyncHandlerBit::update(
+                      value, untag()->packed_fields_));
 }
 
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
@@ -15450,7 +15487,9 @@ ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
                          ExceptionHandlers::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(&result.untag()->num_entries_, num_handlers);
+    result.StoreNonPointer(
+        &result.untag()->packed_fields_,
+        UntaggedExceptionHandlers::NumEntriesBits::update(num_handlers, 0));
   }
   const Array& handled_types_data =
       (num_handlers == 0) ? Object::empty_array()
@@ -15476,7 +15515,9 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
                          ExceptionHandlers::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(&result.untag()->num_entries_, num_handlers);
+    result.StoreNonPointer(
+        &result.untag()->packed_fields_,
+        UntaggedExceptionHandlers::NumEntriesBits::update(num_handlers, 0));
   }
   result.set_handled_types_data(handled_types_data);
   return result.ptr();
@@ -15485,8 +15526,11 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
 const char* ExceptionHandlers::ToCString() const {
 #define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)%s%s\n"
 #define FORMAT2 "  %d. %s\n"
+#define FORMAT3 "<async handler>\n"
   if (num_entries() == 0) {
-    return "empty ExceptionHandlers\n";
+    return has_async_handler()
+               ? "empty ExceptionHandlers (with <async handler>)\n"
+               : "empty ExceptionHandlers\n";
   }
   auto& handled_types = Array::Handle();
   auto& type = AbstractType::Handle();
@@ -15509,6 +15553,9 @@ const char* ExceptionHandlers::ToCString() const {
       len += Utils::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
     }
   }
+  if (has_async_handler()) {
+    len += Utils::SNPrint(NULL, 0, FORMAT3);
+  }
   // Allocate the buffer.
   char* buffer = Thread::Current()->zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
@@ -15529,9 +15576,14 @@ const char* ExceptionHandlers::ToCString() const {
                                   FORMAT2, k, type.ToCString());
     }
   }
+  if (has_async_handler()) {
+    num_chars +=
+        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT3);
+  }
   return buffer;
 #undef FORMAT1
 #undef FORMAT2
+#undef FORMAT3
 }
 
 void SingleTargetCache::set_target(const Code& value) const {
@@ -25982,6 +26034,54 @@ DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
                     dwarf_stack_traces,
                     "Omit CodeSourceMaps in precompiled snapshots and don't "
                     "symbolize stack traces in the precompiled runtime.");
+
+SuspendStatePtr SuspendState::New(intptr_t frame_size,
+                                  const Instance& future,
+                                  Heap::Space space) {
+  SuspendState& result = SuspendState::Handle();
+  {
+    ObjectPtr raw = Object::Allocate(
+        SuspendState::kClassId, SuspendState::InstanceSize(frame_size), space,
+        SuspendState::ContainsCompressedPointers());
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.set_frame_size(frame_size);
+    result.set_pc(0);
+    result.set_future(future);
+  }
+  return result.ptr();
+}
+
+void SuspendState::set_frame_size(intptr_t frame_size) const {
+  ASSERT(frame_size >= 0);
+  StoreNonPointer(&untag()->frame_size_, frame_size);
+}
+
+void SuspendState::set_pc(uword pc) const {
+  StoreNonPointer(&untag()->pc_, pc);
+}
+
+void SuspendState::set_future(const Instance& future) const {
+  untag()->set_future(future.ptr());
+}
+
+const char* SuspendState::ToCString() const {
+  return "SuspendState";
+}
+
+CodePtr SuspendState::GetCodeObject() const {
+  ASSERT(pc() != 0);
+#if defined(DART_PRECOMPILED_RUNTIME)
+  NoSafepointScope no_safepoint;
+  CodePtr code = ReversePc::Lookup(IsolateGroup::Current(), pc(),
+                                   /*is_return_address=*/true);
+  ASSERT(code != Code::null());
+  return code;
+#else
+  UNIMPLEMENTED();
+  return Code::null();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
 
 void RegExp::set_pattern(const String& pattern) const {
   untag()->set_pattern(pattern.ptr());

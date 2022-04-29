@@ -4821,7 +4821,7 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsDwords, assembler) {
   __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // from.
   __ movl(EDI, Address(ESP, 5 * target::kWordSize));  // to.
   __ movl(ECX, Address(ESP, 6 * target::kWordSize));  // count.
-  __ rep_movsl();
+  __ rep_movsd();
   __ popl(ECX);
   __ popl(EDI);
   __ popl(ESI);

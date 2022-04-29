@@ -545,6 +545,8 @@ class Assembler : public AssemblerBase {
   void Bind(Label* label);
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
+  // Unconditional jump to a given address in register.
+  void Jump(Register target) { br(target); }
   // Unconditional jump to a given address in memory. Clobbers TMP.
   void Jump(const Address& address) {
     ldr(TMP, address);
@@ -629,9 +631,6 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
-  void CompareWithFieldValue(Register value, FieldAddress address) {
-    CompareWithMemoryValue(value, address);
-  }
   void CompareWithCompressedFieldFromOffset(Register value,
                                             Register base,
                                             int32_t offset) {
@@ -1260,6 +1259,19 @@ class Assembler : public AssemblerBase {
                     JumpDistance distance = kFarJump) {
     cbz(label, rn);
   }
+  void BranchIfBit(Register rn,
+                   intptr_t bit_number,
+                   Condition condition,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
+    if (condition == ZERO) {
+      tbz(label, rn, bit_number);
+    } else if (condition == NOT_ZERO) {
+      tbnz(label, rn, bit_number);
+    } else {
+      UNREACHABLE();
+    }
+  }
 
   void cbz(Label* label, Register rt, OperandSize sz = kEightBytes) {
     EmitCompareAndBranch(CBZ, rt, label, sz);
@@ -1676,12 +1688,15 @@ class Assembler : public AssemblerBase {
 
   void LslImmediate(Register rd,
                     Register rn,
-                    int shift,
+                    int32_t shift,
                     OperandSize sz = kEightBytes) {
-    const int reg_size =
+    const int32_t reg_size =
         (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
     ASSERT((shift >= 0) && (shift < reg_size));
     ubfm(rd, rn, (reg_size - shift) % reg_size, reg_size - shift - 1, sz);
+  }
+  void LslImmediate(Register rd, int32_t shift, OperandSize sz = kEightBytes) {
+    LslImmediate(rd, rd, shift, sz);
   }
   void LsrImmediate(Register rd,
                     Register rn,
@@ -1792,18 +1807,30 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int64_t imm,
                             OperandSize sz = kEightBytes);
+  void AddRegisters(Register dest, Register src) {
+    add(dest, dest, Operand(src));
+  }
   void SubImmediateSetFlags(Register dest,
                             Register rn,
                             int64_t imm,
                             OperandSize sz = kEightBytes);
+  void SubRegisters(Register dest, Register src) {
+    sub(dest, dest, Operand(src));
+  }
   void AndImmediate(Register rd,
                     Register rn,
                     int64_t imm,
                     OperandSize sz = kEightBytes);
+  void AndImmediate(Register rd, int64_t imm) {
+    AndImmediate(rd, rd, imm);
+  }
   void OrImmediate(Register rd,
                    Register rn,
                    int64_t imm,
                    OperandSize sz = kEightBytes);
+  void OrImmediate(Register rd, int64_t imm) {
+    OrImmediate(rd, rd, imm);
+  }
   void XorImmediate(Register rd,
                     Register rn,
                     int64_t imm,
@@ -1883,6 +1910,9 @@ class Assembler : public AssemblerBase {
                           int32_t offset,
                           OperandSize sz = kEightBytes) {
     StoreToOffset(src, base, offset - kHeapObjectTag, sz);
+  }
+  void StoreZero(const Address& address, Register temp = kNoRegister) {
+    str(ZR, address);
   }
 
   void StoreSToOffset(VRegister src, Register base, int32_t offset);
@@ -2123,7 +2153,10 @@ class Assembler : public AssemblerBase {
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
+  void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
 
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
@@ -2139,6 +2172,14 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  // Copy [size] bytes from [src] address to [dst] address.
+  // [size] should be a multiple of word size.
+  // Clobbers [src], [dst], [size] and [temp] registers.
+  void CopyMemoryWords(Register src,
+                       Register dst,
+                       Register size,
+                       Register temp);
 
   // This emits an PC-relative call of the form "bl <offset>".  The offset
   // is not yet known and needs therefore relocation to the right place before

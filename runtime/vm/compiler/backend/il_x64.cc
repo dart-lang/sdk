@@ -180,7 +180,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ rep_movsw();
       break;
     case 4:
-      __ rep_movsl();
+      __ rep_movsd();
       break;
     case 8:
     case 16:
@@ -336,6 +336,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(0).IsFpuRegister());
     const FpuRegister result = locs()->in(0).fpu_reg();
     ASSERT(result == CallingConventions::kReturnFpuReg);
+  }
+
+  if (compiler->parsed_function().function().IsCompactAsyncFunction()) {
+    ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
+    const Code& stub = GetReturnStub(compiler);
+    compiler->EmitJumpToStub(stub);
+    return;
   }
 
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
