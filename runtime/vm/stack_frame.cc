@@ -394,21 +394,25 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
     return true;
   }
 
-  if (handlers.num_entries() == 0) {
-    return false;
-  }
-
   intptr_t try_index = -1;
-  uword pc_offset = pc() - code.PayloadStart();
-  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    const intptr_t current_try_index = iter.TryIndex();
-    if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-      try_index = current_try_index;
-      break;
+  if (handlers.num_entries() != 0) {
+    uword pc_offset = pc() - code.PayloadStart();
+    PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
+    while (iter.MoveNext()) {
+      const intptr_t current_try_index = iter.TryIndex();
+      if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
+        try_index = current_try_index;
+        break;
+      }
     }
   }
   if (try_index == -1) {
+    if (handlers.has_async_handler()) {
+      *handler_pc = StubCode::AsyncExceptionHandler().EntryPoint();
+      *needs_stacktrace = true;
+      *has_catch_all = true;
+      return true;
+    }
     return false;
   }
   ExceptionHandlerInfo handler_info;

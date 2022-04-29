@@ -89,6 +89,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_begin_token_pos(function.token_pos());
   scope_->set_end_token_pos(function.end_token_pos());
 
+  if (function.IsCompactAsyncFunction()) {
+    LocalVariable* suspend_state_var =
+        MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                     Symbols::SuspendStateVar(), AbstractType::dynamic_type());
+    suspend_state_var->set_is_forced_stack();
+    suspend_state_var->set_invisible(true);
+    scope_->AddVariable(suspend_state_var);
+    parsed_function_->set_suspend_state_var(suspend_state_var);
+  }
+
   // Add function type arguments variable before current context variable.
   if (function.IsGeneric() || function.HasGenericParent()) {
     LocalVariable* type_args_var = MakeVariable(
@@ -437,6 +447,12 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   }
 
   parsed_function_->AllocateVariables();
+
+  // :suspend_state variable should be allocated to a fixed location in
+  // the stack frame.
+  RELEASE_ASSERT((parsed_function_->suspend_state_var() == nullptr) ||
+                 (parsed_function_->suspend_state_var()->index().value() ==
+                  SuspendState::kSuspendStateVarIndex));
 
   return result_;
 }
@@ -977,6 +993,10 @@ void ScopeBuilder::VisitExpression() {
     case kCheckLibraryIsLoaded:
       helper_.ReadUInt();  // library index
       break;
+    case kAwaitExpression:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read operand.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:

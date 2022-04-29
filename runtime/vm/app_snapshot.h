@@ -646,7 +646,7 @@ class Deserializer : public ThreadStackResource {
 
   intptr_t position() const { return stream_.Position(); }
   void set_position(intptr_t p) { stream_.SetPosition(p); }
-  const uint8_t* CurrentBufferAddress() const {
+  const uint8_t* AddressOfCurrentPosition() const {
     return stream_.AddressOfCurrentPosition();
   }
 
@@ -679,23 +679,6 @@ class Deserializer : public ThreadStackResource {
 
   ObjectPtr ReadRef() { return Ref(ReadRefId()); }
 
-  template <typename T, typename... P>
-  void ReadFromTo(T obj, P&&... params) {
-    auto* from = obj->untag()->from();
-    auto* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
-    auto* to = obj->untag()->to(params...);
-    for (auto* p = from; p <= to_snapshot; p++) {
-      *p = ReadRef();
-    }
-    // This is necessary because, unlike Object::Allocate, the clustered
-    // deserializer allocates object without null-initializing them. Instead,
-    // each deserialization cluster is responsible for initializing every field,
-    // ensuring that every field is written to exactly once.
-    for (auto* p = to_snapshot + 1; p <= to; p++) {
-      *p = Object::null();
-    }
-  }
-
   TokenPosition ReadTokenPosition() {
     return TokenPosition::Deserialize(Read<int32_t>());
   }
@@ -726,7 +709,13 @@ class Deserializer : public ThreadStackResource {
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }
   Zone* zone() const { return zone_; }
-  Snapshot::Kind kind() const { return kind_; }
+  Snapshot::Kind kind() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return Snapshot::kFullAOT;
+#else
+    return kind_;
+#endif
+  }
   FieldTable* initial_field_table() const { return initial_field_table_; }
   bool is_non_root_unit() const { return is_non_root_unit_; }
   void set_code_start_index(intptr_t value) { code_start_index_ = value; }
@@ -737,6 +726,74 @@ class Deserializer : public ThreadStackResource {
     return instructions_table_;
   }
   intptr_t num_base_objects() const { return num_base_objects_; }
+
+  // This serves to make the snapshot cursor, ref table and null be locals
+  // during ReadFill, which allows the C compiler to see they are not aliased
+  // and can be kept in registers.
+  class Local : public ReadStream {
+   public:
+    explicit Local(Deserializer* d)
+        : ReadStream(d->stream_.buffer_, d->stream_.current_, d->stream_.end_),
+          d_(d),
+          refs_(d->refs_),
+          null_(Object::null()) {
+#if defined(DEBUG)
+      // Can't mix use of Deserializer::Read*.
+      d->stream_.current_ = nullptr;
+#endif
+    }
+    ~Local() {
+      d_->stream_.current_ = current_;
+    }
+
+    ObjectPtr Ref(intptr_t index) const {
+      ASSERT(index > 0);
+      ASSERT(index <= d_->num_objects_);
+      return refs_->untag()->element(index);
+    }
+
+    template <typename T>
+    T Read() {
+      return ReadStream::Raw<sizeof(T), T>::Read(this);
+    }
+    uint64_t ReadUnsigned64() {
+      return ReadUnsigned<uint64_t>();
+    }
+
+    ObjectPtr ReadRef() {
+      return Ref(ReadRefId());
+    }
+    TokenPosition ReadTokenPosition() {
+      return TokenPosition::Deserialize(Read<int32_t>());
+    }
+
+    intptr_t ReadCid() {
+      COMPILE_ASSERT(UntaggedObject::kClassIdTagSize <= 32);
+      return Read<int32_t>();
+    }
+
+    template <typename T, typename... P>
+    void ReadFromTo(T obj, P&&... params) {
+      auto* from = obj->untag()->from();
+      auto* to_snapshot = obj->untag()->to_snapshot(d_->kind(), params...);
+      auto* to = obj->untag()->to(params...);
+      for (auto* p = from; p <= to_snapshot; p++) {
+        *p = ReadRef();
+      }
+      // This is necessary because, unlike Object::Allocate, the clustered
+      // deserializer allocates object without null-initializing them. Instead,
+      // each deserialization cluster is responsible for initializing every
+      // field, ensuring that every field is written to exactly once.
+      for (auto* p = to_snapshot + 1; p <= to; p++) {
+        *p = null_;
+      }
+    }
+
+   private:
+    Deserializer* const d_;
+    const ArrayPtr refs_;
+    const ObjectPtr null_;
+  };
 
  private:
   Heap* heap_;
@@ -757,8 +814,6 @@ class Deserializer : public ThreadStackResource {
   const bool is_non_root_unit_;
   InstructionsTable& instructions_table_;
 };
-
-#define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);
 
 class FullSnapshotWriter {
  public:

@@ -2814,6 +2814,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kInstance_native_fields_array:
+    case Slot::Kind::kSuspendState_future:
+    case Slot::Kind::kSuspendState_then_callback:
+    case Slot::Kind::kSuspendState_error_callback:
     case Slot::Kind::kTypedDataView_typed_data:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:

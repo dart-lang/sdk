@@ -1702,7 +1702,7 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpq(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, Assembler::kFarJump));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure));
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }

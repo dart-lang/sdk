@@ -49,7 +49,7 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* entry,
                                  PrologueInfo* prologue_info);
 
-  Fragment BuildOptionalParameterHandling(LocalVariable* temp_var);
+  Fragment BuildParameterHandling();
 
   static bool HasEmptyPrologue(const Function& function);
   static bool PrologueSkippableOnUncheckedEntry(const Function& function);

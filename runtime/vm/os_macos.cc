@@ -21,6 +21,7 @@
 
 #include "platform/utils.h"
 #include "vm/isolate.h"
+#include "vm/timeline.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -127,8 +128,22 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   return thread_cpu_micros;
 }
 
+int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
+#if defined(SUPPORT_TIMELINE)
+  if (Timeline::recorder_discards_clock_values()) return -1;
+  return GetCurrentMonotonicMicros();
+#else
+  return -1;
+#endif
+}
+
 int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
+#if defined(SUPPORT_TIMELINE)
+  if (Timeline::recorder_discards_clock_values()) return -1;
   return OS::GetCurrentThreadCPUMicros();
+#else
+  return -1;
+#endif
 }
 
 intptr_t OS::ActivationFrameAlignment() {

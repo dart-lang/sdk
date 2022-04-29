@@ -98,6 +98,7 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _buildEnumChildren();
+    await _executeMacroDeclarationsPhase();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
@@ -192,6 +193,12 @@ class Linker {
   void _detachNodes() {
     for (var builder in builders.values) {
       detachElementsFromNodes(builder.element);
+    }
+  }
+
+  Future<void> _executeMacroDeclarationsPhase() async {
+    for (final library in builders.values) {
+      await library.executeMacroDeclarationsPhase();
     }
   }
 

@@ -464,6 +464,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(result == CallingConventions::kReturnFpuReg);
   }
 
+  if (compiler->parsed_function().function().IsCompactAsyncFunction()) {
+    ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
+    const Code& stub = GetReturnStub(compiler);
+    compiler->EmitJumpToStub(stub);
+    return;
+  }
+
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;

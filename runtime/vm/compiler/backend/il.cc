@@ -6900,6 +6900,19 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
 }
 
+const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
+  ASSERT(compiler->parsed_function().function().IsCompactAsyncFunction());
+  if (!value()->Type()->CanBeFuture()) {
+    return Code::ZoneHandle(compiler->zone(),
+                            compiler->isolate_group()
+                                ->object_store()
+                                ->return_async_not_future_stub());
+  }
+  return Code::ZoneHandle(
+      compiler->zone(),
+      compiler->isolate_group()->object_store()->return_async_stub());
+}
+
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
   const auto& dst1 = marshaller_.Location(compiler::ffi::kResultIndex);
   if (dst1.payload_type().IsVoid()) {
@@ -7207,6 +7220,55 @@ Representation SimdOpInstr::RequiredInputRepresentation(intptr_t idx) const {
 
 bool SimdOpInstr::HasMask() const {
   return simd_op_information[kind()].has_mask;
+}
+
+LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  switch (stub_id_) {
+    case StubId::kInitAsync:
+      locs->set_in(0, Location::RegisterLocation(
+                          InitSuspendableFunctionStubABI::kTypeArgsReg));
+      break;
+    case StubId::kAwaitAsync:
+      locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
+      break;
+  }
+  locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  return locs;
+}
+
+void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ObjectStore* object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  switch (stub_id_) {
+    case StubId::kInitAsync:
+      stub = object_store->init_async_stub();
+      break;
+    case StubId::kAwaitAsync:
+      stub = object_store->await_async_stub();
+      break;
+  }
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  if (stub_id_ == StubId::kAwaitAsync) {
+    // On x86 (X64 and IA32) mismatch between calls and returns
+    // significantly regresses performance. So suspend stub
+    // does not return directly to the caller. Instead, a small
+    // epilogue is generated right after the call to suspend stub,
+    // and resume stub adjusts resume PC to skip this epilogue.
+    const intptr_t start = compiler->assembler()->CodeSize();
+    __ LeaveFrame();
+    __ ret();
+    RELEASE_ASSERT(compiler->assembler()->CodeSize() - start ==
+                   SuspendStubABI::kResumePcDistance);
+  }
+#endif
 }
 
 #undef __

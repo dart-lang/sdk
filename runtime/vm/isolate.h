@@ -574,7 +574,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
   intptr_t MutatorCount() const {
-    ASSERT(Thread::Current()->IsAtSafepoint());  // Otherwise lock is needed.
+    MonitorLocker ml(active_mutators_monitor_.get());
     return active_mutators_;
   }
 

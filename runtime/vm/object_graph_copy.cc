@@ -74,6 +74,7 @@
   V(Smi)                                                                       \
   V(StackTrace)                                                                \
   V(SubtypeTestCache)                                                          \
+  V(SuspendState)                                                              \
   V(Type)                                                                      \
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \
@@ -619,6 +620,7 @@ class ObjectCopyBase {
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
+      HANDLE_ILLEGAL_CASE(SuspendState)
       HANDLE_ILLEGAL_CASE(UserTag)
       default:
         return true;

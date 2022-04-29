@@ -1819,7 +1819,7 @@ static void TryAllocateString(Assembler* assembler,
   // negative length: call to runtime to produce error.
   __ tbnz(failure, length_reg, compiler::target::kBitsPerWord - 1);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R0, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, R0));
   __ mov(R6, length_reg);  // Save the length register.
   if (cid == kOneByteStringCid) {
     // Untag length.

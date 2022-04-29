@@ -250,6 +250,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
           MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
           MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
           MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+          MESSAGE_SNAPSHOT_ILLEGAL(SuspendState);
 
         default:
           if (cid >= kNumPredefinedCids) {

@@ -36,6 +36,17 @@ class CallerClosureFinder {
   // we can do this by finding and following their awaited Futures.
   ClosurePtr FindCaller(const Closure& receiver_closure);
 
+  // Find caller closure from a SuspendState of a resumed async function.
+  ClosurePtr FindCallerFromSuspendState(const SuspendState& suspend_state);
+
+  // Returns true if given closure function is a Future callback
+  // corresponding to an async function.
+  bool IsCompactAsyncCallback(const Function& function);
+
+  // Returns SuspendState from the given Future callback which corresponds
+  // to an async function.
+  SuspendStatePtr GetSuspendStateFromAsyncCallback(const Closure& closure);
+
   // Finds the awaited Future from an async function receiver closure.
   ObjectPtr GetAsyncFuture(const Closure& receiver_closure);
 
@@ -64,6 +75,7 @@ class CallerClosureFinder {
   Context& receiver_context_;
   Function& receiver_function_;
   Function& parent_function_;
+  SuspendState& suspend_state_;
 
   Object& context_entry_;
   Object& future_;

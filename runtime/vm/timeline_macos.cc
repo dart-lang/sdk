@@ -12,7 +12,9 @@ namespace dart {
 
 // Only available on iOS 12.0, macOS 10.14 or above
 TimelineEventMacosRecorder::TimelineEventMacosRecorder()
-    : TimelineEventPlatformRecorder() {}
+    : TimelineEventPlatformRecorder() {
+  Timeline::set_recorder_discards_clock_values(true);
+}
 
 TimelineEventMacosRecorder::~TimelineEventMacosRecorder() {}
 

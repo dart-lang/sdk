@@ -83,6 +83,19 @@ namespace dart {
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0x19a1bf41)                         \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x7da2a580)              \
+  V(_SuspendState, get:_future, SuspendState_getFuture, 0x0e2a7e73)            \
+  V(_SuspendState, set:_future, SuspendState_setFuture, 0x179923b0)            \
+  V(_SuspendState, get:_thenCallback, SuspendState_getThenCallback,            \
+    0xff1dccec)                                                                \
+  V(_SuspendState, set:_thenCallback, SuspendState_setThenCallback,            \
+    0x6446bde9)                                                                \
+  V(_SuspendState, get:_errorCallback, SuspendState_getErrorCallback,          \
+    0x8a6eb3cf)                                                                \
+  V(_SuspendState, set:_errorCallback, SuspendState_setErrorCallback,          \
+    0x4935f88c)                                                                \
+  V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
+    0x4add6c13)                                                                \
+  V(_SuspendState, _resume, SuspendState_resume, 0x93d8c5e8)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \

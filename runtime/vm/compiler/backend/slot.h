@@ -73,6 +73,9 @@ class ParsedFunction;
   V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, index,                    \
     TypedDataUint32Array, VAR)                                                 \
   V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
+  V(SuspendState, UntaggedSuspendState, future, Dynamic, VAR)                  \
+  V(SuspendState, UntaggedSuspendState, then_callback, Closure, VAR)           \
+  V(SuspendState, UntaggedSuspendState, error_callback, Closure, VAR)          \
   V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \

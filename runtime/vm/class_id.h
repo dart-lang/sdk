@@ -95,6 +95,7 @@ typedef uint16_t ClassIdTagType;
   V(ReceivePort)                                                               \
   V(SendPort)                                                                  \
   V(StackTrace)                                                                \
+  V(SuspendState)                                                              \
   V(RegExp)                                                                    \
   V(WeakProperty)                                                              \
   V(WeakReference)                                                             \

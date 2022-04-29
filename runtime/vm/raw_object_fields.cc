@@ -191,6 +191,9 @@ namespace dart {
   F(RegExp, two_byte_sticky_)                                                  \
   F(RegExp, external_one_byte_sticky_)                                         \
   F(RegExp, external_two_byte_sticky_)                                         \
+  F(SuspendState, future_)                                                     \
+  F(SuspendState, then_callback_)                                              \
+  F(SuspendState, error_callback_)                                             \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(WeakReference, target_)                                                    \

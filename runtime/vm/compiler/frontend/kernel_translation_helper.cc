@@ -2620,6 +2620,10 @@ void KernelReaderHelper::SkipExpression() {
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
+    case kAwaitExpression:
+      ReadPosition();    // read position.
+      SkipExpression();  // read operand.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:

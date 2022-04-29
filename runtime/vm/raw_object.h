@@ -2249,16 +2249,30 @@ class UntaggedExceptionHandlers : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
-  // Number of exception handler entries.
-  int32_t num_entries_;
+  // Number of exception handler entries and
+  // async handler.
+  uint32_t packed_fields_;
 
-  // Array with [num_entries_] entries. Each entry is an array of all handled
+  // Async handler is used in the async/async* functions.
+  // It's an implicit exception handler (stub) which runs when
+  // exception is not handled within the function.
+  using AsyncHandlerBit = BitField<decltype(packed_fields_), bool, 0, 1>;
+  using NumEntriesBits = BitField<decltype(packed_fields_),
+                                  uint32_t,
+                                  AsyncHandlerBit::kNextBit,
+                                  31>;
+
+  intptr_t num_entries() const {
+    return NumEntriesBits::decode(packed_fields_);
+  }
+
+  // Array with [num_entries] entries. Each entry is an array of all handled
   // exception types.
   COMPRESSED_POINTER_FIELD(ArrayPtr, handled_types_data)
   VISIT_FROM(handled_types_data)
   VISIT_TO(handled_types_data)
 
-  // Exception handler info of length [num_entries_].
+  // Exception handler info of length [num_entries].
   const ExceptionHandlerInfo* data() const {
     OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
   }
@@ -3270,6 +3284,30 @@ class UntaggedStackTrace : public UntaggedInstance {
   // synchronous start to an asynchronous function. In this case, we omit the
   // <asynchronous suspension> marker when concatenating the stacks.
   bool skip_sync_start_in_parent_stack;
+};
+
+class UntaggedSuspendState : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SuspendState);
+
+  intptr_t frame_size_;
+  uword pc_;
+
+  COMPRESSED_POINTER_FIELD(InstancePtr, future)
+  COMPRESSED_POINTER_FIELD(ClosurePtr, then_callback)
+  COMPRESSED_POINTER_FIELD(ClosurePtr, error_callback)
+  VISIT_FROM(future)
+  VISIT_TO(error_callback)
+
+ public:
+  uword pc() const { return pc_; }
+
+  static intptr_t payload_offset() {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload);
+  }
+
+  // Variable length payload follows here.
+  uint8_t* payload() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* payload() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 // VM type for capturing JS regular expressions.

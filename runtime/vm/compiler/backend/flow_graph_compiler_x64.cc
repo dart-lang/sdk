@@ -369,6 +369,15 @@ void FlowGraphCompiler::EmitPrologue() {
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : RAX;
       __ movq(compiler::Address(RBP, slot_index * kWordSize), value_reg);
     }
+  } else if (parsed_function().suspend_state_var() != nullptr) {
+    // Initialize synthetic :suspend_state variable early
+    // as it may be accessed by GC and exception handling before
+    // InitAsync stub is called.
+    const intptr_t slot_index =
+        compiler::target::frame_layout.FrameSlotForVariable(
+            parsed_function().suspend_state_var());
+    __ LoadObject(RAX, Object::null_object());
+    __ movq(compiler::Address(RBP, slot_index * kWordSize), RAX);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -385,10 +394,25 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   }
 }
 
+void FlowGraphCompiler::EmitJumpToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  if (CanPcRelativeCall(stub)) {
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    AddPcRelativeTailCallStubTarget(stub);
+  } else {
+    __ LoadObject(CODE_REG, stub);
+    __ jmp(compiler::FieldAddress(
+        CODE_REG, compiler::target::Code::entry_point_offset()));
+    AddStubCallTarget(stub);
+  }
+}
+
 void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ GenerateUnRelocatedPcRelativeTailCall();
     AddPcRelativeTailCallStubTarget(stub);
 #if defined(DEBUG)
@@ -396,7 +420,9 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
 #endif
   } else {
     __ LoadObject(CODE_REG, stub);
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ jmp(compiler::FieldAddress(
         CODE_REG, compiler::target::Code::entry_point_offset()));
     AddStubCallTarget(stub);
@@ -629,7 +655,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
+  if (function.PrologueNeedsArgumentsDescriptor()) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
     if (!FLAG_precompiled_mode) {

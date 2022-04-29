@@ -814,6 +814,7 @@ class FlowGraphCompiler : public ValueObject {
   void RecordCatchEntryMoves(Environment* env);
 
   void EmitCallToStub(const Code& stub);
+  void EmitJumpToStub(const Code& stub);
   void EmitTailCallToStub(const Code& stub);
 
   // Emits the following metadata for the current PC:

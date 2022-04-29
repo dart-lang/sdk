@@ -301,6 +301,31 @@ void ObjectStore::InitKnownObjects() {
     }
   }
 
+  cls = async_lib.LookupClassAllowPrivate(Symbols::_SuspendState());
+  ASSERT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(thread);
+  ASSERT(error == Error::null());
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_initAsync());
+  ASSERT(!function.IsNull());
+  set_suspend_state_init_async(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_awaitAsync());
+  ASSERT(!function.IsNull());
+  set_suspend_state_await_async(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsync());
+  ASSERT(!function.IsNull());
+  set_suspend_state_return_async(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsyncNotFuture());
+  ASSERT(!function.IsNull());
+  set_suspend_state_return_async_not_future(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_handleException());
+  ASSERT(!function.IsNull());
+  set_suspend_state_handle_exception(function);
+
   const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
   ASSERT(!cls.IsNull());

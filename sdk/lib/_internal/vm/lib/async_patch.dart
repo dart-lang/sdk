@@ -7,7 +7,7 @@
 /// by patches of that library. We plan to change this when we have a shared
 /// front end and simply use parts.
 
-import "dart:_internal" show VMLibraryHooks, patch;
+import "dart:_internal" show VMLibraryHooks, patch, unsafeCast;
 
 /// These are the additional parts of this patch library:
 // part "deferred_load_patch.dart";
@@ -70,8 +70,8 @@ dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
-    dynamic Function(dynamic, StackTrace) errorCallback) {
-  late _Future future;
+    dynamic Function(Object, StackTrace) errorCallback) {
+  _Future future;
   if (object is _Future) {
     future = object;
   } else if (object is! Future) {
@@ -318,3 +318,154 @@ void _completeOnAsyncError(
 
 @pragma("vm:external-name", "AsyncStarMoveNext_debuggerStepCheck")
 external void _moveNextDebuggerStepCheck(Function async_op);
+
+@pragma("vm:entry-point")
+class _SuspendState {
+  static const bool _trace = false;
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _initAsync<T>() {
+    if (_trace) print('_initAsync<$T>');
+    return new _Future<T>();
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:recognized", "other")
+  void _createAsyncCallbacks() {
+    if (_trace) print('_createAsyncCallbacks');
+
+    @pragma("vm:invisible")
+    thenCallback(value) {
+      if (_trace) print('thenCallback (this=$this, value=$value)');
+      _resume(value, null, null);
+    }
+
+    @pragma("vm:invisible")
+    errorCallback(exception, stackTrace) {
+      if (_trace) {
+        print('errorCallback (this=$this, '
+            'exception=$exception, stackTrace=$stackTrace)');
+      }
+      _resume(null, exception, stackTrace);
+    }
+
+    final currentZone = Zone._current;
+    if (identical(currentZone, _rootZone) ||
+        identical(currentZone._registerUnaryCallback,
+            _rootZone._registerUnaryCallback)) {
+      _thenCallback = thenCallback;
+    } else {
+      _thenCallback =
+          currentZone.registerUnaryCallback<dynamic, dynamic>(thenCallback);
+    }
+    if (identical(currentZone, _rootZone) ||
+        identical(currentZone._registerBinaryCallback,
+            _rootZone._registerBinaryCallback)) {
+      _errorCallback = errorCallback;
+    } else {
+      _errorCallback = currentZone
+          .registerBinaryCallback<dynamic, Object, StackTrace>(errorCallback);
+    }
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _awaitAsync(Object? object) {
+    if (_trace) print('_awaitAsync (object=$object)');
+    if (_thenCallback == null) {
+      _createAsyncCallbacks();
+    }
+    _awaitHelper(object, unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+        unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+    return _future;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Future _returnAsync(Object suspendState, Object? returnValue) {
+    if (_trace) {
+      print('_returnAsync (suspendState=$suspendState, '
+          'returnValue=$returnValue)');
+    }
+    _Future future;
+    bool isSync = true;
+    if (suspendState is _SuspendState) {
+      future = suspendState._future;
+    } else {
+      future = unsafeCast<_Future>(suspendState);
+      isSync = false;
+    }
+    _completeOnAsyncReturn(future, returnValue, isSync);
+    return future;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Future _returnAsyncNotFuture(
+      Object suspendState, Object? returnValue) {
+    if (_trace) {
+      print('_returnAsyncNotFuture (suspendState=$suspendState, '
+          'returnValue=$returnValue)');
+    }
+    _Future future;
+    bool isSync = true;
+    if (suspendState is _SuspendState) {
+      future = suspendState._future;
+    } else {
+      future = unsafeCast<_Future>(suspendState);
+      isSync = false;
+    }
+    _completeWithNoFutureOnAsyncReturn(future, returnValue, isSync);
+    return future;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Future _handleException(
+      Object suspendState, Object exception, StackTrace stackTrace) {
+    if (_trace) {
+      print('_handleException (suspendState=$suspendState, '
+          'exception=$exception, stackTrace=$stackTrace)');
+    }
+    _Future future;
+    bool isSync = true;
+    if (suspendState is _SuspendState) {
+      future = suspendState._future;
+    } else {
+      future = unsafeCast<_Future>(suspendState);
+      isSync = false;
+    }
+    _completeOnAsyncError(future, exception, stackTrace, isSync);
+    return future;
+  }
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set _future(_Future value);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external _Future get _future;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set _thenCallback(Function? value);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Function? get _thenCallback;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set _errorCallback(Function value);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Function get _errorCallback;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:never-inline")
+  external void _resume(
+      dynamic value, Object? exception, StackTrace? stackTrace);
+}

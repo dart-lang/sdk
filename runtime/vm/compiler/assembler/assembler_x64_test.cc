@@ -5693,7 +5693,7 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsDwords, assembler) {
   __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
   __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
   __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.
-  __ rep_movsl();
+  __ rep_movsd();
   // Remove saved arguments.
   __ popq(RAX);
   __ popq(RAX);

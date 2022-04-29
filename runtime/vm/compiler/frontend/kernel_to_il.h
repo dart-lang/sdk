@@ -416,6 +416,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Currently only works with equal sizes and floating point <-> integer.
   Fragment BitCast(Representation from, Representation to);
 
+  // Generates Call1ArgStub instruction.
+  Fragment Call1ArgStub(TokenPosition position,
+                        Call1ArgStubInstr::StubId stub_id);
+
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   // Build type argument type checks for the current function.

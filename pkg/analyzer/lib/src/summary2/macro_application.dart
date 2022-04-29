@@ -27,6 +27,10 @@ class LibraryMacroApplier {
 
   final Map<ClassDeclaration, macro.ClassDeclaration> _classDeclarations = {};
 
+  final macro.TypeResolver _typeResolver = _TypeResolver();
+
+  final macro.ClassIntrospector _classIntrospector = _ClassIntrospector();
+
   LibraryMacroApplier(this.macroExecutor, this.libraryBuilder);
 
   Linker get _linker => libraryBuilder.linker;
@@ -49,8 +53,51 @@ class LibraryMacroApplier {
     }
   }
 
+  Future<String?> executeDeclarationsPhase() async {
+    final results = <macro.MacroExecutionResult>[];
+    for (final unitElement in libraryBuilder.element.units) {
+      for (final classElement in unitElement.classes) {
+        classElement as ClassElementImpl;
+        final applications = _applications[classElement];
+        if (applications != null) {
+          for (final application in applications) {
+            if (application.shouldExecute(macro.Phase.declarations)) {
+              await _runWithCatchingExceptions(
+                () async {
+                  final result =
+                      await application.instance.executeDeclarationsPhase(
+                    typeResolver: _typeResolver,
+                    classIntrospector: _classIntrospector,
+                  );
+                  if (result.isNotEmpty) {
+                    results.add(result);
+                  }
+                },
+                annotationIndex: application.annotationIndex,
+                onError: (error) {
+                  classElement.macroApplicationErrors.add(error);
+                },
+              );
+            }
+          }
+        }
+      }
+    }
+
+    if (results.isNotEmpty) {
+      final code = macroExecutor.buildAugmentationLibrary(
+        results,
+        _resolveIdentifier,
+        _inferOmittedType,
+      );
+      return code.trim();
+    }
+    return null;
+  }
+
   Future<String?> executeTypesPhase() async {
     final results = <macro.MacroExecutionResult>[];
+    // TODO(scheglov) Share the elements iteration logic.
     for (final unitElement in libraryBuilder.element.units) {
       for (final classElement in unitElement.classes) {
         classElement as ClassElementImpl;
@@ -121,7 +168,7 @@ class LibraryMacroApplier {
                 className: macroElement.name,
                 constructorName: '', // TODO
                 arguments: arguments,
-                identifierResolver: _FakeIdentifierResolver(),
+                identifierResolver: _IdentifierResolver(),
                 declarationKind: macro.DeclarationKind.clazz,
                 declaration: declaration,
               );
@@ -448,10 +495,45 @@ class _ArgumentEvaluation {
   }
 }
 
-class _FakeIdentifierResolver extends macro.IdentifierResolver {
+class _ClassIntrospector implements macro.ClassIntrospector {
   @override
-  Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
-    // TODO: implement resolveIdentifier
+  Future<List<macro.ConstructorDeclaration>> constructorsOf(
+      covariant macro.ClassDeclaration clazz) {
+    // TODO: implement constructorsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.FieldDeclaration>> fieldsOf(macro.ClassDeclaration clazz) {
+    // TODO: implement fieldsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.ClassDeclaration>> interfacesOf(
+      covariant macro.ClassDeclaration clazz) {
+    // TODO: implement interfacesOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.MethodDeclaration>> methodsOf(
+      covariant macro.ClassDeclaration clazz) {
+    // TODO: implement methodsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.ClassDeclaration>> mixinsOf(
+      covariant macro.ClassDeclaration clazz) {
+    // TODO: implement mixinsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<macro.ClassDeclaration?> superclassOf(
+      covariant macro.ClassDeclaration clazz) {
+    // TODO: implement superclassOf
     throw UnimplementedError();
   }
 }
@@ -459,6 +541,22 @@ class _FakeIdentifierResolver extends macro.IdentifierResolver {
 class _IdentifierImpl extends macro.IdentifierImpl {
   _IdentifierImpl({required int id, required String name})
       : super(id: id, name: name);
+}
+
+class _IdentifierResolver extends macro.IdentifierResolver {
+  @override
+  Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
+    // TODO: implement resolveIdentifier
+    throw UnimplementedError();
+  }
+}
+
+class _TypeResolver implements macro.TypeResolver {
+  @override
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) {
+    // TODO: implement resolve
+    throw UnimplementedError();
+  }
 }
 
 extension on macro.MacroExecutionResult {

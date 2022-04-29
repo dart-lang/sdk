@@ -198,6 +198,14 @@ class StubCodeCompiler : public AllStatic {
                                               bool with_fpu_regs);
 
   static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs);
+
+  static void GenerateSuspendStub(Assembler* assembler,
+                                  intptr_t suspend_entry_point_offset);
+  static void GenerateInitSuspendableFunctionStub(
+      Assembler* assembler,
+      intptr_t init_entry_point_offset);
+  static void GenerateReturnStub(Assembler* assembler,
+                                 intptr_t return_entry_point_offset);
 };
 
 }  // namespace compiler

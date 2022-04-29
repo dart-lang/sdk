@@ -617,6 +617,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
+    case kAwaitExpression:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read operand.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:

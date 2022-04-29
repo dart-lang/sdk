@@ -94,6 +94,15 @@ class MacroClassInstance {
     this._declaration,
   );
 
+  Future<macro.MacroExecutionResult> executeDeclarationsPhase({
+    required macro.TypeResolver typeResolver,
+    required macro.ClassIntrospector classIntrospector,
+  }) async {
+    macro.MacroExecutor executor = _bundleExecutor.macroExecutor;
+    return await executor.executeDeclarationsPhase(_instanceIdentifier,
+        _declaration, _identifierResolver, typeResolver, classIntrospector);
+  }
+
   Future<macro.MacroExecutionResult> executeTypesPhase() async {
     macro.MacroExecutor executor = _bundleExecutor.macroExecutor;
     return await executor.executeTypesPhase(

@@ -335,6 +335,52 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = RAX;
 };
 
+// ABI for SuspendStub (AwaitAsyncStub).
+struct SuspendStubABI {
+  static const Register kArgumentReg = RAX;
+  static const Register kTempReg = RDX;
+  static const Register kFrameSizeReg = RCX;
+  static const Register kSuspendStateReg = RBX;
+  static const Register kFutureReg = R8;
+  static const Register kSrcFrameReg = RSI;
+  static const Register kDstFrameReg = RDI;
+
+  // Number of bytes to skip after
+  // suspend stub return address in order to resume.
+  // X64: mov rsp, rbp; pop rbp; ret
+  static const intptr_t kResumePcDistance = 5;
+};
+
+// ABI for InitSuspendableFunctionStub (InitAsyncStub).
+struct InitSuspendableFunctionStubABI {
+  static const Register kTypeArgsReg = RAX;
+};
+
+// ABI for ResumeStub
+struct ResumeStubABI {
+  static const Register kSuspendStateReg = RBX;
+  static const Register kTempReg = RDX;
+  // Registers for the frame copying (the 1st part).
+  static const Register kFrameSizeReg = RCX;
+  static const Register kSrcFrameReg = RSI;
+  static const Register kDstFrameReg = RDI;
+  // Registers for control transfer.
+  // (the 2nd part, can reuse registers from the 1st part)
+  static const Register kResumePcReg = RCX;
+  static const Register kExceptionReg = RSI;
+  static const Register kStackTraceReg = RDI;
+};
+
+// ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub).
+struct ReturnStubABI {
+  static const Register kSuspendStateReg = RBX;
+};
+
+// ABI for AsyncExceptionHandlerStub.
+struct AsyncExceptionHandlerStubABI {
+  static const Register kSuspendStateReg = RBX;
+};
+
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
 // table calls (though normal functions will not expect or use this
 // register). This ABI is added to distinguish memory corruption errors from

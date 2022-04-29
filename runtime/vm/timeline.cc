@@ -232,10 +232,6 @@ void Timeline::Cleanup() {
   }
 }
 
-TimelineEventRecorder* Timeline::recorder() {
-  return recorder_;
-}
-
 void Timeline::ReclaimCachedBlocksFromThreads() {
   RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -389,6 +385,7 @@ void TimelineEventArguments::Free() {
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
+bool Timeline::recorder_discards_clock_values_ = false;
 
 #define TIMELINE_STREAM_DEFINE(name, fuchsia_name)                             \
   TimelineStream Timeline::stream_##name##_(#name, fuchsia_name, false);
@@ -739,7 +736,7 @@ int64_t TimelineEvent::HighTime() const {
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
-    return OS::GetCurrentMonotonicMicros() - timestamp0_;
+    return OS::GetCurrentMonotonicMicrosForTimeline() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
 }
@@ -1681,7 +1678,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
   ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
          (phase[0] == 'B') || (phase[0] == 'E'));
   ASSERT(phase[1] == '\0');
-  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   const int64_t start_cpu = OS::GetCurrentThreadCPUMicrosForTimeline();
   switch (phase[0]) {
     case 'n':
@@ -1713,7 +1710,7 @@ void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
                                                int64_t type,
                                                int64_t flow_id,
                                                char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   TimelineEvent::EventType event_type =
       static_cast<TimelineEvent::EventType>(type);
   switch (event_type) {
@@ -1739,7 +1736,7 @@ void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
                                                   const char* category,
                                                   char* name,
                                                   char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   event->Instant(name, start);
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

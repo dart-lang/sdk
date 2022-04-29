@@ -59,6 +59,7 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       receiver_context_(Context::Handle(zone)),
       receiver_function_(Function::Handle(zone)),
       parent_function_(Function::Handle(zone)),
+      suspend_state_(SuspendState::Handle(zone)),
       context_entry_(Object::Handle(zone)),
       future_(Object::Handle(zone)),
       listener_(Object::Handle(zone)),
@@ -266,6 +267,12 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   return UnwrapAsyncThen(closure_);
 }
 
+ClosurePtr CallerClosureFinder::FindCallerFromSuspendState(
+    const SuspendState& suspend_state) {
+  future_ = suspend_state.future();
+  return GetCallerInFutureImpl(future_);
+}
+
 ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
   if (closure.IsNull()) return closure.ptr();
 
@@ -280,10 +287,30 @@ ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
   return closure.ptr();
 }
 
+bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
+  parent_function_ = function.parent_function();
+  return parent_function_.recognized_kind() ==
+         MethodRecognizer::kSuspendState_createAsyncCallbacks;
+}
+
+SuspendStatePtr CallerClosureFinder::GetSuspendStateFromAsyncCallback(
+    const Closure& closure) {
+  ASSERT(IsCompactAsyncCallback(Function::Handle(closure.function())));
+  // Async handler only captures the receiver (SuspendState).
+  receiver_context_ = closure.context();
+  RELEASE_ASSERT(receiver_context_.num_variables() == 1);
+  return SuspendState::RawCast(receiver_context_.At(0));
+}
+
 ClosurePtr CallerClosureFinder::FindCallerInternal(
     const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
+
+  if (IsCompactAsyncCallback(receiver_function_)) {
+    suspend_state_ = GetSuspendStateFromAsyncCallback(receiver_closure);
+    return FindCallerFromSuspendState(suspend_state_);
+  }
 
   if (receiver_function_.IsAsyncGenClosure()) {
     return FindCallerInAsyncGenClosure(receiver_context_);
@@ -442,6 +469,21 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     return Closure::null();
   }
 
+  if (function.IsCompactAsyncFunction()) {
+    auto& suspend_state = Object::Handle(
+        zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
+                  frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(
+                                   SuspendState::kSuspendStateVarIndex))));
+    if (suspend_state.IsSuspendState()) {
+      *is_async = true;
+      return caller_closure_finder->FindCallerFromSuspendState(
+          SuspendState::Cast(suspend_state));
+    }
+
+    // Still running the sync part before the first await.
+    return Closure::null();
+  }
+
   if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
     // Next, look up caller's closure on the stack and walk backwards
     // through the yields.
@@ -506,6 +548,7 @@ void StackTraceUtils::UnwindAwaiterChain(
   auto& function = Function::Handle(zone);
   auto& closure = Closure::Handle(zone, leaf_closure.ptr());
   auto& pc_descs = PcDescriptors::Handle(zone);
+  auto& suspend_state = SuspendState::Handle(zone);
 
   // Inject async suspension marker.
   code_array.Add(StubCode::AsynchronousGapMarker());
@@ -518,16 +561,31 @@ void StackTraceUtils::UnwindAwaiterChain(
     if (function.IsNull()) {
       continue;
     }
-    // In hot-reload-test-mode we sometimes have to do this:
-    code = function.EnsureHasCode();
-    RELEASE_ASSERT(!code.IsNull());
-    code_array.Add(code);
-    pc_descs = code.pc_descriptors();
-    const intptr_t pc_offset = FindPcOffset(pc_descs, GetYieldIndex(closure));
-    // Unlike other sources of PC offsets, the offset may be 0 here if we
-    // reach a non-async closure receiving the yielded value.
-    ASSERT(pc_offset >= 0);
-    pc_offset_array->Add(pc_offset);
+    if (caller_closure_finder->IsCompactAsyncCallback(function)) {
+      suspend_state =
+          caller_closure_finder->GetSuspendStateFromAsyncCallback(closure);
+      const uword pc = suspend_state.pc();
+      if (pc == 0) {
+        // Async function is already resumed.
+        continue;
+      }
+      code = suspend_state.GetCodeObject();
+      code_array.Add(code);
+      const uword pc_offset = pc - code.PayloadStart();
+      ASSERT(pc_offset > 0 && pc_offset <= code.Size());
+      pc_offset_array->Add(pc_offset);
+    } else {
+      // In hot-reload-test-mode we sometimes have to do this:
+      code = function.EnsureHasCode();
+      RELEASE_ASSERT(!code.IsNull());
+      code_array.Add(code);
+      pc_descs = code.pc_descriptors();
+      const intptr_t pc_offset = FindPcOffset(pc_descs, GetYieldIndex(closure));
+      // Unlike other sources of PC offsets, the offset may be 0 here if we
+      // reach a non-async closure receiving the yielded value.
+      ASSERT(pc_offset >= 0);
+      pc_offset_array->Add(pc_offset);
+    }
 
     // Inject async suspension marker.
     code_array.Add(StubCode::AsynchronousGapMarker());

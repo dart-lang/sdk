@@ -2373,10 +2373,9 @@ void Assembler::CompareWithCompressedFieldFromOffset(Register value,
   UNIMPLEMENTED();
 }
 
-void Assembler::CompareWithMemoryValue(Register value,
-                                       Address address,
-                                       OperandSize sz) {
-  UNIMPLEMENTED();
+void Assembler::CompareWithMemoryValue(Register value, Address address) {
+  lx(TMP2, address);
+  CompareRegisters(value, TMP2);
 }
 
 void Assembler::CompareFunctionTypeNullabilityWith(Register type,
@@ -2646,6 +2645,22 @@ void Assembler::SetIf(Condition condition, Register rd) {
 
 void Assembler::BranchIfZero(Register rn, Label* label, JumpDistance distance) {
   beqz(rn, label, distance);
+}
+
+void Assembler::BranchIfBit(Register rn,
+                            intptr_t bit_number,
+                            Condition condition,
+                            Label* label,
+                            JumpDistance distance) {
+  ASSERT(rn != TMP2);
+  andi(TMP2, rn, 1 << bit_number);
+  if (condition == ZERO) {
+    beqz(TMP2, label, distance);
+  } else if (condition == NOT_ZERO) {
+    bnez(TMP2, label, distance);
+  } else {
+    UNREACHABLE();
+  }
 }
 
 void Assembler::BranchIfNotSmi(Register reg,
@@ -3923,8 +3938,9 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Label* trace,
                                      Register temp_reg,
-                                     Label* trace) {
+                                     JumpDistance distance) {
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
@@ -3963,7 +3979,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg));
 
     lx(instance_reg, Address(THR, target::Thread::top_offset()));
     lx(temp_reg, Address(THR, target::Thread::end_offset()));
@@ -4003,7 +4019,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp1));
     // Potential new object start.
     lx(instance, Address(THR, target::Thread::top_offset()));
     AddImmediate(end_address, instance, instance_size);
@@ -4029,6 +4045,22 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     j(failure);
   }
+}
+
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  Label loop, done;
+  beqz(size, &done, kNearJump);
+  Bind(&loop);
+  lx(temp, Address(src));
+  addi(src, src, target::kWordSize);
+  sx(temp, Address(dst));
+  addi(dst, dst, target::kWordSize);
+  subi(size, size, target::kWordSize);
+  bnez(size, &loop, kNearJump);
+  Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {

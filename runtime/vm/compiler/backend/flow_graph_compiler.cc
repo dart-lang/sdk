@@ -208,7 +208,8 @@ void FlowGraphCompiler::InitCompiler() {
       new (zone()) CompressedStackMapsBuilder(zone());
   pc_descriptors_list_ = new (zone()) DescriptorList(
       zone(), &code_source_map_builder_->inline_id_to_function());
-  exception_handlers_list_ = new (zone()) ExceptionHandlerList();
+  exception_handlers_list_ =
+      new (zone()) ExceptionHandlerList(parsed_function().function());
 #if defined(DART_PRECOMPILER)
   catch_entry_moves_maps_builder_ = new (zone()) CatchEntryMovesMapBuilder();
 #endif
@@ -1220,7 +1221,7 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
   // to spill slots. The deoptimization environment does not track them.
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
-      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+      function.MakesCopyOfParameters() ? 0 : function.num_fixed_parameters();
   DeoptInfoBuilder builder(zone(), incoming_arg_count, assembler);
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());

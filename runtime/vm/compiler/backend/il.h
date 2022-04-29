@@ -528,6 +528,7 @@ struct InstrAttrs {
   M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
+  M(Call1ArgStub, _)                                                           \
   M(LoadThread, kNoGC)                                                         \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
@@ -3098,6 +3099,8 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   const TokenPosition token_pos_;
   const intptr_t yield_index_;
   const Representation representation_;
+
+  const Code& GetReturnStub(FlowGraphCompiler* compiler) const;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
@@ -9558,6 +9561,42 @@ class SimdOpInstr : public Definition {
   intptr_t mask_;
 
   DISALLOW_COPY_AND_ASSIGN(SimdOpInstr);
+};
+
+// Generic instruction to call 1-argument stubs specified using [StubId].
+class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
+ public:
+  enum class StubId {
+    kInitAsync,
+    kAwaitAsync,
+  };
+
+  Call1ArgStubInstr(const InstructionSource& source,
+                    StubId stub_id,
+                    Value* operand,
+                    intptr_t deopt_id)
+      : TemplateDefinition(source, deopt_id),
+        stub_id_(stub_id),
+        token_pos_(source.token_pos) {
+    SetInputAt(0, operand);
+  }
+
+  Value* operand() const { return inputs_[0]; }
+  StubId stub_id() const { return stub_id_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  virtual bool CanCallDart() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  DECLARE_INSTRUCTION(Call1ArgStub);
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const StubId stub_id_;
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(Call1ArgStubInstr);
 };
 
 #undef DECLARE_INSTRUCTION

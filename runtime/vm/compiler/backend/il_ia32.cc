@@ -116,7 +116,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case 4:
     case 8:
     case 16:
-      __ rep_movsl();
+      __ rep_movsd();
       break;
   }
 
@@ -233,6 +233,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == EAX);
 
+  if (compiler->parsed_function().function().IsCompactAsyncFunction()) {
+    ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
+    const Code& stub = GetReturnStub(compiler);
+    compiler->EmitJumpToStub(stub);
+    return;
+  }
+
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;
@@ -256,7 +263,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
     compiler->EmitYieldPositionMetadata(source(), yield_index());
   }
-  __ LeaveFrame();
+  __ LeaveDartFrame();
   __ ret();
 }
 
@@ -272,8 +279,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return_in_st0 = true;
   }
 
-  // Leave Dart frame.
-  __ LeaveFrame();
+  __ LeaveDartFrame();
 
   // EDI is the only sane choice for a temporary register here because:
   //
@@ -1139,7 +1145,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             compiler::Address(SPREG, marshaller_.RequiredStackSpaceInBytes()));
   } else {
     // Leave dummy exit frame.
-    __ LeaveFrame();
+    __ LeaveDartFrame();
 
     // Instead of returning to the "fake" return address, we just pop it.
     __ popl(temp);

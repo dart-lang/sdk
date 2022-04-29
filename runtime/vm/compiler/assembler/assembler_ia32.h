@@ -297,7 +297,7 @@ class Assembler : public AssemblerBase {
 
   void rep_movsb();
   void rep_movsw();
-  void rep_movsl();
+  void rep_movsd();
 
   void movss(XmmRegister dst, const Address& src);
   void movss(const Address& dst, XmmRegister src);
@@ -587,6 +587,14 @@ class Assembler : public AssemblerBase {
     cmpl(src, Immediate(0));
     j(ZERO, label, distance);
   }
+  void BranchIfBit(Register rn,
+                   intptr_t bit_number,
+                   Condition condition,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
+    testl(rn, Immediate(1 << bit_number));
+    j(condition, label, distance);
+  }
 
   // Arch-specific LoadFromOffset to choose the right operation for [sz].
   void LoadFromOffset(Register dst,
@@ -645,6 +653,9 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kFourBytes) {
     StoreToOffset(src, FieldAddress(base, offset), sz);
   }
+  void StoreZero(const Address& address, Register temp = kNoRegister) {
+    movl(address, Immediate(0));
+  }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
@@ -682,6 +693,10 @@ class Assembler : public AssemblerBase {
     // We don't run TSAN on 32 bit systems.
   }
 
+  void CompareWithMemoryValue(Register value, Address address) {
+    cmpl(value, address);
+  }
+
   void ExtendValue(Register to, Register from, OperandSize sz) override;
   void PushRegister(Register r);
   void PopRegister(Register r);
@@ -699,7 +714,24 @@ class Assembler : public AssemblerBase {
   void AddImmediate(Register reg, int32_t value) {
     AddImmediate(reg, Immediate(value));
   }
+  void AddImmediate(Register dest, Register src, int32_t value);
+  void AddRegisters(Register dest, Register src) {
+    addl(dest, src);
+  }
+
   void SubImmediate(Register reg, const Immediate& imm);
+  void SubRegisters(Register dest, Register src) {
+    subl(dest, src);
+  }
+  void AndImmediate(Register dst, int32_t value) {
+    andl(dst, Immediate(value));
+  }
+  void OrImmediate(Register dst, int32_t value) {
+    orl(dst, Immediate(value));
+  }
+  void LslImmediate(Register dst, int32_t shift) {
+    shll(dst, Immediate(shift));
+  }
 
   void CompareImmediate(Register reg, int32_t immediate) {
     cmpl(reg, Immediate(immediate));
@@ -934,6 +966,10 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label, JumpDistance distance = kFarJump) {
     jmp(label, distance);
   }
+  // Unconditional jump to a given address in register.
+  void Jump(Register target) {
+    jmp(target);
+  }
 
   // Moves one word from the memory at [from] to the memory at [to].
   // Needs a temporary register.
@@ -956,6 +992,7 @@ class Assembler : public AssemblerBase {
   //   L: <code to adjust saved pc if there is any intrinsification code>
   //   .....
   void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -1002,9 +1039,9 @@ class Assembler : public AssemblerBase {
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid,
-                            Register temp_reg,
                             Label* trace,
-                            JumpDistance distance);
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
 
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
@@ -1020,6 +1057,16 @@ class Assembler : public AssemblerBase {
                         Register instance,
                         Register end_address,
                         Register temp);
+
+  // Copy [size] bytes from [src] address to [dst] address.
+  // [size] should be a multiple of word size.
+  // Clobbers [src], [dst], [size] and [temp] registers.
+  // IA32 requires fixed registers for memory copying:
+  // [src] = ESI, [dst] = EDI, [size] = ECX.
+  void CopyMemoryWords(Register src,
+                       Register dst,
+                       Register size,
+                       Register temp = kNoRegister);
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }

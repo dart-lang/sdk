@@ -673,7 +673,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
             Address(EBP, saved_stacktrace_slot_from_fp * target::kWordSize));
   }
 
-  __ LeaveFrame();
+  __ LeaveDartFrame();
   __ popl(EDX);       // Preserve return address.
   __ movl(ESP, EBP);  // Discard optimized frame.
   __ subl(ESP, EAX);  // Reserve space for deoptimized frame.
@@ -706,7 +706,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                   target::kWordSize));
   }
   // Code above cannot cause GC.
-  __ LeaveFrame();
+  __ LeaveDartFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
@@ -730,7 +730,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ popl(EDX);  // Restore exception.
     __ popl(EAX);  // Restore stacktrace.
   }
-  __ LeaveFrame();
+  __ LeaveStubFrame();
 
   __ popl(ECX);       // Pop return address.
   __ addl(ESP, EBX);  // Remove materialization arguments.
@@ -838,9 +838,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ cmpl(AllocateArrayABI::kLengthReg, max_len);
     __ j(ABOVE, &slow_case);
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
-                                           AllocateArrayABI::kResultReg,
-                                           &slow_case, Assembler::kFarJump));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, &slow_case,
+                                           AllocateArrayABI::kResultReg));
 
     const intptr_t fixed_size_plus_alignment_padding =
         target::Array::header_size() +
@@ -1116,8 +1115,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
   __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, EAX, slow_case,
-                                         Assembler::kFarJump));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, slow_case, EAX));
 
   // Now allocate the object.
   // EDX: number of context variables.
@@ -2988,8 +2986,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     Label call_runtime;
     __ pushl(AllocateTypedDataArrayABI::kLengthReg);
 
-    NOT_IN_PRODUCT(
-        __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, ECX));
     __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
     /* Check that length is a positive Smi. */
     /* EDI: requested array length argument. */

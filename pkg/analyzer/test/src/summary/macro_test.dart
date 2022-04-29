@@ -384,6 +384,279 @@ foo: aaabbbccc
     );
   }
 
+  /// TODO(scheglov) Not quite correct - we should not add a synthetic one.
+  /// Fix it when adding actual augmentation libraries.
+  test_declarationsPhase_class_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInClass(
+      DeclarationCode.fromString('A.named(int a);'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        constructors
+          synthetic @-1
+          named @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+''');
+  }
+
+  test_declarationsPhase_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInClass(
+      DeclarationCode.fromString('int foo = 0;'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        fields
+          foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+''');
+  }
+
+  test_declarationsPhase_class_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInClass(
+      DeclarationCode.fromString('int get foo => 0;'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @-1
+            returnType: int
+''');
+  }
+
+  test_declarationsPhase_class_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInClass(
+      DeclarationCode.fromString('int foo(double a) => 0;'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        constructors
+          synthetic @-1
+        methods
+          foo @-1
+            parameters
+              requiredPositional a @-1
+                type: double
+            returnType: int
+''');
+  }
+
+  test_declarationsPhase_class_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInClass(
+      DeclarationCode.fromString('set foo(int a) {}'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::•
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set foo @-1
+            parameters
+              requiredPositional a @-1
+                type: int
+            returnType: void
+''');
+  }
+
   test_introspect_types_ClassDeclaration_interfaces() async {
     await _assertTypesPhaseIntrospectionText(r'''
 class A implements B, C<int, String> {}
@@ -535,7 +808,38 @@ class A
 ''');
   }
 
-  test_macroApplicationErrors_compileTimeError() async {
+  test_macroApplicationErrors_declarationsPhase_throwsException() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    throw 'foo bar';
+  }
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    final A = library.getType('A') as ClassElementImpl;
+    final error = A.macroApplicationErrors.single;
+    error as UnknownMacroApplicationError;
+
+    expect(error.annotationIndex, 0);
+    expect(error.message, 'foo bar');
+    expect(error.stackTrace, contains('MyMacro.buildDeclarationsForClass'));
+  }
+
+  test_macroApplicationErrors_typedPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
@@ -564,7 +868,7 @@ class A {}
     expect(error.stackTrace, contains('executeTypesMacro'));
   }
 
-  test_macroApplicationErrors_throwsException() async {
+  test_macroApplicationErrors_typesPhase_throwsException() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 

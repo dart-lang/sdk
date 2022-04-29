@@ -3241,6 +3241,7 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(MirrorReference)
     ILLEGAL(ReceivePort)
     ILLEGAL(StackTrace)
+    ILLEGAL(SuspendState)
     ILLEGAL(UserTag)
 
     // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since

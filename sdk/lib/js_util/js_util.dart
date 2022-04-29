@@ -285,6 +285,90 @@ T _callConstructorUnchecked4<T>(
       'Object', 'new #(#, #, #, #)', constr, arg1, arg2, arg3, arg4);
 }
 
+/// Perform JavaScript addition (`+`) on two values.
+@pragma('dart2js:tryInline')
+T add<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object', '# + #', first, second);
+}
+
+/// Perform JavaScript subtraction (`-`) on two values.
+@pragma('dart2js:tryInline')
+T subtract<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object', '# - #', first, second);
+}
+
+/// Perform JavaScript multiplication (`*`) on two values.
+@pragma('dart2js:tryInline')
+T multiply<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object', '# * #', first, second);
+}
+
+/// Perform JavaScript division (`/`) on two values.
+@pragma('dart2js:tryInline')
+T divide<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object', '# / #', first, second);
+}
+
+/// Perform JavaScript exponentiation (`**`) on two values.
+@pragma('dart2js:tryInline')
+T exponentiate<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object', '# ** #', first, second);
+}
+
+/// Perform JavaScript remainder (`%`) on two values.
+@pragma('dart2js:tryInline')
+T modulo<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object', '# % #', first, second);
+}
+
+/// Perform JavaScript equality comparison (`==`) on two values.
+@pragma('dart2js:tryInline')
+bool equal<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# == #', first, second);
+}
+
+/// Perform JavaScript strict equality comparison (`===`) on two values.
+@pragma('dart2js:tryInline')
+bool strictEqual<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# === #', first, second);
+}
+
+/// Perform JavaScript inequality comparison (`!=`) on two values.
+@pragma('dart2js:tryInline')
+bool notEqual<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# != #', first, second);
+}
+
+/// Perform JavaScript strict inequality comparison (`!==`) on two values.
+@pragma('dart2js:tryInline')
+bool strictNotEqual<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# !== #', first, second);
+}
+
+/// Perform JavaScript greater than comparison (`>`) of two values.
+@pragma('dart2js:tryInline')
+bool greaterThan<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# > #', first, second);
+}
+
+/// Perform JavaScript greater than or equal comparison (`>=`) of two values.
+@pragma('dart2js:tryInline')
+bool greaterThanOrEqual<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# >= #', first, second);
+}
+
+/// Perform JavaScript less than comparison (`<`) of two values.
+@pragma('dart2js:tryInline')
+bool lessThan<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# < #', first, second);
+}
+
+/// Perform JavaScript less than or equal comparison (`<=`) of two values.
+@pragma('dart2js:tryInline')
+bool lessThanOrEqual<T>(Object? first, Object? second) {
+  return JS<bool>('bool', '# <= #', first, second);
+}
+
 /// Exception for when the promise is rejected with a `null` or `undefined`
 /// value.
 ///

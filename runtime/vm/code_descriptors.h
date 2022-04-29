@@ -76,7 +76,8 @@ class ExceptionHandlerList : public ZoneAllocated {
     bool needs_stacktrace;
   };
 
-  ExceptionHandlerList() : list_() {}
+  explicit ExceptionHandlerList(const Function& function)
+      : list_(), has_async_handler_(function.IsCompactAsyncFunction()) {}
 
   intptr_t Length() const { return list_.length(); }
 
@@ -137,6 +138,7 @@ class ExceptionHandlerList : public ZoneAllocated {
 
  private:
   GrowableArray<struct HandlerDesc> list_;
+  const bool has_async_handler_;
   DISALLOW_COPY_AND_ASSIGN(ExceptionHandlerList);
 };
 

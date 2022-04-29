@@ -647,9 +647,9 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
       LocalVariable* variable = pf.ParameterVariable(i);
       if (variable->is_captured()) {
         LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
-        ASSERT((function.HasOptionalParameters() &&
+        ASSERT((function.MakesCopyOfParameters() &&
                 raw_parameter.owner() == scope) ||
-               (!function.HasOptionalParameters() &&
+               (!function.MakesCopyOfParameters() &&
                 raw_parameter.owner() == nullptr));
         ASSERT(!raw_parameter.is_captured());
 
@@ -662,6 +662,28 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
       }
     }
     body += Drop();  // The context.
+  }
+  return body;
+}
+
+Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
+    const Function& dart_function) {
+  Fragment body;
+  if (dart_function.IsCompactAsyncFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (Class::Handle(Z, result_type.type_class()).IsFutureClass() ||
+         result_type.IsFutureOrType())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitAsync);
+    body += Drop();
   }
   return body;
 }
@@ -885,6 +907,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // objects than necessary during GC.
   const Fragment body =
       ClearRawParameters(dart_function) + B->BuildNullAssertions() +
+      InitSuspendableFunction(dart_function) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style = ChooseEntryPointStyle(
@@ -1220,6 +1243,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildLibraryPrefixAction(position, Symbols::LoadLibrary());
     case kCheckLibraryIsLoaded:
       return BuildLibraryPrefixAction(position, Symbols::CheckLoaded());
+    case kAwaitExpression:
+      return BuildAwaitExpression(position);
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -1440,6 +1465,10 @@ StreamingFlowGraphBuilder::yield_continuations() {
 
 Value* StreamingFlowGraphBuilder::stack() {
   return flow_graph_builder_->stack_;
+}
+
+void StreamingFlowGraphBuilder::set_stack(Value* top) {
+  flow_graph_builder_->stack_ = top;
 }
 
 void StreamingFlowGraphBuilder::Push(Definition* definition) {
@@ -4291,6 +4320,20 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
+    TokenPosition* position) {
+  ASSERT(parsed_function()->function().IsCompactAsyncFunction());
+  Fragment instructions;
+
+  const TokenPosition pos = ReadPosition();  // read file offset.
+  if (position != nullptr) *position = pos;
+
+  instructions += BuildExpression();  // read operand.
+
+  instructions += B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kAwaitAsync);
+  return instructions;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildExpressionStatement(
     TokenPosition* position) {
   Fragment instructions = BuildExpression(position);  // read expression.
@@ -4468,7 +4511,6 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement(
 
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
     TokenPosition* position) {
-  ASSERT(block_expression_depth() == 0);  // no while in block-expr
   loop_depth_inc();
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
@@ -4485,8 +4527,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
     body_entry += Goto(join);
 
     Fragment loop(join);
-    ASSERT(B->GetStackDepth() == 0);
-    loop += CheckStackOverflow(pos);
+    loop += CheckStackOverflow(pos);  // may have non-empty stack
     loop.current->LinkTo(condition.entry);
 
     entry = Goto(join).entry;
@@ -4499,7 +4540,6 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDoStatement(TokenPosition* position) {
-  ASSERT(block_expression_depth() == 0);  // no do-while in block-expr
   loop_depth_inc();
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
@@ -4516,8 +4556,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement(TokenPosition* position) {
 
   JoinEntryInstr* join = BuildJoinEntry();
   Fragment loop(join);
-  ASSERT(B->GetStackDepth() == 0);
-  loop += CheckStackOverflow(pos);
+  loop += CheckStackOverflow(pos);  // may have non-empty stack
   loop += body;
   loop <<= condition.entry;
 
@@ -5089,7 +5128,6 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
-  ASSERT(block_expression_depth() == 0);  // no try-finally in block-expr
   // Note on streaming:
   // We only stream this TryFinally if we can stream everything inside it,
   // so creating a "TryFinallyBlock" with a kernel binary offset instead of an
@@ -5152,6 +5190,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
 
   // Fill in the body of the catch.
   catch_depth_inc();
+
   const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
   handler_types.SetAt(0, Object::dynamic_type());
   // Note: rethrow will actually force mark the handler as needing a stacktrace.
@@ -5159,6 +5198,15 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
                                           /* needs_stacktrace = */ false,
                                           /* is_synthesized = */ true);
   SetOffset(finalizer_offset);
+
+  // Try/finally might occur in control flow collections with non-empty
+  // expression stack (via desugaring of 'await for'). Note that catch-block
+  // generated for finally always throws so there is no merge.
+  // Save and reset expression stack around catch body in order to maintain
+  // correct stack depth, as catch entry drops expression stack.
+  Value* const saved_stack_top = stack();
+  set_stack(nullptr);
+
   finally_body += BuildStatementWithBranchCoverage();  // read finalizer
   if (finally_body.is_open()) {
     finally_body += LoadLocal(CurrentException());
@@ -5167,6 +5215,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
         RethrowException(TokenPosition::kNoSource, try_handler_index);
     Drop();
   }
+
+  ASSERT(stack() == nullptr);
+  set_stack(saved_stack_top);
   catch_depth_dec();
 
   return Fragment(try_body.entry, after_try);
@@ -5416,36 +5467,53 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           lib.AddMetadata(function, func_decl_offset);
         }
 
-        function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                   FunctionNodeHelper::kSync);
-        switch (function_node_helper.dart_async_marker_) {
-          case FunctionNodeHelper::kSyncStar:
-            function.set_modifier(UntaggedFunction::kSyncGen);
-            break;
-          case FunctionNodeHelper::kAsync:
-            function.set_modifier(UntaggedFunction::kAsync);
-            break;
-          case FunctionNodeHelper::kAsyncStar:
-            function.set_modifier(UntaggedFunction::kAsyncGen);
-            break;
-          default:
-            // no special modifier
-            break;
-        }
-        function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                       FunctionNodeHelper::kSyncYielding);
-        // sync* functions contain two nested synthetic functions, the first of
-        // which (sync_op_gen) is a regular sync function so we need to manually
-        // label it generated:
-        if (function.parent_function() != Function::null()) {
-          const auto& parent = Function::Handle(function.parent_function());
-          if (parent.IsSyncGenerator()) {
-            function.set_is_generated_body(true);
+        if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
+          if (!FLAG_precompiled_mode) {
+            FATAL("Compact async functions are only supported in AOT mode.");
           }
-        }
-        // Note: Is..() methods use the modifiers set above, so order matters.
-        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          function.set_is_inlinable(!FLAG_lazy_async_stacks);
+          function.set_modifier(UntaggedFunction::kAsync);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactAsyncFunction());
+        } else {
+          ASSERT((function_node_helper.async_marker_ ==
+                  FunctionNodeHelper::kSync) ||
+                 (function_node_helper.async_marker_ ==
+                  FunctionNodeHelper::kSyncYielding));
+          function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                                     FunctionNodeHelper::kSync);
+          switch (function_node_helper.dart_async_marker_) {
+            case FunctionNodeHelper::kSyncStar:
+              function.set_modifier(UntaggedFunction::kSyncGen);
+              break;
+            case FunctionNodeHelper::kAsync:
+              function.set_modifier(UntaggedFunction::kAsync);
+              break;
+            case FunctionNodeHelper::kAsyncStar:
+              function.set_modifier(UntaggedFunction::kAsyncGen);
+              break;
+            default:
+              // no special modifier
+              break;
+          }
+          function.set_is_generated_body(function_node_helper.async_marker_ ==
+                                         FunctionNodeHelper::kSyncYielding);
+          // sync* functions contain two nested synthetic functions,
+          // the first of which (sync_op_gen) is a regular sync function so we
+          // need to manually label it generated:
+          if (function.parent_function() != Function::null()) {
+            const auto& parent = Function::Handle(function.parent_function());
+            if (parent.IsSyncGenerator()) {
+              function.set_is_generated_body(true);
+            }
+          }
+          // Note: Is..() methods use the modifiers set above, so order
+          // matters.
+          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+            function.set_is_inlinable(!FLAG_lazy_async_stacks);
+          }
+          ASSERT(!function.IsCompactAsyncFunction());
         }
 
         // If the start token position is synthetic, the end token position
