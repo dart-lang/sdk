@@ -83,6 +83,7 @@ class Translator {
   late final Class growableListClass;
   late final Class immutableListClass;
   late final Class immutableMapClass;
+  late final Class immutableSetClass;
   late final Class hashFieldBaseClass;
   late final Class stringBaseClass;
   late final Class oneByteStringClass;
@@ -105,7 +106,9 @@ class Translator {
   late final Procedure throwWasmRefError;
   late final Procedure mapFactory;
   late final Procedure mapPut;
-  late final Procedure immutableMapIndexNullable;
+  late final Procedure setFactory;
+  late final Procedure setAdd;
+  late final Procedure hashImmutableIndexNullable;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -183,6 +186,7 @@ class Translator {
     growableListClass = lookupCore("_GrowableList");
     immutableListClass = lookupCore("_ImmutableList");
     immutableMapClass = lookupCollection("_WasmImmutableLinkedHashMap");
+    immutableSetClass = lookupCollection("_WasmImmutableLinkedHashSet");
     hashFieldBaseClass = lookupCollection("_HashFieldBase");
     stringBaseClass = lookupCore("_StringBase");
     oneByteStringClass = lookupCore("_OneByteString");
@@ -216,7 +220,13 @@ class Translator {
         .superclass! // _LinkedHashMapMixin<K, V>
         .procedures
         .firstWhere((p) => p.name.text == "[]=");
-    immutableMapIndexNullable = lookupCollection("_HashAbstractImmutableBase")
+    setFactory = lookupCollection("LinkedHashSet").procedures.firstWhere(
+        (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
+    setAdd = lookupCollection("_CompactLinkedCustomHashSet")
+        .superclass! // _LinkedHashSetMixin<K, V>
+        .procedures
+        .firstWhere((p) => p.name.text == "add");
+    hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
         .procedures
         .firstWhere((p) => p.name.text == "_indexNullable");
     builtinTypes = {

@@ -1976,6 +1976,34 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
+  w.ValueType visitSetLiteral(SetLiteral node, w.ValueType expectedType) {
+    w.BaseFunction setFactory =
+        translator.functions.getFunction(translator.setFactory.reference);
+    w.ValueType factoryReturnType = setFactory.type.outputs.single;
+    types.makeType(this, node.typeArgument, node);
+    b.call(setFactory);
+    if (node.expressions.isEmpty) {
+      return factoryReturnType;
+    }
+    w.BaseFunction setAdd =
+        translator.functions.getFunction(translator.setAdd.reference);
+    w.ValueType addReceiverType = setAdd.type.inputs[0];
+    w.ValueType addKeyType = setAdd.type.inputs[1];
+    w.Local setLocal = addLocal(addReceiverType);
+    translator.convertType(function, factoryReturnType, setLocal.type);
+    b.local_set(setLocal);
+    for (Expression element in node.expressions) {
+      b.local_get(setLocal);
+      translator.convertType(function, setLocal.type, addReceiverType);
+      wrap(element, addKeyType);
+      b.call(setAdd);
+      b.drop();
+    }
+    b.local_get(setLocal);
+    return setLocal.type;
+  }
+
+  @override
   w.ValueType visitTypeLiteral(TypeLiteral node, w.ValueType expectedType) {
     return types.makeType(this, node.type, node);
   }

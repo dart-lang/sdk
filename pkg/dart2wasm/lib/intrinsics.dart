@@ -168,7 +168,7 @@ class Intrinsifier {
     }
 
     // _HashAbstractImmutableBase._indexNullable
-    if (target == translator.immutableMapIndexNullable) {
+    if (target == translator.hashImmutableIndexNullable) {
       ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
       codeGen.wrap(receiver, info.nullableType);
       b.struct_get(info.struct, FieldIndex.hashBaseIndex);

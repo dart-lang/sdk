@@ -596,13 +596,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, (function, b) {
-      // This computation of the hash mask follows the computations in
-      // [_ImmutableLinkedHashMapMixin._createIndex] and
-      // [_HashBase._indexSizeToHashMask].
-      const int initialIndexSize = 8;
-      final int indexSize = max(dataElements.length, initialIndexSize);
-      final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
-
       w.RefType indexType =
           info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
       w.RefType dataType =
@@ -611,7 +604,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.ref_null(indexType.heapType); // _index
-      b.i64_const(hashMask); // _hashMask
+      b.i64_const(_computeHashMask(constant.entries.length)); // _hashMask
       constants.instantiateConstant(function, b, dataList, dataType); // _data
       b.i64_const(dataElements.length); // _usedData
       b.i64_const(0); // _deletedKeys
@@ -621,6 +614,46 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           function, b, valueTypeConstant, constants.typeInfo.nullableType);
       translator.struct_new(b, info);
     });
+  }
+
+  @override
+  ConstantInfo? visitSetConstant(SetConstant constant) {
+    Constant elementTypeConstant = TypeLiteralConstant(constant.typeArgument);
+    ensureConstant(elementTypeConstant);
+    ListConstant dataList = ListConstant(const DynamicType(), constant.entries);
+    ensureConstant(dataList);
+
+    ClassInfo info = translator.classInfo[translator.immutableSetClass]!;
+    translator.functions.allocateClass(info.classId);
+    w.RefType type = info.nonNullableType;
+    return createConstant(constant, type, (function, b) {
+      w.RefType indexType =
+          info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
+      w.RefType dataType =
+          info.struct.fields[FieldIndex.hashBaseData].type as w.RefType;
+
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      b.ref_null(indexType.heapType); // _index
+      b.i64_const(_computeHashMask(constant.entries.length)); // _hashMask
+      constants.instantiateConstant(function, b, dataList, dataType); // _data
+      b.i64_const(constant.entries.length); // _usedData
+      b.i64_const(0); // _deletedKeys
+      constants.instantiateConstant(
+          function, b, elementTypeConstant, constants.typeInfo.nullableType);
+      translator.struct_new(b, info);
+    });
+  }
+
+  int _computeHashMask(int entries) {
+    // This computation of the hash mask follows the computations in
+    // [_ImmutableLinkedHashMapMixin._createIndex],
+    // [_ImmutableLinkedHashSetMixin._createIndex] and
+    // [_HashBase._indexSizeToHashMask].
+    const int initialIndexSize = 8;
+    final int indexSize = max(entries * 2, initialIndexSize);
+    final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
+    return hashMask;
   }
 
   @override
