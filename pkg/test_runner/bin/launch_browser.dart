@@ -35,7 +35,6 @@ void main(List<String> arguments) {
   var configuration = TestConfiguration(
       configuration: Configuration(
           "dummy-configuration", null, null, null, runtime, null));
-  var executable = configuration.browserLocation;
-  var browser = Browser.byRuntime(runtime, executable);
+  var browser = Browser.fromConfiguration(configuration);
   browser.start(arguments[1]);
 }

@@ -297,9 +297,6 @@ class TestConfiguration {
       case Runtime.firefox:
         location = firefoxPath;
         break;
-      case Runtime.safari:
-        location = safariPath;
-        break;
     }
 
     if (location != null) return location;
@@ -316,9 +313,6 @@ class TestConfiguration {
         System.mac:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         System.linux: 'google-chrome'
-      },
-      Runtime.safari: {
-        System.mac: '/Applications/Safari.app/Contents/MacOS/Safari'
       },
       Runtime.ie9: {
         System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
