@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/verifier.dart';
 
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -62,6 +63,12 @@ Future<Uint8List?> compileToModule(
       treeShakeSignatures: true,
       treeShakeWriteOnlyFields: true,
       useRapidTypeAnalysis: false);
+
+  assert(() {
+    verifyComponent(component,
+        afterConst: true, constantsAreAlwaysInlined: true);
+    return true;
+  }());
 
   var translator = Translator(component, coreTypes,
       TypeEnvironment(coreTypes, compilerResult.classHierarchy!), options);
