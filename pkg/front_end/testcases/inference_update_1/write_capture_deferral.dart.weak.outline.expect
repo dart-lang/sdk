@@ -14,7 +14,15 @@ class C extends self::B {
 }
 static method withUnnamedArguments(core::int? i, (() → void, core::Object?) → void f) → dynamic
   ;
+static method withUnnamedArgumentsParenthesized(core::int? i, (() → void, core::Object?) → void f) → dynamic
+  ;
+static method withUnnamedArgumentsParenthesizedTwice(core::int? i, (() → void, core::Object?) → void f) → dynamic
+  ;
 static method withNamedArguments(core::int? i, ({required g: () → void, x: core::Object?}) → void f) → dynamic
+  ;
+static method withNamedArgumentsParenthesized(core::int? i, ({required g: () → void, x: core::Object?}) → void f) → dynamic
+  ;
+static method withNamedArgumentsParenthesizedTwice(core::int? i, ({required g: () → void, x: core::Object?}) → void f) → dynamic
   ;
 static method withIdentical_lhs(core::int? i) → dynamic
   ;
