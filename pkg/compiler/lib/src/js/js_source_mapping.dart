@@ -10,7 +10,7 @@ import '../io/code_output.dart'
     show BufferedCodeOutput, SourceLocations, SourceLocationsProvider;
 import '../io/source_information.dart'
     show SourceLocation, SourceInformation, SourceInformationStrategy;
-import 'js.dart';
+import 'js.dart' show Node;
 
 /// [SourceInformationStrategy] that can associate source information with
 /// JavaScript output.
