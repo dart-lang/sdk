@@ -533,10 +533,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         break;
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
-        problem(
-            node,
-            "Return statement in function with async marker: "
-            "$currentAsyncMarker");
+        if (node.expression != null) {
+          problem(
+              node,
+              "Return statement in function with async marker: "
+              "$currentAsyncMarker");
+        }
         break;
     }
     super.visitReturnStatement(node);

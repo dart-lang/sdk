@@ -1096,6 +1096,9 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
 
+  @pragma("wasm:entry-point")
+  bool add(E key);
+
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
 
