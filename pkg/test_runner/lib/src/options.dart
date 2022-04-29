@@ -302,8 +302,6 @@ used for browsers to connect to.''',
     _Option.int('test_server_cross_origin_port',
         'Port for test http server cross origin.',
         defaultsTo: 0, hide: true),
-    _Option.int('test_driver_port', 'Port for http test driver server.',
-        defaultsTo: 0, hide: true),
     _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),

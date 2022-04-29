@@ -19,6 +19,8 @@ dependencies:
     path: ../smith
   status_file:
     path: ../status_file
+  webdriver:
+    path: ../../third_party/pkg/webdriver
 dev_dependencies:
   analyzer:
     path: ../../pkg/analyzer
