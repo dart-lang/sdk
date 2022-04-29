@@ -540,7 +540,7 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
-      compactAsync: options['compact-async'] ?? false /*options['aot']*/,
+      compactAsync: options['compact-async'] ?? options['aot'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
