@@ -89,6 +89,14 @@ class Translator {
   late final Class oneByteStringClass;
   late final Class twoByteStringClass;
   late final Class typeClass;
+  late final Class neverTypeClass;
+  late final Class dynamicTypeClass;
+  late final Class voidTypeClass;
+  late final Class nullTypeClass;
+  late final Class futureOrTypeClass;
+  late final Class interfaceTypeClass;
+  late final Class functionTypeClass;
+  late final Class genericFunctionTypeClass;
   late final Class stackTraceClass;
   late final Class ffiCompoundClass;
   late final Class ffiPointerClass;
@@ -97,6 +105,7 @@ class Translator {
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
   late final Class typeErrorClass;
+  late final Class typeUniverseClass;
   late final Procedure wasmFunctionCall;
   late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
@@ -109,6 +118,8 @@ class Translator {
   late final Procedure setFactory;
   late final Procedure setAdd;
   late final Procedure hashImmutableIndexNullable;
+  // TODO(joshualitt): Wire up runtime type checks.
+  late final Procedure isSubtype;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -157,6 +168,7 @@ class Translator {
     classInfoCollector = ClassInfoCollector(this);
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
+    types = Types(this);
 
     Class Function(String) makeLookup(String libraryName) {
       Library library =
@@ -192,7 +204,16 @@ class Translator {
     oneByteStringClass = lookupCore("_OneByteString");
     twoByteStringClass = lookupCore("_TwoByteString");
     typeClass = lookupCore("_Type");
+    neverTypeClass = lookupCore("_NeverType");
+    dynamicTypeClass = lookupCore("_DynamicType");
+    voidTypeClass = lookupCore("_VoidType");
+    nullTypeClass = lookupCore("_NullType");
+    futureOrTypeClass = lookupCore("_FutureOrType");
+    interfaceTypeClass = lookupCore("_InterfaceType");
+    functionTypeClass = lookupCore("_FunctionType");
+    genericFunctionTypeClass = lookupCore("_GenericFunctionType");
     stackTraceClass = lookupCore("StackTrace");
+    typeUniverseClass = lookupCore("_TypeUniverse");
     ffiCompoundClass = lookupFfi("_Compound");
     ffiPointerClass = lookupFfi("Pointer");
     typeErrorClass = lookupCore("_TypeError");
@@ -229,6 +250,10 @@ class Translator {
     hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
         .procedures
         .firstWhere((p) => p.name.text == "_indexNullable");
+    isSubtype = component.libraries
+        .firstWhere((l) => l.name == "dart.core")
+        .procedures
+        .firstWhere((p) => p.name.text == "_isSubtype");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
@@ -271,7 +296,6 @@ class Translator {
 
     globals = Globals(this);
     constants = Constants(this);
-    types = Types(this);
 
     dispatchTable.build();
 

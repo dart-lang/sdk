@@ -16,10 +16,46 @@ class Types {
 
   Types(this.translator);
 
-  List<Class> _getConcreteSubtypes(Class cls) => translator.subtypes
-      .getSubtypesOf(cls)
-      .where((c) => !c.isAbstract)
-      .toList();
+  Iterable<Class> _getConcreteSubtypes(Class cls) =>
+      translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
+
+  /// Build a [Map<int, List<int>>] to store subtype information.
+  Map<int, List<int>> _buildSubtypeMap() {
+    List<ClassInfo> classes = translator.classes;
+    Map<int, List<int>> subtypeMap = {};
+    for (ClassInfo classInfo in classes) {
+      if (classInfo.cls == null) continue;
+      List<int> classIds = _getConcreteSubtypes(classInfo.cls!)
+          .map((cls) => translator.classInfo[cls]!.classId)
+          .where((classId) => classId != classInfo.classId)
+          .toList();
+
+      if (classIds.isEmpty) continue;
+      subtypeMap[classInfo.classId] = classIds;
+    }
+    return subtypeMap;
+  }
+
+  /// Builds the subtype map and pushes it onto the stack.
+  w.ValueType makeSubtypeMap(w.Instructions b) {
+    // Instantiate subtype map constant.
+    Map<int, List<int>> subtypeMap = _buildSubtypeMap();
+    ClassInfo immutableMapInfo =
+        translator.classInfo[translator.immutableMapClass]!;
+    w.ValueType expectedType = immutableMapInfo.nonNullableType;
+    DartType mapAndSetKeyType = translator.coreTypes.intNonNullableRawType;
+    DartType mapValueType = InterfaceType(translator.immutableListClass,
+        Nullability.nonNullable, [mapAndSetKeyType]);
+    List<ConstantMapEntry> entries = subtypeMap.entries.map((mapEntry) {
+      return ConstantMapEntry(
+          IntConstant(mapEntry.key),
+          ListConstant(mapAndSetKeyType,
+              mapEntry.value.map((i) => IntConstant(i)).toList()));
+    }).toList();
+    translator.constants.instantiateConstant(null, b,
+        MapConstant(mapAndSetKeyType, mapValueType, entries), expectedType);
+    return expectedType;
+  }
 
   bool _isTypeConstant(DartType type) {
     return type is DynamicType ||
@@ -30,7 +66,32 @@ class Types {
         type is InterfaceType && type.typeArguments.every(_isTypeConstant);
   }
 
+  Class classForType(DartType type) {
+    if (type is DynamicType) {
+      return translator.dynamicTypeClass;
+    } else if (type is VoidType) {
+      return translator.voidTypeClass;
+    } else if (type is NeverType) {
+      return translator.neverTypeClass;
+    } else if (type is NullType) {
+      return translator.nullTypeClass;
+    } else if (type is FutureOrType) {
+      return translator.futureOrTypeClass;
+    } else if (type is InterfaceType) {
+      return translator.interfaceTypeClass;
+    } else if (type is FunctionType) {
+      if (type.typeParameters.isEmpty) {
+        return translator.functionTypeClass;
+      } else {
+        return translator.genericFunctionTypeClass;
+      }
+    }
+    throw "Unexpected DartType: $type";
+  }
+
   /// Makes a `_Type` object on the stack.
+  /// TODO(joshualitt): Refactor this logic to remove the dependency on
+  /// CodeGenerator.
   w.ValueType makeType(CodeGenerator codeGen, DartType type, TreeNode node) {
     w.ValueType typeType =
         translator.classInfo[translator.typeClass]!.nullableType;
@@ -62,23 +123,25 @@ class Types {
       b.struct_get(info.struct, fieldIndex);
       return typeType;
     }
-    ClassInfo info = translator.classInfo[translator.typeClass]!;
+    ClassInfo info = translator.classInfo[classForType(type)]!;
     translator.functions.allocateClass(info.classId);
-    if (type is FutureOrType) {
-      // TODO(askesc): Have an actual representation of FutureOr types
-      b.ref_null(info.nullableType.heapType);
-      return info.nullableType;
-    }
     if (type is! InterfaceType) {
-      codeGen.unimplemented(node, type, [info.nullableType]);
-      return info.nullableType;
+      if (type is FutureOrType || type is FunctionType) {
+        // TODO(joshualitt): Finish RTI.
+        print("Not implemented: RTI ${type}");
+      }
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      translator.struct_new(b, info);
+      return info.nonNullableType;
     }
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     w.ValueType typeListExpectedType =
-        info.struct.fields[FieldIndex.typeTypeArguments].type.unpacked;
+        info.struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     b.i64_const(typeInfo.classId);
+    b.i32_const(isNullable(type) ? 1 : 0);
     w.DefinedFunction function = codeGen.function;
     if (type.typeArguments.isEmpty) {
       b.global_get(translator.constants.emptyTypeList);
@@ -99,11 +162,12 @@ class Types {
       translator.convertType(function, listType, typeListExpectedType);
     }
     translator.struct_new(b, info);
-    return info.nullableType;
+    return info.nonNullableType;
   }
 
   /// Test value against a Dart type. Expects the value on the stack as a
   /// (ref null #Top) and leaves the result on the stack as an i32.
+  /// TODO(joshualitt): Remove dependency on [CodeGenerator]
   void emitTypeTest(CodeGenerator codeGen, DartType type, DartType operandType,
       TreeNode node) {
     w.Instructions b = codeGen.b;
@@ -115,9 +179,9 @@ class Types {
       b.i32_const(1);
       return;
     }
-    bool isNullable = operandType.isPotentiallyNullable;
+    bool isPotentiallyNullable = operandType.isPotentiallyNullable;
     w.Label? resultLabel;
-    if (isNullable) {
+    if (isPotentiallyNullable) {
       // Store operand in a temporary variable, since Binaryen does not support
       // block inputs.
       w.Local operand = codeGen.addLocal(translator.topInfo.nullableType);
@@ -140,7 +204,7 @@ class Types {
             " at ${node.location}");
       }
     }
-    List<Class> concrete = _getConcreteSubtypes(type.classNode);
+    List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
     if (type.classNode == translator.coreTypes.functionClass) {
       ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
       translator.ref_test(b, functionInfo);
@@ -169,11 +233,19 @@ class Types {
       b.i32_const(0);
       b.end(); // done
     }
-    if (isNullable) {
+    if (isPotentiallyNullable) {
       b.br(resultLabel!);
       b.end(); // nullLabel
-      b.i32_const(type.declaredNullability == Nullability.nullable ? 1 : 0);
+      b.i32_const(isNullable(type) ? 1 : 0);
       b.end(); // resultLabel
     }
+  }
+
+  bool isNullable(InterfaceType type) {
+    Nullability nullability = type.declaredNullability;
+    // TODO(joshualitt): Enable assert when spurious 'legacy' values are fixed.
+    // assert(nullability == Nullability.nonNullable ||
+    //    nullability == Nullability.nullable);
+    return nullability == Nullability.nullable ? true : false;
   }
 }
