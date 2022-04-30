@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/translator.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
@@ -367,6 +368,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   ConstantCreator(this.constants);
 
   Translator get translator => constants.translator;
+  Types get types => translator.types;
   w.Module get m => constants.m;
   bool get lazyConstants => constants.lazyConstants;
 
@@ -682,36 +684,36 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
-    DartType cType = constant.type;
-    assert(cType is! TypeParameterType);
-    DartType type = cType is DynamicType ||
-            cType is VoidType ||
-            cType is NeverType ||
-            cType is NullType
-        ? translator.coreTypes.objectRawType(Nullability.nullable)
-        : cType is FunctionType
-            ? InterfaceType(translator.functionClass, cType.declaredNullability)
-            : cType;
-    if (type is! InterfaceType) throw "Not implemented: $constant";
+    DartType type = constant.type;
+    assert(type is! TypeParameterType);
 
-    ListConstant typeArgs = ListConstant(
-        InterfaceType(translator.typeClass, Nullability.nonNullable),
-        type.typeArguments.map((t) => TypeLiteralConstant(t)).toList());
-    ensureConstant(typeArgs);
-
-    ClassInfo info = constants.typeInfo;
+    ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
-    return createConstant(constant, info.nonNullableType, (function, b) {
-      ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-      w.ValueType typeListExpectedType =
-          info.struct.fields[FieldIndex.typeTypeArguments].type.unpacked;
+    if (type is InterfaceType) {
+      ListConstant typeArgs = ListConstant(
+          InterfaceType(translator.typeClass, Nullability.nonNullable),
+          type.typeArguments.map((t) => TypeLiteralConstant(t)).toList());
+      ensureConstant(typeArgs);
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        ClassInfo typeInfo = translator.classInfo[type.classNode]!;
+        w.ValueType typeListExpectedType = info
+            .struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
 
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      b.i64_const(typeInfo.classId);
-      constants.instantiateConstant(
-          function, b, typeArgs, typeListExpectedType);
-      translator.struct_new(b, info);
-    });
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        b.i64_const(typeInfo.classId);
+        b.i32_const(types.isNullable(type) ? 1 : 0);
+        constants.instantiateConstant(
+            function, b, typeArgs, typeListExpectedType);
+        translator.struct_new(b, info);
+      });
+    } else {
+      // TODO(joshualitt): Real implementation for complex types.
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        translator.struct_new(b, info);
+      });
+    }
   }
 }

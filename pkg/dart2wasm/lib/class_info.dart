@@ -25,7 +25,7 @@ class FieldIndex {
   static const hashBaseData = 4;
   static const closureContext = 2;
   static const closureFunction = 3;
-  static const typeTypeArguments = 3;
+  static const interfaceTypeTypeArguments = 4;
   static const typedListBaseLength = 2;
   static const typedListArray = 3;
   static const typedListViewTypedData = 3;
@@ -51,7 +51,8 @@ class FieldIndex {
     check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.functionClass, "context", FieldIndex.closureContext);
-    check(translator.typeClass, "typeArguments", FieldIndex.typeTypeArguments);
+    check(translator.interfaceTypeClass, "typeArguments",
+        FieldIndex.interfaceTypeTypeArguments);
   }
 }
 
