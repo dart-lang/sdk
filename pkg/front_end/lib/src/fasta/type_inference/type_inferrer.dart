@@ -2462,8 +2462,12 @@ class TypeInferrerImpl implements TypeInferrer {
             "invocation.");
         continue;
       }
+      Expression unparenthesizedExpression = argumentExpression;
+      while (unparenthesizedExpression is ParenthesizedExpression) {
+        unparenthesizedExpression = unparenthesizedExpression.expression;
+      }
       if (isInferenceUpdate1Enabled &&
-          argumentExpression is FunctionExpression) {
+          unparenthesizedExpression is FunctionExpression) {
         (deferredFunctionLiterals ??= []).add(new _DeferredParamInfo(
             formalType: formalType,
             argumentExpression: argumentExpression,
@@ -5942,8 +5946,9 @@ class _DeferredParamInfo {
   /// argument.
   final DartType formalType;
 
-  /// The function literal expression.
-  final FunctionExpression argumentExpression;
+  /// The argument expression (possibly wrapped in an arbitrary number of
+  /// ParenthesizedExpressions).
+  final Expression argumentExpression;
 
   /// Indicates whether this is a named argument.
   final bool isNamed;

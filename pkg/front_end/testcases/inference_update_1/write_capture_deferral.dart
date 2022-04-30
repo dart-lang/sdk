@@ -17,6 +17,24 @@ withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {
   }
 }
 
+withUnnamedArgumentsParenthesized(int? i, void Function(void Function(), Object?) f) {
+  if (i != null) {
+    f((() {
+      i = null;
+    }), i);
+    i;
+  }
+}
+
+withUnnamedArgumentsParenthesizedTwice(int? i, void Function(void Function(), Object?) f) {
+  if (i != null) {
+    f(((() {
+      i = null;
+    })), i);
+    i;
+  }
+}
+
 withNamedArguments(
     int? i, void Function({required void Function() g, Object? x}) f) {
   if (i != null) {
@@ -24,6 +42,30 @@ withNamedArguments(
         g: () {
           i = null;
         },
+        x: i);
+    i;
+  }
+}
+
+withNamedArgumentsParenthesized(
+    int? i, void Function({required void Function() g, Object? x}) f) {
+  if (i != null) {
+    f(
+        g: (() {
+          i = null;
+        }),
+        x: i);
+    i;
+  }
+}
+
+withNamedArgumentsParenthesizedTwice(
+    int? i, void Function({required void Function() g, Object? x}) f) {
+  if (i != null) {
+    f(
+        g: ((() {
+          i = null;
+        })),
         x: i);
     i;
   }

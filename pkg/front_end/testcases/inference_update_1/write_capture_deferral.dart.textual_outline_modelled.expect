@@ -18,4 +18,12 @@ withIdentical_lhs(int? i) {}
 withIdentical_rhs(int? i) {}
 withNamedArguments(
     int? i, void Function({required void Function() g, Object? x}) f) {}
+withNamedArgumentsParenthesized(
+    int? i, void Function({required void Function() g, Object? x}) f) {}
+withNamedArgumentsParenthesizedTwice(
+    int? i, void Function({required void Function() g, Object? x}) f) {}
 withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {}
+withUnnamedArgumentsParenthesized(
+    int? i, void Function(void Function(), Object?) f) {}
+withUnnamedArgumentsParenthesizedTwice(
+    int? i, void Function(void Function(), Object?) f) {}

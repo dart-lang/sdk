@@ -21,6 +21,26 @@ withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {
   }
 }
 
+withUnnamedArgumentsParenthesized(
+    int? i, void Function(void Function(), Object?) f) {
+  if (i != null) {
+    f((() {
+      i = null;
+    }), i..expectStaticType<Exactly<int>>());
+    i..expectStaticType<Exactly<int?>>();
+  }
+}
+
+withUnnamedArgumentsParenthesizedTwice(
+    int? i, void Function(void Function(), Object?) f) {
+  if (i != null) {
+    f(((() {
+      i = null;
+    })), i..expectStaticType<Exactly<int>>());
+    i..expectStaticType<Exactly<int?>>();
+  }
+}
+
 withNamedArguments(
     int? i, void Function({required void Function() g, Object? x}) f) {
   if (i != null) {
@@ -28,6 +48,30 @@ withNamedArguments(
         g: () {
           i = null;
         },
+        x: i..expectStaticType<Exactly<int>>());
+    i..expectStaticType<Exactly<int?>>();
+  }
+}
+
+withNamedArgumentsParenthesized(
+    int? i, void Function({required void Function() g, Object? x}) f) {
+  if (i != null) {
+    f(
+        g: (() {
+          i = null;
+        }),
+        x: i..expectStaticType<Exactly<int>>());
+    i..expectStaticType<Exactly<int?>>();
+  }
+}
+
+withNamedArgumentsParenthesizedTwice(
+    int? i, void Function({required void Function() g, Object? x}) f) {
+  if (i != null) {
+    f(
+        g: ((() {
+          i = null;
+        })),
         x: i..expectStaticType<Exactly<int>>());
     i..expectStaticType<Exactly<int?>>();
   }

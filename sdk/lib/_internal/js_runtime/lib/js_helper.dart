@@ -21,6 +21,7 @@ import 'dart:_js_embedded_names'
         JsGetName,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RUNTIME_METRICS,
         STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
         TearOffParametersPropertyNames;
@@ -1801,6 +1802,21 @@ fillLiteralSet(values, Set result) {
   return result;
 }
 
+/// Called by generated code to move and stringify properties from an object
+/// to a map literal.
+copyAndStringifyProperties(from, Map to) {
+  if (JS('bool', '!#', from)) return to;
+  List keys = JS('JSArray', r'Object.keys(#)', from);
+  int index = 0;
+  int length = getLength(keys);
+  while (index < length) {
+    var key = getIndex(keys, index++);
+    var value = JS('String', r'JSON.stringify(#[#])', from, key);
+    to[key] = value;
+  }
+  return to;
+}
+
 /// Returns the property [index] of the JavaScript array [array].
 getIndex(var array, int index) {
   return JS('var', r'#[#]', array, index);
@@ -3062,6 +3078,10 @@ void assertInteropArgs(List<Object?> args) {
 
 Object? rawStartupMetrics() {
   return JS('JSArray', '#.a', JS_EMBEDDED_GLOBAL('', STARTUP_METRICS));
+}
+
+Object? rawRuntimeMetrics() {
+  return JS('', '#', JS_EMBEDDED_GLOBAL('', RUNTIME_METRICS));
 }
 
 /// Wraps the given [callback] within the current Zone.

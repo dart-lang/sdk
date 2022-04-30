@@ -179,6 +179,12 @@ const DEFERRED_INITIALIZED = 'deferredInitialized';
 /// This embedded global is used for --experiment-new-rti.
 const RTI_UNIVERSE = 'typeUniverse';
 
+/// An embedded global used to collect and access runtime metrics.
+const RUNTIME_METRICS = 'rm';
+
+/// Global name that holds runtime metrics Dart2JS apps.
+const RUNTIME_METRICS_CONTAINER = 'runtimeMetrics';
+
 /// An embedded global used to collect and access startup metrics.
 const STARTUP_METRICS = 'sm';
 

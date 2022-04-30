@@ -296,8 +296,12 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    return MainCallStubGenerator.generateInvokeMain(_commonElements,
-        _task.emitter, _mainFunction, _backendUsage.requiresStartupMetrics);
+    return MainCallStubGenerator.generateInvokeMain(
+        _commonElements,
+        _task.emitter,
+        _mainFunction,
+        _backendUsage.requiresStartupMetrics,
+        _options);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
