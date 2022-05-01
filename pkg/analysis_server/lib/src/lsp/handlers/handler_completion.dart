@@ -108,9 +108,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     CompletionPerformance? completionPerformance;
     if (fileExtension == '.dart' && !unit.isError) {
       final result = unit.result;
-      var performanceOperation = OperationPerformanceImpl('<root>');
-
-      serverResultsFuture = await performanceOperation.runAsync(
+      var performance = OperationPerformanceImpl('<root>');
+      serverResultsFuture = performance.runAsync(
         'request',
         (performance) async {
           final thisPerformance = CompletionPerformance(
@@ -122,11 +121,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           completionPerformance = thisPerformance;
           server.performanceStats.completion.add(thisPerformance);
 
-          return _getServerDartItems(
+          // `await` required for `performance.runAsync` to count time.
+          return await _getServerDartItems(
             clientCapabilities,
             unit.result,
             thisPerformance,
-            performanceOperation,
+            performance,
             offset,
             triggerCharacter,
             token,
@@ -322,17 +322,21 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     }
 
     try {
-      var contributor = DartCompletionManager(
-        budget: CompletionBudget(CompletionBudget.defaultDuration),
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      );
+      final serverSuggestions2 =
+          await performance.runAsync('computeSuggestions', (performance) async {
+        var contributor = DartCompletionManager(
+          budget: CompletionBudget(CompletionBudget.defaultDuration),
+          includedElementKinds: includedElementKinds,
+          includedElementNames: includedElementNames,
+          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+        );
 
-      final serverSuggestions2 = await contributor.computeSuggestions(
-        completionRequest,
-        performance,
-      );
+        // `await` required for `performance.runAsync` to count time.
+        return await contributor.computeSuggestions(
+          completionRequest,
+          performance,
+        );
+      });
 
       final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
         return serverSuggestion.build();
