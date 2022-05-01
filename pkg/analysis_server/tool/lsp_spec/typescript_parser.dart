@@ -113,10 +113,10 @@ class Field extends Member {
   Field(
     super.comment,
     this.nameToken,
-    this.type,
-    this.allowsNull,
-    this.allowsUndefined,
-  );
+    this.type, {
+    required this.allowsNull,
+    required this.allowsUndefined,
+  });
 
   @override
   String get name => nameToken.lexeme;
@@ -131,7 +131,8 @@ class FixedValueField extends Field {
     TypeBase type,
     bool allowsNull,
     bool allowsUndefined,
-  ) : super(comment, nameToken, type, allowsNull, allowsUndefined);
+  ) : super(comment, nameToken, type,
+            allowsNull: allowsNull, allowsUndefined: allowsUndefined);
 }
 
 class Indexer extends Member {
@@ -408,7 +409,8 @@ class Parser {
       // successful response that has no return value, eg. shutdown).
       canBeNull = true;
     }
-    return Field(leadingComment, name, type, canBeNull, canBeUndefined);
+    return Field(leadingComment, name, type,
+        allowsNull: canBeNull, allowsUndefined: canBeUndefined);
   }
 
   Indexer _indexer(String containerName, Comment? leadingComment) {

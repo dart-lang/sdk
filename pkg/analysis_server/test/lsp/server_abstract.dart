@@ -648,6 +648,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   final validProgressTokens = <Either2<num, String>>{};
 
+  /// Whether to include 'clientRequestTime' fields in outgoing messages.
+  bool includeClientRequestTime = false;
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -1416,7 +1419,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
     bool failTestOnAnyErrorNotification = true,
+    bool includeClientRequestTime = false,
   }) async {
+    this.includeClientRequestTime = includeClientRequestTime;
+
     if (failTestOnAnyErrorNotification) {
       errorNotificationsFromServer.listen((NotificationMessage error) {
         fail('${error.toJson()}');
@@ -1481,7 +1487,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   NotificationMessage makeNotification(Method method, ToJsonable? params) {
     return NotificationMessage(
-        method: method, params: params, jsonrpc: jsonRpcVersion);
+      method: method,
+      params: params,
+      jsonrpc: jsonRpcVersion,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
+    );
   }
 
   RequestMessage makeRenameRequest(
@@ -1500,7 +1512,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   RequestMessage makeRequest(Method method, ToJsonable? params) {
     final id = Either2<int, String>.t1(_id++);
     return RequestMessage(
-        id: id, method: method, params: params, jsonrpc: jsonRpcVersion);
+      id: id,
+      method: method,
+      params: params,
+      jsonrpc: jsonRpcVersion,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
+    );
   }
 
   /// Watches for `client/registerCapability` requests and updates

@@ -198,8 +198,8 @@ List<AstNode> getCustomClasses() {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
-    return Field(
-        null, Token.identifier(name), fieldType, false, canBeUndefined);
+    return Field(null, Token.identifier(name), fieldType,
+        allowsNull: false, allowsUndefined: canBeUndefined);
   }
 
   final customTypes = <AstNode>[
@@ -311,6 +311,34 @@ List<AstNode> getCustomClasses() {
   return customTypes;
 }
 
+/// Gets additional custom fields to be added to LSP Spec classes.
+///
+/// Non-standard fields should generally be avoided and must always allow
+/// undefined.
+List<Field> getCustomFields(String interfaceName) {
+  final additionalFields = <String, List<Field>>{
+    // Allow clients to pass a "clientRequestTime" against any incomine message
+    // so that we can capture latency information for requests for performance
+    // measurements.
+    'Message': [
+      Field(
+        null,
+        Token.identifier('clientRequestTime'),
+        Type.identifier('int'),
+        allowsNull: false,
+        allowsUndefined: true,
+      ),
+    ],
+  };
+
+  final fields = additionalFields[interfaceName] ?? [];
+  assert(
+    fields.every((field) => field.allowsUndefined),
+    'Any additional non-standard LSP field must allow undefined',
+  );
+  return fields;
+}
+
 Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   var download = args[argDownload] as bool;
   if (download) {
@@ -323,6 +351,7 @@ Future<List<AstNode>> getSpecClasses(ArgResults args) async {
       .map(parseString)
       .expand((f) => f)
       .where(includeTypeDefinitionInOutput)
+      .map(withCustomFields)
       .toList();
 
   // Generate an enum for all of the request methods to avoid strings.
@@ -366,4 +395,24 @@ bool shouldIncludeScriptBlock(String input) {
   }
 
   return true;
+}
+
+/// Returns [node] with any additional custom fields.
+AstNode withCustomFields(AstNode node) {
+  if (node is! Interface) {
+    return node;
+  }
+
+  final customFields = getCustomFields(node.name);
+  if (customFields.isEmpty) {
+    return node;
+  }
+
+  return Interface(
+    node.commentNode,
+    node.nameToken,
+    node.typeArgs,
+    node.baseTypes,
+    [...node.members, ...customFields],
+  );
 }

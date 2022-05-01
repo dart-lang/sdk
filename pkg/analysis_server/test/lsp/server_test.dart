@@ -21,6 +21,21 @@ void main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_capturesLatency_afterStartup() async {
+    await initialize(includeClientRequestTime: true);
+    await openFile(mainFileUri, '');
+    await expectLater(
+      getHover(mainFileUri, startOfDocPos),
+      completes,
+    );
+    expect(server.performanceAfterStartup!.latencyCount, isPositive);
+  }
+
+  Future<void> test_capturesLatency_startup() async {
+    await initialize(includeClientRequestTime: true);
+    expect(server.performanceDuringStartup.latencyCount, isPositive);
+  }
+
   Future<void> test_inconsistentStateError() async {
     await initialize(
       // Error is expected and checked below.
