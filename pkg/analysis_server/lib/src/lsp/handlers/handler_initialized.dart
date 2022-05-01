@@ -21,8 +21,8 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       InitializedParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(
-      InitializedParams params, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(InitializedParams params, MessageInfo message,
+      CancellationToken token) async {
     server.messageHandler = InitializedStateMessageHandler(
       server,
     );

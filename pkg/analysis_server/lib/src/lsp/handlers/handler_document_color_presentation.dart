@@ -32,6 +32,7 @@ class DocumentColorPresentationHandler
   @override
   Future<ErrorOr<List<ColorPresentation>>> handle(
     ColorPresentationParams params,
+    MessageInfo message,
     CancellationToken token,
   ) async {
     if (!isDartDocument(params.textDocument)) {

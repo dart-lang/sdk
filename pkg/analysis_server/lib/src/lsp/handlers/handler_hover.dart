@@ -22,8 +22,8 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Hover?>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+  Future<ErrorOr<Hover?>> handle(TextDocumentPositionParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

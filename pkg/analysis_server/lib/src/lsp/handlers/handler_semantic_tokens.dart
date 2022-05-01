@@ -122,8 +122,8 @@ class SemanticTokensFullHandler
       SemanticTokensParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens?>> handle(
-          SemanticTokensParams params, CancellationToken token) =>
+  Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensParams params,
+          MessageInfo message, CancellationToken token) =>
       _handleImpl(params.textDocument, token);
 }
 
@@ -139,7 +139,7 @@ class SemanticTokensRangeHandler
       SemanticTokensRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens?>> handle(
-          SemanticTokensRangeParams params, CancellationToken token) =>
+  Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensRangeParams params,
+          MessageInfo message, CancellationToken token) =>
       _handleImpl(params.textDocument, token, range: params.range);
 }

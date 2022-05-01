@@ -38,18 +38,20 @@ class CompletionPerformance {
   final OperationPerformance operation;
   final String path;
   final String snippet;
-  int computedSuggestionCount = -1;
-  int transmittedSuggestionCount = -1;
+  final int? requestLatency;
+  int? computedSuggestionCount;
+  int? transmittedSuggestionCount;
 
   CompletionPerformance({
     required this.operation,
     required this.path,
+    this.requestLatency,
     required String content,
     required int offset,
   }) : snippet = _computeCompletionSnippet(content, offset);
 
   String get computedSuggestionCountStr {
-    if (computedSuggestionCount < 1) return '';
+    if (computedSuggestionCount == null) return '';
     return '$computedSuggestionCount';
   }
 
@@ -58,7 +60,7 @@ class CompletionPerformance {
   }
 
   String get transmittedSuggestionCountStr {
-    if (transmittedSuggestionCount < 1) return '';
+    if (transmittedSuggestionCount == null) return '';
     return '$transmittedSuggestionCount';
   }
 }

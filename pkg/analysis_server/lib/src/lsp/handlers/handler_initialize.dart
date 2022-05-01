@@ -22,7 +22,7 @@ class InitializeMessageHandler
 
   @override
   ErrorOr<InitializeResult> handle(
-      InitializeParams params, CancellationToken token) {
+      InitializeParams params, MessageInfo message, CancellationToken token) {
     server.handleClientConnection(
       params.capabilities,
       params.initializationOptions,

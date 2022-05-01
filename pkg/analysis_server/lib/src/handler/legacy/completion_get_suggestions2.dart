@@ -111,6 +111,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
       return;
     }
 
+    var requestLatency = request.timeSinceRequest;
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
@@ -177,6 +178,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         final completionPerformance = CompletionPerformance(
           operation: performance,
           path: file,
+          requestLatency: requestLatency,
           content: resolvedUnit.content,
           offset: offset,
         );

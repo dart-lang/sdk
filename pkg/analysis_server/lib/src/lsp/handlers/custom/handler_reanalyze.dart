@@ -16,7 +16,8 @@ class ReanalyzeHandler extends MessageHandler<void, void> {
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(void _, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(
+      void _, MessageInfo message, CancellationToken token) async {
     server.reanalyze();
     return success(null);
   }

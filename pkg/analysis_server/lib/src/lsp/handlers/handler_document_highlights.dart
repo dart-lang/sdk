@@ -21,7 +21,9 @@ class DocumentHighlightsHandler extends MessageHandler<
 
   @override
   Future<ErrorOr<List<DocumentHighlight>?>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+      TextDocumentPositionParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }

@@ -21,8 +21,8 @@ class FoldingHandler
       FoldingRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<FoldingRange>>> handle(
-      FoldingRangeParams params, CancellationToken token) async {
+  Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
+      MessageInfo message, CancellationToken token) async {
     final path = pathOfDoc(params.textDocument);
 
     return path.mapResult((path) async {

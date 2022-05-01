@@ -71,7 +71,9 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
 
   @override
   Future<ErrorOr<Either2<List<Location>, List<LocationLink>>>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+      TextDocumentPositionParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.

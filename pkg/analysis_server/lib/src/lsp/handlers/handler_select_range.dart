@@ -22,8 +22,8 @@ class SelectionRangeHandler
       SelectionRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<SelectionRange>?>> handle(
-      SelectionRangeParams params, CancellationToken token) async {
+  Future<ErrorOr<List<SelectionRange>?>> handle(SelectionRangeParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

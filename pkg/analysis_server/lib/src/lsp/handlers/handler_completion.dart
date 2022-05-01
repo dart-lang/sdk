@@ -49,14 +49,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       CompletionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<CompletionList>> handle(
-      CompletionParams params, CancellationToken token) async {
+  Future<ErrorOr<CompletionList>> handle(CompletionParams params,
+      MessageInfo message, CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
+    final requestLatency = message.timeSinceRequest;
     final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
@@ -115,6 +116,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           final thisPerformance = CompletionPerformance(
             operation: performance,
             path: result.path,
+            requestLatency: requestLatency,
             content: result.content,
             offset: offset,
           );

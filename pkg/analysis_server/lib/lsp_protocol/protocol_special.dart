@@ -267,6 +267,7 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
 /// A base class containing the fields common to RequestMessage and
 /// NotificationMessage to simplify handling.
 abstract class IncomingMessage {
+  int? get clientRequestTime;
   Method get method;
   dynamic get params;
 }

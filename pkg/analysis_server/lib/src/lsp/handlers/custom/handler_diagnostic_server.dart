@@ -19,7 +19,7 @@ class DiagnosticServerHandler
 
   @override
   Future<ErrorOr<DartDiagnosticServer>> handle(
-      void _, CancellationToken token) async {
+      void _, MessageInfo message, CancellationToken token) async {
     final diagnosticServer = server.diagnosticServer;
     if (diagnosticServer == null) {
       return error(ServerErrorCodes.FeatureDisabled,

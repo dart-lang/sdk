@@ -18,8 +18,8 @@ class WorkspaceDidChangeConfigurationMessageHandler
       DidChangeConfigurationParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(
-      DidChangeConfigurationParams params, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(DidChangeConfigurationParams params,
+      MessageInfo message, CancellationToken token) async {
     // In LSP, the `settings` field no longer contains changed settings because
     // they can be resource-scoped, so this is used only as a notification and
     // to keep settings up-to-date we must re-request them from the client
