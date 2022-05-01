@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 
 /// Parenthesize the target of the [expressionStatement]'s expression (assumed
@@ -44,13 +45,13 @@ Expression insertCascadeTargetIntoExpression({
 
   // Otherwise, copy `expression` and recurse into its LHS.
   if (expression is AssignmentExpression) {
-    return astFactory.assignmentExpression(
-      insertCascadeTargetIntoExpression(
+    return AssignmentExpressionImpl(
+      leftHandSide: insertCascadeTargetIntoExpression(
         expression: expression.leftHandSide,
         cascadeTarget: cascadeTarget,
-      ),
-      expression.operator,
-      expression.rightHandSide,
+      ) as ExpressionImpl,
+      operator: expression.operator,
+      rightHandSide: expression.rightHandSide as ExpressionImpl,
     );
   } else if (expression is IndexExpression) {
     var expressionTarget = expression.realTarget;

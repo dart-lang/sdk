@@ -15,9 +15,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 final AstFactoryImpl astFactory = AstFactoryImpl();
 
 class AstFactoryImpl {
-  AdjacentStringsImpl adjacentStrings(List<StringLiteral> strings) =>
-      AdjacentStringsImpl(strings);
-
   AnnotationImpl annotation(
           {required Token atSign,
           required Identifier name,
@@ -32,60 +29,6 @@ class AstFactoryImpl {
           period,
           constructorName as SimpleIdentifierImpl?,
           arguments as ArgumentListImpl?);
-
-  ArgumentListImpl argumentList(Token leftParenthesis,
-          List<Expression> arguments, Token rightParenthesis) =>
-      ArgumentListImpl(leftParenthesis, arguments, rightParenthesis);
-
-  AsExpressionImpl asExpression(
-          Expression expression, Token asOperator, TypeAnnotation type) =>
-      AsExpressionImpl(
-          expression as ExpressionImpl, asOperator, type as TypeAnnotationImpl);
-
-  AssertInitializerImpl assertInitializer(
-          Token assertKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token? comma,
-          Expression? message,
-          Token rightParenthesis) =>
-      AssertInitializerImpl(
-          assertKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          comma,
-          message as ExpressionImpl?,
-          rightParenthesis);
-
-  AssertStatementImpl assertStatement(
-          Token assertKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token? comma,
-          Expression? message,
-          Token rightParenthesis,
-          Token semicolon) =>
-      AssertStatementImpl(
-          assertKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          comma,
-          message as ExpressionImpl?,
-          rightParenthesis,
-          semicolon);
-
-  AssignmentExpressionImpl assignmentExpression(
-          Expression leftHandSide, Token operator, Expression rightHandSide) =>
-      AssignmentExpressionImpl(leftHandSide as ExpressionImpl, operator,
-          rightHandSide as ExpressionImpl);
-
-  BinaryExpressionImpl binaryExpression(
-          Expression leftOperand, Token operator, Expression rightOperand) =>
-      BinaryExpressionImpl(
-        leftOperand: leftOperand as ExpressionImpl,
-        operator: operator,
-        rightOperand: rightOperand as ExpressionImpl,
-      );
 
   BlockImpl block(
           Token leftBracket, List<Statement> statements, Token rightBracket) =>
