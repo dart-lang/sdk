@@ -4087,15 +4087,23 @@ main() {
   v = 3;
   v; // marker
 }''');
-    assertAssignment(
-      findNode.assignment('= 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.localVar('v'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('= 3'), r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: v
+    staticElement: v@15
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: v@15
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 

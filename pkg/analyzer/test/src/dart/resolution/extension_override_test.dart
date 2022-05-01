@@ -66,15 +66,42 @@ void f(int? a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.assignment('[0] ='), r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@76
+            staticType: int?
+        rightParenthesis: )
+      extendedType: int
+      staticType: null
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int?
+''');
   }
 
   test_methodInvocation_nullAware() async {

@@ -180,18 +180,64 @@ void f(A<int> a) {
   a.foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        findElement.setter('foo', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('foo =');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@79
+      staticType: A<int>
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::foo
+    substitution: {T: int}
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@79
+      staticType: A<int*>*
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::foo
+    substitution: {T: int*}
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
@@ -294,42 +340,87 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    if (result.libraryElement.isNonNullableByDefault) {
-      assertAssignment(
-        findNode.assignment('(x).test'),
-        readElement: null,
-        readType: null,
-        writeElement: elementMatcher(
-          findElement.setter('test'),
-          substitution: {'T': 'S'},
-        ),
-        writeType: 'S',
-        operatorElement: null,
-        type: 'S',
-      );
-
-      assertTypeArgumentTypes(
-        findNode.methodInvocation('g()'),
-        ['S'],
-      );
+    var assignment = findNode.assignment('(x).test');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+        staticElement: x@98
+        staticType: S
+      rightParenthesis: )
+      staticType: S
+    operator: .
+    propertyName: SimpleIdentifier
+      token: test
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+      staticElement: self::@function::g
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: S Function()
+    staticType: S
+    typeArgumentTypes
+      S
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::Test::@setter::test
+    substitution: {T: S}
+  writeType: S
+  staticElement: <null>
+  staticType: S
+''');
     } else {
-      assertAssignment(
-        findNode.assignment('(x).test'),
-        readElement: null,
-        readType: null,
-        writeElement: elementMatcher(
-          findElement.setter('test'),
-          substitution: {'T': 'num'},
-        ),
-        writeType: 'num',
-        operatorElement: null,
-        type: 'num',
-      );
-
-      assertTypeArgumentTypes(
-        findNode.methodInvocation('g()'),
-        ['num'],
-      );
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+        staticElement: x@98
+        staticType: S*
+      rightParenthesis: )
+      staticType: S*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: test
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+      staticElement: self::@function::g
+      staticType: T* Function<T>()*
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: num* Function()*
+    staticType: num*
+    typeArgumentTypes
+      num*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::Test::@setter::test
+    substitution: {T: num*}
+  writeType: num*
+  staticElement: <null>
+  staticType: num*
+''');
     }
   }
 
@@ -469,23 +560,109 @@ void f(A<int> a) {
   E<num>(a).foo = 1.2;
 }
 ''');
-    var override = findNode.extensionOverride('E<num>(a)');
-    assertElement(override, findElement.extension_('E'));
-    assertElementTypes(override.typeArgumentTypes, ['num']);
-    assertType(override.extendedType, 'A<num>');
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        findElement.setter('foo', of: 'E'),
-        substitution: {'T': 'num'},
-      ),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'double',
-    );
+    var assignment = findNode.assignment('foo =');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: num
+              staticElement: dart:core::@class::num
+              staticType: null
+            type: num
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@79
+            staticType: A<int>
+        rightParenthesis: )
+      extendedType: A<num>
+      staticType: null
+      typeArgumentTypes
+        num
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::foo
+    substitution: {T: num}
+  writeType: num
+  staticElement: <null>
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: num
+              staticElement: dart:core::@class::num
+              staticType: null
+            type: num*
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@79
+            staticType: A<int*>*
+        rightParenthesis: )
+      extendedType: A<num*>*
+      staticType: null
+      typeArgumentTypes
+        num*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    staticType: double*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::foo
+    substitution: {T: num*}
+  writeType: num*
+  staticElement: <null>
+  staticType: double*
+''');
+    }
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
@@ -601,23 +778,88 @@ void f(A<int> a) {
   E(a).foo = 0;
 }
 ''');
-    var override = findNode.extensionOverride('E(a)');
-    assertElement(override, findElement.extension_('E'));
-    assertElementTypes(override.typeArgumentTypes, ['int']);
-    assertType(override.extendedType, 'A<int>');
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        findElement.setter('foo', of: 'E'),
-        substitution: {'T': 'int'},
-      ),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@79
+            staticType: A<int>
+        rightParenthesis: )
+      extendedType: A<int>
+      staticType: null
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::foo
+    substitution: {T: int}
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@79
+            staticType: A<int*>*
+        rightParenthesis: )
+      extendedType: A<int*>*
+      staticType: null
+      typeArgumentTypes
+        int*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: self::@extension::E::@setter::foo
+    substitution: {T: int*}
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 }
 

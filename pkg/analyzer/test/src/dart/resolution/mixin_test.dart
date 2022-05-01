@@ -414,14 +414,29 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: M
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 }

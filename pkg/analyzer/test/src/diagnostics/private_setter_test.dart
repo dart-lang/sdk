@@ -31,17 +31,32 @@ main() {
       error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
     ]);
 
-    var aImport = findElement.importFind('package:test/a.dart');
-
-    assertAssignment(
-      findNode.assignment('_foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: aImport.setter('_foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('_foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: _foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_typeLiteral_privateField_sameLibrary() async {
@@ -75,17 +90,32 @@ main() {
       error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
     ]);
 
-    var aImport = findElement.importFind('package:test/a.dart');
-
-    assertAssignment(
-      findNode.assignment('_foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: aImport.setter('_foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('_foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: _foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_typeLiteral_privateSetter_differentLibrary_noGetter() async {
@@ -104,17 +134,32 @@ main() {
       error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
     ]);
 
-    var aImport = findElement.importFind('package:test/a.dart');
-
-    assertAssignment(
-      findNode.assignment('_foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: aImport.setter('_foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('_foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: _foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_typeLiteral_privateSetter_sameLibrary() async {

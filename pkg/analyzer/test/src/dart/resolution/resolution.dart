@@ -90,28 +90,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     newFile(testFilePath, content);
   }
 
-  void assertAssignment(
-    AssignmentExpression node, {
-    required Object? readElement,
-    required String? readType,
-    required Object? writeElement,
-    required String writeType,
-    required Object? operatorElement,
-    required String type,
-  }) {
-    assertCompoundAssignment(
-      node,
-      readElement: readElement,
-      readType: readType,
-      writeElement: writeElement,
-      writeType: writeType,
-    );
-    assertElement(node.staticElement, operatorElement);
-    assertType(node, type);
-
-    _assertUnresolvedAssignmentTarget(node.leftHandSide);
-  }
-
   /// Assert that the given [identifier] is a reference to a class, in the
   /// form that is not a separate expression, e.g. in a static method
   /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
@@ -119,28 +97,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     identifier as SimpleIdentifier;
     assertElement(identifier, expectedElement);
     assertTypeNull(identifier);
-  }
-
-  void assertCompoundAssignment(
-    CompoundAssignmentExpression node, {
-    required Object? readElement,
-    required String? readType,
-    required Object? writeElement,
-    required String? writeType,
-  }) {
-    assertElement(node.readElement, readElement);
-    if (readType == null) {
-      expect(node.readType, isNull);
-    } else {
-      assertType(node.readType, readType);
-    }
-
-    assertElement(node.writeElement, writeElement);
-    if (writeType == null) {
-      expect(node.writeType, isNull);
-    } else {
-      assertType(node.writeType, writeType);
-    }
   }
 
   void assertConstructorElement(ConstructorElement? actual, Object? expected) {
@@ -863,22 +819,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return nullable;
     } else {
       return legacy;
-    }
-  }
-
-  /// Nodes that are targets of an assignment should not be resolved,
-  /// instead the enclosing [CompoundAssignmentExpression] is resolved.
-  void _assertUnresolvedAssignmentTarget(Expression node) {
-    if (node is IndexExpression) {
-      assertUnresolvedIndexExpression(node);
-    } else if (node is PrefixedIdentifier) {
-      assertUnresolvedPrefixedIdentifier(node);
-    } else if (node is PropertyAccess) {
-      assertUnresolvedPropertyAccess(node);
-    } else if (node is SimpleIdentifier) {
-      assertUnresolvedSimpleIdentifier(node, disableElementCheck: true);
-    } else {
-      // Not LValue.
     }
   }
 
