@@ -28,6 +28,7 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
       return;
     }
 
+    var requestLatency = request.timeSinceRequest;
     var budget = CompletionBudget(server.completionState.budgetDuration);
 
     // extract and validate params
@@ -94,6 +95,7 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
         final completionPerformance = CompletionPerformance(
           operation: performance,
           path: file,
+          requestLatency: requestLatency,
           content: resolvedUnit.content,
           offset: offset,
         );

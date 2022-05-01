@@ -33,8 +33,8 @@ class TypeDefinitionHandler
       TypeDefinitionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<_LocationsOrLinks>> handle(
-      TypeDefinitionParams params, CancellationToken token) async {
+  Future<ErrorOr<_LocationsOrLinks>> handle(TypeDefinitionParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(_emptyResult);
     }

@@ -38,18 +38,34 @@ main(A a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment(' = null;'),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.method('[]='),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'Null*',
-    );
+    var assignment = findNode.assignment(' = null;');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@40
+      staticType: A*
+    leftBracket: [
+    index: NullLiteral
+      literal: null
+      staticType: Null*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    staticType: Null*
+  readElement: <null>
+  readType: null
+  writeElement: MethodMember
+    base: package:test/a.dart::@class::A::@method::[]=
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: Null*
+''');
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_class_field() async {
@@ -66,18 +82,35 @@ main(A a) {
   a.foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@40
+      staticType: A*
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_extension_setter() async {
@@ -95,18 +128,35 @@ main(A a) {
   a.foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@40
+      staticType: A*
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@extension::E::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_prefixedIdentifier_staticTarget_class_field() async {
@@ -123,18 +173,35 @@ main() {
   A.foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_prefixedIdentifier_staticTarget_extension_field() async {
@@ -151,18 +218,35 @@ main() {
   E.foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/a.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@extension::E::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_prefixedIdentifier_topLevelVariable() async {
@@ -177,18 +261,35 @@ main() {
   p.foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.topSet('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_propertyAccess_class_field() async {
@@ -205,18 +306,45 @@ main() {
   A().foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: package:test/a.dart::@class::A
+            staticType: null
+          type: A*
+        staticElement: ConstructorMember
+          base: package:test/a.dart::@class::A::@constructor::•
+          isLegacy: true
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_propertyAccess_extension_setter() async {
@@ -234,18 +362,45 @@ main() {
   A().foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: package:test/a.dart::@class::A
+            staticType: null
+          type: A*
+        staticElement: ConstructorMember
+          base: package:test/a.dart::@class::A::@constructor::•
+          isLegacy: true
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@extension::E::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_propertyAccess_extensionOverride_setter() async {
@@ -263,18 +418,45 @@ main(A a) {
   E(a).foo = 0;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: package:test/a.dart::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            staticElement: a@40
+            staticType: A*
+        rightParenthesis: )
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@extension::E::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_propertyAccess_superTarget() async {
@@ -293,18 +475,33 @@ class B extends A {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.setter('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'int*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
   }
 
   test_assignment_simpleIdentifier_topLevelVariable() async {
@@ -319,18 +516,27 @@ main() {
   foo = null;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        _import_a.topSet('foo'),
-        isLegacy: true,
-      ),
-      writeType: 'int*',
-      operatorElement: null,
-      type: 'Null*',
-    );
+
+    var assignment = findNode.assignment('foo =');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    staticType: Null*
+  readElement: <null>
+  readType: null
+  writeElement: PropertyAccessorMember
+    base: package:test/a.dart::@setter::foo
+    isLegacy: true
+  writeType: int*
+  staticElement: <null>
+  staticType: Null*
+''');
   }
 
   test_binaryExpression() async {

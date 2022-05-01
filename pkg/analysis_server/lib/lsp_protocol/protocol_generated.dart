@@ -17989,7 +17989,7 @@ class MarkupKind {
 class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
-  Message({required this.jsonrpc});
+  Message({required this.jsonrpc, this.clientRequestTime});
   static Message fromJson(Map<String, Object?> json) {
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       return RequestMessage.fromJson(json);
@@ -18002,14 +18002,20 @@ class Message implements ToJsonable {
     }
     final jsonrpcJson = json['jsonrpc'];
     final jsonrpc = jsonrpcJson as String;
-    return Message(jsonrpc: jsonrpc);
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
+    return Message(jsonrpc: jsonrpc, clientRequestTime: clientRequestTime);
   }
 
+  final int? clientRequestTime;
   final String jsonrpc;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
     __result['jsonrpc'] = jsonrpc;
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
     return __result;
   }
 
@@ -18033,6 +18039,16 @@ class Message implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type Message');
@@ -18043,13 +18059,15 @@ class Message implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is Message && other.runtimeType == Message) {
-      return jsonrpc == other.jsonrpc && true;
+      return jsonrpc == other.jsonrpc &&
+          clientRequestTime == other.clientRequestTime &&
+          true;
     }
     return false;
   }
 
   @override
-  int get hashCode => jsonrpc.hashCode;
+  int get hashCode => Object.hash(jsonrpc, clientRequestTime);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -18960,7 +18978,10 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       NotificationMessage.canParse, NotificationMessage.fromJson);
 
   NotificationMessage(
-      {required this.method, this.params, required this.jsonrpc});
+      {required this.method,
+      this.params,
+      required this.jsonrpc,
+      this.clientRequestTime});
   static NotificationMessage fromJson(Map<String, Object?> json) {
     final methodJson = json['method'];
     final method = Method.fromJson(methodJson as String);
@@ -18968,10 +18989,16 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     final params = paramsJson;
     final jsonrpcJson = json['jsonrpc'];
     final jsonrpc = jsonrpcJson as String;
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
     return NotificationMessage(
-        method: method, params: params, jsonrpc: jsonrpc);
+        method: method,
+        params: params,
+        jsonrpc: jsonrpc,
+        clientRequestTime: clientRequestTime);
   }
 
+  final int? clientRequestTime;
   final String jsonrpc;
 
   /// The method to be invoked.
@@ -18987,6 +19014,9 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       __result['params'] = params;
     }
     __result['jsonrpc'] = jsonrpc;
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
     return __result;
   }
 
@@ -19028,6 +19058,16 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type NotificationMessage');
@@ -19042,13 +19082,14 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       return method == other.method &&
           params == other.params &&
           jsonrpc == other.jsonrpc &&
+          clientRequestTime == other.clientRequestTime &&
           true;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hash(method, params, jsonrpc);
+  int get hashCode => Object.hash(method, params, jsonrpc, clientRequestTime);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21700,7 +21741,8 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       {required this.id,
       required this.method,
       this.params,
-      required this.jsonrpc});
+      required this.jsonrpc,
+      this.clientRequestTime});
   static RequestMessage fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson is int
@@ -21714,9 +21756,17 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
     final params = paramsJson;
     final jsonrpcJson = json['jsonrpc'];
     final jsonrpc = jsonrpcJson as String;
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
     return RequestMessage(
-        id: id, method: method, params: params, jsonrpc: jsonrpc);
+        id: id,
+        method: method,
+        params: params,
+        jsonrpc: jsonrpc,
+        clientRequestTime: clientRequestTime);
   }
+
+  final int? clientRequestTime;
 
   /// The request id.
   final Either2<int, String> id;
@@ -21736,6 +21786,9 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       __result['params'] = params;
     }
     __result['jsonrpc'] = jsonrpc;
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
     return __result;
   }
 
@@ -21795,6 +21848,16 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type RequestMessage');
@@ -21809,13 +21872,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           method == other.method &&
           params == other.params &&
           jsonrpc == other.jsonrpc &&
+          clientRequestTime == other.clientRequestTime &&
           true;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hash(id, method, params, jsonrpc);
+  int get hashCode =>
+      Object.hash(id, method, params, jsonrpc, clientRequestTime);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21970,7 +22035,12 @@ class ResponseMessage implements Message, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
-  ResponseMessage({this.id, this.result, this.error, required this.jsonrpc});
+  ResponseMessage(
+      {this.id,
+      this.result,
+      this.error,
+      required this.jsonrpc,
+      this.clientRequestTime});
   static ResponseMessage fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson == null
@@ -21988,9 +22058,17 @@ class ResponseMessage implements Message, ToJsonable {
         : null;
     final jsonrpcJson = json['jsonrpc'];
     final jsonrpc = jsonrpcJson as String;
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
     return ResponseMessage(
-        id: id, result: result, error: error, jsonrpc: jsonrpc);
+        id: id,
+        result: result,
+        error: error,
+        jsonrpc: jsonrpc,
+        clientRequestTime: clientRequestTime);
   }
+
+  final int? clientRequestTime;
 
   /// The error object in case a request fails.
   final ResponseError? error;
@@ -22007,6 +22085,9 @@ class ResponseMessage implements Message, ToJsonable {
     var __result = <String, Object?>{};
     __result['id'] = id;
     __result['jsonrpc'] = jsonrpc;
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
     if (error != null && result != null) {
       throw 'result and error cannot both be set';
     } else if (error != null) {
@@ -22061,6 +22142,16 @@ class ResponseMessage implements Message, ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type ResponseMessage');
@@ -22075,13 +22166,15 @@ class ResponseMessage implements Message, ToJsonable {
           result == other.result &&
           error == other.error &&
           jsonrpc == other.jsonrpc &&
+          clientRequestTime == other.clientRequestTime &&
           true;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hash(id, result, error, jsonrpc);
+  int get hashCode =>
+      Object.hash(id, result, error, jsonrpc, clientRequestTime);
 
   @override
   String toString() => jsonEncoder.convert(toJson());

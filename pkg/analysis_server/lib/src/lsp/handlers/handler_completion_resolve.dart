@@ -37,6 +37,7 @@ class CompletionResolveHandler
   @override
   Future<ErrorOr<CompletionItem>> handle(
     CompletionItem item,
+    MessageInfo message,
     CancellationToken token,
   ) async {
     final resolutionInfo = item.data;

@@ -25,10 +25,13 @@ main() {
 @reflectiveTest
 class ToSourceVisitorTest {
   void test_visitAdjacentStrings() {
+    var findNode = _parseStringToFindNode(r'''
+var v = 'a' 'b';
+''');
     _assertSource(
-        "'a' 'b'",
-        AstTestFactory.adjacentStrings(
-            [AstTestFactory.string2("a"), AstTestFactory.string2("b")]));
+      "'a' 'b'",
+      findNode.adjacentStrings("'a'"),
+    );
   }
 
   void test_visitAnnotation_constant() {
@@ -62,22 +65,37 @@ class ToSourceVisitorTest {
   }
 
   void test_visitAsExpression() {
+    var findNode = _parseStringToFindNode(r'''
+var v = a as T;
+''');
     _assertSource(
-        "e as T",
-        AstTestFactory.asExpression(
-            AstTestFactory.identifier3("e"), AstTestFactory.namedType4("T")));
+      'a as T',
+      findNode.as_('as T'),
+    );
   }
 
   void test_visitAssertStatement() {
-    _assertSource("assert (a);",
-        AstTestFactory.assertStatement(AstTestFactory.identifier3("a")));
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  assert(a);
+}
+''');
+    _assertSource(
+      'assert (a);',
+      findNode.assertStatement('assert'),
+    );
   }
 
   void test_visitAssertStatement_withMessage() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  assert(a, b);
+}
+''');
     _assertSource(
-        "assert (a, b);",
-        AstTestFactory.assertStatement(
-            AstTestFactory.identifier3("a"), AstTestFactory.identifier3('b')));
+      'assert (a, b);',
+      findNode.assertStatement('assert'),
+    );
   }
 
   void test_visitAssignmentExpression() {

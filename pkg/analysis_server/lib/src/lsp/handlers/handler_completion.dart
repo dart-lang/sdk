@@ -49,14 +49,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       CompletionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<CompletionList>> handle(
-      CompletionParams params, CancellationToken token) async {
+  Future<ErrorOr<CompletionList>> handle(CompletionParams params,
+      MessageInfo message, CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
+    final requestLatency = message.timeSinceRequest;
     final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
@@ -108,25 +109,26 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     CompletionPerformance? completionPerformance;
     if (fileExtension == '.dart' && !unit.isError) {
       final result = unit.result;
-      var performanceOperation = OperationPerformanceImpl('<root>');
-
-      serverResultsFuture = await performanceOperation.runAsync(
+      var performance = OperationPerformanceImpl('<root>');
+      serverResultsFuture = performance.runAsync(
         'request',
         (performance) async {
           final thisPerformance = CompletionPerformance(
             operation: performance,
             path: result.path,
+            requestLatency: requestLatency,
             content: result.content,
             offset: offset,
           );
           completionPerformance = thisPerformance;
           server.performanceStats.completion.add(thisPerformance);
 
-          return _getServerDartItems(
+          // `await` required for `performance.runAsync` to count time.
+          return await _getServerDartItems(
             clientCapabilities,
             unit.result,
             thisPerformance,
-            performanceOperation,
+            performance,
             offset,
             triggerCharacter,
             token,
@@ -322,17 +324,21 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     }
 
     try {
-      var contributor = DartCompletionManager(
-        budget: CompletionBudget(CompletionBudget.defaultDuration),
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      );
+      final serverSuggestions2 =
+          await performance.runAsync('computeSuggestions', (performance) async {
+        var contributor = DartCompletionManager(
+          budget: CompletionBudget(CompletionBudget.defaultDuration),
+          includedElementKinds: includedElementKinds,
+          includedElementNames: includedElementNames,
+          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+        );
 
-      final serverSuggestions2 = await contributor.computeSuggestions(
-        completionRequest,
-        performance,
-      );
+        // `await` required for `performance.runAsync` to count time.
+        return await contributor.computeSuggestions(
+          completionRequest,
+          performance,
+        );
+      });
 
       final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
         return serverSuggestion.build();

@@ -30,9 +30,6 @@ import 'package:meta/meta.dart';
 /// rather than 'integerLiteral'.
 @internal
 class AstTestFactory {
-  static AdjacentStringsImpl adjacentStrings(List<StringLiteral> strings) =>
-      astFactory.adjacentStrings(strings);
-
   static AnnotationImpl annotation(Identifier name) => astFactory.annotation(
       atSign: TokenFactory.tokenFromType(TokenType.AT), name: name);
 
@@ -51,39 +48,19 @@ class AstTestFactory {
 
   static ArgumentListImpl argumentList(
           [List<Expression> arguments = const []]) =>
-      astFactory.argumentList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          arguments, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static AsExpressionImpl asExpression(
-          Expression expression, TypeAnnotation type) =>
-      astFactory.asExpression(
-          expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
-
-  static AssertInitializerImpl assertInitializer(
-          Expression condition, Expression message) =>
-      astFactory.assertInitializer(
-          TokenFactory.tokenFromKeyword(Keyword.ASSERT),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition,
-          TokenFactory.tokenFromType(TokenType.COMMA),
-          message,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static AssertStatementImpl assertStatement(Expression condition,
-          [Expression? message]) =>
-      astFactory.assertStatement(
-          TokenFactory.tokenFromKeyword(Keyword.ASSERT),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition,
-          message == null ? null : TokenFactory.tokenFromType(TokenType.COMMA),
-          message,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      ArgumentListImpl(
+        leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+        arguments: arguments,
+        rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+      );
 
   static AssignmentExpressionImpl assignmentExpression(Expression leftHandSide,
           TokenType operator, Expression rightHandSide) =>
-      astFactory.assignmentExpression(
-          leftHandSide, TokenFactory.tokenFromType(operator), rightHandSide);
+      AssignmentExpressionImpl(
+        leftHandSide: leftHandSide as ExpressionImpl,
+        operator: TokenFactory.tokenFromType(operator),
+        rightHandSide: rightHandSide as ExpressionImpl,
+      );
 
   static BlockFunctionBodyImpl asyncBlockFunctionBody(
           [List<Statement> statements = const []]) =>

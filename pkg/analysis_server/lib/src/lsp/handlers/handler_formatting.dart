@@ -36,8 +36,8 @@ class FormattingHandler
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>?>> handle(
-      DocumentFormattingParams params, CancellationToken token) async {
+  Future<ErrorOr<List<TextEdit>?>> handle(DocumentFormattingParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

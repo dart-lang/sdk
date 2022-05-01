@@ -636,8 +636,11 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<Expression>(count);
-    ArgumentList arguments =
-        ast.argumentList(leftParenthesis, expressions, rightParenthesis);
+    ArgumentList arguments = ArgumentListImpl(
+      leftParenthesis: leftParenthesis,
+      arguments: expressions,
+      rightParenthesis: rightParenthesis,
+    );
 
     if (!enableNamedArgumentsAnywhere) {
       bool hasSeenNamedArgument = false;
@@ -670,8 +673,8 @@ class AstBuilder extends StackListener {
     assert(kind != Assert.Statement || optionalOrNull(';', semicolon));
     debugEvent("Assert");
 
-    var message = popIfNotNull(comma) as Expression?;
-    var condition = pop() as Expression;
+    var message = popIfNotNull(comma) as ExpressionImpl?;
+    var condition = pop() as ExpressionImpl;
     switch (kind) {
       case Assert.Expression:
         // The parser has already reported an error indicating that assert
@@ -680,19 +683,42 @@ class AstBuilder extends StackListener {
         if (message != null) {
           arguments.add(message);
         }
-        push(ast.functionExpressionInvocation(
+        push(
+          ast.functionExpressionInvocation(
             ast.simpleIdentifier(assertKeyword),
             null,
-            ast.argumentList(
-                leftParenthesis, arguments, leftParenthesis.endGroup!)));
+            ArgumentListImpl(
+              leftParenthesis: leftParenthesis,
+              arguments: arguments,
+              rightParenthesis: leftParenthesis.endGroup!,
+            ),
+          ),
+        );
         break;
       case Assert.Initializer:
-        push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
-            comma, message, leftParenthesis.endGroup!));
+        push(
+          AssertInitializerImpl(
+            assertKeyword: assertKeyword,
+            leftParenthesis: leftParenthesis,
+            condition: condition,
+            comma: comma,
+            message: message,
+            rightParenthesis: leftParenthesis.endGroup!,
+          ),
+        );
         break;
       case Assert.Statement:
-        push(ast.assertStatement(assertKeyword, leftParenthesis, condition,
-            comma, message, leftParenthesis.endGroup!, semicolon));
+        push(
+          AssertStatementImpl(
+            assertKeyword: assertKeyword,
+            leftParenthesis: leftParenthesis,
+            condition: condition,
+            comma: comma,
+            message: message,
+            rightParenthesis: leftParenthesis.endGroup!,
+            semicolon: semicolon,
+          ),
+        );
         break;
     }
   }
@@ -2613,9 +2639,15 @@ class AstBuilder extends StackListener {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
 
-    var type = pop() as TypeAnnotation;
-    var expression = pop() as Expression;
-    push(ast.asExpression(expression, asOperator, type));
+    var type = pop() as TypeAnnotationImpl;
+    var expression = pop() as ExpressionImpl;
+    push(
+      AsExpressionImpl(
+        expression: expression,
+        asOperator: asOperator,
+        type: type,
+      ),
+    );
   }
 
   @override
@@ -2623,14 +2655,20 @@ class AstBuilder extends StackListener {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
 
-    var rhs = pop() as Expression;
-    var lhs = pop() as Expression;
+    var rhs = pop() as ExpressionImpl;
+    var lhs = pop() as ExpressionImpl;
     if (!lhs.isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
       handleRecoverableError(
           messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
     }
-    push(ast.assignmentExpression(lhs, token, rhs));
+    push(
+      AssignmentExpressionImpl(
+        leftHandSide: lhs,
+        operator: token,
+        rightHandSide: rhs,
+      ),
+    );
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
       var feature = ExperimentalFeatures.triple_shift;
       handleRecoverableError(
@@ -3925,7 +3963,7 @@ class AstBuilder extends StackListener {
     debugEvent("StringJuxtaposition");
 
     var strings = popTypedList2<StringLiteral>(literalCount);
-    push(ast.adjacentStrings(strings));
+    push(AdjacentStringsImpl(strings: strings));
   }
 
   @override
@@ -4331,7 +4369,11 @@ class AstBuilder extends StackListener {
       ..previous = precedingToken;
     var right = SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset)
       ..previous = left;
-    return ast.argumentList(left, [], right);
+    return ArgumentListImpl(
+      leftParenthesis: left,
+      arguments: [],
+      rightParenthesis: right,
+    );
   }
 
   SimpleIdentifier _tmpSimpleIdentifier() {

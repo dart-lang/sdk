@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,10 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentDriverResolutionTest extends PubPackageResolutionTest
-    with AssignmentDriverResolutionTestCases {}
-
-mixin AssignmentDriverResolutionTestCases on PubPackageResolutionTest {
+class AssignmentDriverResolutionTest extends PubPackageResolutionTest {
   test_compound_plus_int_context_int() async {
     await assertNoErrorsInCode('''
 T f<T>() => throw Error();
@@ -30,7 +26,7 @@ g(int a) {
 
     assertTypeArgumentTypes(
       findNode.methodInvocation('f()'),
-      [typeStringByNullability(nullable: 'int', legacy: 'num')],
+      ['int'],
     );
   }
 
@@ -44,7 +40,7 @@ g(List<int> a) {
 
     assertTypeArgumentTypes(
       findNode.methodInvocation('f()'),
-      [typeStringByNullability(nullable: 'int', legacy: 'num')],
+      ['int'],
     );
   }
 
@@ -60,7 +56,7 @@ g(num a) {
 
     assertTypeArgumentTypes(
       findNode.methodInvocation('f()'),
-      [typeStringByNullability(nullable: 'int', legacy: 'num')],
+      ['int'],
     );
   }
 
@@ -77,7 +73,7 @@ g(num a, bool b) {
 
     assertTypeArgumentTypes(
       findNode.methodInvocation('f()'),
-      [typeStringByNullability(nullable: 'int', legacy: 'num')],
+      ['int'],
     );
 
     assertType(findNode.simple('a);').staticType, 'num');
@@ -95,18 +91,30 @@ void f(A a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] += 2'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[0] += 2');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    period: ..
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_indexExpression_instance_compound() async {
@@ -121,18 +129,33 @@ void f(A a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] += 2'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[0] += 2');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@91
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_indexExpression_instance_compound_double_num() async {
@@ -147,18 +170,33 @@ void f(A a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] += 2.0'),
-      readElement: findElement.method('[]'),
-      readType: 'num',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    var assignment = findNode.assignment('[0] += 2.0');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@91
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: DoubleLiteral
+    literal: 2.0
+    staticType: double
+  readElement: self::@class::A::@method::[]
+  readType: num
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: double
+''');
   }
 
   test_indexExpression_instance_ifNull() async {
@@ -173,15 +211,33 @@ void f(A a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] ??= 2'),
-      readElement: findElement.method('[]'),
-      readType: 'int?',
-      writeElement: findElement.method('[]='),
-      writeType: 'num?',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[0] ??= 2');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@95
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@method::[]
+  readType: int?
+  writeElement: self::@class::A::@method::[]=
+  writeType: num?
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_instance_simple() async {
@@ -195,15 +251,33 @@ void f(A a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] = 2'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[0] = 2');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@57
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_super_compound() async {
@@ -220,18 +294,32 @@ class B extends A {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] += 2'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[0] += 2');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_indexExpression_this_compound() async {
@@ -246,18 +334,32 @@ class A {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] += 2'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[0] += 2');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_indexExpression_unresolved1_simple() async {
@@ -271,33 +373,34 @@ void f(int c) {
     ]);
 
     var assignment = findNode.assignment('a[b] = c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a['),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('b]'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: dynamic
+    leftBracket: [
+    index: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: dynamic
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@11
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_unresolved2_simple() async {
@@ -311,33 +414,34 @@ void f(int a, int c) {
     ]);
 
     var assignment = findNode.assignment('a[b] = c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a['),
-      element: findElement.parameter('a'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('b]'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@11
+      staticType: int
+    leftBracket: [
+    index: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: dynamic
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@18
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_indexExpression_unresolved3_simple() async {
@@ -354,33 +458,34 @@ void f(A a, int c) {
     ]);
 
     var assignment = findNode.assignment('a[b] = c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a['),
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('b]'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@57
+      staticType: A
+    leftBracket: [
+    index: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: dynamic
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@64
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_notLValue_binaryExpression_compound() async {
@@ -394,19 +499,34 @@ void f(int a, int b, double c) {
     ]);
 
     var assignment = findNode.assignment('= c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
 
-    assertElement(findNode.simple('a +'), findElement.parameter('a'));
-    assertElement(findNode.simple('b +'), findElement.parameter('b'));
-    assertElement(findNode.simple('c;'), findElement.parameter('c'));
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: a
+      staticElement: a@11
+      staticType: int
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: b
+      staticElement: b@18
+      staticType: int
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  operator: +=
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@28
+    staticType: double
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_notLValue_parenthesized_compound() async {
@@ -420,15 +540,38 @@ void f(int a, int b, double c) {
     ]);
 
     var assignment = findNode.assignment('= c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        staticElement: a@11
+        staticType: int
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: b
+        staticElement: b@18
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  operator: +=
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@28
+    staticType: double
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_notLValue_parenthesized_simple() async {
@@ -442,35 +585,38 @@ void f(int a, int b, double c) {
     ]);
 
     var assignment = findNode.assignment('= c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'double',
-    );
 
-    assertType(assignment.leftHandSide, 'int');
-
-    assertSimpleIdentifier(
-      findNode.simple('a + b'),
-      element: findElement.parameter('a'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('b)'),
-      element: findElement.parameter('b'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('c;'),
-      element: findElement.parameter('c'),
-      type: 'double',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        staticElement: a@11
+        staticType: int
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: b
+        staticElement: b@18
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@28
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: double
+''');
   }
 
   test_notLValue_postfixIncrement_compound() async {
@@ -483,21 +629,34 @@ void f(num x, int y) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
     ]);
 
-    assertAssignment(
-      findNode.assignment('= y'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
+    var assignment = findNode.assignment('= y');
 
-    assertSimpleIdentifier(
-      findNode.simple('y;'),
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PostfixExpression
+    operand: SimpleIdentifier
+      token: x
+      staticElement: x@11
+      staticType: null
+    operator: ++
+    readElement: x@11
+    readType: num
+    writeElement: x@11
+    writeType: num
+    staticElement: dart:core::@class::num::@method::+
+    staticType: num
+  operator: +=
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@18
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_notLValue_postfixIncrement_compound_ifNull() async {
@@ -510,21 +669,34 @@ void f(num x, int y) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
     ]);
 
-    assertAssignment(
-      findNode.assignment('= y'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
+    var assignment = findNode.assignment('= y');
 
-    assertSimpleIdentifier(
-      findNode.simple('y;'),
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PostfixExpression
+    operand: SimpleIdentifier
+      token: x
+      staticElement: x@11
+      staticType: null
+    operator: ++
+    readElement: x@11
+    readType: num
+    writeElement: x@11
+    writeType: num
+    staticElement: dart:core::@class::num::@method::+
+    staticType: num
+  operator: ??=
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@18
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_notLValue_postfixIncrement_simple() async {
@@ -537,21 +709,34 @@ void f(num x, int y) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
     ]);
 
-    assertAssignment(
-      findNode.assignment('= y'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('= y');
 
-    assertSimpleIdentifier(
-      findNode.simple('y;'),
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PostfixExpression
+    operand: SimpleIdentifier
+      token: x
+      staticElement: x@11
+      staticType: null
+    operator: ++
+    readElement: x@11
+    readType: num
+    writeElement: x@11
+    writeType: num
+    staticElement: dart:core::@class::num::@method::+
+    staticType: num
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@18
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_notLValue_prefixIncrement_compound() async {
@@ -564,21 +749,34 @@ void f(num x, int y) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
     ]);
 
-    assertAssignment(
-      findNode.assignment('= y'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
+    var assignment = findNode.assignment('= y');
 
-    assertSimpleIdentifier(
-      findNode.simple('y;'),
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
+      token: x
+      staticElement: x@11
+      staticType: null
+    readElement: x@11
+    readType: num
+    writeElement: x@11
+    writeType: num
+    staticElement: dart:core::@class::num::@method::+
+    staticType: num
+  operator: +=
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@18
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_notLValue_prefixIncrement_compound_ifNull() async {
@@ -591,21 +789,34 @@ void f(num x, int y) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
     ]);
 
-    assertAssignment(
-      findNode.assignment('= y'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
+    var assignment = findNode.assignment('= y');
 
-    assertSimpleIdentifier(
-      findNode.simple('y;'),
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
+      token: x
+      staticElement: x@11
+      staticType: null
+    readElement: x@11
+    readType: num
+    writeElement: x@11
+    writeType: num
+    staticElement: dart:core::@class::num::@method::+
+    staticType: num
+  operator: ??=
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@18
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_notLValue_prefixIncrement_simple() async {
@@ -618,21 +829,34 @@ void f(num x, int y) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
     ]);
 
-    assertAssignment(
-      findNode.assignment('= y'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('= y');
 
-    assertSimpleIdentifier(
-      findNode.simple('y;'),
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
+      token: x
+      staticElement: x@11
+      staticType: null
+    readElement: x@11
+    readType: num
+    writeElement: x@11
+    writeType: num
+    staticElement: dart:core::@class::num::@method::+
+    staticType: num
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@18
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_notLValue_typeLiteral_class_ambiguous_simple() async {
@@ -648,27 +872,25 @@ void f() {
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1),
     ]);
 
-    var matcherC = multiplyDefinedElementMatcher([
-      findElement.importFind('package:test/a.dart').class_('C'),
-      findElement.importFind('package:test/b.dart').class_('C'),
-    ]);
-
     var assignment = findNode.assignment('C = 0');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: matcherC,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: C
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_notLValue_typeLiteral_class_simple() async {
@@ -683,33 +905,35 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('C = 0');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.class_('C'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: C
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_nullAware_context() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
 T f<T>() => throw Error();
-g(int$question a) {
+g(int? a) {
   a ??= f();
 }
 ''');
 
-    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['int$question']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['int?']);
   }
 
   test_prefixedIdentifier_instance_compound() async {
@@ -725,25 +949,32 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@58
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_instance_ifNull() async {
@@ -759,22 +990,32 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x ??= 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int?',
-      writeElement: findElement.setter('x'),
-      writeType: 'num?',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@60
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int?
+  writeElement: self::@class::A::@setter::x
+  writeType: num?
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_instance_simple() async {
@@ -789,22 +1030,32 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@40
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_instanceGetter_simple() async {
@@ -821,22 +1072,32 @@ void f(A a) {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.getter('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@40
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_static_simple() async {
@@ -851,22 +1112,32 @@ void f() {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_staticGetter_simple() async {
@@ -883,22 +1154,32 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.getter('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_topLevel_compound() async {
@@ -914,30 +1195,33 @@ void f() {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: importFind.topGet('x'),
-      readType: 'int',
-      writeElement: importFind.topSet('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
-
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: package:test/a.dart::@getter::x
+  readType: int
+  writeElement: package:test/a.dart::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_typeAlias_static_compound() async {
@@ -955,25 +1239,32 @@ void f() {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      staticElement: self::@typeAlias::B
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_unresolved1_simple() async {
@@ -986,31 +1277,33 @@ void f(int c) {
     ]);
 
     var assignment = findNode.assignment('a.b = c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a.'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('b ='),
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: dynamic
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@11
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_prefixedIdentifier_unresolved2_compound() async {
@@ -1024,31 +1317,33 @@ void f(int a, int c) {
     ]);
 
     var assignment = findNode.assignment('a.b += c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a.'),
-      element: findElement.parameter('a'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('b +='),
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@11
+      staticType: int
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@18
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_propertyAccess_cascade_compound() async {
@@ -1064,25 +1359,27 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_propertyAccess_forwardingStub() async {
@@ -1100,17 +1397,41 @@ main() {
 ''');
 
     var assignment = findNode.assignment('x = 1');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x', of: 'A'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
+      keyword: new
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: B
+            staticElement: self::@class::B
+            staticType: null
+          type: B
+        staticElement: self::@class::B::@constructor::•
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_instance_compound() async {
@@ -1126,25 +1447,35 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: a@58
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_propertyAccess_instance_fromMixins_compound() async {
@@ -1168,20 +1499,35 @@ void f(C c) {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x', of: 'M2'),
-      readType: 'int',
-      writeElement: findElement.setter('x', of: 'M2'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: c
+        staticElement: c@134
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::M2::@getter::x
+  readType: int
+  writeElement: self::@class::M2::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_propertyAccess_instance_ifNull() async {
@@ -1197,22 +1543,35 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x ??= 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int?',
-      writeElement: findElement.setter('x'),
-      writeType: 'num?',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: a@60
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int?
+  writeElement: self::@class::A::@setter::x
+  writeType: num?
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_instance_simple() async {
@@ -1227,22 +1586,35 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: a@40
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_super_compound() async {
@@ -1263,26 +1635,30 @@ class B extends A {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x', of: 'A'),
-      readType: 'int',
-      writeElement: findElement.setter('x', of: 'A'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSuperExpression(propertyAccess.target);
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_propertyAccess_this_compound() async {
@@ -1298,25 +1674,30 @@ class A {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_propertyAccess_unresolved1_simple() async {
@@ -1329,31 +1710,36 @@ void f(int c) {
     ]);
 
     var assignment = findNode.assignment('(a).b = c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a)'),
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('b ='),
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('c;'),
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: <null>
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    operator: .
+    propertyName: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@11
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_unresolved2_simple() async {
@@ -1366,31 +1752,36 @@ void f(int a, int c) {
     ]);
 
     var assignment = findNode.assignment('(a).b = c');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifier(
-      findNode.simple('a)'),
-      element: findElement.parameter('a'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('b ='),
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('c;'),
-      element: findElement.parameter('c'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: a@11
+        staticType: int
+      rightParenthesis: )
+      staticType: int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: b
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    staticElement: c@18
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_fieldInstance_simple() async {
@@ -1405,21 +1796,24 @@ class C {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_fieldStatic_simple() async {
@@ -1434,21 +1828,24 @@ class C {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_getterInstance_simple() async {
@@ -1465,21 +1862,24 @@ class C {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.getter('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_getterStatic_simple() async {
@@ -1496,21 +1896,24 @@ class C {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.getter('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_getterTopLevel_simple() async {
@@ -1525,21 +1928,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topGet('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_importPrefix_hasSuperSetter_simple() async {
@@ -1561,19 +1967,24 @@ class B extends A {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.prefix('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@prefix::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_importPrefix_simple() async {
@@ -1588,21 +1999,24 @@ main() {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.prefix('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@prefix::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_localVariable_compound() async {
@@ -1615,24 +2029,24 @@ void f() {
 ''');
 
     var assignment = findNode.assignment('x += 3');
-    assertAssignment(
-      assignment,
-      readElement: findElement.localVar('x'),
-      readType: 'num',
-      writeElement: findElement.localVar('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num', // num + int = num
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@51
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: x@51
+  readType: num
+  writeElement: x@51
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: num
+''');
   }
 
   test_simpleIdentifier_localVariable_simple() async {
@@ -1645,21 +2059,24 @@ void f() {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.localVar('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@51
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: x@51
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_localVariableConst_simple() async {
@@ -1674,21 +2091,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.localVar('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@57
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: x@57
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_localVariableFinal_simple() async {
@@ -1703,113 +2123,127 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.localVar('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@57
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: x@57
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_parameter_compound_ifNull() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
-void f(num$question x) {
+void f(num? x) {
   x ??= 0;
 }
 ''');
 
     var assignment = findNode.assignment('x ??=');
-    assertAssignment(
-      assignment,
-      readElement: findElement.parameter('x'),
-      readType: 'num$question',
-      writeElement: findElement.parameter('x'),
-      writeType: 'num$question',
-      operatorElement: null,
-      type: 'num',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: x@12
+  readType: num?
+  writeElement: x@12
+  writeType: num?
+  staticElement: <null>
+  staticType: num
+''');
   }
 
   test_simpleIdentifier_parameter_compound_ifNull2() async {
-    var question = isNullSafetyEnabled ? '?' : '';
-    var errorOffset = isNullSafetyEnabled ? 77 : 76;
     await assertErrorsInCode('''
 class A {}
 class B extends A {}
 class C extends A {}
 
-void f(B$question x) {
+void f(B? x) {
   x ??= C();
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, errorOffset, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3),
     ]);
 
     var assignment = findNode.assignment('x ??=');
-    assertAssignment(
-      assignment,
-      readElement: findElement.parameter('x'),
-      readType: 'B$question',
-      writeElement: findElement.parameter('x'),
-      writeType: 'B$question',
-      operatorElement: null,
-      type: 'A',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'C');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@64
+    staticType: null
+  operator: ??=
+  rightHandSide: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+      staticElement: self::@class::C::@constructor::•
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  readElement: x@64
+  readType: B?
+  writeElement: x@64
+  writeType: B?
+  staticElement: <null>
+  staticType: A
+''');
   }
 
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
-    var question = isNullSafetyEnabled ? '?' : '';
-    var code = '''
-void f(double$question a, int b) {
+    await assertErrorsInCode('''
+void f(double? a, int b) {
   a ??= b;
 }
-''';
-    await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, code.indexOf('b;'), 1),
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1),
     ]);
 
     var assignment = findNode.assignment('a ??=');
-    assertAssignment(
-      assignment,
-      readElement: findElement.parameter('a'),
-      readType: 'double$question',
-      writeElement: findElement.parameter('a'),
-      writeType: 'double$question',
-      operatorElement: null,
-      type: 'num',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('b'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: a@15
+    staticType: null
+  operator: ??=
+  rightHandSide: SimpleIdentifier
+    token: b
+    staticElement: b@22
+    staticType: int
+  readElement: a@15
+  readType: double?
+  writeElement: a@15
+  writeType: double?
+  staticElement: <null>
+  staticType: num
+''');
   }
 
   test_simpleIdentifier_parameter_compound_refineType_int_double() async {
@@ -1857,21 +2291,24 @@ void f(num x) {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.parameter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: x@11
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_parameter_simple_context() async {
@@ -1883,27 +2320,25 @@ void f(Object x) {
 }
 ''');
 
-    var expectedType = typeStringByNullability(
-      nullable: 'double',
-      legacy: 'int',
-    );
-
     var assignment = findNode.assignment('x = 1');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.parameter('x'),
-      writeType: 'Object',
-      operatorElement: null,
-      type: expectedType,
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, expectedType);
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: x@14
+  writeType: Object
+  staticElement: <null>
+  staticType: double
+''');
   }
 
   test_simpleIdentifier_parameter_simple_notAssignableType() async {
@@ -1916,21 +2351,24 @@ void f(int x) {
     ]);
 
     var assignment = findNode.assignment('x = true');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.parameter('x'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'bool',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'bool');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: =
+  rightHandSide: BooleanLiteral
+    literal: true
+    staticType: bool
+  readElement: <null>
+  readType: null
+  writeElement: x@11
+  writeType: int
+  staticElement: <null>
+  staticType: bool
+''');
   }
 
   test_simpleIdentifier_parameterFinal_simple() async {
@@ -1943,21 +2381,24 @@ void f(final int x) {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.parameter('x'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: x@17
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: x@17
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_staticGetter_superSetter_simple() async {
@@ -1979,19 +2420,24 @@ class B extends A {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.getter('x', of: 'B'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::B::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_staticMethod_superSetter_simple() async {
@@ -2013,19 +2459,24 @@ class B extends A {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('x', of: 'B'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::B::@method::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_superSetter_simple() async {
@@ -2042,21 +2493,24 @@ class B extends A {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_synthetic_simple() async {
@@ -2069,25 +2523,25 @@ void f(int y) {
     ]);
 
     var assignment = findNode.assignment('= y');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('y'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: y
+    staticElement: y@11
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_thisGetter_superGetter_simple() async {
@@ -2106,21 +2560,24 @@ class B extends A {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('x', of: 'A'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_compound() async {
@@ -2136,24 +2593,24 @@ class C {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::C::@getter::x
+  readType: int
+  writeElement: self::@class::C::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_fromMixins_compound() async {
@@ -2176,24 +2633,24 @@ class C with M1, M2 {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x', of: 'M2'),
-      readType: 'int',
-      writeElement: findElement.setter('x', of: 'M2'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::M2::@getter::x
+  readType: int
+  writeElement: self::@class::M2::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_ifNull() async {
@@ -2209,21 +2666,24 @@ class C {
 ''');
 
     var assignment = findNode.assignment('x ??= 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int?',
-      writeElement: findElement.setter('x'),
-      writeType: 'num?',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@class::C::@getter::x
+  readType: int?
+  writeElement: self::@class::C::@setter::x
+  writeType: num?
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_topGetter_superSetter_simple() async {
@@ -2245,21 +2705,24 @@ class B extends A {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topGet('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound() async {
@@ -2273,28 +2736,27 @@ void f() {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound_ifNull2() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertErrorsInCode('''
 void f() {
   x ??= C();
@@ -2304,28 +2766,41 @@ class A {}
 class B extends A {}
 class C extends A {}
 
-B$question get x => B();
-set x(B$question _) {}
+B? get x => B();
+set x(B? _) {}
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3),
     ]);
 
     var assignment = findNode.assignment('x ??=');
-    assertAssignment(
-      assignment,
-      readElement: findElement.topGet('x'),
-      readType: 'B$question',
-      writeElement: findElement.topSet('x'),
-      writeType: 'B$question',
-      operatorElement: null,
-      type: 'A',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'C');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: C
+          staticElement: self::@class::C
+          staticType: null
+        type: C
+      staticElement: self::@class::C::@constructor::•
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  readElement: self::@getter::x
+  readType: B?
+  writeElement: self::@setter::x
+  writeType: B?
+  staticElement: <null>
+  staticType: A
+''');
   }
 
   test_simpleIdentifier_topGetter_topSetter_fromClass_compound() async {
@@ -2341,18 +2816,24 @@ class A {
 ''');
 
     var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
 
     assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
@@ -2371,21 +2852,24 @@ void f() {
 ''');
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_topLevelVariable_simple_notAssignableType() async {
@@ -2400,21 +2884,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x = true');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topSet('x'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'bool',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'bool');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BooleanLiteral
+    literal: true
+    staticType: bool
+  readElement: <null>
+  readType: null
+  writeElement: self::@setter::x
+  writeType: int
+  staticElement: <null>
+  staticType: bool
+''');
   }
 
   test_simpleIdentifier_topLevelVariableFinal_simple() async {
@@ -2429,21 +2916,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x = 2');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topGet('x'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@getter::x
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_typeLiteral_compound() async {
@@ -2456,21 +2946,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('int += 3');
-    assertAssignment(
-      assignment,
-      readElement: intElement,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: int
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: dart:core::@class::int
+  readType: dynamic
+  writeElement: dart:core::@class::int
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_simpleIdentifier_typeLiteral_simple() async {
@@ -2483,21 +2976,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('int = 0');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: intElement,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: int
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: dart:core::@class::int
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_simpleIdentifier_unresolved_compound() async {
@@ -2510,21 +3006,24 @@ void f() {
     ]);
 
     var assignment = findNode.assignment('x += 1');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_simpleIdentifier_unresolved_simple() async {
@@ -2537,24 +3036,24 @@ void f(int a) {
     ]);
 
     var assignment = findNode.assignment('x = a');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
 
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertSimpleIdentifier(
-      assignment.rightHandSide,
-      element: findElement.parameter('a'),
-      type: 'int',
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: a
+    staticElement: a@11
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 }

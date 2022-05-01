@@ -19,8 +19,8 @@ class WillRenameFilesHandler
       RenameFilesParams.jsonHandler;
 
   @override
-  Future<ErrorOr<WorkspaceEdit?>> handle(
-      RenameFilesParams params, CancellationToken token) async {
+  Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
+      MessageInfo message, CancellationToken token) async {
     final files = params.files;
     // Only single-file rename/moves are currently supported.
     // TODO(dantup): Tweak this when VS Code can correctly pass us cancellation

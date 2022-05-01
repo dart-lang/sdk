@@ -160,15 +160,31 @@ f(C c) {
       error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 72, 1),
     ]);
 
-    assertAssignment(
-      findNode.assignment('a ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('a ='), r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      staticElement: c@63
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_method_reference() async {

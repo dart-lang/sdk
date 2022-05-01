@@ -36,7 +36,9 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
 
   /// Initialize a newly created list of adjacent strings. To be syntactically
   /// valid, the list of [strings] must contain at least two elements.
-  AdjacentStringsImpl(List<StringLiteral> strings) {
+  AdjacentStringsImpl({
+    required List<StringLiteral> strings,
+  }) {
     _strings._initialize(this, strings);
   }
 
@@ -340,8 +342,11 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   /// Initialize a newly created list of arguments. The list of [arguments] can
   /// be `null` if there are no arguments.
-  ArgumentListImpl(
-      this.leftParenthesis, List<Expression> arguments, this.rightParenthesis) {
+  ArgumentListImpl({
+    required this.leftParenthesis,
+    required List<Expression> arguments,
+    required this.rightParenthesis,
+  }) {
     _arguments._initialize(this, arguments);
   }
 
@@ -422,7 +427,12 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   TypeAnnotationImpl _type;
 
   /// Initialize a newly created as expression.
-  AsExpressionImpl(this._expression, this.asOperator, this._type) {
+  AsExpressionImpl({
+    required ExpressionImpl expression,
+    required this.asOperator,
+    required TypeAnnotationImpl type,
+  })  : _expression = expression,
+        _type = type {
     _becomeParentOf(_expression);
     _becomeParentOf(_type);
   }
@@ -497,8 +507,15 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   Token rightParenthesis;
 
   /// Initialize a newly created assert initializer.
-  AssertInitializerImpl(this.assertKeyword, this.leftParenthesis,
-      this._condition, this.comma, this._message, this.rightParenthesis) {
+  AssertInitializerImpl({
+    required this.assertKeyword,
+    required this.leftParenthesis,
+    required ExpressionImpl condition,
+    required this.comma,
+    required ExpressionImpl? message,
+    required this.rightParenthesis,
+  })  : _condition = condition,
+        _message = message {
     _becomeParentOf(_condition);
     _becomeParentOf(_message);
   }
@@ -570,8 +587,16 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   Token semicolon;
 
   /// Initialize a newly created assert statement.
-  AssertStatementImpl(this.assertKeyword, this.leftParenthesis, this._condition,
-      this.comma, this._message, this.rightParenthesis, this.semicolon) {
+  AssertStatementImpl({
+    required this.assertKeyword,
+    required this.leftParenthesis,
+    required ExpressionImpl condition,
+    required this.comma,
+    required ExpressionImpl? message,
+    required this.rightParenthesis,
+    required this.semicolon,
+  })  : _condition = condition,
+        _message = message {
     _becomeParentOf(_condition);
     _becomeParentOf(_message);
   }
@@ -641,8 +666,12 @@ class AssignmentExpressionImpl extends ExpressionImpl
   MethodElement? staticElement;
 
   /// Initialize a newly created assignment expression.
-  AssignmentExpressionImpl(
-      this._leftHandSide, this.operator, this._rightHandSide) {
+  AssignmentExpressionImpl({
+    required ExpressionImpl leftHandSide,
+    required this.operator,
+    required ExpressionImpl rightHandSide,
+  })  : _leftHandSide = leftHandSide,
+        _rightHandSide = rightHandSide {
     _becomeParentOf(_leftHandSide);
     _becomeParentOf(_rightHandSide);
   }

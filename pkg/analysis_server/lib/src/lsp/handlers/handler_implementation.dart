@@ -21,8 +21,8 @@ class ImplementationHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Location>>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+  Future<ErrorOr<List<Location>>> handle(TextDocumentPositionParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }

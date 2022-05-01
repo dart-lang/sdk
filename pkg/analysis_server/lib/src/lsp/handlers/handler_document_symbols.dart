@@ -24,7 +24,8 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
   @override
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>?>>
-      handle(DocumentSymbolParams params, CancellationToken token) async {
+      handle(DocumentSymbolParams params, MessageInfo message,
+          CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(

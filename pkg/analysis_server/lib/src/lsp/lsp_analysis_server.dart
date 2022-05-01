@@ -349,7 +349,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
-    performance.logRequestTiming(null);
+    performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
       try {
         if (message is ResponseMessage) {

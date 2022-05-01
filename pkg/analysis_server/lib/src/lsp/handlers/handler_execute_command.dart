@@ -37,8 +37,8 @@ class ExecuteCommandHandler
       ExecuteCommandParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Object?>> handle(
-      ExecuteCommandParams params, CancellationToken cancellationToken) async {
+  Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
+      MessageInfo message, CancellationToken cancellationToken) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,

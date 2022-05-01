@@ -21,8 +21,8 @@ class WorkspaceFoldersHandler
       DidChangeWorkspaceFoldersParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(
-      DidChangeWorkspaceFoldersParams params, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(DidChangeWorkspaceFoldersParams params,
+      MessageInfo message, CancellationToken token) async {
     // Don't do anything if our analysis roots are not based on open workspaces.
     if (!updateAnalysisRoots) {
       return success(null);

@@ -24,7 +24,9 @@ class PrepareRenameHandler
 
   @override
   Future<ErrorOr<RangeAndPlaceholder?>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+      TextDocumentPositionParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -98,7 +100,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(
-      RenameParams params, CancellationToken token) async {
+      RenameParams params, MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

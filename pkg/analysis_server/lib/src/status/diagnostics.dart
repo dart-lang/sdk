@@ -179,11 +179,14 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
     var rowData = StringBuffer();
     for (var i = completions.length - 1; i >= 0; i--) {
-      // [' ', 101.5]
       if (rowData.isNotEmpty) {
         rowData.write(',');
       }
-      rowData.write("[' ', ${completions[i].elapsedInMilliseconds}]");
+      var latency = completions[i].requestLatency ?? 0;
+      var completionTime = completions[i].elapsedInMilliseconds;
+      // label, latency, time
+      // [' ', 21.0, 101.5]
+      rowData.write("[' ', $latency, $completionTime]");
     }
     buf.writeln('''
       <script type="text/javascript">
@@ -191,10 +194,19 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
       google.charts.setOnLoadCallback(drawChart);
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
+          [ 'Completion', 'Latency', 'Time' ],
           $rowData
         ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
+        var options = {
+          bars: 'vertical',
+          vAxis: {format: 'decimal'},
+          height: 300,
+          isStacked: true,
+          series: {
+            0: { color: '#C0C0C0' },
+            1: { color: '#4285f4' },
+          }
+        };
         var chart = new google.charts.Bar(document.getElementById('chart-div'));
         chart.draw(data, google.charts.Bar.convertOptions(options));
       }
@@ -208,7 +220,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     for (var completion in completions) {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
+          '<td class="pre right">${_formatTiming(completion)}</td>'
           '<td class="right">${completion.computedSuggestionCountStr}</td>'
           '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
@@ -216,6 +228,21 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
           '</tr>');
     }
     buf.writeln('</table>');
+  }
+
+  String _formatTiming(CompletionPerformance completion) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(completion.elapsedInMilliseconds));
+
+    var latency = completion.requestLatency;
+    if (latency != null) {
+      buffer
+        ..write(' <small title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
   }
 }
 

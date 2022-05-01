@@ -28,8 +28,8 @@ class DocumentColorHandler
       DocumentColorParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<ColorInformation>>> handle(
-      DocumentColorParams params, CancellationToken token) async {
+  Future<ErrorOr<List<ColorInformation>>> handle(DocumentColorParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success([]);
     }

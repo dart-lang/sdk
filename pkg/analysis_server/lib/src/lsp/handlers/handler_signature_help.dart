@@ -22,8 +22,8 @@ class SignatureHelpHandler
       SignatureHelpParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SignatureHelp?>> handle(
-      SignatureHelpParams params, CancellationToken token) async {
+  Future<ErrorOr<SignatureHelp?>> handle(SignatureHelpParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

@@ -193,7 +193,7 @@ class AstBinaryReader {
 
   AdjacentStrings _readAdjacentStrings() {
     var components = _readNodeList<StringLiteral>();
-    var node = astFactory.adjacentStrings(components);
+    var node = AdjacentStringsImpl(strings: components);
     _readExpressionResolution(node);
     return node;
   }
@@ -218,42 +218,46 @@ class AstBinaryReader {
   ArgumentList _readArgumentList() {
     var arguments = _readNodeList<Expression>();
 
-    return astFactory.argumentList(
-      Tokens.openParenthesis(),
-      arguments,
-      Tokens.closeParenthesis(),
+    return ArgumentListImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      arguments: arguments,
+      rightParenthesis: Tokens.closeParenthesis(),
     );
   }
 
   AsExpression _readAsExpression() {
-    var expression = readNode() as Expression;
-    var type = readNode() as TypeAnnotation;
-    var node = astFactory.asExpression(expression, Tokens.as_(), type);
+    var expression = readNode() as ExpressionImpl;
+    var type = readNode() as TypeAnnotationImpl;
+    var node = AsExpressionImpl(
+      expression: expression,
+      asOperator: Tokens.as_(),
+      type: type,
+    );
     _readExpressionResolution(node);
     return node;
   }
 
   AssertInitializer _readAssertInitializer() {
-    var condition = readNode() as Expression;
-    var message = _readOptionalNode() as Expression?;
-    return astFactory.assertInitializer(
-      Tokens.assert_(),
-      Tokens.openParenthesis(),
-      condition,
-      message != null ? Tokens.comma() : null,
-      message,
-      Tokens.closeParenthesis(),
+    var condition = readNode() as ExpressionImpl;
+    var message = _readOptionalNode() as ExpressionImpl?;
+    return AssertInitializerImpl(
+      assertKeyword: Tokens.assert_(),
+      leftParenthesis: Tokens.openParenthesis(),
+      condition: condition,
+      comma: message != null ? Tokens.comma() : null,
+      message: message,
+      rightParenthesis: Tokens.closeParenthesis(),
     );
   }
 
   AssignmentExpression _readAssignmentExpression() {
-    var leftHandSide = readNode() as Expression;
-    var rightHandSide = readNode() as Expression;
+    var leftHandSide = readNode() as ExpressionImpl;
+    var rightHandSide = readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = astFactory.assignmentExpression(
-      leftHandSide,
-      Tokens.fromType(operatorType),
-      rightHandSide,
+    var node = AssignmentExpressionImpl(
+      leftHandSide: leftHandSide,
+      operator: Tokens.fromType(operatorType),
+      rightHandSide: rightHandSide,
     );
     node.staticElement = _reader.readElement() as MethodElement?;
     node.readElement = _reader.readElement();

@@ -17,6 +17,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -969,10 +970,10 @@ class ClassElementImpl extends AbstractClassElementImpl {
                   StringToken(TokenType.STRING, superclassConstructor.name, -1),
                 )..staticElement = superclassConstructor)
               : null,
-          astFactory.argumentList(
-            Tokens.openParenthesis(),
-            argumentsForSuperInvocation,
-            Tokens.closeParenthesis(),
+          ArgumentListImpl(
+            leftParenthesis: Tokens.openParenthesis(),
+            arguments: argumentsForSuperInvocation,
+            rightParenthesis: Tokens.closeParenthesis(),
           ),
         )..staticElement = superclassConstructor,
       ];

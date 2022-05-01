@@ -737,15 +737,31 @@ f(int? a) {
   a.foo = 1;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo = 1'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('foo = 1'), r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@52
+      staticType: int?
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_instance_setter_fromInstance_nullAware() async {
@@ -758,15 +774,30 @@ f(int? a) {
   a?.foo = 1;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('foo = 1'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.assignment('foo = 1'), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@51
+      staticType: int?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int?
+''');
   }
 }
 
@@ -1299,15 +1330,60 @@ f(C c) {
   c[2] = 1;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('[2] ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'C'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('[2] =');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@127
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@127
+      staticType: C*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@method::[]=
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_operator_indexEquals_fromExtension_functionType() async {
@@ -1319,15 +1395,60 @@ g(int Function(int) f) {
   f[2] = 3;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('f[2]'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('f[2]');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: f
+      staticElement: f@102
+      staticType: int Function(int)
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: f
+      staticElement: f@102
+      staticType: int* Function(int*)*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_operator_indexEquals_fromExtension_interfaceType() async {
@@ -1340,15 +1461,60 @@ f(C c) {
   c[2] = 3;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('c[2]'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('c[2]');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@81
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      staticElement: c@81
+      staticType: C*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_operator_postfix_fromExtendedType() async {
@@ -1489,15 +1655,60 @@ g(int Function(int) f) {
   f.a = 1;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 1'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 1');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: f
+      staticElement: f@75
+      staticType: int Function(int)
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: f
+      staticElement: f@75
+      staticType: int* Function(int*)*
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_setter_oneMatch() async {
@@ -1512,15 +1723,60 @@ f(C c) {
   c.a = 1;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 1'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 1');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      staticElement: c@56
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      staticElement: c@56
+      staticType: C*
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_tearoff_fromExtension_functionType() async {
@@ -1679,16 +1935,74 @@ f() {
   p.E.a = 3;
 }
 ''');
-    var importFind = findElement.importFind('package:test/lib.dart');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: importFind.setter('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/lib.dart::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        staticElement: self::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: package:test/lib.dart::@extension::E
+        staticType: null
+      staticElement: package:test/lib.dart::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: package:test/lib.dart::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_static_setter_local() async {
@@ -1703,15 +2017,60 @@ f() {
   E.a = 3;
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_static_tearoff() async {
@@ -1800,15 +2159,44 @@ extension E2 on int {
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 104, 3),
     ]);
-    assertAssignment(
-      findNode.assignment('foo = 0'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.getter('foo', of: 'E2'),
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('foo = 0');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E2::@getter::foo
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E2::@getter::foo
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_getter_fromInstance() async {
@@ -1960,15 +2348,58 @@ extension E on C {
   void b() { this[2] = 1; }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('this[2]'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'C'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('this[2]');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@method::[]=
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_operator_indexEquals_fromThis_fromExtension() async {
@@ -1979,15 +2410,58 @@ extension E on C {
   void b() { this[2] = 3; }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('this[2]'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('this[2]');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_operator_unary_fromThis_fromExtendedType() async {
@@ -2051,15 +2525,44 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_setter_fromThis_fromExtendedType() async {
@@ -2075,15 +2578,56 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a', of: 'C'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::C::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_setter_fromThis_fromExtension() async {
@@ -2097,15 +2641,56 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_instance_tearoff_fromInstance() async {
@@ -2229,15 +2814,44 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_static_setter_fromStatic() async {
@@ -2251,15 +2865,44 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 3'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 3');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_static_tearoff_fromInstance() async {
@@ -2380,15 +3023,44 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 0'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topSet('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 0');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_topLevel_setter_fromStatic() async {
@@ -2405,15 +3077,44 @@ extension E on C {
   }
 }
 ''');
-    assertAssignment(
-      findNode.assignment('a = 0'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.topSet('a'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('a = 0');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@setter::a
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@setter::a
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 }
 

@@ -161,7 +161,8 @@ abstract class MessageHandler<P, R>
   /// A handler that can parse and validate JSON params.
   LspJsonHandler<P> get jsonHandler;
 
-  FutureOr<ErrorOr<R>> handle(P params, CancellationToken token);
+  FutureOr<ErrorOr<R>> handle(
+      P params, MessageInfo message, CancellationToken token);
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
@@ -182,7 +183,25 @@ abstract class MessageHandler<P, R>
 
     final params =
         paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
-    return handle(params, token);
+    final messageInfo = MessageInfo(message.clientRequestTime);
+    return handle(params, messageInfo, token);
+  }
+}
+
+/// Additional information about an incoming message (request or notification)
+/// provided to a handler.
+class MessageInfo {
+  final int? clientRequestTime;
+
+  MessageInfo(this.clientRequestTime);
+
+  /// Returns the amount of time (in milliseconds) since the client sent this
+  /// request or `null` if the client did not provide [clientRequestTime].
+  int? get timeSinceRequest {
+    var clientRequestTime = this.clientRequestTime;
+    return clientRequestTime != null
+        ? DateTime.now().millisecondsSinceEpoch - clientRequestTime
+        : null;
   }
 }
 

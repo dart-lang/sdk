@@ -342,15 +342,30 @@ f() {
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
     ]);
-    assertAssignment(
-      findNode.assignment('= 3'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
+
+    assertResolvedNodeText(findNode.assignment('= 3'), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_unnamed_extensions() async {
