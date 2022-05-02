@@ -118,8 +118,15 @@ def main():
     args.extend(('&&', 'set'))
     popen = subprocess.Popen(
         args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    variables, _ = popen.communicate()
-    env = _ExtractImportantEnvironment(variables)
+    stdout_data, stderr_data = popen.communicate()
+    if popen.returncode != 0:
+      print('Error, got returncode:', popen.returncode)
+      print('## stdout:')
+      print(stdout_data)
+      print('## stderr:')
+      print(stderr_data)
+      sys.exit(2)
+    env = _ExtractImportantEnvironment(stdout_data)
     env['PATH'] = runtime_dirs + ';' + env['PATH']
 
     if cpu == target_cpu:

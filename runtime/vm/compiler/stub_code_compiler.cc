@@ -1394,6 +1394,20 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Bind(&init_done);
   __ Comment("Copy frame to SuspendState");
 
+#ifdef DEBUG
+  {
+    // Verify that SuspendState.frame_size == kFrameSize.
+    Label okay;
+    __ LoadFromOffset(
+        kTemp,
+        FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+    __ CompareRegisters(kTemp, kFrameSize);
+    __ BranchIf(EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+#endif
+
   __ LoadFromOffset(
       kTemp, Address(FPREG, kSavedCallerPcSlotFromFp * target::kWordSize));
   __ StoreToOffset(
@@ -1412,6 +1426,8 @@ void StubCodeCompiler::GenerateSuspendStub(
 
 #ifdef DEBUG
   {
+    // Verify that kSuspendState matches :suspend_state in the copied stack
+    // frame.
     Label okay;
     __ LoadFromOffset(
         kTemp,
