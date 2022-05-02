@@ -8,8 +8,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:benchmark_harness/benchmark_harness.dart'
-    show PrintEmitter, ScoreEmitter;
+import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:meta/meta.dart';
 
 class SendReceiveBytes extends AsyncBenchmarkBase {
