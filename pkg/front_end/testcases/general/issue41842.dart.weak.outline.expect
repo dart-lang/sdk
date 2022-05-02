@@ -1,0 +1,293 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:35: Error: Expected ';' after this.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                   ^^^
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:38: Error: Expected a class member, but got '<'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:39: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                       ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:39: Error: Expected ';' after this.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                       ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Error: Operator '>' should have exactly one parameter.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:36: Error: Expected ';' after this.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                    ^^^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:39: Error: Expected a class member, but got '<'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                       ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:40: Error: Expected ';' after this.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:40: Error: 'T' is already declared in this scope.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                        ^
+// pkg/front_end/testcases/general/issue41842.dart:16:39: Context: Previous declaration of 'T'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                       ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Error: Operator '>' should have exactly one parameter.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Error: '>' is already declared in this scope.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: Previous declaration of '>'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:33: Error: Expected ';' after this.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                 ^^^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:36: Error: Expected a class member, but got '<'.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                    ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:37: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                     ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:37: Error: Expected ';' after this.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                     ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:37: Error: 'T' is already declared in this scope.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                     ^
+// pkg/front_end/testcases/general/issue41842.dart:18:40: Context: Previous declaration of 'T'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:38: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:38: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:38: Error: Operator '>' should have exactly one parameter.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:38: Error: '>' is already declared in this scope.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Context: Previous declaration of '>'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:33: Error: Expected ';' after this.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                 ^^^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:36: Error: Expected a class member, but got '<'.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                    ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                     ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: Expected ';' after this.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                     ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: 'T' is already declared in this scope.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                     ^
+// pkg/front_end/testcases/general/issue41842.dart:20:37: Context: Previous declaration of 'T'.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                     ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:38: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:38: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:38: Error: Operator '>' should have exactly one parameter.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:38: Error: '>' is already declared in this scope.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                      ^
+// pkg/front_end/testcases/general/issue41842.dart:20:38: Context: Previous declaration of '>'.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: Conflicts with type variable 'T'.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                     ^
+// pkg/front_end/testcases/general/issue41842.dart:7:9: Context: This is the type variable.
+// class A<T> {
+//         ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:10:29: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   factory A.foo2(int x) = B.foo<T>; // Error.
+//                             ^^^
+//
+// pkg/front_end/testcases/general/issue41842.dart:12:29: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   factory A.foo5(int x) = B.bar<T>; // Error.
+//                             ^^^
+//
+// pkg/front_end/testcases/general/issue41842.dart:7:7: Error: The non-abstract class 'A' is missing implementations for these members:
+//  - A.>
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class A<T> {
+//       ^
+// pkg/front_end/testcases/general/issue41842.dart:21:38: Context: 'A.>' is defined here.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                      ^
+//
+import self as self;
+import "dart:core" as core;
+import "issue41842_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41842_lib.dart" as lib;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  field dynamic T;
+  static final field dynamic _redirecting# = <dynamic>[self::A::foo1, self::A::foo2, self::A::foo3, self::A::foo5, self::A::foo6, self::A::foo4, self::A::foo7, self::A::foo8, self::A::foo9, self::A::foo10, self::A::foo11, self::A::foo12, self::A::foo13]/*isLegacy*/;
+  constructor •() → self::A<self::A::T%>
+    ;
+  static factory foo1<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo1::T%>
+    return new self::B::•<self::A::foo1::T%>(x);
+  static factory foo2<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo2::T%>
+    return new self::B::foo<self::A::foo2::T%>(x);
+  static factory foo3<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo3::T%>
+    return new self::B::foo<self::A::foo3::T%>(x);
+  static factory foo5<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo5::T%>
+    return self::B::bar<self::A::foo5::T%>(x);
+  static factory foo6<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo6::T%>
+    return self::B::bar<self::A::foo6::T%>(x);
+  static factory foo4<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo4::T%>
+    return new iss::Foo::•<self::A::foo4::T%>(x);
+  static factory foo7<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo7::T%>
+    return iss::Bar::•<self::A::foo7::T%>(x);
+  static factory foo8<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo8::T%>
+    return new iss::Foo::foo<self::A::foo8::T%>(x);
+  abstract operator >() → dynamic;
+  static factory foo9<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo9::T%>
+    return new iss::Foo::foo<self::A::foo9::T%>(x);
+  static factory foo10<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo10::T%>
+    return iss::Foo::bar<self::A::foo10::T%>(x);
+  static factory foo11<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo11::T%>
+    return iss::Foo::bar<self::A::foo11::T%>(x);
+  static factory foo12<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo12::T%>
+    return new self::B::foo<self::A::foo12::T%>(x);
+  static factory foo13<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo13::T%>
+    return self::B::bar<self::A::foo13::T%>(x);
+}
+class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
+  constructor •(core::int x) → self::B<self::B::T%>
+    ;
+  constructor foo(core::int x) → self::B<self::B::T%>
+    ;
+  static factory bar<T extends core::Object? = dynamic>(core::int x) → self::B<self::B::bar::T%>
+    ;
+}
+static method main() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+import "issue41842.dart" as self;
+
+import "org-dartlang-testcase:///issue41842.dart";
+
+class Foo<T extends core::Object? = dynamic> extends self::A<iss::Foo::T%> {
+  constructor •(core::int x) → iss::Foo<iss::Foo::T%>
+    ;
+  constructor foo(core::int x) → iss::Foo<iss::Foo::T%>
+    ;
+  static factory bar<T extends core::Object? = dynamic>(core::int x) → iss::Foo<iss::Foo::bar::T%>
+    ;
+}
+class Bar<T extends core::Object? = dynamic> extends self::A<iss::Bar::T%> {
+  constructor named(core::int x) → iss::Bar<iss::Bar::T%>
+    ;
+  constructor foo(core::int x) → iss::Bar<iss::Bar::T%>
+    ;
+  static factory •<T extends core::Object? = dynamic>(core::int x) → iss::Bar<iss::Bar::•::T%>
+    ;
+  static factory bar<T extends core::Object? = dynamic>(core::int x) → iss::Bar<iss::Bar::bar::T%>
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo1)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo2)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo3)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo5)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo6)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo4)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo7)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo8)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo9)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo10)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo11)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo12)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue41842.dart:7:7 -> ConstructorTearOffConstant(A.foo13)
+Extra constant evaluation: evaluated: 40, effectively constant: 13

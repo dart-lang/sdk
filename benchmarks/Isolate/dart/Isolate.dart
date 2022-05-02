@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:benchmark_harness/benchmark_harness.dart'
-    show PrintEmitter, ScoreEmitter;
+import 'package:benchmark_harness/benchmark_harness.dart';
 
 class SendReceiveBytes extends AsyncBenchmarkBase {
   SendReceiveBytes(String name,
@@ -33,46 +32,6 @@ class SendReceiveBytes extends AsyncBenchmarkBase {
   final bool useTransferable;
   final int size;
   late SendReceiveHelper helper;
-}
-
-// Identical to BenchmarkBase from package:benchmark_harness but async.
-abstract class AsyncBenchmarkBase {
-  final String name;
-  final ScoreEmitter emitter;
-
-  Future<void> run();
-  Future<void> setup();
-  Future<void> teardown();
-
-  const AsyncBenchmarkBase(this.name, {this.emitter = const PrintEmitter()});
-
-  // Returns the number of microseconds per call.
-  Future<double> measureFor(int minimumMillis) async {
-    final minimumMicros = minimumMillis * 1000;
-    int iter = 0;
-    final watch = Stopwatch();
-    watch.start();
-    int elapsed = 0;
-    while (elapsed < minimumMicros) {
-      await run();
-      elapsed = watch.elapsedMicroseconds;
-      iter++;
-    }
-    return elapsed / iter;
-  }
-
-  // Measures the score for the benchmark and returns it.
-  Future<double> measure() async {
-    await setup();
-    await measureFor(500); // warm-up
-    final result = await measureFor(4000); // actual measurement
-    await teardown();
-    return result;
-  }
-
-  Future<void> report() async {
-    emitter.emit(name, await measure());
-  }
 }
 
 class StartMessage {

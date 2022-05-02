@@ -47,6 +47,7 @@ import '../kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody, redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
+import '../identifiers.dart';
 import '../names.dart' show equalsName, noSuchMethodName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
@@ -1821,8 +1822,43 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           if (declaration is RedirectingFactoryBuilder) {
             // Compute the immediate redirection target, not the effective.
+
             ConstructorReferenceBuilder redirectionTarget =
                 declaration.redirectionTarget;
+            List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
+            Builder? target = redirectionTarget.target;
+            if (typeArguments != null && target is MemberBuilder) {
+              Object? redirectionTargetName = redirectionTarget.name;
+              if (redirectionTargetName is String) {
+                // Do nothing. This is the case of an identifier followed by
+                // type arguments, such as the following:
+                //   B<T>
+                //   B<T>.named
+              } else if (redirectionTargetName is QualifiedName) {
+                if (target.name.isEmpty) {
+                  // Do nothing. This is the case of a qualified
+                  // non-constructor prefix (for example, with a library
+                  // qualifier) followed by type arguments, such as the
+                  // following:
+                  //   lib.B<T>
+                } else if (target.name != redirectionTargetName.suffix.lexeme) {
+                  // Do nothing. This is the case of a qualified
+                  // non-constructor prefix followed by type arguments followed
+                  // by a constructor name, such as the following:
+                  //   lib.B<T>.named
+                } else {
+                  // TODO(cstefantsova,johnniwinther): Handle this in case in
+                  // ConstructorReferenceBuilder.resolveIn and unify with other
+                  // cases of handling of type arguments after constructor
+                  // names.
+                  addProblem(
+                      messageConstructorWithTypeArguments,
+                      redirectionTargetName.charOffset,
+                      redirectionTargetName.name.length);
+                }
+              }
+            }
+
             // ignore: unnecessary_null_comparison
             if (redirectionTarget != null) {
               Builder? targetBuilder = redirectionTarget.target;

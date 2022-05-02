@@ -9,7 +9,7 @@
 
 import 'dart:async';
 
-import 'async_benchmark_base.dart' show AsyncBenchmarkBase;
+import 'package:benchmark_harness/benchmark_harness.dart';
 
 class MockClass {
   static final String str = "${int.parse('42')}";
