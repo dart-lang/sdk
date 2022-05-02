@@ -1377,15 +1377,19 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
 
   // Build implemented interface types
   intptr_t interface_count = helper_.ReadListLength();
-  const Array& interfaces =
-      Array::Handle(Z, Array::New(interface_count, Heap::kOld));
-  for (intptr_t i = 0; i < interface_count; i++) {
-    const AbstractType& type =
-        T.BuildTypeWithoutFinalization();  // read ith type.
-    interfaces.SetAt(i, type);
+  if (interface_count == 0) {
+    klass->set_interfaces(Object::empty_array());
+  } else {
+    const Array& interfaces =
+        Array::Handle(Z, Array::New(interface_count, Heap::kOld));
+    for (intptr_t i = 0; i < interface_count; i++) {
+      const AbstractType& type =
+          T.BuildTypeWithoutFinalization();  // read ith type.
+      interfaces.SetAt(i, type);
+    }
+    klass->set_interfaces(interfaces);
   }
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);
-  klass->set_interfaces(interfaces);
 
   if (class_helper->is_abstract()) klass->set_is_abstract();
 
