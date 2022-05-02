@@ -2834,12 +2834,6 @@ AssignmentExpression
   staticElement: dart:core::@class::num::@method::+
   staticType: int
 ''');
-
-    assertSimpleIdentifierAssignmentTarget(
-      assignment.leftHandSide,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
   }
 
   test_simpleIdentifier_topLevelVariable_simple() async {

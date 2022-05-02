@@ -513,18 +513,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-  void assertSimpleIdentifierAssignmentTarget(Expression node) {
-    if (node is! SimpleIdentifier) {
-      _failNotSimpleIdentifier(node);
-    }
-
-    // TODO(scheglov) Enforce maybe?
-    // Currently VariableResolverVisitor sets it.
-    // expect(node.staticElement, isNull);
-    expect(node.staticType, isNull);
-  }
-
   void assertSubstitution(
     MapSubstitution substitution,
     Map<String, String> expected,

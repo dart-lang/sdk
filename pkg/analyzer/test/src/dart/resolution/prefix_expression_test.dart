@@ -1192,10 +1192,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_thisSetter() async {
@@ -1243,10 +1239,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter() async {
@@ -1294,10 +1286,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -1347,10 +1335,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   /// Verify that we get all necessary types when building the dependencies

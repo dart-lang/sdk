@@ -703,10 +703,6 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 29, 2),
     ]);
 
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('foo'),
-    );
-
     var assignment = findNode.assignment('foo += 0');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -757,10 +753,6 @@ void f(Never x) {
 ''', [
       error(HintCode.DEAD_CODE, 28, 2),
     ]);
-
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('foo'),
-    );
 
     var assignment = findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''

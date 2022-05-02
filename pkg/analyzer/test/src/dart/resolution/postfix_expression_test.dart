@@ -710,10 +710,6 @@ PostfixExpression
   staticType: dynamic
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_inc_prefixedIdentifier_instance() async {
@@ -1229,10 +1225,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter() async {
@@ -1280,10 +1272,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -1333,10 +1321,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 }
 
