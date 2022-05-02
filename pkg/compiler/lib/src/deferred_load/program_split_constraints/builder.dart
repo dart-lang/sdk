@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:collection';
 
 import 'nodes.dart';
@@ -19,7 +17,7 @@ class Constraint {
 
   /// The [CombinerType] which should be used to combine [imports]. Either
   /// [imports] will be a singleton, or [combinerType] will be non-null.
-  final CombinerType combinerType;
+  final CombinerType? combinerType;
 
   /// The [ImportEntity]s underlying this [Constraint].
   final Set<ImportEntity> imports;
@@ -81,8 +79,9 @@ class Builder {
     for (var import in imports) {
       var libraryUri = import.enclosingLibraryUri;
       var prefix = import.name;
-      var uriNodes = importsByUriAndPrefix[libraryUri] ??= {};
-      uriNodes[prefix] = import;
+      Map<String, ImportEntity> uriNodes =
+          importsByUriAndPrefix[libraryUri] ??= {};
+      uriNodes[prefix!] = import;
     }
 
     // A helper function for looking up an [ImportEntity] from a
@@ -93,17 +92,17 @@ class Builder {
         throw 'Uri for constraint not found $uri';
       }
       var prefix = node.prefix;
-      if (!importsByUriAndPrefix[uri].containsKey(prefix)) {
+      if (!importsByUriAndPrefix[uri]!.containsKey(prefix)) {
         throw 'Prefix: $prefix not found for uri: $uri';
       }
-      return importsByUriAndPrefix[uri][prefix];
+      return importsByUriAndPrefix[uri]![prefix]!;
     }
 
     // 2) Create a [Constraint] for each [NamedNode]. Also,
     // index each [Constraint] by [NamedNode].
     Map<NamedNode, Constraint> nodeToConstraintMap = {};
     for (var constraint in nodes.named) {
-      CombinerType combinerType = null;
+      CombinerType? combinerType = null;
       Set<ImportEntity> imports = {};
       if (constraint is ReferenceNode) {
         imports.add(_lookupReference(constraint));
@@ -123,8 +122,8 @@ class Builder {
     // 3) Build a graph of [Constraint]s by processing user constraints and
     // intializing each [Constraint]'s predecessor / successor members.
     void createEdge(NamedNode successorNode, NamedNode predecessorNode) {
-      var successor = nodeToConstraintMap[successorNode];
-      var predecessor = nodeToConstraintMap[predecessorNode];
+      var successor = nodeToConstraintMap[successorNode]!;
+      var predecessor = nodeToConstraintMap[predecessorNode]!;
       successor.predecessors.add(predecessor);
       predecessor.successors.add(successor);
     }
@@ -189,7 +188,8 @@ class Builder {
         // reprocessing constraints when we need to consider new transitive
         // children.
         if (processed.containsKey(predecessor) &&
-            processed[predecessor].containsAll(predecessorTransitiveChildren)) {
+            processed[predecessor]!
+                .containsAll(predecessorTransitiveChildren)) {
           continue;
         }
         (processed[predecessor] ??= {}).addAll(predecessorTransitiveChildren);
