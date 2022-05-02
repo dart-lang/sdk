@@ -10,6 +10,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         DiagnosticMessage,
         kernelForProgram,
+        NnbdMode,
         Severity;
 
 import 'package:kernel/ast.dart';
@@ -49,7 +50,8 @@ Future<Uint8List?> compileToModule(
     ..sdkRoot = sdkRoot
     ..environmentDefines = {}
     ..verbose = false
-    ..onDiagnostic = diagnosticMessageHandler;
+    ..onDiagnostic = diagnosticMessageHandler
+    ..nnbdMode = NnbdMode.Strong;
 
   CompilerResult? compilerResult =
       await kernelForProgram(mainUri, compilerOptions);
