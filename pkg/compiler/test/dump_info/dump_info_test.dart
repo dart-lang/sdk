@@ -66,6 +66,23 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     features.addElement(
         Tags.library, indentedEncoder.convert(libraryInfo.accept(converter)));
 
+    // Store program-wide information on the main library.
+    var name = '${library.canonicalUri.pathSegments.last}';
+    if (name.startsWith('main')) {
+      for (final constantInfo in dumpInfoState.info.constants) {
+        features.addElement(Tags.constant,
+            indentedEncoder.convert(constantInfo.accept(converter)));
+      }
+      features.addElement(Tags.dependencies,
+          indentedEncoder.convert(dumpInfoState.info.dependencies));
+      for (final outputUnit in dumpInfoState.info.outputUnits) {
+        features.addElement(Tags.outputUnits,
+            indentedEncoder.convert(outputUnit.accept(converter)));
+      }
+      features.addElement(Tags.deferredFiles,
+          indentedEncoder.convert(dumpInfoState.info.deferredFiles));
+    }
+
     final id = LibraryId(library.canonicalUri);
     actualMap[id] =
         ActualData<Features>(id, features, library.canonicalUri, -1, library);

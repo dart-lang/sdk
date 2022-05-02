@@ -1,4 +1,64 @@
-/*library: library=[{
+/*library: 
+ constant=[
+  {
+  "id": "constant/B.C_A = new A.A();\n",
+  "kind": "constant",
+  "name": null,
+  "size": 19,
+  "outputUnit": "outputUnit/main",
+  "code": "B.C_A = new A.A();\n"
+},
+  {
+  "id": "constant/B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n",
+  "kind": "constant",
+  "name": null,
+  "size": 131,
+  "outputUnit": "outputUnit/main",
+  "code": "B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n"
+},
+  {
+  "id": "constant/B.Interceptor_methods = J.Interceptor.prototype;\n",
+  "kind": "constant",
+  "name": null,
+  "size": 49,
+  "outputUnit": "outputUnit/main",
+  "code": "B.Interceptor_methods = J.Interceptor.prototype;\n"
+},
+  {
+  "id": "constant/B.JSArray_methods = J.JSArray.prototype;\n",
+  "kind": "constant",
+  "name": null,
+  "size": 41,
+  "outputUnit": "outputUnit/main",
+  "code": "B.JSArray_methods = J.JSArray.prototype;\n"
+},
+  {
+  "id": "constant/B.JSString_methods = J.JSString.prototype;\n",
+  "kind": "constant",
+  "name": null,
+  "size": 43,
+  "outputUnit": "outputUnit/main",
+  "code": "B.JSString_methods = J.JSString.prototype;\n"
+},
+  {
+  "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
+  "kind": "constant",
+  "name": null,
+  "size": 59,
+  "outputUnit": "outputUnit/main",
+  "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
+},
+  {
+  "id": "constant/B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n",
+  "kind": "constant",
+  "name": null,
+  "size": 78,
+  "outputUnit": "outputUnit/main",
+  "code": "B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n"
+}],
+ deferredFiles=[{}],
+ dependencies=[{}],
+ library=[{
   "id": "library/memory:sdk/tests/web/native/main.dart::",
   "kind": "library",
   "name": "<unnamed>",
@@ -12,7 +72,16 @@
     "function/memory:sdk/tests/web/native/main.dart::main"
   ],
   "canonicalUri": "memory:sdk/tests/web/native/main.dart"
-}]*/
+}],
+ outputUnits=[{
+  "id": "outputUnit/main",
+  "kind": "outputUnit",
+  "name": "main",
+  "size": 91101,
+  "filename": "out",
+  "imports": []
+}]
+*/
 /*class: C:class=[{
   "id": "class/memory:sdk/tests/web/native/main.dart::C",
   "kind": "class",
