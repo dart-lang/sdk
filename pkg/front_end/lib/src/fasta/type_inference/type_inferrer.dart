@@ -4195,12 +4195,15 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType tearOffType,
       Expression expression) {
     if (implicitInstantiation != null) {
+      FunctionType uninstantiatedType = implicitInstantiation.functionType;
+
       List<DartType> typeArguments = implicitInstantiation.typeArguments;
       if (!isTopLevel) {
-        checkBoundsInInstantiation(implicitInstantiation.functionType,
-            typeArguments, expression.fileOffset,
+        checkBoundsInInstantiation(
+            uninstantiatedType, typeArguments, expression.fileOffset,
             inferred: true);
       }
+
       if (expression is TypedefTearOff) {
         Substitution substitution =
             Substitution.fromPairs(expression.typeParameters, typeArguments);
@@ -4220,9 +4223,32 @@ class TypeInferrerImpl implements TypeInferrer {
           expression = loweredTypedefTearOff.targetTearOff;
         }
       }
-      expression = new Instantiation(expression, typeArguments)
-        ..fileOffset = expression.fileOffset;
       tearOffType = implicitInstantiation.instantiatedType;
+      if (uninstantiatedType.isPotentiallyNullable) {
+        // Replace expression with:
+        // `let t = expression in t == null ? null : t<...>`
+        VariableDeclaration t = new VariableDeclaration.forValue(expression,
+            type: uninstantiatedType)
+          ..fileOffset = expression.fileOffset;
+
+        Expression nullCheck = new EqualsNull(
+            new VariableGet(t)..fileOffset = expression.fileOffset)
+          ..fileOffset = expression.fileOffset;
+
+        ConditionalExpression conditional = new ConditionalExpression(
+            nullCheck,
+            new NullLiteral()..fileOffset = expression.fileOffset,
+            new Instantiation(
+                new VariableGet(t, uninstantiatedType.toNonNull()),
+                typeArguments)
+              ..fileOffset = expression.fileOffset,
+            tearOffType);
+        expression = new Let(t, conditional)
+          ..fileOffset = expression.fileOffset;
+      } else {
+        expression = new Instantiation(expression, typeArguments)
+          ..fileOffset = expression.fileOffset;
+      }
     }
     return new ExpressionInferenceResult(tearOffType, expression);
   }
