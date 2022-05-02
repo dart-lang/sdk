@@ -389,10 +389,10 @@ abstract class _StringBase implements String {
     if ((startIndex + 1) == endIndex) {
       return this[startIndex];
     }
-    return _substringUncheckedNative(startIndex, endIndex);
+    return _substringUncheckedInternal(startIndex, endIndex);
   }
 
-  external String _substringUncheckedNative(int startIndex, int endIndex);
+  String _substringUncheckedInternal(int startIndex, int endIndex);
 
   // Checks for one-byte whitespaces only.
   static bool _isOneByteWhitespace(int codeUnit) {
@@ -929,6 +929,7 @@ class _OneByteString extends _StringBase {
         super._();
 
   // Same hash as VM
+  @override
   int _computeHashCode() {
     WasmIntArray<WasmI8> array = _array;
     int length = array.length;
@@ -939,10 +940,13 @@ class _OneByteString extends _StringBase {
     return _StringBase._finalizeHash(hash);
   }
 
+  @override
   int codeUnitAt(int index) => _array.readUnsigned(index);
 
+  @override
   int get length => _array.length;
 
+  @override
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
@@ -951,7 +955,8 @@ class _OneByteString extends _StringBase {
     return super == other;
   }
 
-  String _substringUncheckedNative(int startIndex, int endIndex) {
+  @override
+  String _substringUncheckedInternal(int startIndex, int endIndex) {
     int length = endIndex - startIndex;
     var result = _OneByteString._withLength(length);
     for (int i = 0; i < length; i++) {
@@ -998,6 +1003,7 @@ class _OneByteString extends _StringBase {
     return result;
   }
 
+  @override
   int _copyIntoTwoByteString(_TwoByteString result, int offset) {
     final from = _array;
     final int length = from.length;
@@ -1256,6 +1262,7 @@ class _TwoByteString extends _StringBase {
         super._();
 
   // Same hash as VM
+  @override
   int _computeHashCode() {
     WasmIntArray<WasmI16> array = _array;
     int length = array.length;
@@ -1290,18 +1297,32 @@ class _TwoByteString extends _StringBase {
     writeIntoTwoByteString(this, index, codePoint);
   }
 
+  @override
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
+  @override
   int codeUnitAt(int index) => _array.readUnsigned(index);
 
+  @override
   int get length => _array.length;
 
   bool operator ==(Object other) {
     return super == other;
   }
 
+  @override
+  String _substringUncheckedInternal(int startIndex, int endIndex) {
+    int length = endIndex - startIndex;
+    var result = _TwoByteString._withLength(length);
+    for (int i = 0; i < length; i++) {
+      result._setAt(i, codeUnitAt(startIndex + i));
+    }
+    return result;
+  }
+
+  @override
   int _copyIntoTwoByteString(_TwoByteString result, int offset) {
     final from = _array;
     final int length = from.length;
