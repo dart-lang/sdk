@@ -138,6 +138,10 @@ td.pre {
 .footer strong {
   color: #333;
 }
+
+.subtle {
+  color: #333;
+}
 ''';
 
 String get _sdkVersion {
@@ -220,7 +224,9 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     for (var completion in completions) {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
-          '<td class="pre right">${_formatTiming(completion)}</td>'
+          '<td class="pre right"><a href="/timing?id=${completion.id}">'
+          '${_formatTiming(completion)}'
+          '</a></td>'
           '<td class="right">${completion.computedSuggestionCountStr}</td>'
           '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
@@ -237,12 +243,43 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     var latency = completion.requestLatency;
     if (latency != null) {
       buffer
-        ..write(' <small title="client-to-server latency">(+ ')
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
         ..write(printMilliseconds(latency))
         ..write(')</small>');
     }
 
     return buffer.toString();
+  }
+}
+
+abstract class AbstractCompletionTimingPage extends DiagnosticPageWithNav {
+  AbstractCompletionTimingPage(DiagnosticsSite site)
+      : super(site, 'timing', 'Timing', description: 'Timing statistics.');
+
+  path.Context get pathContext;
+
+  List<CompletionPerformance> get performanceItems;
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    var id = int.parse(params['id'] ?? '');
+    var completionInfo =
+        performanceItems.firstWhereOrNull((info) => info.id == id);
+
+    if (completionInfo == null) {
+      blankslate('Unable to find completion data for $id. '
+          'Perhaps newer completion requests have pushed it out of the buffer?');
+      return;
+    }
+
+    var buffer = StringBuffer();
+    completionInfo.operation.write(buffer: buffer);
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape('$buffer'));
+      buf.writeln('</code>');
+    });
+    return;
   }
 }
 
@@ -381,6 +418,20 @@ class CompletionPage extends AbstractCompletionPage {
   AnalysisServer server;
 
   CompletionPage(super.site, this.server);
+
+  @override
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  @override
+  List<CompletionPerformance> get performanceItems =>
+      server.completionState.performanceList.items.toList();
+}
+
+class CompletionTimingPage extends AbstractCompletionTimingPage {
+  @override
+  AnalysisServer server;
+
+  CompletionTimingPage(super.site, this.server);
 
   @override
   path.Context get pathContext => server.resourceProvider.pathContext;
@@ -792,9 +843,11 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     }
     if (server is AnalysisServer) {
       pages.add(CompletionPage(this, server));
+      pages.add(CompletionTimingPage(this, server));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
       pages.add(LspCompletionPage(this, server));
+      pages.add(LspCompletionTimingPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
     }
 
@@ -1059,6 +1112,20 @@ class LspCompletionPage extends AbstractCompletionPage {
   LspAnalysisServer server;
 
   LspCompletionPage(super.site, this.server);
+
+  @override
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  @override
+  List<CompletionPerformance> get performanceItems =>
+      server.performanceStats.completion.items.toList();
+}
+
+class LspCompletionTimingPage extends AbstractCompletionTimingPage {
+  @override
+  LspAnalysisServer server;
+
+  LspCompletionTimingPage(super.site, this.server);
 
   @override
   path.Context get pathContext => server.resourceProvider.pathContext;
