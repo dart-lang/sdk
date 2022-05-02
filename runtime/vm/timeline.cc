@@ -222,8 +222,8 @@ void Timeline::Cleanup() {
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
-  Timeline::Clear();
   RecorderLock::WaitForShutdown();
+  Timeline::Clear();
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
