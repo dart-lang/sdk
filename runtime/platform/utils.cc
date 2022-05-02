@@ -29,8 +29,10 @@ int Utils::CountOneBits64(uint64_t x) {
 #if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
   return __builtin_popcountll(x);
 #else
-  return CountOneBits32(static_cast<uint32_t>(x)) +
-         CountOneBits32(static_cast<uint32_t>(x >> 32));
+  x = x - ((x >> 1) & 0x5555555555555555);
+  x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
+  x = (((x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f) * 0x0101010101010101) >> 56;
+  return x;
 #endif
 }
 
@@ -103,23 +105,22 @@ int Utils::CountTrailingZeros32(uint32_t x) {
 }
 
 uint64_t Utils::ReverseBits64(uint64_t x) {
-  const uint64_t one = static_cast<uint64_t>(1);
-  uint64_t result = 0;
-  for (uint64_t rbit = one << 63; x != 0; x >>= 1) {
-    if ((x & one) != 0) result |= rbit;
-    rbit >>= 1;
-  }
-  return result;
+  x = ( (x >> 32) & 0x00000000ffffffff  ) | ( x << 32 );
+  x = ( (x >> 16) & 0x0000ffff0000ffff  ) | ( (x & 0x0000ffff0000ffff) << 16 );
+  x = ( (x >> 8) & 0x00ff00ff00ff00ff  ) | ( (x & 0x00ff00ff00ff00ff) << 8 );
+  x = ( (x >> 4) & 0x0f0f0f0f0f0f0f0f  ) | ( (x & 0x0f0f0f0f0f0f0f0f) << 4 );
+  x = ( (x >> 2) & 0x3333333333333333  ) | ( (x & 0x3333333333333333) << 2 );
+  x = ( (x >> 1) & 0x5555555555555555  ) | ( (x & 0x5555555555555555) << 1 );
+  return x;
 }
 
 uint32_t Utils::ReverseBits32(uint32_t x) {
-  const uint32_t one = static_cast<uint32_t>(1);
-  uint32_t result = 0;
-  for (uint32_t rbit = one << 31; x != 0; x >>= 1) {
-    if ((x & one) != 0) result |= rbit;
-    rbit >>= 1;
-  }
-  return result;
+  x = ( (x >> 16) & 0x0000ffff  ) | ( (x & 0x0000ffff) << 16 );
+  x = ( (x >> 8) & 0x00ff00ff  ) | ( (x & 0x00ff00ff) << 8 );
+  x = ( (x >> 4) & 0x0f0f0f0f  ) | ( (x & 0x0f0f0f0f) << 4 );
+  x = ( (x >> 2) & 0x33333333  ) | ( (x & 0x33333333) << 2 );
+  x = ( (x >> 1) & 0x55555555  ) | ( (x & 0x55555555) << 1 );
+  return x;
 }
 
 // Implementation according to H.S.Warren's "Hacker's Delight"
