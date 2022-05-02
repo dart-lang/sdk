@@ -93,8 +93,8 @@ class Expando<T extends Object> {
 /// /// ```
 /// /// final cached = CachedComputation(
 /// ///     () => jsonDecode(someJsonSource) as Object);
-/// /// print(cached.result);
-/// /// print(cached.result);
+/// /// print(cached.result); // Executes computation.
+/// /// print(cached.result); // Most likely uses cache.
 /// /// ```
 /// class CachedComputation<R extends Object> {
 ///   final R Function() computation;
@@ -164,8 +164,8 @@ abstract class WeakReference<T extends Object> {
 ///   factory Database.connect() {
 ///     // Wraps the connection in a nice user API,
 ///     // *and* closes connection if the user forgets to.
-///     var connection = DBConnection.connect();
-///     var wrapper = Database._fromConnection(connection);
+///     final connection = DBConnection.connect();
+///     final wrapper = Database._fromConnection(connection);
 ///     // Get finalizer callback when `wrapper` is no longer reachable.
 ///     _finalizer.attach(wrapper, connection, detach: wrapper);
 ///     return wrapper;
@@ -253,8 +253,8 @@ abstract class Finalizer<T> {
   ///   factory Database.connect() {
   ///     // Wraps the connection in a nice user API,
   ///     // *and* closes connection if the user forgets to.
-  ///     var connection = DBConnection.connect();
-  ///     var wrapper = Database._fromConnection();
+  ///     final connection = DBConnection.connect();
+  ///     final wrapper = Database._fromConnection();
   ///     // Get finalizer callback when `wrapper` is no longer reachable.
   ///     _finalizer.attach(wrapper, connection, detach: wrapper);
   ///     return wrapper;
