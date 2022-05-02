@@ -71,7 +71,7 @@ testPropagateToLaterClosure(U Function<T, U>(T Function(), U Function(T)) f) {
       .expectStaticType<Exactly<List<int>>>();
 }
 
-testLongDepedencyChain(
+testLongDependencyChain(
     V Function<T, U, V>(T Function(), U Function(T), V Function(U)) f) {
   f(() => [0], (x) => x.single..expectStaticType<Exactly<int>>(),
           (y) => {y}..expectStaticType<Exactly<Set<int>>>())
