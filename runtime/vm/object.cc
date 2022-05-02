@@ -26036,7 +26036,7 @@ DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
                     "symbolize stack traces in the precompiled runtime.");
 
 SuspendStatePtr SuspendState::New(intptr_t frame_size,
-                                  const Instance& future,
+                                  const Instance& function_data,
                                   Heap::Space space) {
   SuspendState& result = SuspendState::Handle();
   {
@@ -26047,7 +26047,7 @@ SuspendStatePtr SuspendState::New(intptr_t frame_size,
     result ^= raw;
     result.set_frame_size(frame_size);
     result.set_pc(0);
-    result.set_future(future);
+    result.set_function_data(function_data);
   }
   return result.ptr();
 }
@@ -26061,8 +26061,8 @@ void SuspendState::set_pc(uword pc) const {
   StoreNonPointer(&untag()->pc_, pc);
 }
 
-void SuspendState::set_future(const Instance& future) const {
-  untag()->set_future(future.ptr());
+void SuspendState::set_function_data(const Instance& function_data) const {
+  untag()->set_function_data(function_data.ptr());
 }
 
 const char* SuspendState::ToCString() const {

@@ -168,9 +168,12 @@ class Thread;
 
 #define CACHED_FUNCTION_ENTRY_POINTS_LIST(V)                                   \
   V(suspend_state_init_async)                                                  \
-  V(suspend_state_await_async)                                                 \
+  V(suspend_state_await)                                                       \
   V(suspend_state_return_async)                                                \
   V(suspend_state_return_async_not_future)                                     \
+  V(suspend_state_init_async_star)                                             \
+  V(suspend_state_yield_async_star)                                            \
+  V(suspend_state_return_async_star)                                           \
   V(suspend_state_handle_exception)
 
 // This assertion marks places which assume that boolean false immediate

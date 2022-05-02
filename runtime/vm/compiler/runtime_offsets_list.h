@@ -192,7 +192,7 @@
   FIELD(SubtypeTestCache, cache_offset)                                        \
   FIELD(SuspendState, error_callback_offset)                                   \
   FIELD(SuspendState, frame_size_offset)                                       \
-  FIELD(SuspendState, future_offset)                                           \
+  FIELD(SuspendState, function_data_offset)                                    \
   FIELD(SuspendState, payload_offset)                                          \
   FIELD(SuspendState, pc_offset)                                               \
   FIELD(SuspendState, then_callback_offset)                                    \
@@ -281,10 +281,13 @@
                                                                                \
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
-  FIELD(Thread, suspend_state_await_async_entry_point_offset)                  \
+  FIELD(Thread, suspend_state_await_entry_point_offset)                        \
   FIELD(Thread, suspend_state_init_async_entry_point_offset)                   \
   FIELD(Thread, suspend_state_return_async_entry_point_offset)                 \
   FIELD(Thread, suspend_state_return_async_not_future_entry_point_offset)      \
+  FIELD(Thread, suspend_state_init_async_star_entry_point_offset)              \
+  FIELD(Thread, suspend_state_yield_async_star_entry_point_offset)             \
+  FIELD(Thread, suspend_state_return_async_star_entry_point_offset)            \
   FIELD(Thread, suspend_state_handle_exception_entry_point_offset)             \
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \

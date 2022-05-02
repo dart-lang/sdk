@@ -992,7 +992,7 @@ class SuspendState : public AllStatic {
  public:
   static word frame_size_offset();
   static word pc_offset();
-  static word future_offset();
+  static word function_data_offset();
   static word then_callback_offset();
   static word error_callback_offset();
   static word payload_offset();
@@ -1239,9 +1239,14 @@ class Thread : public AllStatic {
   static word random_offset();
 
   static word suspend_state_init_async_entry_point_offset();
-  static word suspend_state_await_async_entry_point_offset();
+  static word suspend_state_await_entry_point_offset();
   static word suspend_state_return_async_entry_point_offset();
   static word suspend_state_return_async_not_future_entry_point_offset();
+
+  static word suspend_state_init_async_star_entry_point_offset();
+  static word suspend_state_yield_async_star_entry_point_offset();
+  static word suspend_state_return_async_star_entry_point_offset();
+
   static word suspend_state_handle_exception_entry_point_offset();
 
   static word OffsetFromThread(const dart::Object& object);

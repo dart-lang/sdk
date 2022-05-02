@@ -1371,7 +1371,7 @@ type TryFinally extends Statement {
 type YieldStatement extends Statement {
   Byte tag = 77;
   FileOffset fileOffset;
-  Byte flags (isYieldStar);
+  Byte flags (isYieldStar, isNative);
   Expression expression;
 }
 

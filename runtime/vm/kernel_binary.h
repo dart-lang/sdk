@@ -213,6 +213,12 @@ enum InstanceInvocationFlags {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
+enum YieldStatementFlags {
+  kYieldStatementFlagYieldStar = 1 << 0,
+  kYieldStatementFlagNative = 1 << 1,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
 enum class NamedTypeFlags : uint8_t {
   kIsRequired = 1 << 0,
 };

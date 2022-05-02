@@ -1287,7 +1287,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   const Register kTemp = SuspendStubABI::kTempReg;
   const Register kFrameSize = SuspendStubABI::kFrameSizeReg;
   const Register kSuspendState = SuspendStubABI::kSuspendStateReg;
-  const Register kFuture = SuspendStubABI::kFutureReg;
+  const Register kFunctionData = SuspendStubABI::kFunctionDataReg;
   const Register kSrcFrame = SuspendStubABI::kSrcFrameReg;
   const Register kDstFrame = SuspendStubABI::kDstFrameReg;
   Label alloc_slow_case, alloc_done, init_done, old_gen_object, call_await;
@@ -1308,7 +1308,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
   __ BranchIf(EQUAL, &init_done);
 
-  __ MoveRegister(kFuture, kSuspendState);
+  __ MoveRegister(kFunctionData, kSuspendState);
   __ Comment("Allocate SuspendState");
 
   // Check for allocation tracing.
@@ -1361,8 +1361,8 @@ void StubCodeCompiler::GenerateSuspendStub(
       FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
   __ StoreCompressedIntoObjectNoBarrier(
       kSuspendState,
-      FieldAddress(kSuspendState, target::SuspendState::future_offset()),
-      kFuture);
+      FieldAddress(kSuspendState, target::SuspendState::function_data_offset()),
+      kFunctionData);
 
   {
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
@@ -1474,8 +1474,8 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ PushRegister(kFrameSize);  // Save frame size.
   __ PushObject(NullObject());  // Make space on stack for the return value.
   __ SmiTag(kFrameSize);
-  __ PushRegister(kFrameSize);  // Pass frame size to runtime entry.
-  __ PushRegister(kFuture);     // Pass future.
+  __ PushRegister(kFrameSize);     // Pass frame size to runtime entry.
+  __ PushRegister(kFunctionData);  // Pass function data.
   __ CallRuntime(kAllocateSuspendStateRuntimeEntry, 2);
   __ Drop(2);                     // Drop arguments
   __ PopRegister(kSuspendState);  // Get result.
@@ -1502,10 +1502,15 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Jump(&call_await);
 }
 
-void StubCodeCompiler::GenerateAwaitAsyncStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
+  GenerateSuspendStub(assembler,
+                      target::Thread::suspend_state_await_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
-      target::Thread::suspend_state_await_async_entry_point_offset());
+      target::Thread::suspend_state_yield_async_star_entry_point_offset());
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
@@ -1529,6 +1534,12 @@ void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
 void StubCodeCompiler::GenerateInitAsyncStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
       assembler, target::Thread::suspend_state_init_async_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateInitAsyncStarStub(Assembler* assembler) {
+  GenerateInitSuspendableFunctionStub(
+      assembler,
+      target::Thread::suspend_state_init_async_star_entry_point_offset());
 }
 
 void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
@@ -1672,6 +1683,12 @@ void StubCodeCompiler::GenerateReturnAsyncNotFutureStub(Assembler* assembler) {
       assembler,
       target::Thread::
           suspend_state_return_async_not_future_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
+  GenerateReturnStub(
+      assembler,
+      target::Thread::suspend_state_return_async_star_entry_point_offset());
 }
 
 void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {

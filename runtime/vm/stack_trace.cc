@@ -70,7 +70,7 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       callback_instance_(Object::Handle(zone)),
       future_impl_class(Class::Handle(zone)),
       future_listener_class(Class::Handle(zone)),
-      async_start_stream_controller_class(Class::Handle(zone)),
+      async_star_stream_controller_class(Class::Handle(zone)),
       stream_controller_class(Class::Handle(zone)),
       sync_stream_controller_class(Class::Handle(zone)),
       controller_subscription_class(Class::Handle(zone)),
@@ -95,9 +95,9 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       async_lib.LookupClassAllowPrivate(Symbols::_FutureListener());
   ASSERT(!future_listener_class.IsNull());
   // - async*:
-  async_start_stream_controller_class =
+  async_star_stream_controller_class =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
-  ASSERT(!async_start_stream_controller_class.IsNull());
+  ASSERT(!async_star_stream_controller_class.IsNull());
   stream_controller_class =
       async_lib.LookupClassAllowPrivate(Symbols::_StreamController());
   ASSERT(!stream_controller_class.IsNull());
@@ -130,7 +130,7 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   ASSERT(!future_listener_result_field.IsNull());
   // - async*:
   controller_controller_field =
-      async_start_stream_controller_class.LookupFieldAllowPrivate(
+      async_star_stream_controller_class.LookupFieldAllowPrivate(
           Symbols::controller());
   ASSERT(!controller_controller_field.IsNull());
   state_field =
@@ -163,14 +163,19 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
 
 ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
     const Context& receiver_context) {
-  // Get the async* _StreamController.
+  // Get the async* _AsyncStarStreamController.
   context_entry_ = receiver_context.At(Context::kControllerIndex);
-  ASSERT(context_entry_.IsInstance());
-  ASSERT(context_entry_.GetClassId() ==
-         async_start_stream_controller_class.id());
+  return FindCallerInAsyncStarStreamController(context_entry_);
+}
 
-  const Instance& controller = Instance::Cast(context_entry_);
-  controller_ = controller.GetField(controller_controller_field);
+ClosurePtr CallerClosureFinder::FindCallerInAsyncStarStreamController(
+    const Object& async_star_stream_controller) {
+  ASSERT(async_star_stream_controller.IsInstance());
+  ASSERT(async_star_stream_controller.GetClassId() ==
+         async_star_stream_controller_class.id());
+
+  controller_ = Instance::Cast(async_star_stream_controller)
+                    .GetField(controller_controller_field);
   ASSERT(!controller_.IsNull());
   ASSERT(controller_.GetClassId() == sync_stream_controller_class.id());
 
@@ -269,8 +274,15 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
 
 ClosurePtr CallerClosureFinder::FindCallerFromSuspendState(
     const SuspendState& suspend_state) {
-  future_ = suspend_state.future();
-  return GetCallerInFutureImpl(future_);
+  context_entry_ = suspend_state.function_data();
+  if (context_entry_.GetClassId() == future_impl_class.id()) {
+    return GetCallerInFutureImpl(context_entry_);
+  } else if (context_entry_.GetClassId() ==
+             async_star_stream_controller_class.id()) {
+    return FindCallerInAsyncStarStreamController(context_entry_);
+  } else {
+    UNREACHABLE();
+  }
 }
 
 ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
@@ -289,14 +301,15 @@ ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
 
 bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
   parent_function_ = function.parent_function();
-  return parent_function_.recognized_kind() ==
-         MethodRecognizer::kSuspendState_createAsyncCallbacks;
+  auto kind = parent_function_.recognized_kind();
+  return (kind == MethodRecognizer::kSuspendState_createAsyncCallbacks) ||
+         (kind == MethodRecognizer::kSuspendState_createAsyncStarCallback);
 }
 
 SuspendStatePtr CallerClosureFinder::GetSuspendStateFromAsyncCallback(
     const Closure& closure) {
   ASSERT(IsCompactAsyncCallback(Function::Handle(closure.function())));
-  // Async handler only captures the receiver (SuspendState).
+  // Async/async* handler only captures the receiver (SuspendState).
   receiver_context_ = closure.context();
   RELEASE_ASSERT(receiver_context_.num_variables() == 1);
   return SuspendState::RawCast(receiver_context_.At(0));
@@ -469,7 +482,8 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     return Closure::null();
   }
 
-  if (function.IsCompactAsyncFunction()) {
+  if (function.IsCompactAsyncFunction() ||
+      function.IsCompactAsyncStarFunction()) {
     auto& suspend_state = Object::Handle(
         zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
                   frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(

@@ -149,11 +149,14 @@ namespace dart {
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
   V(NoSuchMethodDispatcher)                                                    \
-  V(AwaitAsync)                                                                \
+  V(Await)                                                                     \
   V(InitAsync)                                                                 \
   V(Resume)                                                                    \
   V(ReturnAsync)                                                               \
   V(ReturnAsyncNotFuture)                                                      \
+  V(InitAsyncStar)                                                             \
+  V(YieldAsyncStar)                                                            \
+  V(ReturnAsyncStar)                                                           \
   V(AsyncExceptionHandler)                                                     \
   V(UnknownDartCode)
 

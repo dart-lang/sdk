@@ -2039,6 +2039,16 @@ void KernelLoader::LoadProcedure(const Library& library,
     function.set_is_inlinable(false);
     function.set_is_visible(true);
     ASSERT(function.IsCompactAsyncFunction());
+  } else if (function_node_helper.async_marker_ ==
+             FunctionNodeHelper::kAsyncStar) {
+    if (!FLAG_precompiled_mode) {
+      FATAL("Compact async* functions are only supported in AOT mode.");
+    }
+    function.set_modifier(UntaggedFunction::kAsyncGen);
+    function.set_is_debuggable(true);
+    function.set_is_inlinable(false);
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncStarFunction());
   } else {
     ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
     function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
@@ -2063,6 +2073,7 @@ void KernelLoader::LoadProcedure(const Library& library,
         break;
     }
     ASSERT(!function.IsCompactAsyncFunction());
+    ASSERT(!function.IsCompactAsyncStarFunction());
   }
 
   if (!native_name.IsNull()) {

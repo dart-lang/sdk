@@ -834,7 +834,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
   V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
   V(ObjectArrayLength, Array_length)                                           \
-  V(SuspendState_getFuture, SuspendState_future)                               \
+  V(SuspendState_getFunctionData, SuspendState_function_data)                  \
   V(SuspendState_getThenCallback, SuspendState_then_callback)                  \
   V(SuspendState_getErrorCallback, SuspendState_error_callback)                \
   V(TypedDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                 \
@@ -852,7 +852,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
   V(LinkedHashBase_setData, LinkedHashBase_data)                               \
   V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
-  V(SuspendState_setFuture, SuspendState_future)                               \
+  V(SuspendState_setFunctionData, SuspendState_function_data)                  \
   V(SuspendState_setThenCallback, SuspendState_then_callback)                  \
   V(SuspendState_setErrorCallback, SuspendState_error_callback)                \
   V(WeakProperty_setKey, WeakProperty_key)                                     \

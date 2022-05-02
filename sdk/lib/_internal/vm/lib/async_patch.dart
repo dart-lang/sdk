@@ -110,7 +110,7 @@ void _asyncStarMoveNextHelper(var stream) {
 class _AsyncStarStreamController<T> {
   @pragma("vm:entry-point")
   StreamController<T> controller;
-  Function asyncStarBody;
+  Function? asyncStarBody;
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
@@ -127,7 +127,7 @@ class _AsyncStarStreamController<T> {
   Stream<T> get stream {
     final Stream<T> local = controller.stream;
     if (local is _StreamImpl<T>) {
-      local._generator = asyncStarBody;
+      local._generator = asyncStarBody!;
     }
     return local;
   }
@@ -137,7 +137,7 @@ class _AsyncStarStreamController<T> {
     isSuspendedAtYield = false;
     final bool? argument = continuationArgument;
     continuationArgument = null;
-    asyncStarBody(argument, null);
+    asyncStarBody!(argument, null);
   }
 
   void scheduleGenerator() {
@@ -158,6 +158,7 @@ class _AsyncStarStreamController<T> {
   // controller.add(e);
   // suspend;
   // if (controller.isCancelled) return;
+  @pragma("vm:entry-point", "call")
   bool add(T event) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
     if (isSuspendedAtYield) _fatal("unexpected yield");
@@ -174,6 +175,7 @@ class _AsyncStarStreamController<T> {
   // Adds the elements of stream into this controller's stream.
   // The generator will be scheduled again when all of the
   // elements of the added stream have been consumed.
+  @pragma("vm:entry-point", "call")
   void addStream(Stream<T> stream) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
 
@@ -327,7 +329,7 @@ class _SuspendState {
   @pragma("vm:invisible")
   static Object? _initAsync<T>() {
     if (_trace) print('_initAsync<$T>');
-    return new _Future<T>();
+    return _Future<T>();
   }
 
   @pragma("vm:invisible")
@@ -371,14 +373,14 @@ class _SuspendState {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
-  Object? _awaitAsync(Object? object) {
+  Object? _await(Object? object) {
     if (_trace) print('_awaitAsync (object=$object)');
     if (_thenCallback == null) {
       _createAsyncCallbacks();
     }
     _awaitHelper(object, unsafeCast<dynamic Function(dynamic)>(_thenCallback),
         unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
-    return _future;
+    return _functionData;
   }
 
   @pragma("vm:entry-point", "call")
@@ -391,7 +393,7 @@ class _SuspendState {
     _Future future;
     bool isSync = true;
     if (suspendState is _SuspendState) {
-      future = suspendState._future;
+      future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
       isSync = false;
@@ -411,7 +413,7 @@ class _SuspendState {
     _Future future;
     bool isSync = true;
     if (suspendState is _SuspendState) {
-      future = suspendState._future;
+      future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
       isSync = false;
@@ -422,31 +424,79 @@ class _SuspendState {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
-  static Future _handleException(
+  static Object? _initAsyncStar<T>() {
+    if (_trace) print('_initAsyncStar<$T>');
+    return _AsyncStarStreamController<T>(null);
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:recognized", "other")
+  _createAsyncStarCallback(_AsyncStarStreamController controller) {
+    controller.asyncStarBody = (value, _) {
+      if (_trace) print('asyncStarBody callback (value=$value)');
+      _resume(value, null, null);
+    };
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _yieldAsyncStar(Object? object) {
+    final controller = unsafeCast<_AsyncStarStreamController>(_functionData);
+    if (controller.asyncStarBody == null) {
+      _createAsyncStarCallback(controller);
+      return controller.stream;
+    }
+    return null;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static void _returnAsyncStar(Object suspendState, Object? returnValue) {
+    if (_trace) {
+      print('_returnAsyncStar (suspendState=$suspendState, '
+          'returnValue=$returnValue)');
+    }
+    final controller = unsafeCast<_AsyncStarStreamController>(
+        unsafeCast<_SuspendState>(suspendState)._functionData);
+    controller.close();
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _handleException(
       Object suspendState, Object exception, StackTrace stackTrace) {
     if (_trace) {
       print('_handleException (suspendState=$suspendState, '
           'exception=$exception, stackTrace=$stackTrace)');
     }
-    _Future future;
+    Object? functionData;
     bool isSync = true;
     if (suspendState is _SuspendState) {
-      future = suspendState._future;
+      functionData = suspendState._functionData;
     } else {
-      future = unsafeCast<_Future>(suspendState);
+      functionData = suspendState;
       isSync = false;
     }
-    _completeOnAsyncError(future, exception, stackTrace, isSync);
-    return future;
+    if (functionData is _Future) {
+      // async function.
+      _completeOnAsyncError(functionData, exception, stackTrace, isSync);
+    } else if (functionData is _AsyncStarStreamController) {
+      // async* function.
+      functionData.addError(exception, stackTrace);
+      functionData.close();
+    } else {
+      throw 'Unexpected function data ${functionData.runtimeType} $functionData';
+    }
+    return functionData;
   }
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external set _future(_Future value);
+  external set _functionData(Object value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external _Future get _future;
+  external Object get _functionData;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
@@ -467,5 +517,5 @@ class _SuspendState {
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")
   external void _resume(
-      dynamic value, Object? exception, StackTrace? stackTrace);
+      Object? value, Object? exception, StackTrace? stackTrace);
 }

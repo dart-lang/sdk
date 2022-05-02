@@ -31,6 +31,12 @@ class CallerClosureFinder {
   // Returns either the `onData` or the Future awaiter.
   ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
 
+  // Find caller closure from an _AsyncStarStreamController instance
+  // corresponding to async* function.
+  // Returns either the `onData` or the Future awaiter.
+  ClosurePtr FindCallerInAsyncStarStreamController(
+      const Object& async_star_stream_controller);
+
   // Find caller closure from a function receiver closure.
   // For async* functions, async functions, `Future.timeout` and `Future.wait`,
   // we can do this by finding and following their awaited Futures.
@@ -40,11 +46,11 @@ class CallerClosureFinder {
   ClosurePtr FindCallerFromSuspendState(const SuspendState& suspend_state);
 
   // Returns true if given closure function is a Future callback
-  // corresponding to an async function.
+  // corresponding to an async/async* function or async* body callback.
   bool IsCompactAsyncCallback(const Function& function);
 
-  // Returns SuspendState from the given Future callback which corresponds
-  // to an async function.
+  // Returns SuspendState from the given callback which corresponds
+  // to an async/async* function.
   SuspendStatePtr GetSuspendStateFromAsyncCallback(const Closure& closure);
 
   // Finds the awaited Future from an async function receiver closure.
@@ -88,7 +94,7 @@ class CallerClosureFinder {
 
   Class& future_impl_class;
   Class& future_listener_class;
-  Class& async_start_stream_controller_class;
+  Class& async_star_stream_controller_class;
   Class& stream_controller_class;
   Class& sync_stream_controller_class;
   Class& controller_subscription_class;

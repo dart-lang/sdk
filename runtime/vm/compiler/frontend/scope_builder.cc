@@ -89,7 +89,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_begin_token_pos(function.token_pos());
   scope_->set_end_token_pos(function.end_token_pos());
 
-  if (function.IsCompactAsyncFunction()) {
+  if (function.IsSuspendableFunction()) {
     LocalVariable* suspend_state_var =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::SuspendStateVar(), AbstractType::dynamic_type());
@@ -1276,15 +1276,16 @@ void ScopeBuilder::VisitStatement() {
       word flags = helper_.ReadByte();  // read flags.
       VisitExpression();                // read expression.
 
-      ASSERT(flags == kNativeYieldFlags);
-      if (depth_.function_ == 0) {
-        AddSwitchVariable();
-        // Promote all currently visible local variables into the context.
-        // TODO(27590) CaptureLocalVariables promotes to many variables into
-        // the scope. Mark those variables as stack_local.
-        // TODO(27590) we don't need to promote those variables that are
-        // not used across yields.
-        scope_->CaptureLocalVariables(current_function_scope_);
+      if ((flags & kYieldStatementFlagNative) != 0) {
+        if (depth_.function_ == 0) {
+          AddSwitchVariable();
+          // Promote all currently visible local variables into the context.
+          // TODO(27590) CaptureLocalVariables promotes to many variables into
+          // the scope. Mark those variables as stack_local.
+          // TODO(27590) we don't need to promote those variables that are
+          // not used across yields.
+          scope_->CaptureLocalVariables(current_function_scope_);
+        }
       }
       return;
     }
