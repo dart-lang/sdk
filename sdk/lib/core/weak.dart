@@ -4,6 +4,13 @@
 
 part of dart.core;
 
+// Examples can assume:
+// class DBConnection {
+//   DBConnection._();
+//   factory DBConnection.connect() => DBConnection._();
+//   void close() {}
+// }
+
 /// An [Expando] allows adding new properties to objects.
 ///
 /// Does not work on numbers, strings, booleans, `null`, `dart:ffi` pointers,
@@ -69,6 +76,50 @@ class Expando<T extends Object> {
 /// Not all objects are supported as targets for weak references.
 /// The [WeakReference] constructor will reject any object that is not
 /// supported as an [Expando] key.
+///
+/// Use-cases like caching can benefit from using weak references. Example:
+///
+/// ```dart
+/// /// [CachedComputation] caches the computation result, weakly holding
+/// /// on to the cache.
+/// ///
+/// /// If nothing else in the program is holding on the result, and the
+/// /// garbage collector runs, the cache is purged, freeing the memory.
+/// ///
+/// /// Until the cache is purged, the computation will not run again on
+/// /// a subsequent request.
+/// ///
+/// /// Example use:
+/// /// ```
+/// /// final cached = CachedComputation(
+/// ///     () => jsonDecode(someJsonSource) as Object);
+/// /// print(cached.result);
+/// /// print(cached.result);
+/// /// ```
+/// class CachedComputation<R extends Object> {
+///   final R Function() computation;
+///
+///   WeakReference<R>? _cache;
+///
+///   CachedComputation(this.computation);
+///
+///   R get result {
+///     final cachedResult = _cache?.target;
+///     if (cachedResult != null) {
+///       return cachedResult;
+///     }
+///
+///     final result = computation();
+///
+///     // WeakReferences do not support nulls, bools, numbers, and strings.
+///     if (result is! bool && result is! num && result is! String) {
+///       _cache = WeakReference(result);
+///     }
+///
+///     return result;
+///   }
+/// }
+/// ```
 @Since("2.17")
 abstract class WeakReference<T extends Object> {
   /// Creates a [WeakReference] pointing to the given [target].
@@ -99,29 +150,26 @@ abstract class WeakReference<T extends Object> {
 /// with the attachment's finalization token.
 ///
 /// Example:
-/// ```dart template:none
-/// // Keep the finalizer itself reachable, otherwise might not do anything.
-/// final Finalizer<DBConnection> _finalizer = Finalizer((connection) {
-///   connection.close();
-/// });
-///
-/// /// Access the database.
-/// Database connect() {
-///   // Wraps the connection in a nicer user-facing API,
-///   // *and* closes connection if the user forgets to.
-///   var connection = _connectToDatabase();
-///   var wrapper = Database._fromConnection(connection, _finalizer);
-///   // Get finalizer callback when `wrapper` is no longer reachable.
-///   _finalizer.attach(wrapper, connection, detach: wrapper);
-///   return wrapper;
-/// }
-///
+/// ```dart
 /// class Database {
-///   final DBConnection _connection;
-///   final Finalizer<Connection> _finalizer;
-///   Database._fromConnection(this._connection, this._finalizer);
+///   // Keeps the finalizer itself reachable, otherwise it might be disposed
+///   // before the finalizer callback gets a chance to run.
+///   static final Finalizer<DBConnection> _finalizer =
+///       Finalizer((connection) => connection.close());
 ///
-///   // Some useful methods.
+///   final DBConnection _connection;
+///
+///   Database._fromConnection(this._connection);
+///
+///   factory Database.connect() {
+///     // Wraps the connection in a nice user API,
+///     // *and* closes connection if the user forgets to.
+///     var connection = DBConnection.connect();
+///     var wrapper = Database._fromConnection(connection);
+///     // Get finalizer callback when `wrapper` is no longer reachable.
+///     _finalizer.attach(wrapper, connection, detach: wrapper);
+///     return wrapper;
+///   }
 ///
 ///   void close() {
 ///     // User requested close.
@@ -129,6 +177,8 @@ abstract class WeakReference<T extends Object> {
 ///     // Detach from finalizer, no longer needed.
 ///     _finalizer.detach(this);
 ///   }
+///
+///   // Some useful methods.
 /// }
 /// ```
 /// This example has an example of an external resource that needs clean-up.
@@ -145,7 +195,7 @@ abstract class WeakReference<T extends Object> {
 /// that has that finalization token,
 /// is no longer accessible to the program.
 ///
-/// If the finalzier *itself* becomes unreachable,
+/// If the finalizer *itself* becomes unreachable,
 /// it's allowed to be garbage collected
 /// and then it won't trigger any further callbacks.
 /// Always make sure to keep the finalizer itself reachable while it's needed.
@@ -163,6 +213,10 @@ abstract class WeakReference<T extends Object> {
 /// but as high-level events similar to timer events.
 ///
 /// Finalization callbacks must not throw.
+///
+/// When running on the Dart native runtime, and the callback is a native
+/// function rather than a Dart function, use `dart:ffi`'s [NativeFinalizer]
+/// instead.
 @Since("2.17")
 abstract class Finalizer<T> {
   /// Creates a finalizer with the given finalization callback.
@@ -189,18 +243,28 @@ abstract class Finalizer<T> {
   /// They may be the *same* object.
   ///
   /// Example:
-  /// ```dart template:top
-  /// /// Access the data base.
-  /// Database connect() {
-  ///   // Wraps the connection in a nice user API,
-  ///   // *and* closes connection if the user forgets to.
-  ///   var connection = _connectToDatabase();
-  ///   var wrapper = Database._fromConnection(connection, _finalizer);
-  ///   // Get finalizer callback when `wrapper` is no longer reachable.
-  ///   _finalizer.attach(wrapper, connection, detach: wrapper);
-  ///   return wrapper;
+  /// ```dart
+  /// class Database {
+  ///   // Keeps the finalizer itself reachable, otherwise it might be disposed
+  ///   // before the finalizer callback gets a chance to run.
+  ///   static final Finalizer<DBConnection> _finalizer =
+  ///       Finalizer((connection) => connection.close());
+  ///
+  ///   factory Database.connect() {
+  ///     // Wraps the connection in a nice user API,
+  ///     // *and* closes connection if the user forgets to.
+  ///     var connection = DBConnection.connect();
+  ///     var wrapper = Database._fromConnection();
+  ///     // Get finalizer callback when `wrapper` is no longer reachable.
+  ///     _finalizer.attach(wrapper, connection, detach: wrapper);
+  ///     return wrapper;
+  ///   }
+  ///
+  ///   Database._fromConnection();
+  ///
+  ///   // Some useful methods.
   /// }
-  /// ````
+  /// ```
   ///
   /// Multiple objects may be attached using the same finalization token,
   /// and the finalizer can be attached multiple times to the same object
@@ -221,17 +285,16 @@ abstract class Finalizer<T> {
   /// if the object become inaccessible.
   ///
   /// Example:
-  /// ```dart template:none
-  /// final Finalizer<DBConnection> _finalizer = Finalizer((connection) {
-  ///   connection.close();
-  /// });
-  ///
+  /// ```dart
   /// class Database {
-  ///   final DBConnection _connection;
-  ///   final Finalizer<Connection> _finalizer;
-  ///   Database._fromConnection(this._connection, this._finalizer);
+  ///   // Keeps the finalizer itself reachable, otherwise it might be disposed
+  ///   // before the finalizer callback gets a chance to run.
+  ///   static final Finalizer<DBConnection> _finalizer =
+  ///       Finalizer((connection) => connection.close());
   ///
-  ///   // Some useful methods.
+  ///   final DBConnection _connection;
+  ///
+  ///   Database._fromConnection(this._connection);
   ///
   ///   void close() {
   ///     // User requested close.
@@ -240,6 +303,8 @@ abstract class Finalizer<T> {
   ///     // Was attached using this object as `detach` token.
   ///     _finalizer.detach(this);
   ///   }
+  ///
+  ///   // Some useful methods.
   /// }
   /// ```
   void detach(Object detach);

@@ -247,6 +247,96 @@ typedef NativeFinalizerFunction
 /// attached finalizers are definitely called at least once before the program
 /// ends, and the callbacks are called as soon as possible after an object
 /// is recognized as inaccessible.
+///
+/// When the callback is a Dart function rather than a native function, use
+/// [Finalizer] instead.
+///
+/// A native finalizer can be used to close native resources. See the following
+/// example.
+///
+/// ```dart
+/// /// [Database] enables interacting with the native database.
+/// ///
+/// /// After [close] is called, cannot be used to [query].
+/// ///
+/// /// If a [Database] is garbage collected, it is automatically closed by
+/// /// means of a native finalizer. Prefer closing manually for timely
+/// /// release of native resources.
+/// ///
+/// /// Note this class is incomplete and for illustration purposes only.
+/// class Database implements Finalizable {
+///   /// The native finalizer runs [_closeDatabasePointer] on [_nativeDatabase]
+///   /// if the object is garbage collected.
+///   ///
+///   /// Keeps the finalizer itself reachable, otherwise it might be disposed
+///   /// before the finalizer callback gets a chance to run.
+///   static final _finalizer =
+///       NativeFinalizer(_nativeDatabaseBindings.closeDatabaseAddress.cast());
+///
+///   /// The native resource.
+///   ///
+///   /// Should be closed exactly once with [_closeDatabase] or
+///   /// [_closeDatabasePointer].
+///   Pointer<_NativeDatabase> _nativeDatabase;
+///
+///   /// Used to prevent double close and usage after close.
+///   bool _closed = false;
+///
+///   Database._(this._nativeDatabase);
+///
+///   /// Open a database.
+///   factory Database.open() {
+///     final nativeDatabase = _nativeDatabaseBindings.openDatabase();
+///     final database = Database._(nativeDatabase);
+///     _finalizer.attach(database, nativeDatabase.cast(), detach: database);
+///     return database;
+///   }
+///
+///   /// Closes this database.
+///   ///
+///   /// This database cannot be used anymore after it is closed.
+///   void close() {
+///     if (_closed) {
+///       return;
+///     }
+///     _closed = true;
+///     _finalizer.detach(this);
+///     _nativeDatabaseBindings.closeDatabase(_nativeDatabase);
+///   }
+///
+///   /// Query the database.
+///   ///
+///   /// The database should not have been closed.
+///   void query() {
+///     if (_closed) {
+///       throw StateError('The database has been closed.');
+///     }
+///
+///     // Query the database.
+///   }
+/// }
+///
+/// final _nativeDatabaseBindings = _NativeDatabaseLib(DynamicLibrary.process());
+///
+/// // The following classes are typically generated with `package:ffigen`.
+/// // Use `symbol-address` to expose the address of the close function.
+/// class _NativeDatabaseLib {
+///   final DynamicLibrary _library;
+///
+///   _NativeDatabaseLib(this._library);
+///
+///   late final openDatabase = _library.lookupFunction<
+///       Pointer<_NativeDatabase> Function(),
+///       Pointer<_NativeDatabase> Function()>('OpenDatabase');
+///   late final closeDatabaseAddress =
+///       _library.lookup<NativeFunction<Void Function(Pointer<_NativeDatabase>)>>(
+///           'CloseDatabase');
+///   late final closeDatabase = closeDatabaseAddress
+///       .asFunction<void Function(Pointer<_NativeDatabase>)>();
+/// }
+///
+/// class _NativeDatabase extends Opaque {}
+/// ```
 @Since('2.17')
 abstract class NativeFinalizer {
   /// Creates a finalizer with the given finalization callback.
