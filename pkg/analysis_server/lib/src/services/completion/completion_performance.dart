@@ -35,6 +35,8 @@ String _computeCompletionSnippet(String contents, int offset) {
 
 /// Overall performance of a code completion operation.
 class CompletionPerformance {
+  static var _nextId = 1;
+  final int id;
   final OperationPerformance operation;
   final String path;
   final String snippet;
@@ -48,7 +50,8 @@ class CompletionPerformance {
     this.requestLatency,
     required String content,
     required int offset,
-  }) : snippet = _computeCompletionSnippet(content, offset);
+  })  : id = _nextId++,
+        snippet = _computeCompletionSnippet(content, offset);
 
   String get computedSuggestionCountStr {
     if (computedSuggestionCount == null) return '';

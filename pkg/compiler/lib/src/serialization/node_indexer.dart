@@ -2,19 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
-part of 'serialization.dart';
+import 'package:kernel/ast.dart' as ir;
 
 /// Visitor that ascribes an index to all [ir.TreeNode]s that potentially
 /// needed for serialization and deserialization.
-class _TreeNodeIndexerVisitor extends ir.Visitor<void>
-    with ir.VisitorVoidMixin {
+class TreeNodeIndexerVisitor extends ir.Visitor<void> with ir.VisitorVoidMixin {
   int _currentIndex = 0;
   final Map<int, ir.TreeNode> _indexToNodeMap;
   final Map<ir.TreeNode, int> _nodeToIndexMap;
 
-  _TreeNodeIndexerVisitor(this._indexToNodeMap, this._nodeToIndexMap);
+  TreeNodeIndexerVisitor(this._indexToNodeMap, this._nodeToIndexMap);
 
   void registerNode(ir.TreeNode node) {
     _indexToNodeMap[_currentIndex] = node;
@@ -254,14 +251,14 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
 
 /// Visitor that ascribes an index to all [ir.Constant]s that we potentially
 /// need to reference for serialization and deserialization.
-class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
+class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   int _currentIndex = 0;
   final Map<int, ir.Constant> _indexToNodeMap = {};
   final Map<ir.Constant, int> _nodeToIndexMap = {};
 
   /// Returns `true` if node not already registered.
   bool _register(ir.Constant node) {
-    int index = _nodeToIndexMap[node];
+    int? index = _nodeToIndexMap[node];
     if (index != null) return false;
     _indexToNodeMap[_currentIndex] = node;
     _nodeToIndexMap[node] = _currentIndex;
@@ -271,13 +268,13 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
 
   int getIndex(ir.Constant node) {
     assert(_nodeToIndexMap.containsKey(node), "Constant without index: $node");
-    return _nodeToIndexMap[node];
+    return _nodeToIndexMap[node]!;
   }
 
   ir.Constant getConstant(int index) {
     assert(
         _indexToNodeMap.containsKey(index), "Index without constant: $index");
-    return _indexToNodeMap[index];
+    return _indexToNodeMap[index]!;
   }
 
   @override
