@@ -138,6 +138,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
 
   /// Writes a reference to [value] to this data sink. If [value] has not yet
   /// been serialized, [f] is called to serialize the value itself.
+  @override
   void writeCached<E>(E value, void f(E value)) {
     IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
     sink.write(value, (v) => f(v));
@@ -160,6 +161,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readList].
+  @override
   void writeList<E>(Iterable<E> values, void f(E value),
       {bool allowNull = false}) {
     if (values == null) {
@@ -603,12 +605,14 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes the type [value] to this data sink.
+  @override
   void writeDartType(DartType value) {
     _writeDataKind(DataKind.dartType);
     value.writeToDataSink(this, []);
   }
 
   /// Writes the optional type [value] to this data sink.
+  @override
   void writeDartTypeOrNull(DartType /*?*/ value) {
     _writeDataKind(DataKind.dartType);
     if (value == null) {
@@ -623,6 +627,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readDartTypesOrNull].
+  @override
   void writeDartTypesOrNull(Iterable<DartType> /*?*/ values) {
     if (values == null) {
       writeInt(0);
@@ -635,6 +640,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readDartTypes].
+  @override
   void writeDartTypes(Iterable<DartType> values) {
     writeInt(values.length);
     for (DartType value in values) {

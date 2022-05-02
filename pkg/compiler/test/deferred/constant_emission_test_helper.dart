@@ -9,7 +9,7 @@
 
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/deferred_load/output_unit.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart' show OutputUnit;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_emitter/model.dart';

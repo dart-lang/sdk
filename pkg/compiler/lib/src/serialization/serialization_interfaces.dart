@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir show DartType, Member, TreeNode;
 
 import '../elements/entities.dart';
+import '../elements/types.dart' show DartType;
 
 export 'tags.dart';
 
@@ -62,8 +63,17 @@ abstract class DataSinkWriter {
   void writeDartTypeNode(ir.DartType value);
   void writeDartTypeNodeOrNull(ir.DartType? value);
 
+  void writeDartType(DartType value);
+  void writeDartTypeOrNull(DartType? value);
+  void writeDartTypesOrNull(Iterable<DartType>? values);
+  void writeDartTypes(Iterable<DartType> values);
+
   void inMemberContext(ir.Member context, void f());
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V>? map, void f(V value),
+      {bool allowNull = false});
+
+  void writeCached<E extends Object>(E value, void f(E value));
+  void writeList<E extends Object>(Iterable<E> values, void f(E value),
       {bool allowNull = false});
 }
 
@@ -92,7 +102,16 @@ abstract class DataSourceReader {
   ir.DartType readDartTypeNode();
   ir.DartType? readDartTypeNodeOrNull();
 
+  DartType readDartType();
+  DartType? readDartTypeOrNull();
+  List<DartType> readDartTypes();
+  List<DartType>? readDartTypesOrNull();
+
   T inMemberContext<T>(ir.Member context, T f());
   Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f());
   Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(V f());
+
+  E readCached<E extends Object>(E f());
+  List<E> readList<E extends Object>(E f());
+  List<E>? readListOrNull<E extends Object>(E f());
 }

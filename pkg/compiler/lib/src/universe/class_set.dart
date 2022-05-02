@@ -10,7 +10,7 @@ import 'dart:collection' show IterableBase, MapBase;
 
 import '../elements/entities.dart' show ClassEntity;
 import '../elements/indexed.dart' show IndexedClass;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/enumset.dart' show EnumSet;
 
 /// Enum for the different kinds of instantiation of a class.
@@ -546,12 +546,12 @@ class ClassSet {
       DataSourceReader source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
     source.begin(tag);
     ClassHierarchyNode node = nodeMap[source.readClass()];
-    List<ClassHierarchyNode> subtypes = source.readList(() {
+    List<ClassHierarchyNode> subtypes = source.readListOrNull(() {
       return nodeMap[source.readClass()];
-    }, emptyAsNull: true);
-    List<ClassHierarchyNode> mixinApplications = source.readList(() {
+    });
+    List<ClassHierarchyNode> mixinApplications = source.readListOrNull(() {
       return nodeMap[source.readClass()];
-    }, emptyAsNull: true);
+    });
     source.end(tag);
     return ClassSet(node)
       .._subtypes = subtypes

@@ -55,7 +55,7 @@ import 'phase/load_kernel.dart' as load_kernel;
 import 'phase/modular_analysis.dart' as modular_analysis;
 import 'resolution/enqueuer.dart';
 import 'serialization/task.dart';
-import 'serialization/serialization.dart';
+import 'serialization/serialization.dart' show DataSourceIndices;
 import 'serialization/strategies.dart';
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';

@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/call_structure.dart';
 import 'source_file.dart';
 import 'position_information.dart';

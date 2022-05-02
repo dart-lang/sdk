@@ -197,6 +197,7 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
+  @override
   E readCached<E>(E f()) {
     IndexedSource source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
@@ -215,16 +216,27 @@ class DataSourceReader implements migrated.DataSourceReader {
     return null;
   }
 
-  /// Reads a list of [E] values from this data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty list.
+  /// Reads a list of [E] values from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeList].
-  List<E> readList<E>(E f(), {bool emptyAsNull = false}) {
+  @override
+  List<E> readList<E>(E f()) {
+    return readListOrNull<E>(f) ?? List<E>.empty();
+  }
+
+  /// Reads a list of [E] values from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeList].
+  @override
+  List<E> /*?*/ readListOrNull<E>(E f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<E> list = List<E>.filled(count, null);
-    for (int i = 0; i < count; i++) {
+    if (count == 0) return null;
+    final first = f();
+    List<E> list = List<E>.filled(count, first);
+    for (int i = 1; i < count; i++) {
       list[i] = f();
     }
     return list;
@@ -658,6 +670,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a type from this data source.
+  @override
   DartType /*!*/ readDartType() {
     _checkDataKind(DataKind.dartType);
     final type = DartType.readFromDataSource(this, []);
@@ -665,6 +678,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a nullable type from this data source.
+  @override
   DartType /*?*/ readDartTypeOrNull() {
     _checkDataKind(DataKind.dartType);
     return DartType.readFromDataSourceOrNull(this, []);
@@ -674,6 +688,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypes].
+  @override
   List<DartType> readDartTypes() {
     // Share the list when empty.
     return readDartTypesOrNull() ?? const [];
@@ -684,6 +699,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypes].
+  @override
   List<DartType> /*?*/ readDartTypesOrNull() {
     int count = readInt();
     if (count == 0) return null;

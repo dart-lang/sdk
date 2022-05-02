@@ -14,7 +14,7 @@ import '../common/elements.dart';
 import '../common/names.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';

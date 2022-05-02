@@ -16,7 +16,7 @@ library compiler.universe.feature;
 
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart';
 
 /// A language feature that may be seen in the program.

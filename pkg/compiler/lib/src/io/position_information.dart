@@ -13,7 +13,7 @@ import '../common.dart';
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
@@ -42,9 +42,8 @@ class PositionSourceInformation extends SourceInformation {
         () => SourceLocation.readFromDataSource(source));
     SourceLocation innerPosition = source.readCached<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    List<FrameContext> inliningContext = source.readList(
-        () => FrameContext.readFromDataSource(source),
-        emptyAsNull: true);
+    List<FrameContext> inliningContext =
+        source.readListOrNull(() => FrameContext.readFromDataSource(source));
     source.end(tag);
     return PositionSourceInformation(
         startPosition, innerPosition, inliningContext);
