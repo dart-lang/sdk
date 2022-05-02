@@ -792,7 +792,7 @@ abstract class FileSystemEntity {
       return _getTypeSyncHelper(rawPath, followLinks);
     }
     return overrides.fseGetTypeSync(
-        utf8.decode(rawPath, allowMalformed: true), followLinks);
+        _toStringFromUtf8Array(rawPath), followLinks);
   }
 
   static Future<FileSystemEntityType> _getTypeRequest(
@@ -813,8 +813,7 @@ abstract class FileSystemEntity {
     if (overrides == null) {
       return _getTypeRequest(rawPath, followLinks);
     }
-    return overrides.fseGetType(
-        utf8.decode(rawPath, allowMalformed: true), followLinks);
+    return overrides.fseGetType(_toStringFromUtf8Array(rawPath), followLinks);
   }
 
   static _throwIfError(Object result, String msg, [String? path]) {
