@@ -88,6 +88,7 @@ general/incomplete_field_formal_parameter: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
+general/issue41842: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash

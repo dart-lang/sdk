@@ -1,0 +1,35 @@
+import './issue41842_lib.dart' as lib;
+class A<T> {
+  A();
+  factory A.foo1(int x) = B<T>;
+  factory A.foo2(int x) = B.foo<T>;
+  factory A.foo3(int x) = B<T>.foo;
+  factory A.foo5(int x) = B.bar<T>;
+  factory A.foo6(int x) = B<T>.bar;
+  factory A.foo4(int x) = lib.Foo<T>;
+  factory A.foo7(int x) = lib.Bar<T>;
+  factory A.foo8(int x) = lib.Foo.foo;
+  <
+  T;
+  operator>();
+  factory A.foo9(int x) = lib.Foo<T>.foo;
+  factory A.foo10(int x) = lib.Foo.bar;
+  <
+  T;
+  operator>();
+  factory A.foo11(int x) = lib.Foo<T>.bar;
+  factory A.foo12(int x) = B<T>.foo;
+  <
+  T;
+  operator>();
+  factory A.foo13(int x) = B<T>.bar;
+  <
+  T;
+  operator>();
+}
+class B<T> extends A<T> {
+  B(int x);
+  B.foo(int x);
+  factory B.bar(int x) => B.foo(x);
+}
+void main() {}
