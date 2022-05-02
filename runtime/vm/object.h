@@ -9260,11 +9260,6 @@ class Smi : public Integer {
     return raw_smi;
   }
 
-  static SmiPtr FromAlignedAddress(uword address) {
-    ASSERT((address & kSmiTagMask) == kSmiTag);
-    return static_cast<SmiPtr>(address);
-  }
-
   static ClassPtr Class();
 
   static intptr_t Value(const SmiPtr raw_smi) { return RawSmiValue(raw_smi); }
