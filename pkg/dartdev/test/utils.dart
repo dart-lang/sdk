@@ -109,11 +109,15 @@ dev_dependencies:
     await _process?.exitCode;
     _process = null;
     int deleteAttempts = 5;
-    while (dir.existsSync()) {
+    while (deleteAttempts >= 0) {
+      deleteAttempts--;
       try {
+        if (!dir.existsSync()) {
+          return;
+        }
         dir.deleteSync(recursive: true);
       } catch (e) {
-        if ((--deleteAttempts) <= 0) {
+        if (deleteAttempts <= 0) {
           rethrow;
         }
         await Future.delayed(Duration(milliseconds: 500));
