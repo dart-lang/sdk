@@ -54,8 +54,8 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// inconsistencies between serialization and deserialization.
   List<String> _tags;
 
-  /// Map of [_MemberData] object for serialized kernel member nodes.
-  final Map<ir.Member, _MemberData> _memberData = {};
+  /// Map of [MemberData] object for serialized kernel member nodes.
+  final Map<ir.Member, MemberData> _memberData = {};
 
   IndexedSink<String> _stringIndex;
   IndexedSink<Uri> _uriIndex;
@@ -71,7 +71,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   final Map<String, int> tagFrequencyMap;
 
   ir.Member _currentMemberContext;
-  _MemberData _currentMemberData;
+  MemberData _currentMemberData;
 
   IndexedSink<T> _createSink<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
@@ -340,11 +340,11 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     if (cls != null) {
       _sinkWriter.writeEnum(MemberContextKind.cls);
       _writeClassNode(cls);
-      _writeString(_computeMemberName(value));
+      _writeString(computeMemberName(value));
     } else {
       _sinkWriter.writeEnum(MemberContextKind.library);
       _writeLibraryNode(value.enclosingLibrary);
-      _writeString(_computeMemberName(value));
+      _writeString(computeMemberName(value));
     }
   }
 
@@ -410,7 +410,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     _writeTreeNode(value, null);
   }
 
-  void _writeTreeNode(ir.TreeNode value, _MemberData memberData) {
+  void _writeTreeNode(ir.TreeNode value, MemberData memberData) {
     if (value is ir.Class) {
       _sinkWriter.writeEnum(_TreeNodeKind.cls);
       _writeClassNode(value);
@@ -502,7 +502,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   void writeTreeNodeInContextInternal(
-      ir.TreeNode value, _MemberData memberData) {
+      ir.TreeNode value, MemberData memberData) {
     _writeDataKind(DataKind.treeNode);
     _writeTreeNode(value, memberData);
   }
@@ -567,7 +567,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     _writeTypeParameter(value, null);
   }
 
-  void _writeTypeParameter(ir.TypeParameter value, _MemberData memberData) {
+  void _writeTypeParameter(ir.TypeParameter value, MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Class) {
       _sinkWriter.writeEnum(_TypeParameterKind.cls);
@@ -1243,7 +1243,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   @override
   void inMemberContext(ir.Member context, void f()) {
     ir.Member oldMemberContext = _currentMemberContext;
-    _MemberData oldMemberData = _currentMemberData;
+    MemberData oldMemberData = _currentMemberData;
     _currentMemberContext = context;
     _currentMemberData = null;
     f();
@@ -1251,14 +1251,14 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     _currentMemberContext = oldMemberContext;
   }
 
-  _MemberData get currentMemberData {
+  MemberData get currentMemberData {
     assert(_currentMemberContext != null,
         "DataSink has no current member context.");
     return _currentMemberData ??= _memberData[_currentMemberContext] ??=
-        _MemberData(_currentMemberContext);
+        MemberData(_currentMemberContext);
   }
 
-  _MemberData _getMemberData(ir.TreeNode node) {
+  MemberData _getMemberData(ir.TreeNode node) {
     ir.TreeNode member = node;
     while (member is! ir.Member) {
       if (member == null) {
@@ -1268,10 +1268,10 @@ class DataSinkWriter implements migrated.DataSinkWriter {
       member = member.parent;
     }
     _writeMemberNode(member);
-    return _memberData[member] ??= _MemberData(member);
+    return _memberData[member] ??= MemberData(member);
   }
 
-  void _writeFunctionNode(ir.FunctionNode value, _MemberData memberData) {
+  void _writeFunctionNode(ir.FunctionNode value, MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Procedure) {
       _sinkWriter.writeEnum(_FunctionNodeKind.procedure);

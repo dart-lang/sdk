@@ -25,6 +25,8 @@ import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 
+import 'member_data.dart';
+export 'member_data.dart' show ComponentLookup, computeMemberName;
 import 'serialization_interfaces.dart' as migrated
     show DataSourceReader, DataSinkWriter;
 import 'tags.dart';
@@ -35,8 +37,6 @@ part 'source.dart';
 part 'binary_sink.dart';
 part 'binary_source.dart';
 part 'helpers.dart';
-part 'member_data.dart';
-part 'node_indexer.dart';
 part 'object_sink.dart';
 part 'object_source.dart';
 

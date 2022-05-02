@@ -53,14 +53,14 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   IndexedSource<String> _stringIndex;
   IndexedSource<Uri> _uriIndex;
-  IndexedSource<_MemberData> _memberNodeIndex;
+  IndexedSource<MemberData> _memberNodeIndex;
   IndexedSource<ImportEntity> _importIndex;
   IndexedSource<ConstantValue> _constantIndex;
 
   final Map<Type, IndexedSource> _generalCaches = {};
 
   ir.Member _currentMemberContext;
-  _MemberData _currentMemberData;
+  MemberData _currentMemberData;
 
   IndexedSource<T> _createSource<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
@@ -75,7 +75,7 @@ class DataSourceReader implements migrated.DataSourceReader {
       {this.useDataKinds = false, this.importedIndices, this.interner}) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
-    _memberNodeIndex = _createSource<_MemberData>();
+    _memberNodeIndex = _createSource<MemberData>();
     _importIndex = _createSource<ImportEntity>();
     _constantIndex = _createSource<ConstantValue>();
   }
@@ -89,9 +89,9 @@ class DataSourceReader implements migrated.DataSourceReader {
     indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex.cache);
     // _memberNodeIndex needs two entries depending on if the indices will be
     // consumed by a [DataSource] or [DataSink].
-    indices.caches[_MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
-    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, _MemberData>(
-        _memberNodeIndex.cache, (_MemberData data) => data?.node);
+    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
+    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, MemberData>(
+        _memberNodeIndex.cache, (MemberData data) => data?.node);
     indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex.cache);
     _generalCaches.forEach((type, indexedSource) {
       indices.caches[type] = DataSourceTypeIndices(indexedSource.cache);
@@ -180,7 +180,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   @override
   T inMemberContext<T>(ir.Member context, T f()) {
     ir.Member oldMemberContext = _currentMemberContext;
-    _MemberData oldMemberData = _currentMemberData;
+    MemberData oldMemberData = _currentMemberData;
     _currentMemberContext = context;
     _currentMemberData = null;
     T result = f();
@@ -189,7 +189,7 @@ class DataSourceReader implements migrated.DataSourceReader {
     return result;
   }
 
-  _MemberData get currentMemberData {
+  MemberData get currentMemberData {
     assert(_currentMemberContext != null,
         "DataSink has no current member context.");
     return _currentMemberData ??= _getMemberData(_currentMemberContext);
@@ -359,7 +359,7 @@ class DataSourceReader implements migrated.DataSourceReader {
     return _readLibraryData().node;
   }
 
-  _LibraryData _readLibraryData() {
+  LibraryData _readLibraryData() {
     Uri canonicalUri = _readUri();
     return componentLookup.getLibraryDataByUri(canonicalUri);
   }
@@ -370,8 +370,8 @@ class DataSourceReader implements migrated.DataSourceReader {
     return _readClassData().node;
   }
 
-  _ClassData _readClassData() {
-    _LibraryData library = _readLibraryData();
+  ClassData _readClassData() {
+    LibraryData library = _readLibraryData();
     String name = _readString();
     return library.lookupClassByName(name);
   }
@@ -383,7 +383,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   ir.Typedef _readTypedefNode() {
-    _LibraryData library = _readLibraryData();
+    LibraryData library = _readLibraryData();
     String name = _readString();
     return library.lookupTypedef(name);
   }
@@ -394,19 +394,19 @@ class DataSourceReader implements migrated.DataSourceReader {
     return _readMemberData().node;
   }
 
-  _MemberData _readMemberData() {
+  MemberData _readMemberData() {
     return _memberNodeIndex.read(_readMemberDataInternal);
   }
 
-  _MemberData _readMemberDataInternal() {
+  MemberData _readMemberDataInternal() {
     MemberContextKind kind = _sourceReader.readEnum(MemberContextKind.values);
     switch (kind) {
       case MemberContextKind.cls:
-        _ClassData cls = _readClassData();
+        ClassData cls = _readClassData();
         String name = _readString();
         return cls.lookupMemberDataByName(name);
       case MemberContextKind.library:
-        _LibraryData library = _readLibraryData();
+        LibraryData library = _readLibraryData();
         String name = _readString();
         return library.lookupMemberDataByName(name);
     }
@@ -474,7 +474,7 @@ class DataSourceReader implements migrated.DataSourceReader {
     return _readTreeNode(null);
   }
 
-  ir.TreeNode _readTreeNode(_MemberData memberData) {
+  ir.TreeNode _readTreeNode(MemberData memberData) {
     _TreeNodeKind kind = _sourceReader.readEnum(_TreeNodeKind.values);
     switch (kind) {
       case _TreeNodeKind.cls:
@@ -558,7 +558,7 @@ class DataSourceReader implements migrated.DataSourceReader {
     return readTreeNodeInContextInternal(currentMemberData);
   }
 
-  ir.TreeNode readTreeNodeInContextInternal(_MemberData memberData) {
+  ir.TreeNode readTreeNodeInContextInternal(MemberData memberData) {
     _checkDataKind(DataKind.treeNode);
     return _readTreeNode(memberData);
   }
@@ -628,7 +628,7 @@ class DataSourceReader implements migrated.DataSourceReader {
     return _readTypeParameter(null);
   }
 
-  ir.TypeParameter _readTypeParameter(_MemberData memberData) {
+  ir.TypeParameter _readTypeParameter(MemberData memberData) {
     _TypeParameterKind kind = _sourceReader.readEnum(_TypeParameterKind.values);
     switch (kind) {
       case _TypeParameterKind.cls:
@@ -1354,18 +1354,18 @@ class DataSourceReader implements migrated.DataSourceReader {
     return _codegenReader.readTypeRecipe(this);
   }
 
-  _MemberData _getMemberData(ir.Member node) {
-    _LibraryData libraryData =
+  MemberData _getMemberData(ir.Member node) {
+    LibraryData libraryData =
         componentLookup.getLibraryDataByUri(node.enclosingLibrary.importUri);
     if (node.enclosingClass != null) {
-      _ClassData classData = libraryData.lookupClassByNode(node.enclosingClass);
+      ClassData classData = libraryData.lookupClassByNode(node.enclosingClass);
       return classData.lookupMemberDataByNode(node);
     } else {
       return libraryData.lookupMemberDataByNode(node);
     }
   }
 
-  ir.FunctionNode _readFunctionNode(_MemberData memberData) {
+  ir.FunctionNode _readFunctionNode(MemberData memberData) {
     _FunctionNodeKind kind = _sourceReader.readEnum(_FunctionNodeKind.values);
     switch (kind) {
       case _FunctionNodeKind.procedure:
