@@ -778,6 +778,8 @@ class Assembler : public MicroAssembler {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
+
   // Push all registers which are callee-saved according to the ARM64 ABI.
   void PushNativeCalleeSavedRegisters();
 

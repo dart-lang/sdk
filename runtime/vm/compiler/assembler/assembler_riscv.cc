@@ -2173,6 +2173,7 @@ void Assembler::PushRegisters(const RegisterSet& regs) {
   }
   ASSERT(offset == 0);
 }
+
 void Assembler::PopRegisters(const RegisterSet& regs) {
   // The order in which the registers are pushed must match the order
   // in which the registers are encoded in the safepoint's stack map.
@@ -2199,6 +2200,16 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
   ASSERT(offset == size);
   addi(SP, SP, size);
+}
+
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  intptr_t offset = regs.size() * target::kWordSize;
+  subi(SP, SP, offset);
+  for (Register reg : regs) {
+    ASSERT(reg != SP);
+    offset -= target::kWordSize;
+    sx(reg, Address(SP, offset));
+  }
 }
 
 void Assembler::PushNativeCalleeSavedRegisters() {

@@ -2368,6 +2368,22 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   ASSERT(vprev == kNoVRegister);
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  // Use STP to push registers in pairs.
+  Register pending_reg = kNoRegister;
+  for (Register reg : regs) {
+    if (pending_reg != kNoRegister) {
+      PushPair(reg, pending_reg);
+      pending_reg = kNoRegister;
+    } else {
+      pending_reg = reg;
+    }
+  }
+  if (pending_reg != kNoRegister) {
+    Push(pending_reg);
+  }
+}
+
 void Assembler::PushNativeCalleeSavedRegisters() {
   // Save the callee-saved registers.
   // We use str instead of the Push macro because we will be pushing the PP

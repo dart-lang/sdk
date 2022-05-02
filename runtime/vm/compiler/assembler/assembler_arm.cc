@@ -2519,6 +2519,36 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  // Collect the longest descending sequences of registers and
+  // push them with a single STMDB instruction.
+  RegList pending_regs = 0;
+  Register lowest_pending_reg = kNumberOfCpuRegisters;
+  intptr_t num_pending_regs = 0;
+  for (Register reg : regs) {
+    if (reg >= lowest_pending_reg) {
+      ASSERT(pending_regs != 0);
+      if (num_pending_regs > 1) {
+        PushList(pending_regs);
+      } else {
+        Push(lowest_pending_reg);
+      }
+      pending_regs = 0;
+      num_pending_regs = 0;
+    }
+    pending_regs |= (1 << reg);
+    lowest_pending_reg = reg;
+    ++num_pending_regs;
+  }
+  if (pending_regs != 0) {
+    if (num_pending_regs > 1) {
+      PushList(pending_regs);
+    } else {
+      Push(lowest_pending_reg);
+    }
+  }
+}
+
 void Assembler::PushNativeCalleeSavedRegisters() {
   // Save new context and C++ ABI callee-saved registers.
   PushList(kAbiPreservedCpuRegs);

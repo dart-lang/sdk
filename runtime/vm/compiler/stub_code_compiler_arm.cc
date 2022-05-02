@@ -507,8 +507,8 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
                                           bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     ASSERT(!GenericCheckBoundInstr::UseUnboxedRepresentation());
-    __ PushRegister(RangeErrorABI::kLengthReg);
-    __ PushRegister(RangeErrorABI::kIndexReg);
+    __ PushRegistersInOrder(
+        {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
     __ CallRuntime(kRangeErrorRuntimeEntry, /*argument_count=*/2);
     __ Breakpoint();
   };
@@ -1849,11 +1849,10 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
 
   __ LoadObject(AllocateObjectABI::kResultReg, NullObject());
 
-  // Pushes result slot, then parameter class.
-  __ PushRegisterPair(kClsReg, AllocateObjectABI::kResultReg);
-
-  // Should be Object::null() if class is non-parameterized.
-  __ Push(AllocateObjectABI::kTypeArgumentsReg);
+  // Pushes result slot, then parameter class and type arguments.
+  // Type arguments should be Object::null() if class is non-parameterized.
+  __ PushRegistersInOrder({AllocateObjectABI::kResultReg, kClsReg,
+                           AllocateObjectABI::kTypeArgumentsReg});
 
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);
 

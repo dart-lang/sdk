@@ -890,6 +890,8 @@ class Assembler : public AssemblerBase {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
+
   void CheckCodePointer();
 
   void EnterFrame(intptr_t frame_space);

@@ -1887,6 +1887,12 @@ void Assembler::PopRegisters(const RegisterSet& register_set) {
   }
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  for (Register reg : regs) {
+    PushRegister(reg);
+  }
+}
+
 static const RegisterSet kVolatileRegisterSet(
     CallingConventions::kVolatileCpuRegisters,
     CallingConventions::kVolatileXmmRegisters);

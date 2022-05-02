@@ -710,6 +710,8 @@ class Assembler : public AssemblerBase {
     PopRegister(r1);
   }
 
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
+
   void AddImmediate(Register reg, const Immediate& imm);
   void AddImmediate(Register reg, int32_t value) {
     AddImmediate(reg, Immediate(value));
