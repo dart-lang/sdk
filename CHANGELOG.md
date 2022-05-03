@@ -1,5 +1,138 @@
 ## 2.17.0
 
+### Language
+
+The following features are new in the Dart 2.17 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.17 or greater (`sdk: '>=2.17.0 <3.0.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+-   **[Enhanced enums with members][]**: Enum declarations can now define
+    members including fields, constructors, methods, getters, etc. For example:
+
+    ```dart
+    enum Water {
+      frozen(32),
+      lukewarm(100),
+      boiling(212);
+
+      final int tempInFahrenheit;
+      const Water(this.tempInFahrenheit);
+
+      @override
+      String toString() => "The $name water is $tempInFahrenheit F.";
+    }
+    ```
+
+    Constructors must be `const` since enum values are always constants. If the
+    constructor takes arguments, they are passed when the enum value is
+    declared.
+
+    The above enum can be used like so:
+
+    ```dart
+    void main() {
+      print(Water.frozen); // prints "The frozen water is 32 F."
+    }
+    ```
+
+[enhanced enums with members]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/enhanced-enums/feature-specification.md
+
+-   **[Super parameters][]**: When extending a class whose constructor takes
+    parameters, the subclass constructor needs to provide arguments for them.
+    Often, these are passed as parameters to the subclass constructor, which
+    then forwards them to the superclass constructor. This is verbose because
+    the subclass constructor must list the name and type of each parameter in
+    its parameter list, and then explicitly forward each one as an argument to
+    the superclass constructor.
+
+    [@roy-sianez][] suggested [allowing `super.`][super dot] before a subclass
+    constructor parameter to implicitly forward it to the corresponding
+    superclass constructor parameter. Applying this feature to Flutter
+    eliminated [nearly 2,000 lines of code][flutter super]. For example, before:
+
+    ```dart
+    class CupertinoPage<T> extends Page<T> {
+      const CupertinoPage({
+        required this.child,
+        this.maintainState = true,
+        this.title,
+        this.fullscreenDialog = false,
+        LocalKey? key,
+        String? name,
+        Object? arguments,
+        String? restorationId,
+      }) : super(
+            key: key,
+            name: name,
+            arguments: arguments,
+            restorationId: restorationId,
+          );
+
+      // ...
+    }
+    ```
+
+    And using super parameters:
+
+    ```dart
+    class CupertinoPage<T> extends Page<T> {
+      const CupertinoPage({
+        required this.child,
+        this.maintainState = true,
+        this.title,
+        this.fullscreenDialog = false,
+        super.key,
+        super.name,
+        super.arguments,
+        super.restorationId,
+      });
+
+      // ...
+    }
+    ```
+
+    From our analysis, over 90% of explicit superclass constructor calls can be
+    completely eliminated, using `super.` parameters instead.
+
+[super parameters]: https://github.com/dart-lang/language/blob/master/working/1855%20-%20super%20parameters/proposal.md
+[@roy-sianez]: https://github.com/roy-sianez
+[super dot]: https://github.com/dart-lang/language/issues/1855
+[flutter super]: https://github.com/flutter/flutter/pull/100905/files
+
+-   **[Named args everywhere][]**: In a function call, Dart requires positional
+    arguments to appear before named arguments. This can be frustrating for
+    arguments like collection literals and function expressions that look best
+    as the last argument in the argument list but are positional, like the
+    `test()` function in the [test package][]:
+
+    ```dart
+    main() {
+      test('A test description', () {
+        // Very long function body here...
+      }, skip: true);
+    }
+    ```
+
+    It would be better if the `skip` argument appeared at the top of the call
+    to `test()` so that it wasn't easily overlooked, but since it's named and
+    the test body argument is positional, `skip` must be placed at the end.
+
+    Dart 2.17 removes this restriction. Named arguments can be freely
+    interleaved with positional arguments, allowing code like:
+
+    ```dart
+    main() {
+      test(skip: true, 'A test description', () {
+        // Very long function body here...
+      });
+    }
+    ```
+
+[named args everywhere]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/named-arguments-anywhere/feature-specification.md
+[test package]: https://pub.dev/packages/test
+
 ### Core libraries
 
 #### `dart:core`
@@ -248,6 +381,7 @@ in 2018, as it doesn't work with any Dart 2.x release.
 - Pub now supports a separate `pubspec_overrides.yaml` file that can contain
   `dependency_overrides`. This makes it easier to avoid checking the local
   overrides into version control.
+
 #### Linter
 
 Updated the Linter to `1.18.0`, which includes changes that
