@@ -325,7 +325,47 @@ library
     );
   }
 
-  test_arguments_typesPhase_kind_optionalNamed() async {
+  test_arguments_getter_type_bool() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'bool',
+        'bar': 'bool',
+      },
+      constructorParametersCode: '(this.foo, this.bar)',
+      argumentsCode: '(true, false)',
+      usingGetter: true,
+      expected: r'''
+foo: true
+bar: false
+''',
+    );
+  }
+
+  test_arguments_getter_type_int() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'int'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '(42)',
+      usingGetter: true,
+      expected: r'''
+foo: 42
+''',
+    );
+  }
+
+  test_arguments_getter_type_string() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {'foo': 'String'},
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: "('aaa')",
+      usingGetter: true,
+      expected: r'''
+foo: aaa
+''',
+    );
+  }
+
+  test_arguments_newInstance_kind_optionalNamed() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'int',
@@ -340,7 +380,7 @@ bar: -2
     );
   }
 
-  test_arguments_typesPhase_kind_optionalPositional() async {
+  test_arguments_newInstance_kind_optionalPositional() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'int',
@@ -355,7 +395,7 @@ bar: -2
     );
   }
 
-  test_arguments_typesPhase_kind_requiredNamed() async {
+  test_arguments_newInstance_kind_requiredNamed() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'int'},
       constructorParametersCode: '({required this.foo})',
@@ -366,7 +406,7 @@ foo: 42
     );
   }
 
-  test_arguments_typesPhase_kind_requiredPositional() async {
+  test_arguments_newInstance_kind_requiredPositional() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'int'},
       constructorParametersCode: '(this.foo)',
@@ -377,7 +417,7 @@ foo: 42
     );
   }
 
-  test_arguments_typesPhase_type_bool() async {
+  test_arguments_newInstance_type_bool() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'bool',
@@ -392,7 +432,7 @@ bar: false
     );
   }
 
-  test_arguments_typesPhase_type_double() async {
+  test_arguments_newInstance_type_double() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'double'},
       constructorParametersCode: '(this.foo)',
@@ -403,7 +443,7 @@ foo: 1.2
     );
   }
 
-  test_arguments_typesPhase_type_double_negative() async {
+  test_arguments_newInstance_type_double_negative() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'double'},
       constructorParametersCode: '(this.foo)',
@@ -414,7 +454,7 @@ foo: -1.2
     );
   }
 
-  test_arguments_typesPhase_type_int() async {
+  test_arguments_newInstance_type_int() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'int'},
       constructorParametersCode: '(this.foo)',
@@ -425,7 +465,7 @@ foo: 42
     );
   }
 
-  test_arguments_typesPhase_type_int_negative() async {
+  test_arguments_newInstance_type_int_negative() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'int'},
       constructorParametersCode: '(this.foo)',
@@ -436,7 +476,7 @@ foo: -42
     );
   }
 
-  test_arguments_typesPhase_type_list() async {
+  test_arguments_newInstance_type_list() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'List<Object?>',
@@ -449,7 +489,7 @@ foo: [1, 2, true, 3, 4.2]
     );
   }
 
-  test_arguments_typesPhase_type_map() async {
+  test_arguments_newInstance_type_map() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'Map<Object?, Object?>',
@@ -462,7 +502,7 @@ foo: {1: true, abc: 2.3}
     );
   }
 
-  test_arguments_typesPhase_type_null() async {
+  test_arguments_newInstance_type_null() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'Object?'},
       constructorParametersCode: '(this.foo)',
@@ -473,7 +513,7 @@ foo: null
     );
   }
 
-  test_arguments_typesPhase_type_set() async {
+  test_arguments_newInstance_type_set() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'Set<Object?>',
@@ -486,7 +526,7 @@ foo: {1, 2, 3}
     );
   }
 
-  test_arguments_typesPhase_type_string() async {
+  test_arguments_newInstance_type_string() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'String'},
       constructorParametersCode: '(this.foo)',
@@ -497,7 +537,7 @@ foo: aaa
     );
   }
 
-  test_arguments_typesPhase_type_string_adjacent() async {
+  test_arguments_newInstance_type_string_adjacent() async {
     await _assertTypesPhaseArgumentsText(
       fields: {'foo': 'String'},
       constructorParametersCode: '(this.foo)',
@@ -1106,6 +1146,7 @@ library
     required String argumentsCode,
     String? expected,
     String? expectedErrors,
+    bool usingGetter = false,
   }) async {
     final dumpCode = fields.keys.map((name) {
       return "$name: \$$name\\\\n";
@@ -1129,12 +1170,14 @@ ${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
     );
   }
 }
+
+${usingGetter ? 'const argumentsTextMacro = ArgumentsTextMacro$argumentsCode;' : ''}
 ''');
 
     final library = await buildLibrary('''
 import 'arguments_text.dart';
 
-@ArgumentsTextMacro$argumentsCode
+${usingGetter ? '@argumentsTextMacro' : '@ArgumentsTextMacro$argumentsCode'}
 class A {}
     ''', preBuildSequence: [
       {'package:test/arguments_text.dart'}
