@@ -99,7 +99,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     }
     final offset = offsetResult.result;
 
-    Future<ErrorOr<CompletionList>>? serverResultsFuture;
+    Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
     final pathContext = server.resourceProvider.pathContext;
     final fileExtension = pathContext.extension(path.result);
 
@@ -158,28 +158,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     }
 
     serverResultsFuture ??=
-        Future.value(success(CompletionList(isIncomplete: false, items: [])));
+        Future.value(success(_CompletionResults(isIncomplete: false)));
 
     final pluginResultsFuture = _getPluginResults(
         clientCapabilities, lineInfo.result, path.result, offset);
 
-    // Await both server + plugin results together to allow async/IO to
-    // overlap.
-    final serverAndPluginResults =
-        await Future.wait([serverResultsFuture, pluginResultsFuture]);
-    final serverResults = serverAndPluginResults[0];
-    final pluginResults = serverAndPluginResults[1];
+    final serverResults = await serverResultsFuture;
+    final pluginResults = await pluginResultsFuture;
 
-    if (serverResults.isError) return serverResults;
-    if (pluginResults.isError) return pluginResults;
+    if (serverResults.isError) return failure(serverResults);
+    if (pluginResults.isError) return failure(pluginResults);
 
-    final untruncatedItems = serverResults.result.items
+    final untruncatedRankedItems = serverResults.result.rankedItems
         .followedBy(pluginResults.result.items)
         .toList();
+    final unrankedItems = serverResults.result.unrankedItems;
 
-    final truncatedItems = untruncatedItems.length > maxResults
-        ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
-        : untruncatedItems;
+    // Truncate ranked items to allow room for all unranked items.
+    final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
+    final truncatedRankedItems = untruncatedRankedItems.length > maxRankedItems
+        ? (untruncatedRankedItems..sort(sortTextComparer))
+            .sublist(0, maxRankedItems)
+        : untruncatedRankedItems;
+
+    final truncatedItems =
+        truncatedRankedItems.followedBy(unrankedItems).toList();
 
     // If we're tracing performance (only Dart), record the number of results
     // after truncation.
@@ -190,7 +193,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       // marked as such.
       isIncomplete: serverResults.result.isIncomplete ||
           pluginResults.result.isIncomplete ||
-          truncatedItems.length != untruncatedItems.length,
+          truncatedRankedItems.length != untruncatedRankedItems.length,
       items: truncatedItems,
     ));
   }
@@ -288,7 +291,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     ));
   }
 
-  Future<ErrorOr<CompletionList>> _getServerDartItems(
+  Future<ErrorOr<_CompletionResults>> _getServerDartItems(
     LspClientCapabilities capabilities,
     ResolvedUnitResult unit,
     CompletionPerformance completionPerformance,
@@ -310,7 +313,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
     if (triggerCharacter != null) {
       if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
-        return success(CompletionList(isIncomplete: false, items: []));
+        return success(_CompletionResults(isIncomplete: false));
       }
     }
 
@@ -364,7 +367,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           ? false
           : server.clientConfiguration.global.completeFunctionCalls;
 
-      final results = performance.run('mapSuggestions', (performance) {
+      final rankedResults = performance.run('mapSuggestions', (performance) {
         return serverSuggestions.map(
           (item) {
             var itemReplacementOffset =
@@ -510,7 +513,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
                           .clientConfiguration.global.previewCommitCharacters,
                       completeFunctionCalls: completeFunctionCalls,
                     ));
-            results.addAll(setResults);
+            rankedResults.addAll(setResults);
           }
         });
       }
@@ -522,44 +525,60 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       // the root, so skip snippets entirely if not.
       final isEditableFile =
           unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
+      List<CompletionItem> unrankedResults;
       if (capabilities.completionSnippets &&
           snippetsEnabled &&
           isEditableFile) {
-        await performance.runAsync('addSnippets', (performance) async {
-          results.addAll(await _getDartSnippetItems(
+        unrankedResults =
+            await performance.runAsync('getSnippets', (performance) async {
+          // `await` required for `performance.runAsync` to count time.
+          return await _getDartSnippetItems(
             clientCapabilities: capabilities,
             unit: unit,
             offset: offset,
             lineInfo: unit.lineInfo,
-          ));
+          );
         });
+      } else {
+        unrankedResults = [];
       }
 
       // Perform fuzzy matching based on the identifier in front of the caret to
       // reduce the size of the payload.
-      final matchingResults = performance.run('fuzzyFilter', (performance) {
-        final fuzzyPattern = completionRequest.targetPrefix;
-        final fuzzyMatcher =
-            FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+      final fuzzyPattern = completionRequest.targetPrefix;
+      final fuzzyMatcher =
+          FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 
-        return results
+      final matchingRankedResults =
+          performance.run('fuzzyFilterRanked', (performance) {
+        return rankedResults
             .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
             .toList();
       });
 
-      // Transmitted count will be set after combining with plugins.
-      completionPerformance.computedSuggestionCount = matchingResults.length;
+      final matchingUnrankedResults =
+          performance.run('fuzzyFilterRanked', (performance) {
+        return unrankedResults
+            .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
+            .toList();
+      });
 
-      return success(
-          CompletionList(isIncomplete: false, items: matchingResults));
+      // transmittedCount will be set after combining with plugins + truncation.
+      completionPerformance.computedSuggestionCount =
+          matchingRankedResults.length + matchingUnrankedResults.length;
+
+      return success(_CompletionResults(
+          isIncomplete: false,
+          rankedItems: matchingRankedResults,
+          unrankedItems: matchingUnrankedResults));
     } on AbortCompletion {
-      return success(CompletionList(isIncomplete: false, items: []));
+      return success(_CompletionResults(isIncomplete: false));
     } on InconsistentAnalysisException {
-      return success(CompletionList(isIncomplete: false, items: []));
+      return success(_CompletionResults(isIncomplete: false));
     }
   }
 
-  Future<ErrorOr<CompletionList>> _getServerYamlItems(
+  Future<ErrorOr<_CompletionResults>> _getServerYamlItems(
     YamlCompletionGenerator generator,
     LspClientCapabilities capabilities,
     String path,
@@ -578,7 +597,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final insertionRange =
         toRange(lineInfo, suggestions.replacementOffset, insertLength);
 
+    // Perform fuzzy matching based on the identifier in front of the caret to
+    // reduce the size of the payload.
+    final fuzzyPattern = suggestions.targetPrefix;
+    final fuzzyMatcher =
+        FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+
     final completionItems = suggestions.suggestions
+        .where((item) =>
+            fuzzyMatcher.score(item.displayText ?? item.completion) > 0)
         .map(
           (item) => toCompletionItem(
             capabilities,
@@ -600,7 +627,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           ),
         )
         .toList();
-    return success(CompletionList(isIncomplete: false, items: completionItems));
+    return success(_CompletionResults(
+        isIncomplete: false, unrankedItems: completionItems));
   }
 
   /// Returns true if [node] is part of an invocation and already has an argument
@@ -725,4 +753,21 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
     return item1Text.compareTo(item2Text);
   }
+}
+
+/// A set of completion items split into ranked and unranked items.
+class _CompletionResults {
+  /// Items that can be ranked using their relevance/sortText.
+  final List<CompletionItem> rankedItems;
+
+  /// Items that cannot be ranked, and should avoid being truncated.
+  final List<CompletionItem> unrankedItems;
+
+  final bool isIncomplete;
+
+  _CompletionResults({
+    this.rankedItems = const [],
+    this.unrankedItems = const [],
+    required this.isIncomplete,
+  });
 }
