@@ -1117,6 +1117,54 @@ void f() {
     expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
   }
 
+  /// Snippet completions should be kept when maxCompletionItems truncates
+  /// because they are not ranked like other completions and might be
+  /// truncated when they are exactly what the user wants.
+  Future<void> test_maxCompletionItems_doesNotExcludeSnippets() async {
+    final content = '''
+import 'a.dart';
+void f() {
+  fo^
+}
+    ''';
+
+    // Create a class with fields for1 to for20 in the other file.
+    newFile(
+      join(projectFolderPath, 'lib', 'a.dart'),
+      [
+        for (var i = 1; i <= 20; i++) '  String for$i = ' ';',
+      ].join('\n'),
+    );
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          textDocumentCapabilities: withCompletionItemSnippetSupport(
+              emptyTextDocumentClientCapabilities),
+          workspaceCapabilities: withApplyEditSupport(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      {'maxCompletionItems': 10},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // Should be capped at 10 and marked as incomplete.
+    expect(res.items, hasLength(10));
+    expect(res.isIncomplete, isTrue);
+
+    // Also ensure the 'for' snippet is included.
+
+    expect(
+      res.items
+          .where((item) => item.kind == CompletionItemKind.Snippet)
+          .map((item) => item.label)
+          .contains('for'),
+      isTrue,
+    );
+  }
+
   Future<void> test_namedArg_flutterChildren() async {
     final content = '''
 import 'package:flutter/widgets.dart';
