@@ -6,6 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:collection/src/iterable_extensions.dart';
 
 /// Return the [Element] of the given [node], or `null` if [node] is `null` or
 /// does not have an element.
@@ -32,6 +34,32 @@ Element? getElementOfNode(AstNode? node) {
     }
   }
   return element;
+}
+
+/// If the given [constructor] is a synthetic constructor created for a
+/// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
+/// which is invoked.  Return `null` if a redirection cycle is detected.
+ConstructorElement? _getActualConstructorElement(
+    ConstructorElement? constructor) {
+  var seenConstructors = <ConstructorElement?>{};
+  while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+    var enclosing = constructor.enclosingElement;
+    if (enclosing.isMixinApplication) {
+      var superInvocation = constructor.constantInitializers
+          .whereType<SuperConstructorInvocation>()
+          .singleOrNull;
+      if (superInvocation != null) {
+        constructor = superInvocation.staticElement;
+      }
+    } else {
+      break;
+    }
+    // fail if a cycle is detected
+    if (!seenConstructors.add(constructor)) {
+      return null;
+    }
+  }
+  return constructor;
 }
 
 /// Return the [ImportElement] that declared [prefix] and imports [element].
@@ -132,9 +160,55 @@ ImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
       libraryElement, prefix, usedElement, importElementsMap);
 }
 
+class MatchInfo {
+  final int offset;
+  final int length;
+  final MatchKind matchKind;
+
+  MatchInfo(this.offset, this.length, this.matchKind);
+}
+
+/// Instances of the enum [MatchKind] represent the kind of reference that was
+/// found when a match represents a reference to an element.
+class MatchKind {
+  /// A declaration of an element.
+  static const MatchKind DECLARATION = MatchKind('DECLARATION');
+
+  /// A reference to an element in which it is being read.
+  static const MatchKind READ = MatchKind('READ');
+
+  /// A reference to an element in which it is being both read and written.
+  static const MatchKind READ_WRITE = MatchKind('READ_WRITE');
+
+  /// A reference to an element in which it is being written.
+  static const MatchKind WRITE = MatchKind('WRITE');
+
+  /// A reference to an element in which it is being invoked.
+  static const MatchKind INVOCATION = MatchKind('INVOCATION');
+
+  /// An invocation of an enum constructor from an enum constant without
+  /// arguments.
+  static const MatchKind INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS =
+      MatchKind('INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS');
+
+  /// A reference to an element in which it is referenced.
+  static const MatchKind REFERENCE = MatchKind('REFERENCE');
+
+  /// A tear-off reference to a constructor.
+  static const MatchKind REFERENCE_BY_CONSTRUCTOR_TEAR_OFF =
+      MatchKind('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
+
+  final String name;
+
+  const MatchKind(this.name);
+
+  @override
+  String toString() => name;
+}
+
 class ReferencesCollector extends GeneralizingAstVisitor<void> {
   final Element element;
-  final List<int> offsets = [];
+  final List<MatchInfo> references = [];
 
   ReferencesCollector(this.element);
 
@@ -142,16 +216,20 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   void visitAssignmentExpression(AssignmentExpression node) {
     if (node.writeElement != null &&
         node.writeElement is PropertyAccessorElement) {
+      var kind = MatchKind.WRITE;
       var property = node.writeElement as PropertyAccessorElement;
       if (property.variable == element || property == element) {
         if (node.leftHandSide is SimpleIdentifier) {
-          offsets.add(node.leftHandSide.offset);
+          references.add(MatchInfo(
+              node.leftHandSide.offset, node.leftHandSide.length, kind));
         } else if (node.leftHandSide is PrefixedIdentifier) {
           var prefixIdentifier = node.leftHandSide as PrefixedIdentifier;
-          offsets.add(prefixIdentifier.identifier.offset);
+          references.add(MatchInfo(prefixIdentifier.identifier.offset,
+              prefixIdentifier.identifier.length, kind));
         } else if (node.leftHandSide is PropertyAccess) {
           var accessor = node.leftHandSide as PropertyAccess;
-          offsets.add(accessor.propertyName.offset);
+          references.add(
+              MatchInfo(accessor.propertyName.offset, accessor.length, kind));
         }
       }
     }
@@ -159,18 +237,157 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         node.readElement is PropertyAccessorElement) {
       var property = node.readElement as PropertyAccessorElement;
       if (property.variable == element) {
-        offsets.add(node.rightHandSide.offset);
+        references.add(MatchInfo(node.rightHandSide.offset,
+            node.rightHandSide.length, MatchKind.READ));
+      }
+    }
+  }
+
+  @override
+  visitCommentReference(CommentReference node) {
+    var expression = node.expression;
+    if (expression is Identifier) {
+      var element = expression.staticElement;
+      if (element is ConstructorElement) {
+        if (expression is PrefixedIdentifier) {
+          var offset = expression.prefix.end;
+          var length = expression.end - offset;
+          references.add(MatchInfo(offset, length, MatchKind.REFERENCE));
+          return;
+        } else {
+          var offset = expression.end;
+          references.add(MatchInfo(offset, 0, MatchKind.REFERENCE));
+          return;
+        }
+      }
+    } else if (expression is PropertyAccess) {
+      // Nothing to do?
+    } else {
+      throw UnimplementedError('Unhandled CommentReference expression type: '
+          '${expression.runtimeType}');
+    }
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    var e = node.declaredElement;
+    if (e == element) {
+      if (e!.name.isEmpty) {
+        references.add(
+            MatchInfo(e.nameOffset + e.nameLength, 0, MatchKind.DECLARATION));
+      } else {
+        var offset = node.period!.offset;
+        var length = node.name!.end - offset;
+        references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
+      }
+    }
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitConstructorName(ConstructorName node) {
+    var e = node.staticElement?.declaration;
+    e = _getActualConstructorElement(e);
+    MatchKind kind;
+    int offset;
+    int length;
+    if (e == element) {
+      if (node.parent is ConstructorReference) {
+        kind = MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
+      } else if (node.parent is InstanceCreationExpression) {
+        kind = MatchKind.INVOCATION;
+      } else {
+        kind = MatchKind.REFERENCE;
+      }
+      if (node.name != null) {
+        offset = node.period!.offset;
+        length = node.name!.end - offset;
+      } else {
+        offset = node.type.end;
+        length = 0;
+      }
+      references.add(MatchInfo(offset, length, kind));
+    }
+    if (e!.enclosingElement == element) {
+      kind = MatchKind.REFERENCE;
+      offset = node.offset;
+      length = element.nameLength;
+      references.add(MatchInfo(offset, length, kind));
+    }
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    var constructorElement = node.constructorElement;
+    if (constructorElement != null && constructorElement == element) {
+      int offset;
+      int length;
+      var constructorSelector = node.arguments?.constructorSelector;
+      if (constructorSelector != null) {
+        offset = constructorSelector.period.offset;
+        length = constructorSelector.name.end - offset;
+      } else {
+        offset = node.name.end;
+        length = 0;
+      }
+      var kind = node.arguments == null
+          ? MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS
+          : MatchKind.INVOCATION;
+      references.add(MatchInfo(offset, length, kind));
+    }
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    var e = node.staticElement;
+    if (e == element) {
+      if (node.constructorName != null) {
+        int offset = node.period!.offset;
+        int length = node.constructorName!.end - offset;
+        references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
+      } else {
+        int offset = node.thisKeyword.end;
+        references.add(MatchInfo(offset, 0, MatchKind.INVOCATION));
       }
     }
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
     var e = node.staticElement;
     if (e == element) {
-      offsets.add(node.offset);
+      references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
     } else if (e is PropertyAccessorElement && e.variable == element) {
-      offsets.add(node.offset);
+      bool inGetterContext = node.inGetterContext();
+      bool inSetterContext = node.inSetterContext();
+      MatchKind kind;
+      if (inGetterContext && inSetterContext) {
+        kind = MatchKind.READ_WRITE;
+      } else if (inGetterContext) {
+        kind = MatchKind.READ;
+      } else {
+        kind = MatchKind.WRITE;
+      }
+      references.add(MatchInfo(node.offset, node.length, kind));
+    }
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    var e = node.staticElement;
+    if (e == element) {
+      if (node.constructorName != null) {
+        int offset = node.period!.offset;
+        int length = node.constructorName!.end - offset;
+        references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
+      } else {
+        int offset = node.superKeyword.end;
+        references.add(MatchInfo(offset, 0, MatchKind.INVOCATION));
+      }
     }
   }
 }
