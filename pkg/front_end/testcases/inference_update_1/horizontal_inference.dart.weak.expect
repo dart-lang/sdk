@@ -1,0 +1,116 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method testLaterUnnamedParameter(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic {
+  f<core::int>(0, (core::int x) → void {
+    x;
+  }){(core::int, (core::int) → void) → void};
+}
+static method testLaterUnnamedParameterDependsOnNamedParameter(<T extends core::Object? = dynamic>((T%) → void, {required a: T%}) → void f) → dynamic {
+  let final core::int #t1 = 0 in f<core::int>((core::int x) → void {
+    x;
+  }, a: #t1){((core::int) → void, {required a: core::int}) → void};
+}
+static method testEarlierUnnamedParameter(<T extends core::Object? = dynamic>((T%) → void, T%) → void f) → dynamic {
+  f<core::int>((core::int x) → void {
+    x;
+  }, 0){((core::int) → void, core::int) → void};
+}
+static method testLaterNamedParameter(<T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void f) → dynamic {
+  f<core::int>(a: 0, b: (core::int x) → void {
+    x;
+  }){({required a: core::int, required b: (core::int) → void}) → void};
+}
+static method testEarlierNamedParameter(<T extends core::Object? = dynamic>({required a: (T%) → void, required b: T%}) → void f) → dynamic {
+  f<core::int>(a: (core::int x) → void {
+    x;
+  }, b: 0){({required a: (core::int) → void, required b: core::int}) → void};
+}
+static method testEarlierNamedParameterDependsOnUnnamedParameter(<T extends core::Object? = dynamic>(T%, {required a: (T%) → void}) → void f) → dynamic {
+  f<core::int>(0, a: (core::int x) → void {
+    x;
+  }){(core::int, {required a: (core::int) → void}) → void};
+}
+static method testPropagateToReturnType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(T%, (T%) → U%) → U% f) → dynamic {
+  f<core::int, core::List<core::int>>(0, (core::int x) → core::List<core::int> => <core::int>[x]){(core::int, (core::int) → core::List<core::int>) → core::List<core::int>};
+}
+static method testFold(core::List<core::int> list) → dynamic {
+  core::int a = list.{core::Iterable::fold}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  a;
+}
+static method testClosureAsParameterType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(T%, (T%) → U%) → U% f) → dynamic {
+  f<() → core::int, core::List<core::int>>(() → core::int => 0, (() → core::int h) → core::List<core::int> => <core::int>[h(){() → core::int}]){(() → core::int, (() → core::int) → core::List<core::int>) → core::List<core::int>};
+}
+static method testPropagateToEarlierClosure(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>((T%) → U%, () → T%) → U% f) → dynamic {
+  f<core::int, core::List<core::int>>((core::int x) → core::List<core::int> => <core::int>[x], () → core::int => 0){((core::int) → core::List<core::int>, () → core::int) → core::List<core::int>};
+}
+static method testPropagateToLaterClosure(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → T%, (T%) → U%) → U% f) → dynamic {
+  f<core::int, core::List<core::int>>(() → core::int => 0, (core::int x) → core::List<core::int> => <core::int>[x]){(() → core::int, (core::int) → core::List<core::int>) → core::List<core::int>};
+}
+static method testLongDependencyChain(<T extends core::Object? = dynamic, U extends core::Object? = dynamic, V extends core::Object? = dynamic>(() → T%, (T%) → U%, (U%) → V%) → V% f) → dynamic {
+  f<core::List<core::int>, core::int, core::Set<core::int>>(() → core::List<core::int> => <core::int>[0], (core::List<core::int> x) → core::int => x.{core::Iterable::single}{core::int}, (core::int y) → core::Set<core::int> => block {
+    final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>();
+    #t2.{core::Set::add}{Invariant}(y){(core::int) → core::bool};
+  } =>#t2){(() → core::List<core::int>, (core::List<core::int>) → core::int, (core::int) → core::Set<core::int>) → core::Set<core::int>};
+}
+static method testDependencyCycle(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>((U%) → T%, (T%) → U%) → core::Map<T%, U%> f) → dynamic {
+  f<core::List<core::Object?>, core::Set<core::Object?>>((core::Object? x) → core::List<core::Object?> => <core::Object?>[x], (core::Object? y) → core::Set<core::Object?> => block {
+    final core::Set<core::Object?> #t3 = col::LinkedHashSet::•<core::Object?>();
+    #t3.{core::Set::add}{Invariant}(y){(core::Object?) → core::bool};
+  } =>#t3){((core::Set<core::Object?>) → core::List<core::Object?>, (core::List<core::Object?>) → core::Set<core::Object?>) → core::Map<core::List<core::Object?>, core::Set<core::Object?>>};
+}
+static method testNecessaryDueToWrongExplicitParameterType(core::List<core::int> list) → dynamic {
+  core::int a = list.{core::Iterable::fold}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  a;
+}
+static method testPropagateFromContravariantReturnType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → (T%) → void, (T%) → U%) → U% f) → dynamic {
+  f<core::int, core::List<core::int>>(() → (core::int) → void => (core::int i) → void {}, (core::int x) → core::List<core::int> => <core::int>[x]){(() → (core::int) → void, (core::int) → core::List<core::int>) → core::List<core::int>};
+}
+static method testPropagateToContravariantParameterType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → T%, ((T%) → void) → U%) → U% f) → dynamic {
+  f<core::int, core::List<(core::int) → void>>(() → core::int => 0, ((core::int) → void x) → core::List<(core::int) → void> => <(core::int) → void>[x]){(() → core::int, ((core::int) → void) → core::List<(core::int) → void>) → core::List<(core::int) → void>};
+}
+static method testReturnTypeRefersToMultipleTypeVars(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → core::Map<T%, U%>, (T%) → void, (U%) → void) → void f) → dynamic {
+  f<core::int, core::String>(() → core::Map<core::int, core::String> => <core::int, core::String>{0: ""}, (core::int k) → void {
+    k;
+  }, (core::String v) → void {
+    v;
+  }){(() → core::Map<core::int, core::String>, (core::int) → void, (core::String) → void) → void};
+}
+static method testUnnecessaryDueToNoDependency(<T extends core::Object? = dynamic>(() → T%, T%) → T% f) → dynamic {
+  f<core::int?>(() → core::int => 0, null){(() → core::int?, core::int?) → core::int?};
+}
+static method testUnnecessaryDueToExplicitParameterType(core::List<core::int> list) → dynamic {
+  core::int? a = list.{core::Iterable::fold}<core::int?>(null, (core::int? x, core::int y) → core::int => (let final core::int? #t4 = x in #t4 == null ?{core::int} 0 : #t4{core::int}).{core::num::+}(y){(core::num) → core::int}){(core::int?, (core::int?, core::int) → core::int?) → core::int?};
+  a;
+}
+static method testUnnecessaryDueToExplicitParameterTypeNamed(<T extends core::Object? = dynamic>(T%, ({required x: T%, required y: core::int}) → T%) → T% f) → dynamic {
+  core::int? a = f<core::int?>(null, ({core::int? x = #C1, required core::int y = #C1}) → core::int => (let final core::int? #t5 = x in #t5 == null ?{core::int} 0 : #t5{core::int}).{core::num::+}(y){(core::num) → core::int}){(core::int?, ({required x: core::int?, required y: core::int}) → core::int?) → core::int?};
+  a;
+}
+static method testParenthesized(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic {
+  f<core::int>(0, (core::int x) → void {
+    x;
+  }){(core::int, (core::int) → void) → void};
+}
+static method testParenthesizedNamed(<T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void f) → dynamic {
+  f<core::int>(a: 0, b: (core::int x) → void {
+    x;
+  }){({required a: core::int, required b: (core::int) → void}) → void};
+}
+static method testParenthesizedTwice(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic {
+  f<core::int>(0, (core::int x) → void {
+    x;
+  }){(core::int, (core::int) → void) → void};
+}
+static method testParenthesizedTwiceNamed(<T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void f) → dynamic {
+  f<core::int>(a: 0, b: (core::int x) → void {
+    x;
+  }){({required a: core::int, required b: (core::int) → void}) → void};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

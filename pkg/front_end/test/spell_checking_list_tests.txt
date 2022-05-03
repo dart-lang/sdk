@@ -323,6 +323,7 @@ hkt
 home
 hoo
 hook
+horizontally
 hosted
 hosting
 hot
@@ -714,6 +715,7 @@ y's
 year
 yxxx
 yy
+zeroth
 zipf's
 zyx
 zz

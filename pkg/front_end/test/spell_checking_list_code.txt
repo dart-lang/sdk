@@ -577,6 +577,7 @@ history
 hit
 hoc
 hopefully
+horizontal
 href
 html
 https
@@ -1399,6 +1400,7 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undeferred
 undergo
 undermine
 undo

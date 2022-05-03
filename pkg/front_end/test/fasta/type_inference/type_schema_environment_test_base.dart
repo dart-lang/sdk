@@ -171,8 +171,8 @@ abstract class TypeSchemaEnvironmentTestBase {
               returnContextTypeNode,
               testLibrary);
       if (formalTypeNodes == null) {
-        typeSchemaEnvironment.downwardsInfer(gatherer,
-            typeParameterNodesToInfer, inferredTypeNodes, testLibrary);
+        typeSchemaEnvironment.partialInfer(gatherer, typeParameterNodesToInfer,
+            inferredTypeNodes, testLibrary);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!);
         typeSchemaEnvironment.upwardsInfer(gatherer, typeParameterNodesToInfer,
