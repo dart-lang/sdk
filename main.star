@@ -642,3 +642,13 @@ luci.list_view_entry(
     builder = "iso-stress-linux",
     list_view = "iso-stress",
 )
+
+dart.ci_builder(
+    "dev-experimental",
+    experiments = {"luci.non_production": 100},
+    recipe = "roller/roll_to_dev",
+    execution_timeout = 15 * time.minute,
+    properties = {"from_ref": "refs/heads/lkgr"},
+    triggered_by = None,
+    notifies = None,
+)
