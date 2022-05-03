@@ -10,7 +10,7 @@ import '../elements/entities.dart' show ClassEntity;
 import '../elements/types.dart';
 import '../diagnostics/invariant.dart';
 import '../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart' show Hashing;
 
 abstract class TypeRecipeDomain {

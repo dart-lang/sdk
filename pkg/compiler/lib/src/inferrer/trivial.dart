@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
 import '../ir/static_type.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';

@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -22,7 +23,7 @@ class LibraryMacroApplier {
   final MultiMacroExecutor macroExecutor;
   final LibraryBuilder libraryBuilder;
 
-  final Map<MacroTargetElement, List<MacroApplication>> _applications =
+  final Map<MacroTargetElement, List<_MacroApplication>> _applications =
       Map.identity();
 
   final Map<ClassDeclaration, macro.ClassDeclaration> _classDeclarations = {};
@@ -147,36 +148,31 @@ class LibraryMacroApplier {
     List<Annotation> annotations,
     macro.Declaration Function() getDeclaration,
   ) async {
-    final applications = <MacroApplication>[];
+    final applications = <_MacroApplication>[];
+
     for (var i = 0; i < annotations.length; i++) {
-      final annotation = annotations[i];
-      final macroElement = _importedMacroElement(annotation.name);
-      final argumentsNode = annotation.arguments;
-      if (macroElement is ClassElementImpl && argumentsNode != null) {
-        final importedLibrary = macroElement.library;
+      Future<MacroClassInstance?> instantiateSingle({
+        required ClassElementImpl macroClass,
+        required String constructorName,
+        required ArgumentList argumentsNode,
+      }) async {
+        final importedLibrary = macroClass.library;
         final macroExecutor = importedLibrary.bundleMacroExecutor;
         if (macroExecutor != null) {
-          await _runWithCatchingExceptions(
+          return await _runWithCatchingExceptions(
             () async {
               final arguments = _buildArguments(
                 annotationIndex: i,
                 node: argumentsNode,
               );
-              final declaration = getDeclaration();
-              final macroInstance = await macroExecutor.instantiate(
-                libraryUri: macroElement.librarySource.uri,
-                className: macroElement.name,
-                constructorName: '', // TODO
+              return await macroExecutor.instantiate(
+                libraryUri: macroClass.librarySource.uri,
+                className: macroClass.name,
+                constructorName: constructorName,
                 arguments: arguments,
                 identifierResolver: _IdentifierResolver(),
                 declarationKind: macro.DeclarationKind.clazz,
-                declaration: declaration,
-              );
-              applications.add(
-                MacroApplication(
-                  annotationIndex: i,
-                  instance: macroInstance,
-                ),
+                declaration: getDeclaration(),
               );
             },
             annotationIndex: i,
@@ -185,6 +181,43 @@ class LibraryMacroApplier {
             },
           );
         }
+        return null;
+      }
+
+      final annotation = annotations[i];
+      final macroInstance = await _importedMacroDeclaration(
+        annotation.name,
+        whenClass: ({
+          required macroClass,
+        }) async {
+          final argumentsNode = annotation.arguments;
+          if (argumentsNode != null) {
+            return await instantiateSingle(
+              macroClass: macroClass,
+              constructorName: '', // TODO(scheglov) implement
+              argumentsNode: argumentsNode,
+            );
+          }
+        },
+        whenGetter: ({
+          required macroClass,
+          required instanceCreation,
+        }) async {
+          return await instantiateSingle(
+            macroClass: macroClass,
+            constructorName: '', // TODO(scheglov) implement
+            argumentsNode: instanceCreation.argumentList,
+          );
+        },
+      );
+
+      if (macroInstance != null) {
+        applications.add(
+          _MacroApplication(
+            annotationIndex: i,
+            instance: macroInstance,
+          ),
+        );
       }
     }
     if (applications.isNotEmpty) {
@@ -192,8 +225,19 @@ class LibraryMacroApplier {
     }
   }
 
-  /// Return the macro element referenced by the [node].
-  ElementImpl? _importedMacroElement(Identifier node) {
+  /// If [node] references a macro, invokes the right callback.
+  Future<R?> _importedMacroDeclaration<R>(
+    Identifier node, {
+    required Future<R?> Function({
+      required ClassElementImpl macroClass,
+    })
+        whenClass,
+    required Future<R?> Function({
+      required ClassElementImpl macroClass,
+      required InstanceCreationExpression instanceCreation,
+    })
+        whenGetter,
+  }) async {
     final String? prefix;
     final String name;
     if (node is PrefixedIdentifier) {
@@ -224,8 +268,28 @@ class LibraryMacroApplier {
 
       final lookupResult = importedLibrary.scope.lookup(name);
       final element = lookupResult.getter;
-      if (element is ClassElementImpl && element.isMacro) {
-        return element;
+      if (element is ClassElementImpl) {
+        if (element.isMacro) {
+          return await whenClass(macroClass: element);
+        }
+      } else if (element is PropertyAccessorElementImpl &&
+          element.isGetter &&
+          element.isSynthetic) {
+        final variable = element.variable;
+        final variableType = variable.type;
+        if (variable is ConstTopLevelVariableElementImpl &&
+            variableType is InterfaceType) {
+          final macroClass = variableType.element;
+          final initializer = variable.constantInitializer;
+          if (macroClass is ClassElementImpl &&
+              macroClass.isMacro &&
+              initializer is InstanceCreationExpression) {
+            return await whenGetter(
+              macroClass: macroClass,
+              instanceCreation: initializer,
+            );
+          }
+        }
       }
     }
     return null;
@@ -380,13 +444,13 @@ class LibraryMacroApplier {
   }
 
   /// Run the [body], report exceptions as [MacroApplicationError]s to [onError].
-  static Future<void> _runWithCatchingExceptions<T>(
+  static Future<T?> _runWithCatchingExceptions<T>(
     Future<T> Function() body, {
     required int annotationIndex,
     required void Function(MacroApplicationError) onError,
   }) async {
     try {
-      await body();
+      return await body();
     } on MacroApplicationError catch (e) {
       onError(e);
     } on macro.RemoteException catch (e) {
@@ -406,19 +470,8 @@ class LibraryMacroApplier {
         ),
       );
     }
+    return null;
   }
-}
-
-class MacroApplication {
-  final int annotationIndex;
-  final MacroClassInstance instance;
-
-  MacroApplication({
-    required this.annotationIndex,
-    required this.instance,
-  });
-
-  bool shouldExecute(macro.Phase phase) => instance.shouldExecute(phase);
 }
 
 /// Helper class for evaluating arguments for a single constructor based
@@ -549,6 +602,18 @@ class _IdentifierResolver extends macro.IdentifierResolver {
     // TODO: implement resolveIdentifier
     throw UnimplementedError();
   }
+}
+
+class _MacroApplication {
+  final int annotationIndex;
+  final MacroClassInstance instance;
+
+  _MacroApplication({
+    required this.annotationIndex,
+    required this.instance,
+  });
+
+  bool shouldExecute(macro.Phase phase) => instance.shouldExecute(phase);
 }
 
 class _TypeResolver implements macro.TypeResolver {

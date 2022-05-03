@@ -1362,8 +1362,14 @@ void Call1ArgStubInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case StubId::kInitAsync:
       name = "InitAsync";
       break;
-    case StubId::kAwaitAsync:
-      name = "AwaitAsync";
+    case StubId::kAwait:
+      name = "Await";
+      break;
+    case StubId::kInitAsyncStar:
+      name = "InitAsyncStar";
+      break;
+    case StubId::kYieldAsyncStar:
+      name = "YieldAsyncStar";
       break;
   }
   f->Printf("%s(", name);

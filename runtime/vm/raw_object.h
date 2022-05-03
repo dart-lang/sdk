@@ -3292,10 +3292,15 @@ class UntaggedSuspendState : public UntaggedInstance {
   intptr_t frame_size_;
   uword pc_;
 
-  COMPRESSED_POINTER_FIELD(InstancePtr, future)
+  // Holds function-specific object which is returned from
+  // SuspendState.init* method.
+  // For async functions: _Future instance.
+  // For async* functions: _AsyncStarStreamController instance.
+  COMPRESSED_POINTER_FIELD(InstancePtr, function_data)
+
   COMPRESSED_POINTER_FIELD(ClosurePtr, then_callback)
   COMPRESSED_POINTER_FIELD(ClosurePtr, error_callback)
-  VISIT_FROM(future)
+  VISIT_FROM(function_data)
   VISIT_TO(error_callback)
 
  public:

@@ -8,7 +8,7 @@ library dart2js.world;
 
 import 'closure.dart';
 import 'common/elements.dart' show JCommonElements, JElementEnvironment;
-import 'deferred_load/output_unit.dart';
+import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'elements/entities.dart';
 import 'elements/names.dart';
 import 'elements/types.dart';

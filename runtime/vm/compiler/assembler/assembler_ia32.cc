@@ -1873,6 +1873,12 @@ void Assembler::PopRegister(Register r) {
   popl(r);
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  for (Register reg : regs) {
+    PushRegister(reg);
+  }
+}
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   const intptr_t value = imm.value();
   if (value == 0) {

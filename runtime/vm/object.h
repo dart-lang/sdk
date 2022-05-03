@@ -3171,7 +3171,7 @@ class Function : public Object {
   // Returns true if parameters of this function are copied into the frame
   // in the function prologue.
   bool MakesCopyOfParameters() const {
-    return HasOptionalParameters() || IsCompactAsyncFunction();
+    return HasOptionalParameters() || IsSuspendableFunction();
   }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -3570,10 +3570,23 @@ class Function : public Object {
     return modifier() == UntaggedFunction::kAsync;
   }
 
-  // TODO(alexmarkov): replace this predicate with IsAsyncFunction() after
-  // old async functions are removed.
+  // TODO(dartbug.com/48378): replace this predicate with IsAsyncFunction()
+  // after old async functions are removed.
   bool IsCompactAsyncFunction() const {
     return IsAsyncFunction() && is_debuggable();
+  }
+
+  // TODO(dartbug.com/48378): replace this predicate with IsAsyncGenerator()
+  // after old async* functions are removed.
+  bool IsCompactAsyncStarFunction() const {
+    return IsAsyncGenerator() && is_debuggable();
+  }
+
+  // Returns true for functions which execution can be suspended
+  // using Suspend/Resume stubs. Such functions have an artificial
+  // :suspend_state local variable at the fixed location of the frame.
+  bool IsSuspendableFunction() const {
+    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction();
   }
 
   // Recognise synthetic sync-yielding functions like the inner-most:
@@ -9260,11 +9273,6 @@ class Smi : public Integer {
     return raw_smi;
   }
 
-  static SmiPtr FromAlignedAddress(uword address) {
-    ASSERT((address & kSmiTagMask) == kSmiTag);
-    return static_cast<SmiPtr>(address);
-  }
-
   static ClassPtr Class();
 
   static intptr_t Value(const SmiPtr raw_smi) { return RawSmiValue(raw_smi); }
@@ -11809,8 +11817,8 @@ class SuspendState : public Instance {
     return OFFSET_OF(UntaggedSuspendState, frame_size_);
   }
   static intptr_t pc_offset() { return OFFSET_OF(UntaggedSuspendState, pc_); }
-  static intptr_t future_offset() {
-    return OFFSET_OF(UntaggedSuspendState, future_);
+  static intptr_t function_data_offset() {
+    return OFFSET_OF(UntaggedSuspendState, function_data_);
   }
   static intptr_t then_callback_offset() {
     return OFFSET_OF(UntaggedSuspendState, then_callback_);
@@ -11823,10 +11831,10 @@ class SuspendState : public Instance {
   }
 
   static SuspendStatePtr New(intptr_t frame_size,
-                             const Instance& future,
+                             const Instance& function_data,
                              Heap::Space space = Heap::kNew);
 
-  InstancePtr future() const { return untag()->future(); }
+  InstancePtr function_data() const { return untag()->function_data(); }
   uword pc() const { return untag()->pc_; }
 
   // Returns Code object corresponding to the suspended function.
@@ -11835,7 +11843,7 @@ class SuspendState : public Instance {
  private:
   void set_frame_size(intptr_t frame_size) const;
   void set_pc(uword pc) const;
-  void set_future(const Instance& future) const;
+  void set_function_data(const Instance& function_data) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
   friend class Class;

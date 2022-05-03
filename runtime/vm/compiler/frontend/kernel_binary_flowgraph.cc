@@ -684,6 +684,24 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitAsync);
     body += Drop();
+  } else if (dart_function.IsCompactAsyncStarFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (result_type.type_class() == IG->object_store()->stream_class())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitAsyncStar);
+    body += Drop();
+    body += NullConstant();
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kYieldAsyncStar);
+    body += Drop();
   }
   return body;
 }
@@ -4322,7 +4340,8 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
 
 Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
     TokenPosition* position) {
-  ASSERT(parsed_function()->function().IsCompactAsyncFunction());
+  ASSERT(parsed_function()->function().IsCompactAsyncFunction() ||
+         parsed_function()->function().IsCompactAsyncStarFunction());
   Fragment instructions;
 
   const TokenPosition pos = ReadPosition();  // read file offset.
@@ -4330,7 +4349,7 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
-  instructions += B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kAwaitAsync);
+  instructions += B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kAwait);
   return instructions;
 }
 
@@ -5228,8 +5247,83 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  uint8_t flags = ReadByte();          // read flags.
-  ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
+  const uint8_t flags = ReadByte();  // read flags.
+
+  if ((flags & kYieldStatementFlagNative) == 0) {
+    Fragment instructions;
+    // Generate the following code for yield <expr>:
+    //
+    // _AsyncStarStreamController controller = :suspend_state._functionData;
+    // if (controller.add(<expr>)) {
+    //   return;
+    // }
+    // suspend();
+    //
+    // Generate the following code for yield* <expr>:
+    //
+    // _AsyncStarStreamController controller = :suspend_state._functionData;
+    // controller.addStream(<expr>);
+    // if (suspend()) {
+    //   return;
+    // }
+    //
+
+    // Load :suspend_state variable using low-level FP-relative load
+    // in order to avoid confusing SSA construction (which cannot
+    // track its value as it is modified implicitly by stubs).
+    LocalVariable* suspend_state = parsed_function()->suspend_state_var();
+    ASSERT(suspend_state != nullptr);
+    instructions += IntConstant(0);
+    instructions += B->LoadFpRelativeSlot(
+        compiler::target::frame_layout.FrameSlotForVariable(suspend_state) *
+            compiler::target::kWordSize,
+        CompileType::Dynamic(), kTagged);
+    instructions += LoadNativeField(Slot::SuspendState_function_data());
+
+    instructions += BuildExpression();  // read expression.
+
+    auto& add_method = Function::ZoneHandle(Z);
+    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
+    if (is_yield_star) {
+      add_method =
+          IG->object_store()->async_star_stream_controller_add_stream();
+    } else {
+      add_method = IG->object_store()->async_star_stream_controller_add();
+    }
+    instructions += StaticCall(pos, add_method, 2, ICData::kNoRebind);
+
+    if (is_yield_star) {
+      // Discard result of _AsyncStarStreamController.addStream().
+      instructions += Drop();
+      // Suspend and test value passed to the resumed async* body.
+      instructions += NullConstant();
+      instructions +=
+          B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kYieldAsyncStar);
+    } else {
+      // Test value returned by _AsyncStarStreamController.add().
+    }
+
+    TargetEntryInstr* exit;
+    TargetEntryInstr* continue_execution;
+    instructions += BranchIfTrue(&exit, &continue_execution, false);
+
+    Fragment do_exit(exit);
+    do_exit += TranslateFinallyFinalizers(nullptr, -1);
+    do_exit += NullConstant();
+    do_exit += Return(TokenPosition::kNoSource);
+
+    instructions = Fragment(instructions.entry, continue_execution);
+    if (!is_yield_star) {
+      instructions += NullConstant();
+      instructions +=
+          B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kYieldAsyncStar);
+      instructions += Drop();
+    }
+
+    return instructions;
+  }
+
+  ASSERT(flags == kYieldStatementFlagNative);  // Must have been desugared.
 
   // Setup yield/continue point:
   //
@@ -5476,6 +5570,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           function.set_is_inlinable(false);
           function.set_is_visible(true);
           ASSERT(function.IsCompactAsyncFunction());
+        } else if (function_node_helper.async_marker_ ==
+                   FunctionNodeHelper::kAsyncStar) {
+          if (!FLAG_precompiled_mode) {
+            FATAL("Compact async* functions are only supported in AOT mode.");
+          }
+          function.set_modifier(UntaggedFunction::kAsyncGen);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactAsyncStarFunction());
         } else {
           ASSERT((function_node_helper.async_marker_ ==
                   FunctionNodeHelper::kSync) ||
@@ -5514,6 +5618,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
             function.set_is_inlinable(!FLAG_lazy_async_stacks);
           }
           ASSERT(!function.IsCompactAsyncFunction());
+          ASSERT(!function.IsCompactAsyncStarFunction());
         }
 
         // If the start token position is synthetic, the end token position

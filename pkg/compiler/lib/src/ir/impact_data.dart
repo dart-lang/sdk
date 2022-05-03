@@ -1072,87 +1072,65 @@ class ImpactData {
 
   ImpactData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    _superInitializers = source.readList(
-        () => _SuperInitializer.fromDataSource(source),
-        emptyAsNull: true);
-    _superSets =
-        source.readList(() => source.readMemberNode(), emptyAsNull: true);
-    _superGets =
-        source.readList(() => source.readMemberNode(), emptyAsNull: true);
-    _superInvocations = source.readList(
-        () => _SuperInvocation.fromDataSource(source),
-        emptyAsNull: true);
-    _instanceSets = source.readList(
-        () => _InstanceAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _dynamicSets = source.readList(() => _DynamicAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _instanceGets = source.readList(
-        () => _InstanceAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _dynamicGets = source.readList(() => _DynamicAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _functionInvocations = source.readList(
-        () => _FunctionInvocation.fromDataSource(source),
-        emptyAsNull: true);
-    _instanceInvocations = source.readList(
-        () => _InstanceInvocation.fromDataSource(source),
-        emptyAsNull: true);
-    _dynamicInvocations = source.readList(
-        () => _DynamicInvocation.fromDataSource(source),
-        emptyAsNull: true);
-    _localFunctionInvocations = source.readList(
-        () => _LocalFunctionInvocation.fromDataSource(source),
-        emptyAsNull: true);
-    _staticInvocations = source.readList(
-        () => _StaticInvocation.fromDataSource(source),
-        emptyAsNull: true);
-    _constructorInvocations = source.readList(
-        () => _ConstructorInvocation.fromDataSource(source),
-        emptyAsNull: true);
+    _superInitializers =
+        source.readListOrNull(() => _SuperInitializer.fromDataSource(source));
+    _superSets = source.readListOrNull(() => source.readMemberNode());
+    _superGets = source.readListOrNull(() => source.readMemberNode());
+    _superInvocations =
+        source.readListOrNull(() => _SuperInvocation.fromDataSource(source));
+    _instanceSets =
+        source.readListOrNull(() => _InstanceAccess.fromDataSource(source));
+    _dynamicSets =
+        source.readListOrNull(() => _DynamicAccess.fromDataSource(source));
+    _instanceGets =
+        source.readListOrNull(() => _InstanceAccess.fromDataSource(source));
+    _dynamicGets =
+        source.readListOrNull(() => _DynamicAccess.fromDataSource(source));
+    _functionInvocations =
+        source.readListOrNull(() => _FunctionInvocation.fromDataSource(source));
+    _instanceInvocations =
+        source.readListOrNull(() => _InstanceInvocation.fromDataSource(source));
+    _dynamicInvocations =
+        source.readListOrNull(() => _DynamicInvocation.fromDataSource(source));
+    _localFunctionInvocations = source
+        .readListOrNull(() => _LocalFunctionInvocation.fromDataSource(source));
+    _staticInvocations =
+        source.readListOrNull(() => _StaticInvocation.fromDataSource(source));
+    _constructorInvocations = source
+        .readListOrNull(() => _ConstructorInvocation.fromDataSource(source));
     _features = EnumSet<_Feature>.fromValue(source.readInt());
-    _typeUses = source.readList(() => _TypeUse.fromDataSource(source),
-        emptyAsNull: true);
-    _redirectingInitializers = source.readList(
-        () => _RedirectingInitializer.fromDataSource(source),
-        emptyAsNull: true);
+    _typeUses = source.readListOrNull(() => _TypeUse.fromDataSource(source));
+    _redirectingInitializers = source
+        .readListOrNull(() => _RedirectingInitializer.fromDataSource(source));
     _fieldInitializers = source.readMemberNodes<ir.Field>(emptyAsNull: true);
     _fieldConstantInitializers =
         source.readMemberNodeMap(source.readTreeNodes, emptyAsNull: true);
-    _typeLiterals = source.readList(() => _TypeLiteral.fromDataSource(source),
-        emptyAsNull: true);
+    _typeLiterals =
+        source.readListOrNull(() => _TypeLiteral.fromDataSource(source));
     _localFunctions = source.readTreeNodes(emptyAsNull: true);
-    _genericInstantiations = source.readList(
-        () => _GenericInstantiation.fromDataSource(source),
-        emptyAsNull: true);
-    _staticSets = source.readList(() => _StaticAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _staticGets = source.readList(() => _StaticAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _staticTearOffs = source.readList(
-        () => _StaticAccess.fromDataSource(source),
-        emptyAsNull: true);
-    _mapLiterals = source.readList(() => _MapLiteral.fromDataSource(source),
-        emptyAsNull: true);
-    _listLiterals = source.readList(
-        () => _ContainerLiteral.fromDataSource(source),
-        emptyAsNull: true);
-    _setLiterals = source.readList(
-        () => _ContainerLiteral.fromDataSource(source),
-        emptyAsNull: true);
+    _genericInstantiations = source
+        .readListOrNull(() => _GenericInstantiation.fromDataSource(source));
+    _staticSets =
+        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
+    _staticGets =
+        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
+    _staticTearOffs =
+        source.readListOrNull(() => _StaticAccess.fromDataSource(source));
+    _mapLiterals =
+        source.readListOrNull(() => _MapLiteral.fromDataSource(source));
+    _listLiterals =
+        source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
+    _setLiterals =
+        source.readListOrNull(() => _ContainerLiteral.fromDataSource(source));
     _symbolLiterals = source.readStrings(emptyAsNull: true)?.toSet();
     _stringLiterals = source.readStrings(emptyAsNull: true)?.toSet();
-    _boolLiterals =
-        source.readList(() => source.readBool(), emptyAsNull: true)?.toSet();
-    _doubleLiterals = source
-        .readList(() => source.readDoubleValue(), emptyAsNull: true)
-        ?.toSet();
-    _intLiterals = source
-        .readList(() => source.readIntegerValue(), emptyAsNull: true)
-        ?.toSet();
-    _runtimeTypeUses = source.readList(
-        () => _RuntimeTypeUse.fromDataSource(source),
-        emptyAsNull: true);
+    _boolLiterals = source.readListOrNull(() => source.readBool())?.toSet();
+    _doubleLiterals =
+        source.readListOrNull(() => source.readDoubleValue())?.toSet();
+    _intLiterals =
+        source.readListOrNull(() => source.readIntegerValue())?.toSet();
+    _runtimeTypeUses =
+        source.readListOrNull(() => _RuntimeTypeUse.fromDataSource(source));
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
     _constructorNodes =

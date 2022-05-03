@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// A [Node] is an abstract base class for all [Node]s parsed from json
 /// constraints.
 abstract class Node {
@@ -76,7 +74,7 @@ class ReferenceNode extends NamedNode {
 enum CombinerType { and, or }
 
 CombinerType parseCombinerType(Map<String, dynamic> nodeJson) {
-  String type = nodeJson['type'];
+  String? type = nodeJson['type'];
   switch (type) {
     case 'and':
       return CombinerType.and;
@@ -94,7 +92,6 @@ String combinerTypeToString(CombinerType type) {
     case CombinerType.or:
       return 'or';
   }
-  throw 'Unreachable';
 }
 
 T _jsonLookup<T>(Map<String, dynamic> nodeJson, String key) {
@@ -136,8 +133,8 @@ class CombinerNode extends NamedNode {
     String name = _jsonLookup(nodeJson, 'name');
     List<dynamic> referencesJson = _jsonLookup(nodeJson, 'nodes');
     Set<ReferenceNode> references = {};
-    for (String reference in referencesJson) {
-      references.add(nameMap[reference]);
+    for (final reference in referencesJson) {
+      references.add(nameMap[reference as String] as ReferenceNode);
     }
     return CombinerNode(name, parseCombinerType(nodeJson), references);
   }
@@ -159,10 +156,7 @@ class RelativeOrderNode extends OrderNode {
   final NamedNode predecessor;
   final NamedNode successor;
 
-  RelativeOrderNode({this.predecessor, this.successor}) {
-    // TODO(joshualitt) make these both required parameters.
-    assert(this.predecessor != null && this.successor != null);
-  }
+  RelativeOrderNode({required this.predecessor, required this.successor});
 
   @override
   Map<String, dynamic> toJson() {
@@ -203,8 +197,8 @@ class FuseNode extends OrderNode {
       Map<String, dynamic> nodeJson, Map<String, NamedNode> nameMap) {
     List<dynamic> referencesJson = _jsonLookup(nodeJson, 'nodes');
     Set<NamedNode> nodes = {};
-    for (String reference in referencesJson) {
-      nodes.add(nameMap[reference]);
+    for (final reference in referencesJson) {
+      nodes.add(nameMap[reference as String]!);
     }
     return FuseNode(nodes);
   }
@@ -221,7 +215,7 @@ typedef ReferenceNodeNamer = String Function(UriAndPrefix);
 
 class ProgramSplitBuilder {
   final Map<String, NamedNode> namedNodes = {};
-  ReferenceNodeNamer _referenceNodeNamer;
+  ReferenceNodeNamer? _referenceNodeNamer;
 
   /// 'uri#prefix' will become a key to reference this node in other builder
   /// calls.
@@ -236,7 +230,7 @@ class ProgramSplitBuilder {
   ReferenceNodeNamer get referenceNodeNamer =>
       _referenceNodeNamer ?? _uriAndPrefixNamer;
 
-  NamedNode _addNamedNode(NamedNode node) {
+  T _addNamedNode<T extends NamedNode>(T node) {
     if (namedNodes.containsKey(node.name)) {
       throw 'Node with name ${node.name} already exists: '
           '${namedNodes[node.name]}';
@@ -249,7 +243,7 @@ class ProgramSplitBuilder {
     if (!namedNodes.containsKey(nodeName)) {
       throw 'Missing reference node for $nodeName';
     }
-    return namedNodes[nodeName];
+    return namedNodes[nodeName]!;
   }
 
   ReferenceNode _lookupReferenceNode(String nodeName) {
@@ -257,7 +251,7 @@ class ProgramSplitBuilder {
     if (node is! ReferenceNode) {
       throw 'node $nodeName is not a ReferenceNode.';
     }
-    return node as ReferenceNode;
+    return node;
   }
 
   /// Returns a [ReferenceNode] referencing [importUriAndPrefix].

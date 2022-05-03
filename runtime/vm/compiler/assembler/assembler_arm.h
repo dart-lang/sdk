@@ -1137,6 +1137,8 @@ class Assembler : public AssemblerBase {
   void PushRegisters(const RegisterSet& regs);
   void PopRegisters(const RegisterSet& regs);
 
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
+
   // Push all registers which are callee-saved according to the ARM ABI.
   void PushNativeCalleeSavedRegisters();
 

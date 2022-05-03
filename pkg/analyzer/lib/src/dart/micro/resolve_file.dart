@@ -44,21 +44,42 @@ import 'package:yaml/yaml.dart';
 const M = 1024 * 1024 /*1 MiB*/;
 const memoryCacheSize = 200 * M;
 
+class CiderSearchInfo {
+  final CharacterLocation startPosition;
+  final int length;
+  final MatchKind kind;
+
+  CiderSearchInfo(this.startPosition, this.length, this.kind);
+
+  @override
+  bool operator ==(Object other) =>
+      other is CiderSearchInfo &&
+      startPosition == other.startPosition &&
+      length == other.length &&
+      kind == other.kind;
+}
+
 class CiderSearchMatch {
   final String path;
+  @deprecated
   final List<CharacterLocation?> startPositions;
+  final List<CiderSearchInfo> references;
 
-  CiderSearchMatch(this.path, this.startPositions);
+  CiderSearchMatch(this.path, this.startPositions, this.references);
 
   @override
   bool operator ==(Object other) =>
       other is CiderSearchMatch &&
       path == other.path &&
       const ListEquality<CharacterLocation?>()
-          .equals(startPositions, other.startPositions);
+          // ignore: deprecated_member_use_from_same_package
+          .equals(startPositions, other.startPositions) &&
+      const ListEquality<CiderSearchInfo>()
+          .equals(references, other.references);
 
   @override
   String toString() {
+    // ignore: deprecated_member_use_from_same_package
     return '($path, $startPositions)';
   }
 }
@@ -191,13 +212,19 @@ class FileResolver {
           var resolved = await resolve2(path: path);
           var collector = ReferencesCollector(element);
           resolved.unit.accept(collector);
-          var offsets = collector.offsets;
-          if (offsets.isNotEmpty) {
+          var matches = collector.references;
+          if (matches.isNotEmpty) {
             var lineInfo = resolved.unit.lineInfo;
             references.add(CiderSearchMatch(
                 path,
-                offsets
-                    .map((offset) => lineInfo.getLocation(offset))
+                matches
+                    .map((match) => lineInfo.getLocation(match.offset))
+                    .toList(),
+                matches
+                    .map((match) => CiderSearchInfo(
+                        lineInfo.getLocation(match.offset),
+                        match.length,
+                        match.matchKind))
                     .toList()));
           }
         });

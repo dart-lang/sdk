@@ -56,8 +56,6 @@ class StringIndex {
   int value_;
 };
 
-const uint8_t kNativeYieldFlags = 0x2;
-
 enum LogicalOperator { kAnd, kOr };
 
 struct ProgramBinary {

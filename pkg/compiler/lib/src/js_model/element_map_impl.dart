@@ -19,7 +19,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show LateOutputUnitDataBuilder;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/indexed.dart';

@@ -260,16 +260,16 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = EAX;
 };
 
-// ABI for SuspendStub (AwaitAsyncStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = EAX;
   static const Register kTempReg = EDX;
   static const Register kFrameSizeReg = ECX;
   static const Register kSuspendStateReg = EBX;
-  static const Register kFutureReg = EDI;
+  static const Register kFunctionDataReg = EDI;
   // Can reuse THR.
   static const Register kSrcFrameReg = ESI;
-  // Can reuse kFutureReg.
+  // Can reuse kFunctionDataReg.
   static const Register kDstFrameReg = EDI;
 
   // Number of bytes to skip after
@@ -278,7 +278,7 @@ struct SuspendStubABI {
   static const intptr_t kResumePcDistance = 5;
 };
 
-// ABI for InitSuspendableFunctionStub (InitAsyncStub).
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
 struct InitSuspendableFunctionStubABI {
   static const Register kTypeArgsReg = EAX;
 };
@@ -298,7 +298,8 @@ struct ResumeStubABI {
   static const Register kStackTraceReg = EDI;
 };
 
-// ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub).
+// ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = EBX;
 };

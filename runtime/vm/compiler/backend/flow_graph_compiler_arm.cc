@@ -376,7 +376,7 @@ void FlowGraphCompiler::EmitPrologue() {
   } else if (parsed_function().suspend_state_var() != nullptr) {
     // Initialize synthetic :suspend_state variable early
     // as it may be accessed by GC and exception handling before
-    // InitAsync stub is called.
+    // InitSuspendableFunction stub is called.
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariable(
             parsed_function().suspend_state_var());

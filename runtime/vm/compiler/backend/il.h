@@ -9567,8 +9567,10 @@ class SimdOpInstr : public Definition {
 class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
  public:
   enum class StubId {
+    kAwait,
     kInitAsync,
-    kAwaitAsync,
+    kInitAsyncStar,
+    kYieldAsyncStar,
   };
 
   Call1ArgStubInstr(const InstructionSource& source,

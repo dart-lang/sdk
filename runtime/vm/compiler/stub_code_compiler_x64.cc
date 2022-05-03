@@ -657,8 +657,8 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       __ Bind(&length);
       __ SmiTag(RangeErrorABI::kLengthReg);
     }
-    __ PushRegister(RangeErrorABI::kLengthReg);
-    __ PushRegister(RangeErrorABI::kIndexReg);
+    __ PushRegistersInOrder(
+        {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
     __ CallRuntime(kRangeErrorRuntimeEntry, /*argument_count=*/2);
     __ Breakpoint();
   };

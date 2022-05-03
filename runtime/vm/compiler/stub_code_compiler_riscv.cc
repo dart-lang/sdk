@@ -440,8 +440,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Bind(&no_type_args);
 
   // Push type arguments & extracted method.
-  __ PushRegister(T3);
-  __ PushRegister(T1);
+  __ PushRegistersInOrder({T3, T1});
 
   // Allocate context.
   {
@@ -563,8 +562,8 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       __ SmiTag(RangeErrorABI::kLengthReg);
     }
 #endif  // XLEN != 32
-    __ PushRegister(RangeErrorABI::kLengthReg);
-    __ PushRegister(RangeErrorABI::kIndexReg);
+    __ PushRegistersInOrder(
+        {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
     __ CallRuntime(kRangeErrorRuntimeEntry, /*argument_count=*/2);
     __ Breakpoint();
   };
@@ -732,8 +731,7 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
-  __ PushRegister(S4);
-  __ PushRegister(ZR);
+  __ PushRegistersInOrder({S4, ZR});
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
   __ PopRegister(CODE_REG);
@@ -753,9 +751,9 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ PushRegister(ZR);  // Result slot.
-  __ PushRegister(A0);  // Preserve receiver.
-  __ PushRegister(S5);  // Old cache value (also 2nd return value).
+  // Setup result slot, preserve receiver and
+  // push old cache value (also 2nd return value).
+  __ PushRegistersInOrder({ZR, A0, S5});
   __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
   __ PopRegister(S5);        // Get target cache object.
   __ PopRegister(A0);        // Restore receiver.
@@ -928,8 +926,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ PushRegister(T1);  // Preserve result as first local.
   } else if (kind == kLazyDeoptFromThrow) {
-    __ PushRegister(T1);  // Preserve exception as first local.
-    __ PushRegister(T2);  // Preserve stacktrace as second local.
+    // Preserve exception as first local.
+    // Preserve stacktrace as second local.
+    __ PushRegistersInOrder({T1, T2});
   }
   {
     __ mv(A0, FP);  // Pass last FP as parameter in R0.
@@ -963,8 +962,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ PushRegister(T1);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
-    __ PushRegister(T1);  // Preserve exception, it will be GC-d here.
-    __ PushRegister(T2);  // Preserve stacktrace, it will be GC-d here.
+    // Preserve exception, it will be GC-d here.
+    // Preserve stacktrace, it will be GC-d here.
+    __ PushRegistersInOrder({T1, T2});
   }
 
   __ PushRegister(ZR);  // Space for the result.
@@ -1035,10 +1035,9 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ add(TMP, TMP, FP);
   __ LoadFromOffset(A0, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
-  __ PushRegister(ZR);  // Result slot.
-  __ PushRegister(A0);  // Receiver.
-  __ PushRegister(S5);  // ICData/MegamorphicCache.
-  __ PushRegister(S4);  // Arguments descriptor.
+  // Push: result slot, receiver, ICData/MegamorphicCache,
+  // arguments descriptor.
+  __ PushRegistersInOrder({ZR, A0, S5, S4});
 
   // Adjust arguments count.
   __ LoadCompressedSmiFieldFromOffset(
@@ -2069,10 +2068,8 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   // Load the function.
   __ LoadCompressedFieldFromOffset(TMP, A0, target::Closure::function_offset());
 
-  __ PushRegister(ZR);   // Result slot.
-  __ PushRegister(A0);   // Receiver.
-  __ PushRegister(TMP);  // Function
-  __ PushRegister(S4);   // Arguments descriptor.
+  // Push result slot, receiver, function, arguments descriptor.
+  __ PushRegistersInOrder({ZR, A0, TMP, S4});
 
   // Adjust arguments count.
   __ LoadCompressedSmiFieldFromOffset(
@@ -2382,8 +2379,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ EnterStubFrame();
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
-  __ PushRegister(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ PushRegister(IC_DATA_REG);    // Preserve IC Data.
+  __ PushRegistersInOrder({ARGS_DESC_REG, IC_DATA_REG});
   if (save_entry_point) {
     __ SmiTag(T6);
     __ PushRegister(T6);
@@ -2667,8 +2663,8 @@ void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
 void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   // Preserve arg desc.
   __ EnterStubFrame();
-  __ PushRegister(ARGS_DESC_REG);  // Save arg. desc.
-  __ PushRegister(T0);             // Pass function.
+  // Save arguments descriptor and pass function.
+  __ PushRegistersInOrder({ARGS_DESC_REG, T0});
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ PopRegister(T0);             // Restore argument.
   __ PopRegister(ARGS_DESC_REG);  // Restore arg desc.
@@ -3371,11 +3367,9 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ lx(CODE_REG,
         Address(THR, target::Thread::switchable_call_miss_stub_offset()));
   __ EnterStubFrame();
-  __ PushRegister(A0);  // Preserve receiver.
-
-  __ PushRegister(ZR);  // Result slot.
-  __ PushRegister(ZR);  // Arg0: stub out.
-  __ PushRegister(A0);  // Arg1: Receiver
+  // Preserve receiver, setup result slot,
+  // pass Arg0: stub out and Arg1: Receiver.
+  __ PushRegistersInOrder({A0, ZR, ZR, A0});
   __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
   __ Drop(1);
   __ PopRegister(CODE_REG);     // result = stub
@@ -3409,11 +3403,9 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 
   __ Bind(&miss);
   __ EnterStubFrame();
-  __ PushRegister(A0);  // Preserve receiver.
-
-  __ PushRegister(ZR);  // Result slot.
-  __ PushRegister(ZR);  // Arg0: Stub out.
-  __ PushRegister(A0);  // Arg1: Receiver
+  // Preserve receiver, setup result slot,
+  // pass Arg0: Stub out and Arg1: Receiver.
+  __ PushRegistersInOrder({A0, ZR, ZR, A0});
   __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
   __ Drop(1);
   __ PopRegister(CODE_REG);  // result = stub
@@ -3471,10 +3463,10 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   // A runtime call to instantiate the type arguments is required.
   __ Bind(&call_runtime);
   __ EnterStubFrame();
-  __ PushRegisterPair(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                      NULL_REG);
-  __ PushRegisterPair(InstantiationABI::kFunctionTypeArgumentsReg,
-                      InstantiationABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegistersInOrder({NULL_REG,
+                           InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                           InstantiationABI::kInstantiatorTypeArgumentsReg,
+                           InstantiationABI::kFunctionTypeArgumentsReg});
   __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
   __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
   __ PopRegister(InstantiationABI::kResultTypeArgumentsReg);

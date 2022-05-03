@@ -9,6 +9,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
+#include "vm/globals.h"
 #include "vm/pointer_tagging.h"
 
 namespace dart {
@@ -66,13 +67,29 @@ class UntaggedObject;
     return (addr & kObjectAlignmentMask) != kOldObjectBits;                    \
   }                                                                            \
                                                                                \
-  bool operator==(const type& other) { return ptr == other.ptr; }              \
-  bool operator!=(const type& other) { return ptr != other.ptr; }              \
+  bool operator==(const type& other) {                                         \
+    return (ptr & kSmiTagMask) == kHeapObjectTag                               \
+               ? ptr == other.ptr                                              \
+               : static_cast<compressed_uword>(ptr) ==                         \
+                     static_cast<compressed_uword>(other.ptr);                 \
+  }                                                                            \
+  bool operator!=(const type& other) {                                         \
+    return (ptr & kSmiTagMask) == kHeapObjectTag                               \
+               ? ptr != other.ptr                                              \
+               : static_cast<compressed_uword>(ptr) !=                         \
+                     static_cast<compressed_uword>(other.ptr);                 \
+  }                                                                            \
   constexpr bool operator==(const type& other) const {                         \
-    return ptr == other.ptr;                                                   \
+    return (ptr & kSmiTagMask) == kHeapObjectTag                               \
+               ? ptr == other.ptr                                              \
+               : static_cast<compressed_uword>(ptr) ==                         \
+                     static_cast<compressed_uword>(other.ptr);                 \
   }                                                                            \
   constexpr bool operator!=(const type& other) const {                         \
-    return ptr != other.ptr;                                                   \
+    return (ptr & kSmiTagMask) == kHeapObjectTag                               \
+               ? ptr != other.ptr                                              \
+               : static_cast<compressed_uword>(ptr) !=                         \
+                     static_cast<compressed_uword>(other.ptr);                 \
   }
 
 class ObjectPtr {
@@ -251,11 +268,6 @@ class CompressedObjectPtr {
       : compressed_pointer_(static_cast<uint32_t>(tagged)) {}
 
   ObjectPtr Decompress(uword heap_base) const {
-    if ((compressed_pointer_ & kSmiTagMask) != kHeapObjectTag) {
-      // TODO(liama): Make all native code robust to junk in the upper 32-bits
-      // of SMIs, then remove this special casing.
-      return DecompressSmi();
-    }
     return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_) +
                                   heap_base);
   }

@@ -112,8 +112,8 @@ void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub(
 void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for result.
-  __ PushRegister(InitInstanceFieldABI::kInstanceReg);
-  __ PushRegister(InitInstanceFieldABI::kFieldReg);
+  __ PushRegistersInOrder(
+      {InitInstanceFieldABI::kInstanceReg, InitInstanceFieldABI::kFieldReg});
   __ CallRuntime(kInitInstanceFieldRuntimeEntry, /*argument_count=*/2);
   __ Drop(2);
   __ PopRegister(InitInstanceFieldABI::kResultReg);
@@ -130,11 +130,9 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   const Register kScratchReg = InitLateInstanceFieldInternalRegs::kScratchReg;
 
   __ EnterStubFrame();
-  // Save for later.
-  __ PushRegisterPair(kInstanceReg, kFieldReg);
-
+  // Save kFieldReg and kInstanceReg for later.
   // Call initializer function.
-  __ PushRegister(kInstanceReg);
+  __ PushRegistersInOrder({kFieldReg, kInstanceReg, kInstanceReg});
 
   static_assert(
       InitInstanceFieldABI::kResultReg == CallingConventions::kReturnReg,
@@ -219,8 +217,8 @@ void StubCodeCompiler::GenerateThrowStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateReThrowStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
-  __ PushRegister(ReThrowABI::kExceptionReg);
-  __ PushRegister(ReThrowABI::kStackTraceReg);
+  __ PushRegistersInOrder(
+      {ReThrowABI::kExceptionReg, ReThrowABI::kStackTraceReg});
   __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
   __ Breakpoint();
 }
@@ -235,11 +233,11 @@ void StubCodeCompiler::GenerateAssertBooleanStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateAssertSubtypeStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
-  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
-  __ PushRegister(AssertSubtypeABI::kDstNameReg);
+  __ PushRegistersInOrder({AssertSubtypeABI::kInstantiatorTypeArgumentsReg,
+                           AssertSubtypeABI::kFunctionTypeArgumentsReg,
+                           AssertSubtypeABI::kSubTypeReg,
+                           AssertSubtypeABI::kSuperTypeReg,
+                           AssertSubtypeABI::kDstNameReg});
   __ CallRuntime(kSubtypeCheckRuntimeEntry, /*argument_count=*/5);
   __ Drop(5);  // Drop unused result as well as arguments.
   __ LeaveStubFrame();
@@ -261,8 +259,8 @@ void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
       target::kWordSize * AssertAssignableStubABI::kInstantiatorTAVSlotFromFp));
   __ pushl(Address(EBP, target::kWordSize *
                             AssertAssignableStubABI::kFunctionTAVSlotFromFp));
-  __ PushRegister(AssertAssignableStubABI::kDstNameReg);
-  __ PushRegister(AssertAssignableStubABI::kSubtypeTestReg);
+  __ PushRegistersInOrder({AssertAssignableStubABI::kDstNameReg,
+                           AssertAssignableStubABI::kSubtypeTestReg});
   __ PushObject(Smi::ZoneHandle(Smi::New(kTypeCheckFromInline)));
   __ CallRuntime(kTypeCheckRuntimeEntry, /*argument_count=*/7);
   __ Drop(8);
@@ -274,9 +272,9 @@ void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
 static void BuildInstantiateTypeRuntimeCall(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(Object::null_object());
-  __ PushRegister(InstantiateTypeABI::kTypeReg);
-  __ PushRegister(InstantiateTypeABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(InstantiateTypeABI::kFunctionTypeArgumentsReg);
+  __ PushRegistersInOrder({InstantiateTypeABI::kTypeReg,
+                           InstantiateTypeABI::kInstantiatorTypeArgumentsReg,
+                           InstantiateTypeABI::kFunctionTypeArgumentsReg});
   __ CallRuntime(kInstantiateTypeRuntimeEntry, /*argument_count=*/3);
   __ Drop(3);
   __ PopRegister(InstantiateTypeABI::kResultTypeReg);
@@ -416,11 +414,10 @@ void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for the result.
-  __ PushRegister(TypeTestABI::kInstanceReg);
-  __ PushRegister(TypeTestABI::kDstTypeReg);
-  __ PushRegister(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushRegister(TypeTestABI::kSubtypeTestCacheReg);
+  __ PushRegistersInOrder({TypeTestABI::kInstanceReg, TypeTestABI::kDstTypeReg,
+                           TypeTestABI::kInstantiatorTypeArgumentsReg,
+                           TypeTestABI::kFunctionTypeArgumentsReg,
+                           TypeTestABI::kSubtypeTestCacheReg});
   __ CallRuntime(kInstanceofRuntimeEntry, /*argument_count=*/5);
   __ Drop(5);
   __ PopRegister(TypeTestABI::kInstanceOfResultReg);
@@ -816,10 +813,9 @@ void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
 static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
                                             TypeCheckMode mode) {
   __ PushObject(NullObject());  // Make room for result.
-  __ PushRegister(TypeTestABI::kInstanceReg);
-  __ PushRegister(TypeTestABI::kDstTypeReg);
-  __ PushRegister(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(TypeTestABI::kFunctionTypeArgumentsReg);
+  __ PushRegistersInOrder({TypeTestABI::kInstanceReg, TypeTestABI::kDstTypeReg,
+                           TypeTestABI::kInstantiatorTypeArgumentsReg,
+                           TypeTestABI::kFunctionTypeArgumentsReg});
   __ PushObject(NullObject());
   __ PushRegister(TypeTestABI::kSubtypeTestCacheReg);
   __ PushImmediate(target::ToRawSmi(mode));
@@ -1015,8 +1011,8 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
   __ Comment("Closure allocation via runtime");
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ PushRegister(AllocateClosureABI::kFunctionReg);
-  __ PushRegister(AllocateClosureABI::kContextReg);
+  __ PushRegistersInOrder(
+      {AllocateClosureABI::kFunctionReg, AllocateClosureABI::kContextReg});
   __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
   __ PopRegister(AllocateClosureABI::kContextReg);
   __ PopRegister(AllocateClosureABI::kFunctionReg);
@@ -1287,7 +1283,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   const Register kTemp = SuspendStubABI::kTempReg;
   const Register kFrameSize = SuspendStubABI::kFrameSizeReg;
   const Register kSuspendState = SuspendStubABI::kSuspendStateReg;
-  const Register kFuture = SuspendStubABI::kFutureReg;
+  const Register kFunctionData = SuspendStubABI::kFunctionDataReg;
   const Register kSrcFrame = SuspendStubABI::kSrcFrameReg;
   const Register kDstFrame = SuspendStubABI::kDstFrameReg;
   Label alloc_slow_case, alloc_done, init_done, old_gen_object, call_await;
@@ -1308,7 +1304,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
   __ BranchIf(EQUAL, &init_done);
 
-  __ MoveRegister(kFuture, kSuspendState);
+  __ MoveRegister(kFunctionData, kSuspendState);
   __ Comment("Allocate SuspendState");
 
   // Check for allocation tracing.
@@ -1361,8 +1357,8 @@ void StubCodeCompiler::GenerateSuspendStub(
       FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
   __ StoreCompressedIntoObjectNoBarrier(
       kSuspendState,
-      FieldAddress(kSuspendState, target::SuspendState::future_offset()),
-      kFuture);
+      FieldAddress(kSuspendState, target::SuspendState::function_data_offset()),
+      kFunctionData);
 
   {
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
@@ -1444,8 +1440,7 @@ void StubCodeCompiler::GenerateSuspendStub(
 #endif
 
   // Push arguments for _SuspendState._await* method.
-  __ PushRegister(kSuspendState);
-  __ PushRegister(kArgument);
+  __ PushRegistersInOrder({kSuspendState, kArgument});
 
   // Write barrier.
   __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
@@ -1470,12 +1465,12 @@ void StubCodeCompiler::GenerateSuspendStub(
 #endif
   __ Bind(&alloc_slow_case);
   __ Comment("SuspendState Allocation slow case");
-  __ PushRegister(kArgument);   // Save argument.
-  __ PushRegister(kFrameSize);  // Save frame size.
+  // Save argument and frame size.
+  __ PushRegistersInOrder({kArgument, kFrameSize});
   __ PushObject(NullObject());  // Make space on stack for the return value.
   __ SmiTag(kFrameSize);
-  __ PushRegister(kFrameSize);  // Pass frame size to runtime entry.
-  __ PushRegister(kFuture);     // Pass future.
+  // Pass frame size and function data to runtime entry.
+  __ PushRegistersInOrder({kFrameSize, kFunctionData});
   __ CallRuntime(kAllocateSuspendStateRuntimeEntry, 2);
   __ Drop(2);                     // Drop arguments
   __ PopRegister(kSuspendState);  // Get result.
@@ -1502,10 +1497,15 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Jump(&call_await);
 }
 
-void StubCodeCompiler::GenerateAwaitAsyncStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
+  GenerateSuspendStub(assembler,
+                      target::Thread::suspend_state_await_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
-      target::Thread::suspend_state_await_async_entry_point_offset());
+      target::Thread::suspend_state_yield_async_star_entry_point_offset());
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
@@ -1529,6 +1529,12 @@ void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
 void StubCodeCompiler::GenerateInitAsyncStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
       assembler, target::Thread::suspend_state_init_async_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateInitAsyncStarStub(Assembler* assembler) {
+  GenerateInitSuspendableFunctionStub(
+      assembler,
+      target::Thread::suspend_state_init_async_star_entry_point_offset());
 }
 
 void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
@@ -1636,8 +1642,7 @@ void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
 #endif
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
-  __ PushRegister(kException);
-  __ PushRegister(kStackTrace);
+  __ PushRegistersInOrder({kException, kStackTrace});
   __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
   __ Breakpoint();
 }
@@ -1654,8 +1659,7 @@ void StubCodeCompiler::GenerateReturnStub(Assembler* assembler,
   __ LeaveDartFrame();
 
   __ EnterStubFrame();
-  __ PushRegister(kSuspendState);
-  __ PushRegister(CallingConventions::kReturnReg);
+  __ PushRegistersInOrder({kSuspendState, CallingConventions::kReturnReg});
   __ Call(Address(THR, return_entry_point_offset));
   __ LeaveStubFrame();
   __ Ret();
@@ -1672,6 +1676,12 @@ void StubCodeCompiler::GenerateReturnAsyncNotFutureStub(Assembler* assembler) {
       assembler,
       target::Thread::
           suspend_state_return_async_not_future_entry_point_offset());
+}
+
+void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
+  GenerateReturnStub(
+      assembler,
+      target::Thread::suspend_state_return_async_star_entry_point_offset());
 }
 
 void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
@@ -1694,9 +1704,8 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
 
   __ LeaveDartFrame();
   __ EnterStubFrame();
-  __ PushRegister(kSuspendState);
-  __ PushRegister(kExceptionObjectReg);
-  __ PushRegister(kStackTraceObjectReg);
+  __ PushRegistersInOrder(
+      {kSuspendState, kExceptionObjectReg, kStackTraceObjectReg});
   __ Call(Address(
       THR,
       target::Thread::suspend_state_handle_exception_entry_point_offset()));
@@ -1712,8 +1721,7 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
   __ LeaveDartFrame();
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
-  __ PushRegister(kExceptionObjectReg);
-  __ PushRegister(kStackTraceObjectReg);
+  __ PushRegistersInOrder({kExceptionObjectReg, kStackTraceObjectReg});
   __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
   __ Breakpoint();
 }

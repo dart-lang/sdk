@@ -787,6 +787,10 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     // at use in the check.
     if (instruction.usedBy.isEmpty) {
       visitInstruction(instruction);
+    } else {
+      // The name argument can be generated at use. If present, it is either a
+      // string constant or a reference to a string.
+      analyzeInputs(instruction, 1);
     }
   }
 
@@ -1279,6 +1283,8 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
 
       // TODO(sra): Check if a.x="s" can avoid or specialize a write barrier.
       if (instruction is HFieldSet) return true;
+
+      if (instruction is HLateCheck) return true;
 
       // TODO(sra): Determine if other uses result in faster JavaScript code.
       return false;

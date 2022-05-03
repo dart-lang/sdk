@@ -6901,16 +6901,25 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
-  ASSERT(compiler->parsed_function().function().IsCompactAsyncFunction());
-  if (!value()->Type()->CanBeFuture()) {
-    return Code::ZoneHandle(compiler->zone(),
-                            compiler->isolate_group()
-                                ->object_store()
-                                ->return_async_not_future_stub());
+  const Function& function = compiler->parsed_function().function();
+  ASSERT(function.IsSuspendableFunction());
+  if (function.IsCompactAsyncFunction()) {
+    if (!value()->Type()->CanBeFuture()) {
+      return Code::ZoneHandle(compiler->zone(),
+                              compiler->isolate_group()
+                                  ->object_store()
+                                  ->return_async_not_future_stub());
+    }
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_async_stub());
+  } else if (function.IsCompactAsyncStarFunction()) {
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_async_star_stub());
+  } else {
+    UNREACHABLE();
   }
-  return Code::ZoneHandle(
-      compiler->zone(),
-      compiler->isolate_group()->object_store()->return_async_stub());
 }
 
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
@@ -7230,10 +7239,12 @@ LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   switch (stub_id_) {
     case StubId::kInitAsync:
+    case StubId::kInitAsyncStar:
       locs->set_in(0, Location::RegisterLocation(
                           InitSuspendableFunctionStubABI::kTypeArgsReg));
       break;
-    case StubId::kAwaitAsync:
+    case StubId::kAwait:
+    case StubId::kYieldAsyncStar:
       locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
       break;
   }
@@ -7248,15 +7259,21 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case StubId::kInitAsync:
       stub = object_store->init_async_stub();
       break;
-    case StubId::kAwaitAsync:
-      stub = object_store->await_async_stub();
+    case StubId::kAwait:
+      stub = object_store->await_stub();
+      break;
+    case StubId::kInitAsyncStar:
+      stub = object_store->init_async_star_stub();
+      break;
+    case StubId::kYieldAsyncStar:
+      stub = object_store->yield_async_star_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  if (stub_id_ == StubId::kAwaitAsync) {
+  if ((stub_id_ == StubId::kAwait) || (stub_id_ == StubId::kYieldAsyncStar)) {
     // On x86 (X64 and IA32) mismatch between calls and returns
     // significantly regresses performance. So suspend stub
     // does not return directly to the caller. Instead, a small

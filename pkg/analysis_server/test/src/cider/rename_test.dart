@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/cider/rename.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,11 +20,23 @@ void main() {
 @reflectiveTest
 class CiderRenameComputerTest extends CiderServiceTest {
   late _CorrectionContext _correctionContext;
+  late LineInfo? _lineInfo;
+  late String _testCode;
 
   @override
   void setUp() {
     super.setUp();
     BazelMockPackages.instance.addFlutter(resourceProvider);
+  }
+
+  void test_cannotRename_inSdk() async {
+    var refactor = await _compute(r'''
+main() {
+  new String.^fromCharCodes([]);
+}
+''');
+
+    expect(refactor, isNull);
   }
 
   void test_canRename_class() async {
@@ -173,6 +185,17 @@ void foo() {
     expect(result.oldName, 'a');
   }
 
+  void test_checkName_newName() async {
+    var result = await _checkName(r'''
+class A {
+  A.^test() {}
+}
+''', 'test');
+
+    expect(result!.status.problems.length, 1);
+    expect(result.status.hasError, isTrue);
+  }
+
   void test_checkName_parameter() async {
     var result = await _checkName(r'''
 void foo(String ^a) {
@@ -203,7 +226,7 @@ typedef ^Foo = void Function();
   }
 
   void test_rename_class() async {
-    var result = await _rename(r'''
+    var testCode = '''
 class ^Old implements Other {
   Old() {}
   Old.named() {}
@@ -216,26 +239,26 @@ void f() {
   Old t1 = new Old();
   Old t2 = new Old.named();
 }
-''', 'New');
-
-    expect(result!.matches.length, 1);
-    expect(result.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'), [
-        CharacterLocation(1, 7),
-        CharacterLocation(2, 3),
-        CharacterLocation(3, 3),
-        CharacterLocation(6, 23),
-        CharacterLocation(7, 23),
-        CharacterLocation(10, 3),
-        CharacterLocation(10, 16),
-        CharacterLocation(11, 3),
-        CharacterLocation(11, 16)
-      ])
-    ]);
+''';
+    var result = await _rename(testCode, 'New');
+    _assertTestChangeResult('''
+class New implements Other {
+  New() {}
+  New.named() {}
+}
+class Other {
+  factory Other.a() = New;
+  factory Other.b() = New.named;
+}
+void f() {
+  New t1 = new New();
+  New t2 = new New.named();
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_class_flutterWidget() async {
-    var result = await _rename(r'''
+    var testCode = '''
 import 'package:flutter/material.dart';
 
 class ^TestPage extends StatefulWidget {
@@ -249,27 +272,299 @@ class TestPageState extends State<TestPage> {
   @override
   Widget build(BuildContext context) => throw 0;
 }
-''', 'NewPage');
+''';
 
-    expect(result!.matches.length, 1);
-    expect(result.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'), [
-        CharacterLocation(3, 7),
-        CharacterLocation(4, 9),
-        CharacterLocation(7, 9),
-        CharacterLocation(10, 35)
-      ])
+    var result = await _rename(testCode, 'NewPage');
+    expect(result!.replaceMatches.length, 1);
+    expect(result.replaceMatches.first.matches, [
+      ReplaceInfo('NewPage', CharacterLocation(4, 9), 8),
+      ReplaceInfo('NewPage', CharacterLocation(7, 9), 8),
+      ReplaceInfo('NewPage', CharacterLocation(10, 35), 8),
+      ReplaceInfo('NewPage', CharacterLocation(3, 7), 8)
     ]);
     expect(result.flutterWidgetRename != null, isTrue);
     expect(result.flutterWidgetRename!.name, 'NewPageState');
-    expect(result.flutterWidgetRename!.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(7, 36), CharacterLocation(10, 7)])
-    ]);
+    expect(
+        result.flutterWidgetRename!.replacements.first.matches
+            .map((m) => m.startPosition)
+            .toList(),
+        [CharacterLocation(7, 36), CharacterLocation(10, 7)]);
+  }
+
+  void test_rename_constructor_add() async {
+    var testCode = '''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [new A] and [A.new]
+class A {
+  ^A() {} // marker
+  factory A._() = A;
+}
+class B extends A {
+  B() : super() {}
+}
+main() {
+  new A();
+  A.new;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [new A.newName] and [A.newName]
+class A {
+  A.newName() {} // marker
+  factory A._() = A.newName;
+}
+class B extends A {
+  B() : super.newName() {}
+}
+main() {
+  new A.newName();
+  A.newName;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_enum() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3, v4.other();
+  const ^E(); // 0
+  const E.other() : this();
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName(), v4.other();
+  const E.newName(); // 0
+  const E.other() : this.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_enum_hasConstructor() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.^new(), v3;
+
+  factory E.other() => throw 0;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  factory E.other() => throw 0;
+
+  const E.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_enum_hasField() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.^new(), v3;
+
+  final int foo = 0;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  final int foo = 0;
+
+  const E.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_enum_hasMethod() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.^new(), v3;
+
+  void foo() {}
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  const E.newName();
+
+  void foo() {}
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_enum_named() async {
+    var testCode = '''
+/// [E.test]
+enum E {
+  v1.^test(), v2.other();
+  const E.test(); // 0
+  const E.other() : this.test();
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.other();
+  const E.newName(); // 0
+  const E.other() : this.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_enum_remove() async {
+    var testCode = '''
+/// [E]
+enum E {
+  v1.test(), v2.other();
+  const E.^test(); // 0
+  const E.other() : this.test();
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+/// [E]
+enum E {
+  v1(), v2.other();
+  const E(); // 0
+  const E.other() : this();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_named() async {
+    var testCode = '''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [A.test] and [new A.test]
+class A {
+  A.^test() {} // marker
+  factory A._() = A.test;
+}
+class B extends A {
+  B() : super.test() {}
+}
+main() {
+  new A.test();
+  A.test;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [A.newName] and [new A.newName]
+class A {
+  A.newName() {} // marker
+  factory A._() = A.newName;
+}
+class B extends A {
+  B() : super.newName() {}
+}
+main() {
+  new A.newName();
+  A.newName;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_remove() async {
+    var testCode = '''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [A.test] and [new A.test]
+class A {
+  A.^test() {} // marker
+  factory A._() = A.test;
+}
+class B extends A {
+  B() : super.test() {}
+}
+main() {
+  new A.test();
+  A.test;
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [A] and [new A]
+class A {
+  A() {} // marker
+  factory A._() = A;
+}
+class B extends A {
+  B() : super() {}
+}
+main() {
+  new A();
+  A.new;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_constructor_synthetic() async {
+    var testCode = '''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [new A] and [A.new]
+class A {
+  int field = 0;
+}
+class B extends A {
+  B() : super() {}
+}
+main() {
+  new A();
+  A.^new;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [new A.newName] and [A.newName]
+class A {
+  int field = 0;
+
+  A.newName();
+}
+class B extends A {
+  B() : super.newName() {}
+}
+main() {
+  new A.newName();
+  A.newName;
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_field() async {
-    var result = await _rename(r'''
+    var testCode = '''
 class A{
   int get ^x => 5;
 }
@@ -277,17 +572,22 @@ class A{
 void foo() {
   var m = A().x;
 }
-''', 'y');
+''';
 
-    expect(result, isNotNull);
-    expect(result!.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(2, 11), CharacterLocation(6, 15)]),
-    ]);
+    var result = await _rename(testCode, 'y');
+    _assertTestChangeResult('''
+class A{
+  int get y => 5;
+}
+
+void foo() {
+  var m = A().y;
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_field_static_private() async {
-    var result = await _rename(r'''
+    var testCode = '''
 class A{
   static const ^_val = 1234;
 }
@@ -295,17 +595,22 @@ class A{
 void foo() {
   print(A._val);
 }
-''', '_newVal');
+''';
 
-    expect(result, isNotNull);
-    expect(result!.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(2, 16), CharacterLocation(6, 11)]),
-    ]);
+    var result = await _rename(testCode, '_newVal');
+    _assertTestChangeResult('''
+class A{
+  static const _newVal = 1234;
+}
+
+void foo() {
+  print(A._newVal);
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_function() async {
-    var result = await _rename(r'''
+    var testCode = '''
 test() {}
 ^foo() {}
 void f() {
@@ -313,15 +618,18 @@ void f() {
   print(test());
   foo();
 }
-''', 'bar');
+''';
 
-    expect(result!.matches.length, 1);
-    expect(result.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'), [
-        CharacterLocation(2, 1),
-        CharacterLocation(6, 3),
-      ])
-    ]);
+    var result = await _rename(testCode, 'bar');
+    _assertTestChangeResult('''
+test() {}
+bar() {}
+void f() {
+  print(test);
+  print(test());
+  bar();
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_function_imported() async {
@@ -335,28 +643,27 @@ void f() {
   ^foo();
 }
 ''', 'bar');
-    expect(result!.matches.length, 2);
-    expect(result.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/a.dart'), [
-        CharacterLocation(1, 1),
-      ]),
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(3, 3)])
-    ]);
+
+    expect(result!.replaceMatches.length, 2);
+    expect(result.replaceMatches.first.matches,
+        [ReplaceInfo('bar', CharacterLocation(3, 3), 3)]);
+    expect(result.replaceMatches[1].matches,
+        [ReplaceInfo('bar', CharacterLocation(1, 1), 3)]);
   }
 
   void test_rename_local() async {
-    var result = await _rename(r'''
+    var testCode = '''
 void foo() {
   var ^a = 0; var b = a + 1;
 }
-''', 'bar');
+''';
 
-    expect(result!.matches.length, 1);
-    expect(
-        result.matches[0],
-        CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-            [CharacterLocation(2, 7), CharacterLocation(2, 22)]));
+    var result = await _rename(testCode, 'bar');
+    _assertTestChangeResult('''
+void foo() {
+  var bar = 0; var b = bar + 1;
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_method_imported() async {
@@ -372,56 +679,76 @@ void f() {
   var a = A().^foo();
 }
 ''', 'bar');
-    expect(result!.matches.length, 2);
-    expect(result.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/a.dart'), [
-        CharacterLocation(2, 3),
-      ]),
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(3, 15)])
-    ]);
+    expect(result!.replaceMatches.length, 2);
+    expect(result.replaceMatches.first.matches,
+        [ReplaceInfo('bar', CharacterLocation(3, 15), 3)]);
+    expect(result.replaceMatches[1].matches,
+        [ReplaceInfo('bar', CharacterLocation(2, 3), 3)]);
   }
 
   void test_rename_parameter() async {
-    var result = await _rename(r'''
+    var testCode = '''
 void foo(String ^a) {
   var b = a + 1;
 }
-''', 'bar');
-    expect(result!.matches.length, 1);
-    expect(result.checkName.oldName, 'a');
+''';
+    var result = await _rename(testCode, 'bar');
+    _assertTestChangeResult('''
+void foo(String bar) {
+  var b = bar + 1;
+}
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_propertyAccessor() async {
-    var result = await _rename(r'''
+    var testCode = '''
 get foo {}
 set foo(x) {}
 void f() {
   print(foo);
   ^foo = 1;
   foo += 2;
-''', 'bar');
-    expect(result!.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(1, 5), CharacterLocation(4, 9)]),
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'), [
-        CharacterLocation(2, 5),
-        CharacterLocation(5, 3),
-        CharacterLocation(6, 3)
-      ])
-    ]);
+''';
+    var result = await _rename(testCode, 'bar');
+    _assertTestChangeResult('''
+get bar {}
+set bar(x) {}
+void f() {
+  print(bar);
+  bar = 1;
+  bar += 2;
+''', result!.replaceMatches.first.matches);
   }
 
   void test_rename_typeAlias_functionType() async {
-    var result = await _rename(r'''
+    var testCode = '''
 typedef ^F = void Function();
 void f(F a) {}
-''', 'bar');
+''';
 
-    expect(result!.matches, [
-      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
-          [CharacterLocation(1, 9), CharacterLocation(2, 8)])
-    ]);
+    var result = await _rename(testCode, 'bar');
+    _assertTestChangeResult('''
+typedef bar = void Function();
+void f(bar a) {}
+''', result!.replaceMatches.first.matches);
+  }
+
+  // Asserts that the results of the rename is the [expectedCode].
+  void _assertTestChangeResult(
+      String expectedCode, List<ReplaceInfo> changes) async {
+    var edits = <SourceEdit>[];
+    for (var change in changes) {
+      var offset =
+          _lineInfo!.getOffsetOfLine(change.startPosition.lineNumber - 1) +
+              change.startPosition.columnNumber -
+              1;
+      edits.add(SourceEdit(offset, change.length, change.replacementText));
+    }
+    edits.sort((a, b) => a.offset.compareTo(b.offset));
+    edits = edits.reversed.toList();
+    // validate resulting code
+    var actualCode = SourceEdit.applySequence(_testCode, edits);
+    expect(actualCode, expectedCode);
   }
 
   Future<CheckNameResponse?> _checkName(String content, String newName) async {
@@ -459,6 +786,7 @@ void f(F a) {}
       _correctionContext.line,
       _correctionContext.character,
     );
+    _lineInfo = canRename?.lineInfo;
     return canRename?.checkNewName(newName)?.computeRenameRanges2();
   }
 
@@ -470,8 +798,8 @@ void f(F a) {}
     var lineInfo = LineInfo.fromContent(content);
     var location = lineInfo.getLocation(offset);
 
-    content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content);
+    _testCode = content.substring(0, offset) + content.substring(offset + 1);
+    newFile(testPath, _testCode);
 
     _correctionContext = _CorrectionContext(
       content,

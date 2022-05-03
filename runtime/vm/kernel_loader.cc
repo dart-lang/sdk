@@ -1377,15 +1377,19 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
 
   // Build implemented interface types
   intptr_t interface_count = helper_.ReadListLength();
-  const Array& interfaces =
-      Array::Handle(Z, Array::New(interface_count, Heap::kOld));
-  for (intptr_t i = 0; i < interface_count; i++) {
-    const AbstractType& type =
-        T.BuildTypeWithoutFinalization();  // read ith type.
-    interfaces.SetAt(i, type);
+  if (interface_count == 0) {
+    klass->set_interfaces(Object::empty_array());
+  } else {
+    const Array& interfaces =
+        Array::Handle(Z, Array::New(interface_count, Heap::kOld));
+    for (intptr_t i = 0; i < interface_count; i++) {
+      const AbstractType& type =
+          T.BuildTypeWithoutFinalization();  // read ith type.
+      interfaces.SetAt(i, type);
+    }
+    klass->set_interfaces(interfaces);
   }
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);
-  klass->set_interfaces(interfaces);
 
   if (class_helper->is_abstract()) klass->set_is_abstract();
 
@@ -2039,6 +2043,16 @@ void KernelLoader::LoadProcedure(const Library& library,
     function.set_is_inlinable(false);
     function.set_is_visible(true);
     ASSERT(function.IsCompactAsyncFunction());
+  } else if (function_node_helper.async_marker_ ==
+             FunctionNodeHelper::kAsyncStar) {
+    if (!FLAG_precompiled_mode) {
+      FATAL("Compact async* functions are only supported in AOT mode.");
+    }
+    function.set_modifier(UntaggedFunction::kAsyncGen);
+    function.set_is_debuggable(true);
+    function.set_is_inlinable(false);
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncStarFunction());
   } else {
     ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
     function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
@@ -2063,6 +2077,7 @@ void KernelLoader::LoadProcedure(const Library& library,
         break;
     }
     ASSERT(!function.IsCompactAsyncFunction());
+    ASSERT(!function.IsCompactAsyncStarFunction());
   }
 
   if (!native_name.IsNull()) {

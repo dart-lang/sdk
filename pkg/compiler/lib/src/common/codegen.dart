@@ -11,7 +11,7 @@ import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 import '../common.dart';
 import '../common/elements.dart';
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../inferrer/abstract_value_domain.dart';
@@ -110,42 +110,39 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     source.begin(tag);
     MemberEntity member = source.readMember();
     Set<DynamicUse> dynamicUses = source
-        .readList(() => DynamicUse.readFromDataSource(source),
-            emptyAsNull: true)
+        .readListOrNull(() => DynamicUse.readFromDataSource(source))
         ?.toSet();
     Set<StaticUse> staticUses = source
-        .readList(() => StaticUse.readFromDataSource(source), emptyAsNull: true)
+        .readListOrNull(() => StaticUse.readFromDataSource(source))
         ?.toSet();
     Set<TypeUse> typeUses = source
-        .readList(() => TypeUse.readFromDataSource(source), emptyAsNull: true)
+        .readListOrNull(() => TypeUse.readFromDataSource(source))
         ?.toSet();
     Set<ConstantUse> constantUses = source
-        .readList(() => ConstantUse.readFromDataSource(source),
-            emptyAsNull: true)
+        .readListOrNull(() => ConstantUse.readFromDataSource(source))
         ?.toSet();
     Set<Pair<DartType, DartType>> typeVariableBoundsSubtypeChecks =
-        source.readList(() {
+        source.readListOrNull(() {
       return Pair(source.readDartType(), source.readDartType());
-    }, emptyAsNull: true)?.toSet();
+    })?.toSet();
     Set<String> constSymbols = source.readStrings(emptyAsNull: true)?.toSet();
-    List<Set<ClassEntity>> specializedGetInterceptors = source.readList(() {
+    List<Set<ClassEntity>> specializedGetInterceptors =
+        source.readListOrNull(() {
       return source.readClasses().toSet();
-    }, emptyAsNull: true);
+    });
     bool usesInterceptor = source.readBool();
     int asyncMarkersValue = source.readIntOrNull();
     EnumSet<AsyncMarker> asyncMarkers =
         asyncMarkersValue != null ? EnumSet.fromValue(asyncMarkersValue) : null;
     Set<GenericInstantiation> genericInstantiations = source
-        .readList(() => GenericInstantiation.readFromDataSource(source),
-            emptyAsNull: true)
+        .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
         ?.toSet();
-    List<NativeBehavior> nativeBehaviors = source.readList(
-        () => NativeBehavior.readFromDataSource(source),
-        emptyAsNull: true);
+    List<NativeBehavior> nativeBehaviors =
+        source.readListOrNull(() => NativeBehavior.readFromDataSource(source));
     Set<FunctionEntity> nativeMethods =
         source.readMembersOrNull<FunctionEntity>()?.toSet();
     Set<Selector> oneShotInterceptors = source
-        .readList(() => Selector.readFromDataSource(source), emptyAsNull: true)
+        .readListOrNull(() => Selector.readFromDataSource(source))
         ?.toSet();
     source.end(tag);
     return _CodegenImpact.internal(
@@ -2208,7 +2205,8 @@ class JsNodeDeserializer {
   }
 
   List<T> readList<T extends js.Node>({bool emptyAsNull = false}) {
-    return source.readList(read, emptyAsNull: emptyAsNull);
+    // TODO(48820): Is [emptyAsNull] unused?
+    return emptyAsNull ? source.readListOrNull(read) : source.readList(read);
   }
 }
 

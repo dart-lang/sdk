@@ -13,7 +13,7 @@ import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/js_world_builder.dart' show JsToFrontendMap;
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 

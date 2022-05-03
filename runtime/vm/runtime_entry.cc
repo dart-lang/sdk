@@ -711,13 +711,14 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 
 // Allocate a SuspendState object.
 // Arg0: frame size.
-// Arg1: future.
+// Arg1: function data.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
   const Smi& frame_size = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const Instance& future = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const Instance& function_data =
+      Instance::CheckedHandle(zone, arguments.ArgAt(1));
   const SuspendState& result = SuspendState::Handle(
-      zone, SuspendState::New(frame_size.Value(), future,
+      zone, SuspendState::New(frame_size.Value(), function_data,
                               SpaceForRuntimeAllocation()));
   arguments.SetReturn(result);
 }
