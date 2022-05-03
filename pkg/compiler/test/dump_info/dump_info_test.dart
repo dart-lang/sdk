@@ -19,6 +19,17 @@ import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
+final JsonEncoder encoder = const JsonEncoder();
+final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
+
+String jsonEncode(object, {bool indent = true}) {
+  var jsonEncoder = indent ? indentedEncoder : encoder;
+  // Filter block comments since they interfere with ID test comments.
+  var json =
+      jsonEncoder.convert(object).replaceAll('/*', '').replaceAll('*/', '');
+  return json;
+}
+
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
@@ -33,6 +44,7 @@ class Tags {
   static const String library = 'library';
   static const String clazz = 'class';
   static const String classType = 'classType';
+  static const String closure = 'closure';
   static const String function = 'function';
   static const String typeDef = 'typedef';
   static const String field = 'field';
@@ -45,9 +57,6 @@ class Tags {
 
 class DumpInfoDataComputer extends DataComputer<Features> {
   const DumpInfoDataComputer();
-
-  final JsonEncoder encoder = const JsonEncoder();
-  final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
 
   static const String wildcard = '%';
 
@@ -64,23 +73,23 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     if (libraryInfo == null) return;
 
     features.addElement(
-        Tags.library, indentedEncoder.convert(libraryInfo.accept(converter)));
+        Tags.library, jsonEncode(libraryInfo.accept(converter)));
 
     // Store program-wide information on the main library.
     var name = '${library.canonicalUri.pathSegments.last}';
     if (name.startsWith('main')) {
       for (final constantInfo in dumpInfoState.info.constants) {
-        features.addElement(Tags.constant,
-            indentedEncoder.convert(constantInfo.accept(converter)));
+        features.addElement(
+            Tags.constant, jsonEncode(constantInfo.accept(converter)));
       }
-      features.addElement(Tags.dependencies,
-          indentedEncoder.convert(dumpInfoState.info.dependencies));
+      features.addElement(
+          Tags.dependencies, jsonEncode(dumpInfoState.info.dependencies));
       for (final outputUnit in dumpInfoState.info.outputUnits) {
-        features.addElement(Tags.outputUnits,
-            indentedEncoder.convert(outputUnit.accept(converter)));
+        features.addElement(
+            Tags.outputUnits, jsonEncode(outputUnit.accept(converter)));
       }
-      features.addElement(Tags.deferredFiles,
-          indentedEncoder.convert(dumpInfoState.info.deferredFiles));
+      features.addElement(
+          Tags.deferredFiles, jsonEncode(dumpInfoState.info.deferredFiles));
     }
 
     final id = LibraryId(library.canonicalUri);
@@ -100,8 +109,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     final classInfo = dumpInfoState.entityToInfo[cls];
     if (classInfo == null) return;
 
-    features.addElement(
-        Tags.clazz, indentedEncoder.convert(classInfo.accept(converter)));
+    features.addElement(Tags.clazz, jsonEncode(classInfo.accept(converter)));
     final classTypeInfos =
         dumpInfoState.info.classTypes.where((i) => i.name == classInfo.name);
     assert(
@@ -109,8 +117,8 @@ class DumpInfoDataComputer extends DataComputer<Features> {
         'Ambiguous class type info resolution. '
         'Expected 0 or 1 elements, found: $classTypeInfos');
     if (classTypeInfos.length == 1) {
-      features.addElement(Tags.classType,
-          indentedEncoder.convert(classTypeInfos.first.accept(converter)));
+      features.addElement(
+          Tags.classType, jsonEncode(classTypeInfos.first.accept(converter)));
     }
 
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -135,20 +143,28 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     if (functionInfo == null) return;
 
     if (functionInfo is info.FunctionInfo) {
-      features.addElement(Tags.function,
-          indentedEncoder.convert(functionInfo.accept(converter)));
+      features.addElement(
+          Tags.function, jsonEncode(functionInfo.accept(converter)));
       for (final use in functionInfo.uses) {
+        features.addElement(Tags.holding,
+            jsonEncode(converter.visitDependencyInfo(use), indent: false));
+      }
+      for (var closure in functionInfo.closures) {
         features.addElement(
-            Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
+            Tags.closure, jsonEncode(closure.accept(converter)));
       }
     }
 
     if (functionInfo is info.FieldInfo) {
-      features.addElement(Tags.function,
-          indentedEncoder.convert(functionInfo.accept(converter)));
+      features.addElement(
+          Tags.function, jsonEncode(functionInfo.accept(converter)));
       for (final use in functionInfo.uses) {
+        features.addElement(Tags.holding,
+            jsonEncode(converter.visitDependencyInfo(use), indent: false));
+      }
+      for (var closure in functionInfo.closures) {
         features.addElement(
-            Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
+            Tags.closure, jsonEncode(closure.accept(converter)));
       }
     }
 
@@ -201,7 +217,8 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
           if (actualValue is List) {
             List actualList = actualValue.toList();
             for (Object expectedObject in expectedValue) {
-              String expectedText = encoder.convert(jsonDecode(expectedObject));
+              String expectedText =
+                  jsonEncode(jsonDecode(expectedObject), indent: false);
               bool matchFound = false;
               if (wildcard != null && expectedText.endsWith(wildcard)) {
                 // Wildcard matcher.
@@ -210,7 +227,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                 List matches = [];
                 for (Object actualObject in actualList) {
                   final formattedActualObject =
-                      encoder.convert(jsonDecode(actualObject));
+                      jsonEncode(jsonDecode(actualObject), indent: false);
                   if (formattedActualObject.startsWith(prefix)) {
                     matches.add(actualObject);
                     matchFound = true;
@@ -222,7 +239,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
               } else {
                 for (Object actualObject in actualList) {
                   final formattedActualObject =
-                      encoder.convert(jsonDecode(actualObject));
+                      jsonEncode(jsonDecode(actualObject), indent: false);
                   if (expectedText == formattedActualObject) {
                     actualList.remove(actualObject);
                     matchFound = true;

@@ -123,6 +123,15 @@
 import 'lib.dart' deferred as lib;
 
 /*member: main:
+ closure=[{
+  "id": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
+  "kind": "closure",
+  "name": "main_closure",
+  "size": 201,
+  "outputUnit": "outputUnit/main",
+  "parent": "function/memory:sdk/tests/web/native/main.dart::main",
+  "function": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"
+}],
  function=[{
   "id": "function/memory:sdk/tests/web/native/main.dart::main",
   "kind": "function",
