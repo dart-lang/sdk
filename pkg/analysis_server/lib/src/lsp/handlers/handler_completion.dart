@@ -597,7 +597,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final insertionRange =
         toRange(lineInfo, suggestions.replacementOffset, insertLength);
 
+    // Perform fuzzy matching based on the identifier in front of the caret to
+    // reduce the size of the payload.
+    final fuzzyPattern = suggestions.targetPrefix;
+    final fuzzyMatcher =
+        FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+
     final completionItems = suggestions.suggestions
+        .where((item) =>
+            fuzzyMatcher.score(item.displayText ?? item.completion) > 0)
         .map(
           (item) => toCompletionItem(
             capabilities,

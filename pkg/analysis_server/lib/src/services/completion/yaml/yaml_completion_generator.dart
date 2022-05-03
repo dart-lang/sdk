@@ -84,17 +84,23 @@ abstract class YamlCompletionGenerator {
       }
     }
     final node = nodePath.isNotEmpty ? nodePath.last : null;
+    String targetPrefix;
     int replacementOffset;
     int replacementLength;
     if (node is YamlScalar && node.containsOffset(offset)) {
+      targetPrefix = node.span.text.substring(
+        0,
+        offset - node.span.start.offset,
+      );
       replacementOffset = node.span.start.offset;
       replacementLength = node.span.length;
     } else {
+      targetPrefix = '';
       replacementOffset = offset;
       replacementLength = 0;
     }
     return YamlCompletionResults(
-        suggestions, replacementOffset, replacementLength);
+        suggestions, targetPrefix, replacementOffset, replacementLength);
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
@@ -196,14 +202,16 @@ abstract class YamlCompletionGenerator {
 
 class YamlCompletionResults {
   final List<CompletionSuggestion> suggestions;
+  final String targetPrefix;
   final int replacementOffset;
   final int replacementLength;
 
-  const YamlCompletionResults(
-      this.suggestions, this.replacementOffset, this.replacementLength);
+  const YamlCompletionResults(this.suggestions, this.targetPrefix,
+      this.replacementOffset, this.replacementLength);
 
   const YamlCompletionResults.empty()
       : suggestions = const [],
+        targetPrefix = '',
         replacementOffset = 0,
         replacementLength = 0;
 }
