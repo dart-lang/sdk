@@ -985,7 +985,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements CompilationUnitElement {
+    implements CompilationUnitElement, MacroTargetElementContainer {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;
@@ -3628,7 +3628,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 
 /// A concrete implementation of a [LibraryElement].
 class LibraryElementImpl extends _ExistingElementImpl
-    implements LibraryElement {
+    implements LibraryElement, MacroTargetElementContainer {
   /// The analysis context in which this library is defined.
   @override
   final AnalysisContext context;
@@ -4165,6 +4165,9 @@ mixin MacroTargetElement {
   /// Errors registered while applying macros to this element.
   List<MacroApplicationError> macroApplicationErrors = [];
 }
+
+/// Marker interface for elements that may have [MacroTargetElement]s.
+class MacroTargetElementContainer {}
 
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
