@@ -209,6 +209,9 @@ class Timeline : public AllStatic {
 #undef TIMELINE_STREAM_FLAGS
 
  private:
+  static void ClearUnsafe();
+  static void ReclaimCachedBlocksFromThreadsUnsafe();
+
   static TimelineEventRecorder* recorder_;
   static MallocGrowableArray<char*>* enabled_streams_;
   static bool recorder_discards_clock_values_;
