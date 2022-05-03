@@ -241,7 +241,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
-  Future<List<CompletionItem>> _getDartSnippetItems({
+  Future<Iterable<CompletionItem>> _getDartSnippetItems({
     required LspClientCapabilities clientCapabilities,
     required ResolvedUnitResult unit,
     required int offset,
@@ -254,16 +254,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final snippetManager = DartSnippetManager();
     final snippets = await snippetManager.computeSnippets(request);
 
-    return snippets
-        .map((snippet) => snippetToCompletionItem(
-              server,
-              clientCapabilities,
-              unit.path,
-              lineInfo,
-              toPosition(lineInfo.getLocation(offset)),
-              snippet,
-            ))
-        .toList();
+    return snippets.map((snippet) => snippetToCompletionItem(
+          server,
+          clientCapabilities,
+          unit.path,
+          lineInfo,
+          toPosition(lineInfo.getLocation(offset)),
+          snippet,
+        ));
   }
 
   Future<ErrorOr<CompletionList>> _getPluginResults(
@@ -310,6 +308,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       completionPreference: CompletionPreference.replace,
     );
     final target = completionRequest.target;
+    final fuzzy = _FuzzyFilterHelper(completionRequest.targetPrefix);
 
     if (triggerCharacter != null) {
       if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
@@ -367,45 +366,48 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           ? false
           : server.clientConfiguration.global.completeFunctionCalls;
 
+      /// Helper to convert [CompletionSuggestions] to [CompletionItem].
+      CompletionItem suggestionToCompletionItem(CompletionSuggestion item) {
+        var itemReplacementOffset =
+            item.replacementOffset ?? completionRequest.replacementOffset;
+        var itemReplacementLength =
+            item.replacementLength ?? completionRequest.replacementLength;
+        var itemInsertLength = insertLength;
+
+        // Recompute the insert length if it may be affected by the above.
+        if (item.replacementOffset != null || item.replacementLength != null) {
+          itemInsertLength = _computeInsertLength(
+              offset, itemReplacementOffset, itemInsertLength);
+        }
+
+        // Convert to LSP ranges using the LineInfo.
+        Range? replacementRange = toRange(
+            unit.lineInfo, itemReplacementOffset, itemReplacementLength);
+        Range? insertionRange =
+            toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
+
+        return toCompletionItem(
+          capabilities,
+          unit.lineInfo,
+          item,
+          replacementRange: replacementRange,
+          insertionRange: insertionRange,
+          // TODO(dantup): Move commit characters to the main response
+          // and remove from each individual item (to reduce payload size)
+          // once the following change ships (and the Dart VS Code
+          // extension is updated to use it).
+          // https://github.com/microsoft/vscode-languageserver-node/issues/673
+          includeCommitCharacters:
+              server.clientConfiguration.global.previewCommitCharacters,
+          completeFunctionCalls: completeFunctionCalls,
+        );
+      }
+
       final rankedResults = performance.run('mapSuggestions', (performance) {
-        return serverSuggestions.map(
-          (item) {
-            var itemReplacementOffset =
-                item.replacementOffset ?? completionRequest.replacementOffset;
-            var itemReplacementLength =
-                item.replacementLength ?? completionRequest.replacementLength;
-            var itemInsertLength = insertLength;
-
-            // Recompute the insert length if it may be affected by the above.
-            if (item.replacementOffset != null ||
-                item.replacementLength != null) {
-              itemInsertLength = _computeInsertLength(
-                  offset, itemReplacementOffset, itemInsertLength);
-            }
-
-            // Convert to LSP ranges using the LineInfo.
-            Range? replacementRange = toRange(
-                unit.lineInfo, itemReplacementOffset, itemReplacementLength);
-            Range? insertionRange =
-                toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
-
-            return toCompletionItem(
-              capabilities,
-              unit.lineInfo,
-              item,
-              replacementRange: replacementRange,
-              insertionRange: insertionRange,
-              // TODO(dantup): Move commit characters to the main response
-              // and remove from each individual item (to reduce payload size)
-              // once the following change ships (and the Dart VS Code
-              // extension is updated to use it).
-              // https://github.com/microsoft/vscode-languageserver-node/issues/673
-              includeCommitCharacters:
-                  server.clientConfiguration.global.previewCommitCharacters,
-              completeFunctionCalls: completeFunctionCalls,
-            );
-          },
-        ).toList();
+        return serverSuggestions
+            .where(fuzzy.completionSuggestionMatches)
+            .map(suggestionToCompletionItem)
+            .toList();
       });
 
       // Now compute items in suggestion sets.
@@ -429,70 +431,77 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
         // Build a fast lookup for imported symbols so that we can filter out
         // duplicates.
-        final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
+        final alreadyImportedSymbols =
+            performance.run('_buildLookupOfImportedSymbols', (performance) {
+          return _buildLookupOfImportedSymbols(unit);
+        });
+
+        /// Helper to check existing imports to ensure we don't already import
+        /// this element (this exact element from its declaring
+        /// library, not just something with the same name). If we do
+        /// we'll want to skip it.
+        bool isNotImportedOrLibraryIsFirst(Declaration item, Library library) {
+          final declaringUri =
+              item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
+
+          // For enums and named constructors, only the parent enum/class is in
+          // the list of imported symbols so we use the parents name.
+          final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
+                  item.kind == DeclarationKind.CONSTRUCTOR
+              ? item.parent!.name
+              : item.name;
+          final key = _createImportedSymbolKey(nameKey, declaringUri);
+          final importingUris = alreadyImportedSymbols[key];
+
+          // Keep it only if:
+          // - no existing imports include it
+          //     (in which case all libraries will be offered as
+          //     auto-imports)
+          // - this is the first imported URI that includes it
+          //     (we don't want to repeat it for each imported library that
+          //     includes it)
+          return importingUris == null ||
+              importingUris.first == '${library.uri}';
+        }
+
+        /// Helper to filter to only the kinds we should return.
+        bool shouldIncludeKind(Declaration item) =>
+            includedElementKinds!.contains(protocolElementKind(item.kind));
+
+        // Only specific types of child declarations should be included.
+        // This list matches what's in _protocolAvailableSuggestion in
+        // the DAS implementation.
+        bool shouldIncludeChild(Declaration child) =>
+            child.kind == DeclarationKind.CONSTRUCTOR ||
+            child.kind == DeclarationKind.ENUM_CONSTANT ||
+            (child.kind == DeclarationKind.GETTER && child.isStatic) ||
+            (child.kind == DeclarationKind.FIELD && child.isStatic);
 
         performance.run('addIncludedSuggestionSets', (performance) {
           // Checked in `if` above.
           includedSuggestionRelevanceTags!;
 
-          for (var includedSet in includedSuggestionSets) {
+          // Make a fast lookup for tag relevance.
+          final tagBoosts = <String, int>{};
+          for (final t in includedSuggestionRelevanceTags) {
+            tagBoosts[t.tag] = t.relevanceBoost;
+          }
+
+          for (final includedSet in includedSuggestionSets) {
             final library = declarationsTracker.getLibrary(includedSet.id);
             if (library == null) {
               break;
             }
 
-            // Make a fast lookup for tag relevance.
-            final tagBoosts = <String, int>{};
-            for (var t in includedSuggestionRelevanceTags) {
-              tagBoosts[t.tag] = t.relevanceBoost;
-            }
-
-            // Only specific types of child declarations should be included.
-            // This list matches what's in _protocolAvailableSuggestion in
-            // the DAS implementation.
-            bool shouldIncludeChild(Declaration child) =>
-                child.kind == DeclarationKind.CONSTRUCTOR ||
-                child.kind == DeclarationKind.ENUM_CONSTANT ||
-                (child.kind == DeclarationKind.GETTER && child.isStatic) ||
-                (child.kind == DeclarationKind.FIELD && child.isStatic);
-
             // Collect declarations and their children.
-            final allDeclarations = library.declarations
+            final setResults = library.declarations
                 .followedBy(library.declarations
                     .expand((decl) => decl.children.where(shouldIncludeChild)))
-                .toList();
-
-            final setResults = allDeclarations
-                // Filter to only the kinds we should return.
-                .where((item) => includedElementKinds!
-                    .contains(protocolElementKind(item.kind)))
-                .where((item) {
-              // Check existing imports to ensure we don't already import
-              // this element (this exact element from its declaring
-              // library, not just something with the same name). If we do
-              // we'll want to skip it.
-              final declaringUri =
-                  item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
-
-              // For enums and named constructors, only the parent enum/class is in
-              // the list of imported symbols so we use the parents name.
-              final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
-                      item.kind == DeclarationKind.CONSTRUCTOR
-                  ? item.parent!.name
-                  : item.name;
-              final key = _createImportedSymbolKey(nameKey, declaringUri);
-              final importingUris = alreadyImportedSymbols[key];
-
-              // Keep it only if:
-              // - no existing imports include it
-              //     (in which case all libraries will be offered as
-              //     auto-imports)
-              // - this is the first imported URI that includes it
-              //     (we don't want to repeat it for each imported library that
-              //     includes it)
-              return importingUris == null ||
-                  importingUris.first == '${library.uri}';
-            }).map((item) => declarationToCompletionItem(
+                .where(fuzzy.declarationMatches)
+                .where(shouldIncludeKind)
+                .where((Declaration item) =>
+                    isNotImportedOrLibraryIsFirst(item, library))
+                .map((item) => declarationToCompletionItem(
                       capabilities,
                       unit.path,
                       offset,
@@ -531,46 +540,26 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           isEditableFile) {
         unrankedResults =
             await performance.runAsync('getSnippets', (performance) async {
-          // `await` required for `performance.runAsync` to count time.
-          return await _getDartSnippetItems(
+          final snippets = await _getDartSnippetItems(
             clientCapabilities: capabilities,
             unit: unit,
             offset: offset,
             lineInfo: unit.lineInfo,
           );
+          return snippets.where(fuzzy.completionItemMatches).toList();
         });
       } else {
         unrankedResults = [];
       }
 
-      // Perform fuzzy matching based on the identifier in front of the caret to
-      // reduce the size of the payload.
-      final fuzzyPattern = completionRequest.targetPrefix;
-      final fuzzyMatcher =
-          FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
-
-      final matchingRankedResults =
-          performance.run('fuzzyFilterRanked', (performance) {
-        return rankedResults
-            .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
-            .toList();
-      });
-
-      final matchingUnrankedResults =
-          performance.run('fuzzyFilterRanked', (performance) {
-        return unrankedResults
-            .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
-            .toList();
-      });
-
       // transmittedCount will be set after combining with plugins + truncation.
       completionPerformance.computedSuggestionCount =
-          matchingRankedResults.length + matchingUnrankedResults.length;
+          rankedResults.length + unrankedResults.length;
 
       return success(_CompletionResults(
           isIncomplete: false,
-          rankedItems: matchingRankedResults,
-          unrankedItems: matchingUnrankedResults));
+          rankedItems: rankedResults,
+          unrankedItems: unrankedResults));
     } on AbortCompletion {
       return success(_CompletionResults(isIncomplete: false));
     } on InconsistentAnalysisException {
@@ -770,4 +759,24 @@ class _CompletionResults {
     this.unrankedItems = const [],
     required this.isIncomplete,
   });
+}
+
+/// Helper to simplify fuzzy filtering.
+///
+/// Used to perform fuzzy matching based on the identifier in front of the caret to
+/// reduce the size of the payload.
+class _FuzzyFilterHelper {
+  final FuzzyMatcher _matcher;
+
+  _FuzzyFilterHelper(String prefix)
+      : _matcher = FuzzyMatcher(prefix, matchStyle: MatchStyle.TEXT);
+
+  bool completionItemMatches(CompletionItem item) =>
+      _matcher.score(item.filterText ?? item.label) > 0;
+
+  bool completionSuggestionMatches(CompletionSuggestion item) =>
+      _matcher.score(item.displayText ?? item.completion) > 0;
+
+  bool declarationMatches(Declaration item) =>
+      _matcher.score(getDeclarationName(item)) > 0;
 }
