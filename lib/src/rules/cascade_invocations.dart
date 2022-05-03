@@ -273,13 +273,13 @@ class _CascadableExpression {
       !_hasCriticalDependencies(expressionBox);
 
   bool _hasCriticalDependencies(_CascadableExpression expressionBox) {
-    bool _isCriticalNode(AstNode node) =>
+    bool isCriticalNode(AstNode node) =>
         DartTypeUtilities.getCanonicalElementFromIdentifier(node) ==
         expressionBox.element;
     return expressionBox.isCritical &&
         criticalNodes.any((node) =>
-            _isCriticalNode(node) ||
-            DartTypeUtilities.traverseNodesInDFS(node).any(_isCriticalNode));
+            isCriticalNode(node) ||
+            DartTypeUtilities.traverseNodesInDFS(node).any(isCriticalNode));
   }
 }
 

@@ -158,7 +158,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parameters = node.parameters?.parameters ?? <FormalParameter>[];
     if (parameters.length != arguments.length) return;
 
-    bool _matches(Expression argument, FormalParameter parameter) {
+    bool matches(Expression argument, FormalParameter parameter) {
       if (argument is SimpleIdentifier) {
         return argument.name == parameter.identifier?.name;
       }
@@ -166,7 +166,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var i = 0; i < arguments.length; ++i) {
-      if (!_matches(arguments[i], parameters[i])) {
+      if (!matches(arguments[i], parameters[i])) {
         return;
       }
     }
