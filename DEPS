@@ -182,7 +182,7 @@ vars = {
   # Pinned browser versions used by the testing infrastructure. These are not
   # meant to be downloaded by users for local testing.
   "download_chrome": False,
-  "chrome_tag": "91",
+  "chrome_tag": "101.0.4951.41",
   "download_firefox": False,
   "firefox_tag": "98.0.2",
 }
