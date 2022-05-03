@@ -77,7 +77,6 @@
   "id": "outputUnit/main",
   "kind": "outputUnit",
   "name": "main",
-  "size": 91101,
   "filename": "out",
   "imports": []
 }]
