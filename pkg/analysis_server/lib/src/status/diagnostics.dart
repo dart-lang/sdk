@@ -261,6 +261,9 @@ abstract class AbstractCompletionTimingPage extends DiagnosticPageWithNav {
   List<CompletionPerformance> get performanceItems;
 
   @override
+  bool get showInNav => false;
+
+  @override
   Future generateContent(Map<String, String> params) async {
     var id = int.parse(params['id'] ?? '');
     var completionInfo =

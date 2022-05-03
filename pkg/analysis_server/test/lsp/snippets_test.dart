@@ -20,10 +20,10 @@ class SnippetBuilderTest {
   Future<void> test_appendChoice() async {
     final builder = SnippetBuilder()
       ..appendChoice({r'a'})
-      ..appendChoice([r'a', r'b', r'a'])
-      ..appendChoice([], placeholderNumber: 6)
-      ..appendChoice([r'aaa', r'bbb'], placeholderNumber: 12)
-      ..appendChoice([r'aaa', r'bbb $ bbb | bbb } bbb']);
+      ..appendChoice({r'a', r'b'})
+      ..appendChoice({}, placeholderNumber: 6)
+      ..appendChoice({r'aaa', r'bbb'}, placeholderNumber: 12)
+      ..appendChoice({r'aaa', r'bbb $ bbb | bbb } bbb'});
 
     expect(
       builder.value,
@@ -88,13 +88,14 @@ class SnippetBuilderTest {
 
     final placeholders = [
       lsp.SnippetPlaceholder(2, 2),
-      lsp.SnippetPlaceholder(12, 2, isFinal: true),
-      lsp.SnippetPlaceholder(22, 2, suggestions: ['aaa', 'bbb']),
       lsp.SnippetPlaceholder(32, 2, linkedGroupId: 123),
+      lsp.SnippetPlaceholder(12, 2, isFinal: true),
       lsp.SnippetPlaceholder(42, 2, linkedGroupId: 123),
+      lsp.SnippetPlaceholder(22, 2, suggestions: ['aaa', 'bbb']),
     ];
 
-    final builder = SnippetBuilder()..appendPlaceholders(code, placeholders);
+    final builder = SnippetBuilder()
+      ..appendPlaceholders(code, placeholders, isPreSorted: false);
 
     expect(builder.value, r'''
 01${1:23}45678
@@ -110,7 +111,7 @@ class SnippetBuilderTest {
       ..appendText('text1')
       ..appendPlaceholder('placeholder')
       ..appendText('text2')
-      ..appendChoice(['aaa', 'bbb'])
+      ..appendChoice({'aaa', 'bbb'})
       ..appendText('text3')
       ..appendTabStop()
       ..appendText('text4');

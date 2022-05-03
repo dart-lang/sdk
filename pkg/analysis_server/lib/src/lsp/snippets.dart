@@ -124,7 +124,11 @@ String _buildSnippetString(
       placeholder.offset < 0 ||
       placeholder.offset + placeholder.length > text.length);
 
-  final builder = SnippetBuilder()..appendPlaceholders(text, placeholders);
+  /// If there are no edit groups, then placeholders are all simple and
+  /// guaranteed to be in the correct order.
+  final isPreSorted = editGroups.isEmpty;
+  final builder = SnippetBuilder()
+    ..appendPlaceholders(text, placeholders, isPreSorted: isPreSorted);
   return builder.value;
 }
 
@@ -140,6 +144,18 @@ class SnippetBuilder {
   /// The constant `$0` used do indicate a final tab stop in the snippet syntax.
   static const finalTabStop = r'$0';
 
+  /// Regex used by [escapeSnippetChoiceText].
+  static final _escapeSnippetChoiceTextRegex =
+      RegExp(r'[$}\\\|,]'); // Replace any of $ } \ | ,
+
+  /// Regex used by [escapeSnippetPlainText].
+  static final _escapeSnippetPlainTextRegex =
+      RegExp(r'[$\\]'); // Replace any of $ \
+
+  /// Regex used by [escapeSnippetVariableText].
+  static final _escapeSnippetVariableTextRegex =
+      RegExp(r'[$}\\]'); // Replace any of $ } \
+
   final _buffer = StringBuffer();
 
   var _nextPlaceholder = 1;
@@ -152,9 +168,7 @@ class SnippetBuilder {
   /// If there are 0 or 1 choices, a placeholder will be inserted instead.
   ///
   /// Returns the placeholder number used.
-  int appendChoice(Iterable<String> choices, {int? placeholderNumber}) {
-    final uniqueChoices = choices.where((item) => item.isNotEmpty).toSet();
-
+  int appendChoice(Set<String> uniqueChoices, {int? placeholderNumber}) {
     // If there's only 0/1 items, we can downgrade this to a placeholder.
     if (uniqueChoices.length <= 1) {
       return appendPlaceholder(
@@ -185,7 +199,11 @@ class SnippetBuilder {
     placeholderNumber = _usePlaceholerNumber(placeholderNumber);
 
     final escapedText = escapeSnippetVariableText(text);
-    _buffer.write('\${$placeholderNumber:$escapedText}');
+    _buffer.write(r'${');
+    _buffer.write(placeholderNumber);
+    _buffer.write(':');
+    _buffer.write(escapedText);
+    _buffer.write('}');
 
     return placeholderNumber;
   }
@@ -196,7 +214,8 @@ class SnippetBuilder {
   int appendTabStop({int? placeholderNumber}) {
     placeholderNumber = _usePlaceholerNumber(placeholderNumber);
 
-    _buffer.write('\$$placeholderNumber');
+    _buffer.write(r'$');
+    _buffer.write(placeholderNumber);
 
     return placeholderNumber;
   }
@@ -222,7 +241,7 @@ class SnippetBuilder {
   /// by pipes and commas (`${1:|a,b,c|}`).
   static String escapeSnippetChoiceText(String input) => _escapeCharacters(
         input,
-        RegExp(r'[$}\\\|,]'), // Replace any of $ } \ | ,
+        _escapeSnippetChoiceTextRegex,
       );
 
   /// Escapes a string to be used in an LSP edit that uses Snippet mode where the
@@ -230,10 +249,8 @@ class SnippetBuilder {
   ///
   /// Snippets can contain special markup like `${a:b}` so `$` needs escaping
   /// as does `\` so it's not interpreted as an escape.
-  static String escapeSnippetPlainText(String input) => _escapeCharacters(
-        input,
-        RegExp(r'[$\\]'), // Replace any of $ \
-      );
+  static String escapeSnippetPlainText(String input) =>
+      _escapeCharacters(input, _escapeSnippetPlainTextRegex);
 
   /// Escapes a string to be used inside a snippet token.
   ///
@@ -241,7 +258,7 @@ class SnippetBuilder {
   /// token is not ended early if the included text contains braces.
   static String escapeSnippetVariableText(String input) => _escapeCharacters(
         input,
-        RegExp(r'[$}\\]'), // Replace any of $ } \
+        _escapeSnippetVariableTextRegex,
       );
 
   /// Escapes [pattern] in [input] with backslashes.
@@ -272,11 +289,20 @@ class SnippetPlaceholder {
 
 /// Helpers for [SnippetBuilder] that do not relate to building the main snippet
 /// syntax (for example, converting from intermediate structures).
+///
+/// `isPreSorted` is a performance optimisation that allows skipping some
+/// sorting if it's guaranteed that placeholders are already in source-order.
 extension SnippetBuilderExtensions on SnippetBuilder {
-  void appendPlaceholders(String text, List<SnippetPlaceholder> placeholders) {
+  void appendPlaceholders(
+    String text,
+    List<SnippetPlaceholder> placeholders, {
+    required bool isPreSorted,
+  }) {
     // Ensure placeholders are in the order they're visible in the source so
     // tabbing through them doesn't appear to jump around.
-    placeholders.sortBy<num>((placeholder) => placeholder.offset);
+    if (!isPreSorted) {
+      placeholders.sortBy<num>((placeholder) => placeholder.offset);
+    }
 
     // We need to use the same placeholder number for all placeholders in the
     // same linked group, so the first time we see a linked item, store its
@@ -305,11 +331,23 @@ extension SnippetBuilderExtensions on SnippetBuilder {
         placeholder.offset + placeholder.length,
       );
       // appendChoice handles mapping empty/single suggestions to a normal
-      // placeholder.
-      thisPaceholderNumber = appendChoice(
-        [placeholderText, ...?placeholder.suggestions],
-        placeholderNumber: thisPaceholderNumber,
-      );
+      // placeholder but it's faster if we can avoid putting a single item into
+      // a set and then detecting it.
+      if (placeholder.suggestions == null) {
+        thisPaceholderNumber = appendPlaceholder(
+          placeholderText,
+          placeholderNumber: thisPaceholderNumber,
+        );
+      } else {
+        final choices = <String>{
+          if (placeholderText.isNotEmpty) placeholderText,
+          ...?placeholder.suggestions,
+        };
+        thisPaceholderNumber = appendChoice(
+          choices,
+          placeholderNumber: thisPaceholderNumber,
+        );
+      }
 
       // Track where we're up to.
       offset = placeholder.offset + placeholder.length;
