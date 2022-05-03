@@ -588,6 +588,11 @@ dart.try_builder(
     "presubmit",
     bucket = "try.shared",
     execution_timeout = 10 * time.minute,
+    properties = {
+        "$depot_tools/presubmit": {
+            "runhooks": True,
+        },
+    },
     recipe = "presubmit/presubmit",
 )
 
