@@ -3701,12 +3701,15 @@ class HNullCheck extends HCheck {
 /// A check for a late sentinel to determine if a late field may be read from or
 /// written to.
 abstract class HLateCheck extends HCheck {
-  final HInstruction name;
-
-  HLateCheck(HInstruction input, this.name, AbstractValue type)
+  HLateCheck(HInstruction input, HInstruction /*?*/ name, AbstractValue type)
       : super([input, if (name != null) name], type);
 
-  bool get hasName => name != null;
+  bool get hasName => inputs.length > 1;
+
+  HInstruction get name {
+    if (hasName) return inputs[1];
+    throw StateError('HLateCheck.name: no name');
+  }
 
   @override
   bool isControlFlow() => true;
