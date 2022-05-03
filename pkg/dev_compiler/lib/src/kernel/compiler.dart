@@ -4396,11 +4396,32 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Statement visitIfStatement(IfStatement node) {
     var condition = _visitTest(node.condition);
-    var then = _visitScope(node.then);
     if (node.otherwise != null) {
-      return js_ast.If(condition, then, _visitScope(node.otherwise));
+      if (condition is js_ast.LiteralBool) {
+        // Avoid emitting the branch with code that will never execute.
+        if (condition.value) {
+          return _visitScope(node.then).toStatement();
+        } else {
+          return _visitScope(node.otherwise).toStatement();
+        }
+      }
+      return js_ast.If(
+          condition, _visitScope(node.then), _visitScope(node.otherwise));
     }
-    return js_ast.If.noElse(condition, then);
+
+    if (condition is js_ast.LiteralBool) {
+      if (condition.value) {
+        // Avoid emitting conditional when it is always true.
+        // ex: `if (true) {abc...}` -> `{abc...}`
+        return _visitScope(node.then).toStatement();
+      } else {
+        // Avoid emitting conditional and then when it will never execute.
+        // ex: `if (false) {abc...}` -> `;`
+        return js_ast.EmptyStatement();
+      }
+    }
+
+    return js_ast.If.noElse(condition, _visitScope(node.then));
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope
@@ -5905,11 +5926,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           negated: true);
     }
 
+    var jsOperand = _visitTest(operand);
+    if (jsOperand is js_ast.LiteralBool) {
+      // Flipping the value here for `!true` or `!false` allows for simpler
+      // `if (true)` or `if (false)` detection and optimization.
+      return js_ast.LiteralBool(!jsOperand.value)
+              .withSourceInformation(jsOperand.sourceInformation)
+          as js_ast.LiteralBool;
+    }
+
     // Logical negation, `!e`, is a boolean conversion context since it is
     // defined as `e ? false : true`.
-    return js
-        .call('!#', _visitTest(operand))
-        .withSourceInformation(continueSourceMap) as js_ast.Expression;
+    return js.call('!#', jsOperand).withSourceInformation(continueSourceMap)
+        as js_ast.Expression;
   }
 
   @override
@@ -5930,6 +5959,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitConditionalExpression(ConditionalExpression node) {
     var condition = _visitTest(node.condition);
+    if (condition is js_ast.LiteralBool) {
+      if (condition.value) {
+        // Avoid emitting conditional when one branch is effectively dead code.
+        // ex: `true ? foo : bar` -> `foo`
+        return _visitExpression(node.then);
+      } else {
+        // ex: `false ? foo : bar` -> `bar`
+        return _visitExpression(node.otherwise);
+      }
+    }
     var then = _visitExpression(node.then);
     var otherwise = _visitExpression(node.otherwise);
     return js.call('# ? # : #', [condition, then, otherwise])

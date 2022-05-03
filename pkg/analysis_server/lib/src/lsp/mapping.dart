@@ -298,31 +298,10 @@ lsp.CompletionItem declarationToCompletionItem(
   required bool completeFunctionCalls,
 }) {
   final supportsSnippets = capabilities.completionSnippets;
-  final parent = declaration.parent;
 
-  String completion;
-  switch (declaration.kind) {
-    case DeclarationKind.ENUM_CONSTANT:
-      completion = '${parent!.name}.${declaration.name}';
-      break;
-    case DeclarationKind.GETTER:
-    case DeclarationKind.FIELD:
-      completion = parent != null && parent.name.isNotEmpty
-          ? '${parent.name}.${declaration.name}'
-          : declaration.name;
-      break;
-    case DeclarationKind.CONSTRUCTOR:
-      completion = parent!.name;
-      if (declaration.name.isNotEmpty) {
-        completion += '.${declaration.name}';
-      }
-      break;
-    default:
-      completion = declaration.name;
-      break;
-  }
   // By default, label is the same as the completion text, but may be added to
   // later (parens/snippets).
+  final completion = getDeclarationName(declaration);
   var label = completion;
 
   // isCallable is used to suffix the label with parens so it's clear the item
@@ -640,6 +619,32 @@ String? getDeclarationCompletionDetail(
   } else {
     return prefix.isNotEmpty ? prefix : null;
   }
+}
+
+String getDeclarationName(Declaration declaration) {
+  final parent = declaration.parent;
+  String completion;
+  switch (declaration.kind) {
+    case DeclarationKind.ENUM_CONSTANT:
+      completion = '${parent!.name}.${declaration.name}';
+      break;
+    case DeclarationKind.GETTER:
+    case DeclarationKind.FIELD:
+      completion = parent != null && parent.name.isNotEmpty
+          ? '${parent.name}.${declaration.name}'
+          : declaration.name;
+      break;
+    case DeclarationKind.CONSTRUCTOR:
+      completion = parent!.name;
+      if (declaration.name.isNotEmpty) {
+        completion += '.${declaration.name}';
+      }
+      break;
+    default:
+      completion = declaration.name;
+      break;
+  }
+  return completion;
 }
 
 List<lsp.DiagnosticTag>? getDiagnosticTags(

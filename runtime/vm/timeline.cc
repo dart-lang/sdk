@@ -223,7 +223,11 @@ void Timeline::Cleanup() {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
   RecorderLock::WaitForShutdown();
-  Timeline::Clear();
+  // Timeline::Clear() is guarded by the recorder lock and will return
+  // immediately if we've started the shutdown sequence, leaking the recorder.
+  // All outstanding work has already been completed, so we're safe to call this
+  // without explicitly grabbing a recorder lock.
+  Timeline::ClearUnsafe();
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -238,7 +242,12 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
   if (recorder == NULL || rl.IsShuttingDown()) {
     return;
   }
+  ReclaimCachedBlocksFromThreadsUnsafe();
+}
 
+void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  ASSERT(recorder != nullptr);
   // Iterate over threads.
   OSThreadIterator it;
   while (it.HasNext()) {
@@ -246,7 +255,7 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
     TimelineEventBlock* block = thread->timeline_block();
-    thread->set_timeline_block(NULL);
+    thread->set_timeline_block(nullptr);
     // TODO(johnmccutchan): Consider dropping the timeline_block_lock here
     // if we can do it everywhere. This would simplify the lock ordering
     // requirements.
@@ -295,10 +304,16 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 void Timeline::Clear() {
   RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || rl.IsShuttingDown()) {
+  if (recorder == nullptr || rl.IsShuttingDown()) {
     return;
   }
-  ReclaimCachedBlocksFromThreads();
+  ClearUnsafe();
+}
+
+void Timeline::ClearUnsafe() {
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  ASSERT(recorder != nullptr);
+  ReclaimCachedBlocksFromThreadsUnsafe();
   recorder->Clear();
 }
 
