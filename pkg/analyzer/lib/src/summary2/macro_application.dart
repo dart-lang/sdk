@@ -186,15 +186,16 @@ class LibraryMacroApplier {
 
       final annotation = annotations[i];
       final macroInstance = await _importedMacroDeclaration(
-        annotation.name,
+        annotation,
         whenClass: ({
           required macroClass,
+          required constructorName,
         }) async {
           final argumentsNode = annotation.arguments;
           if (argumentsNode != null) {
             return await instantiateSingle(
               macroClass: macroClass,
-              constructorName: '', // TODO(scheglov) implement
+              constructorName: constructorName ?? '',
               argumentsNode: argumentsNode,
             );
           }
@@ -205,7 +206,7 @@ class LibraryMacroApplier {
         }) async {
           return await instantiateSingle(
             macroClass: macroClass,
-            constructorName: '', // TODO(scheglov) implement
+            constructorName: instanceCreation.constructorName.name?.name ?? '',
             argumentsNode: instanceCreation.argumentList,
           );
         },
@@ -225,11 +226,12 @@ class LibraryMacroApplier {
     }
   }
 
-  /// If [node] references a macro, invokes the right callback.
+  /// If [annotation] references a macro, invokes the right callback.
   Future<R?> _importedMacroDeclaration<R>(
-    Identifier node, {
+    Annotation annotation, {
     required Future<R?> Function({
       required ClassElementImpl macroClass,
+      required String? constructorName,
     })
         whenClass,
     required Future<R?> Function({
@@ -240,14 +242,27 @@ class LibraryMacroApplier {
   }) async {
     final String? prefix;
     final String name;
-    if (node is PrefixedIdentifier) {
-      prefix = node.prefix.name;
-      name = node.identifier.name;
-    } else if (node is SimpleIdentifier) {
+    final String? constructorName;
+    final nameNode = annotation.name;
+    if (nameNode is SimpleIdentifier) {
       prefix = null;
-      name = node.name;
+      name = nameNode.name;
+      constructorName = annotation.constructorName?.name;
+    } else if (nameNode is PrefixedIdentifier) {
+      final importPrefixCandidate = nameNode.prefix.name;
+      final hasImportPrefix = libraryBuilder.element.imports
+          .any((import) => import.prefix?.name == importPrefixCandidate);
+      if (hasImportPrefix) {
+        prefix = importPrefixCandidate;
+        name = nameNode.identifier.name;
+        constructorName = annotation.constructorName?.name;
+      } else {
+        prefix = null;
+        name = nameNode.prefix.name;
+        constructorName = nameNode.identifier.name;
+      }
     } else {
-      throw StateError('${node.runtimeType} $node');
+      throw StateError('${nameNode.runtimeType} $nameNode');
     }
 
     for (final import in libraryBuilder.element.imports) {
@@ -270,7 +285,10 @@ class LibraryMacroApplier {
       final element = lookupResult.getter;
       if (element is ClassElementImpl) {
         if (element.isMacro) {
-          return await whenClass(macroClass: element);
+          return await whenClass(
+            macroClass: element,
+            constructorName: constructorName,
+          );
         }
       } else if (element is PropertyAccessorElementImpl &&
           element.isGetter &&

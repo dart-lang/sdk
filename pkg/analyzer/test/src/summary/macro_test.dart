@@ -63,7 +63,7 @@ class MacroElementsTest extends ElementsBaseTest {
     );
   }
 
-  test_application_getter_withoutPrefix_withoutArguments() async {
+  test_application_getter_withoutPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -121,7 +121,67 @@ library
         withExportScope: true);
   }
 
-  test_application_getter_withPrefix_withoutArguments() async {
+  test_application_getter_withoutPrefix_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro.named();
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+
+const myMacro = MyMacro.named();
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@myMacro
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @33
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: myMacro @19
+              staticElement: package:test/a.dart::@getter::myMacro
+              staticType: null
+            element: package:test/a.dart::@getter::myMacro
+        constructors
+          synthetic @-1
+  parts
+    package:test/_macro_types.dart
+      classes
+        class MyClass @6
+          constructors
+            synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
+  test_application_getter_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -136,6 +196,74 @@ macro class MyMacro implements ClassTypesMacro {
 }
 
 const myMacro = MyMacro();
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+
+@prefix.myMacro
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    package:test/a.dart as prefix @19
+  definingUnit
+    classes
+      class A @50
+        metadata
+          Annotation
+            atSign: @ @28
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: prefix @29
+                staticElement: self::@prefix::prefix
+                staticType: null
+              period: . @35
+              identifier: SimpleIdentifier
+                token: myMacro @36
+                staticElement: package:test/a.dart::@getter::myMacro
+                staticType: null
+              staticElement: package:test/a.dart::@getter::myMacro
+              staticType: null
+            element: package:test/a.dart::@getter::myMacro
+        constructors
+          synthetic @-1
+  parts
+    package:test/_macro_types.dart
+      classes
+        class MyClass @6
+          constructors
+            synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
+  test_application_getter_withPrefix_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro.named();
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+
+const myMacro = MyMacro.named();
 ''');
 
     var library = await buildLibrary(r'''
@@ -246,6 +374,75 @@ library
         withExportScope: true);
   }
 
+  test_application_newInstance_withoutPrefix_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro.named();
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro.named()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @41
+        metadata
+          Annotation
+            atSign: @ @18
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: MyMacro @19
+                staticElement: package:test/a.dart::@class::MyMacro
+                staticType: null
+              period: . @26
+              identifier: SimpleIdentifier
+                token: named @27
+                staticElement: package:test/a.dart::@class::MyMacro::@constructor::named
+                staticType: null
+              staticElement: package:test/a.dart::@class::MyMacro::@constructor::named
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @32
+              rightParenthesis: ) @33
+            element: package:test/a.dart::@class::MyMacro::@constructor::named
+        constructors
+          synthetic @-1
+  parts
+    package:test/_macro_types.dart
+      classes
+        class MyClass @6
+          constructors
+            synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
   test_application_newInstance_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -297,6 +494,79 @@ library
               leftParenthesis: ( @43
               rightParenthesis: ) @44
             element: package:test/a.dart::@class::MyMacro::@constructor::•
+        constructors
+          synthetic @-1
+  parts
+    package:test/_macro_types.dart
+      classes
+        class MyClass @6
+          constructors
+            synthetic @-1
+  exportScope
+    A: package:test/test.dart;A
+    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+''',
+        withExportScope: true);
+  }
+
+  test_application_newInstance_withPrefix_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro.named();
+
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart' as prefix;
+
+@prefix.MyMacro.named()
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    package:test/a.dart as prefix @19
+  definingUnit
+    classes
+      class A @58
+        metadata
+          Annotation
+            atSign: @ @28
+            name: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: prefix @29
+                staticElement: self::@prefix::prefix
+                staticType: null
+              period: . @35
+              identifier: SimpleIdentifier
+                token: MyMacro @36
+                staticElement: package:test/a.dart::@class::MyMacro
+                staticType: null
+              staticElement: package:test/a.dart::@class::MyMacro
+              staticType: null
+            period: . @43
+            constructorName: SimpleIdentifier
+              token: named @44
+              staticElement: package:test/a.dart::@class::MyMacro::@constructor::named
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @49
+              rightParenthesis: ) @50
+            element: package:test/a.dart::@class::MyMacro::@constructor::named
         constructors
           synthetic @-1
   parts
