@@ -233,6 +233,18 @@ void MournFinalized(GCVisitorType* visitor) {
             finalizer_dart->untag()->exchange_entries_collected(current_entry);
         current_entry->untag()->set_next(previous_head);
         const bool first_entry = previous_head.IsRawNull();
+
+        // If we're in the marker, we need to ensure that we release the store
+        // buffer afterwards.
+        // If we're in the scavenger and have the finalizer in old space and
+        // a new space entry, we don't need to release the store buffer.
+        if (!first_entry && previous_head->IsNewObject() &&
+            current_entry->IsOldObject()) {
+          TRACE_FINALIZER("Entry %p (old) next is %p (new)",
+                          current_entry->untag(), previous_head->untag());
+          // We must release the thread's store buffer block.
+        }
+
         // Schedule calling Dart finalizer.
         if (first_entry) {
           Isolate* isolate = finalizer->untag()->isolate_;
