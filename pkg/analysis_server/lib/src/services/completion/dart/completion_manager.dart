@@ -220,10 +220,8 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.CONSTRUCTOR);
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
         kinds.add(protocol.ElementKind.EXTENSION);
-        // Static fields.
-        kinds.add(protocol.ElementKind.FIELD);
         kinds.add(protocol.ElementKind.FUNCTION);
-        // Static and top-level properties.
+        // Top-level properties.
         kinds.add(protocol.ElementKind.GETTER);
         kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
