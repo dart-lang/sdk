@@ -22,12 +22,21 @@ import '../equivalence/id_equivalence_helper.dart';
 final JsonEncoder encoder = const JsonEncoder();
 final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
 
-String jsonEncode(object, {bool indent = true}) {
+String jsonEncode(Map object, {bool indent = true}) {
   var jsonEncoder = indent ? indentedEncoder : encoder;
   // Filter block comments since they interfere with ID test comments.
   var json =
       jsonEncoder.convert(object).replaceAll('/*', '').replaceAll('*/', '');
   return json;
+}
+
+Map filteredJsonObject(Map object, Set<String> filteredFields) {
+  Map filteredObject = {};
+  object.forEach((key, value) {
+    if (filteredFields.contains(key)) return;
+    filteredObject[key] = value;
+  });
+  return filteredObject;
 }
 
 main(List<String> args) {
@@ -85,8 +94,13 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       features.addElement(
           Tags.dependencies, jsonEncode(dumpInfoState.info.dependencies));
       for (final outputUnit in dumpInfoState.info.outputUnits) {
-        features.addElement(
-            Tags.outputUnits, jsonEncode(outputUnit.accept(converter)));
+        var outputUnitJsonObject = outputUnit.accept(converter);
+        // Remove the size from the main output unit due to high noise ratio.
+        if (outputUnit.name == 'main') {
+          outputUnitJsonObject =
+              filteredJsonObject(outputUnitJsonObject, {'size'});
+        }
+        features.addElement(Tags.outputUnits, jsonEncode(outputUnitJsonObject));
       }
       features.addElement(
           Tags.deferredFiles, jsonEncode(dumpInfoState.info.deferredFiles));

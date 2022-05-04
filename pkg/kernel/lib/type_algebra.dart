@@ -8,6 +8,17 @@ import 'ast.dart';
 import 'core_types.dart';
 import 'src/replacement_visitor.dart';
 
+/// Returns all free type variables in [type].
+///
+/// Returns the set of all [TypeParameter]s that are referred to by a
+/// [TypeParameterType] in [type] that are not bound to an enclosing
+/// [FunctionType].
+Set<TypeParameter> allFreeTypeVariables(DartType type) {
+  _AllFreeTypeVariablesVisitor visitor = new _AllFreeTypeVariablesVisitor();
+  visitor.visit(type);
+  return visitor.freeTypeVariables;
+}
+
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
 ///
@@ -292,6 +303,80 @@ abstract class Substitution {
 
   Supertype substituteSupertype(Supertype node) {
     return new _TopSubstitutor(this, false).visitSupertype(node);
+  }
+}
+
+class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
+  final Set<TypeParameter> boundVariables = {};
+
+  final Set<TypeParameter> freeTypeVariables = {};
+
+  void visit(DartType node) => node.accept(this);
+
+  @override
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  @override
+  void visitNeverType(NeverType node) {}
+  @override
+  void visitNullType(NullType node) {}
+  @override
+  void visitInvalidType(InvalidType node) {}
+  @override
+  void visitDynamicType(DynamicType node) {}
+  @override
+  void visitVoidType(VoidType node) {}
+
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType node) {
+    node.typeArgument.accept(this);
+  }
+
+  @override
+  void visitTypedefType(TypedefType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitFunctionType(FunctionType node) {
+    boundVariables.addAll(node.typeParameters);
+    for (TypeParameter typeParameter in node.typeParameters) {
+      typeParameter.bound.accept(this);
+      typeParameter.defaultType.accept(this);
+    }
+    for (DartType positionalParameter in node.positionalParameters) {
+      positionalParameter.accept(this);
+    }
+    for (NamedType namedParameter in node.namedParameters) {
+      namedParameter.type.accept(this);
+    }
+    node.returnType.accept(this);
+    boundVariables.removeAll(node.typeParameters);
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    if (!boundVariables.contains(node.parameter)) {
+      freeTypeVariables.add(node.parameter);
+    }
   }
 }
 

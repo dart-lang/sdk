@@ -128,9 +128,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         getStandardLowerBound(constraint.upper, upper, clientLibrary);
   }
 
-  /// Performs downwards inference, producing a set of inferred types that may
-  /// contain references to the "unknown type".
-  void downwardsInfer(
+  /// Performs partial (either downwards or horizontal) inference, producing a
+  /// set of inferred types that may contain references to the "unknown type".
+  void partialInfer(
           TypeConstraintGatherer gatherer,
           List<TypeParameter> typeParametersToInfer,
           List<DartType> inferredTypes,

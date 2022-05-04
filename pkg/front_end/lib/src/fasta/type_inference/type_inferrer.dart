@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
@@ -80,6 +81,59 @@ bool isOverloadableArithmeticOperator(String name) {
       identical(name, '-') ||
       identical(name, '*') ||
       identical(name, '%');
+}
+
+/// Given a [FunctionExpression], computes a set whose elements consist of (a)
+/// an integer corresponding to the zero-based index of each positional
+/// parameter of the function expression that has an explicit type annotation,
+/// and (b) a string corresponding to the name of each named parameter of the
+/// function expression that has an explicit type annotation.
+Set<Object> _computeExplicitlyTypedParameterSet(
+    FunctionExpression functionExpression) {
+  Set<Object> result = {};
+  int unnamedParameterIndex = 0;
+  for (VariableDeclaration positionalParameter
+      in functionExpression.function.positionalParameters) {
+    int key = unnamedParameterIndex++;
+    if (!(positionalParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+      result.add(key);
+    }
+  }
+  for (VariableDeclaration namedParameter
+      in functionExpression.function.namedParameters) {
+    String key = namedParameter.name!;
+    if (!(namedParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+      result.add(key);
+    }
+  }
+  return result;
+}
+
+/// Given an function type, computes a map based on the parameters whose keys
+/// are either the parameter name (for named parameters) or the zero-based
+/// integer index (for unnamed parameters), and whose values are the parameter
+/// types.
+Map<Object, DartType> _computeParameterMap(FunctionType functionType) => {
+      for (int i = 0; i < functionType.positionalParameters.length; i++)
+        i: functionType.positionalParameters[i],
+      for (NamedType namedType in functionType.namedParameters)
+        namedType.name: namedType.type
+    };
+
+/// Computes a list of [_ParamInfo] objects corresponding to the invocation
+/// parameters that were *not* deferred.
+List<_ParamInfo> _computeUndeferredParamInfo(List<DartType> formalTypes,
+    List<_DeferredParamInfo> deferredFunctionLiterals) {
+  // TODO(paulberry): test that the right thing happens when evaluation order differs from classic (positional/named) order.
+  Set<int> evaluationOrderIndicesAlreadyCovered = {
+    for (_DeferredParamInfo functionLiteral in deferredFunctionLiterals)
+      functionLiteral.evaluationOrderIndex
+  };
+  return [
+    for (int i = 0; i < formalTypes.length; i++)
+      if (!evaluationOrderIndicesAlreadyCovered.contains(i))
+        new _ParamInfo(formalTypes[i])
+  ];
 }
 
 /// Enum denoting the kinds of contravariance check that might need to be
@@ -2290,7 +2344,8 @@ class TypeInferrerImpl implements TypeInferrer {
         explicitTypeArguments == null &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
-    bool useFormalAndActualTypes = typeChecksNeeded ||
+    bool useFormalAndActualTypes = inferenceNeeded ||
+        typeChecksNeeded ||
         isSpecialCasedBinaryOperator ||
         isSpecialCasedTernaryOperator;
 
@@ -2331,7 +2386,7 @@ class TypeInferrerImpl implements TypeInferrer {
           calleeTypeParameters,
           typeContext,
           libraryBuilder.library);
-      typeSchemaEnvironment.downwardsInfer(gatherer, calleeTypeParameters,
+      typeSchemaEnvironment.partialInfer(gatherer, calleeTypeParameters,
           inferredTypes, libraryBuilder.library);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
@@ -2471,6 +2526,7 @@ class TypeInferrerImpl implements TypeInferrer {
         (deferredFunctionLiterals ??= []).add(new _DeferredParamInfo(
             formalType: formalType,
             argumentExpression: argumentExpression,
+            unparenthesizedExpression: unparenthesizedExpression,
             isNamed: !isExpression,
             evaluationOrderIndex: evaluationOrderIndex,
             index: index));
@@ -2510,26 +2566,44 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     if (deferredFunctionLiterals != null) {
-      for (_DeferredParamInfo deferredArgument in deferredFunctionLiterals) {
-        ExpressionInferenceResult result = inferArgument(
-            deferredArgument.formalType, deferredArgument.argumentExpression,
-            isNamed: deferredArgument.isNamed);
-        DartType inferredType = _computeInferredType(result);
-        Expression expression = result.expression;
-        identicalInfo?[deferredArgument.evaluationOrderIndex] =
-            flowAnalysis.equalityOperand_end(expression, inferredType);
-        if (deferredArgument.isNamed) {
-          NamedExpression namedArgument =
-              arguments.named[deferredArgument.index];
-          namedArgument.value = expression..parent = namedArgument;
-        } else {
-          arguments.positional[deferredArgument.index] = expression
-            ..parent = arguments;
+      bool isFirstStage = true;
+      for (List<_DeferredParamInfo> stage in new _FunctionLiteralDependencies(
+              deferredFunctionLiterals,
+              calleeType.typeParameters.toSet(),
+              inferenceNeeded
+                  ? _computeUndeferredParamInfo(
+                      formalTypes!, deferredFunctionLiterals)
+                  : const [])
+          .planReconciliationStages()) {
+        if (gatherer != null && !isFirstStage) {
+          typeSchemaEnvironment.partialInfer(gatherer, calleeTypeParameters,
+              inferredTypes!, libraryBuilder.library);
+          substitution =
+              Substitution.fromPairs(calleeTypeParameters, inferredTypes);
         }
-        gatherer?.tryConstrainLower(deferredArgument.formalType, inferredType);
-        if (useFormalAndActualTypes) {
-          actualTypes![deferredArgument.evaluationOrderIndex] = inferredType;
+        for (_DeferredParamInfo deferredArgument in stage) {
+          ExpressionInferenceResult result = inferArgument(
+              deferredArgument.formalType, deferredArgument.argumentExpression,
+              isNamed: deferredArgument.isNamed);
+          DartType inferredType = _computeInferredType(result);
+          Expression expression = result.expression;
+          identicalInfo?[deferredArgument.evaluationOrderIndex] =
+              flowAnalysis.equalityOperand_end(expression, inferredType);
+          if (deferredArgument.isNamed) {
+            NamedExpression namedArgument =
+                arguments.named[deferredArgument.index];
+            namedArgument.value = expression..parent = namedArgument;
+          } else {
+            arguments.positional[deferredArgument.index] = expression
+              ..parent = arguments;
+          }
+          gatherer?.tryConstrainLower(
+              deferredArgument.formalType, inferredType);
+          if (useFormalAndActualTypes) {
+            actualTypes![deferredArgument.evaluationOrderIndex] = inferredType;
+          }
         }
+        isFirstStage = false;
       }
     }
     if (identicalInfo != null) {
@@ -5967,14 +6041,13 @@ class ImplicitInstantiation {
 /// Information about an invocation argument that needs to be resolved later due
 /// to the fact that it's a function literal and the `inference-update-1`
 /// feature is enabled.
-class _DeferredParamInfo {
-  /// The (unsubstituted) type of the formal parameter corresponding to this
-  /// argument.
-  final DartType formalType;
-
+class _DeferredParamInfo extends _ParamInfo {
   /// The argument expression (possibly wrapped in an arbitrary number of
   /// ParenthesizedExpressions).
   final Expression argumentExpression;
+
+  /// The unparenthesized argument expression.
+  final FunctionExpression unparenthesizedExpression;
 
   /// Indicates whether this is a named argument.
   final bool isNamed;
@@ -5988,9 +6061,63 @@ class _DeferredParamInfo {
   final int index;
 
   _DeferredParamInfo(
-      {required this.formalType,
+      {required DartType formalType,
       required this.argumentExpression,
+      required this.unparenthesizedExpression,
       required this.isNamed,
       required this.evaluationOrderIndex,
-      required this.index});
+      required this.index})
+      : super(formalType);
+}
+
+/// Extension of the shared [FunctionLiteralDependencies] logic used by the
+/// front end.
+class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
+    TypeParameter, _ParamInfo, _DeferredParamInfo> {
+  _FunctionLiteralDependencies(
+      Iterable<_DeferredParamInfo> deferredParamInfo,
+      Iterable<TypeParameter> typeVariables,
+      List<_ParamInfo> undeferredParamInfo)
+      : super(deferredParamInfo, typeVariables, undeferredParamInfo);
+
+  @override
+  Iterable<TypeParameter> typeVarsFreeInParamParams(
+      _DeferredParamInfo paramInfo) {
+    DartType type = paramInfo.formalType;
+    if (type is FunctionType) {
+      Map<Object, DartType> parameterMap = _computeParameterMap(type);
+      Set<Object> explicitlyTypedParameters =
+          _computeExplicitlyTypedParameterSet(
+              paramInfo.unparenthesizedExpression);
+      Set<TypeParameter> result = {};
+      for (MapEntry<Object, DartType> entry in parameterMap.entries) {
+        if (explicitlyTypedParameters.contains(entry.key)) continue;
+        result.addAll(allFreeTypeVariables(entry.value));
+      }
+      return result;
+    } else {
+      return const [];
+    }
+  }
+
+  @override
+  Iterable<TypeParameter> typeVarsFreeInParamReturns(_ParamInfo paramInfo) {
+    DartType type = paramInfo.formalType;
+    if (type is FunctionType) {
+      return allFreeTypeVariables(type.returnType);
+    } else {
+      return allFreeTypeVariables(type);
+    }
+  }
+}
+
+/// Information about an invocation argument that may or may not have already
+/// been resolved, as part of the deferred resolution mechanism for the
+/// `inference-update-1` feature.
+class _ParamInfo {
+  /// The (unsubstituted) type of the formal parameter corresponding to this
+  /// argument.
+  final DartType formalType;
+
+  _ParamInfo(this.formalType);
 }

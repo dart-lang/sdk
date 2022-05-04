@@ -2037,7 +2037,7 @@ class InferenceVisitor
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.downwardsInfer(
+      inferrer.typeSchemaEnvironment.partialInfer(
           gatherer,
           listClass.typeParameters,
           inferredTypes,
@@ -2722,7 +2722,7 @@ class InferenceVisitor
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.downwardsInfer(
+      inferrer.typeSchemaEnvironment.partialInfer(
           gatherer,
           mapClass.typeParameters,
           inferredTypes,
@@ -2807,7 +2807,7 @@ class InferenceVisitor
                 typeContext,
                 inferrer.libraryBuilder.library,
                 isConst: node.isConst);
-        inferrer.typeSchemaEnvironment.downwardsInfer(
+        inferrer.typeSchemaEnvironment.partialInfer(
             gatherer,
             inferrer.coreTypes.setClass.typeParameters,
             inferredTypesForSet,
@@ -5992,7 +5992,7 @@ class InferenceVisitor
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.downwardsInfer(
+      inferrer.typeSchemaEnvironment.partialInfer(
           gatherer,
           setClass.typeParameters,
           inferredTypes,
