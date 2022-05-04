@@ -473,9 +473,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         // the DAS implementation.
         bool shouldIncludeChild(Declaration child) =>
             child.kind == DeclarationKind.CONSTRUCTOR ||
-            child.kind == DeclarationKind.ENUM_CONSTANT ||
-            (child.kind == DeclarationKind.GETTER && child.isStatic) ||
-            (child.kind == DeclarationKind.FIELD && child.isStatic);
+            child.kind == DeclarationKind.ENUM_CONSTANT;
 
         performance.run('addIncludedSuggestionSets', (performance) {
           // Checked in `if` above.

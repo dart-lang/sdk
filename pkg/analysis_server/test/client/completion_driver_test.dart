@@ -279,20 +279,6 @@ class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
     with CompletionWithSuggestionsTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
-  @FailingTest(reason: 'Not implemented yet')
-  @override
-  Future<void> test_project_lib_fields_static() {
-    // TODO: implement test_project_lib_fields_static
-    return super.test_project_lib_fields_static();
-  }
-
-  @FailingTest(reason: 'Not implemented yet')
-  @override
-  Future<void> test_project_lib_getters_static() {
-    // TODO: implement test_project_lib_getters_static
-    return super.test_project_lib_getters_static();
-  }
 }
 
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
@@ -487,29 +473,6 @@ void m() {
     assertNoSuggestion(completion: 'f');
   }
 
-  Future<void> test_project_lib_fields_static() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  static int f = 0;
-}
-''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
-    await addTestFile('''
-void f() {
-  ^
-}
-''');
-
-    assertSuggestion(
-      completion: 'A.f',
-      element: ElementKind.FIELD,
-    );
-  }
-
   Future<void> test_project_lib_getters_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -528,29 +491,6 @@ void f() {
 ''');
 
     assertNoSuggestion(completion: 'g');
-  }
-
-  Future<void> test_project_lib_getters_static() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  static int get g => 0;
-}
-''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
-    await addTestFile('''
-void f() {
-  ^
-}
-''');
-
-    assertSuggestion(
-      completion: 'A.g',
-      element: ElementKind.GETTER,
-    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
