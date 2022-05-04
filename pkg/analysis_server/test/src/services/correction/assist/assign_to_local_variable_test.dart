@@ -23,7 +23,7 @@ class AssignToLocalVariableTest extends AssistProcessorTest {
 
   Future<void> test_alreadyAssignment() async {
     await resolveTestCode('''
-main() {
+void f() {
   var vvv;
   vvv = 42;
 }
@@ -33,14 +33,14 @@ main() {
 
   Future<void> test_inClosure() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   print(() {
     12345;
   });
 }
 ''');
     await assertHasAssistAt('345', '''
-main() {
+void f() {
   print(() {
     var i = 12345;
   });
@@ -50,14 +50,14 @@ main() {
 
   Future<void> test_invocation() async {
     await resolveTestCode('''
-main() {
+void f() {
   List<int> bytes;
   readBytes();
 }
 List<int> readBytes() => <int>[];
 ''');
     await assertHasAssistAt('readBytes();', '''
-main() {
+void f() {
   List<int> bytes;
   var readBytes = readBytes();
 }
@@ -72,10 +72,10 @@ List<int> readBytes() => <int>[];
 
   Future<void> test_invocationArgument() async {
     await resolveTestCode(r'''
-main() {
-  f(12345);
+void f() {
+  g(12345);
 }
-void f(p) {}
+void g(p) {}
 ''');
     await assertNoAssistAt('345');
   }
@@ -83,12 +83,12 @@ void f(p) {}
   Future<void> test_lint_prefer_final_locals() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
     await resolveTestCode(r'''
-main() {
+void f() {
   12345;
 }
 ''');
     await assertHasAssistAt('345', '''
-main() {
+void f() {
   final i = 12345;
 }
 ''');
@@ -107,7 +107,7 @@ Future<void> _extractDataForSite() async {
 
   Future<void> test_throw() async {
     await resolveTestCode('''
-main() {
+void f() {
   throw 42;
 }
 ''');
@@ -116,10 +116,10 @@ main() {
 
   Future<void> test_void() async {
     await resolveTestCode('''
-main() {
+void f() {
   f();
 }
-void f() {}
+void g() {}
 ''');
     await assertNoAssistAt('f();');
   }

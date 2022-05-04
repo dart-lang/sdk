@@ -53,6 +53,11 @@ DEFINE_FLAG(charp,
             write_v8_snapshot_profile_to,
             NULL,
             "Write a snapshot profile in V8 format to a file.");
+DEFINE_FLAG(bool,
+            print_array_optimization_candidates,
+            false,
+            "Print information about how many array are candidates for Smi and "
+            "ROData optimizations.");
 #endif  // defined(DART_PRECOMPILER)
 
 namespace {
@@ -5401,7 +5406,64 @@ class ArraySerializationCluster : public SerializationCluster {
     }
   }
 
+#if defined(DART_PRECOMPILER)
+  static bool IsReadOnlyCid(intptr_t cid) {
+    switch (cid) {
+      case kPcDescriptorsCid:
+      case kCodeSourceMapCid:
+      case kCompressedStackMapsCid:
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+#endif  // defined(DART_PRECOMPILER)
+
   void WriteAlloc(Serializer* s) {
+#if defined(DART_PRECOMPILER)
+    if (FLAG_print_array_optimization_candidates) {
+      intptr_t array_count = objects_.length();
+      intptr_t array_count_allsmi = 0;
+      intptr_t array_count_allro = 0;
+      intptr_t array_count_empty = 0;
+      intptr_t element_count = 0;
+      intptr_t element_count_allsmi = 0;
+      intptr_t element_count_allro = 0;
+      for (intptr_t i = 0; i < array_count; i++) {
+        ArrayPtr array = objects_[i];
+        bool allsmi = true;
+        bool allro = true;
+        const intptr_t length = Smi::Value(array->untag()->length());
+        for (intptr_t i = 0; i < length; i++) {
+          ObjectPtr element = array->untag()->element(i);
+          intptr_t cid = element->GetClassIdMayBeSmi();
+          if (!IsReadOnlyCid(cid)) allro = false;
+          if (cid != kSmiCid) allsmi = false;
+        }
+        element_count += length;
+        if (length == 0) {
+          array_count_empty++;
+        } else if (allsmi) {
+          array_count_allsmi++;
+          element_count_allsmi += length;
+        } else if (allro) {
+          array_count_allro++;
+          element_count_allro += length;
+        }
+      }
+      OS::PrintErr("Arrays\n");
+      OS::PrintErr("  total:  %" Pd ", % " Pd " elements\n", array_count,
+                   element_count);
+      OS::PrintErr("  smi-only:%" Pd ", % " Pd " elements\n",
+                   array_count_allsmi, element_count_allsmi);
+      OS::PrintErr("  ro-only:%" Pd " , % " Pd " elements\n", array_count_allro,
+                   element_count_allro);
+      OS::PrintErr("  empty:%" Pd "\n", array_count_empty);
+    }
+#endif  // defined(DART_PRECOMPILER)
+
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {

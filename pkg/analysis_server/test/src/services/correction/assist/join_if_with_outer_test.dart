@@ -21,7 +21,7 @@ class JoinIfWithOuterTest extends AssistProcessorTest {
 
   Future<void> test_conditionAndOr() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2 || 3 == 3) {
       print(0);
@@ -30,7 +30,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (2 ==', '''
-main() {
+void f() {
   if (1 == 1 && (2 == 2 || 3 == 3)) {
     print(0);
   }
@@ -40,7 +40,7 @@ main() {
 
   Future<void> test_conditionInvocation() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (isCheck()) {
       print(0);
@@ -50,7 +50,7 @@ main() {
 bool isCheck() => false;
 ''');
     await assertHasAssistAt('if (isCheck', '''
-main() {
+void f() {
   if (1 == 1 && isCheck()) {
     print(0);
   }
@@ -61,7 +61,7 @@ bool isCheck() => false;
 
   Future<void> test_conditionOrAnd() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1 || 2 == 2) {
     if (3 == 3) {
       print(0);
@@ -70,7 +70,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (3 == 3', '''
-main() {
+void f() {
   if ((1 == 1 || 2 == 2) && 3 == 3) {
     print(0);
   }
@@ -80,7 +80,7 @@ main() {
 
   Future<void> test_onCondition() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2) {
       print(0);
@@ -89,7 +89,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (2 == 2', '''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
   }
@@ -99,7 +99,7 @@ main() {
 
   Future<void> test_outerNotIf() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     print(0);
   }
@@ -110,7 +110,7 @@ main() {
 
   Future<void> test_outerWithElse() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2) {
       print(0);
@@ -125,7 +125,7 @@ main() {
 
   Future<void> test_simpleConditions_block_block() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2) {
       print(0);
@@ -134,7 +134,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (2 == 2', '''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
   }
@@ -144,7 +144,7 @@ main() {
 
   Future<void> test_simpleConditions_block_single() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2)
       print(0);
@@ -152,7 +152,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (2 == 2', '''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
   }
@@ -162,7 +162,7 @@ main() {
 
   Future<void> test_simpleConditions_single_blockMulti() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2) {
       print(1);
@@ -173,7 +173,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (2 == 2', '''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(1);
     print(2);
@@ -185,7 +185,7 @@ main() {
 
   Future<void> test_simpleConditions_single_blockOne() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1)
     if (2 == 2) {
       print(0);
@@ -193,7 +193,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (2 == 2', '''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
   }
@@ -203,7 +203,7 @@ main() {
 
   Future<void> test_statementAfterInner() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2) {
       print(2);
@@ -217,7 +217,7 @@ main() {
 
   Future<void> test_statementBeforeInner() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     print(1);
     if (2 == 2) {
@@ -231,7 +231,7 @@ main() {
 
   Future<void> test_targetNotIf() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(0);
 }
 ''');
@@ -240,7 +240,7 @@ main() {
 
   Future<void> test_targetWithElse() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2) {
       print(0);

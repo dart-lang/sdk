@@ -191,7 +191,7 @@ abstract class WeakReference<T extends Object> {
 /// No promises are made that the callback will ever be called.
 /// The only thing that is guaranteed is that if a finalizer's callback
 /// is called with a specific finalization token as argument,
-/// then at least one value with an attachment to to the finalizer
+/// then at least one value with an attachment to the finalizer
 /// that has that finalization token,
 /// is no longer accessible to the program.
 ///

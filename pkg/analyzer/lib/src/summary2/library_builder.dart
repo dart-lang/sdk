@@ -238,6 +238,7 @@ class LibraryBuilder {
     TypesBuilder(linker).build(nodesToBuildType);
 
     // Transplant built elements as if the augmentation was applied.
+    final augmentedUnitElement = element.definingCompilationUnit;
     for (final augmentation in unitElement.classes) {
       // TODO(scheglov) if augmentation
       final augmented = element.getType(augmentation.name);
@@ -260,6 +261,14 @@ class LibraryBuilder {
         ];
       }
     }
+    augmentedUnitElement.accessors = [
+      ...augmentedUnitElement.accessors,
+      ...unitElement.accessors,
+    ];
+    augmentedUnitElement.topLevelVariables = [
+      ...augmentedUnitElement.topLevelVariables,
+      ...unitElement.topLevelVariables,
+    ];
   }
 
   Future<void> executeMacroTypesPhase() async {

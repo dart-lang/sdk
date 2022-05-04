@@ -30,7 +30,7 @@ class FlutterWrapContainerTest extends AssistProcessorTest {
   Future<void> test_aroundContainer() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-main() {
+Widget f() {
   return /*caret*/Container();
 }
 ''');
@@ -40,13 +40,13 @@ main() {
   Future<void> test_aroundText() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-main() {
+void f() {
   /*caret*/Text('a');
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
-main() {
+void f() {
   Container(child: Text('a'));
 }
 ''');

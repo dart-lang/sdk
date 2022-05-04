@@ -3709,7 +3709,7 @@ class LibraryElementImpl extends _ExistingElementImpl
   List<ExtensionElement> get accessibleExtensions => scope.extensions;
 
   @override
-  CompilationUnitElement get definingCompilationUnit =>
+  CompilationUnitElementImpl get definingCompilationUnit =>
       _definingCompilationUnit;
 
   /// Set the compilation unit that defines this library to the given

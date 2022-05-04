@@ -58,7 +58,7 @@ class A {
     await resolveTestCode('''
 class A {}
 
-main() {
+void f() {
   A();
 }
 ''');
@@ -67,12 +67,12 @@ main() {
 
   Future<void> test_localVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   int a = 1, b = 2;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   var a = 1, b = 2;
 }
 ''');
@@ -80,12 +80,12 @@ main() {
 
   Future<void> test_localVariable_const() async {
     await resolveTestCode('''
-main() {
+void f() {
   const int v = 1;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   const v = 1;
 }
 ''');
@@ -93,12 +93,12 @@ main() {
 
   Future<void> test_localVariable_final() async {
     await resolveTestCode('''
-main() {
+void f() {
   final int v = 1;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   final v = 1;
 }
 ''');
@@ -106,7 +106,7 @@ main() {
 
   Future<void> test_localVariable_noInitializer() async {
     await resolveTestCode('''
-main() {
+void f() {
   int v;
 }
 ''');
@@ -115,7 +115,7 @@ main() {
 
   Future<void> test_localVariable_onInitializer() async {
     await resolveTestCode('''
-main() {
+void f() {
   final int v = 1;
 }
 ''');
@@ -124,12 +124,12 @@ main() {
 
   Future<void> test_loopVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   for(int i = 0; i < 3; i++) {}
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   for(var i = 0; i < 3; i++) {}
 }
 ''');
@@ -137,14 +137,14 @@ main() {
 
   Future<void> test_loopVariable_nested() async {
     await resolveTestCode('''
-main() {
+void f() {
   var v = () {
     for (int x in <int>[]) {}
   };
 }
 ''');
     await assertHasAssistAt('int x', '''
-main() {
+void f() {
   var v = () {
     for (var x in <int>[]) {}
   };
@@ -154,7 +154,7 @@ main() {
 
   Future<void> test_loopVariable_noType() async {
     await resolveTestCode('''
-main() {
+void f() {
   for(var i = 0; i < 3; i++) {}
 }
 ''');

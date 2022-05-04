@@ -31,7 +31,7 @@ class SortChildPropertyLastTest extends AssistProcessorTest {
   Future<void> test_already_sorted() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: <Widget>[
@@ -48,7 +48,7 @@ main() {
   Future<void> test_already_sorted_one_prop() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: <Widget>[
       Text('aaa'),
@@ -64,7 +64,7 @@ main() {
   Future<void> test_no_children() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
   );
@@ -76,7 +76,7 @@ main() {
   Future<void> test_sort_middleArgument() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     mainAxisAlignment: MainAxisAlignment.start,
     /*caret*/children: <Widget>[
@@ -90,7 +90,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     mainAxisAlignment: MainAxisAlignment.start,
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -110,7 +110,7 @@ main() {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     /*caret*/children: <Widget>[
       Text('aaa'),
@@ -127,7 +127,7 @@ main() {
   Future<void> test_sort_noTrailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     /*caret*/children: <Widget>[
       Text('aaa'),
@@ -140,7 +140,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: <Widget>[
@@ -157,7 +157,7 @@ main() {
   Future<void> test_sort_trailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     /*caret*/children: <Widget>[
       Text('aaa'),
@@ -170,7 +170,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: <Widget>[

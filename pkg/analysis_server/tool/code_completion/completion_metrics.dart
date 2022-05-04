@@ -155,11 +155,11 @@ ArgParser createArgParser() {
     )
     ..addOption(CompletionMetricsOptions.OVERLAY,
         allowed: [
-          CompletionMetricsOptions.OVERLAY_NONE,
-          CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN,
-          CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE
+          OverlayMode.none.flag,
+          OverlayMode.removeRestOfFile.flag,
+          OverlayMode.removeToken.flag,
         ],
-        defaultsTo: CompletionMetricsOptions.OVERLAY_NONE,
+        defaultsTo: OverlayMode.none.flag,
         help:
             'Before attempting a completion at the location of each token, the '
             'token can be removed, or the rest of the file can be removed to '
@@ -745,17 +745,20 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     ExpectedCompletion expectedCompletion,
   ) async {
     // If an overlay option is being used, compute the overlay file, and
-    // have the context reanalyze the file
-    if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-      var overlayContents = CompletionMetricsComputer.getOverlayContents(
-          resolvedUnitResult.content,
-          expectedCompletion,
-          options.overlay,
-          options.prefixLength);
+    // have the context reanalyze the file.
+    if (options.overlay != OverlayMode.none) {
+      final overlayContents = CompletionMetricsComputer.getOverlayContent(
+        resolvedUnitResult.content,
+        expectedCompletion,
+        options.overlay,
+        options.prefixLength,
+      );
 
-      provider.setOverlay(filePath,
-          content: overlayContents,
-          modificationStamp: overlayModificationStamp++);
+      provider.setOverlay(
+        filePath,
+        content: overlayContents,
+        modificationStamp: overlayModificationStamp++,
+      );
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
       resolvedUnitResult = await context.currentSession
@@ -1396,10 +1399,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   @override
-  void removeOverlay(String filePath) {
+  Future<void> removeOverlay(String filePath) async {
     // If an overlay option is being used, remove the overlay applied
     // earlier.
-    if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
+    if (options.overlay != OverlayMode.none) {
       provider.removeOverlay(filePath);
     }
   }

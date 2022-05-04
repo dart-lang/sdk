@@ -21,7 +21,7 @@ class SurroundWithIfTest extends AssistProcessorTest {
 
   Future<void> test_twoStatements() async {
     await resolveTestCode('''
-main() {
+void f() {
 // start
   print(0);
   print(1);
@@ -29,7 +29,7 @@ main() {
 }
 ''');
     await assertHasAssist('''
-main() {
+void f() {
   if (condition) {
     print(0);
     print(1);

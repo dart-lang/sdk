@@ -312,6 +312,7 @@ class TopLevelVariableElementFlags {
   static const int _isExternal = 1 << 2;
   static const int _isFinal = 1 << 3;
   static const int _isLate = 1 << 4;
+  static const int _isTempAugmentation = 1 << 5;
 
   static void read(
     SummaryDataReader reader,
@@ -323,6 +324,7 @@ class TopLevelVariableElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
+    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, TopLevelVariableElementImpl element) {
@@ -332,6 +334,7 @@ class TopLevelVariableElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
+    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeByte(result);
   }
 }

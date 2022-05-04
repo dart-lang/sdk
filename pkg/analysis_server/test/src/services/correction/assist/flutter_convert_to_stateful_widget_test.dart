@@ -431,7 +431,7 @@ class _MyWidgetState extends State<_MyWidget> {
   Future<void> test_notClass() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-/*caret*/main() {}
+/*caret*/void f() {}
 ''');
     await assertNoAssist();
   }

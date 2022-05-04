@@ -17,7 +17,6 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 
 class LibraryMacroApplier {
@@ -26,7 +25,10 @@ class LibraryMacroApplier {
 
   final List<_MacroTarget> _targets = [];
 
-  final Map<ClassDeclaration, macro.ClassDeclaration> _classDeclarations = {};
+  final Map<ClassDeclaration, macro.ClassDeclarationImpl> _classDeclarations =
+      {};
+
+  final macro.IdentifierResolver _identifierResolver = _IdentifierResolver();
 
   final macro.TypeResolver _typeResolver = _TypeResolver();
 
@@ -48,6 +50,7 @@ class LibraryMacroApplier {
         await _buildApplications(
           targetElement,
           targetNode.metadata,
+          macro.DeclarationKind.clazz,
           () => getClassDeclaration(targetNode),
         );
       }
@@ -61,11 +64,7 @@ class LibraryMacroApplier {
         if (application.shouldExecute(macro.Phase.declarations)) {
           await _runWithCatchingExceptions(
             () async {
-              final result =
-                  await application.instance.executeDeclarationsPhase(
-                typeResolver: _typeResolver,
-                classIntrospector: _classIntrospector,
-              );
+              final result = await application.executeDeclarationsPhase();
               if (result.isNotEmpty) {
                 results.add(result);
               }
@@ -88,7 +87,7 @@ class LibraryMacroApplier {
         if (application.shouldExecute(macro.Phase.types)) {
           await _runWithCatchingExceptions(
             () async {
-              final result = await application.instance.executeTypesPhase();
+              final result = await application.executeTypesPhase();
               if (result.isNotEmpty) {
                 results.add(result);
               }
@@ -106,7 +105,7 @@ class LibraryMacroApplier {
 
   /// TODO(scheglov) Do we need this caching?
   /// Or do we need it only during macro applications creation?
-  macro.ClassDeclaration getClassDeclaration(ClassDeclaration node) {
+  macro.ClassDeclarationImpl getClassDeclaration(ClassDeclaration node) {
     return _classDeclarations[node] ??= _buildClassDeclaration(node);
   }
 
@@ -115,12 +114,13 @@ class LibraryMacroApplier {
   Future<void> _buildApplications(
     MacroTargetElement targetElement,
     List<Annotation> annotations,
-    macro.Declaration Function() getDeclaration,
+    macro.DeclarationKind declarationKind,
+    macro.DeclarationImpl Function() getDeclaration,
   ) async {
     final applications = <_MacroApplication>[];
 
     for (var i = 0; i < annotations.length; i++) {
-      Future<MacroClassInstance?> instantiateSingle({
+      Future<macro.MacroInstanceIdentifier?> instantiateSingle({
         required ClassElementImpl macroClass,
         required String constructorName,
         required ArgumentList argumentsNode,
@@ -139,9 +139,6 @@ class LibraryMacroApplier {
                 className: macroClass.name,
                 constructorName: constructorName,
                 arguments: arguments,
-                identifierResolver: _IdentifierResolver(),
-                declarationKind: macro.DeclarationKind.clazz,
-                declaration: getDeclaration(),
               );
             },
             annotationIndex: i,
@@ -185,7 +182,7 @@ class LibraryMacroApplier {
         applications.add(
           _MacroApplication(
             annotationIndex: i,
-            instance: macroInstance,
+            instanceIdentifier: macroInstance,
           ),
         );
       }
@@ -194,7 +191,10 @@ class LibraryMacroApplier {
     if (applications.isNotEmpty) {
       _targets.add(
         _MacroTarget(
+          applier: this,
           element: targetElement,
+          declarationKind: declarationKind,
+          declaration: getDeclaration(),
           applications: applications,
         ),
       );
@@ -614,25 +614,60 @@ class _IdentifierResolver extends macro.IdentifierResolver {
 }
 
 class _MacroApplication {
+  late final _MacroTarget target;
   final int annotationIndex;
-  final MacroClassInstance instance;
+  final macro.MacroInstanceIdentifier instanceIdentifier;
 
   _MacroApplication({
     required this.annotationIndex,
-    required this.instance,
+    required this.instanceIdentifier,
   });
 
-  bool shouldExecute(macro.Phase phase) => instance.shouldExecute(phase);
+  Future<macro.MacroExecutionResult> executeDeclarationsPhase() async {
+    final applier = target.applier;
+    final executor = applier.macroExecutor;
+    return await executor.executeDeclarationsPhase(
+      instanceIdentifier,
+      target.declaration,
+      applier._identifierResolver,
+      applier._typeResolver,
+      applier._classIntrospector,
+    );
+  }
+
+  Future<macro.MacroExecutionResult> executeTypesPhase() async {
+    final applier = target.applier;
+    final executor = applier.macroExecutor;
+    return await executor.executeTypesPhase(
+      instanceIdentifier,
+      target.declaration,
+      applier._identifierResolver,
+    );
+  }
+
+  bool shouldExecute(macro.Phase phase) {
+    return instanceIdentifier.shouldExecute(target.declarationKind, phase);
+  }
 }
 
 class _MacroTarget {
+  final LibraryMacroApplier applier;
   final MacroTargetElement element;
+  final macro.DeclarationKind declarationKind;
+  final macro.DeclarationImpl declaration;
   final List<_MacroApplication> applications;
 
   _MacroTarget({
+    required this.applier,
     required this.element,
+    required this.declarationKind,
+    required this.declaration,
     required this.applications,
-  });
+  }) {
+    for (final application in applications) {
+      application.target = this;
+    }
+  }
 }
 
 class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {

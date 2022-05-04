@@ -87,7 +87,7 @@ abstract class CompletionMetricsComputer {
           documentationCache,
         );
 
-        removeOverlay(filePath);
+        await removeOverlay(filePath);
       }
       progress.tick();
     }
@@ -113,7 +113,7 @@ abstract class CompletionMetricsComputer {
   );
 
   /// Removes the overlay which has been applied to [filePath].
-  void removeOverlay(String filePath);
+  Future<void> removeOverlay(String filePath);
 
   /// Resolves all analyzed files within [context].
   Future<List<ResolvedUnitResult>> resolveAnalyzedFiles({
@@ -171,17 +171,16 @@ abstract class CompletionMetricsComputer {
     return null;
   }
 
-  /// Gets overlay contents for [contents], applying a change at
+  /// Gets overlay content for [content], applying a change at
   /// [expectedCompletion] with [prefixLength], according to [overlay], one of
   /// the [CompletionMetricsOptions].
-  static String getOverlayContents(
-    String contents,
+  static String getOverlayContent(
+    String content,
     ExpectedCompletion expectedCompletion,
-    // TODO(srawlins): Replace this with an enum.
-    String overlay,
+    OverlayMode overlay,
     int prefixLength,
   ) {
-    assert(contents.isNotEmpty);
+    assert(content.isNotEmpty);
     var offset = expectedCompletion.offset;
     final length = expectedCompletion.syntacticEntity.length;
     assert(offset >= 0);
@@ -192,16 +191,12 @@ abstract class CompletionMetricsComputer {
       // the given prefix length.
       offset += prefixLength;
     }
-    if (overlay == CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN) {
-      return contents.substring(0, offset) + contents.substring(tokenEndOffset);
-    } else if (overlay ==
-        CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE) {
-      return contents.substring(0, offset);
+    if (overlay == OverlayMode.removeToken) {
+      return content.substring(0, offset) + content.substring(tokenEndOffset);
+    } else if (overlay == OverlayMode.removeRestOfFile) {
+      return content.substring(0, offset);
     } else {
-      final removeToken = CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN;
-      final removeRest = CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE;
-      throw Exception('\'getOverlayContents\' called with option other than'
-          '$removeToken and $removeRest: $overlay');
+      throw ArgumentError.value(overlay, 'overlay');
     }
   }
 }
@@ -210,18 +205,6 @@ abstract class CompletionMetricsComputer {
 class CompletionMetricsOptions {
   /// An option to control whether and how overlays should be produced.
   static const String OVERLAY = 'overlay';
-
-  /// A mode indicating that no overlays should be produced.
-  /// TODO(srawlins): Replace this and the other two overlay values with enums.
-  static const String OVERLAY_NONE = 'none';
-
-  /// A mode indicating that everything from the completion offset to the end of
-  /// the file should be removed.
-  static const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
-
-  /// A mode indicating that the token whose offset is the same as the
-  /// completion offset should be removed.
-  static const String OVERLAY_REMOVE_TOKEN = 'remove-token';
 
   /// An option controlling how long of a prefix should be used.
   ///
@@ -234,8 +217,7 @@ class CompletionMetricsOptions {
   static const String PRINT_SLOWEST_RESULTS = 'print-slowest-results';
 
   /// The overlay mode that should be used.
-  /// TODO(srawlins): Replace this with an enum.
-  final String overlay;
+  final OverlayMode overlay;
 
   final int prefixLength;
 
@@ -244,12 +226,34 @@ class CompletionMetricsOptions {
   final bool printSlowestResults;
 
   CompletionMetricsOptions(ArgResults results)
-      : overlay = results[OVERLAY] as String,
+      : overlay = OverlayMode.parseFlag(results[OVERLAY] as String),
         prefixLength = int.parse(results[PREFIX_LENGTH] as String),
-        printSlowestResults = results[PRINT_SLOWEST_RESULTS] as bool {
-    assert(overlay == OVERLAY_NONE ||
-        overlay == OVERLAY_REMOVE_TOKEN ||
-        overlay == OVERLAY_REMOVE_REST_OF_FILE);
+        printSlowestResults = results[PRINT_SLOWEST_RESULTS] as bool;
+}
+
+enum OverlayMode {
+  /// A mode indicating that no overlays should be produced.
+  none('none'),
+
+  /// A mode indicating that everything from the completion offset to the end of
+  /// the file should be removed.
+  removeRestOfFile('remove-rest-of-file'),
+
+  /// A mode indicating that the token whose offset is the same as the
+  /// completion offset should be removed.
+  removeToken('remove-token');
+
+  final String flag;
+
+  const OverlayMode(this.flag);
+
+  static OverlayMode parseFlag(String flag) {
+    for (final mode in values) {
+      if (flag == mode.flag) {
+        return mode;
+      }
+    }
+    throw ArgumentError.value(flag, 'overlay');
   }
 }
 

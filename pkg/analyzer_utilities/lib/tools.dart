@@ -168,6 +168,9 @@ class CodeGenerator {
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
+
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: prefer_interpolation_to_compose_strings
 ''';
     }
     writeln(header.trim());

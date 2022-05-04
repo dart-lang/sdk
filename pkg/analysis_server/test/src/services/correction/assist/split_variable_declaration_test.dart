@@ -21,7 +21,7 @@ class SplitVariableDeclarationTest extends AssistProcessorTest {
 
   Future<void> test_const() async {
     await resolveTestCode('''
-main() {
+void f() {
   const v = 1;
 }
 ''');
@@ -30,7 +30,7 @@ main() {
 
   Future<void> test_final() async {
     await resolveTestCode('''
-main() {
+void f() {
   final v = 1;
 }
 ''');
@@ -39,7 +39,7 @@ main() {
 
   Future<void> test_notOneVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   var v = 1, v2;
 }
 ''');
@@ -48,12 +48,12 @@ main() {
 
   Future<void> test_onName() async {
     await resolveTestCode('''
-main() {
+void f() {
   var v = 1;
 }
 ''');
     await assertHasAssistAt('v =', '''
-main() {
+void f() {
   int v;
   v = 1;
 }
@@ -63,13 +63,13 @@ main() {
   Future<void> test_onName_functionStatement_noType() async {
     await resolveTestCode('''
 f() => 1;
-main() {
+void g() {
   var v = f();
 }
 ''');
     await assertHasAssistAt('v =', '''
 f() => 1;
-main() {
+void g() {
   var v;
   v = f();
 }
@@ -78,12 +78,12 @@ main() {
 
   Future<void> test_onType() async {
     await resolveTestCode('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   int v;
   v = 1;
 }
@@ -93,12 +93,12 @@ main() {
   @failingTest
   Future<void> test_onType_prefixedByComment() async {
     await resolveTestCode('''
-main() {
+void f() {
   /*comment*/int v = 1;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   /*comment*/int v;
   v = 1;
 }
@@ -107,12 +107,12 @@ main() {
 
   Future<void> test_onVar() async {
     await resolveTestCode('''
-main() {
+void f() {
   var v = 1;
 }
 ''');
     await assertHasAssistAt('var ', '''
-main() {
+void f() {
   int v;
   v = 1;
 }

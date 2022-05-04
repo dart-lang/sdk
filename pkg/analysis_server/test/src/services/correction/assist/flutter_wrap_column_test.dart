@@ -65,7 +65,7 @@ Widget build(bool b) {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: /*caret*/Text('aaa'),
     );
@@ -76,7 +76,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: Column(
         children: [
@@ -94,7 +94,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Row(children: [
       Text('aaa'),
 // start
@@ -110,7 +110,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Row(children: [
       Text('aaa'),
       Column(
@@ -131,7 +131,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: Text/*caret*/('aaa'),
     );
@@ -142,7 +142,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: Column(
         children: [
@@ -160,7 +160,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: Text('aaa'),
     );
@@ -173,7 +173,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: Column(
         children: [

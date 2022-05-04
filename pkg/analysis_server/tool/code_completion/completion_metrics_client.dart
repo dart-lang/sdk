@@ -68,11 +68,11 @@ ArgParser _createArgParser() {
     ..addOption(
       CompletionMetricsOptions.OVERLAY,
       allowed: [
-        CompletionMetricsOptions.OVERLAY_NONE,
-        CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN,
-        CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE,
+        OverlayMode.none.flag,
+        OverlayMode.removeRestOfFile.flag,
+        OverlayMode.removeToken.flag,
       ],
-      defaultsTo: CompletionMetricsOptions.OVERLAY_NONE,
+      defaultsTo: OverlayMode.none.flag,
       help: 'Before attempting a completion at the location of each token, the '
           'token can be removed, or the rest of the file can be removed to '
           'test code completion with diverse methods. The default mode is to '
@@ -143,7 +143,21 @@ class CompletionClientMetricsComputer extends CompletionMetricsComputer {
     String filePath,
     ExpectedCompletion expectedCompletion,
   ) async {
-    // TODO(srawlins): Support overlays.
+    if (options.overlay != OverlayMode.none) {
+      final overlayContent = CompletionMetricsComputer.getOverlayContent(
+        resolvedUnitResult.content,
+        expectedCompletion,
+        options.overlay,
+        options.prefixLength,
+      );
+
+      provider.setOverlay(
+        filePath,
+        content: overlayContent,
+        modificationStamp: overlayModificationStamp++,
+      );
+      await client.addOverlay(filePath, overlayContent);
+    }
   }
 
   @override
@@ -193,8 +207,10 @@ class CompletionClientMetricsComputer extends CompletionMetricsComputer {
   }
 
   @override
-  void removeOverlay(String filePath) {
-    // TODO(srawlins): Support overlays.
+  Future<void> removeOverlay(String filePath) async {
+    if (options.overlay != OverlayMode.none) {
+      await client.removeOverlay(filePath);
+    }
   }
 
   @override
@@ -275,19 +291,55 @@ class _AnalysisServerClient {
 
   Future<int> get onExit => _process!.exitCode;
 
+  Future<AnalysisUpdateContentResult> addOverlay(
+      String file, String content) async {
+    final response = await _sendCommand(
+      'analysis.updateContent',
+      params: {
+        'files': {
+          file: {'type': 'add', 'content': content},
+        }
+      },
+    );
+    final result = response['result'] as Map<String, dynamic>;
+
+    return AnalysisUpdateContentResult.fromJson(
+      ResponseDecoder(null),
+      'result',
+      result,
+    );
+  }
+
   Future<bool> dispose() async {
     return _process?.kill() ?? true;
+  }
+
+  Future<AnalysisUpdateContentResult> removeOverlay(String file) async {
+    final response = await _sendCommand(
+      'analysis.updateContent',
+      params: {
+        'files': {
+          file: {'type': 'remove'},
+        }
+      },
+    );
+    final result = response['result'] as Map<String, dynamic>;
+
+    return AnalysisUpdateContentResult.fromJson(
+      ResponseDecoder(null),
+      'result',
+      result,
+    );
   }
 
   /// Requests a completion for [file] at [offset].
   Future<_SuggestionsData> requestCompletion(
       String file, int offset, int maxResults) async {
-    final response = await _sendCommand('completion.getSuggestions2',
-        params: <String, dynamic>{
-          'file': file,
-          'offset': offset,
-          'maxResults': maxResults,
-        });
+    final response = await _sendCommand('completion.getSuggestions2', params: {
+      'file': file,
+      'offset': offset,
+      'maxResults': maxResults,
+    });
     final result = response['result'] as Map<String, dynamic>;
     final metadata = _requestMetadata[response['id']]!;
 
@@ -440,10 +492,7 @@ class _AnalysisServerClient {
               .remove(id)
               ?.completeError(_RequestError.parse(error));
         } else {
-          _requestCompleters.remove(id)?.complete(
-              //response['result'] as Map<String, dynamic>? ??
-              //    <String, dynamic>{});
-              response);
+          _requestCompleters.remove(id)?.complete(response);
         }
       }
     }
