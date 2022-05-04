@@ -85,7 +85,7 @@ vars = {
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "browser_launcher_rev": "c6cc1025d6901926cf022e144ba109677e3548f1",
-  "characters_rev": "6ec389c4dfa8fce14820dc5cbf6e693202e7e052",
+  "characters_rev": "4b1d4b7737ad47cd2b8105c47e2159174010f29f",
   "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev": "19997",
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
