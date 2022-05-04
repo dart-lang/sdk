@@ -21,12 +21,12 @@ class ConvertToMultilineStringTest extends AssistProcessorTest {
 
   Future<void> test_doubleQuoted() async {
     await resolveTestCode('''
-main() {
+void f() {
   print("abc");
 }
 ''');
     await assertHasAssistAt('abc', '''
-main() {
+void f() {
   print("""
 abc""");
 }
@@ -35,7 +35,7 @@ abc""");
 
   Future<void> test_doubleQuoted_alreadyMultiline() async {
     await resolveTestCode('''
-main() {
+void f() {
   print("""abc""");
 }
 ''');
@@ -44,7 +44,7 @@ main() {
 
   Future<void> test_doubleQuoted_interpolation_expressionElement() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("a $b - ${c} d");
@@ -55,14 +55,14 @@ main() {
 
   Future<void> test_doubleQuoted_interpolation_stringElement_begin() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("a $b - ${c} d");
 }
 """);
     await assertHasAssistAt('"a ', r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("""
@@ -73,14 +73,14 @@ a $b - ${c} d""");
 
   Future<void> test_doubleQuoted_interpolation_stringElement_middle() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("a $b - ${c} d");
 }
 """);
     await assertHasAssistAt('- ', r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("""
@@ -91,12 +91,12 @@ a $b - ${c} d""");
 
   Future<void> test_doubleQuoted_raw() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(r"abc");
 }
 ''');
     await assertHasAssistAt('abc', '''
-main() {
+void f() {
   print(r"""
 abc""");
 }
@@ -125,12 +125,12 @@ void f() {
 
   Future<void> test_singleQuoted() async {
     await resolveTestCode('''
-main() {
+void f() {
   print('abc');
 }
 ''');
     await assertHasAssistAt('abc', """
-main() {
+void f() {
   print('''
 abc''');
 }
@@ -139,7 +139,7 @@ abc''');
 
   Future<void> test_singleQuoted_interpolation_expressionElement() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('a $b - ${c} d');
@@ -150,14 +150,14 @@ main() {
 
   Future<void> test_singleQuoted_interpolation_stringElement_begin() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('a $b - ${c} d');
 }
 """);
     await assertHasAssistAt("'a ", r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('''
@@ -168,14 +168,14 @@ a $b - ${c} d''');
 
   Future<void> test_singleQuoted_interpolation_stringElement_middle() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('a $b - ${c} d');
 }
 """);
     await assertHasAssistAt('- ', r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('''
@@ -186,12 +186,12 @@ a $b - ${c} d''');
 
   Future<void> test_singleQuoted_raw() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(r'abc');
 }
 ''');
     await assertHasAssistAt('abc', """
-main() {
+void f() {
   print(r'''
 abc''');
 }

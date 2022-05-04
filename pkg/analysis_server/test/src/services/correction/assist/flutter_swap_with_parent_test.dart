@@ -119,7 +119,7 @@ class _State extends State<Foo> {
   Future<void> test_outerIsInChildren() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Column(
@@ -141,7 +141,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Column(

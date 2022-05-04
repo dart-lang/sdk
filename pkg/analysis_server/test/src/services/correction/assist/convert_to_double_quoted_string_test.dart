@@ -21,7 +21,7 @@ class ConvertToDoubleQuotedStringTest extends AssistProcessorTest {
 
   Future<void> test_one_embeddedTarget() async {
     await resolveTestCode('''
-main() {
+void f() {
   print('a"b"c');
 }
 ''');
@@ -30,7 +30,7 @@ main() {
 
   Future<void> test_one_enclosingTarget() async {
     await resolveTestCode('''
-main() {
+void f() {
   print("abc");
 }
 ''');
@@ -39,14 +39,14 @@ main() {
 
   Future<void> test_one_interpolation() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('a $b-${c} d');
 }
 ''');
     await assertHasAssistAt(r"'a $b", r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("a $b-${c} d");
@@ -66,12 +66,12 @@ void f(int a) {
 
   Future<void> test_one_raw() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(r'abc');
 }
 ''');
     await assertHasAssistAt("'ab", '''
-main() {
+void f() {
   print(r"abc");
 }
 ''');
@@ -79,12 +79,12 @@ main() {
 
   Future<void> test_one_simple() async {
     await resolveTestCode('''
-main() {
+void f() {
   print('abc');
 }
 ''');
     await assertHasAssistAt("'ab", '''
-main() {
+void f() {
   print("abc");
 }
 ''');
@@ -102,7 +102,7 @@ void f() {
 
   Future<void> test_three_embeddedTarget() async {
     await resolveTestCode("""
-main() {
+void f() {
   print('''a""\"c''');
 }
 """);
@@ -111,7 +111,7 @@ main() {
 
   Future<void> test_three_enclosingTarget() async {
     await resolveTestCode('''
-main() {
+void f() {
   print("""abc""");
 }
 ''');
@@ -120,14 +120,14 @@ main() {
 
   Future<void> test_three_interpolation() async {
     await resolveTestCode(r"""
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('''a $b-${c} d''');
 }
 """);
     await assertHasAssistAt(r"'a $b", r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("""a $b-${c} d""");
@@ -137,12 +137,12 @@ main() {
 
   Future<void> test_three_raw() async {
     await resolveTestCode("""
-main() {
+void f() {
   print(r'''abc''');
 }
 """);
     await assertHasAssistAt("'ab", '''
-main() {
+void f() {
   print(r"""abc""");
 }
 ''');
@@ -150,12 +150,12 @@ main() {
 
   Future<void> test_three_simple() async {
     await resolveTestCode("""
-main() {
+void f() {
   print('''abc''');
 }
 """);
     await assertHasAssistAt("'ab", '''
-main() {
+void f() {
   print("""abc""");
 }
 ''');

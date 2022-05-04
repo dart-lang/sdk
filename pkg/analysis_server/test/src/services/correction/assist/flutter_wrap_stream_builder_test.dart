@@ -45,14 +45,14 @@ void f(Stream<int> s) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   /*caret*/Text('a');
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   StreamBuilder<Object>(
     stream: null,
     builder: (context, snapshot) {

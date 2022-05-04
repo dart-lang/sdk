@@ -31,7 +31,7 @@ class FlutterWrapBuilderTest extends AssistProcessorTest {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   /*caret*/Builder(
     builder: (context) => Text(''),
   );
@@ -50,7 +50,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => Text('');
 }
 
-main() {
+Widget f() {
   return MyWidget./*caret*/named();
 }
 ''');
@@ -63,7 +63,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => Text('');
 }
 
-main() {
+Widget f() {
   return Builder(
     builder: (context) {
       return MyWidget.named();
@@ -77,14 +77,14 @@ main() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   /*caret*/Text('a');
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   Builder(
     builder: (context) {
       return Text('a');
@@ -98,7 +98,7 @@ main() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   Widget w;
   w = /*caret*/Container();
 }
@@ -106,7 +106,7 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   Widget w;
   w = Builder(
     builder: (context) {
@@ -121,13 +121,13 @@ main() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() => /*caret*/Container();
+  void f() => /*caret*/Container();
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() => Builder(
+  void f() => Builder(
     builder: (context) {
       return Container();
     }

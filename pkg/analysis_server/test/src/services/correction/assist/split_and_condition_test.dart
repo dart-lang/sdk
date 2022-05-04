@@ -21,7 +21,7 @@ class SplitAndConditionTest extends AssistProcessorTest {
 
   Future<void> test_hasElse() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(1);
   } else {
@@ -34,14 +34,14 @@ main() {
 
   Future<void> test_innerAndExpression() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1 && 2 == 2 && 3 == 3) {
     print(0);
   }
 }
 ''');
     await assertHasAssistAt('&& 2 == 2', '''
-main() {
+void f() {
   if (1 == 1) {
     if (2 == 2 && 3 == 3) {
       print(0);
@@ -53,7 +53,7 @@ main() {
 
   Future<void> test_notAnd() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1 || 2 == 2) {
     print(0);
   }
@@ -64,19 +64,19 @@ main() {
 
   Future<void> test_notOnOperator() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
   }
   print(3 == 3 && 4 == 4);
 }
 ''');
-    await assertNoAssistAt('main() {');
+    await assertNoAssistAt('f() {');
   }
 
   Future<void> test_notPartOfIf() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(1 == 1 && 2 == 2);
 }
 ''');
@@ -85,7 +85,7 @@ main() {
 
   Future<void> test_notTopLevelAnd() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (true || (1 == 1 && 2 == 2)) {
     print(0);
   }
@@ -100,7 +100,7 @@ main() {
 
   Future<void> test_selectionTooLarge() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (1 == 1
 // start
 && 2
@@ -117,7 +117,7 @@ main() {
 
   Future<void> test_thenBlock() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (true && false) {
     print(0);
     if (3 == 3) {
@@ -127,7 +127,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('&& false', '''
-main() {
+void f() {
   if (true) {
     if (false) {
       print(0);
@@ -142,13 +142,13 @@ main() {
 
   Future<void> test_thenStatement() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (true && false)
     print(0);
 }
 ''');
     await assertHasAssistAt('&& false', '''
-main() {
+void f() {
   if (true)
     if (false)
       print(0);

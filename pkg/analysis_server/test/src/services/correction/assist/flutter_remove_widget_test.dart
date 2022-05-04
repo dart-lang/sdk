@@ -36,7 +36,7 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
   Future<void> test_childIntoChild_multiLine() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Center(
@@ -54,7 +54,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Center(
@@ -72,7 +72,7 @@ main() {
   Future<void> test_childIntoChild_singleLine() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Padding(
     padding: const EdgeInsets.all(8.0),
     child: /*caret*/Center(
@@ -84,7 +84,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Padding(
     padding: const EdgeInsets.all(8.0),
     child: Text('foo'),
@@ -96,7 +96,7 @@ main() {
   Future<void> test_childIntoChildren() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Text('foo'),
@@ -114,7 +114,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Text('foo'),
@@ -132,7 +132,7 @@ main() {
   Future<void> test_childrenMultipleIntoChild() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Center(
     child: /*caret*/Row(
       children: [
@@ -149,7 +149,7 @@ main() {
   Future<void> test_childrenOneIntoChild() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Center(
     child: /*caret*/Column(
       children: [
@@ -161,7 +161,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Center(
     child: Text('foo'),
   );
@@ -172,7 +172,7 @@ main() {
   Future<void> test_childrenOneIntoReturn() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+Widget f() {
   return /*caret*/Column(
     children: [
       Text('foo'),
@@ -182,7 +182,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+Widget f() {
   return Text('foo');
 }
 ''');
@@ -191,7 +191,7 @@ main() {
   Future<void> test_intoChildren() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Text('aaa'),
@@ -218,7 +218,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Text('aaa'),
