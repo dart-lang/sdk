@@ -1770,16 +1770,16 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ AddImmediate(T1, -kOneByteStringCid);
   __ slli(T1, T1, target::kWordSizeLog2);
   __ add(T1, T1, T2);
-  __ lx(T0, FieldAddress(T1, target::RegExp::function_offset(kOneByteStringCid,
-                                                             sticky)));
+  __ lx(FUNCTION_REG, FieldAddress(T1, target::RegExp::function_offset(
+                                           kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.
   __ li(S5, 0);
 
   // Tail-call the function.
-  __ lx(CODE_REG, FieldAddress(T0, target::Function::code_offset()));
-  __ lx(T1, FieldAddress(T0, target::Function::entry_point_offset()));
+  __ lx(CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ lx(T1, FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ jr(T1);
 }
 

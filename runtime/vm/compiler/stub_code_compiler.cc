@@ -51,7 +51,6 @@ void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
                                                        bool is_final) {
   const Register kResultReg = InitStaticFieldABI::kResultReg;
-  const Register kFunctionReg = InitLateStaticFieldInternalRegs::kFunctionReg;
   const Register kFieldReg = InitStaticFieldABI::kFieldReg;
   const Register kAddressReg = InitLateStaticFieldInternalRegs::kAddressReg;
   const Register kScratchReg = InitLateStaticFieldInternalRegs::kScratchReg;
@@ -61,14 +60,14 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
   __ Comment("Calling initializer function");
   __ PushRegister(kFieldReg);
   __ LoadCompressedFieldFromOffset(
-      kFunctionReg, kFieldReg, target::Field::initializer_function_offset());
+      FUNCTION_REG, kFieldReg, target::Field::initializer_function_offset());
   if (!FLAG_precompiled_mode) {
-    __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                      target::Function::code_offset());
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
   }
-  __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
+  __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ MoveRegister(kResultReg, CallingConventions::kReturnReg);
   __ PopRegister(kFieldReg);
   __ LoadStaticFieldAddress(kAddressReg, kFieldReg, kScratchReg);
@@ -123,7 +122,6 @@ void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
                                                          bool is_final) {
-  const Register kFunctionReg = InitLateInstanceFieldInternalRegs::kFunctionReg;
   const Register kInstanceReg = InitInstanceFieldABI::kInstanceReg;
   const Register kFieldReg = InitInstanceFieldABI::kFieldReg;
   const Register kAddressReg = InitLateInstanceFieldInternalRegs::kAddressReg;
@@ -139,15 +137,15 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
       "Result is a return value from initializer");
 
   __ LoadCompressedFieldFromOffset(
-      kFunctionReg, InitInstanceFieldABI::kFieldReg,
+      FUNCTION_REG, InitInstanceFieldABI::kFieldReg,
       target::Field::initializer_function_offset());
   if (!FLAG_precompiled_mode) {
-    __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                      target::Function::code_offset());
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
   }
-  __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
+  __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ Drop(1);  // Drop argument.
 
   __ PopRegisterPair(kInstanceReg, kFieldReg);

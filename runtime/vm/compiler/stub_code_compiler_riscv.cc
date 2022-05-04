@@ -697,17 +697,19 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
 }
 
 // Input parameters:
-//   S4: arguments descriptor array.
+//   ARGS_DESC_REG: arguments descriptor array.
 void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
   __ subi(SP, SP, 2 * target::kWordSize);
-  __ sx(S4, Address(SP, 1 * target::kWordSize));  // Preserve args descriptor.
+  __ sx(ARGS_DESC_REG,
+        Address(SP, 1 * target::kWordSize));      // Preserve args descriptor.
   __ sx(ZR, Address(SP, 0 * target::kWordSize));  // Result slot.
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ lx(CODE_REG, Address(SP, 0 * target::kWordSize));  // Result.
-  __ lx(S4, Address(SP, 1 * target::kWordSize));  // Restore args descriptor.
+  __ lx(ARGS_DESC_REG,
+        Address(SP, 1 * target::kWordSize));  // Restore args descriptor.
   __ addi(SP, SP, 2 * target::kWordSize);
   __ LeaveStubFrame();
   // Jump to the dart function.
@@ -717,7 +719,7 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
-// S4: arguments descriptor array.
+// ARGS_DESC_REG: arguments descriptor array.
 void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   Label monomorphic;
   __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
@@ -731,11 +733,11 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
-  __ PushRegistersInOrder({S4, ZR});
+  __ PushRegistersInOrder({ARGS_DESC_REG, ZR});
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
   __ PopRegister(CODE_REG);
-  __ PopRegister(S4);
+  __ PopRegister(ARGS_DESC_REG);
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
@@ -1021,27 +1023,28 @@ void StubCodeCompiler::GenerateDeoptimizeStub(Assembler* assembler) {
   __ ret();
 }
 
-// S5: ICData/MegamorphicCache
+// IC_DATA_REG: ICData/MegamorphicCache
 static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ EnterStubFrame();
 
-  __ lx(S4,
-        FieldAddress(S5, target::CallSiteData::arguments_descriptor_offset()));
+  __ lx(ARGS_DESC_REG,
+        FieldAddress(IC_DATA_REG,
+                     target::CallSiteData::arguments_descriptor_offset()));
 
   // Load the receiver.
   __ LoadCompressedSmiFieldFromOffset(
-      T2, S4, target::ArgumentsDescriptor::size_offset());
+      T2, ARGS_DESC_REG, target::ArgumentsDescriptor::size_offset());
   __ slli(TMP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi.
   __ add(TMP, TMP, FP);
   __ LoadFromOffset(A0, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
   // Push: result slot, receiver, ICData/MegamorphicCache,
   // arguments descriptor.
-  __ PushRegistersInOrder({ZR, A0, S5, S4});
+  __ PushRegistersInOrder({ZR, A0, IC_DATA_REG, ARGS_DESC_REG});
 
   // Adjust arguments count.
   __ LoadCompressedSmiFieldFromOffset(
-      T3, S4, target::ArgumentsDescriptor::type_args_len_offset());
+      T3, ARGS_DESC_REG, target::ArgumentsDescriptor::type_args_len_offset());
   Label args_count_ok;
   __ beqz(T3, &args_count_ok, Assembler::kNearJump);
   // Include the type arguments.
@@ -1069,8 +1072,8 @@ static void GenerateDispatcherCode(Assembler* assembler,
 }
 
 // Input:
-//   S4 - arguments descriptor
-//   S5 - icdata/megamorphic_cache
+//   ARGS_DESC_REG - arguments descriptor
+//   IC_DATA_REG - icdata/megamorphic_cache
 void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
     Assembler* assembler) {
   GenerateNoSuchMethodDispatcherBody(assembler);
@@ -2398,7 +2401,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Drop(num_args + 1);
   // Pop returned function object into R0.
   // Restore arguments descriptor array and IC data array.
-  __ PopRegister(T0);  // Pop returned function object into T0.
+  __ PopRegister(FUNCTION_REG);  // Pop returned function object into T0.
   if (save_entry_point) {
     __ PopRegister(T6);
     __ SmiUntag(T6);
@@ -2421,7 +2424,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       target::ICData::TargetIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
-  __ LoadCompressedFromOffset(T0, A1, target_offset);
+  __ LoadCompressedFromOffset(FUNCTION_REG, A1, target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
     // Update counter, ignore overflow.
@@ -2433,15 +2436,16 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // T0: target function.
-  __ LoadCompressedFieldFromOffset(CODE_REG, T0,
+  __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                    target::Function::code_offset());
   if (save_entry_point) {
-    __ add(A7, T0, T6);
+    __ add(A7, FUNCTION_REG, T6);
     __ lx(A7, Address(A7, 0));
   } else {
-    __ LoadFieldFromOffset(A7, T0, target::Function::entry_point_offset());
+    __ LoadFieldFromOffset(A7, FUNCTION_REG,
+                           target::Function::entry_point_offset());
   }
-  __ jr(A7);  // T0: Function, argument to lazy compile stub.
+  __ jr(A7);  // FUNCTION_REG: Function, argument to lazy compile stub.
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2614,12 +2618,12 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
                          target::CallSiteData::arguments_descriptor_offset());
 
   // Get function and call it, if possible.
-  __ LoadCompressedFromOffset(T0, A0, target_offset);
-  __ LoadCompressedFieldFromOffset(CODE_REG, T0,
+  __ LoadCompressedFromOffset(FUNCTION_REG, A0, target_offset);
+  __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                    target::Function::code_offset());
-  __ add(A0, T0, T6);
+  __ add(A0, FUNCTION_REG, T6);
   __ lx(TMP, Address(A0, 0));
-  __ jr(TMP);  // T0: Function, argument to lazy compile stub.
+  __ jr(TMP);  // FUNCTION_REG: Function, argument to lazy compile stub.
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
@@ -2658,21 +2662,22 @@ void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
 }
 
 // Stub for compiling a function and jumping to the compiled code.
-// S4: Arguments descriptor.
-// T0: Function.
+// ARGS_DESC_REG: Arguments descriptor.
+// FUNCTION_REG: Function.
 void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   // Preserve arg desc.
   __ EnterStubFrame();
   // Save arguments descriptor and pass function.
-  __ PushRegistersInOrder({ARGS_DESC_REG, T0});
+  __ PushRegistersInOrder({ARGS_DESC_REG, FUNCTION_REG});
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ PopRegister(T0);             // Restore argument.
+  __ PopRegister(FUNCTION_REG);   // Restore function.
   __ PopRegister(ARGS_DESC_REG);  // Restore arg desc.
   __ LeaveStubFrame();
 
-  __ LoadCompressedFieldFromOffset(CODE_REG, T0,
+  __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                    target::Function::code_offset());
-  __ LoadFieldFromOffset(TMP, T0, target::Function::entry_point_offset());
+  __ LoadFieldFromOffset(TMP, FUNCTION_REG,
+                         target::Function::entry_point_offset());
   __ jr(TMP);
 }
 
@@ -3077,23 +3082,26 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 
 // Calls to the runtime to optimize the given function.
 // A0: function to be re-optimized.
-// S4: argument descriptor (preserved).
+// ARGS_DESC_REG: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ LoadFromOffset(CODE_REG, THR, target::Thread::optimize_stub_offset());
   __ EnterStubFrame();
 
   __ subi(SP, SP, 3 * target::kWordSize);
-  __ sx(S4, Address(SP, 2 * target::kWordSize));  // Preserves args descriptor.
+  __ sx(ARGS_DESC_REG,
+        Address(SP, 2 * target::kWordSize));      // Preserves args descriptor.
   __ sx(ZR, Address(SP, 1 * target::kWordSize));  // Result slot.
   __ sx(A0, Address(SP, 0 * target::kWordSize));  // Function argument.
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ lx(T0, Address(SP, 1 * target::kWordSize));  // Function result.
-  __ lx(S4, Address(SP, 2 * target::kWordSize));  // Restore args descriptor.
+  __ lx(FUNCTION_REG, Address(SP, 1 * target::kWordSize));  // Function result.
+  __ lx(ARGS_DESC_REG,
+        Address(SP, 2 * target::kWordSize));  // Restore args descriptor.
   __ addi(SP, SP, 3 * target::kWordSize);
 
-  __ LoadCompressedFieldFromOffset(CODE_REG, T0,
+  __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                    target::Function::code_offset());
-  __ LoadFieldFromOffset(A1, T0, target::Function::entry_point_offset());
+  __ LoadFieldFromOffset(A1, FUNCTION_REG,
+                         target::Function::entry_point_offset());
   __ LeaveStubFrame();
   __ jr(A1);
   __ ebreak();
@@ -3209,12 +3217,11 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
 
 // Called from megamorphic call sites.
 //  A0: receiver (passed to target)
-//  S5: MegamorphicCache (preserved)
+//  IC_DATA_REG: MegamorphicCache (preserved)
 // Passed to target:
-//  A0: receiver
+//  FUNCTION_REG: target function
 //  CODE_REG: target Code
-//  S4: arguments descriptor
-//  S5: MegamorphicCache
+//  ARGS_DESC_REG: arguments descriptor
 void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Jump if receiver is a smi.
   Label smi_case;
@@ -3225,8 +3232,9 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   Label cid_loaded;
   __ Bind(&cid_loaded);
-  __ lx(T2, FieldAddress(S5, target::MegamorphicCache::buckets_offset()));
-  __ lx(T1, FieldAddress(S5, target::MegamorphicCache::mask_offset()));
+  __ lx(T2,
+        FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
+  __ lx(T1, FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
   // T2: cache buckets array.
   // T1: mask as a smi.
 
@@ -3259,13 +3267,15 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ LoadCompressed(T0, FieldAddress(TMP, base + target::kCompressedWordSize));
-  __ lx(A1, FieldAddress(T0, target::Function::entry_point_offset()));
+  __ LoadCompressed(FUNCTION_REG,
+                    FieldAddress(TMP, base + target::kCompressedWordSize));
+  __ lx(A1, FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ lx(ARGS_DESC_REG,
-        FieldAddress(S5, target::CallSiteData::arguments_descriptor_offset()));
+        FieldAddress(IC_DATA_REG,
+                     target::CallSiteData::arguments_descriptor_offset()));
   if (!FLAG_precompiled_mode) {
-    __ LoadCompressed(CODE_REG,
-                      FieldAddress(T0, target::Function::code_offset()));
+    __ LoadCompressed(
+        CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
   }
   __ jr(A1);  // T0: Function, argument to lazy compile stub.
 
@@ -3290,12 +3300,13 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
 // Input:
 //   A0 - receiver
-//   S5 - icdata
+//   IC_DATA_REG - icdata
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ lx(T1, FieldAddress(S5, target::ICData::entries_offset()));
-  __ lx(S4,
-        FieldAddress(S5, target::CallSiteData::arguments_descriptor_offset()));
+  __ lx(T1, FieldAddress(IC_DATA_REG, target::ICData::entries_offset()));
+  __ lx(ARGS_DESC_REG,
+        FieldAddress(IC_DATA_REG,
+                     target::CallSiteData::arguments_descriptor_offset()));
   __ AddImmediate(T1, target::Array::data_offset() - kHeapObjectTag);
   // T1: first IC entry
   __ LoadTaggedClassIdMayBeSmi(A1, A0);

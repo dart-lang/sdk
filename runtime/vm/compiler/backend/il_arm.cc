@@ -593,36 +593,40 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));  // Function.
+  summary->set_in(
+      0, Location::RegisterLocation(FLAG_precompiled_mode ? R0 : FUNCTION_REG));
   return MakeCallSummary(zone, this, summary);
 }
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load arguments descriptor in R4.
+  // Load arguments descriptor in ARGS_DESC_REG.
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
-  __ LoadObject(R4, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
-  ASSERT(locs()->in(0).reg() == R0);
   if (FLAG_precompiled_mode) {
+    ASSERT(locs()->in(0).reg() == R0);
     // R0: Closure with a cached entry point.
     __ ldr(R2, compiler::FieldAddress(
                    R0, compiler::target::Closure::entry_point_offset()));
   } else {
-    // R0: Function.
-    __ ldr(CODE_REG, compiler::FieldAddress(
-                         R0, compiler::target::Function::code_offset()));
+    ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+    // FUNCTION_REG: Function.
+    __ ldr(CODE_REG,
+           compiler::FieldAddress(FUNCTION_REG,
+                                  compiler::target::Function::code_offset()));
     // Closure functions only have one entry point.
-    __ ldr(R2, compiler::FieldAddress(
-                   R0, compiler::target::Function::entry_point_offset()));
+    __ ldr(R2,
+           compiler::FieldAddress(
+               FUNCTION_REG, compiler::target::Function::entry_point_offset()));
   }
 
-  // R4: Arguments descriptor array.
+  // ARGS_DESC_REG: Arguments descriptor array.
   // R2: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // R9: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-    __ LoadImmediate(R9, 0);
+    __ LoadImmediate(IC_DATA_REG, 0);
   }
   __ blx(R2);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),

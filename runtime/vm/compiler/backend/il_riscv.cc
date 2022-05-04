@@ -570,33 +570,35 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(T0));  // Function.
+  summary->set_in(
+      0, Location::RegisterLocation(FLAG_precompiled_mode ? T0 : FUNCTION_REG));
   return MakeCallSummary(zone, this, summary);
 }
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load arguments descriptor in S4.
+  // Load arguments descriptor in ARGS_DESC_REG.
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
-  ASSERT(locs()->in(0).reg() == T0);
   if (FLAG_precompiled_mode) {
+    ASSERT(locs()->in(0).reg() == T0);
     // T0: Closure with a cached entry point.
     __ LoadFieldFromOffset(A1, T0,
                            compiler::target::Closure::entry_point_offset());
   } else {
-    // T0: Function.
-    __ LoadCompressedFieldFromOffset(CODE_REG, T0,
+    ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+    // FUNCTION_REG: Function.
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                      compiler::target::Function::code_offset());
     // Closure functions only have one entry point.
-    __ LoadFieldFromOffset(A1, T0,
+    __ LoadFieldFromOffset(A1, FUNCTION_REG,
                            compiler::target::Function::entry_point_offset());
   }
 
-  // T0: Function (argument to lazy compile stub)
-  // S4: Arguments descriptor array.
+  // FUNCTION_REG: Function (argument to lazy compile stub)
+  // ARGS_DESC_REG: Arguments descriptor array.
   // A1: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // S5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).

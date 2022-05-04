@@ -6580,7 +6580,7 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));  // Function.
+  summary->set_in(0, Location::RegisterLocation(FUNCTION_REG));  // Function.
   summary->set_out(0, Location::RegisterLocation(EAX));
   return summary;
 }
@@ -6590,16 +6590,17 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
-  __ LoadObject(EDX, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
   // EBX: Code (compiled code or lazy compile stub).
-  ASSERT(locs()->in(0).reg() == EAX);
-  __ movl(EBX, compiler::FieldAddress(EAX, Function::entry_point_offset()));
+  ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+  __ movl(EBX,
+          compiler::FieldAddress(FUNCTION_REG, Function::entry_point_offset()));
 
-  // EAX: Function.
-  // EDX: Arguments descriptor array.
+  // FUNCTION_REG: Function.
+  // ARGS_DESC_REG: Arguments descriptor array.
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ xorl(ECX, ECX);
+  __ xorl(IC_DATA_REG, IC_DATA_REG);
   __ call(EBX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  UntaggedPcDescriptors::kOther, locs(), env());

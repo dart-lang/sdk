@@ -522,7 +522,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
 
   __ LoadObject(R8, parsed_function().function());
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
-  __ LoadUniqueObject(R9, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
   __ Drop(ic_data.SizeWithTypeArgs());
@@ -539,7 +539,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
-  __ LoadUniqueObject(R9, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   __ LoadUniqueObject(CODE_REG, stub);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
@@ -573,10 +573,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
-    __ LoadUniqueObject(R9, cache);
+    __ LoadUniqueObject(IC_DATA_REG, cache);
     CLOBBERS_LR(__ blx(LR));
   } else {
-    __ LoadUniqueObject(R9, cache);
+    __ LoadUniqueObject(IC_DATA_REG, cache);
     __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
     __ Call(compiler::FieldAddress(
         CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
@@ -672,10 +672,10 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   ASSERT(CanCallDart());
   ASSERT(!function.IsClosureFunction());
   if (function.PrologueNeedsArgumentsDescriptor()) {
-    __ LoadObject(R4, arguments_descriptor);
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   } else {
     if (!FLAG_precompiled_mode) {
-      __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
+      __ LoadImmediate(ARGS_DESC_REG, 0);  // GC safe smi zero because of stub.
     }
   }
   // Do not use the code from the function, but let the code be patched so that
@@ -815,7 +815,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   // Load receiver into R0.
   __ LoadFromOffset(
       R0, SP, (count_without_type_args - 1) * compiler::target::kWordSize);
-  __ LoadObject(R4, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 }
 
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(compiler::Label* label,

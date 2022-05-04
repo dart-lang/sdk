@@ -82,9 +82,12 @@ extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CODE_REG = EDI;
+// Set when calling Dart functions in JIT mode, used by LazyCompileStub.
+const Register FUNCTION_REG = EAX;
 const Register PP = kNoRegister;     // No object pool pointer.
 const Register SPREG = ESP;          // Stack pointer register.
 const Register FPREG = EBP;          // Frame pointer register.
+const Register IC_DATA_REG = ECX;    // ICData/MegamorphicCache register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
 const Register THR = ESI;            // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = EBX;
@@ -166,7 +169,6 @@ struct InitStaticFieldABI {
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kFunctionReg = EAX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
 };
@@ -180,7 +182,6 @@ struct InitInstanceFieldABI {
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static const Register kFunctionReg = EAX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
 };

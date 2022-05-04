@@ -525,7 +525,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadUniqueObject(RBX, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
   __ Drop(ic_data.SizeWithTypeArgs(), RCX);
@@ -544,7 +544,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadUniqueObject(RBX, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   __ LoadUniqueObject(CODE_REG, stub);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
@@ -577,10 +577,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
-    __ LoadUniqueObject(RBX, cache);
+    __ LoadUniqueObject(IC_DATA_REG, cache);
     __ call(RCX);
   } else {
-    __ LoadUniqueObject(RBX, cache);
+    __ LoadUniqueObject(IC_DATA_REG, cache);
     __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
     __ call(compiler::FieldAddress(
         CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
@@ -656,10 +656,11 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   ASSERT(CanCallDart());
   ASSERT(!function.IsClosureFunction());
   if (function.PrologueNeedsArgumentsDescriptor()) {
-    __ LoadObject(R10, arguments_descriptor);
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   } else {
     if (!FLAG_precompiled_mode) {
-      __ xorl(R10, R10);  // GC safe smi zero because of stub.
+      __ xorl(ARGS_DESC_REG,
+              ARGS_DESC_REG);  // GC safe smi zero because of stub.
     }
   }
   // Do not use the code from the function, but let the code be patched so that
@@ -792,7 +793,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   // Load receiver into RAX.
   __ movq(RAX,
           compiler::Address(RSP, (count_without_type_args - 1) * kWordSize));
-  __ LoadObject(R10, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 }
 
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(compiler::Label* label,

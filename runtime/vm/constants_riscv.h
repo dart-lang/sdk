@@ -153,6 +153,8 @@ constexpr Register FAR_TMP = S8;
 constexpr Register PP = A5;  // Caches object pool pointer in generated code.
 constexpr Register DISPATCH_TABLE_REG = S9;  // Dispatch table register.
 constexpr Register CODE_REG = A2;
+// Set when calling Dart functions in JIT mode, used by LazyCompileStub.
+constexpr Register FUNCTION_REG = T0;
 constexpr Register FPREG = FP;          // Frame pointer register.
 constexpr Register SPREG = SP;          // Stack pointer register.
 constexpr Register IC_DATA_REG = S5;    // ICData/MegamorphicCache register.
@@ -277,7 +279,6 @@ struct InitStaticFieldABI {
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kFunctionReg = T0;
   static const Register kAddressReg = T3;
   static const Register kScratchReg = T4;
 };
@@ -291,8 +292,6 @@ struct InitInstanceFieldABI {
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static constexpr Register kFunctionReg =
-      T0;  // Must agreee with lazy compile stub.
   static constexpr Register kAddressReg = T3;
   static constexpr Register kScratchReg = T4;
 };
