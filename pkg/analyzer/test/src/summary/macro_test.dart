@@ -1091,6 +1091,58 @@ library
 ''');
   }
 
+  test_declarationsPhase_unit_variables() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInLibrary(
+      DeclarationCode.fromString('final x = 42;'),
+    );
+  }
+}
+
+const myMacro = MyMacro();
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@myMacro
+class A {}
+''', preBuildSequence: [
+      {'package:test/a.dart'}
+    ]);
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @33
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: myMacro @19
+              staticElement: package:test/a.dart::@getter::myMacro
+              staticType: null
+            element: package:test/a.dart::@getter::myMacro
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static final x @-1
+        type: int
+    accessors
+      synthetic static get x @-1
+        returnType: int
+''');
+  }
+
   test_introspect_types_ClassDeclaration_interfaces() async {
     await _assertTypesPhaseIntrospectionText(r'''
 class A implements B, C<int, String> {}
