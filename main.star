@@ -650,3 +650,10 @@ dart.try_builder(
     execution_timeout = 15 * time.minute,
     properties = {"from_ref": "refs/heads/lkgr"},
 )
+
+dart.try_builder(
+    "monorepo-roller",
+    experiments = {"luci.non_production": 100},
+    recipe = "roller/monorepo",
+    execution_timeout = 30 * time.minute,
+)
