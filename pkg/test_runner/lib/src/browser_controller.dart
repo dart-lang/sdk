@@ -12,6 +12,7 @@ import 'package:webdriver/io.dart';
 import 'android.dart';
 import 'configuration.dart';
 import 'path.dart';
+import 'service/web_driver_service.dart';
 import 'utils.dart';
 
 typedef BrowserDoneCallback = void Function(BrowserTestOutput output);
@@ -75,7 +76,8 @@ abstract class Browser {
         browser = Chrome(configuration.browserLocation);
         break;
       case Runtime.safari:
-        browser = Safari();
+        var service = WebDriverService.fromRuntime(Runtime.safari);
+        browser = Safari(service.port);
         break;
       case Runtime.ie9:
       case Runtime.ie10:
@@ -262,20 +264,15 @@ abstract class Browser {
 
 abstract class WebDriverBrowser extends Browser {
   WebDriver _driver;
+  final int _port;
+  final Map<String, dynamic> _desiredCapabilities;
 
-  String get driverExecutable;
-  List<String> get driverArguments;
-  Map<String, dynamic> get desiredCapabilities;
+  WebDriverBrowser(this._port, this._desiredCapabilities);
 
   @override
   Future<bool> start(String url) async {
     _logEvent('Starting $this browser on: $url');
-    var port = await _findUnusedPort();
-    if (!await startBrowserProcess(
-        driverExecutable, ['--port', '$port', ...driverArguments])) {
-      return false;
-    }
-    await _createDriver(port);
+    await _createDriver();
     await _driver.get(url);
     try {
       _logEvent('Got version: ${await version}');
@@ -286,14 +283,14 @@ abstract class WebDriverBrowser extends Browser {
     return true;
   }
 
-  Future<void> _createDriver(int port) async {
+  Future<void> _createDriver() async {
     for (var i = 5; i >= 0; i--) {
       // Give the driver process some time to be ready to accept connections.
       await Future.delayed(const Duration(seconds: 1));
       try {
         _driver = await createDriver(
-            uri: Uri.parse('http://localhost:$port/'),
-            desired: desiredCapabilities);
+            uri: Uri.parse('http://localhost:$_port/'),
+            desired: _desiredCapabilities);
       } catch (error) {
         if (i > 0) {
           _logEvent(
@@ -308,33 +305,10 @@ abstract class WebDriverBrowser extends Browser {
     }
   }
 
-  /// Returns a port that is probably, but not definitely, not in use.
-  ///
-  /// This has a built-in race condition: another process may bind this port at
-  /// any time after this call has returned.
-  static Future<int> _findUnusedPort() async {
-    int port;
-    ServerSocket socket;
-    try {
-      socket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0,
-          v6Only: true);
-    } on SocketException {
-      socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-    }
-    port = socket.port;
-    await socket.close();
-    return port;
-  }
-
   @override
   Future<bool> close() async {
-    try {
-      await _driver?.quit();
-      // Give the driver process some time to be quit the browser.
-      await Future.delayed(const Duration(seconds: 1));
-    } finally {
-      process?.kill();
-    }
+    await _driver?.quit();
+    // Give the driver process some time to be quit the browser.
     return true;
   }
 }
@@ -343,14 +317,11 @@ class Safari extends WebDriverBrowser {
   /// We get the safari version by parsing a version file
   static const versionFile = '/Applications/Safari.app/Contents/version.plist';
 
-  @override
-  final driverExecutable = '/usr/bin/safaridriver';
-  @override
-  final driverArguments = <String>[];
-  @override
-  final desiredCapabilities = <String, dynamic>{
-    'browserName': 'safari',
-  };
+  Safari(int port)
+      : super(port, {
+          'browserName': 'safari',
+        });
+
   @override
   Future<String> get version async {
     // Example of the file:

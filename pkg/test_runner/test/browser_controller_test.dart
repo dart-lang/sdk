@@ -5,8 +5,9 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-
+import 'package:smith/smith.dart';
 import 'package:test_runner/src/browser_controller.dart';
+import 'package:test_runner/src/service/web_driver_service.dart';
 
 void main() async {
   if (Platform.environment.containsKey('CHROME_PATH')) {
@@ -31,8 +32,11 @@ Future<void> testFirefox() {
   return testBrowser(Firefox(Platform.environment['FIREFOX_PATH']));
 }
 
-Future<void> testSafari() {
-  return testBrowser(Safari());
+Future<void> testSafari() async {
+  var service = WebDriverService.fromRuntime(Runtime.safari);
+  await service.start();
+  await testBrowser(Safari(service.port));
+  service.allDone();
 }
 
 Future<void> testBrowser(Browser browser) async {
