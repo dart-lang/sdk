@@ -273,6 +273,15 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     work_list_.Finalize();
     deferred_work_list_.Finalize();
     MournFinalized(this);
+    // MournFinalized inserts newly discovered dead entries into the
+    // linked list attached to the Finalizer. This might create
+    // cross-generational references which might be added to the store
+    // buffer. Release the store buffer to satisfy the invariant that
+    // thread local store buffer is empty after marking and all references
+    // are processed.
+    // TODO(http://dartbug.com/48957):  `thread_` can differ from
+    // `Thread::Current()`.
+    Thread::Current()->ReleaseStoreBuffer();
   }
 
   void MournWeakProperties() {

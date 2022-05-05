@@ -374,8 +374,10 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 
 void Thread::ReleaseStoreBuffer() {
   ASSERT(IsAtSafepoint());
+  if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
+    return;  // Nothing to release.
+  }
   // Prevent scheduling another GC by ignoring the threshold.
-  ASSERT(store_buffer_block_ != NULL);
   StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
