@@ -23,16 +23,21 @@ class CommentReferenceResolver {
 
   /// Resolves [commentReference].
   void resolve(CommentReference commentReference) {
-    var expression = commentReference.expression;
-    if (expression is SimpleIdentifierImpl) {
-      _resolveSimpleIdentifierReference(expression,
-          hasNewKeyword: commentReference.newKeyword != null);
-    } else if (expression is PrefixedIdentifierImpl) {
-      _resolvePrefixedIdentifierReference(expression,
-          hasNewKeyword: commentReference.newKeyword != null);
-    } else if (expression is PropertyAccessImpl) {
-      _resolvePropertyAccessReference(expression,
-          hasNewKeyword: commentReference.newKeyword != null);
+    _resolver.errorReporter.lockLevel++;
+    try {
+      var expression = commentReference.expression;
+      if (expression is SimpleIdentifierImpl) {
+        _resolveSimpleIdentifierReference(expression,
+            hasNewKeyword: commentReference.newKeyword != null);
+      } else if (expression is PrefixedIdentifierImpl) {
+        _resolvePrefixedIdentifierReference(expression,
+            hasNewKeyword: commentReference.newKeyword != null);
+      } else if (expression is PropertyAccessImpl) {
+        _resolvePropertyAccessReference(expression,
+            hasNewKeyword: commentReference.newKeyword != null);
+      }
+    } finally {
+      _resolver.errorReporter.lockLevel--;
     }
   }
 

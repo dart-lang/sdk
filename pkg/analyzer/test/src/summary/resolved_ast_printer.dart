@@ -218,6 +218,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitCommentReference(CommentReference node) {
+    _writeln('CommentReference');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitCompilationUnit(CompilationUnit node) {
     _writeln('CompilationUnit');
     _withIndent(() {

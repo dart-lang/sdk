@@ -91,6 +91,44 @@ void f() {}
     assertElement(findNode.simple('foo]'), findElement.setter('foo'));
   }
 
+  test_class_invalid_ambiguousExtension() async {
+    await assertNoErrorsInCode('''
+/// [foo]
+class A {}
+
+extension E1 on A {
+  int get foo => 1;
+}
+
+extension E2 on A {
+  int get foo => 2;
+}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: null
+''');
+  }
+
+  test_class_invalid_unresolved() async {
+    await assertNoErrorsInCode('''
+/// [foo]
+class A {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: null
+''');
+  }
+
   test_class_staticGetter() async {
     await assertNoErrorsInCode('''
 class A {
