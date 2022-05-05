@@ -14,7 +14,7 @@ dev_dependencies:
   async: ^2.5.0
   expect: any
   lints: any
-  markdown: '>=4.0.0 <6.0.0'
+  markdown: ^4.0.0
   mockito: any
   path: ^1.8.0
   process: ^4.0.0
