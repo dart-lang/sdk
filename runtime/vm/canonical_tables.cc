@@ -69,4 +69,46 @@ uword MetadataMapTraits::Hash(const Object& key) {
   UNREACHABLE();
 }
 
+CanonicalInstanceKey::CanonicalInstanceKey(const Instance& key) : key_(key) {
+  ASSERT(!(key.IsString() || key.IsAbstractType()));
+}
+
+bool CanonicalInstanceKey::Matches(const Instance& obj) const {
+  ASSERT(!(obj.IsString() || obj.IsAbstractType()));
+  if (key_.CanonicalizeEquals(obj)) {
+    ASSERT(obj.IsCanonical());
+    return true;
+  }
+  return false;
+}
+
+uword CanonicalInstanceKey::Hash() const {
+  return key_.CanonicalizeHash();
+}
+
+bool CanonicalInstanceTraits::IsMatch(const Object& a, const Object& b) {
+  ASSERT(!(a.IsString() || a.IsAbstractType()));
+  ASSERT(!(b.IsString() || b.IsAbstractType()));
+  return a.ptr() == b.ptr();
+}
+
+bool CanonicalInstanceTraits::IsMatch(const CanonicalInstanceKey& a,
+                                      const Object& b) {
+  return a.Matches(Instance::Cast(b));
+}
+
+uword CanonicalInstanceTraits::Hash(const Object& key) {
+  ASSERT(!(key.IsString() || key.IsAbstractType()));
+  ASSERT(key.IsInstance());
+  return Instance::Cast(key).CanonicalizeHash();
+}
+
+uword CanonicalInstanceTraits::Hash(const CanonicalInstanceKey& key) {
+  return key.Hash();
+}
+
+ObjectPtr CanonicalInstanceTraits::NewKey(const CanonicalInstanceKey& obj) {
+  return obj.key_.ptr();
+}
+
 }  // namespace dart

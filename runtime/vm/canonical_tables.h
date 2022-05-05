@@ -303,6 +303,31 @@ class MetadataMapTraits {
 };
 typedef UnorderedHashMap<MetadataMapTraits> MetadataMap;
 
+class CanonicalInstanceKey {
+ public:
+  explicit CanonicalInstanceKey(const Instance& key);
+  bool Matches(const Instance& obj) const;
+  uword Hash() const;
+  const Instance& key_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical Instances based on a hash of the fields.
+class CanonicalInstanceTraits {
+ public:
+  static const char* Name() { return "CanonicalInstanceTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b);
+  static bool IsMatch(const CanonicalInstanceKey& a, const Object& b);
+  static uword Hash(const Object& key);
+  static uword Hash(const CanonicalInstanceKey& key);
+  static ObjectPtr NewKey(const CanonicalInstanceKey& obj);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CANONICAL_TABLES_H_

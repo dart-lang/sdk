@@ -333,6 +333,10 @@ class Precompiler : public ValueObject {
   void ReplaceFunctionStaticCallEntries();
   void DropFunctions();
   void DropFields();
+  void VisitConstantInstance(ObjectPtr instance,
+                             WeakTable* visited,
+                             ObjectStore* object_store);
+  void DropTransitiveUserDefinedConstants();
   void TraceTypesFromRetainedClasses();
   void DropMetadata();
   void DropLibraryEntries();
@@ -370,6 +374,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_functiontype_count_;
   intptr_t dropped_typeparam_count_;
   intptr_t dropped_library_count_;
+  intptr_t dropped_constants_arrays_entries_count_;
 
   compiler::ObjectPoolBuilder global_object_pool_builder_;
   GrowableObjectArray& libraries_;
