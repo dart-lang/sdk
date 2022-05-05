@@ -1888,16 +1888,16 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ movl(EDI, Address(ESP, kStringParamOffset));
   __ LoadClassId(EDI, EDI);
   __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(EAX, FieldAddress(
-                   EBX, EDI, TIMES_4,
-                   target::RegExp::function_offset(kOneByteStringCid, sticky)));
+  __ movl(FUNCTION_REG, FieldAddress(EBX, EDI, TIMES_4,
+                                     target::RegExp::function_offset(
+                                         kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,

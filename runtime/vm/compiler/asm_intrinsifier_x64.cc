@@ -1976,13 +1976,13 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ LoadClassId(RDI, RDI);
   __ SubImmediate(RDI, Immediate(kOneByteStringCid));
 #if !defined(DART_COMPRESSED_POINTERS)
-  __ movq(RAX, FieldAddress(
-                   RBX, RDI, TIMES_8,
-                   target::RegExp::function_offset(kOneByteStringCid, sticky)));
+  __ movq(FUNCTION_REG, FieldAddress(RBX, RDI, TIMES_8,
+                                     target::RegExp::function_offset(
+                                         kOneByteStringCid, sticky)));
 #else
-  __ LoadCompressed(RAX, FieldAddress(RBX, RDI, TIMES_4,
-                                      target::RegExp::function_offset(
-                                          kOneByteStringCid, sticky)));
+  __ LoadCompressed(FUNCTION_REG, FieldAddress(RBX, RDI, TIMES_4,
+                                               target::RegExp::function_offset(
+                                                   kOneByteStringCid, sticky)));
 #endif
 
   // Registers are now set up for the lazy compile stub. It expects the function
@@ -1990,9 +1990,10 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ xorq(RCX, RCX);
 
   // Tail-call the function.
-  __ LoadCompressed(CODE_REG,
-                    FieldAddress(RAX, target::Function::code_offset()));
-  __ movq(RDI, FieldAddress(RAX, target::Function::entry_point_offset()));
+  __ LoadCompressed(
+      CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ movq(RDI,
+          FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ jmp(RDI);
 }
 

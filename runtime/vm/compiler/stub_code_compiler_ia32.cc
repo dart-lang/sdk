@@ -494,14 +494,14 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
 }
 
 // Input parameters:
-//   EDX: arguments descriptor array.
+//   ARGS_DESC_REG: arguments descriptor array.
 void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ pushl(EDX);           // Preserve arguments descriptor array.
+  __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object result.
-  __ popl(EDX);  // Restore arguments descriptor array.
+  __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
 
@@ -510,18 +510,18 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
-// EDX: arguments descriptor array.
+// ARGS_DESC_REG: arguments descriptor array.
 void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   Label monomorphic;
   __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
 
   // This was a static call.
   __ EnterStubFrame();
-  __ pushl(EDX);           // Preserve arguments descriptor array.
+  __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
-  __ popl(EDX);  // Restore arguments descriptor array.
+  __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ LeaveFrame();
   __ jmp(EAX);
@@ -1701,11 +1701,11 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
 void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
                                                      Register temp_reg) {
   if (FLAG_optimization_counter_threshold >= 0) {
-    Register ic_reg = ECX;
     Register func_reg = temp_reg;
-    ASSERT(ic_reg != func_reg);
+    ASSERT(func_reg != IC_DATA_REG);
     __ Comment("Increment function counter");
-    __ movl(func_reg, FieldAddress(ic_reg, target::ICData::owner_offset()));
+    __ movl(func_reg,
+            FieldAddress(IC_DATA_REG, target::ICData::owner_offset()));
     __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
   }
 }
@@ -1862,8 +1862,9 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   __ Comment("Extract ICData initial values and receiver cid");
   // ECX: IC data object (preserved).
   // Load arguments descriptor into EDX.
-  __ movl(EDX, FieldAddress(
-                   ECX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movl(
+      ARGS_DESC_REG,
+      FieldAddress(ECX, target::CallSiteData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
   Label loop, found, miss;
   // ECX: IC data object (preserved).
@@ -1876,7 +1877,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   // last time we need the argument descriptor, and we reuse EAX for the
   // class IDs from the IC descriptor.  In the 2-argument case we preserve
   // the argument descriptor in EAX.
-  __ movl(EAX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ movl(EAX, FieldAddress(ARGS_DESC_REG,
+                            target::ArgumentsDescriptor::count_offset()));
   if (num_args == 1) {
     // Load receiver into EDI.
     __ movl(EDI,
@@ -1937,12 +1939,13 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   __ Comment("IC miss");
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
-  __ movl(EAX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ movl(EAX, FieldAddress(ARGS_DESC_REG,
+                            target::ArgumentsDescriptor::count_offset()));
   __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ pushl(EDX);           // Preserve arguments descriptor array.
+  __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
   __ pushl(ECX);           // Preserve IC data object.
   __ pushl(Immediate(0));  // Result slot.
   // Push call arguments.
@@ -1956,9 +1959,9 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popl(EAX);
   }
-  __ popl(EAX);  // Pop returned function object into EAX.
+  __ popl(FUNCTION_REG);  // Pop returned function object into EAX.
   __ popl(ECX);  // Restore IC data array.
-  __ popl(EDX);  // Restore arguments descriptor array.
+  __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1976,11 +1979,12 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
     __ addl(Address(EBX, count_offset), Immediate(target::ToRawSmi(1)));
   }
 
-  __ movl(EAX, Address(EBX, target_offset));
+  __ movl(FUNCTION_REG, Address(EBX, target_offset));
   __ Bind(&call_target_function);
   __ Comment("Call target");
   // EAX: Target function.
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset(entry_kind)));
+  __ jmp(FieldAddress(FUNCTION_REG,
+                      target::Function::entry_point_offset(entry_kind)));
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2141,12 +2145,14 @@ static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
   }
 
   // Load arguments descriptor into EDX.
-  __ movl(EDX, FieldAddress(
-                   ECX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movl(
+      ARGS_DESC_REG,
+      FieldAddress(ECX, target::CallSiteData::arguments_descriptor_offset()));
 
   // Get function and call it, if possible.
-  __ movl(EAX, Address(EBX, target_offset));
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset(entry_kind)));
+  __ movl(FUNCTION_REG, Address(EBX, target_offset));
+  __ jmp(FieldAddress(FUNCTION_REG,
+                      target::Function::entry_point_offset(entry_kind)));
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
@@ -2187,18 +2193,18 @@ void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
 }
 
 // Stub for compiling a function and jumping to the compiled code.
-// EDX: Arguments descriptor.
-// EAX: Function.
+// ARGS_DESC_REG: Arguments descriptor.
+// FUNCTION_REG: Function.
 void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(EAX);  // Pass function.
+  __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
+  __ pushl(FUNCTION_REG);   // Pass function.
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popl(EAX);  // Restore function.
-  __ popl(EDX);  // Restore arguments descriptor array.
+  __ popl(FUNCTION_REG);   // Restore function.
+  __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ LeaveFrame();
 
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
 // ECX: Contains an ICData.
@@ -2612,20 +2618,21 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 
 // Calls to the runtime to optimize the given function.
 // EBX: function to be reoptimized.
-// EDX: argument descriptor (preserved).
+// ARGS_DESC_REG: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ movl(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
-  __ pushl(EDX);
+  __ pushl(ARGS_DESC_REG);
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ pushl(EBX);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
-  __ popl(EAX);  // Get Function object
-  __ popl(EDX);  // Restore argument descriptor.
+  __ popl(FUNCTION_REG);   // Get Function object
+  __ popl(ARGS_DESC_REG);  // Restore argument descriptor.
   __ LeaveFrame();
-  __ movl(CODE_REG, FieldAddress(EAX, target::Function::code_offset()));
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ movl(CODE_REG,
+          FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ int3();
 }
 
@@ -2735,10 +2742,11 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
 
 // Called from megamorphic calls.
 //  EBX: receiver (passed to target)
-//  ECX: target::MegamorphicCache (preserved)
+//  IC_DATA_REG: target::MegamorphicCache (preserved)
 // Passed to target:
 //  EBX: target entry point
-//  EDX: argument descriptor
+//  FUNCTION_REG: target function
+//  ARGS_DESC_REG: argument descriptor
 void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Jump if receiver is a smi.
   Label smi_case;
@@ -2753,8 +2761,10 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   Label cid_loaded;
   __ Bind(&cid_loaded);
   __ pushl(EBX);  // save receiver
-  __ movl(EBX, FieldAddress(ECX, target::MegamorphicCache::mask_offset()));
-  __ movl(EDI, FieldAddress(ECX, target::MegamorphicCache::buckets_offset()));
+  __ movl(EBX,
+          FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
+  __ movl(EDI, FieldAddress(IC_DATA_REG,
+                            target::MegamorphicCache::buckets_offset()));
   // EDI: cache buckets array.
   // EBX: mask as a smi.
 
@@ -2783,11 +2793,13 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, base + target::kWordSize));
-  __ movl(EDX, FieldAddress(
-                   ECX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movl(FUNCTION_REG,
+          FieldAddress(EDI, EDX, TIMES_4, base + target::kWordSize));
+  __ movl(ARGS_DESC_REG,
+          FieldAddress(IC_DATA_REG,
+                       target::CallSiteData::arguments_descriptor_offset()));
   __ popl(EBX);  // restore receiver
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 
   __ Bind(&probe_failed);
   // Probe failed, check if it is a miss.

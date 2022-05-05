@@ -7,8 +7,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:analyzer/src/manifest/charcodes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:charcode/charcode.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';

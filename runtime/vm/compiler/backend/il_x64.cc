@@ -6916,37 +6916,40 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));  // Function.
+  summary->set_in(0, Location::RegisterLocation(
+                         FLAG_precompiled_mode ? RAX : FUNCTION_REG));
   return MakeCallSummary(zone, this, summary);
 }
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Arguments descriptor is expected in R10.
+  // Arguments descriptor is expected in ARGS_DESC_REG.
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
-  __ LoadObject(R10, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
-  ASSERT(locs()->in(0).reg() == RAX);
   if (FLAG_precompiled_mode) {
+    ASSERT(locs()->in(0).reg() == RAX);
     // RAX: Closure with cached entry point.
     __ movq(RCX, compiler::FieldAddress(
                      RAX, compiler::target::Closure::entry_point_offset()));
   } else {
-    // RAX: Function.
+    ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+    // FUNCTION_REG: Function.
     __ LoadCompressed(
-        CODE_REG,
-        compiler::FieldAddress(RAX, compiler::target::Function::code_offset()));
+        CODE_REG, compiler::FieldAddress(
+                      FUNCTION_REG, compiler::target::Function::code_offset()));
     // Closure functions only have one entry point.
     __ movq(RCX, compiler::FieldAddress(
-                     RAX, compiler::target::Function::entry_point_offset()));
+                     FUNCTION_REG,
+                     compiler::target::Function::entry_point_offset()));
   }
 
-  // R10: Arguments descriptor array.
+  // ARGS_DESC_REG: Arguments descriptor array.
   // RCX: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-    __ xorq(RBX, RBX);
+    __ xorq(IC_DATA_REG, IC_DATA_REG);
   }
   __ call(RCX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),

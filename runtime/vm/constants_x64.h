@@ -120,8 +120,11 @@ const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register PP = R15;
 const Register SPREG = RSP;          // Stack pointer register.
 const Register FPREG = RBP;          // Frame pointer register.
+const Register IC_DATA_REG = RBX;    // ICData/MegamorphicCache register.
 const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 const Register CODE_REG = R12;
+// Set when calling Dart functions in JIT mode, used by LazyCompileStub.
+const Register FUNCTION_REG = RAX;
 const Register THR = R14;  // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = RBX;
 
@@ -235,7 +238,6 @@ struct InitStaticFieldABI {
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kFunctionReg = RAX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
 };
@@ -249,7 +251,6 @@ struct InitInstanceFieldABI {
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static const Register kFunctionReg = RAX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
 };
