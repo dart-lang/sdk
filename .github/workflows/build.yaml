@@ -27,8 +27,8 @@ jobs:
           - benchmark
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28 #v3
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d #v1
         with:
           sdk: dev
 
@@ -40,7 +40,7 @@ jobs:
         run: ./tool/bot.sh
       - name: upload coverage
         if: matrix.linter-bot == 'coverage'
-        uses: coverallsapp/github-action@1.1.3
+        uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057 # v1.1.3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: var/lcov.info
