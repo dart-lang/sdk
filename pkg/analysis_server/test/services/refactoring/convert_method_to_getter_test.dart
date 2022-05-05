@@ -24,7 +24,7 @@ class ConvertMethodToGetterTest extends RefactoringTest {
   Future<void> test_change_function() async {
     await indexTestUnit('''
 int test() => 42;
-main() {
+void f() {
   var a = test();
   var b = test();
 }
@@ -34,7 +34,7 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int get test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
@@ -121,7 +121,7 @@ void f(A a, B b) {
   Future<void> test_checkInitialConditions_alreadyGetter() async {
     await indexTestUnit('''
 int get test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
@@ -136,7 +136,7 @@ main() {
   Future<void> test_checkInitialConditions_hasParameters() async {
     await indexTestUnit('''
 int test(x) => x * 2;
-main() {
+void f() {
   var v = test(1);
 }
 ''');
@@ -149,7 +149,7 @@ main() {
 
   Future<void> test_checkInitialConditions_localFunction() async {
     await indexTestUnit('''
-main() {
+void f() {
   test() {}
   var v = test();
 }

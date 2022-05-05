@@ -20,7 +20,7 @@ class SetPropertyValueTest extends FlutterBase {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('');
 }
 ''');
@@ -36,7 +36,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     maxLines: 42,
@@ -49,7 +49,7 @@ void main() {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -65,7 +65,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 42);
 }
 ''');
@@ -75,7 +75,7 @@ void main() {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -88,7 +88,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', );
 }
 ''');
@@ -98,7 +98,7 @@ void main() {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -114,7 +114,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('bbb');
 }
 ''');

@@ -18,7 +18,7 @@ void main() {
 class RenameLabelTest extends RenameRefactoringTest {
   Future<void> test_checkNewName_LocalVariableElement() async {
     await indexTestUnit('''
-main() {
+void f() {
 test:
   while (true) {
     break test;
@@ -38,7 +38,7 @@ test:
 
   Future<void> test_createChange() async {
     await indexTestUnit('''
-main() {
+void f() {
 test:
   while (true) {
     break test;
@@ -52,7 +52,7 @@ test:
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
 newName:
   while (true) {
     break newName;
@@ -63,7 +63,7 @@ newName:
 
   Future<void> test_oldName() async {
     await indexTestUnit('''
-main() {
+void f() {
 test:
   while (true) {
     break test;

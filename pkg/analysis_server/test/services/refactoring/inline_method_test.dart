@@ -97,7 +97,7 @@ class InlineMethodTest extends _InlineMethodTest {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res = test(1, 2);
 }
 ''');
@@ -116,7 +116,7 @@ class A {
   test(a, b) {
     return a + b;
   }
-  main() {
+  void f() {
     var res = test(1, 2);
   }
 }
@@ -187,7 +187,7 @@ class A {
   bar() {}
   test() {}
 }
-main() {
+void f() {
  A a = new A();
  a..foo()..test()..bar();
 }
@@ -217,7 +217,7 @@ class A {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res1 = test(1, 2);
   var res2 = test(10, 20);
 }
@@ -237,7 +237,7 @@ main() {
 
   Future<void> test_bad_notExecutableElement() async {
     await indexTestUnit(r'''
-main() {
+void f() {
 }
 ''');
     _createRefactoring(') {');
@@ -247,7 +247,7 @@ main() {
 
   Future<void> test_bad_notSimpleIdentifier() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   var test = 42;
   var res = test;
 }
@@ -291,7 +291,7 @@ class A {
     print(b);
   }
 }
-main() {
+void f() {
   print(new A().test);
 }
 ''');
@@ -308,7 +308,7 @@ test() {
   }
   return 2;
 }
-main() {
+void f() {
   var res = test();
 }
 ''');
@@ -328,7 +328,7 @@ class Outer {
   Inner inner = Inner();
 }
 
-void main() {
+void f() {
   Inner createInner() => new Inner()
       ..a = 'a'
       ..b = 'b';
@@ -349,7 +349,7 @@ class Outer {
   Inner inner = Inner();
 }
 
-void main() {
+void f() {
   Inner createInner() => new Inner()
       ..a = 'a'
       ..b = 'b';
@@ -370,7 +370,7 @@ class A {
     return f * 2;
   }
 }
-main() {
+void f() {
   A a = new A();
   print(a.foo);
 }
@@ -381,7 +381,7 @@ main() {
 class A {
   var f;
 }
-main() {
+void f() {
   A a = new A();
   print(a.f * 2);
 }
@@ -399,7 +399,7 @@ class A {
 class B {
   A a = new A();
 }
-main() {
+void f() {
   B b = new B();
   print(b.a.foo);
 }
@@ -413,7 +413,7 @@ class A {
 class B {
   A a = new A();
 }
-main() {
+void f() {
   B b = new B();
   print(b.a.f * 2);
 }
@@ -428,7 +428,7 @@ class A {
     f = x;
   }
 }
-main() {
+void f() {
   A a = new A();
   a.foo = 0;
 }
@@ -439,7 +439,7 @@ main() {
 class A {
   var f;
 }
-main() {
+void f() {
   A a = new A();
   a.f = 0;
 }
@@ -457,7 +457,7 @@ class A {
 class B {
   A a = new A();
 }
-main() {
+void f() {
   B b = new B();
   b.a.foo = 0;
 }
@@ -471,7 +471,7 @@ class A {
 class B {
   A a = new A();
 }
-main() {
+void f() {
   B b = new B();
   b.a.f = 0;
 }
@@ -481,14 +481,14 @@ main() {
   Future<void> test_function_expressionFunctionBody() async {
     await indexTestUnit(r'''
 test(a, b) => a + b;
-main() {
+void f() {
   print(test(1, 2));
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -501,7 +501,7 @@ test(a, b) {
   print(b);
   return a + b;
 }
-main() {
+void f() {
   var v;
   v = test(1, 2);
 }
@@ -509,7 +509,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var v;
   print(1);
   print(2);
@@ -523,14 +523,14 @@ main() {
 int test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var v = test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var v = 1 + 2;
 }
 ''');
@@ -543,14 +543,14 @@ test(a, b) {
   print(b);
   return;
 }
-main() {
+void f() {
   test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(1);
   print(2);
 }
@@ -564,14 +564,14 @@ test(a, b) {
   print(b);
   return a + b;
 }
-main() {
+void f() {
   var v = test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(1);
   print(2);
   var v = 1 + 2;
@@ -581,7 +581,7 @@ main() {
 
   Future<void> test_function_multilineString() async {
     await indexTestUnit(r"""
-main() {
+void f() {
   {
     test();
   }
@@ -596,7 +596,7 @@ second line
     _createRefactoring('test() {');
     // validate change
     return _assertSuccessfulRefactoring(r"""
-main() {
+void f() {
   {
     print('''
 first line
@@ -671,7 +671,7 @@ test(a, b) {
   var c = a + b;
   print(c);
 }
-main() {
+void f() {
   test(1, 2);
   var c = 0;
 }
@@ -679,7 +679,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var c2 = 1 + 2;
   print(c2);
   var c = 0;
@@ -693,7 +693,7 @@ test(a, b) {
   var c = a + b;
   print(c);
 }
-main() {
+void f() {
   var c = 0;
   test(1, 2);
 }
@@ -701,7 +701,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var c = 0;
   var c2 = 1 + 2;
   print(c2);
@@ -715,14 +715,14 @@ test(a, b) {
   var c = a + b;
   print(c);
 }
-main() {
+void f() {
   test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var c = 1 + 2;
   print(c);
 }
@@ -735,14 +735,14 @@ test(a, b) {
   print(a);
   print(b);
 }
-main() {
+void f() {
   test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(1);
   print(2);
 }
@@ -755,7 +755,7 @@ test(a, b) {
   print(a);
   print(b);
 }
-main() {
+void f() {
   {
     test(1, 2);
   }
@@ -764,7 +764,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   {
     print(1);
     print(2);
@@ -778,14 +778,14 @@ main() {
 void test(a, b) {
   print(a + b);
 }
-main() {
+void f() {
   test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -796,7 +796,7 @@ main() {
 test(int p) {
   print(p * 2);
 }
-main() {
+void f() {
   var v;
   v = test(0);
 }
@@ -804,7 +804,7 @@ main() {
     _createRefactoring('test(int p)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var v;
   v = (int p) {
     print(p * 2);
@@ -819,14 +819,14 @@ main() {
 test(int p) {
   print(p * 2);
 }
-main() {
+void f() {
   var v = test(0);
 }
 ''');
     _createRefactoring('test(int p)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var v = (int p) {
     print(p * 2);
   }(0);
@@ -840,14 +840,14 @@ test(int p) {
   print(p);
   print(p * 2);
 }
-main() {
+void f() {
   var v = test(0);
 }
 ''');
     _createRefactoring('test(int p)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var v = (int p) {
     print(p);
     print(p * 2);
@@ -860,14 +860,14 @@ main() {
     await indexTestUnit(r'''
 test(int p) {
 }
-main() {
+void f() {
   var v = test(0);
 }
 ''');
     _createRefactoring('test(int p)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var v = (int p) {
   }(0);
 }
@@ -880,7 +880,7 @@ var topLevelField = 0;
 test() {
   print(topLevelField);
 }
-main() {
+void f() {
   test();
 }
 ''');
@@ -888,7 +888,7 @@ main() {
     // validate change
     return _assertSuccessfulRefactoring(r'''
 var topLevelField = 0;
-main() {
+void f() {
   print(topLevelField);
 }
 ''');
@@ -1015,7 +1015,7 @@ void f(A a) {
 class A {
   static int get result => 1 + 2;
 }
-main() {
+void f() {
   print(A.result);
 }
 ''');
@@ -1024,7 +1024,7 @@ main() {
     return _assertSuccessfulRefactoring(r'''
 class A {
 }
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -1033,14 +1033,14 @@ main() {
   Future<void> test_getter_topLevel() async {
     await indexTestUnit(r'''
 String get message => 'Hello, World!';
-main() {
+void f() {
   print(message);
 }
 ''');
     _createRefactoring('message =>');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print('Hello, World!');
 }
 ''');
@@ -1051,7 +1051,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res = test(1, 2);
 }
 ''');
@@ -1067,7 +1067,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res1 = test(1, 2);
   var res2 = test(10, 20);
 }
@@ -1154,7 +1154,7 @@ class B extends A {
     print(this.fB);
   }
 }
-main() {
+void f() {
   B b = new B();
   b.test();
 }
@@ -1168,7 +1168,7 @@ class A {
 class B extends A {
   var fB;
 }
-main() {
+void f() {
   B b = new B();
   print(b.fA);
   print(b.fB);
@@ -1191,7 +1191,7 @@ class B extends A {
     print(B.FB);
   }
 }
-main() {
+void f() {
   B b = new B();
   b.test();
 }
@@ -1205,7 +1205,7 @@ class A {
 class B extends A {
   static var FB = 2;
 }
-main() {
+void f() {
   B b = new B();
   print(B.FB);
   print(A.FA);
@@ -1346,7 +1346,7 @@ class B {
     a.accept(this);
   }
 }
-main() {
+void f() {
   B b = new B();
   A a = new A();
   b.test(a);
@@ -1360,7 +1360,7 @@ class A {
 }
 class B {
 }
-main() {
+void f() {
   B b = new B();
   A a = new A();
   print(b);
@@ -1399,7 +1399,7 @@ class A {
     await indexTestUnit(r'''
 fa(pa) => fb(pb: true);
 fb({pb: false}) {}
-main() {
+void f() {
   fa(null);
 }
 ''');
@@ -1408,7 +1408,7 @@ main() {
     return _assertSuccessfulRefactoring(r'''
 fa(pa) => fb(pb: true);
 fb({pb: false}) {}
-main() {
+void f() {
   fb(pb: true);
 }
 ''');
@@ -1419,7 +1419,7 @@ main() {
 test({a: 0, b: 2}) {
   print(a + b);
 }
-main() {
+void f() {
   test(a: 10, b: 20);
   test(b: 20, a: 10);
 }
@@ -1427,7 +1427,7 @@ main() {
     _createRefactoring('test({');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(10 + 20);
   print(10 + 20);
 }
@@ -1440,14 +1440,14 @@ main() {
 test({a: 42}) {
   print(a);
 }
-main() {
+void f() {
   test();
 }
 ''');
     _createRefactoring('test(');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(42);
 }
 ''');
@@ -1459,14 +1459,14 @@ main() {
 test([a = 42]) {
   print(a);
 }
-main() {
+void f() {
   test();
 }
 ''');
     _createRefactoring('test(');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(42);
 }
 ''');
@@ -1478,14 +1478,14 @@ main() {
 test([a]) {
   print(a);
 }
-main() {
+void f() {
   test();
 }
 ''');
     _createRefactoring('test(');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(null);
 }
 ''');
@@ -1497,7 +1497,7 @@ main() {
 test(a) {
   print(a);
 }
-main() {
+void f() {
   test();
 }
 ''');
@@ -1513,14 +1513,14 @@ main() {
   Future<void> test_reference_expressionBody() async {
     await indexTestUnit(r'''
 String message() => 'Hello, World!';
-main() {
+void f() {
   print(message);
 }
 ''');
     _createRefactoring('message()');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(() => 'Hello, World!');
 }
 ''');
@@ -1552,7 +1552,7 @@ baz(x) {}
 
   Future<void> test_reference_toLocal() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   test(a, b) {
     print(a);
     print(b);
@@ -1563,7 +1563,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print((a, b) {
     print(a);
     print(b);
@@ -1578,14 +1578,14 @@ test(a, b) {
   print(a);
   print(b);
 }
-main() {
+void f() {
   print(test);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print((a, b) {
     print(a);
     print(b);
@@ -1653,14 +1653,14 @@ void f(A a) {
 void set result(x) {
   print(x + 1);
 }
-main() {
+void f() {
   result = 5;
 }
 ''');
     _createRefactoring('result(x)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print(5 + 1);
 }
 ''');
@@ -1671,14 +1671,14 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res = test(1, 2);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var res = 1 + 2;
 }
 ''');
@@ -1689,7 +1689,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res = test(1, 2);
 }
 ''');
@@ -1700,7 +1700,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res = 1 + 2;
 }
 ''');
@@ -1711,7 +1711,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res1 = test(1, 2);
   var res2 = test(10, 20);
 }
@@ -1719,7 +1719,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var res1 = 1 + 2;
   var res2 = 10 + 20;
 }
@@ -1731,7 +1731,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res1 = test(1, 2);
   var res2 = test(10, 20);
 }
@@ -1742,7 +1742,7 @@ main() {
 test(a, b) {
   return a + b;
 }
-main() {
+void f() {
   var res1 = 1 + 2;
   var res2 = test(10, 20);
 }
@@ -1755,14 +1755,14 @@ main() {
 test(a, b) {
   return a * (b);
 }
-main() {
+void f() {
   var res = test(1, 2 + 3);
 }
 ''');
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var res = 1 * (2 + 3);
 }
 ''');
@@ -1773,7 +1773,7 @@ main() {
 test(a, b) {
   return a * b;
 }
-main() {
+void f() {
   var res1 = test(1, 2 + 3);
   var res2 = test(1, (2 + 3));
 }
@@ -1781,7 +1781,7 @@ main() {
     _createRefactoring('test(a, b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var res1 = 1 * (2 + 3);
   var res2 = 1 * (2 + 3);
 }

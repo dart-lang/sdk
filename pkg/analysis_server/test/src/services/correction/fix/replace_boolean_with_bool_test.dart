@@ -23,13 +23,13 @@ class ReplaceBooleanWithBoolMultiTest extends FixProcessorTest {
 
   Future<void> test_all() async {
     await resolveTestCode('''
-main() {
+void f() {
   boolean v;
   boolean w;
 }
 ''');
     await assertHasFixAllFix(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, '''
-main() {
+void f() {
   bool v;
   bool w;
 }
@@ -44,13 +44,13 @@ class ReplaceBooleanWithBoolTest extends FixProcessorTest {
 
   Future<void> test_single() async {
     await resolveTestCode('''
-main() {
+void f() {
   boolean v;
   print(v);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   bool v;
   print(v);
 }

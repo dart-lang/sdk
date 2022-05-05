@@ -91,7 +91,7 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
 
   Future<void> test_dart_instanceCreationExpression() async {
     addTestFile(r'''
-main() {
+void f() {
   new ; // ref
 }
 ''');
@@ -185,7 +185,7 @@ class X extends {} // ref
 
   Future<void> test_includedElementKinds_value() async {
     addTestFile(r'''
-main() {
+void f() {
   print(); // ref
 }
 ''');
@@ -229,7 +229,7 @@ main() {
     addTestFile(r'''
 void foo(List<int> a) {}
 
-main() {
+void f() {
   foo(); // ref
 }
 ''');
@@ -327,7 +327,7 @@ void f(MyEnum e) {
     addTestFile(r'''
 void foo({int a, String b}) {}
 
-main() {
+void f() {
   foo(b: ); // ref
 }
 ''');
@@ -391,7 +391,7 @@ main() {
     addTestFile(r'''
 void foo(double a) {}
 
-main() {
+void f() {
   foo(); // ref
 }
 ''');
@@ -461,7 +461,7 @@ main() {
 
   Future<void> test_relevanceTags_location_assignment() async {
     addTestFile(r'''
-main() {
+void f() {
   int v;
   v = // ref;
 }
@@ -592,7 +592,7 @@ int v = // ref;
 
   Future<void> test_relevanceTags_location_listLiteral() async {
     addTestFile(r'''
-main() {
+void f() {
   var v = [0, ]; // ref
 }
 ''');

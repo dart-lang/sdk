@@ -23,7 +23,7 @@ class CreateMixinTest extends FixProcessorTest {
 
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestCode('''
-main() {
+void f() {
   prefix.Test v = null;
   print(v);
 }
@@ -39,7 +39,7 @@ class A {}
     await resolveTestCode('''
 import 'lib.dart' as lib;
 
-main() {
+void f() {
   lib.A? a = null;
   lib.Test? t = null;
   print('\$a \$t');
@@ -81,7 +81,7 @@ mixin Test {
 
   Future<void> test_instanceCreation_withNew() async {
     await resolveTestCode('''
-main() {
+void f() {
   new Test();
 }
 ''');
@@ -90,7 +90,7 @@ main() {
 
   Future<void> test_instanceCreation_withoutNew() async {
     await resolveTestCode('''
-main() {
+void f() {
   Test();
 }
 ''');
@@ -99,13 +99,13 @@ main() {
 
   Future<void> test_itemOfList() async {
     await resolveTestCode('''
-main() {
+void f() {
   var a = [Test];
   print(a);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var a = [Test];
   print(a);
 }
@@ -122,14 +122,14 @@ class MyAnnotation {
   const MyAnnotation(a, b);
 }
 @MyAnnotation(int, const [Test])
-main() {}
+void f() {}
 ''');
     await assertHasFix('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
 @MyAnnotation(int, const [Test])
-main() {}
+void f() {}
 
 mixin Test {
 }
@@ -141,13 +141,13 @@ mixin Test {
 
   Future<void> test_simple() async {
     await resolveTestCode('''
-main() {
+void f() {
   Test v = null;
   print(v);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   Test v = null;
   print(v);
 }

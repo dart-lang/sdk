@@ -139,7 +139,7 @@ class B {}
 ''');
     await resolveTestCode(r'''
 import 'lib.dart' show A;
-main() {
+void f() {
   A? a;
   B b;
   print('$a $b');
@@ -147,7 +147,7 @@ main() {
 ''');
     await assertHasFix(r'''
 import 'lib.dart' show A, B;
-main() {
+void f() {
   A? a;
   B b;
   print('$a $b');
@@ -158,7 +158,7 @@ main() {
   Future<void> test_sdk() async {
     await resolveTestCode(r'''
 import 'dart:collection' show HashMap;
-main() {
+void f() {
   HashMap? s = null;
   LinkedHashMap? f = null;
   print('$s $f');
@@ -166,7 +166,7 @@ main() {
 ''');
     await assertHasFix(r'''
 import 'dart:collection' show HashMap, LinkedHashMap;
-main() {
+void f() {
   HashMap? s = null;
   LinkedHashMap? f = null;
   print('$s $f');

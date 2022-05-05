@@ -23,7 +23,7 @@ class RemoveUnusedCatchStackMultiTest extends FixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-main() {
+void f() {
   try {
     throw 42;
   } on int catch (i, stack) {
@@ -32,7 +32,7 @@ main() {
 }
 ''');
     await assertHasFixAllFix(HintCode.UNUSED_CATCH_STACK, '''
-main() {
+void f() {
   try {
     throw 42;
   } on int catch (i) {
@@ -50,7 +50,7 @@ class RemoveUnusedCatchStackTest extends FixProcessorTest {
 
   Future<void> test_removeUnusedCatchStack() async {
     await resolveTestCode('''
-main() {
+void f() {
   try {
     throw 42;
   } catch (e, stack) {
@@ -58,7 +58,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   try {
     throw 42;
   } catch (e) {

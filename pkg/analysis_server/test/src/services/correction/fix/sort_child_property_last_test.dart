@@ -25,7 +25,7 @@ class SortChildPropertyLastBulkTest extends BulkFixProcessorTest {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: [
       Column(
@@ -46,7 +46,7 @@ main() {
     // see: linter/test/rules/sort_child_properties_last.dart:nestedChildren()
     await assertHasFix('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
@@ -86,7 +86,7 @@ class SortChildPropertyLastTest extends FixProcessorLintTest {
   Future<void> test_sort() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: <Widget>[
       Text('aaa'),
@@ -99,7 +99,7 @@ main() {
 ''');
     await assertHasFix('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: <Widget>[

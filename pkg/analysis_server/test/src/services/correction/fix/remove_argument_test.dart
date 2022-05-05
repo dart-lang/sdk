@@ -26,7 +26,7 @@ class RemoveArgumentBulkTest extends BulkFixProcessorTest {
 void f({bool valWithDefault = true, bool val}) {}
 void f2({bool valWithDefault = true, bool val}) {}
 
-void main() {
+void g() {
   f(valWithDefault: true);
   f2(valWithDefault: true, val: false);
 }
@@ -35,7 +35,7 @@ void main() {
 void f({bool valWithDefault = true, bool val}) {}
 void f2({bool valWithDefault = true, bool val}) {}
 
-void main() {
+void g() {
   f();
   f2(val: false);
 }
@@ -94,14 +94,14 @@ class RemoveArgumentTest extends FixProcessorLintTest {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool? val}) {}
 
-void main() {
+void g() {
   f(valWithDefault: true);
 }
 ''');
     await assertHasFix('''
 void f({bool valWithDefault = true, bool? val}) {}
 
-void main() {
+void g() {
   f();
 }
 ''');
@@ -128,14 +128,14 @@ void f() {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool? val}) {}
 
-void main() {
+void g() {
   f(valWithDefault: true, val: false);
 }
 ''');
     await assertHasFix('''
 void f({bool valWithDefault = true, bool? val}) {}
 
-void main() {
+void g() {
   f(val: false);
 }
 ''');
@@ -145,14 +145,14 @@ void main() {
     await resolveTestCode('''
 void g(int x, [int y = 0]) {}
 
-void main() {
+void f() {
   g(1, 0);
 }
 ''');
     await assertHasFix('''
 void g(int x, [int y = 0]) {}
 
-void main() {
+void f() {
   g(1);
 }
 ''');

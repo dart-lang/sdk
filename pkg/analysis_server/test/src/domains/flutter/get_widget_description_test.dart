@@ -20,7 +20,7 @@ class GetWidgetDescriptionTest extends FlutterBase {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -37,7 +37,7 @@ void main() {
 
   Future<void> test_notInstanceCreation() async {
     addTestFile(r'''
-void main() {
+void f() {
   42;
 }
 ''');
@@ -52,7 +52,7 @@ void main() {
 
   Future<void> test_unresolvedInstanceCreation() async {
     addTestFile(r'''
-void main() {
+void f() {
   new Foo();
 }
 ''');

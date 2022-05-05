@@ -21,12 +21,12 @@ class InsertSemicolonTest extends FixProcessorTest {
 
   Future<void> test_expectedToken_semicolon() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(0)
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   print(0);
 }
 ''');

@@ -23,7 +23,7 @@ class ContainerPropertiesTest extends WidgetDescriptionBase {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
     alignment: Alignment.centerRight,
@@ -52,7 +52,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Column(
     children: [
       Text(''),
@@ -85,7 +85,7 @@ class ContainerPropertyAlignmentTest extends WidgetDescriptionBase {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     alignment: Alignment.centerRight,
     widthFactor: 2,
@@ -102,7 +102,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     alignment: Alignment.centerRight,
     child: Text(''),
@@ -134,7 +134,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
     alignment: Alignment.centerRight,
@@ -166,7 +166,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
     alignment: AlignmentDirectional.centerStart,
@@ -198,7 +198,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     alignment: Alignment.centerRight,
     child: Text(''),
@@ -217,7 +217,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     alignment: Alignment.bottomLeft,
     child: Text(''),
@@ -230,7 +230,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     alignment: Alignment.centerRight,
     child: Text(''),
@@ -247,7 +247,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     child: Text(''),
   );
@@ -259,7 +259,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
   );
@@ -277,7 +277,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     alignment: Alignment.bottomLeft,
     child: Text(''),
@@ -290,7 +290,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     alignment: Alignment.centerRight,
     child: Text(''),
@@ -309,7 +309,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     alignment: Alignment.bottomLeft,
     child: Text(''),
@@ -322,7 +322,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     alignment: Alignment.centerRight,
     child: Text(''),
@@ -339,7 +339,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
   );
@@ -351,7 +351,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Padding(
     padding: EdgeInsets.only(left: 1, right: 3),
     child: Text(''),
@@ -370,7 +370,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     alignment: Alignment.bottomLeft,
     padding: EdgeInsets.only(left: 1, right: 3),
@@ -384,7 +384,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Column(
     children: [
       Text(''),
@@ -404,7 +404,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Column(
     children: [
       Container(
@@ -441,7 +441,7 @@ class ContainerPropertyPaddingTest extends WidgetDescriptionBase {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.all(4),
     child: Text(''),
@@ -519,7 +519,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.fromLTRB(1, 2, 3, 4),
     child: Text(''),
@@ -597,7 +597,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1, right: 3),
     child: Text(''),
@@ -667,7 +667,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
     child: Text(''),
@@ -745,7 +745,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Padding(
     padding: EdgeInsets.only(left: 1, right: 3),
     child: Text(''),
@@ -815,7 +815,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Align(
     alignment: Alignment.centerRight,
     child: Text(''),
@@ -835,7 +835,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     alignment: Alignment.centerRight,
     padding: EdgeInsets.only(left: 1),
@@ -849,7 +849,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
   );
@@ -868,7 +868,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1),
     child: Text(''),
@@ -881,7 +881,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1, top: 2, right: 1, bottom: 1),
     child: Text(''),
@@ -901,7 +901,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.all(1),
     child: Text(''),
@@ -914,7 +914,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1, right: 3),
     child: Text(''),
@@ -934,7 +934,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 11, right: 3),
     child: Text(''),
@@ -947,7 +947,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1),
     child: Text(''),
@@ -967,7 +967,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     child: Text(''),
   );
@@ -979,7 +979,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1, top: 2, right: 1, bottom: 4),
     child: Text(''),
@@ -999,7 +999,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.symmetric(horizontal: 1, vertical: 4),
     child: Text(''),
@@ -1012,7 +1012,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(left: 1, right: 3),
     child: Text(''),
@@ -1032,7 +1032,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.symmetric(horizontal: 3),
     child: Text(''),
@@ -1045,7 +1045,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.only(top: 2, bottom: 4),
     child: Text(''),
@@ -1065,7 +1065,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Container(
     padding: EdgeInsets.symmetric(vertical: 4),
     child: Text(''),
@@ -1078,7 +1078,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Padding(
     padding: EdgeInsets.only(left: 1, right: 3),
     child: Text(''),
@@ -1098,7 +1098,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Padding(
     padding: EdgeInsets.only(left: 11, right: 3),
     child: Text(''),
@@ -1111,7 +1111,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Column(
     children: [
       Text(''),
@@ -1132,7 +1132,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Column(
     children: [
       Container(

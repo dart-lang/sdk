@@ -31,14 +31,14 @@ class CreateLocalVariableTest extends FixProcessorTest {
     await resolveTestCode('''
 typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
-main() {
+void f() {
   foo(bar);
 }
 ''');
     await assertHasFix('''
 typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
-main() {
+void f() {
   MY_FUNCTION bar;
   foo(bar);
 }
@@ -49,14 +49,14 @@ main() {
     await resolveTestCode('''
 typedef MY_FUNCTION<T>(T p);
 foo(MY_FUNCTION<int> f) {}
-main() {
+void f() {
   foo(bar);
 }
 ''');
     await assertHasFix('''
 typedef MY_FUNCTION<T>(T p);
 foo(MY_FUNCTION<int> f) {}
-main() {
+void f() {
   MY_FUNCTION<int> bar;
   foo(bar);
 }
@@ -66,13 +66,13 @@ main() {
   Future<void> test_functionType_synthetic() async {
     await resolveTestCode('''
 foo(f(int p)) {}
-main() {
+void f() {
   foo(bar);
 }
 ''');
     await assertHasFix('''
 foo(f(int p)) {}
-main() {
+void f() {
   Function(int p) bar;
   foo(bar);
 }
@@ -92,13 +92,13 @@ void f(String s) {
 
   Future<void> test_read_typeAssignment() async {
     await resolveTestCode('''
-main() {
+void f() {
   int a = test;
   print(a);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   int test;
   int a = test;
   print(a);
@@ -108,14 +108,14 @@ main() {
 
   Future<void> test_read_typeCondition() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (!test) {
     print(42);
   }
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   bool test;
   if (!test) {
     print(42);
@@ -126,17 +126,17 @@ main() {
 
   Future<void> test_read_typeInvocationArgument() async {
     await resolveTestCode('''
-main() {
-  f(test);
+void f() {
+  g(test);
 }
-f(String p) {}
+g(String p) {}
 ''');
     await assertHasFix('''
-main() {
+void f() {
   String test;
-  f(test);
+  g(test);
 }
-f(String p) {}
+g(String p) {}
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['String test;']);
     assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
@@ -144,12 +144,12 @@ f(String p) {}
 
   Future<void> test_read_typeInvocationTarget() async {
     await resolveTestCode('''
-main() {
+void f() {
   test.add('hello');
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var test;
   test.add('hello');
 }
@@ -182,7 +182,7 @@ class C {
 import 'package:pkg/a/a.dart';
 import 'package:pkg/c/c.dart';
 
-main() {
+void f() {
   A? a;
   new C(a, b);
 }
@@ -192,7 +192,7 @@ import 'package:pkg/a/a.dart';
 import 'package:pkg/b/b.dart';
 import 'package:pkg/c/c.dart';
 
-main() {
+void f() {
   A? a;
   B b;
   new C(a, b);
@@ -203,22 +203,22 @@ main() {
     var typeGroup = groups[0];
     var typePositions = typeGroup.positions;
     expect(typePositions, hasLength(1));
-    expect(typePositions[0].offset, 113);
+    expect(typePositions[0].offset, 115);
     var nameGroup = groups[1];
     var groupPositions = nameGroup.positions;
     expect(groupPositions, hasLength(2));
-    expect(groupPositions[0].offset, 115);
-    expect(groupPositions[1].offset, 129);
+    expect(groupPositions[0].offset, 117);
+    expect(groupPositions[1].offset, 131);
   }
 
   Future<void> test_write_assignment() async {
     await resolveTestCode('''
-main() {
+void f() {
   test = 42;
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var test = 42;
 }
 ''');
@@ -226,12 +226,12 @@ main() {
 
   Future<void> test_write_assignment_compound() async {
     await resolveTestCode('''
-main() {
+void f() {
   test += 42;
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   int test;
   test += 42;
 }
