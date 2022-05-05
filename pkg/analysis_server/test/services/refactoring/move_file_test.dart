@@ -261,7 +261,7 @@ import 'new_name.dart';
     addSource(binMainPath, '''
 import 'package:test/test.dart';
 
-main() {
+void f() {
   var a = new Foo();
 }
 ''');
@@ -274,7 +274,7 @@ class Foo {}
     assertFileChangeResult(binMainPath, '''
 import 'test.dart';
 
-main() {
+void f() {
   var a = new Foo();
 }
 ''');

@@ -31,7 +31,7 @@ class CiderRenameComputerTest extends CiderServiceTest {
 
   void test_cannotRename_inSdk() async {
     var refactor = await _compute(r'''
-main() {
+void f() {
   new String.^fromCharCodes([]);
 }
 ''');
@@ -87,7 +87,7 @@ void ^foo() {
 
   void test_canRename_label() async {
     var refactor = await _compute(r'''
-main() {
+void f() {
   myLabel:
   while (true) {
     continue ^myLabel;
@@ -302,7 +302,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-main() {
+void f() {
   new A();
   A.new;
 }
@@ -319,7 +319,7 @@ class A {
 class B extends A {
   B() : super.newName() {}
 }
-main() {
+void f() {
   new A.newName();
   A.newName;
 }
@@ -469,7 +469,7 @@ class A {
 class B extends A {
   B() : super.test() {}
 }
-main() {
+void f() {
   new A.test();
   A.test;
 }
@@ -486,7 +486,7 @@ class A {
 class B extends A {
   B() : super.newName() {}
 }
-main() {
+void f() {
   new A.newName();
   A.newName;
 }
@@ -504,7 +504,7 @@ class A {
 class B extends A {
   B() : super.test() {}
 }
-main() {
+void f() {
   new A.test();
   A.test;
 }
@@ -521,7 +521,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-main() {
+void f() {
   new A();
   A.new;
 }
@@ -538,7 +538,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-main() {
+void f() {
   new A();
   A.^new;
 }
@@ -556,7 +556,7 @@ class A {
 class B extends A {
   B() : super.newName() {}
 }
-main() {
+void f() {
   new A.newName();
   A.newName;
 }

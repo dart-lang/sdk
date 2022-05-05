@@ -23,7 +23,7 @@ class MakeFieldNotFinalTest extends FixProcessorTest {
     await resolveTestCode('''
 class A {
   final int fff = 1;
-  main() {
+  void f() {
     fff = 2;
   }
 }
@@ -31,7 +31,7 @@ class A {
     await assertHasFix('''
 class A {
   int fff = 1;
-  main() {
+  void f() {
     fff = 2;
   }
 }
@@ -42,7 +42,7 @@ class A {
     await resolveTestCode('''
 class A {
   final fff = 1;
-  main() {
+  void f() {
     fff = 2;
   }
 }
@@ -50,7 +50,7 @@ class A {
     await assertHasFix('''
 class A {
   var fff = 1;
-  main() {
+  void f() {
     fff = 2;
   }
 }

@@ -9,7 +9,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -30,9 +29,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart'
-    show CompletionPerformance;
-import 'package:analysis_server/src/services/completion/completion_state.dart';
+import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -47,6 +44,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -98,8 +96,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// the server capabilities depend on the client capabilities.
   ServerCapabilities? capabilities;
   late ServerCapabilitiesComputer capabilitiesComputer;
-
-  LspPerformance performanceStats = LspPerformance();
 
   /// Whether or not the server is controlling the shutdown and will exit
   /// automatically.
@@ -355,15 +351,25 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         if (message is ResponseMessage) {
           handleClientResponse(message);
         } else if (message is RequestMessage) {
-          final result = await messageHandler.handleMessage(message);
-          if (result.isError) {
-            sendErrorResponse(message, result.error);
-          } else {
-            channel.sendResponse(ResponseMessage(
-                id: message.id,
-                result: result.result,
-                jsonrpc: jsonRpcVersion));
-          }
+          // Record performance information for the request.
+          final performance = OperationPerformanceImpl('<root>');
+          await performance.runAsync('request', (performance) async {
+            final requestPerformance = RequestPerformance(
+              operation: message.method.toString(),
+              performance: performance,
+              requestLatency: message.timeSinceRequest,
+            );
+            recentPerformance.requests.add(requestPerformance);
+            final result = await messageHandler.handleMessage(message);
+            if (result.isError) {
+              sendErrorResponse(message, result.error);
+            } else {
+              channel.sendResponse(ResponseMessage(
+                  id: message.id,
+                  result: result.result,
+                  jsonrpc: jsonRpcVersion));
+            }
+          });
         } else if (message is NotificationMessage) {
           final result = await messageHandler.handleMessage(message);
           if (result.isError) {
@@ -855,14 +861,6 @@ class LspInitializationOptions {
         closingLabels = options != null && options['closingLabels'] == true,
         outline = options != null && options['outline'] == true,
         flutterOutline = options != null && options['flutterOutline'] == true;
-}
-
-class LspPerformance {
-  /// A list of code completion performance measurements for the latest
-  /// completion operation up to [performanceListMaxLength] measurements.
-  final RecentBuffer<CompletionPerformance> completion =
-      RecentBuffer<CompletionPerformance>(
-          CompletionState.performanceListMaxLength);
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {

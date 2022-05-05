@@ -183,7 +183,7 @@ abstract class MessageHandler<P, R>
 
     final params =
         paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
-    final messageInfo = MessageInfo(message.clientRequestTime);
+    final messageInfo = MessageInfo(timeSinceRequest: message.timeSinceRequest);
     return handle(params, messageInfo, token);
   }
 }
@@ -191,18 +191,11 @@ abstract class MessageHandler<P, R>
 /// Additional information about an incoming message (request or notification)
 /// provided to a handler.
 class MessageInfo {
-  final int? clientRequestTime;
-
-  MessageInfo(this.clientRequestTime);
-
   /// Returns the amount of time (in milliseconds) since the client sent this
   /// request or `null` if the client did not provide [clientRequestTime].
-  int? get timeSinceRequest {
-    var clientRequestTime = this.clientRequestTime;
-    return clientRequestTime != null
-        ? DateTime.now().millisecondsSinceEpoch - clientRequestTime
-        : null;
-  }
+  final int? timeSinceRequest;
+
+  MessageInfo({this.timeSinceRequest});
 }
 
 /// A message handler that handles all messages for a given server state.

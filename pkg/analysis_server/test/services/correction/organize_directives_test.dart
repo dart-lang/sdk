@@ -93,7 +93,7 @@ Future a;
 import 'dart:async' as async1;
 import 'dart:async' as async2;
 
-main() {
+void f() {
   async1.Future f;
   async2.Stream s;
 }''');
@@ -102,7 +102,7 @@ main() {
 import 'dart:async' as async1;
 import 'dart:async' as async2;
 
-main() {
+void f() {
   async1.Future f;
   async2.Stream s;
 }''', removeUnused: true);
@@ -199,14 +199,14 @@ Future a;
 import 'dart:async';
 import 'dart:async';
 
-main() {
+void f() {
   Completer f;
 }''');
     // validate change
     _assertOrganize(r'''
 import 'dart:async';
 
-main() {
+void f() {
   Completer f;
 }''', removeUnused: true);
   }
@@ -216,14 +216,14 @@ main() {
 import 'dart:async' as async;
 import "dart:async" as async;
 
-main() {
+void f() {
   async.Future f;
 }''');
     // validate change
     _assertOrganize(r'''
 import 'dart:async' as async;
 
-main() {
+void f() {
   async.Future f;
 }''', removeUnused: true);
   }
@@ -233,14 +233,14 @@ main() {
 import 'dart:async' as async;
 import 'dart:async' as async;
 
-main() {
+void f() {
   async.Future f;
 }''');
     // validate change
     _assertOrganize(r'''
 import 'dart:async' as async;
 
-main() {
+void f() {
   async.Future f;
 }''', removeUnused: true);
   }
@@ -254,7 +254,7 @@ import 'dart:math';
 import 'dart:convert';
 import 'dart:collection';
 
-main() {
+void f() {
   print(pi);
   new HashMap();
 }
@@ -266,7 +266,7 @@ library lib;
 import 'dart:collection';
 import 'dart:math';
 
-main() {
+void f() {
   print(pi);
   new HashMap();
 }
@@ -280,7 +280,7 @@ import 'dart:math';
 
 class A {}
 
-main() {
+void f() {
   Completer f;
 }''');
     // validate change
@@ -289,7 +289,7 @@ import 'dart:async';
 
 class A {}
 
-main() {
+void f() {
   Completer f;
 }''', removeUnused: true);
   }
@@ -304,13 +304,13 @@ $declaration
       _assertOrganize(code, removeUnused: true);
     }
 
-    await check('main() { Unresolved v; }');
-    await check('main() { new Unresolved(); }');
-    await check('main() { const Unresolved(); }');
-    await check('main() { unresolvedFunction(); }');
-    await check('main() { print(unresolvedVariable); }');
-    await check('main() { unresolvedVariable = 0; }');
-    await check('main() { Unresolved.field = 0; }');
+    await check('void f() { Unresolved v; }');
+    await check('void f() { new Unresolved(); }');
+    await check('void f() { const Unresolved(); }');
+    await check('void f() { unresolvedFunction(); }');
+    await check('void f() { print(unresolvedVariable); }');
+    await check('void f() { unresolvedVariable = 0; }');
+    await check('void f() { Unresolved.field = 0; }');
     await check('class A extends Unresolved {}');
     await check('List<Unresolved> v;');
   }
@@ -338,7 +338,7 @@ import 'http://aaa.com';
 part 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -372,7 +372,7 @@ export 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 part 'bbb/bbb.dart';
 
-main() {
+void f() {
 }
 ''');
   }
@@ -394,7 +394,7 @@ import 'b.dart'; // Trailing comment B
 import 'a.dart'; // Trailing comment A
 
 /** doc */
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -414,7 +414,7 @@ import 'b.dart'; // Trailing comment B
 import 'c.dart'; // Trailing comment C
 
 /** doc */
-main() {
+void f() {
 }
 ''');
   }
@@ -433,7 +433,7 @@ import 'b.dart'; // Trailing comment B
 import 'a.dart'; // Trailing comment A
 
 /** doc */
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -450,7 +450,7 @@ import 'b.dart'; // Trailing comment B
 import 'c.dart'; // Trailing comment C
 
 /** doc */
-main() {
+void f() {
 }
 ''');
   }
@@ -472,7 +472,7 @@ import 'b.dart'; // Trailing comment B
 import 'a.dart'; // Trailing comment A
 
 /** doc */
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -492,7 +492,7 @@ import 'b.dart'; // Trailing comment B
 import 'c.dart'; // Trailing comment C
 
 /** doc */
-main() {
+void f() {
 }
 ''');
   }
@@ -511,7 +511,7 @@ import 'b.dart'; // Trailing comment B
 import 'a.dart'; // Trailing comment A
 
 /** doc */
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -528,7 +528,7 @@ import 'b.dart'; // Trailing comment B
 import 'c.dart'; // Trailing comment C
 
 /** doc */
-main() {
+void f() {
 }
 ''');
   }
@@ -543,7 +543,7 @@ import 'a.dart';// aa
 import 'b.dart';// bbb
 
 /** doc */
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -556,7 +556,7 @@ import 'b.dart';// bbb
 import 'c.dart';// c
 
 /** doc */
-main() {
+void f() {
 }
 ''');
   }

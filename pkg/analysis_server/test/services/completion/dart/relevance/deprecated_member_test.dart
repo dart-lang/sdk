@@ -38,7 +38,7 @@ class A {
   void a2() { }
 }
 
-void main() {
+void f() {
   var a = A();
   a.^
 }

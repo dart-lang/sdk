@@ -24,7 +24,7 @@ class CreateConstructorMixinTest extends FixProcessorTest {
     await resolveTestCode('''
 mixin M {}
 
-main() {
+void f() {
   new M.named();
 }
 ''');
@@ -47,7 +47,7 @@ class A {}
     await resolveTestCode('''
 import 'a.dart';
 
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -67,7 +67,7 @@ class A {}
     await resolveTestCode('''
 import 'a.dart';
 
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -99,7 +99,7 @@ class A {
 
   method() {}
 }
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -111,7 +111,7 @@ class A {
 
   method() {}
 }
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -133,7 +133,7 @@ void f() {
 class A {
   method() {}
 }
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -143,7 +143,7 @@ class A {
 
   method() {}
 }
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -153,7 +153,7 @@ main() {
   Future<void> test_named_emptyClassBody() async {
     await resolveTestCode('''
 class A {}
-main() {
+void f() {
   new A.named(1);
 }
 ''');
@@ -161,7 +161,7 @@ main() {
 class A {
   A.named(int i);
 }
-main() {
+void f() {
   new A.named(1);
 }
 ''');

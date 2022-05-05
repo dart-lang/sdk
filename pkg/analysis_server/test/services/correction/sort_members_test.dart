@@ -362,7 +362,7 @@ import 'http://aaa.com';
 part 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -396,7 +396,7 @@ export 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 part 'bbb/bbb.dart';
 
-main() {
+void f() {
 }
 ''');
   }

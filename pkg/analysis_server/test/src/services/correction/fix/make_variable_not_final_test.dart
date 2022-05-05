@@ -21,14 +21,14 @@ class MakeVariableNotFinalTest extends FixProcessorTest {
 
   Future<void> test_hasType() async {
     await resolveTestCode('''
-main() {
+void f() {
   final int fff = 1;
   fff = 2;
   print(fff);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   int fff = 1;
   fff = 2;
   print(fff);
@@ -38,14 +38,14 @@ main() {
 
   Future<void> test_noType() async {
     await resolveTestCode('''
-main() {
+void f() {
   final fff = 1;
   fff = 2;
   print(fff);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var fff = 1;
   fff = 2;
   print(fff);

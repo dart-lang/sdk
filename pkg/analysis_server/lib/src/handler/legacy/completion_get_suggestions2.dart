@@ -176,13 +176,13 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         }
 
         final completionPerformance = CompletionPerformance(
-          operation: performance,
+          performance: performance,
           path: file,
           requestLatency: requestLatency,
           content: resolvedUnit.content,
           offset: offset,
         );
-        server.completionState.performanceList.add(completionPerformance);
+        server.recentPerformance.completion.add(completionPerformance);
 
         var analysisSession = resolvedUnit.analysisSession;
         var enclosingNode =

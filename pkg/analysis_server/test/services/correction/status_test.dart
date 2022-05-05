@@ -57,10 +57,10 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 
   Future<void> test_createLocation_forNode() async {
     await resolveTestCode('''
-main() {
+void f() {
 }
 ''');
-    var node = findNode.simple('main');
+    var node = findNode.simple('f');
     // check
     var location = newLocation_fromNode(node);
     expect(location.file, testFile);

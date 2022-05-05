@@ -75,9 +75,8 @@ class Rti {
   }
 
   @pragma('dart2js:tryInline')
-  static bool _asCheck(Rti rti, Object? object) {
-    return JS(
-        'bool', '#.#(#)', rti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), object);
+  static Object? _asCheck(Rti rti, Object? object) {
+    return JS('', '#.#(#)', rti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), object);
   }
 
   @pragma('dart2js:tryInline')
@@ -916,7 +915,7 @@ Object? _simpleSpecializedIsTest(Rti testRti) {
 ///
 /// The first time this default `_as` method is called, it replaces itself with
 /// a specialized version.
-bool _installSpecializedAsCheck(Object? object) {
+Object? _installSpecializedAsCheck(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));

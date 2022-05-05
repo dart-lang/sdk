@@ -36,6 +36,19 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(server.performanceDuringStartup.latencyCount, isPositive);
   }
 
+  Future<void> test_capturesRequestPerformance() async {
+    await initialize(includeClientRequestTime: true);
+    await openFile(mainFileUri, '');
+    await expectLater(
+      getHover(mainFileUri, startOfDocPos),
+      completes,
+    );
+    final performanceItems = server.recentPerformance.requests.items;
+    final hoverItems = performanceItems.where(
+        (item) => item.operation == Method.textDocument_hover.toString());
+    expect(hoverItems, hasLength(1));
+  }
+
   Future<void> test_inconsistentStateError() async {
     await initialize(
       // Error is expected and checked below.

@@ -23,14 +23,14 @@ class RemoveNameFromCombinatorTest extends FixProcessorTest {
     await resolveTestCode('''
 import 'dart:math' hide cos, sin, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
@@ -40,14 +40,14 @@ main() {
     await resolveTestCode('''
 import 'dart:math' hide cos, cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
@@ -60,14 +60,14 @@ main() {
     await resolveTestCode('''
 import 'dart:math' hide cos, sin hide sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
@@ -80,14 +80,14 @@ main() {
     await resolveTestCode('''
 import 'dart:math' hide cos hide cos hide sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos hide sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
@@ -184,14 +184,14 @@ f(x) {
     await resolveTestCode('''
 import 'dart:math' hide aaa hide cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
@@ -201,14 +201,14 @@ main() {
     await resolveTestCode('''
 import 'dart:math' hide cos, sin hide aaa;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos, sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
@@ -218,14 +218,14 @@ main() {
     await resolveTestCode('''
 import 'dart:math' hide cos hide aaa hide sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');
     await assertHasFix('''
 import 'dart:math' hide cos hide sin;
 
-main() {
+void f() {
   print(min(0, 1));
 }
 ''');

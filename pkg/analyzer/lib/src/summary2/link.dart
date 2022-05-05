@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/super_constructor_resolver.dart';
@@ -42,6 +43,7 @@ Future<LinkResult> link(
 class Linker {
   final LinkedElementFactory elementFactory;
   final macro.MultiMacroExecutor? macroExecutor;
+  final DeclarationBuilder macroDeclarationBuilder = DeclarationBuilder();
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
@@ -123,6 +125,8 @@ class Linker {
     for (var library in builders.values) {
       await library.executeMacroTypesPhase();
     }
+
+    macroDeclarationBuilder.transferToElements();
 
     for (var library in builders.values) {
       library.buildInitialExportScope();

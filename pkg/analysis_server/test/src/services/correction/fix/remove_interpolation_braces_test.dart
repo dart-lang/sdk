@@ -23,13 +23,13 @@ class RemoveInterpolationBracesBulkTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 42;
   print('v: ${ v}, ${ v}');
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   var v = 42;
   print('v: $v, $v');
 }
@@ -47,13 +47,13 @@ class RemoveInterpolationBracesTest extends FixProcessorLintTest {
 
   Future<void> test_withSpace() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 42;
   print('v: ${ v}');
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   var v = 42;
   print('v: $v');
 }
