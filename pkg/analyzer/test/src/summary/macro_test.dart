@@ -56,6 +56,15 @@ class MacroElementsTest extends ElementsBaseTest {
     return code.replaceAll('/*macro*/', 'macro');
   }
 
+  /// Return the code for `IntrospectDeclarationsPhaseMacro`.
+  String get _introspectDeclarationsPhaseCode {
+    final path = 'test/src/summary/macro/introspect_declarations_phase.dart';
+    final code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile(path)
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
+
   Future<void> setUp() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
@@ -1143,6 +1152,32 @@ library
 ''');
   }
 
+  test_introspect_declarations_ClassDeclaration_superclassOf_implicit() async {
+    await _assertIntrospectDeclarationsText(r'''
+@introspectMacro
+class X {}
+''', r'''
+class X
+  superclass
+    class Object
+''');
+  }
+
+  test_introspect_declarations_ClassDeclaration_superclassOf_local() async {
+    await _assertIntrospectDeclarationsText(r'''
+class A<T> {}
+
+@introspectMacro
+class X extends A<int> {}
+''', r'''
+class X
+  superclass
+    class A
+      superclass
+        class Object
+''');
+  }
+
   test_introspect_types_ClassDeclaration_interfaces() async {
     await _assertTypesPhaseIntrospectionText(r'''
 class A implements B, C<int, String> {}
@@ -1454,6 +1489,19 @@ library
     );
   }
 
+  /// Assert that the textual dump of the introspection information for
+  /// annotated declarations is the same as [expected].
+  Future<void> _assertIntrospectDeclarationsText(
+    String declarationCode,
+    String expected,
+  ) async {
+    var actual = await _getIntrospectDeclarationsText(declarationCode);
+    if (actual != expected) {
+      print(actual);
+    }
+    expect(actual, expected);
+  }
+
   /// Build a macro with specified [fields], initialized in the constructor
   /// with [constructorParametersCode], and apply this macro  with
   /// [argumentsCode] to an empty class.
@@ -1572,6 +1620,34 @@ $declarationCode
     x as ConstTopLevelVariableElementImpl;
     var x_literal = x.constantInitializer as SimpleStringLiteral;
     return x_literal.value;
+  }
+
+  /// Use `IntrospectDeclarationsPhaseMacro` to generate top-level constants
+  /// that contain textual dump of the introspection information for
+  /// macro annotated declarations.
+  Future<String> _getIntrospectDeclarationsText(String declarationCode) async {
+    newFile(
+      '$testPackageLibPath/introspect_declarations_phase.dart',
+      _introspectDeclarationsPhaseCode,
+    );
+
+    var library = await buildLibrary('''
+import 'introspect_declarations_phase.dart';
+
+$declarationCode
+''', preBuildSequence: [
+      {'package:test/introspect_declarations_phase.dart'}
+    ]);
+
+    for (final class_ in library.definingCompilationUnit.classes) {
+      _assertNoErrorsForClassElement(class_);
+    }
+
+    return library.definingCompilationUnit.topLevelVariables
+        .whereType<ConstTopLevelVariableElementImpl>()
+        .where((e) => e.name.startsWith('introspect_'))
+        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
+        .join('\n');
   }
 
   static void _assertNoErrorsForClassElement(ClassElement? element) {

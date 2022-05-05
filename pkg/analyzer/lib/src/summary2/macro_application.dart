@@ -8,8 +8,6 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
-    as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -18,23 +16,27 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_declarations.dart';
 
 class LibraryMacroApplier {
   final MultiMacroExecutor macroExecutor;
+  final DeclarationBuilder declarationBuilder;
   final LibraryBuilder libraryBuilder;
 
   final List<_MacroTarget> _targets = [];
-
-  final Map<ClassDeclaration, macro.ClassDeclarationImpl> _classDeclarations =
-      {};
 
   final macro.IdentifierResolver _identifierResolver = _IdentifierResolver();
 
   final macro.TypeResolver _typeResolver = _TypeResolver();
 
-  final macro.ClassIntrospector _classIntrospector = _ClassIntrospector();
+  late final macro.ClassIntrospector _classIntrospector =
+      _ClassIntrospector(declarationBuilder);
 
-  LibraryMacroApplier(this.macroExecutor, this.libraryBuilder);
+  LibraryMacroApplier({
+    required this.macroExecutor,
+    required this.declarationBuilder,
+    required this.libraryBuilder,
+  });
 
   Linker get _linker => libraryBuilder.linker;
 
@@ -51,7 +53,7 @@ class LibraryMacroApplier {
           targetElement,
           targetNode.metadata,
           macro.DeclarationKind.clazz,
-          () => getClassDeclaration(targetNode),
+          () => declarationBuilder.fromNode.classDeclaration(targetNode),
         );
       }
     }
@@ -101,12 +103,6 @@ class LibraryMacroApplier {
       }
     }
     return _buildAugmentationLibrary(results);
-  }
-
-  /// TODO(scheglov) Do we need this caching?
-  /// Or do we need it only during macro applications creation?
-  macro.ClassDeclarationImpl getClassDeclaration(ClassDeclaration node) {
-    return _classDeclarations[node] ??= _buildClassDeclaration(node);
   }
 
   /// If there are any macro applications in [annotations], add a new
@@ -337,121 +333,6 @@ class LibraryMacroApplier {
     return macro.Arguments(positional, named);
   }
 
-  static macro.ClassDeclarationImpl _buildClassDeclaration(
-    ClassDeclaration node,
-  ) {
-    return macro.ClassDeclarationImpl(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _buildIdentifier(node.name),
-      typeParameters: _buildTypeParameters(node.typeParameters),
-      interfaces: _buildTypeAnnotations(node.implementsClause?.interfaces),
-      isAbstract: node.abstractKeyword != null,
-      isExternal: false,
-      mixins: _buildTypeAnnotations(node.withClause?.mixinTypes),
-      superclass: node.extendsClause?.superclass.mapOrNull(
-        _buildTypeAnnotation,
-      ),
-    );
-  }
-
-  static macro.FunctionTypeParameterImpl _buildFormalParameter(
-    FormalParameter node,
-  ) {
-    if (node is DefaultFormalParameter) {
-      node = node.parameter;
-    }
-
-    final macro.TypeAnnotationImpl typeAnnotation;
-    if (node is SimpleFormalParameter) {
-      typeAnnotation = _buildTypeAnnotation(node.type);
-    } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
-    }
-
-    return macro.FunctionTypeParameterImpl(
-      id: macro.RemoteInstance.uniqueId,
-      isNamed: node.isNamed,
-      isRequired: node.isRequired,
-      name: node.identifier?.name,
-      type: typeAnnotation,
-    );
-  }
-
-  static macro.IdentifierImpl _buildIdentifier(Identifier node) {
-    final String name;
-    if (node is SimpleIdentifier) {
-      name = node.name;
-    } else {
-      name = (node as PrefixedIdentifier).identifier.name;
-    }
-    return _IdentifierImpl(
-      id: macro.RemoteInstance.uniqueId,
-      name: name,
-    );
-  }
-
-  static macro.TypeAnnotationImpl _buildTypeAnnotation(TypeAnnotation? node) {
-    if (node == null) {
-      return macro.OmittedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-      );
-    } else if (node is GenericFunctionType) {
-      return macro.FunctionTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: node.question != null,
-        namedParameters: node.parameters.parameters
-            .where((e) => e.isNamed)
-            .map(_buildFormalParameter)
-            .toList(),
-        positionalParameters: node.parameters.parameters
-            .where((e) => e.isPositional)
-            .map(_buildFormalParameter)
-            .toList(),
-        returnType: _buildTypeAnnotation(node.returnType),
-        typeParameters: _buildTypeParameters(node.typeParameters),
-      );
-    } else if (node is NamedType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: _buildIdentifier(node.name),
-        isNullable: node.question != null,
-        typeArguments: _buildTypeAnnotations(node.typeArguments?.arguments),
-      );
-    } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
-    }
-  }
-
-  static List<macro.TypeAnnotationImpl> _buildTypeAnnotations(
-    List<TypeAnnotation>? elements,
-  ) {
-    if (elements != null) {
-      return elements.map(_buildTypeAnnotation).toList();
-    } else {
-      return const [];
-    }
-  }
-
-  static macro.TypeParameterDeclarationImpl _buildTypeParameter(
-    TypeParameter node,
-  ) {
-    return macro.TypeParameterDeclarationImpl(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _buildIdentifier(node.name),
-      bound: node.bound?.mapOrNull(_buildTypeAnnotation),
-    );
-  }
-
-  static List<macro.TypeParameterDeclarationImpl> _buildTypeParameters(
-    TypeParameterList? typeParameterList,
-  ) {
-    if (typeParameterList != null) {
-      return typeParameterList.typeParameters.map(_buildTypeParameter).toList();
-    } else {
-      return const [];
-    }
-  }
-
   /// Run the [body], report exceptions as [MacroApplicationError]s to [onError].
   static Future<T?> _runWithCatchingExceptions<T>(
     Future<T> Function() body, {
@@ -558,6 +439,10 @@ class _ArgumentEvaluation {
 }
 
 class _ClassIntrospector implements macro.ClassIntrospector {
+  final DeclarationBuilder declarationBuilder;
+
+  _ClassIntrospector(this.declarationBuilder);
+
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
       covariant macro.ClassDeclaration clazz) {
@@ -594,15 +479,17 @@ class _ClassIntrospector implements macro.ClassIntrospector {
 
   @override
   Future<macro.ClassDeclaration?> superclassOf(
-      covariant macro.ClassDeclaration clazz) {
-    // TODO: implement superclassOf
-    throw UnimplementedError();
-  }
-}
+    covariant ClassDeclarationImpl clazz,
+  ) async {
+    final superType = clazz.element.supertype;
+    if (superType == null) {
+      return null;
+    }
 
-class _IdentifierImpl extends macro.IdentifierImpl {
-  _IdentifierImpl({required int id, required String name})
-      : super(id: id, name: name);
+    return declarationBuilder.fromElement.classDeclaration(
+      superType.element,
+    );
+  }
 }
 
 class _IdentifierResolver extends macro.IdentifierResolver {
@@ -695,11 +582,4 @@ class _TypeResolver implements macro.TypeResolver {
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
       libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
-}
-
-extension _IfNotNull<T> on T? {
-  R? mapOrNull<R>(R Function(T) mapper) {
-    final self = this;
-    return self != null ? mapper(self) : null;
-  }
 }

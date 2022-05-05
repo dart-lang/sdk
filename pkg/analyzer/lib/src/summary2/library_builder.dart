@@ -64,7 +64,11 @@ class LibraryBuilder {
       return null;
     }
 
-    return LibraryMacroApplier(macroExecutor, this);
+    return LibraryMacroApplier(
+      macroExecutor: macroExecutor,
+      declarationBuilder: linker.macroDeclarationBuilder,
+      libraryBuilder: this,
+    );
   }();
 
   LibraryBuilder._({
