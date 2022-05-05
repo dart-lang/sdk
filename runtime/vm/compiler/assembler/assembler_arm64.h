@@ -1840,6 +1840,7 @@ class Assembler : public AssemblerBase {
   void TestImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
   void CompareImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
 
+  Address PrepareLargeOffset(Register base, int32_t offset, OperandSize sz);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kEightBytes) override {
