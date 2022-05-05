@@ -3688,6 +3688,7 @@
             "dart:convert",
             "dart:developer",
             "dart:ffi",
+            "dart:isolate",
             "dart:js",
             "dart:js_util",
             "dart:math",

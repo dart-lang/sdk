@@ -24,6 +24,12 @@ import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 part "capability.dart";
 
+// Examples can assume:
+// Isolate findSomeIsolate() => Isolate.current;
+// void untrustedCode(Isolate isolate) {}
+// RawReceivePort rawPort = RawReceivePort();
+// void actualHandler() {}
+
 /// Thrown when an isolate cannot be created.
 class IsolateSpawnException implements Exception {
   /// Error message reported by the spawn operation.
@@ -734,8 +740,8 @@ abstract class RawReceivePort {
   ///
   /// The handler is invoked in the [Zone.root] zone.
   /// If the handler should be invoked in the current zone, do:
-  /// ```dart
-  /// rawPort.handler = Zone.current.bind(actualHandler);
+  /// ```dart import:async
+  /// rawPort.handler = Zone.current.bindCallback(actualHandler);
   /// ```
   ///
   /// The handler must be a function which can accept one argument
