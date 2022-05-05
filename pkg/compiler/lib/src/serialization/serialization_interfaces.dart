@@ -9,6 +9,10 @@ import '../elements/types.dart' show DartType;
 
 export 'tags.dart';
 
+abstract class StringInterner {
+  String internString(String string);
+}
+
 /// NNBD-migrated interface for methods of DataSinkWriter.
 ///
 /// This is a pure interface or facade for DataSinkWriter.
@@ -73,6 +77,7 @@ abstract class DataSinkWriter {
       {bool allowNull = false});
 
   void writeCached<E extends Object>(E value, void f(E value));
+
   void writeList<E extends Object>(Iterable<E> values, void f(E value),
       {bool allowNull = false});
 }
@@ -112,6 +117,7 @@ abstract class DataSourceReader {
   Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(V f());
 
   E readCached<E extends Object>(E f());
+
   List<E> readList<E extends Object>(E f());
   List<E>? readListOrNull<E extends Object>(E f());
 }

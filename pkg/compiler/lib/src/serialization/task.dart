@@ -29,6 +29,7 @@ import '../options.dart';
 import '../util/sink_adapter.dart';
 import '../world.dart';
 import 'serialization.dart';
+import 'serialization_interfaces.dart' show StringInterner;
 
 /// A data class holding a [JsClosedWorld] and the associated
 /// [DataSourceIndices].

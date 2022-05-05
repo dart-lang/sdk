@@ -6,32 +6,6 @@
 
 part of 'serialization.dart';
 
-/// Interface handling [DataSourceReader] low-level data deserialization.
-///
-/// Each implementation of [DataSource] should have a corresponding
-/// [DataSink] for which it deserializes data.
-abstract class DataSource {
-  /// Deserialization of a section begin tag.
-  void begin(String tag);
-
-  /// Deserialization of a section end tag.
-  void end(String tag);
-
-  /// Deserialization of a string value.
-  String readString();
-
-  /// Deserialization of a non-negative integer value.
-  int readInt();
-
-  /// Deserialization of an enum value in [values].
-  E readEnum<E>(List<E> values);
-
-  /// Returns a string representation of the current state of the data source
-  /// useful for debugging in consistencies between serialization and
-  /// deserialization.
-  String get errorContext;
-}
-
 /// Deserialization reader
 ///
 /// To be used with [DataSinkWriter] to read and write serialized data.
