@@ -1234,11 +1234,11 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 }
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  __ PushDouble(reg);
+  __ PushQuad(reg);
 }
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  __ PopDouble(reg);
+  __ PopQuad(reg);
 }
 
 #undef __

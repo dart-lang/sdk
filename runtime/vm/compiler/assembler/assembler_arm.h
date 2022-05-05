@@ -1134,6 +1134,9 @@ class Assembler : public AssemblerBase {
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
 
+  void PushQuad(FpuRegister rd, Condition cond = AL);
+  void PopQuad(FpuRegister rd, Condition cond = AL);
+
   void PushRegisters(const RegisterSet& regs);
   void PopRegisters(const RegisterSet& regs);
 
