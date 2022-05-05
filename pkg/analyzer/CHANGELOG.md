@@ -2,6 +2,7 @@
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
 * Deprecated `ResourceProviderMixin.newFile2`, use `newFile` instead.
 * Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile2`, use `newAnalysisOptionsYamlFile` instead.
+* Deprecated `DartType.resolveToBound`, use `TypeSystem.resolveToBound` instead.
 
 ## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.

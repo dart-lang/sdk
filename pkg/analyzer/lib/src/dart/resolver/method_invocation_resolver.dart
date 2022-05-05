@@ -868,15 +868,6 @@ class MethodInvocationResolver {
     }
   }
 
-  /// If the given [type] is a type parameter, replace with its bound.
-  /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      return type.resolveToBound(_resolver.typeProvider.objectType);
-    }
-    return type;
-  }
-
   /// We have identified that [node] is not a real [MethodInvocation],
   /// because it does not invoke a method, but instead invokes the result
   /// of a getter execution, or implicitly invokes the `call` method of
@@ -885,7 +876,7 @@ class MethodInvocationResolver {
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
       {required DartType? contextType}) {
-    var targetType = _resolveTypeParameter(getterReturnType);
+    var targetType = _typeSystem.resolveToBound(getterReturnType);
     _inferenceHelper.recordStaticType(node.methodName, targetType,
         contextType: contextType);
 

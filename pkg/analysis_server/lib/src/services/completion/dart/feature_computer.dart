@@ -158,13 +158,13 @@ class FeatureComputer {
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
   DartType? computeContextType(AstNode node, int offset) {
-    var type = node
-        .accept(_ContextTypeVisitor(typeProvider, offset))
-        ?.resolveToBound(typeProvider.objectType);
-    if (type == null || type.isDynamic) {
+    final contextType = node.accept(
+      _ContextTypeVisitor(typeProvider, offset),
+    );
+    if (contextType == null || contextType.isDynamic) {
       return null;
     }
-    return type;
+    return typeSystem.resolveToBound(contextType);
   }
 
   /// Return the element kind used to compute relevance for the given [element].

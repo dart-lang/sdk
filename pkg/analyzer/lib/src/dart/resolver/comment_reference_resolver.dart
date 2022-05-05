@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -20,6 +21,8 @@ class CommentReferenceResolver {
 
   CommentReferenceResolver(this._typeProvider, this._resolver)
       : _typePropertyResolver = _resolver.typePropertyResolver;
+
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   /// Resolves [commentReference].
   void resolve(CommentReference commentReference) {
@@ -150,8 +153,9 @@ class CommentReferenceResolver {
         if (enclosingExtension == null) {
           return null;
         }
-        var extendedType = enclosingExtension.extendedType
-            .resolveToBound(_typeProvider.objectType);
+        var extendedType = _typeSystem.resolveToBound(
+          enclosingExtension.extendedType,
+        );
         if (extendedType is InterfaceType) {
           enclosingType = extendedType;
         } else if (extendedType is FunctionType) {

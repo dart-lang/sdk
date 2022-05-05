@@ -2393,7 +2393,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // The object being iterated has to implement Iterable<T> for some T that
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
-    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+    iterableType = typeSystem.resolveToBound(iterableType);
 
     var requiredSequenceType = awaitKeyword != null
         ? _typeProvider.streamDynamicType

@@ -68,7 +68,7 @@ class PropertyElementResolver {
     }
 
     var targetType = target.typeOrThrow;
-    targetType = _resolveTypeParameter(targetType);
+    targetType = _typeSystem.resolveToBound(targetType);
 
     if (targetType.isVoid) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
@@ -813,15 +813,6 @@ class PropertyElementResolver {
       readElementRequested: readElement,
       writeElementRequested: writeElement,
     );
-  }
-
-  /// If the given [type] is a type parameter, replace with its bound.
-  /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      return type.resolveToBound(_resolver.typeProvider.objectType);
-    }
-    return type;
   }
 
   PropertyElementResolverResult _toIndexResult(ResolutionResult result) {
