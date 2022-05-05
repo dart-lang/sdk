@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+import 'introspect_shared.dart';
+
 const introspectMacro = IntrospectDeclarationsPhaseMacro();
 
 /*macro*/ class IntrospectDeclarationsPhaseMacro
@@ -19,6 +21,7 @@ const introspectMacro = IntrospectDeclarationsPhaseMacro();
   ) async {
     final printer = _DeclarationPrinter(
       classIntrospector: builder,
+      typeResolver: builder,
     );
     await printer.writeClassDeclaration(declaration);
     final text = printer._sink.toString();
@@ -34,11 +37,13 @@ const introspectMacro = IntrospectDeclarationsPhaseMacro();
 
 class _DeclarationPrinter {
   final ClassIntrospector classIntrospector;
+  final TypeResolver typeResolver;
   final StringBuffer _sink = StringBuffer();
   String _indent = '';
 
   _DeclarationPrinter({
     required this.classIntrospector,
+    required this.typeResolver,
   });
 
   Future<void> writeClassDeclaration(ClassDeclaration e) async {
@@ -55,10 +60,9 @@ class _DeclarationPrinter {
         await _withIndent(() => writeClassDeclaration(superclass));
       }
 
-      // TODO(scheglov) implement
-      // _writeTypeParameters(e.typeParameters);
-      // _writeTypeAnnotations('mixins', e.mixins);
-      // _writeTypeAnnotations('interfaces', e.interfaces);
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations('mixins', e.mixins);
+      await _writeTypeAnnotations('interfaces', e.interfaces);
     });
   }
 
@@ -67,6 +71,21 @@ class _DeclarationPrinter {
     _indent = '$savedIndent  ';
     await f();
     _indent = savedIndent;
+  }
+
+  Future<void> _writeElements<T>(
+    String name,
+    Iterable<T> elements,
+    Future<void> Function(T) f,
+  ) async {
+    if (elements.isNotEmpty) {
+      _writelnWithIndent(name);
+      await _withIndent(() async {
+        for (var element in elements) {
+          await f(element);
+        }
+      });
+    }
   }
 
   void _writeIf(bool flag, String str) {
@@ -82,5 +101,44 @@ class _DeclarationPrinter {
   void _writelnWithIndent(String line) {
     _sink.write(_indent);
     _sink.writeln(line);
+  }
+
+  void _writeTypeAnnotation(String name, TypeAnnotation? type) {
+    _sink.write(_indent);
+    _sink.write('$name: ');
+
+    if (type != null) {
+      _writeln(type.asString);
+    } else {
+      _writeln('null');
+    }
+  }
+
+  Future<void> _writeTypeAnnotationLine(TypeAnnotation type) async {
+    _writelnWithIndent(type.asString);
+  }
+
+  Future<void> _writeTypeAnnotations(
+    String name,
+    Iterable<TypeAnnotation> elements,
+  ) async {
+    await _writeElements(name, elements, _writeTypeAnnotationLine);
+  }
+
+  Future<void> _writeTypeParameter(TypeParameterDeclaration e) async {
+    _writelnWithIndent(e.identifier.name);
+
+    await _withIndent(() async {
+      var bound = e.bound;
+      if (bound != null) {
+        _writeTypeAnnotation('bound', bound);
+      }
+    });
+  }
+
+  Future<void> _writeTypeParameters(
+    Iterable<TypeParameterDeclaration> elements,
+  ) async {
+    await _writeElements('typeParameters', elements, _writeTypeParameter);
   }
 }

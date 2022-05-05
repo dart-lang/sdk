@@ -486,7 +486,7 @@ class _ClassIntrospector implements macro.ClassIntrospector {
       return null;
     }
 
-    return declarationBuilder.fromElement.classDeclaration(
+    return declarationBuilder.fromElement.classElement(
       superType.element,
     );
   }

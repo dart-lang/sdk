@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+import 'introspect_shared.dart';
+
 /*macro*/ class DeclarationTextMacro implements ClassTypesMacro {
   const DeclarationTextMacro();
 
@@ -88,15 +90,14 @@ class _DeclarationPrinter {
     _sink.write('$name: ');
 
     if (type != null) {
-      _writeln(_typeStr(type));
+      _writeln(type.asString);
     } else {
       _writeln('null');
     }
   }
 
   void _writeTypeAnnotationLine(TypeAnnotation type) {
-    var typeStr = _typeStr(type);
-    _writelnWithIndent(typeStr);
+    _writelnWithIndent(type.asString);
   }
 
   void _writeTypeAnnotations(String name, Iterable<TypeAnnotation> elements) {
@@ -116,139 +117,5 @@ class _DeclarationPrinter {
 
   void _writeTypeParameters(Iterable<TypeParameterDeclaration> elements) {
     _writeElements('typeParameters', elements, _writeTypeParameter);
-  }
-
-  static String _typeStr(TypeAnnotation type) {
-    final buffer = StringBuffer();
-    _TypeStringBuilder(buffer).write(type);
-    return buffer.toString();
-  }
-}
-
-class _TypeStringBuilder {
-  final StringSink _sink;
-
-  _TypeStringBuilder(this._sink);
-
-  void write(TypeAnnotation type) {
-    if (type is FunctionTypeAnnotation) {
-      _writeFunctionTypeAnnotation(type);
-    } else if (type is NamedTypeAnnotation) {
-      _writeNamedTypeAnnotation(type);
-    } else if (type is OmittedTypeAnnotation) {
-      _sink.write('OmittedType');
-    } else {
-      throw UnimplementedError('(${type.runtimeType}) $type');
-    }
-    if (type.isNullable) {
-      _sink.write('?');
-    }
-  }
-
-  void _writeFormalParameter(FunctionTypeParameter node) {
-    final String closeSeparator;
-    if (node.isNamed) {
-      _sink.write('{');
-      closeSeparator = '}';
-      if (node.isRequired) {
-        _sink.write('required ');
-      }
-    } else if (!node.isRequired) {
-      _sink.write('[');
-      closeSeparator = ']';
-    } else {
-      closeSeparator = '';
-    }
-
-    write(node.type);
-    if (node.name != null) {
-      _sink.write(' ');
-      _sink.write(node.name);
-    }
-
-    _sink.write(closeSeparator);
-  }
-
-  void _writeFunctionTypeAnnotation(FunctionTypeAnnotation type) {
-    write(type.returnType);
-    _sink.write(' Function');
-
-    _sink.writeList(
-      elements: type.typeParameters,
-      write: _writeTypeParameter,
-      separator: ', ',
-      open: '<',
-      close: '>',
-    );
-
-    _sink.write('(');
-    var hasFormalParameter = false;
-    for (final formalParameter in type.positionalParameters) {
-      if (hasFormalParameter) {
-        _sink.write(', ');
-      }
-      _writeFormalParameter(formalParameter);
-      hasFormalParameter = true;
-    }
-    for (final formalParameter in type.namedParameters) {
-      if (hasFormalParameter) {
-        _sink.write(', ');
-      }
-      _writeFormalParameter(formalParameter);
-      hasFormalParameter = true;
-    }
-    _sink.write(')');
-  }
-
-  void _writeNamedTypeAnnotation(NamedTypeAnnotation type) {
-    _sink.write(type.identifier.name);
-    _sink.writeList(
-      elements: type.typeArguments,
-      write: write,
-      separator: ', ',
-      open: '<',
-      close: '>',
-    );
-  }
-
-  void _writeTypeParameter(TypeParameterDeclaration node) {
-    _sink.write(node.identifier.name);
-
-    final bound = node.bound;
-    if (bound != null) {
-      _sink.write(' extends ');
-      write(bound);
-    }
-  }
-}
-
-extension on StringSink {
-  void writeList<T>({
-    required Iterable<T> elements,
-    required void Function(T element) write,
-    required String separator,
-    String? open,
-    String? close,
-  }) {
-    elements = elements.toList();
-    if (elements.isEmpty) {
-      return;
-    }
-
-    if (open != null) {
-      this.write(open);
-    }
-    var isFirst = true;
-    for (var element in elements) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        this.write(separator);
-      }
-      write(element);
-    }
-    if (close != null) {
-      this.write(close);
-    }
   }
 }

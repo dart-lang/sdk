@@ -65,6 +65,12 @@ class MacroElementsTest extends ElementsBaseTest {
     return code.replaceAll('/*macro*/', 'macro');
   }
 
+  String get _introspectSharedCode {
+    return MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/introspect_shared.dart')
+        .readAsStringSync();
+  }
+
   Future<void> setUp() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
@@ -1152,6 +1158,133 @@ library
 ''');
   }
 
+  test_introspect_declarations_ClassDeclaration_imported_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+class C implements A, B {}
+''');
+
+    await _assertIntrospectDeclarationsText(r'''
+import 'a.dart';
+
+@introspectMacro
+class X extends C {}
+''', r'''
+class X
+  superclass
+    class C
+      superclass
+        class Object
+      interfaces
+        A
+        B
+''');
+  }
+
+  test_introspect_declarations_ClassDeclaration_imported_isAbstract() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+abstract class A {}
+''');
+
+    await _assertIntrospectDeclarationsText(r'''
+import 'a.dart';
+
+@introspectMacro
+class X extends A {}
+''', r'''
+class X
+  superclass
+    abstract class A
+      superclass
+        class Object
+''');
+  }
+
+  test_introspect_declarations_ClassDeclaration_imported_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin M1 {}
+mixin M2 {}
+class C with M1, M2 {}
+''');
+
+    await _assertIntrospectDeclarationsText(r'''
+import 'a.dart';
+
+@introspectMacro
+class X extends C {}
+''', r'''
+class X
+  superclass
+    class C
+      superclass
+        class Object
+      mixins
+        M1
+        M2
+''');
+  }
+
+  test_introspect_declarations_ClassDeclaration_imported_superclass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B extends A {}
+''');
+
+    await _assertIntrospectDeclarationsText(r'''
+import 'a.dart';
+
+@introspectMacro
+class X extends B {}
+''', r'''
+class X
+  superclass
+    class B
+      superclass
+        class A
+          superclass
+            class Object
+''');
+  }
+
+  test_introspect_declarations_ClassDeclaration_imported_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T, U extends List<T>> {}
+''');
+
+    await _assertIntrospectDeclarationsText(r'''
+import 'a.dart';
+
+@introspectMacro
+class X extends A {}
+''', r'''
+class X
+  superclass
+    class A
+      superclass
+        class Object
+      typeParameters
+        T
+        U
+          bound: List<T>
+''');
+  }
+
+  test_introspect_declarations_ClassDeclaration_superclassOf() async {
+    await _assertIntrospectDeclarationsText(r'''
+class A {}
+
+@introspectMacro
+class X extends A {}
+''', r'''
+class X
+  superclass
+    class A
+      superclass
+        class Object
+''');
+  }
+
   test_introspect_declarations_ClassDeclaration_superclassOf_implicit() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacro
@@ -1163,18 +1296,14 @@ class X
 ''');
   }
 
-  test_introspect_declarations_ClassDeclaration_superclassOf_local() async {
+  test_introspect_declarations_ClassDeclaration_superclassOf_unresolved() async {
     await _assertIntrospectDeclarationsText(r'''
-class A<T> {}
-
 @introspectMacro
-class X extends A<int> {}
+class X extends A {}
 ''', r'''
 class X
   superclass
-    class A
-      superclass
-        class Object
+    class Object
 ''');
   }
 
@@ -1598,6 +1727,11 @@ class A {}
   /// declaration.
   Future<String> _getDeclarationText(String declarationCode) async {
     newFile(
+      '$testPackageLibPath/introspect_shared.dart',
+      _introspectSharedCode,
+    );
+
+    newFile(
       '$testPackageLibPath/declaration_text.dart',
       _declarationTextCode,
     );
@@ -1608,7 +1742,10 @@ import 'declaration_text.dart';
 @DeclarationTextMacro()
 $declarationCode
 ''', preBuildSequence: [
-      {'package:test/declaration_text.dart'}
+      {
+        'package:test/introspect_shared.dart',
+        'package:test/declaration_text.dart',
+      }
     ]);
 
     _assertNoErrorsForClassElement(
@@ -1627,16 +1764,23 @@ $declarationCode
   /// macro annotated declarations.
   Future<String> _getIntrospectDeclarationsText(String declarationCode) async {
     newFile(
+      '$testPackageLibPath/introspect_shared.dart',
+      _introspectSharedCode,
+    );
+
+    newFile(
       '$testPackageLibPath/introspect_declarations_phase.dart',
       _introspectDeclarationsPhaseCode,
     );
 
     var library = await buildLibrary('''
 import 'introspect_declarations_phase.dart';
-
 $declarationCode
 ''', preBuildSequence: [
-      {'package:test/introspect_declarations_phase.dart'}
+      {
+        'package:test/introspect_shared.dart',
+        'package:test/introspect_declarations_phase.dart',
+      }
     ]);
 
     for (final class_ in library.definingCompilationUnit.classes) {
