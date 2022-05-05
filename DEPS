@@ -699,6 +699,12 @@ hooks = [
     'action': ['python3', 'sdk/tools/generate_package_config.py'],
   },
   {
+    # Generate the sdk/version file.
+    'name': 'Generate sdk/version',
+    'pattern': '.',
+    'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
+  },
+  {
     # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
