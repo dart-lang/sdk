@@ -8064,7 +8064,11 @@ void Function::set_kind_tag(uint32_t value) const {
 }
 
 void Function::set_packed_fields(uint32_t packed_fields) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   StoreNonPointer(&untag()->packed_fields_, packed_fields);
+#endif
 }
 
 bool Function::IsOptimizable() const {

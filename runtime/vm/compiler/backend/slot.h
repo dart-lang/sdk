@@ -177,7 +177,6 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
   V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
-  V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
   V(FunctionType, UntaggedFunctionType, packed_parameter_counts, Uint32,       \
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \

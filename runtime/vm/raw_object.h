@@ -1346,14 +1346,13 @@ class UntaggedFunction : public UntaggedObject {
   JIT_FUNCTION_COUNTERS(DECLARE)
 #undef DECLARE
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   AtomicBitFieldContainer<uint8_t> packed_fields_;
 
   static constexpr intptr_t kMaxOptimizableBits = 1;
 
   using PackedOptimizable =
       BitField<decltype(packed_fields_), bool, 0, kMaxOptimizableBits>;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 class UntaggedClosureData : public UntaggedObject {
