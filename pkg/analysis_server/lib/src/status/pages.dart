@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/server/performance.dart';
+
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
 String printMilliseconds(int value) => '$value ms';
@@ -127,6 +129,48 @@ abstract class Page {
       buf.write('</li>');
     }
     buf.writeln('</ul>');
+  }
+}
+
+mixin PerformanceChartMixin on Page {
+  void drawChart(List<RequestPerformance> items) {
+    buf.writeln(
+        '<div id="chart-div" style="width: 700px; height: 300px; padding-bottom: 30px;"></div>');
+    var rowData = StringBuffer();
+    for (var i = items.length - 1; i >= 0; i--) {
+      if (rowData.isNotEmpty) {
+        rowData.write(',');
+      }
+      var latency = items[i].requestLatency ?? 0;
+      var time = items[i].performance.elapsed.inMilliseconds;
+      // label, latency, time
+      // [' ', 21.0, 101.5]
+      rowData.write("[' ', $latency, $time]");
+    }
+    buf.writeln('''
+      <script type="text/javascript">
+      google.charts.load('current', {'packages':['bar']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          [ 'Request', 'Latency', 'Time' ],
+          $rowData
+        ]);
+        var options = {
+          bars: 'vertical',
+          vAxis: {format: 'decimal'},
+          height: 300,
+          isStacked: true,
+          series: {
+            0: { color: '#C0C0C0' },
+            1: { color: '#4285f4' },
+          }
+        };
+        var chart = new google.charts.Bar(document.getElementById('chart-div'));
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+      }
+      </script>
+''');
   }
 }
 

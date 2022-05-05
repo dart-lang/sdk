@@ -93,13 +93,13 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
         }
 
         final completionPerformance = CompletionPerformance(
-          operation: performance,
+          performance: performance,
           path: file,
           requestLatency: requestLatency,
           content: resolvedUnit.content,
           offset: offset,
         );
-        server.completionState.performanceList.add(completionPerformance);
+        server.recentPerformance.completion.add(completionPerformance);
 
         var declarationsTracker = server.declarationsTracker;
         if (declarationsTracker == null) {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analysis_server/src/server/performance.dart';
 
 /// Compute a string representing a code completion operation at the
 /// given source and location.
@@ -34,24 +34,20 @@ String _computeCompletionSnippet(String contents, int offset) {
 }
 
 /// Overall performance of a code completion operation.
-class CompletionPerformance {
-  static var _nextId = 1;
-  final int id;
-  final OperationPerformance operation;
+class CompletionPerformance extends RequestPerformance {
   final String path;
   final String snippet;
-  final int? requestLatency;
   int? computedSuggestionCount;
   int? transmittedSuggestionCount;
 
   CompletionPerformance({
-    required this.operation,
+    required super.performance,
     required this.path,
-    this.requestLatency,
+    super.requestLatency,
     required String content,
     required int offset,
-  })  : id = _nextId++,
-        snippet = _computeCompletionSnippet(content, offset);
+  })  : snippet = _computeCompletionSnippet(content, offset),
+        super(operation: 'Completion');
 
   String get computedSuggestionCountStr {
     if (computedSuggestionCount == null) return '';
@@ -59,7 +55,7 @@ class CompletionPerformance {
   }
 
   int get elapsedInMilliseconds {
-    return operation.elapsed.inMilliseconds;
+    return performance.elapsed.inMilliseconds;
   }
 
   String get transmittedSuggestionCountStr {

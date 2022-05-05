@@ -14,6 +14,8 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/performance.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
@@ -123,6 +125,9 @@ abstract class AbstractAnalysisServer {
 
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
+
+  /// Performance about recent requests.
+  final ServerRecentPerformance recentPerformance = ServerRecentPerformance();
 
   RequestStatisticsHelper? requestStatistics;
 
@@ -542,4 +547,19 @@ abstract class AbstractAnalysisServer {
     }
     return null;
   }
+}
+
+class ServerRecentPerformance {
+  /// The maximum number of performance measurements to keep.
+  static const int performanceListMaxLength = 50;
+
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
+  final RecentBuffer<CompletionPerformance> completion =
+      RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+
+  /// A [RecentBuffer] for performance information about the most recent
+  /// requests.
+  final RecentBuffer<RequestPerformance> requests =
+      RecentBuffer(performanceListMaxLength);
 }

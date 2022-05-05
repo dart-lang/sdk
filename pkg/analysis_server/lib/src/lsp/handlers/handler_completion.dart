@@ -115,14 +115,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         'request',
         (performance) async {
           final thisPerformance = CompletionPerformance(
-            operation: performance,
+            performance: performance,
             path: result.path,
             requestLatency: requestLatency,
             content: result.content,
             offset: offset,
           );
           completionPerformance = thisPerformance;
-          server.performanceStats.completion.add(thisPerformance);
+          server.recentPerformance.completion.add(thisPerformance);
 
           // `await` required for `performance.runAsync` to count time.
           return await _getServerDartItems(
