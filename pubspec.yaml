@@ -1,5 +1,5 @@
 name: linter
-version: 1.22.0
+version: 1.23.0
 
 description: >-
   The implementation of the lint rules supported by the analyzer framework.
@@ -12,7 +12,7 @@ environment:
   sdk: '>=2.15.0 <3.0.0'
 
 dependencies:
-  analyzer: ^3.4.1
+  analyzer: ^4.0.0
   args: ^2.0.0
   collection: ^1.15.0
   glob: ^2.0.0

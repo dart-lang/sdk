@@ -1,3 +1,20 @@
+# 1.23.0
+
+- fixed `no_leading_underscores_for_local_identifiers`
+  to lint local function declarations 
+- fixed `avoid_init_to_null` to correctly handle super
+  initializing defaults that are non-null
+- updated `no_leading_underscores_for_local_identifiers`
+  to allow identifiers with just underscores
+- fixed `flutter_style_todos` to support usernames that
+  start with a digit
+- updated `require_trailing_commas` to handle functions
+  in asserts and multi-line strings
+- updated `unsafe_html` to allow assignments to 
+  `img.src`
+- fixed `unnecessary_null_checks` to properly handle map
+  literal entries
+
 # 1.22.0
 
 - fixed false positives for `unnecessary_getters_setters`
