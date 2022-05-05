@@ -1117,6 +1117,51 @@ void f() {
     expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
   }
 
+  /// Exact matches should always be included when completion lists are
+  /// truncated, even if they ranked poorly.
+  Future<void> test_maxCompletionItems_doesNotExcludeExactMatches() async {
+    final content = '''
+import 'a.dart';
+void f() {
+  var a = Item^
+}
+    ''';
+
+    // Create classes `Item1` to `Item20` along with a field named `item`.
+    // The classes will rank higher in the position above and push
+    // the field out without an exception to include exact matches.
+    newFile(
+      join(projectFolderPath, 'lib', 'a.dart'),
+      [
+        'String item = "";',
+        for (var i = 1; i <= 20; i++) 'class Item$i {}',
+      ].join('\n'),
+    );
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withApplyEditSupport(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      {'maxCompletionItems': 10},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // We expect 11 items, because the exact match was not in the top 10 and
+    // was included additionally.
+    expect(res.items, hasLength(11));
+    expect(res.isIncomplete, isTrue);
+
+    // Ensure the 'Item' field is included.
+    expect(
+      res.items.map((item) => item.label),
+      contains('item'),
+    );
+  }
+
   /// Snippet completions should be kept when maxCompletionItems truncates
   /// because they are not ranked like other completions and might be
   /// truncated when they are exactly what the user wants.
@@ -1128,11 +1173,11 @@ void f() {
 }
     ''';
 
-    // Create a class with fields for1 to for20 in the other file.
+    // Create fields for1 to for20 in the other file.
     newFile(
       join(projectFolderPath, 'lib', 'a.dart'),
       [
-        for (var i = 1; i <= 20; i++) '  String for$i = ' ';',
+        for (var i = 1; i <= 20; i++) 'String for$i = ' ';',
       ].join('\n'),
     );
 
@@ -1154,8 +1199,7 @@ void f() {
     expect(res.items, hasLength(10));
     expect(res.isIncomplete, isTrue);
 
-    // Also ensure the 'for' snippet is included.
-
+    // Ensure the 'for' snippet is included.
     expect(
       res.items
           .where((item) => item.kind == CompletionItemKind.Snippet)

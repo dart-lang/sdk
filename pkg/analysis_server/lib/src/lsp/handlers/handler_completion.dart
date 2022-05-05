@@ -32,6 +32,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:collection/collection.dart';
 
 class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
@@ -157,8 +158,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       }
     }
 
-    serverResultsFuture ??=
-        Future.value(success(_CompletionResults(isIncomplete: false)));
+    serverResultsFuture ??= Future.value(success(_CompletionResults.empty()));
 
     final pluginResultsFuture = _getPluginResults(
         clientCapabilities, lineInfo.result, path.result, offset);
@@ -174,12 +174,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         .toList();
     final unrankedItems = serverResults.result.unrankedItems;
 
-    // Truncate ranked items to allow room for all unranked items.
+    // Truncate ranked items allowing for all unranked items.
     final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
-    final truncatedRankedItems = untruncatedRankedItems.length > maxRankedItems
-        ? (untruncatedRankedItems..sort(sortTextComparer))
-            .sublist(0, maxRankedItems)
-        : untruncatedRankedItems;
+    final truncatedRankedItems = untruncatedRankedItems.length <= maxRankedItems
+        ? untruncatedRankedItems
+        : _truncateResults(
+            untruncatedRankedItems,
+            serverResults.result.targetPrefix,
+            maxRankedItems,
+          );
 
     final truncatedItems =
         truncatedRankedItems.followedBy(unrankedItems).toList();
@@ -308,11 +311,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       completionPreference: CompletionPreference.replace,
     );
     final target = completionRequest.target;
-    final fuzzy = _FuzzyFilterHelper(completionRequest.targetPrefix);
+    final targetPrefix = completionRequest.targetPrefix;
+    final fuzzy = _FuzzyFilterHelper(targetPrefix);
 
     if (triggerCharacter != null) {
       if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
-        return success(_CompletionResults(isIncomplete: false));
+        return success(_CompletionResults.empty());
       }
     }
 
@@ -556,12 +560,13 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
       return success(_CompletionResults(
           isIncomplete: false,
+          targetPrefix: targetPrefix,
           rankedItems: rankedResults,
           unrankedItems: unrankedResults));
     } on AbortCompletion {
-      return success(_CompletionResults(isIncomplete: false));
+      return success(_CompletionResults.empty());
     } on InconsistentAnalysisException {
-      return success(_CompletionResults(isIncomplete: false));
+      return success(_CompletionResults.empty());
     }
   }
 
@@ -614,8 +619,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           ),
         )
         .toList();
-    return success(_CompletionResults(
-        isIncomplete: false, unrankedItems: completionItems));
+    return success(
+      _CompletionResults.unranked(completionItems, isIncomplete: false),
+    );
   }
 
   /// Returns true if [node] is part of an invocation and already has an argument
@@ -708,6 +714,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     return true; // Any other trigger character can be handled always.
   }
 
+  /// Truncates [items] to [maxItems] but additionally includes any items that
+  /// exactly match [prefix].
+  Iterable<CompletionItem> _truncateResults(
+    List<CompletionItem> items,
+    String prefix,
+    int maxItems,
+  ) {
+    // Take the top `maxRankedItem` plus any exact matches.
+    final prefixLower = prefix.toLowerCase();
+    bool isExactMatch(CompletionItem item) =>
+        (item.filterText ?? item.label).toLowerCase() == prefixLower;
+
+    // Sort the items by relevance using sortText.
+    items.sort(sortTextComparer);
+
+    // Skip the text comparisons if we don't have a prefix (plugin results, or
+    // just no prefix when completion was invoked).
+    final shouldInclude = prefixLower.isEmpty
+        ? (int index, CompletionItem item) => index < maxItems
+        : (int index, CompletionItem item) =>
+            index < maxItems || isExactMatch(item);
+
+    return items.whereIndexed(shouldInclude);
+  }
+
   /// Compares [CompletionItem]s by the `sortText` field, which is derived from
   /// relevance.
   ///
@@ -750,13 +781,28 @@ class _CompletionResults {
   /// Items that cannot be ranked, and should avoid being truncated.
   final List<CompletionItem> unrankedItems;
 
+  /// Any prefixed used to filter the results.
+  final String targetPrefix;
+
   final bool isIncomplete;
 
   _CompletionResults({
     this.rankedItems = const [],
     this.unrankedItems = const [],
+    required this.targetPrefix,
     required this.isIncomplete,
   });
+
+  _CompletionResults.empty() : this(targetPrefix: '', isIncomplete: false);
+
+  _CompletionResults.unranked(
+    List<CompletionItem> unrankedItems, {
+    required bool isIncomplete,
+  }) : this(
+          unrankedItems: unrankedItems,
+          targetPrefix: '',
+          isIncomplete: isIncomplete,
+        );
 }
 
 /// Helper to simplify fuzzy filtering.
