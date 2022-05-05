@@ -345,7 +345,6 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
 
     for (int j = 0; j < _usedData; j += 2) {
       final key = _data[j];
-      final value = _data[j + 1];
 
       final fullHash = _hashCode(key);
       final hashPattern = _HashBase._hashPattern(fullHash, hashMask, size);
@@ -452,10 +451,10 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  void _insert(K key, V value, int hashPattern, int i) {
+  void _insert(K key, V value, int fullHash, int hashPattern, int i) {
     if (_usedData == _data.length) {
       _rehash();
-      this[key] = value;
+      _set(key, value, fullHash);
     } else {
       assert(1 <= hashPattern && hashPattern < (1 << 32));
       final int index = _usedData >> 1;
@@ -496,8 +495,12 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   }
 
   void operator []=(K key, V value) {
-    final int size = _index.length;
     final int fullHash = _hashCode(key);
+    _set(key, value, fullHash);
+  }
+
+  void _set(K key, V value, int fullHash) {
+    final int size = _index.length;
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d =
         _findValueOrInsertPoint(key, fullHash, hashPattern, size, _index);
@@ -505,7 +508,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
       _data[d] = value;
     } else {
       final int i = -d;
-      _insert(key, value, hashPattern, i);
+      _insert(key, value, fullHash, hashPattern, i);
     }
   }
 
@@ -526,7 +529,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
       this[key] = value;
     } else {
       final int i = -d;
-      _insert(key, value, hashPattern, i);
+      _insert(key, value, fullHash, hashPattern, i);
     }
     return value;
   }
@@ -835,10 +838,14 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
   }
 
   bool add(E key) {
+    final int fullHash = _hashCode(key);
+    return _add(key, fullHash);
+  }
+
+  bool _add(E key, int fullHash) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int firstDeleted = -1;
@@ -859,7 +866,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     }
     if (_usedData == _data.length) {
       _rehash();
-      add(key);
+      _add(key, fullHash);
     } else {
       final int insertionPoint = (firstDeleted >= 0) ? firstDeleted : i;
       assert(1 <= hashPattern && hashPattern < (1 << 32));
