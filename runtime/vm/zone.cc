@@ -320,19 +320,25 @@ char* Zone::VPrint(const char* format, va_list args) {
 }
 
 StackZone::StackZone(ThreadState* thread)
+#if defined(DART_USE_ABSL)
+    // DART_USE_ABSL encodes the use of fibers in the Dart VM for threading.
     : StackResource(thread), zone_(new Zone()) {
+#else
+    : StackResource(thread), zone_() {
+#endif  // defined(DART_USE_ABSL)
   if (FLAG_trace_zones) {
     OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
                  reinterpret_cast<intptr_t>(this),
-                 reinterpret_cast<intptr_t>(zone_));
+                 reinterpret_cast<intptr_t>(GetZone()));
   }
 
   // This thread must be preventing safepoints or the GC could be visiting the
   // chain of handle blocks we're about the mutate.
   ASSERT(Thread::Current()->MayAllocateHandles());
 
-  zone_->Link(thread->zone());
-  thread->set_zone(zone_);
+  Zone* lzone = GetZone();
+  lzone->Link(thread->zone());
+  thread->set_zone(lzone);
 }
 
 StackZone::~StackZone() {
@@ -340,15 +346,19 @@ StackZone::~StackZone() {
   // chain of handle blocks we're about the mutate.
   ASSERT(Thread::Current()->MayAllocateHandles());
 
-  ASSERT(thread()->zone() == zone_);
-  thread()->set_zone(zone_->previous_);
+  Zone* lzone = GetZone();
+  ASSERT(thread()->zone() == lzone);
+  thread()->set_zone(lzone->previous_);
   if (FLAG_trace_zones) {
     OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",
                  reinterpret_cast<intptr_t>(this),
-                 reinterpret_cast<intptr_t>(zone_));
+                 reinterpret_cast<intptr_t>(lzone));
   }
 
+#if defined(DART_USE_ABSL)
+  // DART_USE_ABSL encodes the use of fibers in the Dart VM for threading.
   delete zone_;
+#endif  // defined(DART_USE_ABSL)
 }
 
 }  // namespace dart
