@@ -824,7 +824,18 @@ Class: ${parent.parent}
   @override
   DartType? visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      return (node.staticType as InterfaceType).typeArguments[0];
+      final type = node.staticType;
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/48965
+      if (type == null) {
+        throw '''
+No type.
+node: $node
+parent: ${node.parent}
+parent2: ${node.parent?.parent}
+parent3: ${node.parent?.parent?.parent}
+''';
+      }
+      return (type as InterfaceType).typeArguments[0];
     }
     return null;
   }
