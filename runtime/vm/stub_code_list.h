@@ -75,6 +75,7 @@ namespace dart {
   V(ICCallThroughCode)                                                         \
   V(MegamorphicCall)                                                           \
   V(FixAllocationStubTarget)                                                   \
+  V(FixParameterizedAllocationStubTarget)                                      \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \

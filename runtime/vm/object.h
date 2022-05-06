@@ -6857,7 +6857,7 @@ class Code : public Object {
 
   void DisableDartCode() const;
 
-  void DisableStubCode() const;
+  void DisableStubCode(bool is_cls_parameterized) const;
 
   void Enable() const {
     if (!IsDisabled()) return;

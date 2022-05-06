@@ -791,6 +791,32 @@ void StubCodeCompiler::GenerateFixAllocationStubTargetStub(
   __ jr(TMP);
 }
 
+// Called from object allocate instruction when the allocation stub for a
+// generic class has been disabled.
+void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub(
+    Assembler* assembler) {
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ lx(CODE_REG,
+        Address(THR, target::Thread::fix_allocation_stub_code_offset()));
+  __ EnterStubFrame();
+  // Preserve type arguments register.
+  __ PushRegister(AllocateObjectABI::kTypeArgumentsReg);
+  // Setup space on stack for return value.
+  __ PushRegister(ZR);
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result.
+  __ PopRegister(CODE_REG);
+  // Restore type arguments register.
+  __ PopRegister(AllocateObjectABI::kTypeArgumentsReg);
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ LoadFieldFromOffset(TMP, CODE_REG, target::Code::entry_point_offset());
+  __ jr(TMP);
+}
+
 // Input parameters:
 //   T2: smi-tagged argument count, may be zero.
 //   FP[target::frame_layout.param_end_from_fp + 1]: last argument.

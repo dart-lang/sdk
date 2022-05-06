@@ -877,6 +877,28 @@ void StubCodeCompiler::GenerateFixAllocationStubTargetStub(
   __ int3();
 }
 
+// Called from object allocate instruction when the allocation stub for a
+// generic class has been disabled.
+void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub(
+    Assembler* assembler) {
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ movq(CODE_REG,
+          Address(THR, target::Thread::fix_allocation_stub_code_offset()));
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ pushq(AllocateObjectABI::kTypeArgumentsReg);
+  __ pushq(Immediate(0));
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  __ popq(CODE_REG);  // Get Code object.
+  __ popq(AllocateObjectABI::kTypeArgumentsReg);
+  __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ LeaveStubFrame();
+  __ jmp(RAX);
+  __ int3();
+}
+
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[target::frame_layout.param_end_from_fp + 1]: last argument.

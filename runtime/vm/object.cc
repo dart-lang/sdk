@@ -5398,7 +5398,7 @@ void Class::DisableAllocationStub() const {
   }
   ASSERT(!existing_stub.IsDisabled());
   // Change the stub so that the next caller will regenerate the stub.
-  existing_stub.DisableStubCode();
+  existing_stub.DisableStubCode(NumTypeParameters() > 0);
   // Disassociate the existing stub from class.
   untag()->set_allocation_stub(Code::null());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -17641,11 +17641,13 @@ void Code::DisableDartCode() const {
                         new_code.UncheckedEntryPointOffset());
 }
 
-void Code::DisableStubCode() const {
+void Code::DisableStubCode(bool is_cls_parameterized) const {
   GcSafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code = StubCode::FixAllocationStubTarget();
+  const Code& new_code = is_cls_parameterized
+                             ? StubCode::FixParameterizedAllocationStubTarget()
+                             : StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()),
                         new_code.UncheckedEntryPointOffset());
 }
