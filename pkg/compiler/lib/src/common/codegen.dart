@@ -1125,7 +1125,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   void _writeInfo(js.Node node) {
-    sink.writeCached<SourceInformation>(node.sourceInformation,
+    sink.writeCached<SourceInformation /*!*/ >(node.sourceInformation,
         (SourceInformation sourceInformation) {
       SourceInformation.writeToDataSink(sink, sourceInformation);
     });
@@ -2195,7 +2195,7 @@ class JsNodeDeserializer {
         break;
     }
     SourceInformation sourceInformation =
-        source.readCached<SourceInformation>(() {
+        source.readCachedOrNull<SourceInformation>(() {
       return SourceInformation.readFromDataSource(source);
     });
     if (sourceInformation != null) {

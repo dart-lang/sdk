@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js.source_mapping;
 
 import '../io/code_output.dart'
@@ -33,7 +31,8 @@ class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
 class SourceInformationReader {
   const SourceInformationReader();
 
-  SourceInformation getSourceInformation(Node node) => node.sourceInformation;
+  SourceInformation? getSourceInformation(Node node) =>
+      node.sourceInformation as SourceInformation?;
 }
 
 /// An observer of code positions of printed JavaScript [Node]s.
@@ -50,7 +49,7 @@ class CodePositionListener {
   ///
   /// The nodes are seen in post-traversal order.
   void onPositions(
-      Node node, int startPosition, int endPosition, int closingPosition) {}
+      Node node, int startPosition, int endPosition, int? closingPosition) {}
 }
 
 /// Interface for creating [SourceMapper]s for multiple source information
@@ -79,7 +78,7 @@ abstract class SourceMapper {
 
   /// Associate [codeOffset] with an inlining call at [sourceLocation].
   void registerPush(
-      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName);
+      int codeOffset, SourceLocation? sourceLocation, String inlinedMethodName);
 
   /// Associate [codeOffset] with an inlining return.
   ///
@@ -101,8 +100,8 @@ class SourceLocationsMapper implements SourceMapper {
   }
 
   @override
-  void registerPush(
-      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+  void registerPush(int codeOffset, SourceLocation? sourceLocation,
+      String inlinedMethodName) {
     sourceLocations.addPush(codeOffset, sourceLocation, inlinedMethodName);
   }
 

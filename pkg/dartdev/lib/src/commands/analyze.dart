@@ -74,6 +74,12 @@ class AnalyzeCommand extends DartdevCommand {
         help: 'The path to the package resolution configuration file, which '
             'supplies a mapping of package names\ninto paths.',
         hide: !verbose,
+      )
+      ..addOption(
+        'sdk-path',
+        valueHelp: 'path',
+        help: 'The path to the Dart SDK.',
+        hide: !verbose,
       );
   }
 
@@ -110,9 +116,30 @@ class AnalyzeCommand extends DartdevCommand {
     var progress =
         machineFormat ? null : log.progress('Analyzing $targetsNames');
 
+    io.Directory sdkPath;
+    if (args.wasParsed('sdk-path')) {
+      sdkPath = io.Directory(args['sdk-path'] as String);
+      if (!sdkPath.existsSync()) {
+        usageException('Invalid Dart SDK path: $sdkPath');
+      }
+      final snapshotPath = path.join(
+        sdkPath.path,
+        'bin',
+        'snapshots',
+        'analysis_server.dart.snapshot',
+      );
+      if (!io.File(snapshotPath).existsSync()) {
+        usageException(
+            'Invalid Dart SDK path has no analysis_server.dart.snapshot file: '
+            '$sdkPath');
+      }
+    } else {
+      sdkPath = io.Directory(sdk.sdkPath);
+    }
+
     final AnalysisServer server = AnalysisServer(
       _packagesFile(),
-      io.Directory(sdk.sdkPath),
+      sdkPath,
       targets,
       cacheDirectoryPath: args['cache'],
       commandName: 'analyze',

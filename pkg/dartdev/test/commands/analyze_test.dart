@@ -5,6 +5,7 @@
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/analysis_server.dart';
 import 'package:dartdev/src/commands/analyze.dart';
+import 'package:dartdev/src/sdk.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -353,6 +354,25 @@ void defineAnalyze() {
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
+  });
+
+  test('--sdk-path value does not exist', () async {
+    p = project();
+    var result = await p.run(['analyze', '--sdk-path=bad']);
+
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('Invalid Dart SDK path: bad'));
+    expect(result.stderr, contains(_analyzeUsageText));
+  });
+
+  test('--sdk-path', () async {
+    var sdkPath = sdk.sdkPath;
+    p = project();
+    var result = await p.run(['analyze', '--sdk-path=$sdkPath']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('No issues found!'));
+    expect(result.stderr, isEmpty);
   });
 
   test('--verbose', () async {

@@ -113,7 +113,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// Writes a reference to [value] to this data sink. If [value] has not yet
   /// been serialized, [f] is called to serialize the value itself.
   @override
-  void writeCached<E>(E value, void f(E value)) {
+  void writeCached<E>(E /*?*/ value, void f(E value)) {
     IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
     sink.write(value, (v) => f(v));
   }

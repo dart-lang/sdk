@@ -514,7 +514,7 @@ class Namer extends ModularNamer {
   }
 
   Map<String, String> createMinifiedGlobalNameMap() {
-    var map = <String, String>{};
+    var map = <String, String /*!*/ >{};
     userGlobals.forEach((entity, jsName) {
       _registerName(map, jsName, entity.name);
     });
@@ -817,11 +817,11 @@ class Namer extends ModularNamer {
   }
 
   @override
-  jsAst.Name globalPropertyNameForMember(MemberEntity element) =>
+  jsAst.Name globalPropertyNameForMember(MemberEntity /*!*/ element) =>
       _disambiguateGlobalMember(element);
 
   @override
-  jsAst.Name globalPropertyNameForClass(ClassEntity element) =>
+  jsAst.Name globalPropertyNameForClass(ClassEntity /*!*/ element) =>
       _disambiguateGlobalType(element);
 
   @override

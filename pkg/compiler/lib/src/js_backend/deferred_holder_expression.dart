@@ -110,7 +110,7 @@ class DeferredHolderExpression extends js.DeferredExpression
   @override
   js.Expression get value {
     assert(isFinalized, '$this is unassigned');
-    return _value;
+    return _value /*!*/;
   }
 
   @override
@@ -175,7 +175,7 @@ class DeferredHolderExpression extends js.DeferredExpression
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+  Iterable<js.Node> get containedNodes => isFinalized ? [value] : const [];
 }
 
 /// A [DeferredHolderParameter] is a deferred JavaScript expression determined

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.code_output;
 
 import '../../compiler_api.dart' as api show OutputSink;
@@ -28,8 +26,9 @@ abstract class SourceLocations {
   ///
   /// The inlining call-site was made from [pushLocation] and calls
   /// [inlinedMethodName].
+  // TODO(48820): We might have a [pushPosition].
   void addPush(
-      int targetOffset, SourceLocation pushPosition, String inlinedMethodName);
+      int targetOffset, SourceLocation? pushPosition, String inlinedMethodName);
 
   /// Record a return of an inlining call at the [targetOffset].
   ///
@@ -63,7 +62,7 @@ class _SourceLocationsImpl implements SourceLocations {
   }
 
   @override
-  void addPush(int targetOffset, SourceLocation sourceLocation,
+  void addPush(int targetOffset, SourceLocation? sourceLocation,
       String inlinedMethodName) {
     assert(targetOffset <= codeOutput.length);
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
@@ -137,12 +136,11 @@ abstract class CodeOutput implements SourceLocationsProvider {
 }
 
 abstract class AbstractCodeOutput extends CodeOutput {
-  final List<CodeOutputListener> _listeners;
+  final List<CodeOutputListener>? _listeners;
 
   AbstractCodeOutput([this._listeners]);
 
-  Map<String, _SourceLocationsImpl> sourceLocationsMap =
-      <String, _SourceLocationsImpl>{};
+  Map<String, _SourceLocationsImpl> sourceLocationsMap = {};
   @override
   bool isClosed = false;
 
@@ -198,7 +196,7 @@ abstract class BufferedCodeOutput {
 class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   StringBuffer buffer = StringBuffer();
 
-  CodeBuffer([List<CodeOutputListener> listeners]) : super(listeners);
+  CodeBuffer([List<CodeOutputListener>? listeners]) : super(listeners);
 
   @override
   void _addInternal(String text) {
@@ -225,7 +223,7 @@ class StreamCodeOutput extends AbstractCodeOutput {
   int length = 0;
   final api.OutputSink output;
 
-  StreamCodeOutput(this.output, [List<CodeOutputListener> listeners])
+  StreamCodeOutput(this.output, [List<CodeOutputListener>? listeners])
       : super(listeners);
 
   @override
