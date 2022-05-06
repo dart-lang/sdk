@@ -5,6 +5,8 @@
 // @dart = 2.10
 
 import '../common.dart';
+import '../constants/common_elements_for_constants.dart'
+    as common_elements_for_constants;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -17,7 +19,11 @@ import '../universe/selector.dart' show Selector;
 import 'names.dart' show Identifiers, Uris;
 
 /// The common elements and types in Dart.
-abstract class CommonElements implements CommonElementsForDartTypes {
+abstract class CommonElements
+    implements
+        CommonElementsForDartTypes,
+        common_elements_for_constants.CommonElements {
+  @override
   final DartTypes dartTypes;
   final ElementEnvironment _env;
   ClassEntity _objectClass;
@@ -329,6 +335,7 @@ abstract class CommonElements implements CommonElementsForDartTypes {
       element.name == 'apply' && element.enclosingClass == functionClass;
 
   /// The `dynamic` type.
+  @override
   DynamicType get dynamicType => _env.dynamicType;
 
   /// The `Object` type defined in 'dart:core'.
@@ -336,6 +343,7 @@ abstract class CommonElements implements CommonElementsForDartTypes {
   InterfaceType get objectType => _getRawType(objectClass);
 
   /// The `bool` type defined in 'dart:core'.
+  @override
   InterfaceType get boolType => _getRawType(boolClass);
 
   /// The `num` type defined in 'dart:core'.
@@ -350,6 +358,7 @@ abstract class CommonElements implements CommonElementsForDartTypes {
   InterfaceType get doubleType => _getRawType(doubleClass);
 
   /// The `String` type defined in 'dart:core'.
+  @override
   InterfaceType get stringType => _getRawType(stringClass);
 
   /// The `Symbol` type defined in 'dart:core'.

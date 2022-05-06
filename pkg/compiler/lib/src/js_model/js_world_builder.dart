@@ -916,8 +916,8 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return InstantiationConstantValue(typeArguments, function);
   }
 
-  List<ConstantValue> _handleValues(List<ConstantValue> values) {
-    List<ConstantValue> result;
+  List<ConstantValue /*!*/ > _handleValues(List<ConstantValue /*!*/ > values) {
+    List<ConstantValue /*!*/ > result;
     for (int i = 0; i < values.length; i++) {
       var value = values[i];
       var newValue = value.accept(this, null);
