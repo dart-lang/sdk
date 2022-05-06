@@ -31,8 +31,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.named]'), findElement.class_('A'));
-    assertElement(findNode.simple('named]'), findElement.constructor('named'));
+    assertResolvedNodeText(findNode.commentReference('A.named]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticElement: self::@class::A::@constructor::named
+    staticType: null
+''');
   }
 
   test_class_constructor_unnamedViaNew() async {
@@ -45,8 +58,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.new'), findElement.class_('A'));
-    assertElement(findNode.simple('new]'), findElement.unnamedConstructor('A'));
+    assertResolvedNodeText(findNode.commentReference('A.new]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+    staticType: null
+''');
   }
 
   test_class_instanceGetter() async {
@@ -59,8 +85,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+    staticElement: self::@class::A::@getter::foo
+    staticType: null
+''');
   }
 
   test_class_instanceMethod() async {
@@ -73,8 +112,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@method::foo
+      staticType: null
+    staticElement: self::@class::A::@method::foo
+    staticType: null
+''');
   }
 
   test_class_instanceSetter() async {
@@ -87,8 +139,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@setter::foo
+      staticType: null
+    staticElement: self::@class::A::@setter::foo
+    staticType: null
+''');
   }
 
   test_class_invalid_ambiguousExtension() async {
@@ -139,8 +204,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+    staticElement: self::@class::A::@getter::foo
+    staticType: null
+''');
   }
 
   test_class_staticMethod() async {
@@ -153,8 +231,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@method::foo
+      staticType: null
+    staticElement: self::@class::A::@method::foo
+    staticType: null
+''');
   }
 
   test_class_staticSetter() async {
@@ -167,8 +258,21 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@setter::foo
+      staticType: null
+    staticElement: self::@class::A::@setter::foo
+    staticType: null
+''');
   }
 
   test_extension_instanceGetter() async {
@@ -181,8 +285,21 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@getter::foo
+      staticType: null
+    staticElement: self::@extension::E::@getter::foo
+    staticType: null
+''');
   }
 
   test_extension_instanceMethod() async {
@@ -195,8 +312,21 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@method::foo
+      staticType: null
+    staticElement: self::@extension::E::@method::foo
+    staticType: null
+''');
   }
 
   test_extension_instanceSetter() async {
@@ -209,8 +339,21 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@setter::foo
+      staticType: null
+    staticElement: self::@extension::E::@setter::foo
+    staticType: null
+''');
   }
 
   test_extension_staticGetter() async {
@@ -223,8 +366,21 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@getter::foo
+      staticType: null
+    staticElement: self::@extension::E::@getter::foo
+    staticType: null
+''');
   }
 
   test_extension_staticMethod() async {
@@ -237,8 +393,21 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@method::foo
+      staticType: null
+    staticElement: self::@extension::E::@method::foo
+    staticType: null
+''');
   }
 
   test_extension_staticSetter() async {
@@ -251,8 +420,21 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@setter::foo
+      staticType: null
+    staticElement: self::@extension::E::@setter::foo
+    staticType: null
+''');
   }
 }
 
@@ -270,10 +452,29 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.named'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.named]'), findElement.class_('A'));
     // TODO(srawlins): Set the type of named, and test it, here and below.
-    assertElement(findNode.simple('named]'), findElement.constructor('named'));
+    assertResolvedNodeText(findNode.commentReference('A.named]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_constructor_unnamedViaNew() async {
@@ -287,9 +488,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.new'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.new'), findElement.class_('A'));
-    assertElement(findNode.simple('new]'), findElement.unnamedConstructor('A'));
+    assertResolvedNodeText(findNode.commentReference('A.new]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_instanceGetter() async {
@@ -303,9 +523,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_instanceMethod() async {
@@ -319,9 +558,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@method::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_instanceSetter() async {
@@ -335,9 +593,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@setter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_staticGetter() async {
@@ -351,9 +628,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_staticMethod() async {
@@ -367,9 +663,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@method::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_class_staticSetter() async {
@@ -383,9 +698,28 @@ class A {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      staticElement: self::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@setter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_extension_instanceGetter() async {
@@ -399,9 +733,28 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      staticElement: self::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@getter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_extension_instanceMethod() async {
@@ -415,9 +768,28 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      staticElement: self::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@method::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_extension_instanceSetter() async {
@@ -431,9 +803,28 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      staticElement: self::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@setter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_extension_staticGetter() async {
@@ -447,9 +838,28 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      staticElement: self::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@getter::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_extension_staticMethod() async {
@@ -463,9 +873,28 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      staticElement: self::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@method::foo
+      staticType: null
+    staticType: null
+''');
   }
 
   test_extension_staticSetter() async {
@@ -479,9 +908,28 @@ extension E on int {
 void f() {}
 ''');
 
-    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
-    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        staticElement: self::@prefix::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      staticElement: self::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::E::@setter::foo
+      staticType: null
+    staticType: null
+''');
   }
 }
 
@@ -498,7 +946,13 @@ set foo(int value) {}
 void f() {}
 ''');
 
-    assertElement(findNode.simple('foo]'), findElement.topGet('foo'));
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: null
+''');
   }
 
   test_associatedSetterAndGetter_setterInScope() async {
@@ -513,7 +967,13 @@ extension E2 on int {
 }
 ''');
 
-    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E2::@setter::foo
+    staticType: null
+''');
   }
 
   test_beforeClass() async {
@@ -524,10 +984,13 @@ class A {
 }
 ''');
 
-    assertElement(
-      findNode.simple('foo]'),
-      findElement.method('foo'),
-    );
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: null
+''');
   }
 
   test_beforeConstructor() async {
@@ -537,10 +1000,13 @@ class A {
   A(int p);
 }''');
 
-    assertElement(
-      findNode.simple('p]'),
-      findElement.parameter('p'),
-    );
+    assertResolvedNodeText(findNode.commentReference('p]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p
+    staticElement: p@28
+    staticType: null
+''');
   }
 
   test_beforeEnum() async {
@@ -553,18 +1019,29 @@ enum Samurai {
   WITHOUT_SWORD
 }''');
 
-    assertElement(
-      findNode.simple('Samurai]'),
-      findElement.enum_('Samurai'),
-    );
-    assertElement(
-      findNode.simple('int]'),
-      intElement,
-    );
-    assertElement(
-      findNode.simple('WITH_SWORD]'),
-      findElement.getter('WITH_SWORD'),
-    );
+    assertResolvedNodeText(findNode.commentReference('Samurai]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: Samurai
+    staticElement: self::@enum::Samurai
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('int]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: int
+    staticElement: dart:core::@class::int
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('WITH_SWORD]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: WITH_SWORD
+    staticElement: self::@enum::Samurai::@getter::WITH_SWORD
+    staticType: null
+''');
   }
 
   test_beforeFunction_blockBody() async {
@@ -585,10 +1062,13 @@ foo(int p) {}
 foo(int p) => null;
 ''');
 
-    assertElement(
-      findNode.simple('p]'),
-      findElement.parameter('p'),
-    );
+    assertResolvedNodeText(findNode.commentReference('p]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p
+    staticElement: p@16
+    staticType: null
+''');
   }
 
   test_beforeFunctionTypeAlias() async {
@@ -597,10 +1077,13 @@ foo(int p) => null;
 typedef Foo(int p);
 ''');
 
-    assertElement(
-      findNode.simple('p]'),
-      findElement.parameter('p'),
-    );
+    assertResolvedNodeText(findNode.commentReference('p]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p
+    staticElement: p@24
+    staticType: null
+''');
   }
 
   test_beforeGenericTypeAlias() async {
@@ -609,15 +1092,29 @@ typedef Foo(int p);
 typedef Foo<T> = Function<S>(int p);
 ''');
 
-    assertElement(
-      findNode.simple('T]'),
-      findElement.typeParameter('T'),
-    );
-    assertElement(findNode.simple('S]'), findElement.typeParameter('S'));
-    assertElement(
-      findNode.simple('p]'),
-      findElement.parameter('p'),
-    );
+    assertResolvedNodeText(findNode.commentReference('T]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: T
+    staticElement: T@47
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('S]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: S
+    staticElement: S@61
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p
+    staticElement: p@68
+    staticType: null
+''');
   }
 
   test_beforeGetter() async {
@@ -646,11 +1143,45 @@ abstract class A {
 }
 ''');
 
-    assertElement(findNode.simple('p1]'), findElement.parameter('p1'));
-    assertElement(findNode.simple('p2]'), findElement.parameter('p2'));
-    assertElement(findNode.simple('p3]'), findElement.parameter('p3'));
-    assertElement(findNode.simple('p4]'), findElement.parameter('p4'));
-    assertElement(findNode.simple('p5]'), findElement.parameter('p5'));
+    assertResolvedNodeText(findNode.commentReference('p1]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p1
+    staticElement: p1@39
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p2]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p2
+    staticElement: p2@65
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p3]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p3
+    staticElement: p3@100
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p4]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p4
+    staticElement: self::@class::A::@method::mc::@parameter::p4
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p5]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p5
+    staticElement: p5@132
+    staticType: null
+''');
   }
 
   test_newKeyword() async {
@@ -667,18 +1198,31 @@ main() {}
       error(HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
     ]);
 
-    assertElement(
-      findNode.simple('A]'),
-      findElement.unnamedConstructor('A'),
-    );
-    assertElement(
-      findNode.simple('A.named]'),
-      findElement.class_('A'),
-    );
-    assertElement(
-      findNode.simple('named]'),
-      findElement.constructor('named', of: 'A'),
-    );
+    assertResolvedNodeText(findNode.commentReference('A]'), r'''
+CommentReference
+  newKeyword: new
+  expression: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A::@constructor::•
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.named]'), r'''
+CommentReference
+  newKeyword: new
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+    staticElement: self::@class::A::@constructor::named
+    staticType: null
+''');
   }
 
   test_parameter_functionTyped() async {
@@ -687,10 +1231,13 @@ main() {}
 foo(int bar()) {}
 ''');
 
-    assertElement(
-      findNode.simple('bar]'),
-      findElement.parameter('bar'),
-    );
+    assertResolvedNodeText(findNode.commentReference('bar]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: bar
+    staticElement: self::@function::foo::@parameter::bar
+    staticType: null
+''');
   }
 
   test_setter() async {
@@ -707,9 +1254,21 @@ class B extends A {
 }
 ''');
 
-    var x = findElement.setter('x', of: 'A');
-    assertElement(findNode.simple('x] in A'), x);
-    assertElement(findNode.simple('x] in B'), x);
+    assertResolvedNodeText(findNode.commentReference('x] in A'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@class::A::@setter::x
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('x] in B'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@class::A::@setter::x
+    staticType: null
+''');
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember() async {
@@ -722,9 +1281,12 @@ class A {
 class B extends A {}
 ''');
 
-    assertElement(
-      findNode.simple('foo]'),
-      findElement.method('foo', of: 'A'),
-    );
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: null
+''');
   }
 }
