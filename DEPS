@@ -122,7 +122,7 @@ vars = {
   "intl_rev": "9669926609e7efc17dfd74fbb44ec719a7e573cc",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_rev": "14c916a16e78315e212cf79e7ccf4c19159a1bda",
+  "linter_rev": "4305b933c8ed0275f26a99bd1ade39fe9130e6a5", # 1.23.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
   "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
@@ -170,8 +170,8 @@ vars = {
   "webdev_rev": "8c814f9d89915418d8abe354ff9befec8f2906b2",
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
-  "yaml_edit_rev": "4fadb43801b07f90b3f0c6065dbce4efc6d8d55e",
-  "yaml_rev": "ad0779d1baa25c6b10a192d080efc45de02b6a32",
+  "yaml_edit_rev": "0b74d85fac10b4fbf7d1a347debcf16c8f7b0e9c",
+  "yaml_rev": "0971c06490b9670add644ed62182acd6a5536946",
   "zlib_rev": "faff052b6b6edcd6dd548513fe44ac0941427bf0",
 
   # Windows deps

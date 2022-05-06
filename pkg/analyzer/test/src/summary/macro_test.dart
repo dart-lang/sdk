@@ -1307,6 +1307,101 @@ class X
 ''');
   }
 
+  test_introspect_declarations_FieldDeclaration_isExternal() async {
+    await _assertIntrospectDeclarationsText(r'''
+@introspectMacroX
+class X {
+  external int a;
+  int b = 0;
+}
+''', r'''
+class X
+  superclass
+    class Object
+  fields
+    external a
+      type: int
+    b
+      type: int
+''');
+  }
+
+  test_introspect_declarations_FieldDeclaration_isFinal() async {
+    await _assertIntrospectDeclarationsText(r'''
+@introspectMacroX
+class X {
+  final int a = 0;
+  int b = 0;
+}
+''', r'''
+class X
+  superclass
+    class Object
+  fields
+    final a
+      type: int
+    b
+      type: int
+''');
+  }
+
+  test_introspect_declarations_FieldDeclaration_isLate() async {
+    await _assertIntrospectDeclarationsText(r'''
+@introspectMacroX
+class X {
+  late final int a;
+  final int b = 0;
+}
+''', r'''
+class X
+  superclass
+    class Object
+  fields
+    late final a
+      type: int
+    final b
+      type: int
+''');
+  }
+
+  test_introspect_declarations_FieldDeclaration_isStatic() async {
+    await _assertIntrospectDeclarationsText(r'''
+@introspectMacroX
+class X {
+  static int a = 0;
+  int b = 0;
+}
+''', r'''
+class X
+  superclass
+    class Object
+  fields
+    static a
+      type: int
+    b
+      type: int
+''');
+  }
+
+  test_introspect_declarations_FieldDeclaration_type_explicit() async {
+    await _assertIntrospectDeclarationsText(r'''
+@introspectMacroX
+class X {
+  int a = 0;
+  List<String> b = [];
+}
+''', r'''
+class X
+  superclass
+    class Object
+  fields
+    a
+      type: int
+    b
+      type: List<String>
+''');
+  }
+
   test_introspect_types_ClassDeclaration_interfaces() async {
     await _assertTypesPhaseIntrospectionText(r'''
 class A implements B, C<int, String> {}

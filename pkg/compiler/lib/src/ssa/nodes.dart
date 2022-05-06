@@ -1242,7 +1242,7 @@ abstract class HInstruction implements SpannableWithEntity {
       domain.isPrimitiveOrNull(instructionType);
 
   /// Type of the instruction.
-  AbstractValue instructionType;
+  AbstractValue /*!*/ instructionType;
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
@@ -2934,7 +2934,7 @@ class HLoopBranch extends HConditionalBranch {
 }
 
 class HConstant extends HInstruction {
-  final ConstantValue constant;
+  final ConstantValue /*!*/ constant;
   HConstant.internal(this.constant, AbstractValue constantType)
       : super([], constantType);
 
