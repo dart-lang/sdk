@@ -417,6 +417,7 @@ dart.ci_sandbox_builder(
 )
 dart.ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
+    category = "dart2js|safari|m",
     dimensions = mac,
     properties = [pinned_xcode, no_android],
 )
