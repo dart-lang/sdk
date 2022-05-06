@@ -4,188 +4,101 @@ Welcome to the sources of the dart2js compiler!
 
 ## Architecture
 
-The compiler is currently undergoing a long refactoring process. As you navigate
-this code you may find it helpful to understand how the compiler used to be,
-where it is going, and where it is today.
+The compiler is structured to operate in several phases. By default these phases
+are executed in sequence in a single process, but on some build systems, some of
+these phases are split into separate processes. As such, there is plenty of
+indirection and data representations used mostly for the purpose of serializing
+intermediate results during compilation.
 
-### The near future architecture
+The current compiler phases are:
 
-The compiler will operate in these general phases:
+  1. **common front-end**: Execute traditional front-end compilation phases.
+     Dart2js delegates to the common front-end (also used by DDC and the VM) to
+     do all front-end features, this includes:
+     *  parsing Dart source code,
+     *  type checking,
+     *  inferring implicit user types, like locals with a `var` declaration,
+     *  lowering or simplifying Dart features. For example, this is how many
+        syntactic features, like extension methods and list comprehensions, are
+        implemented.
+     * additional web-specific lowering or simplifications. For example,
+       expansion of JS-interop features and web specific implementation of
+       language features like late variables.
 
-  1. **load kernel**: Load all the code as kernel
-      * Collect dart sources transtively
-      * Convert to kernel AST
+    The result of this phase is a kernel AST which is serialized as a `.dill`
+    file.
 
-  (this will be handled by invoking the front-end package)
+  2. **modular analysis**: Using kernel as input, compute data recording
+     properties about each method in the program, especially around dependencies
+     and features they may need. We call this "impact data" (i1).
 
-  Alternatively, the compiler can start compilation directly from kernel files.
+     When the compiler runs as a single process, this is done lazily/on-demand
+     during the tree-shaking phase (below). However, this data can also be
+     computed independently for individual methods, files, or packages in the
+     application.  That makes it possible to run this modularly and in parallel.
 
-  2. **model**: Create a Dart model of the program
-     * The kernel ASTs could be used as a model, so this might be a no-op or just
-       creating a thin wrapper on top of kernel.
+     The result of this phase can be emitted as files containing impact data in
+     a serialized format.
 
-  3. **tree-shake and create world**: Build world of reachable code
-     * For each reachable piece of code:
-         * Compute impact (i1) from kernel AST
-     * Build a closed world (w1)
+  3. **tree-shake and create world**: Create a model to understand what parts of
+     the code are used by an application. This consists of:
+        * creating an intermediate representation called the "K model" that
+          wraps our kernel representation
+        * calculating which classes and methods are considered live in the
+          program. This is done by incrementally combining impact data (i1)
+          starting from `main`, then visiting reachable methods in the program
+          with an Rapid Type Analysis (RTA) algorithm to aggregate impacts
+          together.
 
-  4. **analyze**: Run a global analysis
-     * Assume closed world semantics (from w1)
-     * Produce a global result (g)
-        * Like today (g) will contain type and nullability information
-        * After we adopt strong-mode types, we want to explore simplifying this
-        to only contain native + nullability information.
+     The result of this phase is what we call a "closed world" (w1). The closed
+     world is also a datastructure that can answer interesting queries, such as:
+     Is this interface implemented by a single class? Is this method available
+     in any stubtype of some interface? The answers to these questions can help
+     the compiler generate higher quality JavaScript.
 
-  5. **codegen model**: Create a JS model of the program
-     * Model JavaScript specific concepts (like the split of constructor bodies
-       as separate elements) and provide a mapping to the Dart model
+  4. **global analysis**: Run a global analysis that assumes closed world
+     semantics (from w1) and propagates information across method boundaries to
+     further understand what values flow through the program. This phase is
+     very valuable in narrowing down possibilities that are ambiguous based
+     solely on type information written by developers. It often finds
+     oportunities that enable the compiler to devirtualize or inline method
+     calls, generate code specializations, or trigger performance optimizations.
 
-  6. **codegen and tree-shake**: Generate code, as needed
-     * For each reachable piece of code:
-        * build ssa graph from kernel ASTs and global results (g)
-        * optimize ssa
+     The result of this phase is a "global result" (g).
+
+  5. **codegen model**: Create a JS or backend model of the program. This is an
+     intermediate representation of the entities in the program we referred to
+     as the "J model". It is very similar to the "K model", but it is tailored
+     to model JavaScript specific concepts (like the split of constructor bodies
+     as separate elements) and provide a mapping to the Dart model.
+
+  6. **codegen**: Generate code for each method that is deemed necessary. This
+     includes:
+        * build an SSA graph from kernel ASTs and global results (g)
+        * optimize the SSA representation
         * compute impact (i2) from optimized code
         * emit JS ASTs for the code
-     * Build a codegen closed world (w2) from new impacts (i2)
 
-  7. **emit**: Assemble and minify the program
-     * Build program structure from the compiled pieces (w2)
+
+  7. **link tree-shake**: Using the results of codegen, we perform a second
+     round of tree-shaking. This is important because code that was deemed
+     reachable in (w1) may be found unreachable after optimizations. The process
+     is very similar to the earlier phase: we combine incrementally the codegen
+     impact data (i2) and compute a codegen closed world (w2).
+
+
+     When dart2js runs as a single process the codegen phase is done lazily and
+     on-demand, together with the tree-shaking phase.
+
+  8. **emit JavaScript files**: The final step is to assemble and minify the
+     final program. This includes:
+     * Build a JavaScript program structure from the compiled pieces (w2)
      * Use frequency namer to minify names.
      * Emit js and source map files.
 
-### The old architecture
+## Code organization
 
-The compiler used to operate as follows:
-
-  1. **load dart**: Load all source files
-     * Collect dart sources transtively
-     * Scan enough tokens to build import dependencies.
-
-  2. **model**: Create a Dart model (aka. Element Model) of the program
-     * Do a diet-parse of the program to create the high-level element model
-
-  3. **resolve and tree-shake**: Resolve and build world of reachable code (the
-     resolution enqueuer)
-     * For each reachable piece of code:
-        * Parse the full body of the function
-        * Resolve it and enqueue other pieces that are reachable
-        * Type check the body of the function
-
-  4. **analyze**: Run a global analysis
-     * Assume closed world semantics (from everything enqueued by the resolver)
-     * Produce a global result about type and nullability information of method
-       arguments, return values, and receivers of dynamic sends.
-
-  5. **codegen and tree-shake**: Generate code, as needed (via the codegen
-     enqueuer)
-     * For each reachable piece of code:
-        * build ssa graph from resolved source ASTs global results (g)
-        * optimize ssa
-        * enqueue visible dependencies
-        * emit js asts for the code
-
-  6. **emit**: Assemble and minify the program
-     * Build program structure from the compiled pieces
-     * Use frequency namer to minify names.
-     * Emit js and source map files.
-
-### The architecture today (which might be changing while you read this!)
-
-When using the `--use-kernel` flag, you can test the latest state of the
-compiler as we are migrating to the new architecture. Currently it works as
-follows:
-
-  1. **load dart**: (same as old compiler)
-
-  2. **model**: (same element model as old compiler)
-
-  3. **resolve, tree-shake and build world**: Build world of reachable code
-     * For each reachable piece of code:
-        * Parse full body of the function
-        * Resolve it from the parsed source ASTs
-        * Type check it (same as old compiler)
-        * Compute impact (i1) from resolved source ASTs (no kernel)
-     * Build a closed world (w1)
-
-  4. **kernelize**: Create kernel ASTs
-     * For all resolved elements in w1, compute their kernel representation using
-       the `rasta` visitor.
-
-  5. **analyze**: (almost same as old compiler)
-
-  6. **codegen and tree-shake**: Generate code, as needed
-     * For each reachable piece of code:
-        * build ssa graph from kernel ASTs (uses global results g)
-        * optimize ssa
-        * compute impact (i2) from optimized code
-        * emit js asts for the code
-     * Build a codegen closed world (w2) from new impacts (i2)
-
-  7. **emit**: (same as old compiler)
-
-Some additional details worth highlighting:
-
-  * tree-shaking is close to working as we want: the notion of a world and world
-    impacts are computed explicitly:
-
-     * In the old compiler, the resolver and code generator directly
-       enqueued items to be processed, there was no knowledge of what had
-       to be done other than in the algorithm itself.
-
-     * Now the information is computed explicitly in two ways:
-
-       * The dependencies of a single element are computed as an "impact"
-         object, these are derived from the structure of the
-         code (either the resolved code or the generated code).
-
-       * The closed world is now an explicit concept that can be replaced in the
-         compiler.
-
-     * This allows us to delete the resolver in the future and replace it
-       with a kernel loader, an impact builder from kernel, and a kernel world.
-
-     * There is an implementation of a kernel impact builder, but it is not yet
-       in use in the compiler pipeline (gated on replacing the Dart model)
-
-  * We still depend on the Dart model computed by resolution, but progress has
-    been made introducing an abstraction common to the new and old models. The
-    old model is the "Element model", the generic abstraction is called the
-    "Entity model". Some portions of the compiler now refer to the entity model.
-
-  * The ssa graph is built from the kernel ASTs, but it still depends on the old
-    element model computed from resolution (accessed via a kernel2Ast adapter).
-    The graph builder implementation covers a large chunk of the language
-    features, but is not complete (89% of langage & corelib tests are passing).
-
-  * Global analysis is still working on top of the dart2js ASTs.
-
-## Code organization and history
-
-The compiler package was initially intended to be compiler for multiple targets:
-Javascript, Dart (dart2dart), and dartino bytecodes. It has now evolved to be a
-Javascript only compiler, but some of the abstractions to support multiple
-targets still remain.
-
-### Possibly confusing terminology
-
-Some of the terminology in the compiler is confusing without knowing its
-history. We are cleaning this up as we are rearchitecting the system, but here
-are some of the legacy terminology we have:
-
-  * **target**: the output the compiler is producing. Nowdays it just
-    JavaScript, but in the past there was also Dart and dartino bytecodes.
-
-  * **backend**: pieces of the compiler that were target-specific.
-    Note: in the past we've used the term *backend* also for code that is used
-    in the frontend of the compiler that happens to be target-specific, as well
-    as and code that is used in the emitter or what traditionally is known
-    as the backend of the compiler.
-
-  * **frontend**: the parser, resolver, and other early stages of the compiler.
-    The front-end however makes target-specific choices. For example, to compile
-    a program with async-await, the dart2js backend needs to include some helper
-    functions that are used by the expanded async-await code, these helpers need
-    to be parsed by the frontend and added to the compilation pipeline.
+### Some terminology used in the compiler
 
   * **world**: the compiler exploits closed-world assumptions to do
     optimizations. The *world* encapsulates some of our knowledge of the
@@ -201,29 +114,22 @@ are some of the legacy terminology we have:
 
   * **model**: there are many models in the compiler:
 
-    * **element model**: this is an abstraction describing the elements seen in
-      Dart programs, like "libraries", "classes", "methods", etc.
-
-    * **entity model**: also describes elements seen in Dart programs, but it is
-      meant to be minimalistic and a super-hierarchy above the *element models*.
-      This is a newer addition, is an added abstraction to make it possible to
-      refactor our code from our old frontend to the kernel frontend.
-
-    * **Dart vs JS models**: the compiler in the past had a single model to
-      describe elements in the source and elements that were being compiled. In
-      the future we plan to have two. Both input model and output models will be
-      implementations of the *entity model*. The JS model is intended to have
-      concepts specific about generating code in JS (like constructor-bodies as
-      a separate entity than the constructor, closure classes, etc).
+    * **entity model**: this is an abstraction describing the elements seen in
+      Dart programs, like "libraries", "classes", "methods", etc. We currently
+      have two entity models, the "K model" (which is frontend centric and
+      usually maps 1:1 with kernel entities) and the "J model" (which is backend
+      centric).
 
     * **emitter model**: this is a model just used for dumping out the structure
       of the program in a .js text file. It doesn't have enough semantic meaning
-      to be a JS model for compilation at this moment.
+      to be a JS model for compilation, which is why there is a separate "J
+      model".
 
   * **enqueuer**: a work-queue used to achieve tree-shaking (or more precisely
     tree-growing): elements are added to the enqueuer as we recognize that they
-    are needed in a given application. Note that we even track how elements are
-    used, since some ways of using an element require more code than others.
+    are needed in a given application (as described by the impact data). Note
+    that we even track how elements are used, since some ways of using an
+    element require more code than others.
 
 ### Code layout
 
