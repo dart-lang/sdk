@@ -102,6 +102,50 @@ void f(a, b) {
 ''');
   }
 
+  @failingTest
+  Future<void> test_list_literal() async {
+    await resolveTestCode('''
+void f() {
+  var l = [
+    'a',
+    'b'
+  ];
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var l = [
+    'a',
+    'b',
+  ];
+  print(l);
+}
+''');
+  }
+
+  @failingTest
+  Future<void> test_map_literal() async {
+    await resolveTestCode('''
+void f() {
+  var l = {
+    'a': 1,
+    'b': 2
+  };
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var l = {
+    'a': 1,
+    'b': 2,
+  };
+  print(l);
+}
+''');
+  }
+
   Future<void> test_named() async {
     await resolveTestCode('''
 void f({a, b}) {
@@ -143,27 +187,7 @@ void f(a, b) {
 ''');
   }
 
-  Future<void> test_list_literal() async {
-    await resolveTestCode('''
-void f() {
-  var l = [
-    'a',
-    'b'
-  ];
-  print(l);
-}
-''');
-    await assertHasFix('''
-void f() {
-  var l = [
-    'a',
-    'b',
-  ];
-  print(l);
-}
-''');
-  }
-
+  @failingTest
   Future<void> test_set_literal() async {
     await resolveTestCode('''
 void f() {
@@ -179,27 +203,6 @@ void f() {
   var l = {
     'a',
     'b',
-  };
-  print(l);
-}
-''');
-  }
-
-  Future<void> test_map_literal() async {
-    await resolveTestCode('''
-void f() {
-  var l = {
-    'a': 1,
-    'b': 2
-  };
-  print(l);
-}
-''');
-    await assertHasFix('''
-void f() {
-  var l = {
-    'a': 1,
-    'b': 2,
   };
   print(l);
 }
