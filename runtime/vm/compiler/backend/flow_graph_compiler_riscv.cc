@@ -819,7 +819,7 @@ void FlowGraphCompiler::EmitMove(Location destination,
     } else if (destination.IsFpuRegister()) {
       const intptr_t src_offset = source.ToStackSlotOffset();
       FRegister dst = destination.fpu_reg();
-      __ fld(dst, compiler::Address(source.base_reg(), src_offset));
+      __ LoadDFromOffset(dst, source.base_reg(), src_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
@@ -837,7 +837,7 @@ void FlowGraphCompiler::EmitMove(Location destination,
           destination.IsDoubleStackSlot()) {
         const intptr_t dest_offset = destination.ToStackSlotOffset();
         FRegister src = source.fpu_reg();
-        __ fsd(src, compiler::Address(destination.base_reg(), dest_offset));
+        __ StoreDToOffset(src, destination.base_reg(), dest_offset);
       } else {
         ASSERT(destination.IsQuadStackSlot());
         UNIMPLEMENTED();
@@ -847,14 +847,14 @@ void FlowGraphCompiler::EmitMove(Location destination,
     if (destination.IsFpuRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
       const FRegister dst = destination.fpu_reg();
-      __ fld(dst, compiler::Address(source.base_reg(), source_offset));
+      __ LoadDFromOffset(dst, source.base_reg(), source_offset);
     } else {
       ASSERT(destination.IsDoubleStackSlot() ||
              destination.IsStackSlot() /*32-bit float*/);
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ fld(FTMP, compiler::Address(source.base_reg(), source_offset));
-      __ fsd(FTMP, compiler::Address(destination.base_reg(), dest_offset));
+      __ LoadDFromOffset(FTMP, source.base_reg(), source_offset);
+      __ StoreDToOffset(FTMP, destination.base_reg(), dest_offset);
     }
   } else if (source.IsQuadStackSlot()) {
     UNIMPLEMENTED();

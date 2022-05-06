@@ -1271,15 +1271,11 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 }
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  DRegister dreg = EvenDRegisterOf(reg);
-  __ vstrd(dreg,
-           compiler::Address(SP, -kDoubleSize, compiler::Address::PreIndex));
+  __ PushQuad(reg);
 }
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  DRegister dreg = EvenDRegisterOf(reg);
-  __ vldrd(dreg,
-           compiler::Address(SP, kDoubleSize, compiler::Address::PostIndex));
+  __ PopQuad(reg);
 }
 
 #undef __

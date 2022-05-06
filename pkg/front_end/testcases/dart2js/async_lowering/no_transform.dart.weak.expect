@@ -15,8 +15,26 @@ static method foo3() → asy::Future<void> async /* futureValueType= void */ {
     break #L1;
   }
 }
+static method foo4() → asy::Future<core::int> async /* futureValueType= core::int */ {
+  try {
+    return 3;
+  }
+  finally {
+    return 2;
+  }
+}
+static method foo5() → asy::Future<core::int> async /* futureValueType= core::int */ {
+  try {
+    return 3;
+  }
+  on core::Object catch(final core::Object e) {
+    return 2;
+  }
+}
 static method main() → void {
   self::foo1();
   self::foo2();
   self::foo3();
+  self::foo4();
+  self::foo5();
 }

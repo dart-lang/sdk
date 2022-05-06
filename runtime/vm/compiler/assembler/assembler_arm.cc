@@ -2455,6 +2455,16 @@ void Assembler::PopList(RegList regs, Condition cond) {
   ldm(IA_W, SP, regs, cond);
 }
 
+void Assembler::PushQuad(FpuRegister reg, Condition cond) {
+  DRegister dreg = EvenDRegisterOf(reg);
+  vstmd(DB_W, SP, dreg, 2, cond);  // 2 D registers per Q register.
+}
+
+void Assembler::PopQuad(FpuRegister reg, Condition cond) {
+  DRegister dreg = EvenDRegisterOf(reg);
+  vldmd(IA_W, SP, dreg, 2, cond);  // 2 D registers per Q register.
+}
+
 void Assembler::PushRegisters(const RegisterSet& regs) {
   const intptr_t fpu_regs_count = regs.FpuRegisterCount();
   if (fpu_regs_count > 0) {

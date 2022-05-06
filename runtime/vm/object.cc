@@ -5949,51 +5949,6 @@ static uword Hash64To32(uint64_t v) {
   return static_cast<uint32_t>(v);
 }
 
-class CanonicalInstanceKey {
- public:
-  explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
-    ASSERT(!(key.IsString() || key.IsAbstractType()));
-  }
-  bool Matches(const Instance& obj) const {
-    ASSERT(!(obj.IsString() || obj.IsAbstractType()));
-    if (key_.CanonicalizeEquals(obj)) {
-      ASSERT(obj.IsCanonical());
-      return true;
-    }
-    return false;
-  }
-  uword Hash() const { return key_.CanonicalizeHash(); }
-  const Instance& key_;
-
- private:
-  DISALLOW_ALLOCATION();
-};
-
-// Traits for looking up Canonical Instances based on a hash of the fields.
-class CanonicalInstanceTraits {
- public:
-  static const char* Name() { return "CanonicalInstanceTraits"; }
-  static bool ReportStats() { return false; }
-
-  // Called when growing the table.
-  static bool IsMatch(const Object& a, const Object& b) {
-    ASSERT(!(a.IsString() || a.IsAbstractType()));
-    ASSERT(!(b.IsString() || b.IsAbstractType()));
-    return a.ptr() == b.ptr();
-  }
-  static bool IsMatch(const CanonicalInstanceKey& a, const Object& b) {
-    return a.Matches(Instance::Cast(b));
-  }
-  static uword Hash(const Object& key) {
-    ASSERT(!(key.IsString() || key.IsAbstractType()));
-    ASSERT(key.IsInstance());
-    return Instance::Cast(key).CanonicalizeHash();
-  }
-  static uword Hash(const CanonicalInstanceKey& key) { return key.Hash(); }
-  static ObjectPtr NewKey(const CanonicalInstanceKey& obj) {
-    return obj.key_.ptr();
-  }
-};
 typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
 
 InstancePtr Class::LookupCanonicalInstance(Zone* zone,
@@ -8109,7 +8064,11 @@ void Function::set_kind_tag(uint32_t value) const {
 }
 
 void Function::set_packed_fields(uint32_t packed_fields) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   StoreNonPointer(&untag()->packed_fields_, packed_fields);
+#endif
 }
 
 bool Function::IsOptimizable() const {

@@ -1030,9 +1030,9 @@ class FunctionSerializationCluster : public SerializationCluster {
         s->WriteTokenPosition(func->untag()->token_pos_);
         s->WriteTokenPosition(func->untag()->end_token_pos_);
         s->Write<uint32_t>(func->untag()->kernel_offset_);
+        s->Write<uint32_t>(func->untag()->packed_fields_);
       }
 
-      s->Write<uint32_t>(func->untag()->packed_fields_);
       s->Write<uint32_t>(func->untag()->kind_tag_);
     }
   }
@@ -1192,8 +1192,8 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       func->untag()->end_token_pos_ = d.ReadTokenPosition();
       func->untag()->kernel_offset_ = d.Read<uint32_t>();
       func->untag()->unboxed_parameters_info_.Reset();
-#endif
       func->untag()->packed_fields_ = d.Read<uint32_t>();
+#endif
       func->untag()->kind_tag_ = d.Read<uint32_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
       func->untag()->usage_counter_ = 0;

@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -21,6 +22,8 @@ class ForResolver {
   ForResolver({
     required ResolverVisitor resolver,
   }) : _resolver = resolver;
+
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
@@ -57,8 +60,7 @@ class ForResolver {
   DartType? _computeForEachElementType(Expression iterable, bool isAsync) {
     var iterableType = iterable.staticType;
     if (iterableType == null) return null;
-    iterableType =
-        iterableType.resolveToBound(_resolver.typeProvider.objectType);
+    iterableType = _typeSystem.resolveToBound(iterableType);
 
     ClassElement iteratedElement = isAsync
         ? _resolver.typeProvider.streamElement

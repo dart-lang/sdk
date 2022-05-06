@@ -1468,26 +1468,26 @@ class TypeSystemImpl implements TypeSystem {
   @override
   DartType resolveToBound(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      var element = type.element;
+      final promotedBound = type.promotedBound;
+      if (promotedBound != null) {
+        return resolveToBound(promotedBound);
+      }
 
-      var bound = element.bound;
+      final bound = type.element.bound;
       if (bound == null) {
-        return typeProvider.objectType;
+        return isNonNullableByDefault ? objectQuestion : objectStar;
       }
 
-      NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
-      NullabilitySuffix newNullabilitySuffix;
-      if (nullabilitySuffix == NullabilitySuffix.question ||
-          bound.nullabilitySuffix == NullabilitySuffix.question) {
-        newNullabilitySuffix = NullabilitySuffix.question;
-      } else if (nullabilitySuffix == NullabilitySuffix.star ||
-          bound.nullabilitySuffix == NullabilitySuffix.star) {
-        newNullabilitySuffix = NullabilitySuffix.star;
-      } else {
-        newNullabilitySuffix = NullabilitySuffix.none;
-      }
+      final resolved = resolveToBound(bound) as TypeImpl;
 
-      var resolved = resolveToBound(bound) as TypeImpl;
+      final newNullabilitySuffix = uniteNullabilities(
+        uniteNullabilities(
+          type.nullabilitySuffix,
+          bound.nullabilitySuffix,
+        ),
+        resolved.nullabilitySuffix,
+      );
+
       return resolved.withNullability(newNullabilitySuffix);
     }
 

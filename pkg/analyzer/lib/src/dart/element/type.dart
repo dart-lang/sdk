@@ -1063,6 +1063,7 @@ abstract class TypeImpl implements DartType {
     return false;
   }
 
+  @Deprecated('Use TypeSystem.resolveToBound() instead')
   @override
   DartType resolveToBound(DartType objectType) => this;
 
@@ -1201,6 +1202,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return parameters.contains(element);
   }
 
+  @Deprecated('Use TypeSystem.resolveToBound() instead')
   @override
   DartType resolveToBound(DartType objectType) {
     final promotedBound = this.promotedBound;

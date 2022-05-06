@@ -6,32 +6,6 @@
 
 part of 'serialization.dart';
 
-/// Interface handling [DataSinkWriter] low-level data serialization.
-///
-/// Each implementation of [DataSink] should have a corresponding
-/// [DataSource] that deserializes data serialized by that implementation.
-abstract class DataSink {
-  int get length;
-
-  /// Serialization of a non-negative integer value.
-  void writeInt(int value);
-
-  /// Serialization of an enum value.
-  void writeEnum(dynamic value);
-
-  /// Serialization of a String value.
-  void writeString(String value);
-
-  /// Serialization of a section begin tag. May be omitted by some writers.
-  void beginTag(String tag);
-
-  /// Serialization of a section end tag. May be omitted by some writers.
-  void endTag(String tag);
-
-  /// Closes any underlying data sinks.
-  void close();
-}
-
 /// Serialization writer
 ///
 /// To be used with [DataSourceReader] to read and write serialized data.

@@ -4,6 +4,8 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
+#include <memory>
+
 #include "platform/unicode.h"
 #include "platform/utils.h"
 #include "vm/canonical_tables.h"
@@ -400,6 +402,7 @@ Precompiler::Precompiler(Thread* thread)
       dropped_functiontype_count_(0),
       dropped_typeparam_count_(0),
       dropped_library_count_(0),
+      dropped_constants_arrays_entries_count_(0),
       libraries_(GrowableObjectArray::Handle(
           isolate_->group()->object_store()->libraries())),
       pending_functions_(
@@ -607,6 +610,7 @@ void Precompiler::DoCompileAll() {
 
         DropFunctions();
         DropFields();
+        DropTransitiveUserDefinedConstants();
         TraceTypesFromRetainedClasses();
 
         // Clear these before dropping classes as they may hold onto otherwise
@@ -688,7 +692,9 @@ void Precompiler::DoCompileAll() {
     THR_Print(" %" Pd " type parameters,", dropped_typeparam_count_);
     THR_Print(" %" Pd " type arguments,", dropped_typearg_count_);
     THR_Print(" %" Pd " classes,", dropped_class_count_);
-    THR_Print(" %" Pd " libraries.\n", dropped_library_count_);
+    THR_Print(" %" Pd " libraries,", dropped_library_count_);
+    THR_Print(" %" Pd " constants arrays entries.\n",
+              dropped_constants_arrays_entries_count_);
   }
 }
 
@@ -2418,6 +2424,190 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
 
   ASSERT(Object::dynamic_type().type_test_stub_entry_point() ==
          StubCode::TopTypeTypeTest().EntryPoint());
+}
+
+enum ConstantVisitedValue { kNotVisited = 0, kRetain, kDrop };
+
+static bool IsUserDefinedClass(Zone* zone,
+                               ClassPtr cls,
+                               ObjectStore* object_store) {
+  intptr_t cid = cls.untag()->id();
+  if (cid < kNumPredefinedCids) {
+    return false;
+  }
+
+  const UntaggedClass* untagged_cls = cls.untag();
+  return ((untagged_cls->library() != object_store->core_library()) &&
+          (untagged_cls->library() != object_store->collection_library()) &&
+          (untagged_cls->library() != object_store->typed_data_library()));
+}
+
+/// Updates |visited| weak table with information about whether object
+/// (transitevly) references constants of user-defined classes: |kDrop|
+/// indicates it does, |kRetain| - does not.
+class ConstantInstanceVisitor {
+ public:
+  ConstantInstanceVisitor(Zone* zone,
+                          WeakTable* visited,
+                          ObjectStore* object_store)
+      : zone_(zone),
+        visited_(visited),
+        object_store_(object_store),
+        object_(Object::Handle(zone)),
+        array_(Array::Handle(zone)) {}
+
+  void Visit(ObjectPtr object_ptr) {
+    if (!object_ptr->IsHeapObject()) {
+      return;
+    }
+    ConstantVisitedValue value = static_cast<ConstantVisitedValue>(
+        visited_->GetValueExclusive(object_ptr));
+    if (value != kNotVisited) {
+      return;
+    }
+    object_ = object_ptr;
+    if (IsUserDefinedClass(zone_, object_.clazz(), object_store_)) {
+      visited_->SetValueExclusive(object_ptr, kDrop);
+      return;
+    }
+
+    // Conservatively assume an object will be retained.
+    visited_->SetValueExclusive(object_ptr, kRetain);
+    switch (object_ptr.untag()->GetClassId()) {
+      case kImmutableArrayCid: {
+        array_ ^= object_ptr;
+        for (intptr_t i = 0; i < array_.Length(); i++) {
+          ObjectPtr element = array_.At(i);
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+        }
+        break;
+      }
+      case kImmutableLinkedHashMapCid: {
+        const LinkedHashMap& map =
+            LinkedHashMap::Handle(LinkedHashMap::RawCast(object_ptr));
+        LinkedHashMap::Iterator iterator(map);
+        while (iterator.MoveNext()) {
+          ObjectPtr element = iterator.CurrentKey();
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+          element = iterator.CurrentValue();
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+        }
+        break;
+      }
+      case kImmutableLinkedHashSetCid: {
+        const LinkedHashSet& set =
+            LinkedHashSet::Handle(LinkedHashSet::RawCast(object_ptr));
+        LinkedHashSet::Iterator iterator(set);
+        while (iterator.MoveNext()) {
+          ObjectPtr element = iterator.CurrentKey();
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+ private:
+  Zone* zone_;
+  WeakTable* visited_;
+  ObjectStore* object_store_;
+  Object& object_;
+  Array& array_;
+};
+
+// To reduce snapshot size, we remove from constant tables all constants that
+// cannot be sent in messages between isolate groups. Such constants will not
+// be canonicalized at runtime.
+void Precompiler::DropTransitiveUserDefinedConstants() {
+  HANDLESCOPE(T);
+  auto& constants = Array::Handle(Z);
+  auto& obj = Object::Handle(Z);
+  auto& lib = Library::Handle(Z);
+  auto& cls = Class::Handle(Z);
+  auto& instance = Instance::Handle(Z);
+
+  {
+    NoSafepointScope no_safepoint(T);
+    std::unique_ptr<WeakTable> visited(new WeakTable());
+    ObjectStore* object_store = IG->object_store();
+    ConstantInstanceVisitor visitor(Z, visited.get(), object_store);
+
+    for (intptr_t i = 0; i < libraries_.Length(); i++) {
+      lib ^= libraries_.At(i);
+      HANDLESCOPE(T);
+      ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+      while (it.HasNext()) {
+        cls = it.GetNextClass();
+        if (cls.constants() == Array::null()) {
+          continue;
+        }
+        typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
+
+        CanonicalInstancesSet constants_set(cls.constants());
+        CanonicalInstancesSet::Iterator iterator(&constants_set);
+
+        if (IsUserDefinedClass(Z, cls.ptr(), object_store)) {
+          // All constants for user-defined classes can be dropped.
+          constants = cls.constants();
+          dropped_constants_arrays_entries_count_ += constants.Length();
+          if (FLAG_trace_precompiler) {
+            THR_Print("Dropping %" Pd " entries from constants for class %s\n",
+                      constants.Length(), cls.ToCString());
+          }
+          while (iterator.MoveNext()) {
+            obj = constants_set.GetKey(iterator.Current());
+            instance = Instance::RawCast(obj.ptr());
+            consts_to_retain_.Remove(&instance);
+            visited->SetValueExclusive(obj.ptr(), kDrop);
+          }
+        } else {
+          // Core classes might have constants that refer to user-defined
+          // classes. Those should be dropped too.
+          while (iterator.MoveNext()) {
+            obj = constants_set.GetKey(iterator.Current());
+            ConstantVisitedValue value = static_cast<ConstantVisitedValue>(
+                visited->GetValueExclusive(obj.ptr()));
+            if (value == kNotVisited) {
+              visitor.Visit(obj.ptr());
+              value = static_cast<ConstantVisitedValue>(
+                  visited->GetValueExclusive(obj.ptr()));
+            }
+            ASSERT(value == kDrop || value == kRetain);
+            if (value == kDrop) {
+              dropped_constants_arrays_entries_count_++;
+              if (FLAG_trace_precompiler) {
+                THR_Print("Dropping constant entry for class %s instance:%s\n",
+                          cls.ToCString(), obj.ToCString());
+              }
+              instance = Instance::RawCast(obj.ptr());
+              consts_to_retain_.Remove(&instance);
+            }
+          }
+        }
+        constants_set.Release();
+      }
+    }
+  }
 }
 
 void Precompiler::TraceTypesFromRetainedClasses() {

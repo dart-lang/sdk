@@ -42,7 +42,10 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Determine the target expression's type.
-    var type = expression.staticType?.resolveToBound(request.objectType);
+    final expressionType = expression.staticType;
+    var type = expressionType != null
+        ? request.libraryElement.typeSystem.resolveToBound(expressionType)
+        : null;
     if (type == null || type.isDynamic) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.

@@ -508,7 +508,6 @@ class Function : public AllStatic {
   static word data_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word kind_tag_offset();
-  static word packed_fields_offset();
   static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();

@@ -3141,11 +3141,14 @@ class Function : public Object {
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
 
-  uint32_t packed_fields() const { return untag()->packed_fields_; }
-  void set_packed_fields(uint32_t packed_fields) const;
-  static intptr_t packed_fields_offset() {
-    return OFFSET_OF(UntaggedFunction, packed_fields_);
+  uint32_t packed_fields() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    return untag()->packed_fields_;
+#endif
   }
+  void set_packed_fields(uint32_t packed_fields) const;
 
   // Returns the number of required positional parameters.
   intptr_t num_fixed_parameters() const;
@@ -3881,11 +3884,19 @@ class Function : public Object {
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
+#endif
   }
   void set_is_optimizable(bool value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     untag()->packed_fields_.UpdateBool<UntaggedFunction::PackedOptimizable>(
         value);
+#endif
   }
 
   enum KindTagBits {

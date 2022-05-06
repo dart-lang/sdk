@@ -13,6 +13,7 @@ import 'configuration.dart';
 import 'fuchsia.dart';
 import 'path.dart';
 import 'process_queue.dart';
+import 'service/web_driver_service.dart';
 import 'terminal.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
@@ -89,8 +90,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var runningBrowserTests =
       configurations.any((config) => config.runtime.isBrowser);
 
-  var serverFutures = <Future>[];
+  var eventListeners = <EventListener>[];
   var testSuites = <TestSuite>[];
+  var serverFutures = <Future>[];
   var maxBrowserProcesses = maxProcesses;
   if (configurations.length > 1 &&
       (configurations[0].testServerPort != 0 ||
@@ -101,9 +103,13 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     exit(1);
   }
 
+  var services = <WebDriverService>{};
   for (var configuration in configurations) {
     if (!listTests && !listStatusFiles && runningBrowserTests) {
       serverFutures.add(configuration.startServers());
+      if (WebDriverService.supportedRuntimes.contains(configuration.runtime)) {
+        services.add(WebDriverService.fromRuntime(configuration.runtime));
+      }
     }
 
     if (configuration.runtime.isIE) {
@@ -170,6 +176,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
+  for (var service in services) {
+    serverFutures.add(service.start());
+    eventListeners.add(service);
+  }
+
   // If we only need to print out status files for test suites
   // we return from running here and just print.
   if (firstConf.listStatusFiles) {
@@ -194,8 +205,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
-  var eventListener = <EventListener>[];
-
   // We don't print progress if we list tests.
   if (progress != Progress.silent && !listTests) {
     var formatter = Formatter.normal;
@@ -204,53 +213,53 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       formatter = Formatter.color;
     }
 
-    eventListener.add(SummaryPrinter());
+    eventListeners.add(SummaryPrinter());
     if (!firstConf.silentFailures) {
-      eventListener.add(TestFailurePrinter(formatter));
+      eventListeners.add(TestFailurePrinter(formatter));
     }
 
     if (firstConf.printPassingStdout) {
-      eventListener.add(PassingStdoutPrinter(formatter));
+      eventListeners.add(PassingStdoutPrinter(formatter));
     }
 
     var indicator =
         ProgressIndicator.fromProgress(progress, startTime, formatter);
-    if (indicator != null) eventListener.add(indicator);
+    if (indicator != null) eventListeners.add(indicator);
 
     if (printTiming) {
-      eventListener.add(TimingPrinter(startTime));
+      eventListeners.add(TimingPrinter(startTime));
     }
 
-    eventListener.add(SkippedCompilationsPrinter());
+    eventListeners.add(SkippedCompilationsPrinter());
 
     if (progress == Progress.status) {
-      eventListener.add(TimedProgressPrinter());
+      eventListeners.add(TimedProgressPrinter());
     }
 
     if (firstConf.reportFailures) {
-      eventListener.add(FailedTestsPrinter());
+      eventListeners.add(FailedTestsPrinter());
     }
 
-    eventListener.add(ResultCountPrinter(formatter));
+    eventListeners.add(ResultCountPrinter(formatter));
   }
 
   if (firstConf.writeResults) {
-    eventListener.add(ResultWriter(firstConf.outputDirectory));
+    eventListeners.add(ResultWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.copyCoreDumps) {
-    eventListener.add(UnexpectedCrashLogger());
+    eventListeners.add(UnexpectedCrashLogger());
   }
 
   // The only progress indicator when listing tests should be the
   // the summary printer.
   if (listTests) {
-    eventListener.add(SummaryPrinter(jsonOnly: reportInJson));
+    eventListeners.add(SummaryPrinter(jsonOnly: reportInJson));
   } else {
     if (!firstConf.cleanExit) {
-      eventListener.add(ExitCodeSetter());
+      eventListeners.add(ExitCodeSetter());
     }
-    eventListener.add(IgnoredTestMonitor());
+    eventListeners.add(IgnoredTestMonitor());
   }
 
   // If any of the configurations need to access android devices we'll first
@@ -270,5 +279,5 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   // [firstConf] is needed here, because the ProcessQueue uses some settings.
   ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, testSuites,
-      eventListener, allTestsFinished, verbose, adbDevicePool);
+      eventListeners, allTestsFinished, verbose, adbDevicePool);
 }

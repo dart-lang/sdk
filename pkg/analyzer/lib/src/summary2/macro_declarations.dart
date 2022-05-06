@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   late final ClassElement element;
@@ -43,7 +45,7 @@ class DeclarationBuilder {
   /// corresponding elements. So, we can access them uniformly via interfaces,
   /// mixins, etc.
   void transferToElements() {
-    for (final entry in fromNode._classNodes.entries) {
+    for (final entry in fromNode._classMap.entries) {
       final element = entry.key.declaredElement as ClassElement;
       final declaration = entry.value;
       declaration.element = element;
@@ -54,51 +56,86 @@ class DeclarationBuilder {
 
 class DeclarationBuilderFromElement {
   final Map<ClassElement, ClassDeclarationImpl> _classMap = Map.identity();
+  final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
+      _typeParameterMap = Map.identity();
 
-  macro.ClassDeclarationImpl classDeclaration(ClassElement element) {
-    return _classMap[element] ??= _classDeclaration(element);
+  macro.ClassDeclarationImpl classElement(ClassElement element) {
+    return _classMap[element] ??= _classElement(element);
   }
 
-  ClassDeclarationImpl _classDeclaration(ClassElement element) {
+  macro.TypeParameterDeclarationImpl typeParameter(
+    TypeParameterElement element,
+  ) {
+    return _typeParameterMap[element] ??= _typeParameter(element);
+  }
+
+  ClassDeclarationImpl _classElement(ClassElement element) {
     assert(!_classMap.containsKey(element));
     return ClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
-      identifier: _identifierFromName(element.name),
-      typeParameters: [], // TODO _buildTypeParameters(node.typeParameters),
-      interfaces: [], // TODO _buildTypeAnnotations(node.implementsClause?.interfaces),
-      isAbstract: false, // TODO node.abstractKeyword != null,
+      identifier: _identifier(element.name),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      interfaces: element.interfaces.map(_dartType).toList(),
+      isAbstract: element.isAbstract,
       isExternal: false,
-      mixins: [], // TODO _buildTypeAnnotations(node.withClause?.mixinTypes),
-      superclass: null,
-      // TODO(scheglov) implement
-      // superclass: node.extendsClause?.superclass.mapOrNull(
-      //   _buildTypeAnnotation,
-      // ),
+      mixins: element.mixins.map(_dartType).toList(),
+      superclass: element.supertype.mapOrNull(_dartType),
     )..element = element;
   }
 
-  macro.IdentifierImpl _identifierFromName(String name) {
+  macro.TypeAnnotationImpl _dartType(DartType type) {
+    if (type is InterfaceType) {
+      return macro.NamedTypeAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+        identifier: _identifier(type.element.name),
+        typeArguments: type.typeArguments.map(_dartType).toList(),
+      );
+    } else if (type is TypeParameterType) {
+      return macro.NamedTypeAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+        identifier: _identifier(type.element.name),
+        typeArguments: const [],
+      );
+    } else {
+      // TODO(scheglov) other types
+      throw UnimplementedError('(${type.runtimeType}) $type');
+    }
+  }
+
+  macro.IdentifierImpl _identifier(String name) {
     return _IdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
       name: name,
     );
   }
+
+  macro.TypeParameterDeclarationImpl _typeParameter(
+    TypeParameterElement element,
+  ) {
+    return macro.TypeParameterDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _identifier(element.name),
+      bound: element.bound.mapOrNull(_dartType),
+    );
+  }
 }
 
 class DeclarationBuilderFromNode {
-  final Map<ast.ClassDeclaration, ClassDeclarationImpl> _classNodes =
+  final Map<ast.ClassDeclaration, ClassDeclarationImpl> _classMap =
       Map.identity();
 
   macro.ClassDeclarationImpl classDeclaration(
     ast.ClassDeclaration node,
   ) {
-    return _classNodes[node] ??= _classDeclaration(node);
+    return _classMap[node] ??= _classDeclaration(node);
   }
 
   ClassDeclarationImpl _classDeclaration(
     ast.ClassDeclaration node,
   ) {
-    assert(!_classNodes.containsKey(node));
+    assert(!_classMap.containsKey(node));
     return ClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: _identifier(node.name),

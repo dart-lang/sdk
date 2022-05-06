@@ -789,6 +789,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
     expect(types[1], stringNone);
   }
 
+  @deprecated
   void test_resolveToBound() {
     var type = functionTypeNone(
       typeFormals: [],
@@ -1235,6 +1236,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     expect(0 == typeA.hashCode, isFalse);
   }
 
+  @deprecated
   void test_resolveToBound() {
     var type = interfaceTypeStar(ElementFactory.classElement2('A'));
 
@@ -1414,6 +1416,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.element, element);
   }
 
+  @deprecated
   void test_resolveToBound_bound() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1422,6 +1425,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.resolveToBound(objectNone), interfaceTypeStar(classS));
   }
 
+  @deprecated
   void test_resolveToBound_bound_nullableInner() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1430,6 +1434,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
+  @deprecated
   void test_resolveToBound_bound_nullableInnerOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1439,6 +1444,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
+  @deprecated
   void test_resolveToBound_bound_nullableInnerStarOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1449,6 +1455,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
         type.resolveToBound(objectNone), equals(interfaceTypeQuestion(classS)));
   }
 
+  @deprecated
   void test_resolveToBound_bound_nullableOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1459,6 +1466,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
         type.resolveToBound(objectNone), equals(interfaceTypeQuestion(classS)));
   }
 
+  @deprecated
   void test_resolveToBound_bound_starInner() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1467,6 +1475,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
+  @deprecated
   void test_resolveToBound_bound_starInnerNullableOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1476,6 +1485,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.resolveToBound(objectNone), same(element.bound));
   }
 
+  @deprecated
   void test_resolveToBound_bound_starOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
@@ -1485,6 +1495,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.resolveToBound(objectNone), interfaceTypeStar(classS));
   }
 
+  @deprecated
   void test_resolveToBound_nestedBound() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl elementE = TypeParameterElementImpl('E', -1);
@@ -1496,6 +1507,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(typeF.resolveToBound(objectNone), interfaceTypeStar(classS));
   }
 
+  @deprecated
   void test_resolveToBound_promotedBound_interfaceType() {
     var A = class_(name: 'A');
     var A_none = interfaceTypeNone(A);
@@ -1505,6 +1517,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(T_A.resolveToBound(objectQuestion), A_none);
   }
 
+  @deprecated
   void test_resolveToBound_promotedBound_typeParameterType_interfaceType() {
     var A = class_(name: 'A');
     var A_none = interfaceTypeNone(A);
@@ -1517,6 +1530,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(U_T.resolveToBound(objectQuestion), A_none);
   }
 
+  @deprecated
   void test_resolveToBound_unbound() {
     TypeParameterTypeImpl type =
         typeParameterTypeStar(TypeParameterElementImpl('E', -1));
@@ -1597,6 +1611,7 @@ class VoidTypeImplTest extends AbstractTypeSystemTest {
     expect(_voidType.isVoid, isTrue);
   }
 
+  @deprecated
   void test_resolveToBound() {
     // Returns this.
     expect(_voidType.resolveToBound(objectNone), same(_voidType));
