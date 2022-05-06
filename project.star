@@ -98,8 +98,22 @@ TRY_ACLS = [
         groups = ["project-dart-tryjob-access", "service-account-cq"],
     ),
 ]
-luci.bucket(name = "try", acls = TRY_ACLS)  # Tryjobs specific to the Dart SDK repo.
-luci.bucket(name = "try.shared", acls = TRY_ACLS)  # Tryjobs for all repos.
+
+# Tryjobs specific to the Dart SDK repo.
+luci.bucket(
+    name = "try",
+    acls = TRY_ACLS + [
+        # For workflows that need to be authorized by Google-internal
+        # approval mechanisms, see b/231131625
+        acl.entry(
+            acl.BUILDBUCKET_TRIGGERER,
+            users = ["dart-eng-tool-proxy@system.gserviceaccount.com"],
+        ),
+    ],
+)
+
+# Tryjobs for all repos.
+luci.bucket(name = "try.shared", acls = TRY_ACLS)
 
 # Swarming permissions in realms.cfg.
 
