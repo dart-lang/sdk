@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid `print` calls in production code.';
@@ -79,12 +80,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    bool isDartCore(MethodInvocation node) =>
-        node.methodName.staticElement?.library?.name == 'dart.core';
-
-    if (node.methodName.name == 'print' &&
-        isDartCore(node) &&
-        !_isDebugOnly(node)) {
+    if (node.methodName.staticElement.isDartCorePrint && !_isDebugOnly(node)) {
       rule.reportLint(node.methodName);
     }
 

@@ -434,3 +434,12 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
     }
   }
 }
+
+extension ElementExtension on Element? {
+  bool get isDartCorePrint {
+    var self = this;
+    return self is FunctionElement &&
+        self.name == 'print' &&
+        self.library.isDartCore;
+  }
+}
