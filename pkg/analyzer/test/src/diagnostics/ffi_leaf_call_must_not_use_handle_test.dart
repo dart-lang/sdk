@@ -46,6 +46,19 @@ doThings() {
     ]);
   }
 
+  test_class_getter() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+class A {
+  @FfiNative<Handle Function()>('foo', isLeaf:true)
+  external Object get foo;
+}
+''', [
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 32, 76),
+    ]);
+  }
+
   test_LookupFunctionReturnsHandle() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -72,6 +85,17 @@ doThings() {
 }
 ''', [
       error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 216, 17),
+    ]);
+  }
+
+  test_unit_getter() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@FfiNative<Handle Function()>('foo', isLeaf:true)
+external Object get foo;
+''', [
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 20, 74),
     ]);
   }
 }
