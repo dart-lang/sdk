@@ -7,6 +7,7 @@ analysis server and the `dart analyze` command in the [Dart command-line tool][d
 [![Build Status](https://github.com/dart-lang/linter/workflows/linter/badge.svg)](https://github.com/dart-lang/linter/actions)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/linter/badge.svg)](https://coveralls.io/r/dart-lang/linter)
 [![Pub](https://img.shields.io/pub/v/linter.svg)](https://pub.dev/packages/linter)
+[![package publisher](https://img.shields.io/pub/publisher/linter.svg)](https://pub.dev/packages/linter/publisher)
 
 ## Installing
 
