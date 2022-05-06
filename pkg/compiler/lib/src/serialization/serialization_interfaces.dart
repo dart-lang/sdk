@@ -76,9 +76,9 @@ abstract class DataSinkWriter {
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V>? map, void f(V value),
       {bool allowNull = false});
 
-  void writeCached<E extends Object>(E value, void f(E value));
+  void writeCached<E extends Object>(E? value, void f(E value));
 
-  void writeList<E extends Object>(Iterable<E> values, void f(E value),
+  void writeList<E extends Object>(Iterable<E>? values, void f(E value),
       {bool allowNull = false});
 }
 
@@ -117,6 +117,7 @@ abstract class DataSourceReader {
   Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(V f());
 
   E readCached<E extends Object>(E f());
+  E? readCachedOrNull<E extends Object>(E f());
 
   List<E> readList<E extends Object>(E f());
   List<E>? readListOrNull<E extends Object>(E f());

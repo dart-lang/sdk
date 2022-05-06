@@ -981,7 +981,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (ignoreAllocatorAnalysis ||
           !_fieldAnalysis.getFieldData(field).isInitializedInAllocator) {
-        if (node.initializer == null) {
+        final initializer = node.initializer;
+        if (initializer == null) {
           constructorData.fieldValues[field] =
               graph.addConstantNull(closedWorld);
         } else {
@@ -989,9 +990,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           // class type parameters are accessed as values.
           // TODO(sra): It would be sufficient to know the context was a field
           // initializer.
-          _inlinedFrom(field,
-              _sourceInformationBuilder.buildAssignment(node.initializer), () {
-            node.initializer.accept(this);
+          _inlinedFrom(
+              field, _sourceInformationBuilder.buildAssignment(initializer),
+              () {
+            initializer.accept(this);
             constructorData.fieldValues[field] = pop();
           });
         }
@@ -1183,7 +1185,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   /// Constructs a special signature function for a closure.
-  void _buildMethodSignatureNewRti(ir.FunctionNode originalClosureNode) {
+  void _buildMethodSignatureNewRti(ir.FunctionNode /*!*/ originalClosureNode) {
     // The signature function has no corresponding ir.Node, so we just use the
     // targetElement to set up the type environment.
     _openFunction(targetElement, checks: TargetChecks.none);
@@ -1586,7 +1588,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void _openFunction(MemberEntity member,
       {ir.FunctionNode functionNode,
       ParameterStructure parameterStructure,
-      TargetChecks checks}) {
+      /*required*/ TargetChecks checks}) {
     assert(checks != null);
 
     Map<Local, AbstractValue> parameterMap = {};
@@ -1640,6 +1642,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // check. The null check is added before the argument type checks since in
     // strong mode, the parameter type might be non-nullable.
     if (member.name == '==') {
+      if (functionNode == null)
+        throw StateError("'==' should have functionNode");
       if (!_commonElements.operatorEqHandlesNullArgument(member)) {
         _handleIf(
             visitCondition: () {

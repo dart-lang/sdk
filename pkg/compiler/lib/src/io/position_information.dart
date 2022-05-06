@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// Source information system mapping that attempts a semantic mapping between
 /// offsets of JavaScript code points to offsets of Dart code points.
 
@@ -27,22 +25,24 @@ class PositionSourceInformation extends SourceInformation {
   final SourceLocation startPosition;
 
   @override
-  final SourceLocation innerPosition;
+  final SourceLocation? innerPosition;
 
   @override
-  final List<FrameContext> inliningContext;
+  final List<FrameContext>? inliningContext;
 
   PositionSourceInformation(
-      this.startPosition, this.innerPosition, this.inliningContext);
+      this.startPosition, this.innerPosition, this.inliningContext) {
+    assert((startPosition as dynamic) != null);
+  }
 
   factory PositionSourceInformation.readFromDataSource(
       DataSourceReader source) {
     source.begin(tag);
     SourceLocation startPosition = source.readCached<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    SourceLocation innerPosition = source.readCached<SourceLocation>(
+    SourceLocation? innerPosition = source.readCachedOrNull<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    List<FrameContext> inliningContext =
+    List<FrameContext>? inliningContext =
         source.readListOrNull(() => FrameContext.readFromDataSource(source));
     source.end(tag);
     return PositionSourceInformation(
@@ -68,19 +68,17 @@ class PositionSourceInformation extends SourceInformation {
   @override
   List<SourceLocation> get sourceLocations {
     List<SourceLocation> list = [];
-    if (startPosition != null) {
-      list.add(startPosition);
-    }
+    list.add(startPosition);
     if (innerPosition != null) {
-      list.add(innerPosition);
+      list.add(innerPosition!);
     }
     return list;
   }
 
   @override
   SourceSpan get sourceSpan {
-    SourceLocation location = startPosition ?? innerPosition;
-    Uri uri = location.sourceUri;
+    SourceLocation location = startPosition;
+    Uri uri = location.sourceUri!;
     int offset = location.offset;
     return SourceSpan(uri, offset, offset);
   }
@@ -106,33 +104,23 @@ class PositionSourceInformation extends SourceInformation {
     StringBuffer sb = StringBuffer();
     sb.write('$uriText:');
     // Use 1-based line/column info to match usual dart tool output.
-    if (startPosition != null) {
-      sb.write('[${startPosition.line},'
-          '${startPosition.column}]');
-    }
+    sb.write('[${startPosition.line},'
+        '${startPosition.column}]');
     if (innerPosition != null) {
-      sb.write('-[${innerPosition.line},'
-          '${innerPosition.column}]');
+      sb.write('-[${innerPosition!.line},'
+          '${innerPosition!.column}]');
     }
     return sb.toString();
   }
 
   @override
   String get shortText {
-    if (startPosition != null) {
-      return _computeText(startPosition.sourceUri.pathSegments.last);
-    } else {
-      return _computeText(innerPosition.sourceUri.pathSegments.last);
-    }
+    return _computeText(startPosition.sourceUri!.pathSegments.last);
   }
 
   @override
   String toString() {
-    if (startPosition != null) {
-      return _computeText('${startPosition.sourceUri}');
-    } else {
-      return _computeText('${innerPosition.sourceUri}');
-    }
+    return _computeText('${startPosition.sourceUri}');
   }
 }
 
@@ -170,19 +158,19 @@ class SourceMappedMarker extends SourceInformation {
   List<SourceLocation> get sourceLocations => const [];
 
   @override
-  SourceSpan get sourceSpan => SourceSpan(null, null, null);
+  SourceSpan get sourceSpan => SourceSpan.unknown();
 }
 
 /// The start, end and closing offsets for a [js.Node].
 class CodePosition {
   final int startPosition;
   final int endPosition;
-  final int closingPosition;
+  final int? closingPosition;
 
   CodePosition(this.startPosition, this.endPosition, this.closingPosition);
 
   // ignore: MISSING_RETURN
-  int getPosition(CodePositionKind kind) {
+  int? getPosition(CodePositionKind kind) {
     switch (kind) {
       case CodePositionKind.START:
         return startPosition;
@@ -202,7 +190,7 @@ class CodePosition {
 
 /// A map from a [js.Node] to its [CodePosition].
 abstract class CodePositionMap {
-  CodePosition operator [](js.Node node);
+  CodePosition? operator [](js.Node node);
 }
 
 /// Registry for mapping [js.Node]s to their [CodePosition].
@@ -211,7 +199,7 @@ class CodePositionRecorder implements CodePositionMap {
       Map<js.Node, CodePosition>.identity();
 
   void registerPositions(
-      js.Node node, int startPosition, int endPosition, int closingPosition) {
+      js.Node node, int startPosition, int endPosition, int? closingPosition) {
     registerCodePosition(
         node, CodePosition(startPosition, endPosition, closingPosition));
   }
@@ -221,7 +209,7 @@ class CodePositionRecorder implements CodePositionMap {
   }
 
   @override
-  CodePosition operator [](js.Node node) => _codePositionMap[node];
+  CodePosition? operator [](js.Node node) => _codePositionMap[node];
 }
 
 /// Enum values for the part of a Dart node used for the source location offset.
@@ -259,9 +247,9 @@ enum SourcePositionKind {
 }
 
 // ignore: MISSING_RETURN
-SourceLocation getSourceLocation(SourceInformation sourceInformation,
+SourceLocation? getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
-  if (sourceInformation == null) return null;
+  assert((sourceInformation as dynamic) != null);
   switch (sourcePositionKind) {
     case SourcePositionKind.START:
       return sourceInformation.startPosition;
@@ -319,12 +307,12 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
 
   final CodePositionRecorder codePositionRecorder = CodePositionRecorder();
   final SourceInformationReader reader;
-  CodePositionMap codePositionMap;
-  List<TraceListener> traceListeners;
-  InliningTraceListener inliningListener;
+  late final CodePositionMap codePositionMap;
+  late final List<TraceListener> traceListeners;
+  late final InliningTraceListener inliningListener;
 
   PositionSourceInformationProcessor(SourceMapperProvider provider, this.reader,
-      [Coverage coverage]) {
+      [Coverage? coverage]) {
     codePositionMap = coverage != null
         ? CodePositionCoverage(codePositionRecorder, coverage)
         : codePositionRecorder;
@@ -341,12 +329,12 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
   @override
   void process(js.Node node, BufferedCodeOutput code) {
     JavaScriptTracer(codePositionMap, reader, traceListeners).apply(node);
-    inliningListener?.finish();
+    inliningListener.finish();
   }
 
   @override
   void onPositions(
-      js.Node node, int startPosition, int endPosition, int closingPosition) {
+      js.Node node, int startPosition, int endPosition, int? closingPosition) {
     codePositionRecorder.registerPositions(
         node, startPosition, endPosition, closingPosition);
   }
@@ -354,23 +342,23 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
 
 /// Visitor that computes [SourceInformation] for a [js.Node] using information
 /// attached to the node itself or alternatively from child nodes.
-class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
+class NodeSourceInformation extends js.BaseVisitor<SourceInformation?> {
   final SourceInformationReader reader;
 
   const NodeSourceInformation(this.reader);
 
-  SourceInformation visit(js.Node node) => node?.accept(this);
+  SourceInformation? visit(js.Node? node) => node?.accept(this);
 
   @override
-  SourceInformation visitNode(js.Node node) =>
+  SourceInformation? visitNode(js.Node node) =>
       reader.getSourceInformation(node);
 
   @override
-  SourceInformation visitComment(js.Comment node) => null;
+  SourceInformation? visitComment(js.Comment node) => null;
 
   @override
-  SourceInformation visitExpressionStatement(js.ExpressionStatement node) {
-    SourceInformation sourceInformation = reader.getSourceInformation(node);
+  SourceInformation? visitExpressionStatement(js.ExpressionStatement node) {
+    SourceInformation? sourceInformation = reader.getSourceInformation(node);
     if (sourceInformation != null) {
       return sourceInformation;
     }
@@ -378,14 +366,14 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
   }
 
   @override
-  SourceInformation visitVariableDeclarationList(
+  SourceInformation? visitVariableDeclarationList(
       js.VariableDeclarationList node) {
-    SourceInformation sourceInformation = reader.getSourceInformation(node);
+    SourceInformation? sourceInformation = reader.getSourceInformation(node);
     if (sourceInformation != null) {
       return sourceInformation;
     }
     for (js.Node declaration in node.declarations) {
-      SourceInformation sourceInformation = visit(declaration);
+      SourceInformation? sourceInformation = visit(declaration);
       if (sourceInformation != null) {
         return sourceInformation;
       }
@@ -394,9 +382,9 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
   }
 
   @override
-  SourceInformation visitVariableInitialization(
+  SourceInformation? visitVariableInitialization(
       js.VariableInitialization node) {
-    SourceInformation sourceInformation = reader.getSourceInformation(node);
+    SourceInformation? sourceInformation = reader.getSourceInformation(node);
     if (sourceInformation != null) {
       return sourceInformation;
     }
@@ -404,8 +392,8 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
   }
 
   @override
-  SourceInformation visitAssignment(js.Assignment node) {
-    SourceInformation sourceInformation = reader.getSourceInformation(node);
+  SourceInformation? visitAssignment(js.Assignment node) {
+    SourceInformation? sourceInformation = reader.getSourceInformation(node);
     if (sourceInformation != null) {
       return sourceInformation;
     }
@@ -417,7 +405,7 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
 abstract class NodeToSourceInformationMixin {
   SourceInformationReader get reader;
 
-  SourceInformation computeSourceInformation(js.Node node) {
+  SourceInformation? computeSourceInformation(js.Node node) {
     return NodeSourceInformation(reader).visit(node);
   }
 }
@@ -428,37 +416,38 @@ class InliningTraceListener extends TraceListener
   final SourceMapper sourceMapper;
   @override
   final SourceInformationReader reader;
-  final Map<int, List<FrameContext>> _frames = {};
+  final Map<int, List<FrameContext>?> _frames = {};
 
   InliningTraceListener(this.sourceMapper, this.reader);
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = computeSourceInformation(node);
+    SourceInformation? sourceInformation = computeSourceInformation(node);
     if (sourceInformation == null) return;
     // TODO(sigmund): enable this assertion.
     // assert(offset.value != null, "Expected a valid offset: $node $offset");
-    if (offset.value == null) return;
+    final offsetValue = offset.value;
+    if (offsetValue == null) return;
 
     // TODO(sigmund): enable this assertion
     //assert(_frames[offset.value] == null,
     //     "Expect a single entry per offset: $offset $node");
-    if (_frames[offset.value] != null) return;
+    if (_frames[offsetValue] != null) return;
 
     // During tracing we only collect information per offset because the tracer
     // visits nodes in tree order. We'll later sort the data by offset before
     // registering the frame data with [SourceMapper].
     if (kind == StepKind.FUN_EXIT) {
-      _frames[offset.value] = null;
+      _frames[offsetValue] = null;
     } else {
-      _frames[offset.value] = sourceInformation.inliningContext;
+      _frames[offsetValue] = sourceInformation.inliningContext;
     }
   }
 
   /// Converts the inlining context data collected during tracing into push/pop
   /// stack operations that will be emitted with the source-map files.
   void finish() {
-    List<FrameContext> lastInliningContext;
+    List<FrameContext>? lastInliningContext;
     for (var offset in _frames.keys.toList()..sort()) {
       var newInliningContext = _frames[offset];
 
@@ -471,7 +460,7 @@ class InliningTraceListener extends TraceListener
       int popCount = 0;
       List<FrameContext> pushes = const [];
       if (newInliningContext == null) {
-        popCount = lastInliningContext.length;
+        popCount = lastInliningContext!.length;
         isEmpty = true;
       } else if (lastInliningContext == null) {
         pushes = newInliningContext;
@@ -563,7 +552,7 @@ class PositionTraceListener extends TraceListener
   ///                                    ^
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    int codeLocation = offset.value;
+    int? codeLocation = offset.value;
     if (codeLocation == null) return;
 
     if (kind == StepKind.NO_INFO) {
@@ -571,11 +560,11 @@ class PositionTraceListener extends TraceListener
       return;
     }
 
-    SourceInformation sourceInformation = computeSourceInformation(node);
+    SourceInformation? sourceInformation = computeSourceInformation(node);
     if (sourceInformation == null) return;
 
     void registerPosition(SourcePositionKind sourcePositionKind) {
-      SourceLocation sourceLocation =
+      SourceLocation? sourceLocation =
           getSourceLocation(sourceInformation, sourcePositionKind);
       if (sourceLocation != null) {
         sourceMapper.register(node, codeLocation, sourceLocation);
@@ -595,7 +584,7 @@ class PositionTraceListener extends TraceListener
         break;
       case StepKind.CALL:
         CallPosition callPosition =
-            CallPosition.getSemanticPositionForCall(node);
+            CallPosition.getSemanticPositionForCall(node as js.Call);
         registerPosition(callPosition.sourcePositionKind);
         break;
       case StepKind.ACCESS:
@@ -686,7 +675,7 @@ class CallPosition {
   /// (@ marks the current JavaScript position and ^ point to the mapped Dart
   /// code position.)
   static CallPosition getSemanticPositionForCall(js.Call node) {
-    js.Expression access = js.undefer(node.target);
+    js.Expression access = js.undefer(node.target) as js.Expression;
     if (access is js.PropertyAccess) {
       js.Node target = access;
       bool pureAccess = false;
@@ -758,6 +747,10 @@ class CallPosition {
 ///
 /// Currently [subexpressionOffset] is used since it corresponds the most to the
 /// offset used by most browsers.
+///
+// TODO(sra): Any or all of the values can be `null`. Investigate why this
+// happens. Since we are writing a JavaScript AST to an output, we should be
+// able to have non-null values.
 class Offset {
   /// The offset of the enclosing statement relative to the beginning of the
   /// file.
@@ -769,7 +762,7 @@ class Offset {
   ///     ^                  // the statement offset of the `*.bar()` call
   ///     ^                  // the statement offset of the `baz()` call
   ///
-  final int statementOffset;
+  final int? statementOffset;
 
   /// The `subexpression` offset of the step. This is the (mostly) unique
   /// offset relative to the beginning of the file, that identifies the
@@ -786,7 +779,7 @@ class Offset {
   /// the `foo()` its execution is identified by the `bar` identifier more than
   /// the foo identifier.
   ///
-  final int subexpressionOffset;
+  final int? subexpressionOffset;
 
   /// The `left-to-right` offset of the step. This is like [subexpressionOffset]
   /// but restricted so that the offset of each subexpression in execution
@@ -802,12 +795,12 @@ class Offset {
   /// Here, `baz()` is executed before `foo()` so we need to use 'f' as its best
   /// position under the restriction.
   ///
-  final int leftToRightOffset;
+  final int? leftToRightOffset;
 
   Offset(
       this.statementOffset, this.leftToRightOffset, this.subexpressionOffset);
 
-  int get value => subexpressionOffset;
+  int? get value => subexpressionOffset;
 
   @override
   String toString() {
@@ -878,13 +871,13 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   List steps = [];
 
   /// The offset of the current statement.
-  int statementOffset;
+  int? statementOffset;
 
   /// The current offset in left-to-right progression.
-  int leftToRightOffset;
+  int? leftToRightOffset;
 
   /// The offset of the surrounding statement, used for the first subexpression.
-  int offsetPosition;
+  int? offsetPosition;
 
   bool active;
 
@@ -921,7 +914,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   void apply(js.Node node) {
     notifyStart(node);
 
-    int startPosition = getSyntaxOffset(node, kind: CodePositionKind.START);
+    int? startPosition = getSyntaxOffset(node, kind: CodePositionKind.START);
     Offset startOffset = getOffsetForNode(node, startPosition);
     notifyStep(node, startOffset, StepKind.NO_INFO, force: true);
 
@@ -930,11 +923,11 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   }
 
   @override
-  visitNode(js.Node node) {
+  void visitNode(js.Node node) {
     node.visitChildren(this);
   }
 
-  visit(js.Node node, [BranchKind branch, value]) {
+  visit(js.Node? node, [BranchKind? branch, value]) {
     if (node != null) {
       if (branch != null) {
         notifyPushBranch(branch, value);
@@ -946,11 +939,9 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     }
   }
 
-  visitList(List<js.Node> nodeList) {
-    if (nodeList != null) {
-      for (js.Node node in nodeList) {
-        visit(node);
-      }
+  void visitList(List<js.Node> nodeList) {
+    for (js.Node node in nodeList) {
+      visit(node);
     }
   }
 
@@ -971,7 +962,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     Offset exitOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, exitOffset, StepKind.FUN_EXIT);
     if (active && !activeBefore) {
-      int endPosition = getSyntaxOffset(node, kind: CodePositionKind.END);
+      int? endPosition = getSyntaxOffset(node, kind: CodePositionKind.END);
       Offset endOffset = getOffsetForNode(node, endPosition);
       notifyStep(node, endOffset, StepKind.NO_INFO);
     }
@@ -995,9 +986,9 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     }
   }
 
-  int getSyntaxOffset(js.Node node,
+  int? getSyntaxOffset(js.Node node,
       {CodePositionKind kind = CodePositionKind.START}) {
-    CodePosition codePosition = codePositions[node];
+    CodePosition? codePosition = codePositions[node];
     if (codePosition != null) {
       return codePosition.getPosition(kind);
     }
@@ -1005,7 +996,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   }
 
   visitSubexpression(
-      js.Node parent, js.Expression child, int codeOffset, StepKind kind) {
+      js.Node parent, js.Expression child, int? codeOffset, StepKind kind) {
     var oldSteps = steps;
     steps = [];
     offsetPosition = codeOffset;
@@ -1033,13 +1024,13 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   @override
   visitCall(js.Call node) {
     visit(node.target);
-    int oldPosition = offsetPosition;
+    int? oldPosition = offsetPosition;
     offsetPosition = null;
     visitList(node.arguments);
     offsetPosition = oldPosition;
     CallPosition callPosition = CallPosition.getSemanticPositionForCall(node);
     js.Node positionNode = callPosition.node;
-    int callOffset =
+    int? callOffset =
         getSyntaxOffset(positionNode, kind: callPosition.codePositionKind);
     if (offsetPosition == null) {
       // Use the call offset if this is not the first subexpression.
@@ -1054,7 +1045,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   @override
   visitNew(js.New node) {
     visit(node.target);
-    int oldPosition = offsetPosition;
+    int? oldPosition = offsetPosition;
     offsetPosition = null;
     visitList(node.arguments);
     offsetPosition = oldPosition;
@@ -1135,26 +1126,29 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
 
   @override
   visitFor(js.For node) {
-    int offset = statementOffset = getSyntaxOffset(node);
+    int? offset = statementOffset = getSyntaxOffset(node);
     statementOffset = offset;
     leftToRightOffset = null;
-    if (node.init != null) {
+    final init = node.init;
+    if (init != null) {
       visitSubexpression(
-          node, node.init, getSyntaxOffset(node), StepKind.FOR_INITIALIZER);
+          node, init, getSyntaxOffset(node), StepKind.FOR_INITIALIZER);
     }
 
-    if (node.condition != null) {
-      visitSubexpression(node, node.condition, getSyntaxOffset(node.condition),
-          StepKind.FOR_CONDITION);
+    final condition = node.condition;
+    if (condition != null) {
+      visitSubexpression(
+          node, condition, getSyntaxOffset(condition), StepKind.FOR_CONDITION);
     }
 
     notifyPushBranch(BranchKind.LOOP);
     visit(node.body);
 
     statementOffset = offset;
-    if (node.update != null) {
+    final update = node.update;
+    if (update != null) {
       visitSubexpression(
-          node, node.update, getSyntaxOffset(node.update), StepKind.FOR_UPDATE);
+          node, update, getSyntaxOffset(update), StepKind.FOR_UPDATE);
     }
 
     notifyPopBranch();
@@ -1163,10 +1157,8 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   @override
   visitWhile(js.While node) {
     statementOffset = getSyntaxOffset(node);
-    if (node.condition != null) {
-      visitSubexpression(node, node.condition, getSyntaxOffset(node),
-          StepKind.WHILE_CONDITION);
-    }
+    visitSubexpression(
+        node, node.condition, getSyntaxOffset(node), StepKind.WHILE_CONDITION);
     statementOffset = null;
     leftToRightOffset = null;
 
@@ -1177,10 +1169,9 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   visitDo(js.Do node) {
     statementOffset = getSyntaxOffset(node);
     visit(node.body);
-    if (node.condition != null) {
-      visitSubexpression(node, node.condition, getSyntaxOffset(node.condition),
-          StepKind.DO_CONDITION);
-    }
+    final condition = node.condition;
+    visitSubexpression(
+        node, condition, getSyntaxOffset(condition), StepKind.DO_CONDITION);
     statementOffset = null;
     leftToRightOffset = null;
   }
@@ -1323,16 +1314,16 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     visit(node.value);
   }
 
-  Offset getOffsetForNode(js.Node node, int codeOffset) {
+  Offset getOffsetForNode(js.Node node, int? codeOffset) {
     if (codeOffset == null) {
-      CodePosition codePosition = codePositions[node];
+      CodePosition? codePosition = codePositions[node];
       if (codePosition != null) {
         codeOffset = codePosition.startPosition;
       }
     }
     if (leftToRightOffset != null &&
         codeOffset != null &&
-        leftToRightOffset < codeOffset) {
+        leftToRightOffset! < codeOffset) {
       leftToRightOffset = codeOffset;
     }
     if (leftToRightOffset == null) {
@@ -1370,15 +1361,16 @@ class Coverage {
     _nodesWithoutOffset.clear();
 
     _nodesWithoutInfoCount += _nodesWithoutInfo.length;
+
     for (js.Node node in _nodesWithoutInfo) {
+      Type type;
       if (node is js.ExpressionStatement) {
-        _nodesWithoutInfoCountByType.putIfAbsent(
-            node.expression.runtimeType, () => 0);
-        _nodesWithoutInfoCountByType[node.expression.runtimeType]++;
+        type = node.expression.runtimeType;
       } else {
-        _nodesWithoutInfoCountByType.putIfAbsent(node.runtimeType, () => 0);
-        _nodesWithoutInfoCountByType[node.runtimeType]++;
+        type = node.runtimeType;
       }
+      _nodesWithoutInfoCountByType.update(type, (count) => count + 1,
+          ifAbsent: () => 1);
     }
     _nodesWithoutInfo.clear();
   }
@@ -1412,12 +1404,12 @@ class Coverage {
       sb.write(') by runtime type:');
       List<Type> types = _nodesWithoutInfoCountByType.keys.toList();
       types.sort((a, b) {
-        return -_nodesWithoutInfoCountByType[a]
-            .compareTo(_nodesWithoutInfoCountByType[b]);
+        return -_nodesWithoutInfoCountByType[a]!
+            .compareTo(_nodesWithoutInfoCountByType[b]!);
       });
 
       types.forEach((Type type) {
-        int count = _nodesWithoutInfoCountByType[type];
+        int count = _nodesWithoutInfoCountByType[type]!;
         sb.write('\n ');
         sb.write(count);
         sb.write(' ');
@@ -1446,7 +1438,7 @@ class CoverageListener extends TraceListener with NodeToSourceInformationMixin {
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = computeSourceInformation(node);
+    SourceInformation? sourceInformation = computeSourceInformation(node);
     if (sourceInformation != null) {
       coverage.registerNodeWithInfo(node);
     } else {
@@ -1468,8 +1460,8 @@ class CodePositionCoverage implements CodePositionMap {
   CodePositionCoverage(this.codePositions, this.coverage);
 
   @override
-  CodePosition operator [](js.Node node) {
-    CodePosition codePosition = codePositions[node];
+  CodePosition? operator [](js.Node node) {
+    CodePosition? codePosition = codePositions[node];
     if (codePosition == null) {
       coverage.registerNodesWithoutOffset(node);
     }

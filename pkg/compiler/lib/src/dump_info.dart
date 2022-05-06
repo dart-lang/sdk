@@ -22,6 +22,7 @@ import 'common/tasks.dart' show CompilerTask;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
+import 'dump_info_javascript_monitor.dart';
 import 'elements/entities.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
@@ -1019,7 +1020,8 @@ abstract class InfoReporter {
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom);
 }
 
-class DumpInfoTask extends CompilerTask implements InfoReporter {
+class DumpInfoTask extends CompilerTask
+    implements DumpInfoJavaScriptMonitor, InfoReporter {
   final Compiler compiler;
   final bool useBinaryFormat;
 
@@ -1120,6 +1122,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   bool get shouldEmitText => !useBinaryFormat;
   // TODO(sigmund): delete the stack once we stop emitting the source text.
   final List<_CodeData> _stack = [];
+  @override // DumpInfoJavaScriptMonitor
   void enterNode(jsAst.Node node, int start) {
     var data = _nodeData[node];
     data?.start = start;
@@ -1129,6 +1132,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
+  @override // DumpInfoJavaScriptMonitor
   void emit(String string) {
     if (shouldEmitText) {
       // Note: historically we emitted the full body of classes and methods, so
@@ -1138,6 +1142,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
+  @override // DumpInfoJavaScriptMonitor
   void exitNode(jsAst.Node node, int start, int end, int closing) {
     var data = _nodeData[node];
     data?.end = end;

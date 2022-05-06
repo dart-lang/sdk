@@ -408,7 +408,7 @@ var ${startupMetricsGlobal} =
   void writeMainFragment(MainFragment fragment, js.Statement code,
       {bool isSplit}) {
     LocationCollector locationCollector;
-    List<CodeOutputListener> codeOutputListeners;
+    List<CodeOutputListener /*!*/ > codeOutputListeners;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
         locationCollector = LocationCollector();
@@ -478,7 +478,7 @@ var ${startupMetricsGlobal} =
       FinalizedFragment fragment,
       List<EmittedCodeFragment> fragmentCode,
       Map<CodeFragment, String> fragmentHashes) {
-    List<CodeOutputListener> outputListeners = [];
+    List<CodeOutputListener /*!*/ > outputListeners = [];
     LocationCollector locationCollector;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {

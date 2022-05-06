@@ -173,6 +173,15 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// not yet been deserialized, [f] is called to deserialize the value itself.
   @override
   E readCached<E>(E f()) {
+    E /*?*/ value = readCachedOrNull(f);
+    if (value == null) throw StateError("Unexpected 'null' for $E");
+    return value;
+  }
+
+  /// Reads a reference to an [E] value from this data source. If the value has
+  /// not yet been deserialized, [f] is called to deserialize the value itself.
+  @override
+  E /*?*/ readCachedOrNull<E>(E f()) {
     IndexedSource source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
   }
