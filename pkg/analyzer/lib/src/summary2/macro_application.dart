@@ -10,11 +10,14 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
 
@@ -25,9 +28,12 @@ class LibraryMacroApplier {
 
   final List<_MacroTarget> _targets = [];
 
-  final macro.IdentifierResolver _identifierResolver = _IdentifierResolver();
+  late final macro.IdentifierResolver _identifierResolver =
+      _IdentifierResolver(_linker.elementFactory, declarationBuilder);
 
-  final macro.TypeResolver _typeResolver = _TypeResolver();
+  late final macro.TypeResolver _typeResolver = _TypeResolver(
+    typeSystem: libraryBuilder.element.typeSystem,
+  );
 
   late final macro.ClassIntrospector _classIntrospector =
       _ClassIntrospector(declarationBuilder);
@@ -451,9 +457,13 @@ class _ClassIntrospector implements macro.ClassIntrospector {
   }
 
   @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(macro.ClassDeclaration clazz) {
-    // TODO: implement fieldsOf
-    throw UnimplementedError();
+  Future<List<macro.FieldDeclaration>> fieldsOf(
+    covariant ClassDeclarationImpl clazz,
+  ) async {
+    return clazz.element.fields
+        .where((e) => !e.isSynthetic)
+        .map(declarationBuilder.fromElement.fieldElement)
+        .toList();
   }
 
   @override
@@ -493,10 +503,19 @@ class _ClassIntrospector implements macro.ClassIntrospector {
 }
 
 class _IdentifierResolver extends macro.IdentifierResolver {
+  final LinkedElementFactory elementFactory;
+  final DeclarationBuilder declarationBuilder;
+
+  _IdentifierResolver(
+    this.elementFactory,
+    this.declarationBuilder,
+  );
+
   @override
-  Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
-    // TODO: implement resolveIdentifier
-    throw UnimplementedError();
+  Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
+    final libraryElement = elementFactory.libraryOfUri2(library.toString());
+    final element = libraryElement.scope.lookup(name).getter!;
+    return declarationBuilder.fromElement.identifier(element);
   }
 }
 
@@ -571,11 +590,60 @@ class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
   }
 }
 
-class _TypeResolver implements macro.TypeResolver {
+class _StaticTypeImpl extends macro.StaticType {
+  final TypeSystemImpl typeSystem;
+  final DartType type;
+
+  _StaticTypeImpl(this.typeSystem, this.type);
+
   @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) {
-    // TODO: implement resolve
+  Future<bool> isExactly(_StaticTypeImpl other) {
+    // TODO: implement isExactly
     throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> isSubtypeOf(_StaticTypeImpl other) {
+    // TODO(scheglov) write tests
+    return Future.value(
+      typeSystem.isSubtypeOf(type, other.type),
+    );
+  }
+}
+
+class _TypeResolver implements macro.TypeResolver {
+  final TypeSystemImpl typeSystem;
+
+  _TypeResolver({
+    required this.typeSystem,
+  });
+
+  @override
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
+    var dartType = _resolve(type);
+    return _StaticTypeImpl(typeSystem, dartType);
+  }
+
+  DartType _resolve(macro.TypeAnnotationCode type) {
+    // TODO(scheglov) write tests
+    if (type is macro.NamedTypeAnnotationCode) {
+      final identifier = type.name as IdentifierImpl;
+      final element = identifier.element;
+      if (element is ClassElementImpl) {
+        return element.instantiate(
+          typeArguments: type.typeArguments.map(_resolve).toList(),
+          nullabilitySuffix: type.isNullable
+              ? NullabilitySuffix.question
+              : NullabilitySuffix.none,
+        );
+      } else {
+        // TODO(scheglov) Implement other elements.
+        throw UnimplementedError('(${element.runtimeType}) $element');
+      }
+    } else {
+      // TODO(scheglov) Implement other types.
+      throw UnimplementedError('(${type.runtimeType}) $type');
+    }
   }
 }
 

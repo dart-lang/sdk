@@ -10,9 +10,17 @@ import 'introspect_shared.dart';
 
 const introspectMacro = IntrospectDeclarationsPhaseMacro();
 
+const introspectMacroX = IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+);
+
 /*macro*/ class IntrospectDeclarationsPhaseMacro
     implements ClassDeclarationsMacro {
-  const IntrospectDeclarationsPhaseMacro();
+  final Set<Object?> withDetailsFor;
+
+  const IntrospectDeclarationsPhaseMacro({
+    this.withDetailsFor = const {},
+  });
 
   @override
   Future<void> buildDeclarationsForClass(
@@ -20,7 +28,9 @@ const introspectMacro = IntrospectDeclarationsPhaseMacro();
     ClassMemberDeclarationBuilder builder,
   ) async {
     final printer = _DeclarationPrinter(
+      withDetailsFor: withDetailsFor.cast(),
       classIntrospector: builder,
+      identifierResolver: builder,
       typeResolver: builder,
     );
     await printer.writeClassDeclaration(declaration);
@@ -36,13 +46,20 @@ const introspectMacro = IntrospectDeclarationsPhaseMacro();
 }
 
 class _DeclarationPrinter {
+  final Set<String> withDetailsFor;
   final ClassIntrospector classIntrospector;
+  final IdentifierResolver identifierResolver;
   final TypeResolver typeResolver;
+
   final StringBuffer _sink = StringBuffer();
   String _indent = '';
 
+  Identifier? _enclosingDeclarationIdentifier;
+
   _DeclarationPrinter({
+    required this.withDetailsFor,
     required this.classIntrospector,
+    required this.identifierResolver,
     required this.typeResolver,
   });
 
@@ -53,8 +70,12 @@ class _DeclarationPrinter {
 
     _writeln('class ${e.identifier.name}');
 
+    if (!_shouldWriteDetailsFor(e)) {
+      return;
+    }
+
     await _withIndent(() async {
-      var superclass = await classIntrospector.superclassOf(e);
+      final superclass = await classIntrospector.superclassOf(e);
       if (superclass != null) {
         _writelnWithIndent('superclass');
         await _withIndent(() => writeClassDeclaration(superclass));
@@ -63,11 +84,29 @@ class _DeclarationPrinter {
       await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations('mixins', e.mixins);
       await _writeTypeAnnotations('interfaces', e.interfaces);
+
+      _enclosingDeclarationIdentifier = e.identifier;
+      await _writeElements<FieldDeclaration>(
+        'fields',
+        await classIntrospector.fieldsOf(e),
+        _writeField,
+      );
     });
   }
 
+  void _assertEnclosingClass(ClassMemberDeclaration e) {
+    if (e.definingClass != _enclosingDeclarationIdentifier) {
+      throw StateError('Mismatch: definingClass');
+    }
+  }
+
+  bool _shouldWriteDetailsFor(Declaration declaration) {
+    return withDetailsFor.isEmpty ||
+        withDetailsFor.contains(declaration.identifier.name);
+  }
+
   Future<void> _withIndent(Future<void> Function() f) async {
-    var savedIndent = _indent;
+    final savedIndent = _indent;
     _indent = '$savedIndent  ';
     await f();
     _indent = savedIndent;
@@ -81,17 +120,39 @@ class _DeclarationPrinter {
     if (elements.isNotEmpty) {
       _writelnWithIndent(name);
       await _withIndent(() async {
-        for (var element in elements) {
+        for (final element in elements) {
           await f(element);
         }
       });
     }
   }
 
+  Future<void> _writeField(FieldDeclaration e) async {
+    _assertEnclosingClass(e);
+
+    _writeIndentedLine(() {
+      _writeIf(e.isStatic, 'static ');
+      _writeIf(e.isExternal, 'external ');
+      _writeIf(e.isLate, 'late ');
+      _writeIf(e.isFinal, 'final ');
+      _writeName(e);
+    });
+
+    await _withIndent(() async {
+      _writeTypeAnnotation('type', e.type);
+    });
+  }
+
   void _writeIf(bool flag, String str) {
     if (flag) {
       _sink.write(str);
     }
+  }
+
+  void _writeIndentedLine(void Function() f) {
+    _sink.write(_indent);
+    f();
+    _sink.writeln();
   }
 
   void _writeln(String line) {
@@ -101,6 +162,10 @@ class _DeclarationPrinter {
   void _writelnWithIndent(String line) {
     _sink.write(_indent);
     _sink.writeln(line);
+  }
+
+  void _writeName(Declaration e) {
+    _sink.write(e.identifier.name);
   }
 
   void _writeTypeAnnotation(String name, TypeAnnotation? type) {
@@ -129,7 +194,7 @@ class _DeclarationPrinter {
     _writelnWithIndent(e.identifier.name);
 
     await _withIndent(() async {
-      var bound = e.bound;
+      final bound = e.bound;
       if (bound != null) {
         _writeTypeAnnotation('bound', bound);
       }
