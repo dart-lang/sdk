@@ -15,7 +15,6 @@ dependencies:
   analyzer: ^4.0.0
   args: ^2.1.0
   collection: ^1.15.0
-  glob: ^2.0.0
   http: ^0.13.0
   meta: ^1.3.0
   path: ^1.8.0
