@@ -170,8 +170,8 @@ vars = {
   "webdev_rev": "8c814f9d89915418d8abe354ff9befec8f2906b2",
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
-  "yaml_edit_rev": "4fadb43801b07f90b3f0c6065dbce4efc6d8d55e",
-  "yaml_rev": "ad0779d1baa25c6b10a192d080efc45de02b6a32",
+  "yaml_edit_rev": "0b74d85fac10b4fbf7d1a347debcf16c8f7b0e9c",
+  "yaml_rev": "0971c06490b9670add644ed62182acd6a5536946",
   "zlib_rev": "faff052b6b6edcd6dd548513fe44ac0941427bf0",
 
   # Windows deps
