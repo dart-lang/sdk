@@ -19,7 +19,7 @@ class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_updateContent_list() {
     var pathname = sourcePath('test.dart');
     var goodText = r'''
-main() {
+void f() {
   print("Hello");
   print("World!");
 }''';

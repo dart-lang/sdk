@@ -29,7 +29,7 @@ class GetNavigationTest extends AbstractNavigationTest {
 
   Future<void> test_beforeAnalysisComplete() async {
     addTestFile('''
-main() {
+void f() {
   var test = 0;
   print(test);
 }
@@ -42,7 +42,7 @@ main() {
   Future<void> test_comment_outsideReference() async {
     addTestFile('''
 /// Returns a [String].
-String main() {
+String f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(search: 'Returns', length: 1);
@@ -52,7 +52,7 @@ String main() {
   Future<void> test_comment_reference() async {
     addTestFile('''
 /// Returns a [String].
-String main() {
+String f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(search: '[String', length: 1);
@@ -67,7 +67,7 @@ String main() {
 /// {@tool dartpad}
 /// ** See code in $examplePath **
 /// {@end-tool}
-String main() {
+String f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(search: examplePath, length: 1);
@@ -148,7 +148,7 @@ class Bar {
   @FailingTest(reason: 'requires infrastructure rewriting')
   Future<void> test_fileOutsideOfRoot() async {
     var file = newFile('/outside.dart', '''
-main() {
+void f() {
   var test = 0;
   print(test);
 }
@@ -162,7 +162,7 @@ main() {
     addTestFile('''
 import 'dart:math';
 
-main() {
+void f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(offset: 0, length: 17);
@@ -176,7 +176,7 @@ main() {
     addTestFile('''
 import 'dart:math';
 
-main() {
+void f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(offset: 7, length: 11);
@@ -194,7 +194,7 @@ import 'foo.dart'
   if (dart.library.io) 'io.dart'
   if (dart.library.html) 'html.dart';
 
-main() {
+void f() {
 }''');
     await waitForTasksFinished();
 
@@ -240,7 +240,7 @@ main() {
 
   Future<void> test_multipleRegions() async {
     addTestFile('''
-main() {
+void f() {
   var aaa = 1;
   var bbb = 2;
   var ccc = 3;
@@ -316,7 +316,7 @@ void f(A a) {
 
   Future<void> test_zeroLength_end() async {
     addTestFile('''
-main() {
+void f() {
   var test = 0;
   print(test);
 }
@@ -329,7 +329,7 @@ main() {
 
   Future<void> test_zeroLength_start() async {
     addTestFile('''
-main() {
+void f() {
   var test = 0;
   print(test);
 }

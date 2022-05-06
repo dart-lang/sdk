@@ -22,7 +22,7 @@ class AnalysisErrorIntegrationTest
     var packagePath = sourcePath('package');
     var filePath = sourcePath('package/lib/test.dart');
     var content = '''
-main() {
+void f() {
   print(null) // parse error: missing ';'
 }''';
     await sendServerSetSubscriptions([ServerService.STATUS]);
@@ -39,7 +39,7 @@ main() {
   Future<void> test_detect_simple_error() {
     var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
-main() {
+void f() {
   print(null) // parse error: missing ';'
 }''');
     standardAnalysisSetup();

@@ -50,7 +50,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
 
     var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
-main() {
+void f() {
   var x;
 }''');
     standardAnalysisSetup(subscribeStatus: false);
@@ -63,7 +63,7 @@ main() {
 
     // Tickle test.dart just in case analysis has already completed.
     writeFile(pathname, '''
-main() {
+void f() {
   var y;
 }''');
     // Analysis should eventually complete, and we should be notified

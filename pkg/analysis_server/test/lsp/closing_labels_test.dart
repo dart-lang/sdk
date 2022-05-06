@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class ClosingLabelsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_afterChange() async {
-    final initialContent = 'main() {}';
+    final initialContent = 'void f() {}';
     final updatedContent = '''
 Widget build(BuildContext context) {
   return new Row(         // Row       1:9

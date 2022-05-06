@@ -1525,7 +1525,7 @@ class A {}
     //
     addTestFile('''
 import 'package:pkgA/libA.dart';
-main() {
+void f() {
   new A();
 }
 ''');
@@ -1548,7 +1548,7 @@ class A {}
 ''');
     newFile('$pkgA/lib/libB.dart', '''
 import 'package:pkgA/libA.dart';
-main() {
+void f() {
   new A();
 }
 ''');

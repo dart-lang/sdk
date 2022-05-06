@@ -18,7 +18,7 @@ class GetErrorsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getErrors() async {
     var pathname = sourcePath('test.dart');
     var text = r'''
-main() {
+void f() {
   var x // parse error: missing ';'
 }''';
     writeFile(pathname, text);

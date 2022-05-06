@@ -271,7 +271,7 @@ void f() {}
 class A {
 }
 @A()
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -291,7 +291,7 @@ class MyAnnotation {
 import 'my_annotation.dart' as man;
 @man.MyAnnotation()
 @man.MyAnnotation.named()
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -314,7 +314,7 @@ class A {
   const A.named(p);
 }
 @A.named(0)
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -334,7 +334,7 @@ class A {
   const A();
 }
 @A()
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -346,7 +346,7 @@ main() {
     addTestFile('''
 const myan = new Object();
 @myan // ref
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -362,7 +362,7 @@ const myan = new Object();
     addTestFile('''
 import 'mayn.dart' as man;
 @man.myan // ref
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -888,7 +888,7 @@ class A {
   Future<void> test_identifier_resolved() async {
     addTestFile('''
 class AAA {}
-main() {
+void f() {
   AAA aaa = null;
   print(aaa);
 }
@@ -896,12 +896,12 @@ main() {
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa', 'AAA {}');
     assertHasRegionTarget('aaa);', 'aaa = null');
-    assertHasRegionTarget('main() {', 'main() {');
+    assertHasRegionTarget('f() {', 'f() {');
   }
 
   Future<void> test_identifier_unresolved() async {
     addTestFile('''
-main() {
+void f() {
   print(vvv);
 }
 ''');
@@ -911,7 +911,7 @@ main() {
 
   Future<void> test_identifier_whenStrayImportDirective() async {
     addTestFile('''
-main() {
+void f() {
   int aaa = 42;
   print(aaa);
 }
@@ -942,7 +942,7 @@ class SecondClass {
     addTestFile('''
 class A {
 }
-main() {
+void f() {
   new A();
 }
 ''');
@@ -955,7 +955,7 @@ main() {
     addTestFile('''
 class A {}
 class B<T> {}
-main() {
+void f() {
   new B<A>();
 }
 ''');
@@ -975,7 +975,7 @@ main() {
 class A {
   A.named() {}
 }
-main() {
+void f() {
   new A.named();
 }
 ''');
@@ -996,7 +996,7 @@ class A {}
 class B<T> {
   B.named() {}
 }
-main() {
+void f() {
   new B<A>.named();
 }
 ''');
@@ -1020,7 +1020,7 @@ main() {
 class A {
   A() {}
 }
-main() {
+void f() {
   new A();
 }
 ''');
@@ -1035,7 +1035,7 @@ class A {}
 class B<T> {
   B() {}
 }
-main() {
+void f() {
   new B<A>();
 }
 ''');
@@ -1053,7 +1053,7 @@ main() {
   Future<void> test_instanceCreation_withImportPrefix_named() async {
     addTestFile('''
 import 'dart:async' as ppp;
-main() {
+void f() {
   new ppp.Future.value(42);
 }
 ''');
@@ -1081,7 +1081,7 @@ library my.lib;
     addTestFile('''
 import 'libA.dart';
 import 'libB.dart';
-main() {
+void f() {
   TEST;
 }
 ''');
@@ -1111,7 +1111,7 @@ class A {
   A operator *(other) => null;
   A operator /(other) => null;
 }
-main() {
+void f() {
   var a = new A();
   a - 1;
   a + 2;
@@ -1149,7 +1149,7 @@ class B {
   A operator [](index) => null;
   operator []=(index, A value) {}
 }
-main() {
+void f() {
   var b = new B();
   b[0] // [];
   b[1] = 1; // []=;
@@ -1399,7 +1399,7 @@ class B extends A {
   Future<void> test_targetElement() async {
     addTestFile('''
 class AAA {}
-main() {
+void f() {
   AAA aaa = null;
 }
 ''');
@@ -1432,7 +1432,7 @@ void f(A a) {}
 
   Future<void> test_type_dynamic() async {
     addTestFile('''
-main() {
+void f() {
   dynamic v = null;
 }
 ''');
@@ -1442,7 +1442,7 @@ main() {
 
   Future<void> test_type_void() async {
     addTestFile('''
-void main() {
+void f() {
 }
 ''');
     await prepareNavigation();

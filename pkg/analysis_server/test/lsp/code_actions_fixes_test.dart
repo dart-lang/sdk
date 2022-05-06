@@ -324,11 +324,11 @@ Future foo;''';
     //
     // Expect only the only one nearest to the start of the range to be returned.
     const content = '''
-    main() {
-      var a = [];
-      print(a!!);^
-    }
-    ''';
+void f() {
+  var a = [];
+  print(a!!);^
+}
+''';
 
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
@@ -621,7 +621,7 @@ class A {
   Future<void>
       test_snippets_extractVariable_functionTypeNestedParameters() async {
     const content = '''
-main() {
+void f() {
   useFunction(te^st);
 }
 
@@ -629,7 +629,7 @@ useFunction(int g(a, b)) {}
 ''';
 
     const expectedContent = r'''
-main() {
+void f() {
   ${1:int Function(dynamic a, dynamic b)} ${2:test};
   useFunction(test);
 }

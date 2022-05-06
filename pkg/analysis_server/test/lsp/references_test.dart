@@ -20,7 +20,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       [[foo]]();
     }
     ''';
@@ -68,7 +68,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       [[foo]]();
     }
     ''';

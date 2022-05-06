@@ -37,7 +37,7 @@ class StatusTest extends AbstractAnalysisServerIntegrationTest {
       }
     });
     writeFile(sourcePath('test.dart'), '''
-main() {
+void f() {
   var x;
 }''');
     standardAnalysisSetup();

@@ -96,7 +96,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_afterAnalysis() async {
     addTestFile('''
-main() {
+void f() {
   var vvv = 42;
   print(vvv);
 }
@@ -222,7 +222,7 @@ void f(E e) {
 class A {
   int fff;
   A(this.fff); // constructor
-  main() {
+  void f() {
     fff = 42;
     print(fff); // print
   }
@@ -248,7 +248,7 @@ class A {
 
   Future<void> test_localVariable() async {
     addTestFile('''
-main() {
+void f() {
   var vvv = 42;
   vvv += 5;
   print(vvv);
@@ -268,7 +268,7 @@ main() {
 class A<T> {
   T fff;
 }
-main() {
+void f() {
   var a = new A<int>();
   var b = new A<String>();
   a.fff = 1;
@@ -287,7 +287,7 @@ main() {
 class A<T> {
   T mmm() {}
 }
-main() {
+void f() {
   var a = new A<int>();
   var b = new A<String>();
   a.mmm(); // a
@@ -350,7 +350,7 @@ class B extends A {
   Future<void> test_topLevelVariable() async {
     addTestFile('''
 var VVV = 1;
-main() {
+void f() {
   VVV = 2;
   print(VVV);
 }
@@ -364,7 +364,7 @@ main() {
 
   Future<void> test_type_class() async {
     addTestFile('''
-main() {
+void f() {
   int a = 1;
   int b = 2;
   int c = 3;
@@ -383,7 +383,7 @@ int VVV = 4;
 
   Future<void> test_type_dynamic() async {
     addTestFile('''
-main() {
+void f() {
   dynamic a = 1;
   dynamic b = 2;
 }
@@ -396,11 +396,11 @@ dynamic V = 3;
 
   Future<void> test_type_void() async {
     addTestFile('''
-void main() {
+void f() {
 }
 ''');
     await prepareOccurrences();
-    var offset = findOffset('void main()');
+    var offset = findOffset('void f()');
     findRegion(offset, 'void'.length, false);
   }
 }
