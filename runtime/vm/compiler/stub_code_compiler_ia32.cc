@@ -558,6 +558,24 @@ void StubCodeCompiler::GenerateFixAllocationStubTargetStub(
   __ int3();
 }
 
+// Called from object allocate instruction when the allocation stub for a
+// generic class has been disabled.
+void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub(
+    Assembler* assembler) {
+  __ EnterStubFrame();
+  // Preserve type arguments register.
+  __ pushl(AllocateObjectABI::kTypeArgumentsReg);
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  __ popl(EAX);  // Get Code object.
+  // Restore type arguments register.
+  __ popl(AllocateObjectABI::kTypeArgumentsReg);
+  __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
+  __ LeaveFrame();
+  __ jmp(EAX);
+  __ int3();
+}
+
 // Input parameters:
 //   EDX: smi-tagged argument count, may be zero.
 //   EBP[target::frame_layout.param_end_from_fp + 1]: last argument.
