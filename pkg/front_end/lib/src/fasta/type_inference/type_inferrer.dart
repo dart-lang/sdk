@@ -124,7 +124,6 @@ Map<Object, DartType> _computeParameterMap(FunctionType functionType) => {
 /// parameters that were *not* deferred.
 List<_ParamInfo> _computeUndeferredParamInfo(List<DartType> formalTypes,
     List<_DeferredParamInfo> deferredFunctionLiterals) {
-  // TODO(paulberry): test that the right thing happens when evaluation order differs from classic (positional/named) order.
   Set<int> evaluationOrderIndicesAlreadyCovered = {
     for (_DeferredParamInfo functionLiteral in deferredFunctionLiterals)
       functionLiteral.evaluationOrderIndex
