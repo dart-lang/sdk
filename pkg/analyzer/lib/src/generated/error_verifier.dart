@@ -311,6 +311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
+    _requiredParametersVerifier.visitAnnotation(node);
     super.visitAnnotation(node);
   }
 

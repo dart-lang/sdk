@@ -18,6 +18,22 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   RequiredParametersVerifier(this._errorReporter);
 
   @override
+  void visitAnnotation(Annotation node) {
+    final element = node.element;
+    final argumentList = node.arguments;
+    if (element is ConstructorElement && argumentList != null) {
+      final errorNode = node.constructorIdentifier ?? node.classIdentifier;
+      if (errorNode != null) {
+        _check(
+          parameters: element.parameters,
+          arguments: argumentList.arguments,
+          errorNode: errorNode,
+        );
+      }
+    }
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
       parameters: node.constructorElement?.parameters,
@@ -199,5 +215,50 @@ class _RequiredAnnotation {
     var constantValue = annotation!.computeConstantValue();
     var value = constantValue?.getField('reason')?.toStringValue();
     return (value == null || value.isEmpty) ? null : value;
+  }
+}
+
+/// The annotation should be a constructor invocation.
+///
+/// TODO(scheglov) This is not ideal.
+/// Ideally when resolving an annotation we should restructure it into
+/// specific components - an import prefix, top-level declaration, getter,
+/// constructor, etc. So that later in the analyzer, or in clients, we
+/// don't have to identify it again and again.
+extension _InstantiatedAnnotation on Annotation {
+  SimpleIdentifier? get classIdentifier {
+    assert(arguments != null);
+    final name = this.name;
+    if (name is SimpleIdentifier) {
+      return _ifClassElement(name);
+    } else if (name is PrefixedIdentifier) {
+      return _ifClassElement(name.identifier);
+    }
+    return null;
+  }
+
+  SimpleIdentifier? get constructorIdentifier {
+    assert(arguments != null);
+    final constructorName = _ifConstructorElement(this.constructorName);
+    if (constructorName != null) {
+      return constructorName;
+    }
+
+    final name = this.name;
+    if (name is SimpleIdentifier) {
+      return _ifConstructorElement(name);
+    } else if (name is PrefixedIdentifier) {
+      return _ifConstructorElement(name.identifier);
+    }
+
+    return null;
+  }
+
+  static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
+    return node?.staticElement is ClassElement ? node : null;
+  }
+
+  static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {
+    return node?.staticElement is ConstructorElement ? node : null;
   }
 }
