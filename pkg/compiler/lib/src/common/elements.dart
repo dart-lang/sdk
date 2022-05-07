@@ -375,6 +375,7 @@ abstract class CommonElements
   /// The `Type` type defined in 'dart:core'.
   InterfaceType get typeType => _getRawType(typeClass);
 
+  @override
   InterfaceType get typeLiteralType => _getRawType(typeLiteralClass);
 
   /// The `StackTrace` type defined in 'dart:core';
@@ -384,6 +385,7 @@ abstract class CommonElements
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
+  @override
   InterfaceType listType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(listClass);
@@ -406,6 +408,7 @@ abstract class CommonElements
   /// [keyType] and [valueType] as its type arguments.
   ///
   /// If no type arguments are provided, the canonical raw type is returned.
+  @override
   InterfaceType mapType([DartType keyType, DartType valueType]) {
     if (keyType == null && valueType == null) {
       return _getRawType(mapClass);
@@ -487,11 +490,13 @@ abstract class CommonElements
     return _env.createInterfaceType(cls, typeArguments);
   }
 
+  @override
   InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
       dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(jsArrayClass)
           : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
 
+  @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool onlyStringKeys = false}) {
     ClassEntity classElement =
@@ -503,6 +508,7 @@ abstract class CommonElements
     }
   }
 
+  @override
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType) =>
       dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(constSetLiteralClass)
@@ -511,10 +517,12 @@ abstract class CommonElements
 
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
+  @override
   FieldEntity get symbolField => _symbolImplementationField ??=
       _env.lookupLocalClassMember(symbolImplementationClass, '_name',
           required: true);
 
+  @override
   InterfaceType get symbolImplementationType =>
       _env.getRawType(symbolImplementationClass);
 

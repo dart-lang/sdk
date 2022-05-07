@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// Constant system following the semantics for Dart code that has been
 /// compiled to JavaScript.
 library dart2js.constant_system;
 
-import '../common/elements.dart' show CommonElements;
+//import '../common/elements.dart' show CommonElements;
+import 'common_elements_for_constants.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import 'values.dart';
-
-final _BITS32 = BigInt.from(0xFFFFFFFF);
 
 const add = AddOperation();
 const bitAnd = BitAndOperation();
@@ -54,21 +51,19 @@ bool _integerBecomesNanOrInfinity(BigInt value) {
 }
 
 NumConstantValue _convertToJavaScriptConstant(NumConstantValue constant) {
-  if (constant.isInt) {
-    IntConstantValue intConstant = constant;
-    BigInt intValue = intConstant.intValue;
+  if (constant is IntConstantValue) {
+    BigInt intValue = constant.intValue;
     if (_integerBecomesNanOrInfinity(intValue)) {
       return DoubleConstantValue(intValue.toDouble());
     }
     // If the integer loses precision with JavaScript numbers, use
-    // the floored version JavaScript will use.
+    // the floored value JavaScript will use.
     BigInt floorValue = BigInt.from(intValue.toDouble());
     if (floorValue != intValue) {
       return IntConstantValue(floorValue);
     }
-  } else if (constant.isDouble) {
-    DoubleConstantValue doubleResult = constant;
-    double doubleValue = doubleResult.doubleValue;
+  } else if (constant is DoubleConstantValue) {
+    double doubleValue = constant.doubleValue;
     if (!doubleValue.isInfinite &&
         !doubleValue.isNaN &&
         !constant.isMinusZero) {
@@ -83,12 +78,18 @@ NumConstantValue _convertToJavaScriptConstant(NumConstantValue constant) {
 
 NumConstantValue createInt(BigInt i) =>
     _convertToJavaScriptConstant(IntConstantValue(i));
+
 NumConstantValue createIntFromInt(int i) => createInt(BigInt.from(i));
-NumConstantValue _createInt32(BigInt i) => IntConstantValue(i & _BITS32);
+
+NumConstantValue _createInt32(BigInt i) => IntConstantValue(i.toUnsigned(32));
+
 NumConstantValue createDouble(double d) =>
     _convertToJavaScriptConstant(DoubleConstantValue(d));
+
 StringConstantValue createString(String string) => StringConstantValue(string);
+
 BoolConstantValue createBool(bool value) => BoolConstantValue(value);
+
 NullConstantValue createNull() => NullConstantValue();
 
 ListConstantValue createList(CommonElements commonElements,
@@ -190,12 +191,12 @@ abstract class Operation {
 
 abstract class UnaryOperation extends Operation {
   /// Returns [:null:] if it was unable to fold the operation.
-  ConstantValue fold(ConstantValue constant);
+  ConstantValue? fold(ConstantValue constant);
 }
 
 abstract class BinaryOperation extends Operation {
   /// Returns [:null:] if it was unable to fold the operation.
-  ConstantValue fold(ConstantValue left, ConstantValue right);
+  ConstantValue? fold(ConstantValue left, ConstantValue right);
   apply(left, right);
 }
 
@@ -206,15 +207,16 @@ class BitNotOperation implements UnaryOperation {
   const BitNotOperation();
 
   @override
-  ConstantValue fold(ConstantValue constant) {
+  ConstantValue? fold(ConstantValue constant) {
     if (isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
       if (constant.isMinusZero) {
         constant = createInt(BigInt.zero);
       }
-      IntConstantValue intConstant = constant;
-      // We convert the result of bit-operations to 32 bit unsigned integers.
-      return _createInt32(~intConstant.intValue);
+      if (constant is IntConstantValue) {
+        // Bit-operations yield 32-bit unsigned integers.
+        return _createInt32(~constant.intValue);
+      }
     }
     return null;
   }
@@ -227,22 +229,19 @@ class NegateOperation implements UnaryOperation {
   const NegateOperation();
 
   @override
-  ConstantValue fold(ConstantValue constant) {
-    ConstantValue _fold(ConstantValue constant) {
-      if (constant.isInt) {
-        IntConstantValue intConstant = constant;
-        return createInt(-intConstant.intValue);
+  ConstantValue? fold(ConstantValue constant) {
+    ConstantValue? _fold(ConstantValue constant) {
+      if (constant is IntConstantValue) {
+        return createInt(-constant.intValue);
       }
-      if (constant.isDouble) {
-        DoubleConstantValue doubleConstant = constant;
-        return createDouble(-doubleConstant.doubleValue);
+      if (constant is DoubleConstantValue) {
+        return createDouble(-constant.doubleValue);
       }
       return null;
     }
 
-    if (constant.isInt) {
-      IntConstantValue intConstant = constant;
-      if (intConstant.intValue == BigInt.zero) {
+    if (constant is IntConstantValue) {
+      if (constant.intValue == BigInt.zero) {
         return createDouble(-0.0);
       }
     }
@@ -257,10 +256,9 @@ class NotOperation implements UnaryOperation {
   const NotOperation();
 
   @override
-  ConstantValue fold(ConstantValue constant) {
-    if (constant.isBool) {
-      BoolConstantValue boolConstant = constant;
-      return createBool(!boolConstant.boolValue);
+  ConstantValue? fold(ConstantValue constant) {
+    if (constant is BoolConstantValue) {
+      return createBool(!constant.boolValue);
     }
     return null;
   }
@@ -271,14 +269,12 @@ abstract class BinaryBitOperation implements BinaryOperation {
   const BinaryBitOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
-    ConstantValue _fold(ConstantValue left, ConstantValue right) {
-      if (left.isInt && right.isInt) {
-        IntConstantValue leftInt = left;
-        IntConstantValue rightInt = right;
-        BigInt resultValue = foldInts(leftInt.intValue, rightInt.intValue);
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    IntConstantValue? _fold(ConstantValue left, ConstantValue right) {
+      if (left is IntConstantValue && right is IntConstantValue) {
+        BigInt? resultValue = foldInts(left.intValue, right.intValue);
         if (resultValue == null) return null;
-        return createInt(resultValue);
+        return createInt(resultValue) as IntConstantValue;
       }
       return null;
     }
@@ -290,7 +286,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
     if (right.isMinusZero) {
       right = createInt(BigInt.zero);
     }
-    IntConstantValue result = _fold(left, right);
+    IntConstantValue? result = _fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
       return _createInt32(result.intValue);
@@ -298,7 +294,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
     return result;
   }
 
-  BigInt foldInts(BigInt left, BigInt right);
+  BigInt? foldInts(BigInt left, BigInt right);
 }
 
 class BitAndOperation extends BinaryBitOperation {
@@ -347,7 +343,7 @@ class ShiftLeftOperation extends BinaryBitOperation {
   const ShiftLeftOperation();
 
   @override
-  BigInt foldInts(BigInt left, BigInt right) {
+  BigInt? foldInts(BigInt left, BigInt right) {
     // TODO(floitsch): find a better way to guard against excessive shifts to
     // the left.
     if (right > BigInt.from(100) || right < BigInt.zero) return null;
@@ -365,35 +361,24 @@ class ShiftRightOperation extends BinaryBitOperation {
   const ShiftRightOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
-    // Truncate the input value to 32 bits if necessary.
-    if (left.isInt) {
-      IntConstantValue intConstant = left;
-      BigInt value = intConstant.intValue;
-      BigInt truncatedValue = value & _BITS32;
-      if (value < BigInt.zero) {
-        // Sign-extend if the input was negative. The current semantics don't
-        // make much sense, since we only look at bit 31.
-        // TODO(floitsch): we should treat the input to right shifts as
-        // unsigned.
-
-        // A 32 bit complement-two value x can be computed by:
-        //    x_u - 2^32 (where x_u is its unsigned representation).
-        // Example: 0xFFFFFFFF - 0x100000000 => -1.
-        // We simply and with the sign-bit and multiply by two. If the sign-bit
-        // was set, then the result is 0. Otherwise it will become 2^32.
-        final BigInt SIGN_BIT = BigInt.from(0x80000000);
-        truncatedValue -= BigInt.two * (truncatedValue & SIGN_BIT);
-      }
-      if (value != truncatedValue) {
-        left = createInt(truncatedValue);
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    // Truncate the input value to 32 bits. The web implementation of '>>' is a
+    // signed shift for negative values, and an unsigned for shift for
+    // non-negative values.
+    ConstantValue adjustedLeft = left;
+    if (left is IntConstantValue) {
+      BigInt value = left.intValue;
+      BigInt truncated =
+          value.isNegative ? value.toSigned(32) : value.toUnsigned(32);
+      if (value != truncated) {
+        adjustedLeft = createInt(truncated);
       }
     }
-    return super.fold(left, right);
+    return super.fold(adjustedLeft, right);
   }
 
   @override
-  BigInt foldInts(BigInt left, BigInt right) {
+  BigInt? foldInts(BigInt left, BigInt right) {
     if (right < BigInt.zero) return null;
     return left >> right.toInt();
   }
@@ -409,7 +394,7 @@ class ShiftRightUnsignedOperation extends BinaryBitOperation {
   const ShiftRightUnsignedOperation();
 
   @override
-  BigInt foldInts(BigInt left, BigInt right) {
+  BigInt? foldInts(BigInt left, BigInt right) {
     if (right < BigInt.zero) return null;
     return left.toUnsigned(32) >> right.toInt();
   }
@@ -424,11 +409,9 @@ abstract class BinaryBoolOperation implements BinaryOperation {
   const BinaryBoolOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (left.isBool && right.isBool) {
-      BoolConstantValue leftBool = left;
-      BoolConstantValue rightBool = right;
-      bool resultValue = foldBools(leftBool.boolValue, rightBool.boolValue);
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    if (left is BoolConstantValue && right is BoolConstantValue) {
+      bool resultValue = foldBools(left.boolValue, right.boolValue);
       return createBool(resultValue);
     }
     return null;
@@ -467,22 +450,21 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
   const ArithmeticNumOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
-    ConstantValue _fold(ConstantValue left, ConstantValue right) {
-      if (left.isNum && right.isNum) {
-        NumConstantValue leftNum = left;
-        NumConstantValue rightNum = right;
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    NumConstantValue? _fold(ConstantValue left, ConstantValue right) {
+      if (left is NumConstantValue && right is NumConstantValue) {
         var foldedValue;
-        if (left.isInt && right.isInt) {
-          IntConstantValue leftInt = leftNum;
-          IntConstantValue rightInt = rightNum;
-          foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
+        if (left is IntConstantValue && right is IntConstantValue) {
+          foldedValue = foldInts(left.intValue, right.intValue);
         } else {
-          foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
+          foldedValue = foldNums(left.doubleValue, right.doubleValue);
         }
         // A division by 0 means that we might not have a folded value.
         if (foldedValue == null) return null;
-        if (left.isInt && right.isInt && !isDivide() || isTruncatingDivide()) {
+        if (left is IntConstantValue &&
+                right is IntConstantValue &&
+                !isDivide() ||
+            isTruncatingDivide()) {
           assert(foldedValue is BigInt);
           return createInt(foldedValue);
         } else {
@@ -492,7 +474,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
       return null;
     }
 
-    ConstantValue result = _fold(left, right);
+    NumConstantValue? result = _fold(left, right);
     if (result == null) return result;
     return _convertToJavaScriptConstant(result);
   }
@@ -542,7 +524,7 @@ class ModuloOperation extends ArithmeticNumOperation {
   const ModuloOperation();
 
   @override
-  BigInt foldInts(BigInt left, BigInt right) {
+  BigInt? foldInts(BigInt left, BigInt right) {
     if (right == BigInt.zero) return null;
     return left % right;
   }
@@ -561,7 +543,7 @@ class RemainderOperation extends ArithmeticNumOperation {
   const RemainderOperation();
 
   @override
-  BigInt foldInts(BigInt left, BigInt right) {
+  BigInt? foldInts(BigInt left, BigInt right) {
     if (right == BigInt.zero) return null;
     return left.remainder(right);
   }
@@ -580,13 +562,13 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
   const TruncatingDivideOperation();
 
   @override
-  BigInt foldInts(BigInt left, BigInt right) {
+  BigInt? foldInts(BigInt left, BigInt right) {
     if (right == BigInt.zero) return null;
     return left ~/ right;
   }
 
   @override
-  BigInt foldNums(num left, num right) {
+  BigInt? foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
     return BigInt.from(ratio.truncateToDouble());
@@ -625,30 +607,24 @@ class AddOperation implements BinaryOperation {
   const AddOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
-    ConstantValue _fold(ConstantValue left, ConstantValue right) {
-      if (left.isInt && right.isInt) {
-        IntConstantValue leftInt = left;
-        IntConstantValue rightInt = right;
-        BigInt result = leftInt.intValue + rightInt.intValue;
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    ConstantValue? _fold(ConstantValue left, ConstantValue right) {
+      if (left is IntConstantValue && right is IntConstantValue) {
+        BigInt result = left.intValue + right.intValue;
         return createInt(result);
-      } else if (left.isNum && right.isNum) {
-        NumConstantValue leftNum = left;
-        NumConstantValue rightNum = right;
-        double result = leftNum.doubleValue + rightNum.doubleValue;
+      } else if (left is NumConstantValue && right is NumConstantValue) {
+        double result = left.doubleValue + right.doubleValue;
         return createDouble(result);
-      } else if (left.isString && right.isString) {
-        StringConstantValue leftString = left;
-        StringConstantValue rightString = right;
-        String result = leftString.stringValue + rightString.stringValue;
+      } else if (left is StringConstantValue && right is StringConstantValue) {
+        String result = left.stringValue + right.stringValue;
         return createString(result);
       } else {
         return null;
       }
     }
 
-    ConstantValue result = _fold(left, right);
-    if (result != null && result.isNum) {
+    ConstantValue? result = _fold(left, right);
+    if (result is NumConstantValue) {
       return _convertToJavaScriptConstant(result);
     }
     return result;
@@ -662,20 +638,18 @@ abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (!left.isNum || !right.isNum) return null;
-    bool foldedValue;
-    if (left.isInt && right.isInt) {
-      IntConstantValue leftInt = left;
-      IntConstantValue rightInt = right;
-      foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
-    } else {
-      NumConstantValue leftNum = left;
-      NumConstantValue rightNum = right;
-      foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    if (left is NumConstantValue && right is NumConstantValue) {
+      bool foldedValue;
+      if (left is IntConstantValue && right is IntConstantValue) {
+        foldedValue = foldInts(left.intValue, right.intValue);
+      } else {
+        foldedValue = foldNums(left.doubleValue, right.doubleValue);
+      }
+      assert((foldedValue as dynamic) != null);
+      return createBool(foldedValue);
     }
-    assert(foldedValue != null);
-    return createBool(foldedValue);
+    return null;
   }
 
   bool foldInts(BigInt left, BigInt right);
@@ -753,20 +727,16 @@ class EqualsOperation implements BinaryOperation {
   const EqualsOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
     // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
     // and 1 == 1.0.
-    if (left.isInt && right.isInt) {
-      IntConstantValue leftInt = left;
-      IntConstantValue rightInt = right;
-      bool result = leftInt.intValue == rightInt.intValue;
+    if (left is IntConstantValue && right is IntConstantValue) {
+      bool result = left.intValue == right.intValue;
       return createBool(result);
     }
 
-    if (left.isNum && right.isNum) {
-      NumConstantValue leftNum = left;
-      NumConstantValue rightNum = right;
-      bool result = leftNum.doubleValue == rightNum.doubleValue;
+    if (left is NumConstantValue && right is NumConstantValue) {
+      bool result = left.doubleValue == right.doubleValue;
       return createBool(result);
     }
 
@@ -794,31 +764,24 @@ class IdentityOperation implements BinaryOperation {
 
   @override
   BoolConstantValue fold(ConstantValue left, ConstantValue right) {
-    BoolConstantValue _fold(ConstantValue left, ConstantValue right) {
-      // In order to preserve runtime semantics which says that NaN !== NaN
-      // don't constant fold NaN === NaN. Otherwise the output depends on
-      // inlined variables and other optimizations.
-      if (left.isNaN && right.isNaN) return FalseConstantValue();
-      return createBool(left == right);
-    }
+    // NaNs are not identical to anything. This is a web platform departure from
+    // standard Dart. If we make `identical(double.nan, double.nan)` be `true`,
+    // this constant folding will be incorrect. TODOs below for cross-reference.
+    // TODO(11551): Keep constant-folding consistent with `identical`.
+    // TODO(42224): Keep constant-folding consistent with `identical`.
+    if (left.isNaN || right.isNaN) return FalseConstantValue();
 
-    BoolConstantValue result = _fold(left, right);
-    if (result == null || result.boolValue) return result;
     // In JavaScript -0.0 === 0 and all doubles are equal to their integer
-    // values. Furthermore NaN !== NaN.
-    if (left.isInt && right.isInt) {
-      IntConstantValue leftInt = left;
-      IntConstantValue rightInt = right;
-      return BoolConstantValue(leftInt.intValue == rightInt.intValue);
+    // values.
+    if (left is IntConstantValue && right is IntConstantValue) {
+      return createBool(left.intValue == right.intValue);
     }
-    if (left.isNum && right.isNum) {
-      NumConstantValue leftNum = left;
-      NumConstantValue rightNum = right;
-      double leftDouble = leftNum.doubleValue;
-      double rightDouble = rightNum.doubleValue;
-      return BoolConstantValue(leftDouble == rightDouble);
+    if (left is NumConstantValue && right is NumConstantValue) {
+      return createBool(left.doubleValue == right.doubleValue);
     }
-    return result;
+    // For the remaining constants, if they are the same constant, they are
+    // identical, otherwise not.
+    return createBool(left == right);
   }
 
   @override
@@ -848,12 +811,10 @@ class CodeUnitAtOperation implements BinaryOperation {
   const CodeUnitAtOperation();
 
   @override
-  IntConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (left.isString && right.isInt) {
-      StringConstantValue stringConstant = left;
-      IntConstantValue indexConstant = right;
-      String string = stringConstant.stringValue;
-      int index = indexConstant.intValue.toInt();
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    if (left is StringConstantValue && right is IntConstantValue) {
+      String string = left.stringValue;
+      int index = right.intValue.toInt();
       if (index < 0 || index >= string.length) return null;
       int value = string.codeUnitAt(index);
       return createIntFromInt(value);
@@ -872,10 +833,10 @@ class RoundOperation implements UnaryOperation {
   const RoundOperation();
 
   @override
-  ConstantValue fold(ConstantValue constant) {
+  ConstantValue? fold(ConstantValue constant) {
     // Be careful to round() only values that do not throw on either the host or
     // target platform.
-    ConstantValue tryToRound(double value) {
+    ConstantValue? tryToRound(double value) {
       // Due to differences between browsers, only 'round' easy cases. Avoid
       // cases where nudging the value up or down changes the answer.
       // 13 digits is safely within the ~15 digit precision of doubles.
@@ -889,16 +850,14 @@ class RoundOperation implements UnaryOperation {
           IntConstantValue(BigInt.from(value.round())));
     }
 
-    if (constant.isInt) {
-      IntConstantValue intConstant = constant;
-      double value = intConstant.intValue.toDouble();
+    if (constant is IntConstantValue) {
+      double value = constant.intValue.toDouble();
       if (value >= -double.maxFinite && value <= double.maxFinite) {
         return tryToRound(value);
       }
     }
-    if (constant.isDouble) {
-      DoubleConstantValue doubleConstant = constant;
-      double value = doubleConstant.doubleValue;
+    if (constant is DoubleConstantValue) {
+      double value = constant.doubleValue;
       // NaN and infinities will throw.
       if (value.isNaN) return null;
       if (value.isInfinite) return null;
@@ -915,7 +874,7 @@ class ToIntOperation implements UnaryOperation {
   const ToIntOperation();
 
   @override
-  ConstantValue fold(ConstantValue constant) {
+  ConstantValue? fold(ConstantValue constant) {
     if (constant is IntConstantValue) {
       double value = constant.doubleValue;
       // The code below is written to work for any `double`, even though
@@ -941,7 +900,7 @@ class _IndexOperation implements BinaryOperation {
   const _IndexOperation();
 
   @override
-  ConstantValue fold(ConstantValue left, ConstantValue right) {
+  ConstantValue? fold(ConstantValue left, ConstantValue right) {
     if (left is ListConstantValue) {
       if (right is IntConstantValue) {
         List<ConstantValue> entries = left.entries;
@@ -954,7 +913,7 @@ class _IndexOperation implements BinaryOperation {
       }
     }
     if (left is MapConstantValue) {
-      ConstantValue value = left.lookup(right);
+      ConstantValue? value = left.lookup(right);
       if (value != null) return value;
       return const NullConstantValue();
     }
@@ -973,7 +932,7 @@ class UnfoldedUnaryOperation implements UnaryOperation {
   const UnfoldedUnaryOperation(this.name);
 
   @override
-  ConstantValue fold(ConstantValue constant) {
+  ConstantValue? fold(ConstantValue constant) {
     return null;
   }
 }
