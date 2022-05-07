@@ -112,7 +112,7 @@ vars = {
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "file_rev": "1ebc38852ffed24b564910317982298b56c2cedd",
   "fixnum_rev": "3bfc2ed1eea7e7acb79ad4f17392f92c816fc5ce",
-  "glob_rev": "da1f4595ee2f87982cbcc663d4cac244822d9227",
+  "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev": "34bf7f04b61cce561f47f7f275c2cc811534a05a",
