@@ -194,6 +194,30 @@ f() {
 ''');
   }
 
+  test_getter_extension_on_nullable() async {
+    await assertErrorsInCode('''
+extension E on int? {
+  int get foo => 1;
+}
+
+f(int? i) {
+  i?.foo;
+  E(i)?.foo;
+}
+''', [
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          60,
+          2),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          73,
+          2),
+    ]);
+  }
+
   test_getter_legacy() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
@@ -263,6 +287,30 @@ f() {
     ]);
   }
 
+  test_index_extension_on_nullable() async {
+    await assertErrorsInCode('''
+extension E on int? {
+  operator[] (int i) {}
+}
+
+f(int? i) {
+  i?[0];
+  E(i)?[0];
+}
+''', [
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          64,
+          2),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          76,
+          2),
+    ]);
+  }
+
   test_index_legacy() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
@@ -324,6 +372,30 @@ f() {
   E?.foo();
 }
 ''');
+  }
+
+  test_method_extension_on_nullable() async {
+    await assertErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? i) {
+  i?.foo();
+  E(i)?.foo();
+}
+''', [
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          56,
+          2),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          71,
+          2),
+    ]);
   }
 
   test_method_legacy() async {
@@ -442,6 +514,30 @@ f() {
   E?.x = 0;
 }
 ''');
+  }
+
+  test_setter_extension_on_nullable() async {
+    await assertErrorsInCode('''
+extension E on int? {
+  set foo(bool _) {}
+}
+
+f(int? i) {
+  i?.foo = true;
+  E(i)?.foo = true;
+}
+''', [
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          61,
+          2),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          81,
+          2),
+    ]);
   }
 
   test_setter_mixin() async {

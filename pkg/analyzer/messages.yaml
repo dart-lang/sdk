@@ -22120,6 +22120,15 @@ StaticWarningCode:
       Parameters:
       0: the null-aware operator that is invalid
       1: the non-null-aware operator that can replace the invalid operator
+  INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE:
+    sharedName: INVALID_NULL_AWARE_OPERATOR
+    problemMessage: "The operation is defined in an extension on nullable type, so the null-aware operator '{0}' is unnecessary."
+    correctionMessage: "Try replacing the operator '{0}' with '{1}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the null-aware operator that is invalid
+      1: the non-null-aware operator that can replace the invalid operator
   INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED:
     problemMessage: "Parameters can't override default values, this method overrides '{0}.{1}' where '{2}' has a different value."
     correctionMessage: Try using the same default value in both methods.

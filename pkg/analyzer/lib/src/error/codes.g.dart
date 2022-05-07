@@ -18218,6 +18218,21 @@ class StaticWarningCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the null-aware operator that is invalid
+   * 1: the non-null-aware operator that can replace the invalid operator
+   */
+  static const StaticWarningCode
+      INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE =
+      StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The operation is defined in an extension on nullable type, so the "
+        "null-aware operator '{0}' is unnecessary.",
+    correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
+    uniqueName: 'INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE',
+  );
+
+  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance member <i>m2</i>, the signature of
    * <i>m2</i> explicitly specifies a default value for a formal parameter

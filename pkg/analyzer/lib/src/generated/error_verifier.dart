@@ -874,6 +874,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForUnnecessaryNullAware(
         node.realTarget,
         node.question ?? node.period ?? node.leftBracket,
+        node.writeOrReadElement?.enclosingElement,
       );
     }
 
@@ -966,7 +967,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-      _checkForUnnecessaryNullAware(target, node.operator!);
+      _checkForUnnecessaryNullAware(target, node.operator!,
+          methodName.writeOrReadElement?.enclosingElement);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
@@ -1077,7 +1079,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    _checkForUnnecessaryNullAware(target, node.operator);
+    _checkForUnnecessaryNullAware(target, node.operator,
+        node.propertyName.writeOrReadElement?.enclosingElement);
     _checkUseVerifier.checkPropertyAccess(node);
     super.visitPropertyAccess(node);
   }
@@ -4451,7 +4454,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForUnnecessaryNullAware(Expression target, Token operator) {
+  void _checkForUnnecessaryNullAware(Expression target, Token operator,
+      [Element? targetEnclosingElement]) {
     if (!_isNonNullableByDefault) {
       return;
     }
@@ -4520,8 +4524,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (typeSystem.isStrictlyNonNullable(targetType)) {
+    var onExtensionExtendingNullableType =
+        targetEnclosingElement is ExtensionElement &&
+            typeSystem.isNullable(targetEnclosingElement.extendedType);
+
+    if (onExtensionExtendingNullableType ||
+        typeSystem.isStrictlyNonNullable(targetType)) {
       if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
+        if (onExtensionExtendingNullableType) {
+          errorCode = StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE;
+        }
+
         var previousOperator = previousShortCircuitingOperator(target);
         if (previousOperator != null) {
           errorReporter.reportError(DiagnosticFactory()
