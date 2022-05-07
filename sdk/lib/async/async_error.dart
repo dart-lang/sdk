@@ -31,17 +31,3 @@ class AsyncError implements Error {
 
   String toString() => '$error';
 }
-
-// Helper function used by stream method implementations.
-_invokeErrorHandler(
-    Function errorHandler, Object error, StackTrace stackTrace) {
-  var handler = errorHandler; // Rename to avoid promotion.
-  if (handler is ZoneBinaryCallback<dynamic, Never, Never>) {
-    // Dynamic invocation because we don't know the actual type of the
-    // first argument or the error object, but we should successfully call
-    // the handler if they match up.
-    return errorHandler(error, stackTrace);
-  } else {
-    return errorHandler(error);
-  }
-}
