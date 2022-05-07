@@ -256,7 +256,7 @@ InstanceCreationExpression
     arguments
       SimpleIdentifier
         token: s
-        staticElement: s@38
+        staticElement: self::@function::f::@parameter::s
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>

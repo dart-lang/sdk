@@ -75,7 +75,7 @@ void f(A a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@61
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   leftBracket: [
   index: IntegerLiteral
@@ -147,7 +147,7 @@ void f(A<double> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@72
+    staticElement: self::@function::f::@parameter::a
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
@@ -184,7 +184,7 @@ void f(A? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@62
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   leftBracket: [
   index: IntegerLiteral
@@ -223,7 +223,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@100
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -281,7 +281,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@114
+      staticElement: self::@function::f::@parameter::a
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -340,7 +340,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@101
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
@@ -393,7 +393,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@66
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -436,7 +436,7 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@61
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   cascadeSections
     AssignmentExpression
@@ -452,7 +452,7 @@ CascadeExpression
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
-        staticElement: a@61
+        staticElement: self::@function::f::@parameter::a
         staticType: A
       readElement: <null>
       readType: null
@@ -473,7 +473,7 @@ CascadeExpression
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
-        staticElement: a@61
+        staticElement: self::@function::f::@parameter::a
         staticType: A
       readElement: <null>
       readType: null
@@ -514,7 +514,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@75
+      staticElement: self::@function::f::@parameter::a
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -572,7 +572,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@67
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     leftBracket: [
     index: IntegerLiteral

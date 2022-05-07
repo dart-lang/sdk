@@ -136,7 +136,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@91
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -177,7 +177,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@91
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -218,7 +218,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@95
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -258,7 +258,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@57
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -392,7 +392,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@11
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: null
@@ -420,7 +420,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@11
+      staticElement: self::@function::f::@parameter::a
       staticType: int
     leftBracket: [
     index: SimpleIdentifier
@@ -433,7 +433,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@18
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: null
@@ -464,7 +464,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@57
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: SimpleIdentifier
@@ -477,7 +477,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@64
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: null
@@ -505,12 +505,12 @@ AssignmentExpression
   leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
       token: a
-      staticElement: a@11
+      staticElement: self::@function::f::@parameter::a
       staticType: int
     operator: +
     rightOperand: SimpleIdentifier
       token: b
-      staticElement: b@18
+      staticElement: self::@function::f::@parameter::b
       staticType: int
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
@@ -518,7 +518,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@28
+    staticElement: self::@function::f::@parameter::c
     staticType: double
   readElement: <null>
   readType: dynamic
@@ -548,12 +548,12 @@ AssignmentExpression
     expression: BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
-        staticElement: a@11
+        staticElement: self::@function::f::@parameter::a
         staticType: int
       operator: +
       rightOperand: SimpleIdentifier
         token: b
-        staticElement: b@18
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
@@ -563,7 +563,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@28
+    staticElement: self::@function::f::@parameter::c
     staticType: double
   readElement: <null>
   readType: dynamic
@@ -593,12 +593,12 @@ AssignmentExpression
     expression: BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
-        staticElement: a@11
+        staticElement: self::@function::f::@parameter::a
         staticType: int
       operator: +
       rightOperand: SimpleIdentifier
         token: b
-        staticElement: b@18
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
@@ -608,7 +608,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@28
+    staticElement: self::@function::f::@parameter::c
     staticType: double
   readElement: <null>
   readType: null
@@ -636,19 +636,19 @@ AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      staticElement: x@11
+      staticElement: self::@function::f::@parameter::x
       staticType: null
     operator: ++
-    readElement: x@11
+    readElement: self::@function::f::@parameter::x
     readType: num
-    writeElement: x@11
+    writeElement: self::@function::f::@parameter::x
     writeType: num
     staticElement: dart:core::@class::num::@method::+
     staticType: num
   operator: +=
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@18
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: dynamic
@@ -676,19 +676,19 @@ AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      staticElement: x@11
+      staticElement: self::@function::f::@parameter::x
       staticType: null
     operator: ++
-    readElement: x@11
+    readElement: self::@function::f::@parameter::x
     readType: num
-    writeElement: x@11
+    writeElement: self::@function::f::@parameter::x
     writeType: num
     staticElement: dart:core::@class::num::@method::+
     staticType: num
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@18
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: dynamic
@@ -716,19 +716,19 @@ AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      staticElement: x@11
+      staticElement: self::@function::f::@parameter::x
       staticType: null
     operator: ++
-    readElement: x@11
+    readElement: self::@function::f::@parameter::x
     readType: num
-    writeElement: x@11
+    writeElement: self::@function::f::@parameter::x
     writeType: num
     staticElement: dart:core::@class::num::@method::+
     staticType: num
   operator: =
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@18
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: null
@@ -757,18 +757,18 @@ AssignmentExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      staticElement: x@11
+      staticElement: self::@function::f::@parameter::x
       staticType: null
-    readElement: x@11
+    readElement: self::@function::f::@parameter::x
     readType: num
-    writeElement: x@11
+    writeElement: self::@function::f::@parameter::x
     writeType: num
     staticElement: dart:core::@class::num::@method::+
     staticType: num
   operator: +=
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@18
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: dynamic
@@ -797,18 +797,18 @@ AssignmentExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      staticElement: x@11
+      staticElement: self::@function::f::@parameter::x
       staticType: null
-    readElement: x@11
+    readElement: self::@function::f::@parameter::x
     readType: num
-    writeElement: x@11
+    writeElement: self::@function::f::@parameter::x
     writeType: num
     staticElement: dart:core::@class::num::@method::+
     staticType: num
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@18
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: dynamic
@@ -837,18 +837,18 @@ AssignmentExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      staticElement: x@11
+      staticElement: self::@function::f::@parameter::x
       staticType: null
-    readElement: x@11
+    readElement: self::@function::f::@parameter::x
     readType: num
-    writeElement: x@11
+    writeElement: self::@function::f::@parameter::x
     writeType: num
     staticElement: dart:core::@class::num::@method::+
     staticType: num
   operator: =
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@18
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: null
@@ -955,7 +955,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@58
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -996,7 +996,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@60
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1036,7 +1036,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@40
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1078,7 +1078,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@40
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1295,7 +1295,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@11
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: null
@@ -1323,7 +1323,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@11
+      staticElement: self::@function::f::@parameter::a
       staticType: int
     period: .
     identifier: SimpleIdentifier
@@ -1335,7 +1335,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@18
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: dynamic
@@ -1455,7 +1455,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: a@58
+        staticElement: self::@function::f::@parameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1507,7 +1507,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        staticElement: c@134
+        staticElement: self::@function::f::@parameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -1551,7 +1551,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: a@60
+        staticElement: self::@function::f::@parameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1594,7 +1594,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: a@40
+        staticElement: self::@function::f::@parameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1731,7 +1731,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@11
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: null
@@ -1760,7 +1760,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: a@11
+        staticElement: self::@function::f::@parameter::a
         staticType: int
       rightParenthesis: )
       staticType: int
@@ -1773,7 +1773,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    staticElement: c@18
+    staticElement: self::@function::f::@parameter::c
     staticType: int
   readElement: <null>
   readType: null
@@ -2156,15 +2156,15 @@ void f(num? x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ??=
   rightHandSide: IntegerLiteral
     literal: 0
     staticType: int
-  readElement: x@12
+  readElement: self::@function::f::@parameter::x
   readType: num?
-  writeElement: x@12
+  writeElement: self::@function::f::@parameter::x
   writeType: num?
   staticElement: <null>
   staticType: num
@@ -2190,7 +2190,7 @@ void f(B? x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@64
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ??=
   rightHandSide: InstanceCreationExpression
@@ -2206,9 +2206,9 @@ AssignmentExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: C
-  readElement: x@64
+  readElement: self::@function::f::@parameter::x
   readType: B?
-  writeElement: x@64
+  writeElement: self::@function::f::@parameter::x
   writeType: B?
   staticElement: <null>
   staticType: A
@@ -2230,16 +2230,16 @@ void f(double? a, int b) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    staticElement: a@15
+    staticElement: self::@function::f::@parameter::a
     staticType: null
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: b
-    staticElement: b@22
+    staticElement: self::@function::f::@parameter::b
     staticType: int
-  readElement: a@15
+  readElement: self::@function::f::@parameter::a
   readType: double?
-  writeElement: a@15
+  writeElement: self::@function::f::@parameter::a
   writeType: double?
   staticElement: <null>
   staticType: num
@@ -2296,7 +2296,7 @@ void f(num x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2304,7 +2304,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: num
   staticElement: <null>
   staticType: int
@@ -2326,7 +2326,7 @@ void f(Object x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2334,7 +2334,7 @@ AssignmentExpression
     staticType: double
   readElement: <null>
   readType: null
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: Object
   staticElement: <null>
   staticType: double
@@ -2356,7 +2356,7 @@ void f(int x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: =
   rightHandSide: BooleanLiteral
@@ -2364,7 +2364,7 @@ AssignmentExpression
     staticType: bool
   readElement: <null>
   readType: null
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int
   staticElement: <null>
   staticType: bool
@@ -2386,7 +2386,7 @@ void f(final int x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@17
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2394,7 +2394,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: x@17
+  writeElement: self::@function::f::@parameter::x
   writeType: int
   staticElement: <null>
   staticType: int
@@ -2533,7 +2533,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: y
-    staticElement: y@11
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   readElement: <null>
   readType: null
@@ -3040,7 +3040,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    staticElement: a@11
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   readElement: <null>
   readType: null

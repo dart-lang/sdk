@@ -63,12 +63,12 @@ void f(int? x, int y) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: int?
   operator: ??
   rightOperand: SimpleIdentifier
     token: y
-    staticElement: y@19
+    staticElement: self::@function::f::@parameter::y
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -87,12 +87,12 @@ void f(int? x, double? y) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: int?
   operator: ??
   rightOperand: SimpleIdentifier
     token: y
-    staticElement: y@23
+    staticElement: self::@function::f::@parameter::y
     staticType: double?
   staticElement: <null>
   staticInvokeType: null
@@ -111,12 +111,12 @@ void f(int? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: int?
   operator: ??
   rightOperand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: int?
   staticElement: <null>
   staticInvokeType: null
@@ -135,12 +135,12 @@ f(int a, Never b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@15
+    staticElement: self::@function::f::@parameter::b
     staticType: Never
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
@@ -162,12 +162,12 @@ f(Never a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@8
+    staticElement: self::@function::f::@parameter::a
     staticType: Never
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@15
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -188,12 +188,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: !=
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::==
   staticInvokeType: bool Function(Object)
@@ -224,7 +224,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@34
+          staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
     extendedType: int
@@ -252,12 +252,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: !==
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -276,12 +276,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: ==
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::==
   staticInvokeType: bool Function(Object)
@@ -312,7 +312,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@34
+          staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
     extendedType: int
@@ -340,12 +340,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: ===
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -365,12 +365,12 @@ f(int$question a, double b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   operator: ??
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@17
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   staticElement: <null>
   staticInvokeType: null
@@ -389,12 +389,12 @@ f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: bool
   operator: &&
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@15
+    staticElement: self::@function::f::@parameter::b
     staticType: bool
   staticElement: <null>
   staticInvokeType: null
@@ -413,12 +413,12 @@ f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: bool
   operator: ||
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@15
+    staticElement: self::@function::f::@parameter::b
     staticType: bool
   staticElement: <null>
   staticInvokeType: null
@@ -450,12 +450,12 @@ f(int a, double b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: -
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@16
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   staticElement: dart:core::@class::num::@method::-
   staticInvokeType: num Function(num)
@@ -474,12 +474,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: -
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::-
   staticInvokeType: num Function(num)
@@ -511,12 +511,12 @@ f(int a, double b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: %
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@16
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   staticElement: dart:core::@class::num::@method::%
   staticInvokeType: num Function(num)
@@ -535,12 +535,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: %
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::%
   staticInvokeType: num Function(num)
@@ -596,12 +596,12 @@ f(double a, dynamic b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@20
+    staticElement: self::@function::f::@parameter::b
     staticType: dynamic
   staticElement: dart:core::@class::double::@method::+
   staticInvokeType: double Function(num)
@@ -687,12 +687,12 @@ f(int a, double b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@16
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
@@ -711,12 +711,12 @@ f(int a, dynamic b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@17
+    staticElement: self::@function::f::@parameter::b
     staticType: dynamic
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
@@ -735,12 +735,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
@@ -760,7 +760,7 @@ BinaryExpression
   leftOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: a@17
+      staticElement: self::@function::f::@parameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -771,7 +771,7 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@24
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
@@ -801,7 +801,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@66
+          staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
     extendedType: int
@@ -809,7 +809,7 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@73
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: String Function(int)
@@ -828,12 +828,12 @@ f(int a, num b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: num
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
@@ -926,12 +926,12 @@ f(A a, double b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@59
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@69
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   staticElement: self::@class::A::@method::+
   staticInvokeType: String Function(double)
@@ -962,7 +962,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@73
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -970,7 +970,7 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@80
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: String Function(int)
@@ -993,12 +993,12 @@ f(A a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@73
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@80
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: String Function(int)
@@ -1017,7 +1017,7 @@ f<T extends dynamic>(T a) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@23
+    staticElement: self::@function::f::@parameter::a
     staticType: T
   operator: +
   rightOperand: IntegerLiteral
@@ -1040,7 +1040,7 @@ f<T extends num>(T a) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@19
+    staticElement: self::@function::f::@parameter::a
     staticType: T
   operator: +
   rightOperand: IntegerLiteral
@@ -1063,12 +1063,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: /
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::/
   staticInvokeType: double Function(num)
@@ -1100,12 +1100,12 @@ f(int a, double b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: *
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@16
+    staticElement: self::@function::f::@parameter::b
     staticType: double
   staticElement: dart:core::@class::num::@method::*
   staticInvokeType: num Function(num)
@@ -1124,12 +1124,12 @@ f(int a, int b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: *
   rightOperand: SimpleIdentifier
     token: b
-    staticElement: b@13
+    staticElement: self::@function::f::@parameter::b
     staticType: int
   staticElement: dart:core::@class::num::@method::*
   staticInvokeType: num Function(num)

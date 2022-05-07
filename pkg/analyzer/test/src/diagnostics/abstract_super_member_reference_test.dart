@@ -536,7 +536,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    staticElement: a@99
+    staticElement: self::@class::B::@setter::foo::@parameter::a
     staticType: int
   readElement: <null>
   readType: null
@@ -577,7 +577,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    staticElement: a@90
+    staticElement: self::@class::B::@setter::foo::@parameter::a
     staticType: int
   readElement: <null>
   readType: null

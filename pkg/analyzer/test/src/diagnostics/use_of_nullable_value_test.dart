@@ -418,7 +418,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::m::@parameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
@@ -455,7 +455,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::m::@parameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
@@ -499,7 +499,7 @@ m(int x, int? y) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@6
+    staticElement: self::@function::m::@parameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -507,7 +507,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: x@6
+  writeElement: self::@function::m::@parameter::x
   writeType: int
   staticElement: <null>
   staticType: int
@@ -521,7 +521,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
-    staticElement: y@14
+    staticElement: self::@function::m::@parameter::y
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -529,7 +529,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: y@14
+  writeElement: self::@function::m::@parameter::y
   writeType: int?
   staticElement: <null>
   staticType: int
@@ -568,7 +568,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        staticElement: b@88
+        staticElement: self::@function::m::@parameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
@@ -605,7 +605,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        staticElement: b@88
+        staticElement: self::@function::m::@parameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
@@ -664,7 +664,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::m::@parameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
@@ -697,7 +697,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::m::@parameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
@@ -741,15 +741,15 @@ m(int x, int? y) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    staticElement: x@6
+    staticElement: self::@function::m::@parameter::x
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
     staticType: int
-  readElement: x@6
+  readElement: self::@function::m::@parameter::x
   readType: int
-  writeElement: x@6
+  writeElement: self::@function::m::@parameter::x
   writeType: int
   staticElement: dart:core::@class::num::@method::+
   staticType: int
@@ -763,15 +763,15 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
-    staticElement: y@14
+    staticElement: self::@function::m::@parameter::y
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
     staticType: int
-  readElement: y@14
+  readElement: self::@function::m::@parameter::y
   readType: int?
-  writeElement: y@14
+  writeElement: self::@function::m::@parameter::y
   writeType: int?
   staticElement: dart:core::@class::num::@method::+
   staticType: int

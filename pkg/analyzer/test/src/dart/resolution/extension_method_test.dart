@@ -269,7 +269,7 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@35
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   period: .
   identifier: SimpleIdentifier
@@ -304,7 +304,7 @@ f(Object o, A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: o
-    staticElement: o@50
+    staticElement: self::@function::f::@parameter::o
     staticType: Object*
   period: .
   identifier: SimpleIdentifier
@@ -338,7 +338,7 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@24
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   period: .
   identifier: SimpleIdentifier
@@ -368,7 +368,7 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@54
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   period: .
   identifier: SimpleIdentifier
@@ -400,7 +400,7 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@41
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   period: .
   identifier: SimpleIdentifier
@@ -927,7 +927,7 @@ f(Never a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: a@54
+    staticElement: self::@function::f::@parameter::a
     staticType: Never
   period: .
   identifier: SimpleIdentifier
@@ -954,7 +954,7 @@ f(int? a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: a@52
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   period: .
   identifier: SimpleIdentifier
@@ -981,7 +981,7 @@ f(int? a) {
 PropertyAccess
   target: SimpleIdentifier
     token: a
-    staticElement: a@51
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   operator: ?.
   propertyName: SimpleIdentifier
@@ -1011,7 +1011,7 @@ f(Never a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@50
+    staticElement: self::@function::f::@parameter::a
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -1041,7 +1041,7 @@ f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@48
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
@@ -1100,7 +1100,7 @@ f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@47
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   operator: ?.
   methodName: SimpleIdentifier
@@ -1163,7 +1163,7 @@ f(A? a) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@70
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: +
   rightOperand: IntegerLiteral
@@ -1190,7 +1190,7 @@ f(int? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@67
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   leftBracket: [
   index: IntegerLiteral
@@ -1217,7 +1217,7 @@ f(int? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@66
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   leftBracket: [
   index: IntegerLiteral
@@ -1246,12 +1246,12 @@ f(A? a) {
 PostfixExpression
   operand: SimpleIdentifier
     token: a
-    staticElement: a@72
+    staticElement: self::@function::f::@parameter::a
     staticType: null
   operator: ++
-  readElement: a@72
+  readElement: self::@function::f::@parameter::a
   readType: A?
-  writeElement: a@72
+  writeElement: self::@function::f::@parameter::a
   writeType: A?
   staticElement: self::@extension::E::@method::+
   staticType: A?
@@ -1276,11 +1276,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
-    staticElement: a@72
+    staticElement: self::@function::f::@parameter::a
     staticType: null
-  readElement: a@72
+  readElement: self::@function::f::@parameter::a
   readType: A?
-  writeElement: a@72
+  writeElement: self::@function::f::@parameter::a
   writeType: A?
   staticElement: self::@extension::E::@method::+
   staticType: A?
@@ -1305,7 +1305,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
-    staticElement: a@67
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   staticElement: self::@extension::E::@method::unary-
   staticType: A?
@@ -1327,7 +1327,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@52
+      staticElement: self::@function::f::@parameter::a
       staticType: int?
     period: .
     identifier: SimpleIdentifier
@@ -1364,7 +1364,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: a@51
+      staticElement: self::@function::f::@parameter::a
       staticType: int?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -1427,7 +1427,7 @@ f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@87
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1445,7 +1445,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@87
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1479,7 +1479,7 @@ f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@62
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1497,7 +1497,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@62
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1579,15 +1579,15 @@ f(C c) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
-    staticElement: c@99
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
     staticType: int
-  readElement: c@99
+  readElement: self::@function::f::@parameter::c
   readType: C
-  writeElement: c@99
+  writeElement: self::@function::f::@parameter::c
   writeType: C
   staticElement: self::@class::C::@method::+
   staticType: C
@@ -1597,15 +1597,15 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
-    staticElement: c@99
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
     staticType: int*
-  readElement: c@99
+  readElement: self::@function::f::@parameter::c
   readType: C*
-  writeElement: c@99
+  writeElement: self::@function::f::@parameter::c
   writeType: C*
   staticElement: self::@class::C::@method::+
   staticType: C*
@@ -1629,15 +1629,15 @@ f(C c) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
-    staticElement: c@67
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
     staticType: int
-  readElement: c@67
+  readElement: self::@function::f::@parameter::c
   readType: C
-  writeElement: c@67
+  writeElement: self::@function::f::@parameter::c
   writeType: C
   staticElement: self::@extension::E::@method::+
   staticType: C
@@ -1647,15 +1647,15 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
-    staticElement: c@67
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
     staticType: int*
-  readElement: c@67
+  readElement: self::@function::f::@parameter::c
   readType: C*
-  writeElement: c@67
+  writeElement: self::@function::f::@parameter::c
   writeType: C*
   staticElement: self::@extension::E::@method::+
   staticType: C*
@@ -1796,7 +1796,7 @@ g(int Function(int) f) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
-    staticElement: f@75
+    staticElement: self::@function::g::@parameter::f
     staticType: int Function(int)
   period: .
   identifier: SimpleIdentifier
@@ -1811,7 +1811,7 @@ PrefixedIdentifier
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
-    staticElement: f@75
+    staticElement: self::@function::g::@parameter::f
     staticType: int* Function(int*)*
   period: .
   identifier: SimpleIdentifier
@@ -1842,7 +1842,7 @@ f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@56
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -1857,7 +1857,7 @@ PrefixedIdentifier
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@56
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   period: .
   identifier: SimpleIdentifier
@@ -1889,7 +1889,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@82
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -1914,7 +1914,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@82
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     operator: .
     propertyName: SimpleIdentifier
@@ -1958,7 +1958,7 @@ f(B b) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: b
-    staticElement: b@124
+    staticElement: self::@function::f::@parameter::b
     staticType: B
   period: .
   identifier: SimpleIdentifier
@@ -1973,7 +1973,7 @@ PrefixedIdentifier
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: b
-    staticElement: b@124
+    staticElement: self::@function::f::@parameter::b
     staticType: B*
   period: .
   identifier: SimpleIdentifier
@@ -2002,7 +2002,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: f
-      staticElement: f@97
+      staticElement: self::@function::g::@parameter::f
       staticType: int Function(int)
     operator: .
     propertyName: SimpleIdentifier
@@ -2023,7 +2023,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: f
-      staticElement: f@97
+      staticElement: self::@function::g::@parameter::f
       staticType: int* Function(int*)*
     operator: .
     propertyName: SimpleIdentifier
@@ -2222,7 +2222,7 @@ g(int Function(int) f) {
 MethodInvocation
   target: SimpleIdentifier
     token: f
-    staticElement: f@71
+    staticElement: self::@function::g::@parameter::f
     staticType: int Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -2240,7 +2240,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: f
-    staticElement: f@71
+    staticElement: self::@function::g::@parameter::f
     staticType: int* Function(int*)*
   operator: .
   methodName: SimpleIdentifier
@@ -2274,7 +2274,7 @@ f(B b) {
 MethodInvocation
   target: SimpleIdentifier
     token: b
-    staticElement: b@52
+    staticElement: self::@function::f::@parameter::b
     staticType: B
   operator: .
   methodName: SimpleIdentifier
@@ -2292,7 +2292,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: b
-    staticElement: b@52
+    staticElement: self::@function::f::@parameter::b
     staticType: B*
   operator: .
   methodName: SimpleIdentifier
@@ -2331,7 +2331,7 @@ f(B b) {
 MethodInvocation
   target: SimpleIdentifier
     token: b
-    staticElement: b@116
+    staticElement: self::@function::f::@parameter::b
     staticType: B
   operator: .
   methodName: SimpleIdentifier
@@ -2349,7 +2349,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: b
-    staticElement: b@116
+    staticElement: self::@function::f::@parameter::b
     staticType: B*
   operator: .
   methodName: SimpleIdentifier
@@ -2391,7 +2391,7 @@ f(B<C> x, C o) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@160
+    staticElement: self::@function::f::@parameter::x
     staticType: B<C>
   operator: .
   methodName: SimpleIdentifier
@@ -2405,7 +2405,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        staticElement: o@165
+        staticElement: self::@function::f::@parameter::o
         staticType: C
     rightParenthesis: )
   staticInvokeType: void Function(C)
@@ -2416,7 +2416,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@160
+    staticElement: self::@function::f::@parameter::x
     staticType: B<C*>*
   operator: .
   methodName: SimpleIdentifier
@@ -2430,7 +2430,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        staticElement: o@165
+        staticElement: self::@function::f::@parameter::o
         staticType: C*
     rightParenthesis: )
   staticInvokeType: void Function(C*)*
@@ -2457,7 +2457,7 @@ f(C c) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
-    staticElement: c@93
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   operator: +
   rightOperand: IntegerLiteral
@@ -2472,7 +2472,7 @@ BinaryExpression
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
-    staticElement: c@93
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   operator: +
   rightOperand: IntegerLiteral
@@ -2500,7 +2500,7 @@ g(int Function(int) f) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
-    staticElement: f@85
+    staticElement: self::@function::g::@parameter::f
     staticType: int Function(int)
   operator: +
   rightOperand: IntegerLiteral
@@ -2515,7 +2515,7 @@ BinaryExpression
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
-    staticElement: f@85
+    staticElement: self::@function::g::@parameter::f
     staticType: int* Function(int*)*
   operator: +
   rightOperand: IntegerLiteral
@@ -2544,7 +2544,7 @@ f(C c) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
-    staticElement: c@64
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   operator: +
   rightOperand: IntegerLiteral
@@ -2559,7 +2559,7 @@ BinaryExpression
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
-    staticElement: c@64
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   operator: +
   rightOperand: IntegerLiteral
@@ -2601,7 +2601,7 @@ f(C c) {
 IndexExpression
   target: SimpleIdentifier
     token: c
-    staticElement: c@103
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   leftBracket: [
   index: IntegerLiteral
@@ -2616,7 +2616,7 @@ IndexExpression
 IndexExpression
   target: SimpleIdentifier
     token: c
-    staticElement: c@103
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   leftBracket: [
   index: IntegerLiteral
@@ -2644,7 +2644,7 @@ g(int Function(int) f) {
 IndexExpression
   target: SimpleIdentifier
     token: f
-    staticElement: f@90
+    staticElement: self::@function::g::@parameter::f
     staticType: int Function(int)
   leftBracket: [
   index: IntegerLiteral
@@ -2659,7 +2659,7 @@ IndexExpression
 IndexExpression
   target: SimpleIdentifier
     token: f
-    staticElement: f@90
+    staticElement: self::@function::g::@parameter::f
     staticType: int* Function(int*)*
   leftBracket: [
   index: IntegerLiteral
@@ -2688,7 +2688,7 @@ f(C c) {
 IndexExpression
   target: SimpleIdentifier
     token: c
-    staticElement: c@69
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   leftBracket: [
   index: IntegerLiteral
@@ -2703,7 +2703,7 @@ IndexExpression
 IndexExpression
   target: SimpleIdentifier
     token: c
-    staticElement: c@69
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   leftBracket: [
   index: IntegerLiteral
@@ -2735,7 +2735,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: c
-      staticElement: c@127
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     leftBracket: [
     index: IntegerLiteral
@@ -2761,7 +2761,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: c
-      staticElement: c@127
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     leftBracket: [
     index: IntegerLiteral
@@ -2800,7 +2800,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: f
-      staticElement: f@102
+      staticElement: self::@function::g::@parameter::f
       staticType: int Function(int)
     leftBracket: [
     index: IntegerLiteral
@@ -2826,7 +2826,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: f
-      staticElement: f@102
+      staticElement: self::@function::g::@parameter::f
       staticType: int* Function(int*)*
     leftBracket: [
     index: IntegerLiteral
@@ -2866,7 +2866,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: c
-      staticElement: c@81
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     leftBracket: [
     index: IntegerLiteral
@@ -2892,7 +2892,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: c
-      staticElement: c@81
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     leftBracket: [
     index: IntegerLiteral
@@ -2933,12 +2933,12 @@ f(C c) {
 PostfixExpression
   operand: SimpleIdentifier
     token: c
-    staticElement: c@99
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: ++
-  readElement: c@99
+  readElement: self::@function::f::@parameter::c
   readType: C
-  writeElement: c@99
+  writeElement: self::@function::f::@parameter::c
   writeType: C
   staticElement: self::@class::C::@method::+
   staticType: C
@@ -2948,12 +2948,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: c
-    staticElement: c@99
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: ++
-  readElement: c@99
+  readElement: self::@function::f::@parameter::c
   readType: C*
-  writeElement: c@99
+  writeElement: self::@function::f::@parameter::c
   writeType: C*
   staticElement: self::@class::C::@method::+
   staticType: C*
@@ -2976,12 +2976,12 @@ g(int Function(int) f) {
 PostfixExpression
   operand: SimpleIdentifier
     token: f
-    staticElement: f@104
+    staticElement: self::@function::g::@parameter::f
     staticType: null
   operator: ++
-  readElement: f@104
+  readElement: self::@function::g::@parameter::f
   readType: int Function(int)
-  writeElement: f@104
+  writeElement: self::@function::g::@parameter::f
   writeType: int Function(int)
   staticElement: self::@extension::E::@method::+
   staticType: int Function(int)
@@ -2991,12 +2991,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: f
-    staticElement: f@104
+    staticElement: self::@function::g::@parameter::f
     staticType: null
   operator: ++
-  readElement: f@104
+  readElement: self::@function::g::@parameter::f
   readType: int* Function(int*)*
-  writeElement: f@104
+  writeElement: self::@function::g::@parameter::f
   writeType: int* Function(int*)*
   staticElement: self::@extension::E::@method::+
   staticType: int* Function(int*)*
@@ -3020,12 +3020,12 @@ f(C c) {
 PostfixExpression
   operand: SimpleIdentifier
     token: c
-    staticElement: c@67
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: ++
-  readElement: c@67
+  readElement: self::@function::f::@parameter::c
   readType: C
-  writeElement: c@67
+  writeElement: self::@function::f::@parameter::c
   writeType: C
   staticElement: self::@extension::E::@method::+
   staticType: C
@@ -3035,12 +3035,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: c
-    staticElement: c@67
+    staticElement: self::@function::f::@parameter::c
     staticType: null
   operator: ++
-  readElement: c@67
+  readElement: self::@function::f::@parameter::c
   readType: C*
-  writeElement: c@67
+  writeElement: self::@function::f::@parameter::c
   writeType: C*
   staticElement: self::@extension::E::@method::+
   staticType: C*
@@ -3067,11 +3067,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
-    staticElement: c@99
+    staticElement: self::@function::f::@parameter::c
     staticType: null
-  readElement: c@99
+  readElement: self::@function::f::@parameter::c
   readType: C
-  writeElement: c@99
+  writeElement: self::@function::f::@parameter::c
   writeType: C
   staticElement: self::@class::C::@method::+
   staticType: C
@@ -3082,11 +3082,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
-    staticElement: c@99
+    staticElement: self::@function::f::@parameter::c
     staticType: null
-  readElement: c@99
+  readElement: self::@function::f::@parameter::c
   readType: C*
-  writeElement: c@99
+  writeElement: self::@function::f::@parameter::c
   writeType: C*
   staticElement: self::@class::C::@method::+
   staticType: C*
@@ -3110,11 +3110,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: f
-    staticElement: f@104
+    staticElement: self::@function::g::@parameter::f
     staticType: null
-  readElement: f@104
+  readElement: self::@function::g::@parameter::f
   readType: int Function(int)
-  writeElement: f@104
+  writeElement: self::@function::g::@parameter::f
   writeType: int Function(int)
   staticElement: self::@extension::E::@method::+
   staticType: int Function(int)
@@ -3125,11 +3125,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: f
-    staticElement: f@104
+    staticElement: self::@function::g::@parameter::f
     staticType: null
-  readElement: f@104
+  readElement: self::@function::g::@parameter::f
   readType: int* Function(int*)*
-  writeElement: f@104
+  writeElement: self::@function::g::@parameter::f
   writeType: int* Function(int*)*
   staticElement: self::@extension::E::@method::+
   staticType: int* Function(int*)*
@@ -3154,11 +3154,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
-    staticElement: c@67
+    staticElement: self::@function::f::@parameter::c
     staticType: null
-  readElement: c@67
+  readElement: self::@function::f::@parameter::c
   readType: C
-  writeElement: c@67
+  writeElement: self::@function::f::@parameter::c
   writeType: C
   staticElement: self::@extension::E::@method::+
   staticType: C
@@ -3169,11 +3169,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
-    staticElement: c@67
+    staticElement: self::@function::f::@parameter::c
     staticType: null
-  readElement: c@67
+  readElement: self::@function::f::@parameter::c
   readType: C*
-  writeElement: c@67
+  writeElement: self::@function::f::@parameter::c
   writeType: C*
   staticElement: self::@extension::E::@method::+
   staticType: C*
@@ -3200,7 +3200,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
-    staticElement: c@89
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   staticElement: self::@class::C::@method::unary-
   staticType: C
@@ -3211,7 +3211,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
-    staticElement: c@89
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   staticElement: self::@class::C::@method::unary-
   staticType: C*
@@ -3235,7 +3235,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: f
-    staticElement: f@80
+    staticElement: self::@function::g::@parameter::f
     staticType: int Function(int)
   staticElement: self::@extension::E::@method::unary-
   staticType: void
@@ -3246,7 +3246,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: f
-    staticElement: f@80
+    staticElement: self::@function::g::@parameter::f
     staticType: int* Function(int*)*
   staticElement: self::@extension::E::@method::unary-
   staticType: void
@@ -3271,7 +3271,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
-    staticElement: c@62
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   staticElement: self::@extension::E::@method::unary-
   staticType: C
@@ -3282,7 +3282,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
-    staticElement: c@62
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   staticElement: self::@extension::E::@method::unary-
   staticType: C*
@@ -3306,7 +3306,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: f
-      staticElement: f@75
+      staticElement: self::@function::g::@parameter::f
       staticType: int Function(int)
     period: .
     identifier: SimpleIdentifier
@@ -3332,7 +3332,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: f
-      staticElement: f@75
+      staticElement: self::@function::g::@parameter::f
       staticType: int* Function(int*)*
     period: .
     identifier: SimpleIdentifier
@@ -3374,7 +3374,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      staticElement: c@56
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier
@@ -3400,7 +3400,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      staticElement: c@56
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     period: .
     identifier: SimpleIdentifier
@@ -3436,7 +3436,7 @@ g(int Function(int) f) => f.a;
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
-    staticElement: f@76
+    staticElement: self::@function::g::@parameter::f
     staticType: int Function(int)
   period: .
   identifier: SimpleIdentifier
@@ -3451,7 +3451,7 @@ PrefixedIdentifier
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
-    staticElement: f@76
+    staticElement: self::@function::g::@parameter::f
     staticType: int* Function(int*)*
   period: .
   identifier: SimpleIdentifier
@@ -3480,7 +3480,7 @@ f(C c) => c.a;
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@57
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -3495,7 +3495,7 @@ PrefixedIdentifier
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: c@57
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   period: .
   identifier: SimpleIdentifier
