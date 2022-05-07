@@ -78,7 +78,7 @@ class AnalysisGetImportElementsIntegrationTest
   }
 
   Future<void> test_importElements_definingUnit() async {
-    writeFile(pathname, 'main() {}');
+    writeFile(pathname, 'void f() {}');
     standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
@@ -105,7 +105,7 @@ class AnalysisGetImportElementsIntegrationTest
     var libName = sourcePath('lib.dart');
     writeFile(libName, '''
 part 'test.dart';
-main() {}
+void f() {}
 ''');
     writeFile(pathname, '''
 part of 'lib.dart';

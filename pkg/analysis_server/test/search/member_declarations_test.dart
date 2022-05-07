@@ -227,7 +227,7 @@ enum B {
   Future<void> test_localVariable() async {
     addTestFile('''
 class A {
-  main() {
+  void f() {
     var foo = 42;
   }
 }
@@ -239,7 +239,7 @@ class A {
   Future<void> test_localVariable_forIn() async {
     addTestFile('''
 class A {
-  main() {
+  void f() {
     for (int foo in []) {
     }
   }

@@ -19,7 +19,7 @@ class OccurrencesTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_occurrences() async {
     var pathname = sourcePath('test.dart');
     var text = r'''
-main() {
+void f() {
   int sum = 0;
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < i; j++) {

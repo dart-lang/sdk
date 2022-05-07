@@ -19,7 +19,7 @@ void main() {
 class CancelRequestTest extends AbstractLspAnalysisServerTest {
   Future<void> test_cancel() async {
     final content = '''
-main() {
+void f() {
   InOtherF^
 }
     ''';

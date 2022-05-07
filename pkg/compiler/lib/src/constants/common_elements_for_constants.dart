@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../elements/entities.dart';
 import '../elements/types.dart';
 
 /// This is a facade interface for the members of CommonElements that are
@@ -16,4 +17,15 @@ abstract class CommonElements {
   DartType get stringType;
 
   DartTypes get dartTypes;
+
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType);
+  InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
+      {bool onlyStringKeys = false});
+  InterfaceType getConstantSetTypeFor(InterfaceType sourceType);
+  InterfaceType listType([DartType? elementType]);
+  InterfaceType mapType([DartType? keyType, DartType? valueType]);
+  InterfaceType get symbolImplementationType;
+  InterfaceType get typeLiteralType;
+
+  FieldEntity get symbolField;
 }

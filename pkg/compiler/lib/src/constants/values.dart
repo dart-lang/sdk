@@ -74,6 +74,7 @@ abstract class ConstantValue {
   /// `true` if this is a valid constant value.
   bool get isConstant => true;
 
+  // TODO(48974): Clean up all these predicate getters.
   bool get isNull => false;
   bool get isBool => false;
   bool get isTrue => false;

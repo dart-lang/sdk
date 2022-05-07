@@ -43,7 +43,7 @@ fun(firstParam, secondParam, thirdParam, fourthParam) {
   Future<void> test_format_noOp() async {
     // Already formatted source
     addTestFile('''
-main() {
+void f() {
   int x = 3;
 }
 ''');
@@ -55,7 +55,7 @@ main() {
 
   Future<void> test_format_noSelection() async {
     addTestFile('''
-main() { int x = 3; }
+void f() { int x = 3; }
 ''');
     await waitForTasksFinished();
     var formatResult = await _formatAt(0, 0);
@@ -65,7 +65,7 @@ main() { int x = 3; }
 
     var edit = formatResult.edits[0];
     expect(edit.replacement, equals('''
-main() {
+void f() {
   int x = 3;
 }
 '''));
@@ -75,7 +75,7 @@ main() {
 
   Future<void> test_format_simple() async {
     addTestFile('''
-main() { int x = 3; }
+void f() { int x = 3; }
 ''');
     await waitForTasksFinished();
     var formatResult = await _formatAt(0, 3);
@@ -85,7 +85,7 @@ main() { int x = 3; }
 
     var edit = formatResult.edits[0];
     expect(edit.replacement, equals('''
-main() {
+void f() {
   int x = 3;
 }
 '''));
@@ -95,7 +95,7 @@ main() {
 
   Future<void> test_format_withErrors() async {
     addTestFile('''
-main() { int x =
+void f() { int x =
 ''');
     await waitForTasksFinished();
     var request = EditFormatParams(testFile.path, 0, 3).toRequest('0');

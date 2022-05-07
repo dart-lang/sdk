@@ -419,7 +419,7 @@ class A {
 
   Future<void> test_LABEL() async {
     await resolveTestCode('''
-main() {
+void f() {
 myLabel:
   while (true) {
     break myLabel;
@@ -433,7 +433,7 @@ myLabel:
     {
       var location = element.location!;
       expect(location.file, testFile);
-      expect(location.offset, 9);
+      expect(location.offset, 11);
       expect(location.length, 'myLabel'.length);
       expect(location.startLine, 2);
       expect(location.startColumn, 1);

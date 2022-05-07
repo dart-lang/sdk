@@ -870,15 +870,21 @@ abstract class Stream<T> {
   /// // 4
   /// ```
   Stream<T> handleError(Function onError, {bool test(error)?}) {
-    if (onError is! void Function(Object, StackTrace) &&
-        onError is! void Function(Object)) {
+    final void Function(Object, StackTrace) callback;
+    if (onError is void Function(Object, StackTrace)) {
+      callback = onError;
+    } else if (onError is void Function(Object)) {
+      callback = (Object error, StackTrace _) {
+        onError(error);
+      };
+    } else {
       throw ArgumentError.value(
           onError,
           "onError",
           "Error handler must accept one Object or one Object and a StackTrace"
               " as arguments.");
     }
-    return new _HandleErrorStream<T>(this, onError, test);
+    return new _HandleErrorStream<T>(this, callback, test);
   }
 
   /// Transforms each element of this stream into a sequence of elements.

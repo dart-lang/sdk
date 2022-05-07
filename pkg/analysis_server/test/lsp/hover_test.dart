@@ -229,7 +229,7 @@ Type: `String`
       Foo(String arg1, String arg2, [String arg3]);
     }
 
-    main() {
+    void f() {
       var a = Fo^o();
     }
     ''';
@@ -254,7 +254,7 @@ Type: `String`
       Foo(String a, String b);
     }
 
-    main() {
+    void f() {
       var a = Fo^o();
     }
     ''';

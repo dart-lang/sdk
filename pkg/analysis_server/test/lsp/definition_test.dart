@@ -22,7 +22,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       fo^o();
     }
     ''';
@@ -64,7 +64,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     /// Te^st
     ///
     /// References [String].
-    main() {}
+    void f() {}
     ''';
 
     await initialize();
@@ -144,7 +144,7 @@ class A {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       Icons.[[ad^d]]();
     }
     ''';
@@ -187,7 +187,7 @@ class A {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       [[fo^o]]();
     }
     ''';
@@ -238,7 +238,7 @@ class A {
     final mainContents = '''
     import 'lib.dart';
 
-    main() {
+    void f() {
       Icons.[[ad^d]]();
     }
     ''';

@@ -268,7 +268,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       static String myStaticField = 'StaticFieldVal';
     }
 
-    main() {
+    void f() {
       final a = MyClass();
       print(a.myField);
       MyClass.myStaticField = 'a';
@@ -293,7 +293,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('myStaticField', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token("'StaticFieldVal'", SemanticTokenTypes.string),
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -331,7 +333,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       static set myStaticSetter(String staticV) {};
     }
 
-    main() {
+    void f() {
       final a = MyClass();
       print(a.myGetter);
       a.mySetter = 'a';
@@ -377,7 +379,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('String', SemanticTokenTypes.class_),
       _Token('staticV', SemanticTokenTypes.parameter,
           [SemanticTokenModifiers.declaration]),
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -414,7 +418,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       }
     }
 
-    main() {
+    void f() {
       final a = MyClass();
       a.myMethod();
       MyClass.myStaticMethod();
@@ -445,7 +449,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('myStaticMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('// static method comment', SemanticTokenTypes.comment),
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -670,7 +676,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     // "control" keywords should be tagged with a modifier so the client
     // can color them differently to other keywords.
     final content = r'''
-    void main() async {
+    void f() async {
       var a = new Object();
       await null;
       if (false) {
@@ -683,7 +689,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
-      _Token('main', SemanticTokenTypes.function,
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('async', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
@@ -774,14 +780,16 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_local() async {
     final content = '''
-    main() {
+    void f() {
       func(String a) => print(a);
       final funcTearOff = func;
     }
     ''';
 
     final expected = [
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('func', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration]),
@@ -1187,7 +1195,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
     final funcTearOff = func;
 
-    void main() {
+    void f() {
       strings;
       func;
       abc;
@@ -1228,7 +1236,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token('func', SemanticTokenTypes.function),
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
-      _Token('main', SemanticTokenTypes.function,
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('strings', SemanticTokenTypes.property),
       _Token('func', SemanticTokenTypes.function),
@@ -1250,7 +1258,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     // clients other grammars would show through, losing the benefit from having
     // resolved the code).
     final content = '''
-    main() {
+    void f() {
       int a;
       a.foo().bar.baz();
 
@@ -1260,7 +1268,9 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     ''';
 
     final expected = [
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('a', SemanticTokenTypes.variable,

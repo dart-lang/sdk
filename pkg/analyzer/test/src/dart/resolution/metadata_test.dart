@@ -54,10 +54,15 @@ const foo = 42;
 ''');
 
     var annotation = findNode.annotation('@foo');
-    assertElement2(
-      annotation,
-      declaration: findElement.topGet('foo'),
-    );
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: null
+  element: self::@getter::foo
+''');
 
     var annotationElement = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(annotationElement, r'''
@@ -84,10 +89,15 @@ void f() {}
     assertNoErrorsInResult();
 
     var annotation = findNode.annotation('@foo');
-    assertElement2(
-      annotation,
-      declaration: findElement.topGet('foo'),
-    );
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: package:test/lib.dart::@getter::foo
+    staticType: null
+  element: package:test/lib.dart::@getter::foo
+''');
 
     var annotationElement = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(annotationElement, r'''
@@ -226,16 +236,24 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A'),
-      declaration: import_a.unnamedConstructor('A'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::•
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_class_constructor() async {
@@ -254,16 +272,37 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.named('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A'),
-      declaration: import_a.constructor('named', of: 'A'),
-      isLegacy: true,
-    );
+    var annotation = findNode.annotation('@A');
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::named
+        isLegacy: true
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      isLegacy: true
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -288,16 +327,33 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.named('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A'),
-      declaration: import_a.constructor('named', of: 'A'),
-      isLegacy: true,
-    );
+    var annotation = findNode.annotation('@A');
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::named
+        isLegacy: true
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      isLegacy: true
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -321,16 +377,29 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.foo'),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A.foo'),
-      declaration: import_a.getter('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: package:test/a.dart::@class::A::@getter::foo
+        isLegacy: true
+      staticType: null
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@class::A::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@getter::foo
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -351,11 +420,19 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.annotation('@foo'),
-      declaration: import_a.topGet('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@foo'), r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@getter::foo
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -378,16 +455,32 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@a.A'),
-      declaration: import_a.unnamedConstructor('A'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::•
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_prefix_class_constructor() async {
@@ -405,16 +498,39 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.named('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@a.A'),
-      declaration: import_a.constructor('named', of: 'A'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      isLegacy: true
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_prefix_class_getter() async {
@@ -432,16 +548,32 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.foo'),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@a.A'),
-      declaration: import_a.getter('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@class::A::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@getter::foo
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_prefix_getter() async {
@@ -457,11 +589,29 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.annotation('@a.foo'),
-      declaration: import_a.topGet('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: package:test/a.dart::@getter::foo
+        isLegacy: true
+      staticType: null
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@getter::foo
+    isLegacy: true
+''');
   }
 
   test_value_class_inference_namedConstructor() async {

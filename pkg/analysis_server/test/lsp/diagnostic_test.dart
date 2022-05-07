@@ -177,7 +177,7 @@ void f() {
     @deprecated
     int? dep;
 
-    void main() => print(dep);
+    void f() => print(dep);
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -196,7 +196,7 @@ void f() {
     @deprecated
     int? dep;
 
-    void main() => print(dep);
+    void f() => print(dep);
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -210,7 +210,7 @@ void f() {
 
   Future<void> test_diagnosticTag_unnecessary() async {
     newFile(mainFilePath, '''
-    void main() {
+    void f() {
       return;
       print('unreachable');
     }

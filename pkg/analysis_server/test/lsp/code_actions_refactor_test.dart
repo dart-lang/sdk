@@ -35,14 +35,14 @@ class ConvertGetterToMethodCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_refactor() async {
     const content = '''
 int get ^test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
 ''';
     const expectedContent = '''
 int test() => 42;
-main() {
+void f() {
   var a = test();
   var b = test();
 }
@@ -67,14 +67,14 @@ class ConvertMethodToGetterCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_refactor() async {
     const content = '''
 int ^test() => 42;
-main() {
+void f() {
   var a = test();
   var b = test();
 }
 ''';
     const expectedContent = '''
 int get test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
@@ -132,13 +132,13 @@ class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -161,13 +161,13 @@ void newMethod() {
 
   Future<void> test_cancelsInProgress() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -215,7 +215,7 @@ void newMethod() {
 
   Future<void> test_contentModified() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
@@ -239,7 +239,7 @@ main() {
 
   Future<void> test_filtersCorrectly() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
@@ -287,7 +287,7 @@ main() {
 
   Future<void> test_generatesNames() async {
     const content = '''
-Object main() {
+Object F() {
   return Container([[Text('Test!')]]);
 }
 
@@ -295,7 +295,7 @@ Object Container(Object text) => null;
 Object Text(Object text) => null;
     ''';
     const expectedContent = '''
-Object main() {
+Object F() {
   return Container(text());
 }
 
@@ -320,7 +320,7 @@ Object Text(Object text) => null;
     const content = '''
 import 'dart:convert';
 ^
-main() {}
+void f() {}
     ''';
     newFile(mainFilePath, content);
     await initialize();
@@ -333,13 +333,13 @@ main() {}
 
   Future<void> test_progress_clientProvided() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -369,13 +369,13 @@ void newMethod() {
 
   Future<void> test_progress_notSupported() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -405,13 +405,13 @@ void newMethod() {
 
   Future<void> test_progress_serverGenerated() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -520,14 +520,14 @@ class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
-main() {
+void f() {
   foo([[1 + 2]]);
 }
 
 void foo(int arg) {}
     ''';
     const expectedContent = '''
-main() {
+void f() {
   var arg = 1 + 2;
   foo(arg);
 }
@@ -548,7 +548,7 @@ void foo(int arg) {}
 
   Future<void> test_doesNotCreateNameConflicts() async {
     const content = '''
-main() {
+void f() {
   var arg = "test";
   foo([[1 + 2]]);
 }
@@ -556,7 +556,7 @@ main() {
 void foo(int arg) {}
     ''';
     const expectedContent = '''
-main() {
+void f() {
   var arg = "test";
   var arg2 = 1 + 2;
   foo(arg2);
@@ -663,7 +663,7 @@ class NewWidget extends StatelessWidget {
     const content = '''
 import 'dart:convert';
 ^
-main() {}
+void f() {}
     ''';
     newFile(mainFilePath, content);
     await initialize();
@@ -692,7 +692,7 @@ class InlineLocalVariableRefactorCodeActionsTest
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
-void main() {
+void f() {
   var a^ = 1;
   print(a);
   print(a);
@@ -700,7 +700,7 @@ void main() {
 }
     ''';
     const expectedContent = '''
-void main() {
+void f() {
   print(1);
   print(1);
   print(1);

@@ -199,7 +199,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     /// This is not the file header[[
     /// It's just a comment]]
-    main() {}
+    void f() {}
     ''';
 
     final ranges = rangesFromMarkers(content);

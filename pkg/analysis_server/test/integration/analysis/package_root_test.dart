@@ -29,7 +29,7 @@ library main;
 
 import 'package:foo/bar.dart'
 
-main() {
+void f() {
   f();
 }
 """;

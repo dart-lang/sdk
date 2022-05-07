@@ -62,7 +62,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_prepare_invalidRenameLocation() async {
     const content = '''
-    main() {
+    void f() {
       // comm^ent
     }
     ''';
@@ -96,7 +96,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_prepare_variable() async {
     const content = '''
-    main() {
+    void f() {
       var variable = 0;
       print([[vari^able]]);
     }
@@ -401,7 +401,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_rename_invalidRenameLocation() {
     const content = '''
-    main() {
+    void f() {
       // comm^ent
     }
     ''';
@@ -591,13 +591,13 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_rename_variable() {
     const content = '''
-    main() {
+    void f() {
       var variable = 0;
       print([[vari^able]]);
     }
     ''';
     const expectedContent = '''
-    main() {
+    void f() {
       var foo = 0;
       print(foo);
     }
