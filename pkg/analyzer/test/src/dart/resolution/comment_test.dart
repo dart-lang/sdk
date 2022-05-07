@@ -1004,7 +1004,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: p@28
+    staticElement: self::@class::A::@constructor::•::@parameter::p
     staticType: null
 ''');
   }
@@ -1066,7 +1066,7 @@ foo(int p) => null;
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: p@16
+    staticElement: self::@function::foo::@parameter::p
     staticType: null
 ''');
   }
@@ -1147,7 +1147,7 @@ abstract class A {
 CommentReference
   expression: SimpleIdentifier
     token: p1
-    staticElement: p1@39
+    staticElement: self::@class::A::@method::ma::@parameter::p1
     staticType: null
 ''');
 
@@ -1155,7 +1155,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p2
-    staticElement: p2@65
+    staticElement: self::@class::A::@method::mb::@parameter::p2
     staticType: null
 ''');
 
@@ -1163,7 +1163,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p3
-    staticElement: p3@100
+    staticElement: self::@class::A::@method::mc::@parameter::p3
     staticType: null
 ''');
 
@@ -1179,7 +1179,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p5
-    staticElement: p5@132
+    staticElement: self::@class::A::@method::md::@parameter::p5
     staticType: null
 ''');
   }

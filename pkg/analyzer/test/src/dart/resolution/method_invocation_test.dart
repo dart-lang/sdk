@@ -69,7 +69,7 @@ void f(Function? foo) {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: foo@17
+    staticElement: self::@function::f::@parameter::foo
     staticType: Function?
   operator: ?.
   methodName: SimpleIdentifier
@@ -99,7 +99,7 @@ void f(Function? foo) {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: foo@17
+    staticElement: self::@function::f::@parameter::foo
     staticType: Function?
   operator: .
   methodName: SimpleIdentifier
@@ -132,7 +132,7 @@ MethodInvocation
   target: MethodInvocation
     target: SimpleIdentifier
       token: c
-      staticElement: c@75
+      staticElement: self::@function::testShort::@parameter::c
       staticType: C?
     operator: ?.
     methodName: SimpleIdentifier
@@ -174,7 +174,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@60
+      staticElement: self::@function::f::@parameter::c
       staticType: C?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -187,7 +187,7 @@ FunctionExpressionInvocation
     arguments
       SimpleIdentifier
         token: c
-        staticElement: c@60
+        staticElement: self::@function::f::@parameter::c
         staticType: C
     rightParenthesis: )
   staticElement: <null>
@@ -213,7 +213,7 @@ void f(E e) {
 MethodInvocation
   target: SimpleIdentifier
     token: e
-    staticElement: e@42
+    staticElement: self::@function::f::@parameter::e
     staticType: E
   operator: .
   methodName: SimpleIdentifier
@@ -248,7 +248,7 @@ void f(E e) {
 MethodInvocation
   target: SimpleIdentifier
     token: e
-    staticElement: e@70
+    staticElement: self::@function::f::@parameter::e
     staticType: E
   operator: .
   methodName: SimpleIdentifier
@@ -282,7 +282,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@39
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -320,7 +320,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@77
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -355,7 +355,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@78
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -386,7 +386,7 @@ void f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@60
+    staticElement: self::@function::f::@parameter::a
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
@@ -420,7 +420,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@22
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -456,7 +456,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@60
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -489,7 +489,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@61
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -592,7 +592,7 @@ void f<T>(T? t) {
 MethodInvocation
   target: SimpleIdentifier
     token: t
-    staticElement: t@13
+    staticElement: self::@function::f::@parameter::t
     staticType: T & int
   operator: .
   methodName: SimpleIdentifier
@@ -627,7 +627,7 @@ void f<T extends A, U extends B>(T a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@102
+    staticElement: self::@function::f::@parameter::a
     staticType: T & U
   operator: .
   methodName: SimpleIdentifier
@@ -768,7 +768,7 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@59
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   cascadeSections
     MethodInvocation
@@ -814,7 +814,7 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@61
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   cascadeSections
     PropertyAccess
@@ -915,7 +915,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        staticElement: o@56
+        staticElement: self::@function::f::@parameter::o
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: void Function(Object?)
@@ -946,7 +946,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        staticElement: o@65
+        staticElement: self::@function::f::@parameter::o
         staticType: List<void>
     rightParenthesis: )
   staticInvokeType: void Function(List<Object?>)
@@ -981,7 +981,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@36
+          staticElement: self::@function::g::@parameter::a
           staticType: double
         operator: .
         methodName: SimpleIdentifier
@@ -1035,7 +1035,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@36
+          staticElement: self::@function::g::@parameter::a
           staticType: double*
         operator: .
         methodName: SimpleIdentifier
@@ -1108,7 +1108,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@36
+          staticElement: self::@function::g::@parameter::a
           staticType: double
         operator: .
         methodName: SimpleIdentifier
@@ -1162,7 +1162,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@36
+          staticElement: self::@function::g::@parameter::a
           staticType: double*
         operator: .
         methodName: SimpleIdentifier
@@ -1222,7 +1222,7 @@ g(double a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@36
+    staticElement: self::@function::g::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -1265,7 +1265,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@36
+    staticElement: self::@function::g::@parameter::a
     staticType: double*
   operator: .
   methodName: SimpleIdentifier
@@ -1321,7 +1321,7 @@ f(double a, double b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -1333,11 +1333,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@19
+        staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        staticElement: c@29
+        staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1348,7 +1348,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double*
   operator: .
   methodName: SimpleIdentifier
@@ -1362,11 +1362,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@19
+        staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
-        staticElement: c@29
+        staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -1388,7 +1388,7 @@ f(double a, double b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -1400,11 +1400,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@19
+        staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        staticElement: c@26
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1415,7 +1415,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double*
   operator: .
   methodName: SimpleIdentifier
@@ -1429,11 +1429,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@19
+        staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
-        staticElement: c@26
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -1455,7 +1455,7 @@ f(double a, int b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -1467,11 +1467,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@26
+        staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1482,7 +1482,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double*
   operator: .
   methodName: SimpleIdentifier
@@ -1496,11 +1496,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@26
+        staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -1522,7 +1522,7 @@ f(double a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -1534,11 +1534,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@23
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1549,7 +1549,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@9
+    staticElement: self::@function::f::@parameter::a
     staticType: double*
   operator: .
   methodName: SimpleIdentifier
@@ -1563,11 +1563,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@23
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -1603,7 +1603,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@33
+          staticElement: self::@function::g::@parameter::a
           staticType: int
         operator: .
         methodName: SimpleIdentifier
@@ -1657,7 +1657,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@33
+          staticElement: self::@function::g::@parameter::a
           staticType: int*
         operator: .
         methodName: SimpleIdentifier
@@ -1726,7 +1726,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@33
+          staticElement: self::@function::g::@parameter::a
           staticType: int
         operator: .
         methodName: SimpleIdentifier
@@ -1780,7 +1780,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@33
+          staticElement: self::@function::g::@parameter::a
           staticType: int*
         operator: .
         methodName: SimpleIdentifier
@@ -1840,7 +1840,7 @@ g(int a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@33
+    staticElement: self::@function::g::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -1883,7 +1883,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@33
+    staticElement: self::@function::g::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -1939,7 +1939,7 @@ f(int a, double b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -1951,11 +1951,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        staticElement: c@26
+        staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1966,7 +1966,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -1980,11 +1980,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
-        staticElement: c@26
+        staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2006,7 +2006,7 @@ f(int a, double b, dynamic c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2018,11 +2018,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        staticElement: c@27
+        staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2033,7 +2033,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2047,11 +2047,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
-        staticElement: c@27
+        staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2073,7 +2073,7 @@ f(int a, double b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2085,11 +2085,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        staticElement: c@23
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2100,7 +2100,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2114,11 +2114,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
-        staticElement: c@23
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2140,7 +2140,7 @@ f(int a, dynamic b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2152,11 +2152,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@17
+        staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        staticElement: c@27
+        staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2167,7 +2167,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2181,11 +2181,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@17
+        staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        staticElement: c@27
+        staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2207,7 +2207,7 @@ f(int a, dynamic b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2219,11 +2219,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@17
+        staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        staticElement: c@24
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2234,7 +2234,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2248,11 +2248,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@17
+        staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        staticElement: c@24
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2274,7 +2274,7 @@ f(int a, int b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2286,11 +2286,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@23
+        staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2301,7 +2301,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2315,11 +2315,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@23
+        staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2341,7 +2341,7 @@ f(int a, int b, dynamic c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2353,11 +2353,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@24
+        staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2368,7 +2368,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2382,11 +2382,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@24
+        staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2408,7 +2408,7 @@ f(int a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2420,11 +2420,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@20
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2435,7 +2435,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2449,11 +2449,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@20
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2487,11 +2487,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@20
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2512,11 +2512,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@20
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2549,7 +2549,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@65
+          staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
     extendedType: int
@@ -2564,11 +2564,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@72
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@79
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -2587,7 +2587,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@65
+          staticElement: self::@function::f::@parameter::a
           staticType: int*
       rightParenthesis: )
     extendedType: int*
@@ -2602,11 +2602,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@72
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@79
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: String* Function(int*, int*)*
@@ -2628,7 +2628,7 @@ f(int a, int b, Never c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2640,11 +2640,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@22
+        staticElement: self::@function::f::@parameter::c
         staticType: Never
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2655,7 +2655,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2669,11 +2669,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@22
+        staticElement: self::@function::f::@parameter::c
         staticType: Null*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2699,7 +2699,7 @@ f(int a, Never b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -2711,11 +2711,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@15
+        staticElement: self::@function::f::@parameter::b
         staticType: Never
       SimpleIdentifier
         token: c
-        staticElement: c@22
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -2726,7 +2726,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -2740,11 +2740,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@15
+        staticElement: self::@function::f::@parameter::b
         staticType: Null*
       SimpleIdentifier
         token: c
-        staticElement: c@22
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*, num*)*
@@ -2773,7 +2773,7 @@ f(Never a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@8
+    staticElement: self::@function::f::@parameter::a
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -2785,11 +2785,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@15
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@22
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -2800,7 +2800,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@8
+    staticElement: self::@function::f::@parameter::a
     staticType: Null*
   operator: .
   methodName: SimpleIdentifier
@@ -2812,11 +2812,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@15
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@22
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -2855,7 +2855,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@85
+          staticElement: self::@function::g::@parameter::a
           staticType: A
         operator: .
         methodName: SimpleIdentifier
@@ -2909,7 +2909,7 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: a@85
+          staticElement: self::@function::g::@parameter::a
           staticType: A*
         operator: .
         methodName: SimpleIdentifier
@@ -2969,7 +2969,7 @@ f(A a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@55
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -2981,11 +2981,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@62
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@69
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -2996,7 +2996,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@55
+    staticElement: self::@function::f::@parameter::a
     staticType: A*
   operator: .
   methodName: SimpleIdentifier
@@ -3008,11 +3008,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@62
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@69
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: String* Function(int*, int*)*
@@ -3046,7 +3046,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@72
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -3061,11 +3061,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@86
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -3084,7 +3084,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@72
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -3099,11 +3099,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@86
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: String* Function(int*, int*)*
@@ -3129,7 +3129,7 @@ f(A a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@72
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -3141,11 +3141,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        staticElement: c@86
+        staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -3156,7 +3156,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@72
+    staticElement: self::@function::f::@parameter::a
     staticType: A*
   operator: .
   methodName: SimpleIdentifier
@@ -3168,11 +3168,11 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@79
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
-        staticElement: c@86
+        staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
   staticInvokeType: String* Function(int*, int*)*
@@ -3206,7 +3206,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: s
-        staticElement: s@34
+        staticElement: self::@function::f::@parameter::s
         staticType: S & int
     rightParenthesis: )
   staticInvokeType: void Function(S)
@@ -3226,7 +3226,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: s
-        staticElement: s@34
+        staticElement: self::@function::f::@parameter::s
         staticType: S* & int*
     rightParenthesis: )
   staticInvokeType: void Function(S*)*
@@ -3380,7 +3380,7 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@50
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -3402,7 +3402,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@50
+    staticElement: self::@function::f::@parameter::a
     staticType: A*
   operator: .
   methodName: SimpleIdentifier
@@ -3441,7 +3441,7 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@62
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3455,7 +3455,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@62
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3485,7 +3485,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@33
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -3506,7 +3506,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@33
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     operator: .
     propertyName: SimpleIdentifier
@@ -3625,7 +3625,7 @@ f(Function foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@11
+    staticElement: self::@function::f::@parameter::foo
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3646,7 +3646,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@11
+    staticElement: self::@function::f::@parameter::foo
     staticType: Function*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3738,7 +3738,7 @@ main(Object foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@12
+    staticElement: self::@function::main::@parameter::foo
     staticType: Object
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3752,7 +3752,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@12
+    staticElement: self::@function::main::@parameter::foo
     staticType: Object*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3777,7 +3777,7 @@ main(var foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@9
+    staticElement: self::@function::main::@parameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3791,7 +3791,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@9
+    staticElement: self::@function::main::@parameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5145,7 +5145,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@54
+      staticElement: self::@function::f::@parameter::c
       staticType: C<void>
     operator: .
     propertyName: SimpleIdentifier
@@ -5168,7 +5168,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@54
+      staticElement: self::@function::f::@parameter::c
       staticType: C<void>*
     operator: .
     propertyName: SimpleIdentifier
@@ -5857,7 +5857,7 @@ void f(dynamic a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@15
+    staticElement: self::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -5882,7 +5882,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@15
+    staticElement: self::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -6305,7 +6305,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@71
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -6330,7 +6330,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@71
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     operator: .
     propertyName: SimpleIdentifier
@@ -6431,7 +6431,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@65
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -6452,7 +6452,7 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: c@65
+      staticElement: self::@function::f::@parameter::c
       staticType: C*
     operator: .
     propertyName: SimpleIdentifier
@@ -6487,7 +6487,7 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: c@43
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -6509,7 +6509,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: c@43
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   operator: .
   methodName: SimpleIdentifier
@@ -6548,7 +6548,7 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: c@58
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -6572,7 +6572,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: c@58
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   operator: .
   methodName: SimpleIdentifier
@@ -6621,7 +6621,7 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: c@182
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -6642,7 +6642,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: c@182
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   operator: .
   methodName: SimpleIdentifier
@@ -7394,7 +7394,7 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@44
+    staticElement: self::@function::f::@parameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7412,7 +7412,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: c@44
+    staticElement: self::@function::f::@parameter::c
     staticType: C*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7591,7 +7591,7 @@ void f(void Function(int) foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@26
+    staticElement: self::@function::f::@parameter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7609,7 +7609,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@26
+    staticElement: self::@function::f::@parameter::foo
     staticType: void Function(int*)*
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7698,7 +7698,7 @@ void f(F a) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
-    staticElement: a@39
+    staticElement: self::@function::f::@parameter::a
     staticType: void Function()
       alias: self::@typeAlias::F
   argumentList: ArgumentList
@@ -7714,7 +7714,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
-    staticElement: a@39
+    staticElement: self::@function::f::@parameter::a
     staticType: void Function()*
       alias: self::@typeAlias::F
   argumentList: ArgumentList
@@ -7886,7 +7886,7 @@ void f(a, int b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7898,7 +7898,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@14
+        staticElement: self::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -7909,7 +7909,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7921,7 +7921,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@14
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -7943,7 +7943,7 @@ void f(a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7961,7 +7961,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@7
+    staticElement: self::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -8262,7 +8262,7 @@ f(int a, double b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -8274,7 +8274,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -8285,7 +8285,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -8299,7 +8299,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@16
+        staticElement: self::@function::f::@parameter::b
         staticType: double*
     rightParenthesis: )
   staticInvokeType: num* Function(num*)*
@@ -8321,7 +8321,7 @@ f(int a, int b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -8333,7 +8333,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -8344,7 +8344,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: a@6
+    staticElement: self::@function::f::@parameter::a
     staticType: int*
   operator: .
   methodName: SimpleIdentifier
@@ -8358,7 +8358,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@13
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*)*
@@ -8381,7 +8381,7 @@ MethodInvocation
   target: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: a@17
+      staticElement: self::@function::f::@parameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -8399,7 +8399,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@24
+        staticElement: self::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -8411,7 +8411,7 @@ MethodInvocation
   target: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: a@17
+      staticElement: self::@function::f::@parameter::a
       staticType: int* Function()*
     argumentList: ArgumentList
       leftParenthesis: (
@@ -8431,7 +8431,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
-        staticElement: b@24
+        staticElement: self::@function::f::@parameter::b
         staticType: int*
     rightParenthesis: )
   staticInvokeType: num* Function(num*)*

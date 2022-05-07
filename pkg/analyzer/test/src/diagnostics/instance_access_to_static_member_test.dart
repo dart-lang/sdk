@@ -165,7 +165,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      staticElement: c@63
+      staticElement: self::@function::f::@parameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier

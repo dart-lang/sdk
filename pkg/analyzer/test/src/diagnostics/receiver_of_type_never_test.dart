@@ -30,7 +30,7 @@ void f(Never x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: ==
   rightOperand: BinaryExpression
@@ -64,7 +64,7 @@ void f(Never x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: +
   rightOperand: ParenthesizedExpression
@@ -99,7 +99,7 @@ void f(Never? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   operator: ==
   rightOperand: BinaryExpression
@@ -135,7 +135,7 @@ void f(Never? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   operator: +
   rightOperand: ParenthesizedExpression
@@ -210,7 +210,7 @@ void f(Never x) {
 IndexExpression
   target: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
@@ -238,7 +238,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: x@13
+      staticElement: self::@function::f::@parameter::x
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -283,7 +283,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: x@13
+      staticElement: self::@function::f::@parameter::x
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -327,7 +327,7 @@ void f(Never? x) {
 IndexExpression
   target: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
@@ -355,7 +355,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: x@14
+      staticElement: self::@function::f::@parameter::x
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -400,7 +400,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: x@14
+      staticElement: self::@function::f::@parameter::x
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -453,7 +453,7 @@ void f(Never x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -495,7 +495,7 @@ void f(Never x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -536,7 +536,7 @@ void f(Never? x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   operator: .
   methodName: SimpleIdentifier
@@ -576,12 +576,12 @@ void f(Never x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@13
+  readElement: self::@function::f::@parameter::x
   readType: Never
-  writeElement: x@13
+  writeElement: self::@function::f::@parameter::x
   writeType: Never
   staticElement: <null>
   staticType: Never
@@ -602,12 +602,12 @@ void f(Never? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: Never?
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: Never?
   staticElement: <null>
   staticType: Never?
@@ -629,11 +629,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@13
+  readElement: self::@function::f::@parameter::x
   readType: Never
-  writeElement: x@13
+  writeElement: self::@function::f::@parameter::x
   writeType: Never
   staticElement: <null>
   staticType: Never
@@ -655,11 +655,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: Never?
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: Never?
   staticElement: <null>
   staticType: dynamic
@@ -709,7 +709,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
-      staticElement: x@13
+      staticElement: self::@function::f::@parameter::x
       staticType: Never
     period: .
     identifier: SimpleIdentifier
@@ -760,7 +760,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
-      staticElement: x@13
+      staticElement: self::@function::f::@parameter::x
       staticType: Never
     period: .
     identifier: SimpleIdentifier

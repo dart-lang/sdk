@@ -83,7 +83,7 @@ extension E<T> on List<T> {
 MethodInvocation
   target: SimpleIdentifier
     token: other
-    staticElement: other@75
+    staticElement: self::@extension::E::@method::bar::@parameter::other
     staticType: List<T>
   operator: .
   methodName: SimpleIdentifier
@@ -103,7 +103,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: other
-    staticElement: other@75
+    staticElement: self::@extension::E::@method::bar::@parameter::other
     staticType: List<T*>*
   operator: .
   methodName: SimpleIdentifier
@@ -187,7 +187,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@79
+      staticElement: self::@function::f::@parameter::a
       staticType: A<int>
     period: .
     identifier: SimpleIdentifier
@@ -215,7 +215,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@79
+      staticElement: self::@function::f::@parameter::a
       staticType: A<int*>*
     period: .
     identifier: SimpleIdentifier
@@ -257,7 +257,7 @@ void f<S extends num>(S x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@87
+    staticElement: self::@function::f::@parameter::x
     staticType: S
   operator: .
   methodName: SimpleIdentifier
@@ -277,7 +277,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@87
+    staticElement: self::@function::f::@parameter::x
     staticType: S*
   operator: .
   methodName: SimpleIdentifier
@@ -349,7 +349,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: x
-        staticElement: x@98
+        staticElement: self::@function::f::@parameter::x
         staticType: S
       rightParenthesis: )
       staticType: S
@@ -389,7 +389,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: x
-        staticElement: x@98
+        staticElement: self::@function::f::@parameter::x
         staticType: S*
       rightParenthesis: )
       staticType: S*
@@ -586,7 +586,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@79
+            staticElement: self::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
       extendedType: A<num>
@@ -636,7 +636,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@79
+            staticElement: self::@function::f::@parameter::a
             staticType: A<int*>*
         rightParenthesis: )
       extendedType: A<num*>*
@@ -793,7 +793,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@79
+            staticElement: self::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
       extendedType: A<int>
@@ -833,7 +833,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@79
+            staticElement: self::@function::f::@parameter::a
             staticType: A<int*>*
         rightParenthesis: )
       extendedType: A<int*>*

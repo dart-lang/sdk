@@ -44,7 +44,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@40
+      staticElement: self::@function::main::@parameter::a
       staticType: A*
     leftBracket: [
     index: NullLiteral
@@ -89,7 +89,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@40
+      staticElement: self::@function::main::@parameter::a
       staticType: A*
     period: .
     identifier: SimpleIdentifier
@@ -135,7 +135,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@40
+      staticElement: self::@function::main::@parameter::a
       staticType: A*
     period: .
     identifier: SimpleIdentifier
@@ -433,7 +433,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@40
+            staticElement: self::@function::main::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A

@@ -246,7 +246,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: e
-        staticElement: e@46
+        staticElement: self::@function::f::@parameter::e
         staticType: E
       rightParenthesis: )
       staticType: E
@@ -327,7 +327,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@83
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -363,7 +363,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@83
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -418,7 +418,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@63
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -454,7 +454,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@63
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*

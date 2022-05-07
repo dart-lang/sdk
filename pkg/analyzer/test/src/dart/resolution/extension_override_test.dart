@@ -40,7 +40,7 @@ IndexExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@71
+          staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
     extendedType: int
@@ -79,7 +79,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@76
+            staticElement: self::@function::f::@parameter::a
             staticType: int?
         rightParenthesis: )
       extendedType: int
@@ -128,7 +128,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@54
+          staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
     extendedType: int
@@ -203,7 +203,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@68
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -231,7 +231,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@68
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -285,7 +285,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@66
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -327,7 +327,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@66
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -385,7 +385,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -421,7 +421,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -486,7 +486,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -536,7 +536,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -583,7 +583,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@59
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -608,7 +608,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@59
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -651,7 +651,7 @@ FunctionExpressionInvocation
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@87
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -687,7 +687,7 @@ FunctionExpressionInvocation
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@87
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -747,7 +747,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@62
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -786,7 +786,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@62
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -841,7 +841,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -874,7 +874,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -935,7 +935,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -982,7 +982,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1026,7 +1026,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@55
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1055,7 +1055,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@55
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1109,7 +1109,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@58
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1152,7 +1152,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@58
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1211,7 +1211,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1248,7 +1248,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1313,7 +1313,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1364,7 +1364,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1412,7 +1412,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@74
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1438,7 +1438,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@74
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1489,7 +1489,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@77
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1527,7 +1527,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@77
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1663,7 +1663,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1697,7 +1697,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1759,7 +1759,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1805,7 +1805,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1849,7 +1849,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@59
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1885,7 +1885,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@59
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -1946,7 +1946,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@62
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1996,7 +1996,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@62
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2062,7 +2062,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2106,7 +2106,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2178,7 +2178,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2236,7 +2236,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2292,7 +2292,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@77
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2328,7 +2328,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@77
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2392,7 +2392,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@80
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2444,7 +2444,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@80
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2515,7 +2515,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2559,7 +2559,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2634,7 +2634,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2694,7 +2694,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2752,7 +2752,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: c
-          staticElement: c@57
+          staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
     extendedType: C
@@ -2777,7 +2777,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: c
-          staticElement: c@57
+          staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )
     extendedType: C*

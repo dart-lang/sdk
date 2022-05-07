@@ -1233,6 +1233,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  String _elementToReferenceString(Element element) {
+    final enclosingElement = element.enclosingElement;
+    final reference = (element as ElementImpl).reference;
+    if (reference != null) {
+      return _referenceToString(reference);
+    } else if (element is ParameterElement &&
+        enclosingElement is! GenericFunctionTypeElement) {
+      // Positional parameters don't have actual references.
+      // But we fabricate one to make the output better.
+      final enclosingStr = enclosingElement != null
+          ? _elementToReferenceString(enclosingElement)
+          : 'root';
+      return '$enclosingStr::@parameter::${element.name}';
+    } else {
+      return '${element.name}@${element.nameOffset}';
+    }
+  }
+
   String _referenceToString(Reference reference) {
     var parent = reference.parent!;
     if (parent.parent == null) {
@@ -1309,13 +1327,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');
     } else {
-      var reference = (element as ElementImpl).reference;
-      if (reference != null) {
-        var referenceStr = _referenceToString(reference);
-        _sink.writeln(referenceStr);
-      } else {
-        _sink.writeln('${element.name}@${element.nameOffset}');
-      }
+      final referenceStr = _elementToReferenceString(element);
+      _sink.writeln(referenceStr);
     }
   }
 

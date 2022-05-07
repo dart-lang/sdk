@@ -95,7 +95,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: e
-      staticElement: e@46
+      staticElement: self::@function::f::@parameter::e
       staticType: E
     period: .
     identifier: SimpleIdentifier
@@ -351,7 +351,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@37
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -377,7 +377,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@37
+      staticElement: self::@function::f::@parameter::a
       staticType: A*
     period: .
     identifier: SimpleIdentifier
@@ -420,7 +420,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@37
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -446,7 +446,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@37
+      staticElement: self::@function::f::@parameter::a
       staticType: A*
     period: .
     identifier: SimpleIdentifier

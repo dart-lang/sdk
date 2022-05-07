@@ -800,7 +800,7 @@ f(A a) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@54
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: >>>
   rightOperand: IntegerLiteral
