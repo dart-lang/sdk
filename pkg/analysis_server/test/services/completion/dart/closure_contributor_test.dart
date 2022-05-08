@@ -30,7 +30,7 @@ class ClosureContributorTest extends DartCompletionContributorTest {
     addTestSource(r'''
 void f({void Function(int a, String b) closure}) {}
 
-void main() {
+void g() {
   f(closure: ^);
 }
 ''');
@@ -54,7 +54,7 @@ ${' ' * 2}},''',
     addTestSource(r'''
 void f({void Function(int a, String b) closure}) {}
 
-void main() {
+void g() {
   f(
     closure: ^,
   );
@@ -80,7 +80,7 @@ ${' ' * 4}}''',
     addTestSource(r'''
 void f(void Function(int a, int b) closure) {}
 
-void main() {
+void g() {
   f(^);
 }
 ''');
@@ -96,7 +96,7 @@ void main() {
     addTestSource(r'''
 void f(void Function(int a, int b) closure) {}
 
-void main() {
+void g() {
   f(^,);
 }
 ''');
@@ -112,7 +112,7 @@ void main() {
     addTestSource(r'''
 void f({void Function(int a, {int b, int c}) closure}) {}
 
-void main() {
+void g() {
   f(closure: ^);
 }
 ''');
@@ -128,7 +128,7 @@ void main() {
     addTestSource(r'''
 void f({void Function(int a, [int b, int c]) closure]) {}
 
-void main() {
+void g() {
   f(closure: ^);
 }
 ''');

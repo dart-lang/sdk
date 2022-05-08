@@ -41,7 +41,7 @@ class A {
   int fff;
   A({this.fff});
 }
-main() {
+void f() {
   new A(^);
 }
 ''';
@@ -66,7 +66,7 @@ class A {
   int fff;
   A({this.fff});
 }
-main() {
+void f() {
   new A(^);
 }
 ''');
@@ -297,7 +297,7 @@ class CustomScrollView extends Widget {
     addTestSource('''
 import 'package:flutter/material.dart';
 
-main() {
+void f() {
   foo(^);
 }
 

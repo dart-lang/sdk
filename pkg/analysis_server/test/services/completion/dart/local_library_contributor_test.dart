@@ -43,7 +43,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     addTestSource('''
         part of libA;
         class B { B.bar(int x); }
-        main() {new ^}''');
+        void f() {new ^}''');
     await resolveFile('$testPackageLibPath/a.dart');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -77,7 +77,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         import "b.dart";
         part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
-        main() {new ^}
+        void f() {new ^}
         var m;''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -129,7 +129,7 @@ void f() {^}
         import "b.dart";
         part "a.dart";
         class Local { }
-        main() {
+        void f() {
           A a;
           // FAIL:
           a = new ^
@@ -176,7 +176,7 @@ void f() {^}
         import "b.dart";
         part "a.dart";
         class Local { }
-        main() {
+        void f() {
           A a = new ^
         }
         var m;''');
@@ -223,7 +223,7 @@ void f() {^}
     addTestSource('''
         part of libA;
         class B { B.bar(int x); }
-        main() {^}''');
+        void f() {^}''');
     await resolveFile('$testPackageLibPath/a.dart');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -270,7 +270,7 @@ void f() {^}
         import "b.dart";
         part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
-        main() {^}
+        void f() {^}
         var m;''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);

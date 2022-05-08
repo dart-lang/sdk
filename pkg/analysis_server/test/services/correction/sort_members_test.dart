@@ -1350,12 +1350,12 @@ class C {}
 aaa() {}
 get bbb() {}
 class A {}
-main() {}
+void main() {}
 class B {}
 ''');
     // validate change
     _assertSort(r'''
-main() {}
+void main() {}
 get bbb() {}
 aaa() {}
 class A {}

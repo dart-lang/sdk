@@ -45,7 +45,7 @@ library libB;
 import "a.dart" as foo;
 part 'test.dart';
 ''');
-    addTestSource('part of libB; main() {^}');
+    addTestSource('part of libB; void f() {^}');
 
     await resolveFile('$testPackageLibPath/b.dart');
 

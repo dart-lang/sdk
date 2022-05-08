@@ -300,7 +300,7 @@ void f() {
     addTestSource('''
         import 'b.dart';
         var m;
-        main() {new X.^}''');
+        void f() {new X.^}''');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -328,7 +328,7 @@ void f() {
     addTestSource('''
         import 'b.dart';
         var m;
-        main() {new X.^}''');
+        void f() {new X.^}''');
     // Assume that imported libraries are NOT resolved
     //await resolveLibraryUnit(libSource);
     await computeSuggestions();
@@ -357,7 +357,7 @@ void f() {
     addTestSource('''
         import 'b.dart';
         var m;
-        main() {new X.^}''');
+        void f() {new X.^}''');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -378,7 +378,7 @@ void f() {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
-        main() {new String.fr^omCharCodes([]);}''');
+        void f() {new String.fr^omCharCodes([]);}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
     expect(replacementLength, 13);
@@ -401,7 +401,7 @@ void f() {
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}
-        main() {new X.^}''');
+        void f() {new X.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -428,7 +428,7 @@ void f() {
         int T1;
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}
-        main() {new X.^}''');
+        void f() {new X.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
