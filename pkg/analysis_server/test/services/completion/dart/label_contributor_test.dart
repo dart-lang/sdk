@@ -44,7 +44,7 @@ class LabelContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_break_ignores_outer_functions_using_closure() async {
     addTestSource('''
-void main() {
+void g() {
   foo: while (true) {
     var f = () {
       bar: while (true) { break ^ }
@@ -60,7 +60,7 @@ void main() {
 
   Future<void> test_break_ignores_outer_functions_using_local_function() async {
     addTestSource('''
-void main() {
+void g() {
   foo: while (true) {
     void f() {
       bar: while (true) { break ^ }
@@ -77,7 +77,7 @@ void main() {
   Future<void> test_break_ignores_toplevel_variables() async {
     addTestSource('''
 int x;
-void main() {
+void f() {
   while (true) {
     break ^
   }
@@ -89,7 +89,7 @@ void main() {
 
   Future<void> test_break_ignores_unrelated_statements() async {
     addTestSource('''
-void main() {
+void f() {
   foo: while (true) {}
   while (true) { break ^ }
   bar: while (true) {}
@@ -105,7 +105,7 @@ void main() {
 
   Future<void> test_break_to_enclosing_loop() async {
     addTestSource('''
-void main() {
+void f() {
   foo: while (true) {
     bar: while (true) {
       break ^
@@ -120,7 +120,7 @@ void main() {
 
   Future<void> test_continue_from_loop_to_switch() async {
     addTestSource('''
-void main() {
+void f() {
   switch (x) {
     foo: case 1:
       break;
@@ -142,7 +142,7 @@ void main() {
 
   Future<void> test_continue_from_switch_to_loop() async {
     addTestSource('''
-void main() {
+void f() {
   foo: while (true) {
     switch (x) {
       case 1:
@@ -158,7 +158,7 @@ void main() {
   Future<void>
       test_continue_ignores_outer_functions_using_closure_with_loop() async {
     addTestSource('''
-void main() {
+void f() {
   foo: while (true) {
     var f = () {
       bar: while (true) { continue ^ }
@@ -175,7 +175,7 @@ void main() {
   Future<void>
       test_continue_ignores_outer_functions_using_closure_with_switch() async {
     addTestSource('''
-void main() {
+void g() {
   switch (x) {
     foo: case 1:
       var f = () {
@@ -193,7 +193,7 @@ void main() {
   Future<void>
       test_continue_ignores_outer_functions_using_local_function_with_loop() async {
     addTestSource('''
-void main() {
+void g() {
   foo: while (true) {
     void f() {
       bar: while (true) { continue ^ }
@@ -210,7 +210,7 @@ void main() {
   Future<void>
       test_continue_ignores_outer_functions_using_local_function_with_switch() async {
     addTestSource('''
-void main() {
+void g() {
   switch (x) {
     foo: case 1:
       void f() {
@@ -227,7 +227,7 @@ void main() {
 
   Future<void> test_continue_ignores_unrelated_statements() async {
     addTestSource('''
-void main() {
+void f() {
   foo: while (true) {}
   while (true) { continue ^ }
   bar: while (true) {}
@@ -243,7 +243,7 @@ void main() {
 
   Future<void> test_continue_to_earlier_case() async {
     addTestSource('''
-void main() {
+void f() {
   switch (x) {
     foo: case 1:
       break;
@@ -258,7 +258,7 @@ void main() {
 
   Future<void> test_continue_to_enclosing_loop() async {
     addTestSource('''
-void main() {
+void f() {
   foo: while (true) {
     bar: while (true) {
       continue ^
@@ -273,7 +273,7 @@ void main() {
 
   Future<void> test_continue_to_enclosing_switch() async {
     addTestSource('''
-void main() {
+void f() {
   switch (x) {
     foo: case 1:
       break;
@@ -296,7 +296,7 @@ void main() {
 
   Future<void> test_continue_to_later_case() async {
     addTestSource('''
-void main() {
+void f() {
   switch (x) {
     case 1:
       break;
@@ -311,7 +311,7 @@ void main() {
 
   Future<void> test_continue_to_same_case() async {
     addTestSource('''
-void main() {
+void f() {
   switch (x) {
     case 1:
       break;
