@@ -19,7 +19,7 @@ import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Expectation, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Expectation, Result, Step, TestDescription;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
@@ -52,6 +52,8 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart'
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
 
 import '../spell_checking_utils.dart' as spell;
+
+import 'suite_utils.dart' show internalMain;
 
 class MessageTestDescription extends TestDescription {
   @override
@@ -893,5 +895,6 @@ class Script {
   }
 }
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../../testing.json");
+Future<void> main(List<String> arguments) async {
+  await internalMain(createContext, arguments: arguments);
+}
