@@ -12,8 +12,13 @@ on:
 env:
   PUB_ENVIRONMENT: bot.github
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    permissions:
+      checks: write  # for coverallsapp/github-action to create new checks
     name: ${{ matrix.linter-bot }}
     runs-on: ubuntu-latest
     strategy:
