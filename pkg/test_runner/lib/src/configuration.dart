@@ -172,7 +172,8 @@ class TestConfiguration {
 
   String get packages {
     // If the .packages file path wasn't given, find it.
-    _packages ??= Repository.uri.resolve('.packages').toFilePath();
+    _packages ??=
+        Repository.uri.resolve('.dart_tool/package_config.json').toFilePath();
 
     return _packages;
   }
@@ -304,7 +305,7 @@ class TestConfiguration {
     const locations = {
       Runtime.firefox: {
         System.win: 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
-        System.linux: 'firefox',
+        System.linux: '/usr/bin/firefox',
         System.mac: '/Applications/Firefox.app/Contents/MacOS/firefox'
       },
       Runtime.chrome: {
@@ -312,7 +313,7 @@ class TestConfiguration {
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         System.mac:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        System.linux: 'google-chrome'
+        System.linux: '/usr/bin/google-chrome'
       },
       Runtime.ie9: {
         System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'

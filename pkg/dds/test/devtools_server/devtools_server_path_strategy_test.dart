@@ -44,9 +44,7 @@ void main() {
       httpClient.close();
       server.kill();
     }
-    // TODO(dantup): Unskip this test once DevTools has rolled into
-    //   the SDK so that contains the (newly-added) base href tag.
-  }, timeout: const Timeout.factor(10), skip: true);
+  }, timeout: const Timeout.factor(10));
 
   test('serves 404 contents for requests that are not pages', () async {
     final server = await DevToolsServerDriver.create();

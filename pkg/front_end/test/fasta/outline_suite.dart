@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-library fasta.test.outline_test;
+library fasta.test.outline_suite;
 
+import 'suite_utils.dart' show internalMain;
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
@@ -11,5 +12,6 @@ Future<FastaContext> createContext(
   return FastaContext.create(suite, environment);
 }
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../../testing.json");
+Future<void> main(List<String> arguments) async {
+  await internalMain(createContext, arguments: arguments);
+}

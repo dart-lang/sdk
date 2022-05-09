@@ -607,6 +607,7 @@ stat
 stats
 stay
 std
+stopwatches
 stress
 stringy
 strip
