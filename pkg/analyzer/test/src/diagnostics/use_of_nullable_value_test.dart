@@ -207,6 +207,11 @@ extension E on A? {
           68, 3),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
           84, 3),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          144,
+          2),
     ]);
   }
 
@@ -285,6 +290,11 @@ extension E on A? {
           93, 3),
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
           107, 3),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          159,
+          2),
     ]);
   }
 
@@ -332,6 +342,11 @@ extension E on A? {
           93, 3),
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
           111, 3),
+      error(
+          StaticWarningCode
+              .INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE,
+          179,
+          2),
     ]);
   }
 }

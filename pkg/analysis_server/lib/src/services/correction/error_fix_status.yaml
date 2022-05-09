@@ -50,7 +50,7 @@ AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   notes: |-
     It would not be performant to search the disk for analysis options files
     that could be included.
-    
+
     We could potentially have a fix to create the referenced file that currently
     doesn't exist.
 AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
@@ -327,7 +327,7 @@ CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: needsEvaluation
-CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR: 
+CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
   status: noFix
   since: 2.17
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
@@ -2417,6 +2417,8 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
+StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE:
+  status: needsEvaluation
 StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED:
   status: needsEvaluation
 StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL:

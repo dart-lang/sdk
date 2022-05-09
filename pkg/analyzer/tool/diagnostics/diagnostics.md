@@ -8664,6 +8664,9 @@ class C {
 
 ### invalid_null_aware_operator
 
+_The member is defined in an extension on a nullable type, so the null-aware
+operator '{0}' is unnecessary._
+
 _The receiver can't be null because of short-circuiting, so the null-aware
 operator '{0}' can't be used._
 
