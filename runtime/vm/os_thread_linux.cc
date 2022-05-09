@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"  // NOLINT
 
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) && !defined(DART_USE_ABSL)
 
 #include "vm/os_thread.h"
 
@@ -216,7 +216,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return syscall(__NR_gettid);
 }
-#endif  // PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
@@ -497,4 +497,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) && !defined(DART_USE_ABSL)

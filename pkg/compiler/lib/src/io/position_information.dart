@@ -33,7 +33,8 @@ class PositionSourceInformation extends SourceInformation {
   PositionSourceInformation(
       this.startPosition, this.innerPosition, this.inliningContext);
 
-  factory PositionSourceInformation.readFromDataSource(DataSource source) {
+  factory PositionSourceInformation.readFromDataSource(
+      DataSourceReader source) {
     source.begin(tag);
     SourceLocation startPosition = source.readCached<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
@@ -47,7 +48,7 @@ class PositionSourceInformation extends SourceInformation {
         startPosition, innerPosition, inliningContext);
   }
 
-  void writeToDataSinkInternal(DataSink sink) {
+  void writeToDataSinkInternal(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeCached(
         startPosition,
@@ -1111,7 +1112,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
 
   @override
   visitVariableInitialization(js.VariableInitialization node) {
-    visit(node.leftHandSide);
+    visit(node.declaration);
     visit(node.value);
   }
 

@@ -145,7 +145,7 @@ class ListLiteral extends Expression {
 
   @override
   String toCode() {
-    return '[' + elements.map((e) => e.toCode()).join(', ') + ']';
+    return '[${elements.map((e) => e.toCode()).join(', ')}]';
   }
 }
 
@@ -325,7 +325,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
     pop(NullValue.Prefix); // Prefix identifier
     pop(); // URI

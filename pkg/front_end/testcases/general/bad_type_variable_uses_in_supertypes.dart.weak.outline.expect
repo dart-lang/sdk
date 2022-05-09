@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -113,483 +113,193 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef ContravariantUse<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
-typedef InvariantUse<invariant T extends core::Object* = dynamic> = (T*) →* T*;
+typedef ContravariantUse<contravariant T extends core::Object? = dynamic> = (T%) → dynamic;
+typedef InvariantUse<invariant T extends core::Object? = dynamic> = (T%) → T%;
 class Empty extends core::Object {
-  synthetic constructor •() → self::Empty*
+  synthetic constructor •() → self::Empty
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class A<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::A<self::A::T*>*
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class B<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::B<self::B::T*>*
+class B<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Bc<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Bc<self::Bc::T*>*
+class Bc<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Bc<self::Bc::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Bi<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Bi<self::Bi::T*>*
+class Bi<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Bi<self::Bi::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class C<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T*>*
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Cc<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Cc<self::Cc::T*>*
+class Cc<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Cc<self::Cc::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Ci<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Ci<self::Ci::T*>*
+class Ci<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Ci<self::Ci::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class D<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
-  const synthetic constructor •() → self::D<self::D::T*>*
+class D<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::D<self::D::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Dc<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
-  const synthetic constructor •() → self::Dc<self::Dc::T*>*
+class Dc<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::Dc<self::Dc::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Di<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
-  const synthetic constructor •() → self::Di<self::Di::T*>*
+class Di<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::Di<self::Di::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class E<T extends core::Object* = dynamic> = core::Object with self::Empty {
-  synthetic constructor •() → self::E<self::E::T*>*
+class E<T extends core::Object? = dynamic> = core::Object with self::Empty {
+  synthetic constructor •() → self::E<self::E::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Ec<T extends core::Object* = dynamic> = core::Object with self::Empty {
-  synthetic constructor •() → self::Ec<self::Ec::T*>*
+class Ec<T extends core::Object? = dynamic> = core::Object with self::Empty {
+  synthetic constructor •() → self::Ec<self::Ec::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Ei<T extends core::Object* = dynamic> = core::Object with self::Empty {
-  synthetic constructor •() → self::Ei<self::Ei::T*>*
+class Ei<T extends core::Object? = dynamic> = core::Object with self::Empty {
+  synthetic constructor •() → self::Ei<self::Ei::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class _F&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_F&Object&A<self::_F&Object&A::T*>*
+abstract class _F&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F&Object&A<self::_F&Object&A::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class F<T extends core::Object* = dynamic> extends self::_F&Object&A<self::F::T*> {
-  synthetic constructor •() → self::F<self::F::T*>*
+class F<T extends core::Object? = dynamic> extends self::_F&Object&A<self::F::T%> {
+  synthetic constructor •() → self::F<self::F::T%>
     ;
 }
-abstract class _Fc&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Fc&Object&A<self::_Fc&Object&A::T*>*
+abstract class _Fc&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Fc&Object&A<self::_Fc&Object&A::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Fc<T extends core::Object* = dynamic> extends self::_Fc&Object&A<self::Fc::T*> {
-  synthetic constructor •() → self::Fc<self::Fc::T*>*
+class Fc<T extends core::Object? = dynamic> extends self::_Fc&Object&A<self::Fc::T%> {
+  synthetic constructor •() → self::Fc<self::Fc::T%>
     ;
 }
-abstract class _Fi&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Fi&Object&A<self::_Fi&Object&A::T*>*
+abstract class _Fi&Object&A<T extends core::Object? = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Fi&Object&A<self::_Fi&Object&A::T%>
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Fi<T extends core::Object* = dynamic> extends self::_Fi&Object&A<self::Fi::T*> {
-  synthetic constructor •() → self::Fi<self::Fi::T*>*
+class Fi<T extends core::Object? = dynamic> extends self::_Fi&Object&A<self::Fi::T%> {
+  synthetic constructor •() → self::Fi<self::Fi::T%>
     ;
 }
-abstract class _G&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_G&A&Empty<self::_G&A&Empty::T*>*
-    ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-class G<T extends core::Object* = dynamic> extends self::_G&A&Empty<self::G::T*> {
-  synthetic constructor •() → self::G<self::G::T*>*
+abstract class _G&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_G&A&Empty<self::_G&A&Empty::T%>
     ;
 }
-abstract class _Gc&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Gc&A&Empty<self::_Gc&A&Empty::T*>*
-    ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-class Gc<T extends core::Object* = dynamic> extends self::_Gc&A&Empty<self::Gc::T*> {
-  synthetic constructor •() → self::Gc<self::Gc::T*>*
+class G<T extends core::Object? = dynamic> extends self::_G&A&Empty<self::G::T%> {
+  synthetic constructor •() → self::G<self::G::T%>
     ;
 }
-abstract class _Gi&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Gi&A&Empty<self::_Gi&A&Empty::T*>*
-    ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-class Gi<T extends core::Object* = dynamic> extends self::_Gi&A&Empty<self::Gi::T*> {
-  synthetic constructor •() → self::Gi<self::Gi::T*>*
+abstract class _Gc&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Gc&A&Empty<self::_Gc&A&Empty::T%>
     ;
 }
-class Hff<T extends core::Object* = dynamic> extends self::A<((self::Hff::T*) →* dynamic) →* dynamic> {
-  synthetic constructor •() → self::Hff<self::Hff::T*>*
+class Gc<T extends core::Object? = dynamic> extends self::_Gc&A&Empty<self::Gc::T%> {
+  synthetic constructor •() → self::Gc<self::Gc::T%>
     ;
 }
-class Hfc<T extends core::Object* = dynamic> extends self::A<((self::Hfc::T*) →* dynamic) →* dynamic> {
-  synthetic constructor •() → self::Hfc<self::Hfc::T*>*
+abstract class _Gi&A&Empty<T extends core::Object? = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Gi&A&Empty<self::_Gi&A&Empty::T%>
     ;
 }
-class Hcf<T extends core::Object* = dynamic> extends self::A<((self::Hcf::T*) →* dynamic) →* dynamic> {
-  synthetic constructor •() → self::Hcf<self::Hcf::T*>*
+class Gi<T extends core::Object? = dynamic> extends self::_Gi&A&Empty<self::Gi::T%> {
+  synthetic constructor •() → self::Gi<self::Gi::T%>
     ;
 }
-class Hcc<T extends core::Object* = dynamic> extends self::A<((self::Hcc::T*) →* dynamic) →* dynamic> {
-  synthetic constructor •() → self::Hcc<self::Hcc::T*>*
+class Hff<T extends core::Object? = dynamic> extends self::A<((self::Hff::T%) → dynamic) → dynamic> {
+  synthetic constructor •() → self::Hff<self::Hff::T%>
     ;
 }
-class Hii<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Hii<self::Hii::T*>*
-    ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-class Iafc<T extends core::Object* = dynamic> extends self::A<self::A<((self::Iafc::T*) →* dynamic) →* dynamic>*> {
-  synthetic constructor •() → self::Iafc<self::Iafc::T*>*
+class Hfc<T extends core::Object? = dynamic> extends self::A<((self::Hfc::T%) → dynamic) → dynamic> {
+  synthetic constructor •() → self::Hfc<self::Hfc::T%>
     ;
 }
-class Iacf<T extends core::Object* = dynamic> extends self::A<self::A<((self::Iacf::T*) →* dynamic) →* dynamic>*> {
-  synthetic constructor •() → self::Iacf<self::Iacf::T*>*
+class Hcf<T extends core::Object? = dynamic> extends self::A<((self::Hcf::T%) → dynamic) → dynamic> {
+  synthetic constructor •() → self::Hcf<self::Hcf::T%>
     ;
 }
-class Ifac<T extends core::Object* = dynamic> extends self::A<(self::A<(self::Ifac::T*) →* dynamic>*) →* dynamic> {
-  synthetic constructor •() → self::Ifac<self::Ifac::T*>*
+class Hcc<T extends core::Object? = dynamic> extends self::A<((self::Hcc::T%) → dynamic) → dynamic> {
+  synthetic constructor •() → self::Hcc<self::Hcc::T%>
     ;
 }
-class Ifca<T extends core::Object* = dynamic> extends self::A<((self::A<self::Ifca::T*>*) →* dynamic) →* dynamic> {
-  synthetic constructor •() → self::Ifca<self::Ifca::T*>*
+class Hii<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hii<self::Hii::T%>
     ;
 }
-class Icaf<T extends core::Object* = dynamic> extends self::A<(self::A<(self::Icaf::T*) →* dynamic>*) →* dynamic> {
-  synthetic constructor •() → self::Icaf<self::Icaf::T*>*
+class Iafc<T extends core::Object? = dynamic> extends self::A<self::A<((self::Iafc::T%) → dynamic) → dynamic>> {
+  synthetic constructor •() → self::Iafc<self::Iafc::T%>
     ;
 }
-class Icfa<T extends core::Object* = dynamic> extends self::A<((self::A<self::Icfa::T*>*) →* dynamic) →* dynamic> {
-  synthetic constructor •() → self::Icfa<self::Icfa::T*>*
+class Iacf<T extends core::Object? = dynamic> extends self::A<self::A<((self::Iacf::T%) → dynamic) → dynamic>> {
+  synthetic constructor •() → self::Iacf<self::Iacf::T%>
     ;
 }
-class Jfff<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jfff<self::Jfff::T*>*
+class Ifac<T extends core::Object? = dynamic> extends self::A<(self::A<(self::Ifac::T%) → dynamic>) → dynamic> {
+  synthetic constructor •() → self::Ifac<self::Ifac::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jffc<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jffc<self::Jffc::T*>*
+class Ifca<T extends core::Object? = dynamic> extends self::A<((self::A<self::Ifca::T%>) → dynamic) → dynamic> {
+  synthetic constructor •() → self::Ifca<self::Ifca::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jfcf<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jfcf<self::Jfcf::T*>*
+class Icaf<T extends core::Object? = dynamic> extends self::A<(self::A<(self::Icaf::T%) → dynamic>) → dynamic> {
+  synthetic constructor •() → self::Icaf<self::Icaf::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jfcc<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jfcc<self::Jfcc::T*>*
+class Icfa<T extends core::Object? = dynamic> extends self::A<((self::A<self::Icfa::T%>) → dynamic) → dynamic> {
+  synthetic constructor •() → self::Icfa<self::Icfa::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jcff<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jcff<self::Jcff::T*>*
+class Jfff<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jfff<self::Jfff::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jcfc<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jcfc<self::Jcfc::T*>*
+class Jffc<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jffc<self::Jffc::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jccf<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jccf<self::Jccf::T*>*
+class Jfcf<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jfcf<self::Jfcf::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Jccc<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Jccc<self::Jccc::T*>*
+class Jfcc<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jfcc<self::Jfcc::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Jcff<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jcff<self::Jcff::T%>
+    ;
+}
+class Jcfc<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jcfc<self::Jcfc::T%>
+    ;
+}
+class Jccf<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jccf<self::Jccf::T%>
+    ;
+}
+class Jccc<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Jccc<self::Jccc::T%>
+    ;
 }
 static method main() → dynamic
   ;

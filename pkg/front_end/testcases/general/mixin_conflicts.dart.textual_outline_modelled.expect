@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class C3 extends Object with M2 {}
 
 abstract class M2 implements M {

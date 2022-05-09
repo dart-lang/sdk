@@ -114,7 +114,7 @@ class WriteBarrierElimination : public ValueObject {
 
   // Bitvector with all non-Array-allocation instructions set. Used to
   // un-mark Array allocations as usable.
-  BitVector* array_allocations_mask_;
+  BitVector* large_array_allocations_mask_;
 
   // Bitvectors for each block of which allocations are new or remembered
   // at the start (after Phis).
@@ -189,8 +189,21 @@ void WriteBarrierElimination::SaveResults() {
   }
 }
 
+static bool IsCreateLargeArray(Definition* defn) {
+  if (auto create_array = defn->AsCreateArray()) {
+    static_assert(!Array::UseCardMarkingForAllocation(
+                      Array::kMaxLengthForWriteBarrierElimination),
+                  "Invariant restoration code does not handle card marking.");
+    // Note: IsUsable would reject CreateArray instructions with non-constant
+    // number of elements.
+    return create_array->GetConstantNumElements() >
+           Array::kMaxLengthForWriteBarrierElimination;
+  }
+  return false;
+}
+
 void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
-  BitmapBuilder array_allocations;
+  BitmapBuilder large_array_allocations;
 
   GrowableArray<Definition*> create_array_worklist;
 
@@ -198,7 +211,7 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
     BlockEntryInstr* const block = block_order_->At(i);
     if (auto join_block = block->AsJoinEntry()) {
       for (PhiIterator it(join_block); !it.Done(); it.Advance()) {
-        array_allocations.Set(definition_count_, false);
+        large_array_allocations.Set(definition_count_, false);
         definition_indices_.Insert({it.Current(), definition_count_++});
 #if defined(DEBUG)
         if (tracing_) {
@@ -211,10 +224,10 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       if (Definition* current = it.Current()->AsDefinition()) {
         if (IsUsable(current)) {
-          const bool is_create_array = current->IsCreateArray();
-          array_allocations.Set(definition_count_, is_create_array);
+          const bool is_create_large_array = IsCreateLargeArray(current);
+          large_array_allocations.Set(definition_count_, is_create_large_array);
           definition_indices_.Insert({current, definition_count_++});
-          if (is_create_array) {
+          if (is_create_large_array) {
             create_array_worklist.Add(current);
           }
 #if defined(DEBUG)
@@ -234,8 +247,9 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
          it.Advance()) {
       if (auto phi_use = it.Current()->instruction()->AsPhi()) {
         const intptr_t index = Index(phi_use);
-        if (!array_allocations.Get(index)) {
-          array_allocations.Set(index, /*can_be_create_array=*/true);
+        if (!large_array_allocations.Get(index)) {
+          large_array_allocations.Set(index,
+                                      /*can_be_create_large_array=*/true);
           create_array_worklist.Add(phi_use);
         }
       }
@@ -244,9 +258,9 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
 
   vector_ = new (zone) BitVector(zone, definition_count_);
   vector_->SetAll();
-  array_allocations_mask_ = new (zone) BitVector(zone, definition_count_);
+  large_array_allocations_mask_ = new (zone) BitVector(zone, definition_count_);
   for (intptr_t i = 0; i < definition_count_; ++i) {
-    if (!array_allocations.Get(i)) array_allocations_mask_->Add(i);
+    if (!large_array_allocations.Get(i)) large_array_allocations_mask_->Add(i);
   }
 }
 
@@ -388,9 +402,9 @@ void WriteBarrierElimination::UpdateVectorForBlock(BlockEntryInstr* entry,
     if (current->CanCallDart()) {
       vector_->Clear();
     } else if (current->CanTriggerGC()) {
-      // Clear array allocations. These are not added to the remembered set
-      // by Thread::RememberLiveTemporaries() after a scavenge.
-      vector_->Intersect(array_allocations_mask_);
+      // Clear large array allocations. These are not added to the remembered
+      // set by Thread::RememberLiveTemporaries() after a scavenge.
+      vector_->Intersect(large_array_allocations_mask_);
     }
 
     if (AllocationInstr* const alloc = current->AsAllocation()) {

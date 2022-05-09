@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -35,16 +36,23 @@ class AddFieldFormalParameters extends CorrectionProducer {
     // Compute uninitialized final fields.
     var fields = ErrorVerifier.computeNotInitializedFields(constructor);
     fields.retainWhere((FieldElement field) => field.isFinal);
-
-    // Prepare new parameters code.
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
-    var fieldParametersCode =
-        fields.map((field) => 'this.${field.name}').join(', ');
 
     // Specialize for Flutter widgets.
     if (flutter.isExactlyStatelessWidgetType(superType) ||
         flutter.isExactlyStatefulWidgetType(superType)) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
+        var isNullSafe =
+            libraryElement.featureSet.isEnabled(Feature.non_nullable);
+        String parameterForField(FieldElement field) {
+          var prefix = '';
+          if (isNullSafe && typeSystem.isPotentiallyNonNullable(field.type)) {
+            prefix = 'required ';
+          }
+          return '${prefix}this.${field.name}';
+        }
+
+        var fieldParametersCode = fields.map(parameterForField).join(', ');
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(
             parameters.last.end,
@@ -63,6 +71,8 @@ class AddFieldFormalParameters extends CorrectionProducer {
       }
     }
 
+    var fieldParametersCode =
+        fields.map((field) => 'this.${field.name}').join(', ');
     await builder.addDartFileEdit(file, (builder) {
       if (lastRequiredParameter != null) {
         builder.addSimpleInsertion(

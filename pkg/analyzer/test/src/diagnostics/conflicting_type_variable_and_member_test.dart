@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConflictingTypeVariableAndMemberClassTest);
+    defineReflectiveTests(ConflictingTypeVariableAndMemberEnumTest);
     defineReflectiveTests(ConflictingTypeVariableAndMemberExtensionTest);
     defineReflectiveTests(ConflictingTypeVariableAndMemberMixinTest);
   });
@@ -18,6 +19,17 @@ main() {
 @reflectiveTest
 class ConflictingTypeVariableAndMemberClassTest
     extends PubPackageResolutionTest {
+  test_constructor() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  A.T();
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
+    ]);
+  }
+
   test_field() async {
     await assertErrorsInCode(r'''
 class A<T> {
@@ -70,6 +82,46 @@ class A<T> {
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
           1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ConflictingTypeVariableAndMemberEnumTest
+    extends PubPackageResolutionTest {
+  test_getter() async {
+    await assertErrorsInCode(r'''
+enum A<T> {
+  v;
+  get T => null;
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM, 7, 1),
+    ]);
+  }
+
+  test_method() async {
+    await assertErrorsInCode(r'''
+enum A<T> {
+  v;
+  void T() {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM, 7, 1),
+    ]);
+  }
+
+  test_setter() async {
+    await assertErrorsInCode(r'''
+enum A<T> {
+  v;
+  set T(x) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM, 7, 1),
     ]);
   }
 }

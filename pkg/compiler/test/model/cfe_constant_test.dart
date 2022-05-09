@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -31,7 +31,7 @@ main(List<String> args) {
 class ConstantDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
-  ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
+  ir.TypeEnvironment getTypeEnvironment(KernelToElementMap elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
       ir.CoreTypes coreTypes = new ir.CoreTypes(component);
@@ -49,7 +49,7 @@ class ConstantDataComputer extends DataComputer<String> {
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
     new ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
         .run(node);
@@ -73,7 +73,7 @@ class ConstantDataComputer extends DataComputer<String> {
 
 /// IR visitor for computing inference data for a member.
 class ConstantDataExtractor extends IrDataExtractor<String> {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMap elementMap;
   final MemberEntity member;
 
   ConstantDataExtractor(DiagnosticReporter reporter,

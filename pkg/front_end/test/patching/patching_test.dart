@@ -4,15 +4,18 @@
 
 import 'dart:io' show Directory, Platform;
 
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
-import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
-
-import 'package:_fe_analyzer_shared/src/testing/features.dart';
+import 'package:front_end/src/fasta/source/source_class_builder.dart';
+import 'package:front_end/src/fasta/source/source_constructor_builder.dart';
+import 'package:front_end/src/fasta/source/source_factory_builder.dart';
+import 'package:front_end/src/fasta/source/source_member_builder.dart';
+import 'package:front_end/src/fasta/source/source_procedure_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -65,33 +68,26 @@ class PatchingDataComputer extends DataComputer<Features> {
   const PatchingDataComputer();
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(new PatchingDataExtractor(compilerResult, actualMap));
+    member.accept(
+        new PatchingDataExtractor(testResultData.compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new PatchingDataExtractor(compilerResult, actualMap).computeForClass(cls);
+    new PatchingDataExtractor(testResultData.compilerResult, actualMap)
+        .computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new PatchingDataExtractor(compilerResult, actualMap)
+    new PatchingDataExtractor(testResultData.compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
@@ -99,8 +95,8 @@ class PatchingDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
-      Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors);
     return features;
@@ -135,7 +131,8 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   Features computeClassValue(Id id, Class cls) {
-    ClassBuilder clsBuilder = lookupClassBuilder(compilerResult, cls)!;
+    SourceClassBuilder clsBuilder =
+        lookupClassBuilder(compilerResult, cls) as SourceClassBuilder;
 
     Features features = new Features();
     if (cls.isAbstract) {
@@ -174,11 +171,20 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         features.addElement(Tags.initializers, desc);
       }
     }
-    MemberBuilderImpl? memberBuilder =
+    SourceMemberBuilder? memberBuilder =
         lookupMemberBuilder(compilerResult, member, required: false)
-            as MemberBuilderImpl?;
-    MemberBuilder? patchMember = memberBuilder?.dataForTesting?.patchForTesting;
-    if (patchMember != null) {
+            as SourceMemberBuilder?;
+    List<MemberBuilder>? patchMembers;
+    if (memberBuilder is SourceProcedureBuilder) {
+      patchMembers = memberBuilder.patchesForTesting;
+    }
+    if (memberBuilder is DeclaredSourceConstructorBuilder) {
+      patchMembers = memberBuilder.patchesForTesting;
+    }
+    if (memberBuilder is SourceFactoryBuilder) {
+      patchMembers = memberBuilder.patchesForTesting;
+    }
+    if (patchMembers != null) {
       features.add(Tags.patch);
     }
 

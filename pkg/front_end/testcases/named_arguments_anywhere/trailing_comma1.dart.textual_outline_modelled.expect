@@ -1,0 +1,12 @@
+class Bad {
+  method() {}
+}
+
+class C {
+  void instance1({z}) {}
+  void instance2(a, {z}) {}
+}
+
+main() {}
+var c = new C();
+var z = 42;

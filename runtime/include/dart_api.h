@@ -706,13 +706,6 @@ typedef bool (*Dart_InitializeIsolateCallback)(void** child_isolate_data,
                                                char** error);
 
 /**
- * An isolate unhandled exception callback function.
- *
- * This callback has been DEPRECATED.
- */
-typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
-
-/**
  * An isolate shutdown callback function.
  *
  * This callback, provided by the embedder, is called before the vm
@@ -762,6 +755,15 @@ typedef void (*Dart_IsolateCleanupCallback)(void* isolate_group_data,
  *
  */
 typedef void (*Dart_IsolateGroupCleanupCallback)(void* isolate_group_data);
+
+/**
+ * A thread start callback function.
+ * This callback, provided by the embedder, is called after a thread in the
+ * vm thread pool starts.
+ * This function could be used to adjust thread priority or attach native
+ * resources to the thread.
+ */
+typedef void (*Dart_ThreadStartCallback)(void);
 
 /**
  * A thread death callback function.
@@ -847,7 +849,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)(void);
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000005)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000006)
 
 /** Forward declaration */
 struct Dart_CodeObserver;
@@ -918,6 +920,36 @@ typedef void (*Dart_PostTaskCallback)(void* post_task_data,
 DART_EXPORT void Dart_RunTask(Dart_Task task);
 
 /**
+ * Optional callback provided by the embedder that is used by the VM to
+ * implement registration of kernel blobs for the subsequent Isolate.spawnUri
+ * If no callback is provided, the registration of kernel blobs will throw
+ * an error.
+ * 
+ * \param kernel_buffer A buffer which contains a kernel program. Callback
+ *                      should copy the contents of `kernel_buffer` as
+ *                      it may be freed immediately after registration.
+ * \param kernel_buffer_size The size of `kernel_buffer`.
+ *
+ * \return A C string representing URI which can be later used
+ *         to spawn a new isolate. This C String should be scope allocated
+ *         or owned by the embedder.
+ *         Returns NULL if embedder runs out of memory.
+ */
+typedef const char* (*Dart_RegisterKernelBlobCallback)(
+    const uint8_t* kernel_buffer,
+    intptr_t kernel_buffer_size);
+
+/**
+ * Optional callback provided by the embedder that is used by the VM to
+ * unregister kernel blobs.
+ * If no callback is provided, the unregistration of kernel blobs will throw
+ * an error.
+ * 
+ * \param kernel_blob_uri URI of the kernel blob to unregister.
+ */
+typedef void (*Dart_UnregisterKernelBlobCallback)(const char* kernel_blob_uri);
+
+/**
  * Describes how to initialize the VM. Used with Dart_Initialize.
  */
 typedef struct {
@@ -973,6 +1005,7 @@ typedef struct {
    */
   Dart_IsolateGroupCleanupCallback cleanup_group;
 
+  Dart_ThreadStartCallback thread_start;
   Dart_ThreadExitCallback thread_exit;
   Dart_FileOpenCallback file_open;
   Dart_FileReadCallback file_read;
@@ -1000,6 +1033,16 @@ typedef struct {
   Dart_PostTaskCallback post_task;
 
   void* post_task_data;
+
+  /**
+   * Kernel blob registration callback function. See Dart_RegisterKernelBlobCallback.
+   */
+  Dart_RegisterKernelBlobCallback register_kernel_blob;
+
+  /**
+   * Kernel blob unregistration callback function. See Dart_UnregisterKernelBlobCallback.
+   */
+  Dart_UnregisterKernelBlobCallback unregister_kernel_blob;
 } Dart_InitializeParams;
 
 /**
@@ -1257,18 +1300,6 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
  * there is one.
  */
 DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
-
-/**
- * Notifies the VM that the embedder expects |size| bytes of memory have become
- * unreachable. The VM may use this hint to adjust the garbage collector's
- * growth policy.
- *
- * Multiple calls are interpreted as increasing, not replacing, the estimate of
- * unreachable memory.
- *
- * Requires there to be a current isolate.
- */
-DART_EXPORT void Dart_HintFreed(intptr_t size);
 
 /**
  * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
@@ -3684,6 +3715,43 @@ Dart_CompileToKernel(const char* script_uri,
                      bool snapshot_compile,
                      const char* package_config,
                      Dart_KernelCompilationVerbosityLevel verbosity);
+
+/**
+ * Compiles the given `script_uri` to a kernel file.
+ *
+ * \param platform_kernel A buffer containing the kernel of the platform (e.g.
+ * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
+ *
+ * \param platform_kernel_size The length of the platform_kernel buffer.
+ *
+ * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
+ * This is used by the frontend to determine if compilation related information
+ * should be printed to console (e.g., null safety mode).
+ *
+ * \param null_safety Provides null-safety mode setting for the compiler.
+ *
+ * \param verbosity Specifies the logging behavior of the kernel compilation
+ * service.
+ *
+ * \return Returns the result of the compilation.
+ *
+ * On a successful compilation the returned [Dart_KernelCompilationResult] has
+ * a status of [Dart_KernelCompilationStatus_Ok] and the `kernel`/`kernel_size`
+ * fields are set. The caller takes ownership of the malloc()ed buffer.
+ *
+ * On a failed compilation the `error` might be set describing the reason for
+ * the failed compilation. The caller takes ownership of the malloc()ed
+ * error.
+ */
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernelWithGivenNullsafety(
+    const char* script_uri,
+    const uint8_t* platform_kernel,
+    const intptr_t platform_kernel_size,
+    bool snapshot_compile,
+    const char* package_config,
+    const bool null_safety,
+    Dart_KernelCompilationVerbosityLevel verbosity);
 
 typedef struct {
   const char* uri;

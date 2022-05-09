@@ -74,8 +74,8 @@ Component transformComponent(
     final protobufHandlerRta = treeShakeProtobufs
         ? ProtobufHandler.forComponent(component, coreTypes)
         : null;
-    rta = RapidTypeAnalysis(
-        component, coreTypes, hierarchy, libraryIndex, protobufHandlerRta);
+    rta = RapidTypeAnalysis(component, coreTypes, target, hierarchy,
+        libraryIndex, protobufHandlerRta);
     rtaStopWatch.stop();
   }
 
@@ -875,11 +875,6 @@ class TreeShaker {
     if (_usedTypedefs.add(typedef)) {
       typedef.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(typedef.typeParameters, typedef);
-      _pass1.transformTypeParameterList(
-          typedef.typeParametersOfFunctionType, typedef);
-      _pass1.transformVariableDeclarationList(
-          typedef.positionalParameters, typedef);
-      _pass1.transformVariableDeclarationList(typedef.namedParameters, typedef);
       typedef.type?.accept(typeVisitor);
     }
   }
@@ -1583,12 +1578,22 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isExtendedBoolLiteral(condition)) {
       final bool value = _getExtendedBoolLiteralValue(condition);
       final Expression expr = transform(value ? node.then : node.otherwise);
+      Expression result;
       if (condition is BlockExpression) {
         condition.value = expr;
         expr.parent = condition;
-        return condition;
+        result = condition;
       } else {
-        return expr;
+        result = expr;
+      }
+      if (node.staticType != result.getStaticType(staticTypeContext)) {
+        return StaticInvocation(
+            unsafeCast,
+            Arguments([result],
+                types: [visitDartType(node.staticType, cannotRemoveSentinel)]))
+          ..fileOffset = node.fileOffset;
+      } else {
+        return result;
       }
     }
     node.condition = condition..parent = node;

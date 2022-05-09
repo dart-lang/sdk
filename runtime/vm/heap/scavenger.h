@@ -168,7 +168,7 @@ class NewPage {
 class SemiSpace {
  public:
   static void Init();
-  static void DrainCache();
+  static void ClearCache();
   static void Cleanup();
   static intptr_t CachedSize();
 
@@ -439,7 +439,9 @@ class Scavenger {
   RelaxedAtomic<bool> failed_to_promote_;
   RelaxedAtomic<bool> abort_;
 
-  bool growth_control_;
+  // When the isolate group is ready it will enable growth control via
+  // InitGrowthControl.
+  bool growth_control_ = false;
 
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;
@@ -447,6 +449,7 @@ class Scavenger {
   template <bool>
   friend class ScavengerVisitorBase;
   friend class ScavengerWeakVisitor;
+  friend class ScavengerFinalizerVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

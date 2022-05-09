@@ -10,14 +10,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show StringToken;
-
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show LibrariesSpecification;
-
 import 'package:kernel/kernel.dart' show Component;
-
-import 'package:kernel/ast.dart' as ir;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -129,12 +122,6 @@ export '../fasta/operator.dart' show operatorFromString;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
-void clearStringTokenCanonicalizer() {
-  // TODO(ahe): We should be able to remove this. Fasta should take care of
-  // clearing the cache when.
-  StringToken.canonicalizer.clear();
-}
-
 InitializedCompilerState initializeCompiler(
     InitializedCompilerState? oldState,
     Target target,
@@ -185,7 +172,9 @@ Future<Component?> compile(
     bool verbose,
     FileSystem fileSystem,
     DiagnosticMessageHandler onDiagnostic,
-    Uri input) async {
+    List<Uri> inputs,
+    bool isModularCompile) async {
+  assert(inputs.length == 1 || isModularCompile);
   CompilerOptions options = state.options;
   options
     ..onDiagnostic = onDiagnostic
@@ -194,7 +183,7 @@ Future<Component?> compile(
 
   ProcessedOptions processedOpts = state.processedOpts;
   processedOpts.inputs.clear();
-  processedOpts.inputs.add(input);
+  processedOpts.inputs.addAll(inputs);
   processedOpts.clearFileSystemCache();
 
   CompilerResult? compilerResult = await CompilerContext.runWithOptions(
@@ -202,9 +191,10 @@ Future<Component?> compile(
     CompilerResult compilerResult = await generateKernelInternal();
     Component? component = compilerResult.component;
     if (component == null) return null;
-    if (component.mainMethod == null) {
+    if (component.mainMethod == null && !isModularCompile) {
       context.options.report(
-          messageMissingMain.withLocation(input, -1, 0), Severity.error);
+          messageMissingMain.withLocation(inputs.single, -1, 0),
+          Severity.error);
       return null;
     }
     return compilerResult;
@@ -216,29 +206,3 @@ Future<Component?> compile(
   options.fileSystem = const NullFileSystem();
   return compilerResult?.component;
 }
-
-/// Retrieve the name of the libraries that are supported by [target] according
-/// to the libraries specification [json] file.
-///
-/// Dart2js uses these names to determine the value of library environment
-/// constants, such as `const bool.fromEnvironment("dart.library.io")`.
-// TODO(sigmund): refactor dart2js so that we can retrieve this data later in
-// the compilation pipeline. At that point we can get it from the CFE
-// results directly and completely hide the libraries specification file from
-// dart2js.
-// TODO(sigmund): delete after all constant evaluation is done in the CFE, as
-// this data will no longer be needed on the dart2js side.
-Iterable<String> getSupportedLibraryNames(
-    Uri librariesSpecificationUri, String json, String target) {
-  return LibrariesSpecification.parse(librariesSpecificationUri, json)
-      .specificationFor(target)
-      .allLibraries
-      .where((l) => l.isSupported)
-      .map((l) => l.name);
-}
-
-/// Desugar API to determine whether [member] is a redirecting factory
-/// constructor.
-// TODO(sigmund): Delete this API once `member.isRedirectingFactory`
-// is implemented correctly for patch files (Issue #33495).
-bool isRedirectingFactory(ir.Procedure member) => member.isRedirectingFactory;

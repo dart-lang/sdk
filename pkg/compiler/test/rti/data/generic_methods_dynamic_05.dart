@@ -4,14 +4,14 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 // Test derived from language_2/generic_methods_dynamic_test/05
 
-/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
 /*prod.class: global#JSArray:deps=[List],needsArgs*/
-/*spec.class: global#List:deps=[C.bar,JSArray.markFixedList],explicit=[List,List<B*>*,List<Object>,List<String>?,List<markFixedList.T>],indirect,needsArgs*/
+/*spec.class: global#List:deps=[C.bar,JSArray.markFixedList],explicit=[List,List<B*>*,List<Object>,List<String>?,List<markFixedList.T>],needsArgs,test*/
 /*prod.class: global#List:deps=[C.bar],explicit=[List<B*>*],needsArgs*/
-
-import "package:expect/expect.dart";
 
 class A {}
 
@@ -20,7 +20,7 @@ class A {}
 class B {}
 
 class C {
-  /*spec.member: C.bar:direct,explicit=[Iterable<bar.T*>*],implicit=[bar.T],needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*spec.member: C.bar:explicit=[Iterable<bar.T*>*],implicit=[bar.T],needsArgs,selectors=[Selector(call, bar, arity=1, types=1)],test*/
   /*prod.member: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   List<T> bar<T>(Iterable<T> t) => <T>[t.first];
 }
@@ -28,5 +28,5 @@ class C {
 main() {
   C c = new C();
   dynamic x = c.bar<B>(<B>[new B()]);
-  Expect.isTrue(x is List<B>);
+  makeLive(x is List<B>);
 }

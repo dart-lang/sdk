@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -92,12 +91,7 @@ class _DartNavigationCollector {
       return;
     }
 
-    var codeLocation = collector.collectCodeLocations
-        ? _getCodeLocation(element, location, converter)
-        : null;
-
-    collector.addRegion(offset, length, kind, location,
-        targetCodeLocation: codeLocation);
+    collector.addRegion(offset, length, kind, location, targetElement: element);
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element? element) {
@@ -121,51 +115,6 @@ class _DartNavigationCollector {
     _addRegion(offset, length, element);
   }
 
-  /// Get the location of the code (excluding leading doc comments) for this element.
-  protocol.Location? _getCodeLocation(Element element,
-      protocol.Location location, AnalyzerConverter converter) {
-    var codeElement = element;
-    // For synthetic getters created for fields, we need to access the associated
-    // variable to get the codeOffset/codeLength.
-    if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
-      final variable = codeElement.variable;
-      if (variable is ElementImpl) {
-        codeElement = variable as ElementImpl;
-      }
-    }
-
-    // Read the main codeOffset from the element. This may include doc comments
-    // but will give the correct end position.
-    int? codeOffset, codeLength;
-    if (codeElement is ElementImpl) {
-      codeOffset = codeElement.codeOffset;
-      codeLength = codeElement.codeLength;
-    }
-
-    if (codeOffset == null || codeLength == null) {
-      return null;
-    }
-
-    // Read the declaration so we can get the offset after the doc comments.
-    // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
-    // a better solution.
-    final declaration = _parsedDeclaration(codeElement);
-    var node = declaration?.node;
-    if (node is VariableDeclaration) {
-      node = node.parent;
-    }
-    if (node is AnnotatedNode) {
-      var offsetAfterDocs = node.firstTokenAfterCommentAndMetadata.offset;
-
-      // Reduce the length by the difference between the end of docs and the start.
-      codeLength -= (offsetAfterDocs - codeOffset);
-      codeOffset = offsetAfterDocs;
-    }
-
-    return converter.locationFromElement(element,
-        offset: codeOffset, length: codeLength);
-  }
-
   /// Checks if offset/length intersect with the range the user requested
   /// navigation regions for.
   ///
@@ -184,25 +133,6 @@ class _DartNavigationCollector {
       return false;
     }
     return true;
-  }
-
-  static ElementDeclarationResult? _parsedDeclaration(Element element) {
-    var session = element.session;
-    if (session == null) {
-      return null;
-    }
-
-    var libraryPath = element.library?.source.fullName;
-    if (libraryPath == null) {
-      return null;
-    }
-
-    var parsedLibrary = session.getParsedLibrary(libraryPath);
-    if (parsedLibrary is! ParsedLibraryResult) {
-      return null;
-    }
-
-    return parsedLibrary.getElementDeclaration(element);
   }
 }
 
@@ -278,9 +208,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           var parentPath =
               _computeParentWithExamplesAPI(node, resourceProvider);
           if (parentPath != null) {
+            var start = token.offset + startIndex;
+            var end = token.offset + endIndex;
             computer.collector.addRegion(
-                token.offset + startIndex,
-                token.offset + endIndex,
+                start,
+                end - start,
                 protocol.ElementKind.LIBRARY,
                 protocol.Location(
                     resourceProvider.pathContext.join(parentPath, pathSnippet),
@@ -354,7 +286,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // add regions
-    var typeName = node.type2;
+    var typeName = node.type;
     // [prefix].ClassName
     {
       var name = typeName.name;
@@ -386,6 +318,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    computer._addRegionForNode(node.name, node.constructorElement);
+
+    var arguments = node.arguments;
+    if (arguments != null) {
+      computer._addRegionForNode(
+        arguments.constructorSelector?.name,
+        node.constructorElement,
+      );
+      arguments.typeArguments?.accept(this);
+      arguments.argumentList.accept(this);
+    }
   }
 
   @override
@@ -482,6 +429,20 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is SuperFormalParameterElementImpl) {
+      var superParameter = element.superConstructorParameter;
+      computer._addRegionForToken(node.superKeyword, superParameter);
+      computer._addRegionForNode(node.identifier, superParameter);
+    }
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the
@@ -538,14 +499,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (!file.exists) {
       return null;
     }
-    var parent = file.parent2;
-    while (parent != parent.parent2) {
+    var parent = file.parent;
+    while (parent != parent.parent) {
       var examplesFolder = parent.getChildAssumingFolder('examples');
       if (examplesFolder.exists &&
           examplesFolder.getChildAssumingFolder('api').exists) {
         return parent.path;
       }
-      parent = parent.parent2;
+      parent = parent.parent;
     }
     return null;
   }

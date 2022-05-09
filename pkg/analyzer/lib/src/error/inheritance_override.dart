@@ -45,7 +45,7 @@ class InheritanceOverrideVerifier {
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
-          superclass: declaration.extendsClause?.superclass2,
+          superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is ClassTypeAlias) {
@@ -58,7 +58,20 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
-          superclass: declaration.superclass2,
+          superclass: declaration.superclass,
+          withClause: declaration.withClause,
+        ).verify();
+      } else if (declaration is EnumDeclaration) {
+        _ClassVerifier(
+          typeSystem: _typeSystem,
+          typeProvider: _typeProvider,
+          inheritance: _inheritance,
+          reporter: _reporter,
+          featureSet: unit.featureSet,
+          library: library,
+          classNameNode: declaration.name,
+          implementsClause: declaration.implementsClause,
+          members: declaration.members,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is MixinDeclaration) {
@@ -94,7 +107,7 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final ClassElementImpl classElement;
+  final AbstractClassElementImpl classElement;
 
   final SimpleIdentifier classNameNode;
   final List<ClassMember> members;
@@ -104,6 +117,9 @@ class _ClassVerifier {
   final WithClause? withClause;
 
   final List<InterfaceType> directSuperInterfaces = [];
+
+  late final implementsDartCoreEnum =
+      classElement.allSupertypes.any((e) => e.isDartCoreEnum);
 
   _ClassVerifier({
     required this.typeSystem,
@@ -119,12 +135,22 @@ class _ClassVerifier {
     this.superclass,
     this.withClause,
   })  : libraryUri = library.source.uri,
-        classElement = classNameNode.staticElement as ClassElementImpl;
+        classElement = classNameNode.staticElement as AbstractClassElementImpl;
 
   bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
   void verify() {
     if (_checkDirectSuperTypes()) {
+      return;
+    }
+
+    if (!classElement.isEnum &&
+        !classElement.isAbstract &&
+        implementsDartCoreEnum) {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
+        classNameNode,
+      );
       return;
     }
 
@@ -152,7 +178,7 @@ class _ClassVerifier {
     //   class C extends S&M2 { ...members of C... }
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
-    var mixinNodes = withClause?.mixinTypes2;
+    var mixinNodes = withClause?.mixinTypes;
     var mixinTypes = classElement.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
@@ -171,6 +197,12 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
+          if (!member.isStatic && !classElement.isEnum) {
+            _checkIllegalEnumValuesDeclaration(field.name);
+          }
+          if (!member.isStatic) {
+            _checkIllegalConcreteEnumMemberDeclaration(field.name);
+          }
         }
       } else if (member is MethodDeclaration) {
         var hasError = _reportNoCombinedSuperSignature(member);
@@ -180,8 +212,17 @@ class _ClassVerifier {
 
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
+        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
+          _checkIllegalConcreteEnumMemberDeclaration(member.name);
+        }
+        if (!member.isStatic && !classElement.isEnum) {
+          _checkIllegalEnumValuesDeclaration(member.name);
+        }
       }
     }
+
+    _checkIllegalConcreteEnumMemberInheritance();
+    _checkIllegalEnumValuesInheritance();
 
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
@@ -201,10 +242,16 @@ class _ClassVerifier {
 
         // No concrete implementation of the name.
         if (concreteElement == null) {
-          if (!_reportConcreteClassWithAbstractMember(name.name)) {
-            inheritedAbstract ??= [];
-            inheritedAbstract.add(interfaceElement);
+          if (_reportConcreteClassWithAbstractMember(name.name)) {
+            continue;
           }
+          // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
+          if (classElement.isEnum &&
+              const {'values', 'values='}.contains(name.name)) {
+            continue;
+          }
+          inheritedAbstract ??= [];
+          inheritedAbstract.add(interfaceElement);
           continue;
         }
 
@@ -332,8 +379,25 @@ class _ClassVerifier {
     }
 
     DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType &&
-        typeProvider.isNonSubtypableClass(type.element)) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    var interfaceElement = type.element;
+
+    if (interfaceElement.isDartCoreEnum &&
+        library.featureSet.isEnabled(Feature.enhanced_enums)) {
+      if (classElement.isAbstract || classElement.isEnum) {
+        return false;
+      }
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
+        namedType,
+      );
+      return true;
+    }
+
+    if (typeProvider.isNonSubtypableClass(interfaceElement)) {
       reporter.reportErrorForNode(errorCode, namedType, [type]);
       return true;
     }
@@ -347,7 +411,7 @@ class _ClassVerifier {
   bool _checkDirectSuperTypes() {
     var hasError = false;
     if (implementsClause != null) {
-      for (var namedType in implementsClause!.interfaces2) {
+      for (var namedType in implementsClause!.interfaces) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
@@ -357,7 +421,7 @@ class _ClassVerifier {
       }
     }
     if (onClause != null) {
-      for (var namedType in onClause!.superclassConstraints2) {
+      for (var namedType in onClause!.superclassConstraints) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
@@ -375,16 +439,41 @@ class _ClassVerifier {
       }
     }
     if (withClause != null) {
-      for (var namedType in withClause!.mixinTypes2) {
+      for (var namedType in withClause!.mixinTypes) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         )) {
           hasError = true;
         }
+        if (classElement.isEnum && _checkEnumMixin(namedType)) {
+          hasError = true;
+        }
       }
     }
     return hasError;
+  }
+
+  bool _checkEnumMixin(NamedType namedType) {
+    DartType type = namedType.typeOrThrow;
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    var interfaceElement = type.element;
+    if (interfaceElement.isEnum) {
+      return false;
+    }
+
+    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
+      return false;
+    }
+
+    reporter.reportErrorForNode(
+      CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
+      namedType,
+    );
+    return true;
   }
 
   void _checkForOptionalParametersDifferentDefaultValues(
@@ -557,6 +646,81 @@ class _ClassVerifier {
     return false;
   }
 
+  void _checkIllegalConcreteEnumMemberDeclaration(SimpleIdentifier name) {
+    if (implementsDartCoreEnum &&
+        const {'index', 'hashCode', '=='}.contains(name.name)) {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+        name,
+        [name.name],
+      );
+    }
+  }
+
+  void _checkIllegalConcreteEnumMemberInheritance() {
+    // We ignore mixins because they don't inherit and members.
+    // But to support `super.foo()` invocations we put members from superclass
+    // constraints into the `superImplemented` bucket, the same we look below.
+    if (classElement.isMixin) {
+      return;
+    }
+
+    if (implementsDartCoreEnum) {
+      var concreteMap = inheritance.getInheritedConcreteMap2(classElement);
+
+      void checkSingle(
+        String memberName,
+        bool Function(ClassElement enclosingClass) filter,
+      ) {
+        var member = concreteMap[Name(libraryUri, memberName)];
+        if (member != null) {
+          var enclosingClass = member.enclosingElement;
+          if (enclosingClass is ClassElement && filter(enclosingClass)) {
+            reporter.reportErrorForNode(
+              CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+              classNameNode,
+              [memberName, enclosingClass.name],
+            );
+          }
+        }
+      }
+
+      checkSingle('hashCode', (e) => !e.isDartCoreObject);
+      checkSingle('==', (e) => !e.isDartCoreObject);
+      checkSingle('index', (e) => !e.isDartCoreEnum);
+    }
+  }
+
+  void _checkIllegalEnumValuesDeclaration(SimpleIdentifier name) {
+    if (implementsDartCoreEnum && name.name == 'values') {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
+        name,
+      );
+    }
+  }
+
+  void _checkIllegalEnumValuesInheritance() {
+    if (implementsDartCoreEnum) {
+      var getter = inheritance.getInherited2(
+        classElement,
+        Name(libraryUri, 'values'),
+      );
+      var setter = inheritance.getInherited2(
+        classElement,
+        Name(libraryUri, 'values='),
+      );
+      var inherited = getter ?? setter;
+      if (inherited != null) {
+        reporter.reportErrorForNode(
+          CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
+          classNameNode,
+          [inherited.enclosingElement.name!],
+        );
+      }
+    }
+  }
+
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   ErrorCode _getRecursiveErrorCode(ClassElement element) {
@@ -587,9 +751,12 @@ class _ClassVerifier {
     bool checkMemberNameCombo(ClassMember member, String memberName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
-            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-            member,
-            [name, classElement.name]);
+          classElement.isEnum
+              ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
+              : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          member,
+          [name, classElement.name],
+        );
         return true;
       } else {
         return false;

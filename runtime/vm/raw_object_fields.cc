@@ -6,7 +6,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) || !defined(DART_PRODUCT)
+#if defined(DART_PRECOMPILER) || !defined(PRODUCT)
 
 #define COMMON_CLASSES_AND_FIELDS(F)                                           \
   F(Class, name_)                                                              \
@@ -193,6 +193,8 @@ namespace dart {
   F(RegExp, external_two_byte_sticky_)                                         \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
+  F(WeakReference, target_)                                                    \
+  F(WeakReference, type_arguments_)                                            \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
   F(PointerBase, data_)                                                        \

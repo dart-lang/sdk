@@ -1,20 +1,20 @@
 // Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-// @dart=2.9
-bool topLevelField;
+
+bool topLevelField = true;
 var untypedTopLevelField;
 
 class Super {
-  int superInstanceField;
+  int superInstanceField = 0;
   var untypedSuperInstanceField;
 }
 
 class C extends Super {
-  int instanceField;
+  int instanceField = 0;
   var untypedInstanceField;
 
-  static double staticField;
+  static double staticField = 0.0;
 
   static var untypedStaticField;
 

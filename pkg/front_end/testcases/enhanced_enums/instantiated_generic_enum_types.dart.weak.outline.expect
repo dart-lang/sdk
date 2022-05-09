@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::one, self::E::two];
+  final field self::E::X% field;
+  static const field self::E<core::int> one = const self::E::•<core::int>(0, "one", 1);
+  static const field self::E<core::String> two = const self::E::•<core::String>(1, "two", "2");
+  const constructor •(core::int index, core::String name, self::E::X% field) → self::E<self::E::X%>
+    : self::E::field = field, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method test() → dynamic
+  ;
+static method foo(self::E<core::int> ei, self::E<core::String> es) → dynamic
+  ;
+static method bar(self::E<core::int> ei, self::E<core::String> es) → dynamic
+  ;
+static method baz(self::E<core::Object> ei, self::E<core::Object> es) → dynamic
+  ;
+static method boz(self::E<Never> ei, self::E<Never> es) → dynamic
+  ;
+static method checkIsType<T extends core::Object? = dynamic>(dynamic x) → dynamic
+  ;
+static method checkIsNotType<T extends core::Object? = dynamic>(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///instantiated_generic_enum_types.dart:5:6 -> ListConstant(const <E<dynamic>*>[const E<int*>{E.field: 1, _Enum.index: 0, _Enum._name: "one"}, const E<String*>{E.field: "2", _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///instantiated_generic_enum_types.dart:6:3 -> InstanceConstant(const E<int*>{E.field: 1, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///instantiated_generic_enum_types.dart:7:3 -> InstanceConstant(const E<String*>{E.field: "2", _Enum.index: 1, _Enum._name: "two"})
+Extra constant evaluation: evaluated: 9, effectively constant: 3

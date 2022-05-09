@@ -61,10 +61,7 @@ main() {
 }
 ''';
 
-/// Shared tests that require a language version greater than 2.12.
-///
-/// Tests that exercise language features introduced with 2.12 or after are
-/// valid here.
+/// Shared tests that require a language version >=2.12.0 <2.17.0.
 // TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
 // test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
@@ -313,6 +310,51 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expression: '(C.factory)()',
           expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
               'Symbol(C.field): 42, Symbol(_field): 0}');
+    });
+  });
+
+  group('Enums', () {
+    var source = r'''
+      enum E {id1, id2, id3}
+
+      enum E2 {id1, id2, id3}
+
+      main() {
+        var e = E.id2;
+        // Breakpoint: bp
+        print('hello world');
+      }
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('evaluate to the correct string', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'E.id2.toString()',
+          expectedResult: 'E.id2');
+    });
+    test('evaluate to the correct index', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: 'E.id3.index', expectedResult: '2');
+    });
+    test('compare properly against themselves', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'e == E.id2 && E.id2 == E.id2',
+          expectedResult: 'true');
+    });
+    test('compare properly against other enums', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'e != E2.id2 && E.id2 != E2.id2',
+          expectedResult: 'true');
     });
   });
 }

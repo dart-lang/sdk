@@ -22,9 +22,14 @@ class LibraryIndex {
   final Map<String, _ClassTable> _libraries = <String, _ClassTable>{};
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex(Component component, Iterable<String> libraryUris) {
+  LibraryIndex(Component component, Iterable<String> libraryUris)
+      : this.fromLibraries(component.libraries, libraryUris);
+
+  /// Indexes the libraries with the URIs given in [libraryUris].
+  LibraryIndex.fromLibraries(
+      Iterable<Library> libraries, Iterable<String> libraryUris) {
     Set<String> libraryUriSet = libraryUris.toSet();
-    for (Library library in component.libraries) {
+    for (Library library in libraries) {
       String uri = '${library.importUri}';
       if (libraryUriSet.contains(uri)) {
         _libraries[uri] = new _ClassTable(library);
@@ -39,7 +44,7 @@ class LibraryIndex {
   /// Indexes `dart:` libraries.
   LibraryIndex.coreLibraries(Component component) {
     for (Library library in component.libraries) {
-      if (library.importUri.scheme == 'dart') {
+      if (library.importUri.isScheme('dart')) {
         _libraries['${library.importUri}'] = new _ClassTable(library);
       }
     }

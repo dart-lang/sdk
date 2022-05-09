@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 void main() {
   /// Ensure server lint name representations correspond w/ actual lint rules.
   /// See, e.g., https://dart-review.googlesource.com/c/sdk/+/95743.
-  group('lint_names', () {
+  test('lint_names', () async {
     var pkgRootPath = path.normalize(packageRoot);
     var fixFilePath = path.join(pkgRootPath, 'analysis_server', 'lib', 'src',
         'services', 'linter', 'lint_names.dart');
@@ -38,9 +38,7 @@ void main() {
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
     for (var name in collector.lintNames) {
-      test(name, () {
-        expect(registeredLintNames, contains(name));
-      });
+      expect(registeredLintNames, contains(name));
     }
   });
 }

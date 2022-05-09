@@ -27,6 +27,10 @@ void main() {
   group('analyzer_plugin', () {
     buildTestsForAnalyzerPlugin();
   });
+
+  group('nnbd_migration', () {
+    buildTestsForNnbdMigration();
+  });
 }
 
 void buildTests({
@@ -116,6 +120,12 @@ void buildTestsForAnalyzerPlugin() {
   );
 }
 
+void buildTestsForNnbdMigration() {
+  buildTests(
+      packagePath: 'nnbd_migration',
+      excludedPaths: ['lib/src/front_end/resources/resources.g.dart']);
+}
+
 void buildTestsIn(AnalysisSession session, String testDirPath,
     List<String> excludedPath, Folder directory) {
   var pathContext = session.resourceProvider.pathContext;
@@ -132,7 +142,7 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
         continue;
       }
       var relativePath = pathContext.relative(path, from: testDirPath);
-      test(relativePath, () {
+      test(relativePath, () async {
         var result = session.getParsedUnit(path);
         if (result is! ParsedUnitResult) {
           fail('Could not parse $path');

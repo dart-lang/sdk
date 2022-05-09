@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+}
+abstract class B<D extends core::Object? = dynamic> extends core::Object {
+  final field self::B::D% field;
+  constructor •({required self::B::D% field = #C1}) → self::B<self::B::D%>
+    : self::B::field = field, super core::Object::•()
+    ;
+}
+abstract class _C&B&Mixin extends self::B<self::A> implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •({self::A field = #C1}) → self::_C&B&Mixin
+    : super self::B::•(field: field)
+    ;
+}
+class C extends self::_C&B&Mixin {
+  constructor •({required self::A field = #C1}) → self::C
+    : super self::_C&B&Mixin::•(field: field)
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

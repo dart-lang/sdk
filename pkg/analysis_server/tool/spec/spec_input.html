@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.32.8</version>
+  <version>1.33.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -134,6 +134,15 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.33.0</h4>
+<ul>
+  <li>Requests <tt>getSuggestions2</tt> and <tt>getSuggestionDetails2</tt>
+    are enabled.</li>
+</ul>
+<h4>1.32.10</h4>
+<ul>
+  <li>The <tt>MOVE_FILE</tt> refactor now supports moving/renaming folders.</li>
+</ul>
 <h4>1.32.8</h4>
 <ul>
   <li>Added <tt>server.cancelRequest</tt> to allow clients to request cancellation
@@ -866,7 +875,8 @@
         </p>
         <p>
           If a package root is a file, then the analyzer
-          will behave as though that file is a ".packages" file in the
+          will behave as though that file is a
+          ".dart_tool/package_config.json" file in the
           source directory. The effect is the same as specifying the file
           as a "--packages" parameter to the Dart VM when
           executing any Dart file inside the source directory.
@@ -1480,7 +1490,7 @@
       </field>
     </result>
   </request>
-  <request method="getSuggestions2" experimental="true">
+  <request method="getSuggestions2">
     <p>
       Request that completion suggestions for the given offset in the given
       file be returned. The suggestions will be filtered using fuzzy matching
@@ -1505,6 +1515,29 @@
           The maximum number of suggestions to return. If the number of
           suggestions after filtering is greater than the <tt>maxResults</tt>,
           then <tt>isIncomplete</tt> is set to <tt>true</tt>.
+        </p>
+      </field>
+      <field name="completionCaseMatchingMode" optional="true">
+        <ref>CompletionCaseMatchingMode</ref>
+        <p>
+          The mode of code completion being invoked. If no value is provided,
+          <tt>MATCH_FIRST_CHAR</tt> will be assumed.
+        </p>
+      </field>
+      <field name="completionMode" experimental="true" optional="true">
+        <ref>CompletionMode</ref>
+        <p>
+          The mode of code completion being invoked. If no value is provided,
+          <tt>BASIC</tt> will be assumed. <tt>BASIC</tt> is also the only
+          currently supported.
+        </p>
+      </field>
+      <field name="invocationCount" experimental="true" optional="true">
+        <ref>int</ref>
+        <p>
+          The number of times that the user has invoked code completion at
+          the same code location, counting from 1. If no value is provided,
+          1 will be assumed.
         </p>
       </field>
       <field name="timeout" experimental="true" optional="true">
@@ -1554,25 +1587,7 @@
         <p>
           This list contains suggestions from both imported, and not yet
           imported libraries. Items from not yet imported libraries will
-          have <tt>libraryUriToImportIndex</tt> set, which is an index into
-          the <tt>libraryUrisToImport</tt> in this response.
-        </p>
-      </field>
-      <field name="libraryUrisToImport">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The list of libraries with declarations that are not yet available
-          in the file where completion was requested, most often because
-          the library is not yet imported. The declarations still might be
-          included into the <tt>suggestions</tt>, and the client should use
-          <tt>getSuggestionDetails2</tt> on selection to make the library
-          available in the file.
-        </p>
-        <p>
-          Each item is the URI of a library, such as <tt>package:foo/bar.dart</tt>
-          or <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+          have <tt>isNotImported</tt> set to <tt>true</tt>.
         </p>
       </field>
       <field name="isIncomplete">
@@ -1680,10 +1695,10 @@
       </field>
     </result>
   </request>
-  <request method="getSuggestionDetails2" experimental="true">
+  <request method="getSuggestionDetails2">
     <p>
       Clients must make this request when the user has selected a completion
-      suggestion with the <tt>libraryUriToImportIndex</tt> field set.
+      suggestion with the <tt>isNotImported</tt> field set to <tt>true</tt>.
       The server will respond with the text to insert, as well as any
       <tt>SourceChange</tt> that needs to be applied in case the completion
       requires an additional import to be  added. The text to insert might be
@@ -2258,6 +2273,41 @@
         <ref>int</ref>
         <p>
           The length of the selection after formatting the code.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="formatIfEnabled" experimental="true">
+    <p>
+      Format the contents of the files in one or more directories, but only if
+      the analysis options file for those files has enabled the 'format' option.
+    </p>
+    <p>
+      If any of the specified directories does not exist, that directory will be
+      ignored. If any of the files that are eligible for being formatted cannot
+      be formatted because of a syntax error in the file, that file will be
+      ignored.
+    </p>
+    <params>
+      <field name="directories">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The paths of the directories containing the code to be formatted.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          The edit(s) to be applied in order to format the code. The list will
+          be empty if none of the files were formatted, whether because they
+          were not eligible to be formatted or because they were already
+          formatted.
         </p>
       </field>
     </result>
@@ -4128,6 +4178,52 @@
       </field>
     </object>
   </type>
+  <type name="CompletionMode">
+    <p>
+      An enumeration of the kinds of code completion that users can invoke.
+    </p>
+    <enum>
+      <value>
+        <code>BASIC</code>
+        <p>
+          Basic code completion invocation type, and the default for this
+          enumeration.
+        </p>
+      </value>
+      <value>
+        <code>SMART</code>
+        <p>
+          Smart code completion, currently not implemented.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="CompletionCaseMatchingMode">
+    <p>
+      An enumeration of the character case matching modes that the user may set in the client.
+    </p>
+    <enum>
+      <value>
+        <code>FIRST_CHAR</code>
+        <p>
+          Match the first character case only when filtering completions, the default for this
+          enumeration.
+        </p>
+      </value>
+      <value>
+        <code>ALL_CHARS</code>
+        <p>
+          Match all character cases when filtering completion lists.
+        </p>
+      </value>
+      <value>
+        <code>NONE</code>
+        <p>
+          Do not match character cases when filtering completion lists.
+        </p>
+      </value>
+    </enum>
+  </type>
   <type name="RuntimeCompletionExpression">
     <p>
       An expression for which we want to know its runtime type.
@@ -5856,10 +5952,15 @@
   </refactoring>
   <refactoring kind="MOVE_FILE">
     <p>
-      Move the given file and update all of the references to that file
-      and from it. The move operation is supported in general case - for
-      renaming a file in the same folder, moving it to a different folder
-      or both.
+      Move the given file or folder and update all of the references to
+      and from it. The move operation is supported in general case -
+      for renaming an item in the same folder, moving it to a different
+      folder or both.
+
+      Moving or renaming large folders may take time and clients should
+      consider showing an indicator to the user with the ability to
+      cancel the request (which can be done using
+      <tt>server.cancelRequest</tt>).
     </p>
     <p>
       The refactoring must be activated before an actual file moving

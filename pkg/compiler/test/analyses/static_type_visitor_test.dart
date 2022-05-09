@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/ir/static_type.dart';
-import 'package:compiler/src/kernel/loader.dart';
+import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -26,7 +26,12 @@ main() {
     Compiler compiler = await compilerFor(
         memorySourceFiles: {'main.dart': source},
         entryPoint: Uri.parse('memory:main.dart'));
-    KernelResult result = await compiler.kernelLoader.load();
+    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+        compiler.options,
+        compiler.provider,
+        compiler.reporter,
+        compiler.initializedCompilerState,
+        false));
     ir.Component component = result.component;
     StaticTypeVisitor visitor = new Visitor(component);
     component.accept(visitor);

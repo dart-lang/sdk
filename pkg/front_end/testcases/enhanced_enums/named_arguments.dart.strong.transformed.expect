@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E0 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E0> values = #C8;
+  final field core::int foo;
+  final field core::int bar;
+  static const field self::E0 one = #C4;
+  static const field self::E0 two = #C7;
+  const constructor •(core::int index, core::String name = #C9, core::int foo, {required core::int bar = #C9}) → self::E0
+    : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E0.${this.{core::_Enum::_name}{core::String}}";
+}
+class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1<dynamic>> values = #C13;
+  final field self::E1::X% foo;
+  static const field self::E1<core::String> one = #C11;
+  static const field self::E1<core::int> two = #C12;
+  const constructor •(core::int index = #C9, core::String name, {required self::E1::X% foo = #C9}) → self::E1<self::E1::X%>
+    : self::E1::foo = foo, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2<dynamic, dynamic, dynamic>> values = #C22;
+  final field self::E2::X% foo;
+  final field self::E2::Y% bar;
+  final field self::E2::Z? baz;
+  static const field self::E2<core::int, core::String, core::double> one = #C15;
+  static const field self::E2<core::String, core::int, core::double> two = #C17;
+  static const field self::E2<core::double, core::bool, dynamic> three = #C21;
+  const constructor •(core::int index, core::String name = #C9, self::E2::X% foo, {required self::E2::Y% bar = #C9, self::E2::Z? baz = #C9}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
+    : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = 0
+  #C3 = "one"
+  #C4 = self::E0 {foo:#C1, bar:#C1, index:#C2, _name:#C3}
+  #C5 = 2
+  #C6 = "two"
+  #C7 = self::E0 {foo:#C5, bar:#C5, index:#C1, _name:#C6}
+  #C8 = <self::E0>[#C4, #C7]
+  #C9 = null
+  #C10 = "1"
+  #C11 = self::E1<core::String> {foo:#C10, index:#C2, _name:#C3}
+  #C12 = self::E1<core::int> {foo:#C5, index:#C1, _name:#C6}
+  #C13 = <self::E1<dynamic>>[#C11, #C12]
+  #C14 = 3.14
+  #C15 = self::E2<core::int, core::String, core::double> {foo:#C1, bar:#C10, baz:#C14, index:#C2, _name:#C3}
+  #C16 = "2"
+  #C17 = self::E2<core::String, core::int, core::double> {foo:#C16, bar:#C5, baz:#C14, index:#C1, _name:#C6}
+  #C18 = 3.0
+  #C19 = false
+  #C20 = "three"
+  #C21 = self::E2<core::double, core::bool, dynamic> {foo:#C18, bar:#C19, baz:#C9, index:#C5, _name:#C20}
+  #C22 = <self::E2<dynamic, dynamic, dynamic>>[#C15, #C17, #C21]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///named_arguments.dart:
+- E0. (from org-dartlang-testcase:///named_arguments.dart:12:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E1. (from org-dartlang-testcase:///named_arguments.dart:21:9)
+- E2. (from org-dartlang-testcase:///named_arguments.dart:33:9)

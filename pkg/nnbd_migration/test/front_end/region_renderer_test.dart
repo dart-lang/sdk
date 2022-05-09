@@ -131,11 +131,6 @@ class RegionRendererTestDriveD extends RegionRendererTestBase {
   @override
   String get homePath => _switchToDriveD(super.homePath);
 
-  @override
-  void setUp() {
-    super.setUp();
-  }
-
   Future<void>
       test_informationalRegion_containsTraceLinks_separateDrive() async {
     // See https://github.com/dart-lang/sdk/issues/43178. Linking from a file on

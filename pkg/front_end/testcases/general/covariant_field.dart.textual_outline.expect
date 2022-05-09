@@ -1,7 +1,6 @@
-// @dart = 2.9
 class A {
-  num invariantField;
-  covariant num covariantField;
+  num invariantField = 0;
+  covariant num covariantField = 0;
 }
 
 abstract class B implements A {

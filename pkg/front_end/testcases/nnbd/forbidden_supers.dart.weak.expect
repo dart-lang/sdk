@@ -75,81 +75,81 @@ library /*isNonNullableByDefault*/;
 // class Ooo = Aoo with Never;
 //       ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:26:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:26:28: Error: The type 'Never' can't be used as supertype.
 // class Joo extends Boo with Never {}
-//       ^
+//                            ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:19: Error: The type 'Never' can't be used as supertype.
 // class Koo extends Never {}
-//       ^
+//                   ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:30:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:30:22: Error: The type 'Never' can't be used as supertype.
 // class Loo implements Never {}
-//       ^
+//                      ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:38:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:38:30: Error: The type 'Never' can't be used as supertype.
 // mixin Moo4 on Aoo implements Never {}
-//       ^
+//                              ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:40:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:40:20: Error: The type 'Never' can't be used as supertype.
 // mixin Moo5 on Aoo, Never {}
-//       ^
+//                    ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:42:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:42:15: Error: The type 'Never' can't be used as supertype.
 // mixin Moo6 on Never {}
-//       ^
+//               ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:44:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:44:28: Error: The type 'Never' can't be used as supertype.
 // mixin Moo7 implements Aoo, Never {}
-//       ^
+//                            ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:46:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:46:23: Error: The type 'Never' can't be used as supertype.
 // mixin Moo8 implements Never {}
-//       ^
+//                       ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:48:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:48:13: Error: The type 'Never' can't be used as supertype.
 // class Noo = Never with Aoo;
-//       ^
+//             ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:49:7: Error: The type 'dynamic' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:49:20: Error: The type 'dynamic' can't be used as supertype.
 // class NooDynamic = dynamic with Aoo;
-//       ^
+//                    ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:52:7: Error: The type 'Never' can't be used as supertype.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:52:22: Error: The type 'Never' can't be used as supertype.
 // class Ooo = Aoo with Never;
-//       ^
+//                      ^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:19: Error: The type 'Never' can't be used in an 'extends' clause.
 // class Koo extends Never {}
-//       ^
+//                   ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:30:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:30:22: Error: The type 'Never' can't be used in an 'implements' clause.
 // class Loo implements Never {}
-//       ^
+//                      ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:38:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:38:30: Error: The type 'Never' can't be used in an 'implements' clause.
 // mixin Moo4 on Aoo implements Never {}
-//       ^
+//                              ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:40:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:40:20: Error: The type 'Never' can't be used in an 'implements' clause.
 // mixin Moo5 on Aoo, Never {}
-//       ^
+//                    ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:42:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:42:15: Error: The type 'Never' can't be used in an 'extends' clause.
 // mixin Moo6 on Never {}
-//       ^
+//               ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:44:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:44:28: Error: The type 'Never' can't be used in an 'implements' clause.
 // mixin Moo7 implements Aoo, Never {}
-//       ^
+//                            ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:46:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:46:23: Error: The type 'Never' can't be used in an 'implements' clause.
 // mixin Moo8 implements Never {}
-//       ^
+//                       ^^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:48:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:48:13: Error: The type 'Never' can't be used in an 'extends' clause.
 // class Noo = Never with Aoo;
-//       ^
+//             ^^^^^
 //
 import self as self;
 import "dart:core" as core;

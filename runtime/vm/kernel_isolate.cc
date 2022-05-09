@@ -476,7 +476,10 @@ class KernelCompilationRequest : public ValueObject {
       intptr_t platform_kernel_size,
       const char* expression,
       const Array& definitions,
+      const Array& definition_types,
       const Array& type_definitions,
+      const Array& type_bounds,
+      const Array& type_defaults,
       char const* library_uri,
       char const* klass,
       char const* method,
@@ -537,6 +540,22 @@ class KernelCompilationRequest : public ValueObject {
     }
     definitions_object.value.as_array.values = definitions_array;
 
+    Dart_CObject definition_types_object;
+    intptr_t num_definition_types = definition_types.Length();
+    definition_types_object.type = Dart_CObject_kArray;
+    definition_types_object.value.as_array.length = num_definition_types;
+
+    Dart_CObject** definition_types_array =
+        new Dart_CObject*[num_definition_types];
+    for (intptr_t i = 0; i < num_definition_types; ++i) {
+      definition_types_array[i] = new Dart_CObject;
+      definition_types_array[i]->type = Dart_CObject_kString;
+      definition_types_array[i]->value.as_string = const_cast<char*>(
+          String::CheckedHandle(thread->zone(), definition_types.At(i))
+              .ToCString());
+    }
+    definition_types_object.value.as_array.values = definition_types_array;
+
     Dart_CObject type_definitions_object;
     intptr_t num_type_definitions = type_definitions.Length();
     type_definitions_object.type = Dart_CObject_kArray;
@@ -552,6 +571,35 @@ class KernelCompilationRequest : public ValueObject {
               .ToCString());
     }
     type_definitions_object.value.as_array.values = type_definitions_array;
+
+    Dart_CObject type_bounds_object;
+    intptr_t num_type_bounds = type_bounds.Length();
+    type_bounds_object.type = Dart_CObject_kArray;
+    type_bounds_object.value.as_array.length = num_type_bounds;
+
+    Dart_CObject** type_bounds_array = new Dart_CObject*[num_type_bounds];
+    for (intptr_t i = 0; i < num_type_bounds; ++i) {
+      type_bounds_array[i] = new Dart_CObject;
+      type_bounds_array[i]->type = Dart_CObject_kString;
+      type_bounds_array[i]->value.as_string = const_cast<char*>(
+          String::CheckedHandle(thread->zone(), type_bounds.At(i)).ToCString());
+    }
+    type_bounds_object.value.as_array.values = type_bounds_array;
+
+    Dart_CObject type_defaults_object;
+    intptr_t num_type_defaults = type_defaults.Length();
+    type_defaults_object.type = Dart_CObject_kArray;
+    type_defaults_object.value.as_array.length = num_type_defaults;
+
+    Dart_CObject** type_defaults_array = new Dart_CObject*[num_type_defaults];
+    for (intptr_t i = 0; i < num_type_defaults; ++i) {
+      type_defaults_array[i] = new Dart_CObject;
+      type_defaults_array[i]->type = Dart_CObject_kString;
+      type_defaults_array[i]->value.as_string = const_cast<char*>(
+          String::CheckedHandle(thread->zone(), type_defaults.At(i))
+              .ToCString());
+    }
+    type_defaults_object.value.as_array.values = type_defaults_array;
 
     Dart_CObject library_uri_object;
     library_uri_object.type = Dart_CObject_kString;
@@ -659,7 +707,10 @@ class KernelCompilationRequest : public ValueObject {
                                    &dart_platform_kernel,
                                    &expression_object,
                                    &definitions_object,
+                                   &definition_types_object,
                                    &type_definitions_object,
+                                   &type_bounds_object,
+                                   &type_defaults_object,
                                    &library_uri_object,
                                    &class_object,
                                    &method_object,
@@ -690,10 +741,25 @@ class KernelCompilationRequest : public ValueObject {
     }
     delete[] definitions_array;
 
+    for (intptr_t i = 0; i < num_definition_types; ++i) {
+      delete definition_types_array[i];
+    }
+    delete[] definition_types_array;
+
     for (intptr_t i = 0; i < num_type_definitions; ++i) {
       delete type_definitions_array[i];
     }
     delete[] type_definitions_array;
+
+    for (intptr_t i = 0; i < num_type_bounds; ++i) {
+      delete type_bounds_array[i];
+    }
+    delete[] type_bounds_array;
+
+    for (intptr_t i = 0; i < num_type_defaults; ++i) {
+      delete type_defaults_array[i];
+    }
+    delete[] type_defaults_array;
 
     for (intptr_t i = 0; i < num_dills; ++i) {
       delete dills_array[i];
@@ -721,6 +787,7 @@ class KernelCompilationRequest : public ValueObject {
       const char* package_config,
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
+      intptr_t default_null_safety,
       const MallocGrowableArray<char*>* experimental_flags,
       const char* original_working_directory,
       Dart_KernelCompilationVerbosityLevel verbosity) {
@@ -809,7 +876,7 @@ class KernelCompilationRequest : public ValueObject {
         (isolate_group != nullptr)
             ? (isolate_group->null_safety() ? kNullSafetyOptionStrong
                                             : kNullSafetyOptionWeak)
-            : FLAG_sound_null_safety;
+            : default_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -1052,6 +1119,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme,
+    intptr_t default_null_safety,
     Dart_KernelCompilationVerbosityLevel verbosity) {
   // Start the kernel Isolate if it is not already running.
   if (!Start()) {
@@ -1076,8 +1144,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
       incremental_compile, snapshot_compile, package_config,
-      multiroot_filepaths, multiroot_scheme, experimental_flags_, NULL,
-      verbosity);
+      multiroot_filepaths, multiroot_scheme, default_null_safety,
+      experimental_flags_, NULL, verbosity);
 }
 
 bool KernelIsolate::DetectNullSafety(const char* script_uri,
@@ -1095,7 +1163,8 @@ bool KernelIsolate::DetectNullSafety(const char* script_uri,
   KernelCompilationRequest request;
   Dart_KernelCompilationResult result = request.SendAndWaitForResponse(
       kDetectNullabilityTag, kernel_port, script_uri, nullptr, -1, 0, nullptr,
-      false, false, package_config, nullptr, nullptr, experimental_flags_,
+      false, false, package_config, nullptr, nullptr,
+      /*default_null_safety=*/kNullSafetyOptionUnspecified, experimental_flags_,
       original_working_directory, Dart_KernelCompilationVerbosityLevel_Error);
   return result.null_safety;
 }
@@ -1112,8 +1181,8 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kListDependenciesTag, kernel_port, NULL, NULL, 0, 0, NULL, false, false,
-      NULL, NULL, NULL, experimental_flags_, NULL,
-      Dart_KernelCompilationVerbosityLevel_Error);
+      NULL, NULL, NULL, /*default_null_safety=*/kNullSafetyOptionUnspecified,
+      experimental_flags_, NULL, Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -1130,8 +1199,8 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kAcceptTag, kernel_port, NULL, NULL, 0, 0, NULL, true, false, NULL, NULL,
-      NULL, experimental_flags_, NULL,
-      Dart_KernelCompilationVerbosityLevel_Error);
+      NULL, /*default_null_safety=*/kNullSafetyOptionUnspecified,
+      experimental_flags_, NULL, Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
@@ -1139,7 +1208,10 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
     intptr_t platform_kernel_size,
     const char* expression,
     const Array& definitions,
+    const Array& definition_types,
     const Array& type_definitions,
+    const Array& type_bounds,
+    const Array& type_defaults,
     const char* library_url,
     const char* klass,
     const char* method,
@@ -1157,7 +1229,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
   ASSERT(is_static || (klass != nullptr));
   return request.SendAndWaitForResponse(
       kernel_port, platform_kernel, platform_kernel_size, expression,
-      definitions, type_definitions, library_url, klass, method, is_static,
+      definitions, definition_types, type_definitions, type_bounds,
+      type_defaults, library_url, klass, method, is_static,
       experimental_flags_);
 }
 
@@ -1177,8 +1250,9 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kUpdateSourcesTag, kernel_port, NULL, NULL, 0, source_files_count,
-      source_files, true, false, NULL, NULL, NULL, experimental_flags_, NULL,
-      Dart_KernelCompilationVerbosityLevel_Error);
+      source_files, true, false, NULL, NULL, NULL,
+      /*default_null_safety=*/kNullSafetyOptionUnspecified, experimental_flags_,
+      NULL, Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 void KernelIsolate::NotifyAboutIsolateGroupShutdown(

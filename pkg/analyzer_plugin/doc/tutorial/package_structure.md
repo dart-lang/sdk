@@ -90,4 +90,4 @@ command is run in that directory to produce a `.packages` file for the bootstrap
 package, and the file `tools/analyzer_plugin/bin/plugin.dart` is run in its own
 isolate.
 
-[pub]:https://www.dartlang.org/tools/pub/get-started
+[pub]: https://dart.dev/guides/packages

@@ -149,6 +149,7 @@
   FIELD(Int32x4, value_offset)                                                 \
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
+  FIELD(Isolate, finalizers_offset)                                            \
   FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, shared_class_table_offset)                               \
@@ -177,7 +178,7 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(OneByteString, data_offset)                                            \
-  FIELD(PointerBase, data_field_offset)                                        \
+  FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
@@ -191,7 +192,6 @@
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
-  FIELD(Thread, array_write_barrier_code_offset)                               \
   FIELD(Thread, array_write_barrier_entry_point_offset)                        \
   FIELD(Thread, allocate_mint_with_fpu_regs_entry_point_offset)                \
   FIELD(Thread, allocate_mint_with_fpu_regs_stub_offset)                       \
@@ -223,6 +223,7 @@
   FIELD(Thread, enter_safepoint_stub_offset)                                   \
   FIELD(Thread, execution_state_offset)                                        \
   FIELD(Thread, exit_safepoint_stub_offset)                                    \
+  FIELD(Thread, exit_safepoint_ignore_unwind_in_progress_stub_offset)          \
   FIELD(Thread, call_native_through_safepoint_stub_offset)                     \
   FIELD(Thread, call_native_through_safepoint_entry_point_offset)              \
   FIELD(Thread, fix_allocation_stub_code_offset)                               \
@@ -278,7 +279,6 @@
   FIELD(Thread, unboxed_int64_runtime_arg_offset)                              \
   FIELD(Thread, unboxed_double_runtime_arg_offset)                             \
   FIELD(Thread, vm_tag_offset)                                                 \
-  FIELD(Thread, write_barrier_code_offset)                                     \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   FIELD(Thread, heap_base_offset)                                              \
@@ -299,6 +299,19 @@
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
+  FIELD(Finalizer, type_arguments_offset)                                      \
+  FIELD(Finalizer, callback_offset)                                            \
+  FIELD(FinalizerBase, all_entries_offset)                                     \
+  FIELD(FinalizerBase, detachments_offset)                                     \
+  FIELD(FinalizerBase, entries_collected_offset)                               \
+  FIELD(FinalizerBase, isolate_offset)                                         \
+  FIELD(FinalizerEntry, detach_offset)                                         \
+  FIELD(FinalizerEntry, external_size_offset)                                  \
+  FIELD(FinalizerEntry, finalizer_offset)                                      \
+  FIELD(FinalizerEntry, next_offset)                                           \
+  FIELD(FinalizerEntry, token_offset)                                          \
+  FIELD(FinalizerEntry, value_offset)                                          \
+  FIELD(NativeFinalizer, callback_offset)                                      \
   FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, nullability_offset)                                      \
@@ -321,9 +334,9 @@
   FIELD(TypeParameter, flags_offset)                                           \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
-  FIELD(TypedDataView, data_offset)                                            \
+  FIELD(TypedDataView, typed_data_offset)                                      \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
-  FIELD(TypedData, data_offset)                                                \
+  FIELD(TypedData, payload_offset)                                             \
   FIELD(UnhandledException, exception_offset)                                  \
   FIELD(UnhandledException, stacktrace_offset)                                 \
   FIELD(UserTag, tag_offset)                                                   \
@@ -331,13 +344,15 @@
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
   FIELD(WeakProperty, key_offset)                                              \
   FIELD(WeakProperty, value_offset)                                            \
+  FIELD(WeakReference, target_offset)                                          \
+  FIELD(WeakReference, type_arguments_offset)                                  \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
-  ONLY_IN_ARM_ARM64_X64(RANGE(                                                 \
-      Thread, write_barrier_wrappers_thread_offset, Register, 0,               \
-      kNumberOfCpuRegisters - 1,                                               \
-      [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
+  NOT_IN_IA32(RANGE(Thread, write_barrier_wrappers_thread_offset, Register, 0, \
+                    kNumberOfCpuRegisters - 1, [](Register reg) {              \
+                      return (kDartAvailableCpuRegs & (1 << reg)) != 0;        \
+                    }))                                                        \
                                                                                \
   SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
@@ -350,7 +365,7 @@
   SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
   SIZEOF(CompressedStackMaps, ObjectHeaderSize, UntaggedCompressedStackMaps)   \
   SIZEOF(CompressedStackMaps, PayloadHeaderSize,                               \
-         UntaggedCompressedStackMaps::Payload)                                 \
+         UntaggedCompressedStackMaps::Payload::FlagsAndSizeHeader)             \
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \
@@ -359,6 +374,9 @@
   SIZEOF(ExternalTypedData, InstanceSize, UntaggedExternalTypedData)           \
   SIZEOF(FfiTrampolineData, InstanceSize, UntaggedFfiTrampolineData)           \
   SIZEOF(Field, InstanceSize, UntaggedField)                                   \
+  SIZEOF(Finalizer, InstanceSize, UntaggedFinalizer)                           \
+  SIZEOF(FinalizerEntry, InstanceSize, UntaggedFinalizerEntry)                 \
+  SIZEOF(NativeFinalizer, InstanceSize, UntaggedNativeFinalizer)               \
   SIZEOF(Float32x4, InstanceSize, UntaggedFloat32x4)                           \
   SIZEOF(Float64x2, InstanceSize, UntaggedFloat64x2)                           \
   SIZEOF(Function, InstanceSize, UntaggedFunction)                             \
@@ -412,6 +430,7 @@
   SIZEOF(UnwindError, InstanceSize, UntaggedUnwindError)                       \
   SIZEOF(UserTag, InstanceSize, UntaggedUserTag)                               \
   SIZEOF(WeakProperty, InstanceSize, UntaggedWeakProperty)                     \
+  SIZEOF(WeakReference, InstanceSize, UntaggedWeakReference)                   \
   SIZEOF(WeakSerializationReference, InstanceSize,                             \
          UntaggedWeakSerializationReference)                                   \
   PAYLOAD_SIZEOF(CodeSourceMap, InstanceSize, HeaderSize)                      \

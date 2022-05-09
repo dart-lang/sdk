@@ -68,7 +68,8 @@ T newObject<T>() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
-T getProperty<T>(Object o, Object name) => JS('Object|Null', '#[#]', o, name);
+T getProperty<T>(Object o, Object name) =>
+    JS<dynamic>('Object|Null', '#[#]', o, name);
 
 // A CFE transformation may optimize calls to `setProperty`, when [value] is
 // statically known to be a non-function.
@@ -88,40 +89,41 @@ T _setPropertyUnchecked<T>(Object o, Object name, T? value) {
 // statically known to be non-functions.
 T callMethod<T>(Object o, String method, List<Object?> args) {
   assertInteropArgs(args);
-  return JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+  return JS<dynamic>('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked0<T>(Object o, String method) {
-  return JS('Object|Null', '#[#]()', o, method);
+  return JS<dynamic>('Object|Null', '#[#]()', o, method);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
-  return JS('Object|Null', '#[#](#)', o, method, arg1);
+  return JS<dynamic>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked2<T>(
     Object o, String method, Object? arg1, Object? arg2) {
-  return JS('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
+  return JS<dynamic>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked3<T>(
     Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
-  return JS('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
+  return JS<dynamic>(
+      'Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
     Object? arg3, Object? arg4) {
-  return JS(
+  return JS<dynamic>(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
 }
 
@@ -134,7 +136,7 @@ bool instanceof(Object? o, Object type) =>
 
 T callConstructor<T>(Object constr, List<Object?>? arguments) {
   if (arguments == null) {
-    return JS('Object', 'new #()', constr);
+    return JS<dynamic>('Object', 'new #()', constr);
   } else {
     assertInteropArgs(arguments);
   }
@@ -143,29 +145,30 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
     int argumentCount = JS('int', '#.length', arguments);
     switch (argumentCount) {
       case 0:
-        return JS('Object', 'new #()', constr);
+        return JS<dynamic>('Object', 'new #()', constr);
 
       case 1:
         var arg0 = JS('', '#[0]', arguments);
-        return JS('Object', 'new #(#)', constr, arg0);
+        return JS<dynamic>('Object', 'new #(#)', constr, arg0);
 
       case 2:
         var arg0 = JS('', '#[0]', arguments);
         var arg1 = JS('', '#[1]', arguments);
-        return JS('Object', 'new #(#, #)', constr, arg0, arg1);
+        return JS<dynamic>('Object', 'new #(#, #)', constr, arg0, arg1);
 
       case 3:
         var arg0 = JS('', '#[0]', arguments);
         var arg1 = JS('', '#[1]', arguments);
         var arg2 = JS('', '#[2]', arguments);
-        return JS('Object', 'new #(#, #, #)', constr, arg0, arg1, arg2);
+        return JS<dynamic>(
+            'Object', 'new #(#, #, #)', constr, arg0, arg1, arg2);
 
       case 4:
         var arg0 = JS('', '#[0]', arguments);
         var arg1 = JS('', '#[1]', arguments);
         var arg2 = JS('', '#[2]', arguments);
         var arg3 = JS('', '#[3]', arguments);
-        return JS(
+        return JS<dynamic>(
             'Object', 'new #(#, #, #, #)', constr, arg0, arg1, arg2, arg3);
     }
   }
@@ -183,7 +186,7 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
   JS('String', 'String(#)', factoryFunction);
   // This could return an UnknownJavaScriptObject, or a native
   // object for which there is an interceptor
-  return JS('Object', 'new #()', factoryFunction);
+  return JS<dynamic>('Object', 'new #()', factoryFunction);
 
   // TODO(sra): Investigate:
   //
@@ -196,33 +199,34 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked0<T>(Object constr) {
-  return JS('Object', 'new #()', constr);
+  return JS<dynamic>('Object', 'new #()', constr);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked1<T>(Object constr, Object? arg1) {
-  return JS('Object', 'new #(#)', constr, arg1);
+  return JS<dynamic>('Object', 'new #(#)', constr, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked2<T>(Object constr, Object? arg1, Object? arg2) {
-  return JS('Object', 'new #(#, #)', constr, arg1, arg2);
+  return JS<dynamic>('Object', 'new #(#, #)', constr, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked3<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3) {
-  return JS('Object', 'new #(#, #, #)', constr, arg1, arg2, arg3);
+  return JS<dynamic>('Object', 'new #(#, #, #)', constr, arg1, arg2, arg3);
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked4<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3, Object? arg4) {
-  return JS('Object', 'new #(#, #, #, #)', constr, arg1, arg2, arg3, arg4);
+  return JS<dynamic>(
+      'Object', 'new #(#, #, #, #)', constr, arg1, arg2, arg3, arg4);
 }
 
 /// Exception for when the promise is rejected with a `null` or `undefined`

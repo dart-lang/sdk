@@ -156,7 +156,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
 
   Uri uri = member.enclosingLibrary.importUri;
   bool platformAnnotationsAllowed =
-      options.testMode || uri.scheme == 'dart' || maybeEnableNative(uri);
+      options.testMode || uri.isScheme('dart') || maybeEnableNative(uri);
 
   for (PragmaAnnotationData data in pragmaAnnotationData) {
     String name = data.name;
@@ -256,11 +256,11 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
 abstract class AnnotationsData {
   /// Deserializes a [AnnotationsData] object from [source].
   factory AnnotationsData.readFromDataSource(
-          CompilerOptions options, DataSource source) =
+          CompilerOptions options, DataSourceReader source) =
       AnnotationsDataImpl.readFromDataSource;
 
   /// Serializes this [AnnotationsData] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')`
   /// annotation.
@@ -356,7 +356,7 @@ class AnnotationsDataImpl implements AnnotationsData {
             options.defaultIndexBoundsCheckPolicy;
 
   factory AnnotationsDataImpl.readFromDataSource(
-      CompilerOptions options, DataSource source) {
+      CompilerOptions options, DataSourceReader source) {
     source.begin(tag);
     Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
         source.readMemberMap(
@@ -366,7 +366,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberMap(pragmaAnnotations,
         (MemberEntity member, EnumSet<PragmaAnnotation> set) {

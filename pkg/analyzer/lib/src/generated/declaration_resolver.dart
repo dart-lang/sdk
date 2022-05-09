@@ -162,7 +162,8 @@ class ElementWalker {
   /// an [IndexError] if there are no more.
   EnumElementImpl getEnum() => _enums![_enumIndex++] as EnumElementImpl;
 
-  ExtensionElement getExtension() => _extensions![_extensionIndex++];
+  ExtensionElementImpl getExtension() =>
+      _extensions![_extensionIndex++] as ExtensionElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a top level
   /// function, method, or local function; throws an [IndexError] if there are
@@ -172,7 +173,7 @@ class ElementWalker {
 
   /// Returns the next non-synthetic child of [element] which is a mixin; throws
   /// an [IndexError] if there are no more.
-  ClassElement getMixin() => _mixins![_mixinIndex++];
+  ClassElementImpl getMixin() => _mixins![_mixinIndex++] as ClassElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a parameter;
   /// throws an [IndexError] if there are no more.

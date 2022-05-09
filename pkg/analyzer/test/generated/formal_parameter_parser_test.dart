@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 import 'test_support.dart';
 
@@ -34,7 +35,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
     } else {
       fail('$kind');
     }
-    createParser(parametersCode, featureSet: nonNullable);
+    createParser(parametersCode);
     FormalParameterList list =
         parserProxy.parseFormalParameterList(inFunctionType: false);
     assertErrors(errors: errors);
@@ -77,7 +78,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
   void test_functionTyped_named_nullable_disabled() {
     ParameterKind kind = ParameterKind.NAMED;
     var defaultParameter = parseFormalParameter('a()? : null', kind,
-            featureSet: preNonNullable,
+            featureSet: FeatureSets.language_2_9,
             errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
         as DefaultFormalParameter;
     var functionParameter =
@@ -96,7 +97,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
   void test_functionTyped_positional_nullable_disabled() {
     ParameterKind kind = ParameterKind.POSITIONAL;
     var defaultParameter = parseFormalParameter('a()? = null', kind,
-            featureSet: preNonNullable,
+            featureSet: FeatureSets.language_2_9,
             errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
         as DefaultFormalParameter;
     var functionParameter =
@@ -115,7 +116,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
   void test_functionTyped_required_nullable_disabled() {
     ParameterKind kind = ParameterKind.REQUIRED;
     var functionParameter = parseFormalParameter('a()?', kind,
-            featureSet: preNonNullable,
+            featureSet: FeatureSets.language_2_9,
             errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
         as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNull);

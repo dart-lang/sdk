@@ -13,19 +13,19 @@ void main() {
 }
 
 void help() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   /// Commands not tested by the following loop.
-  List<String> _commandsNotTested = <String>[
+  List<String> commandsNotTested = <String>[
     'help', // `dart help help` is redundant
     'test', // `dart help test` does not call `test:test --help`.
   ];
   DartdevRunner(['--no-analytics'])
       .commands
       .forEach((String commandKey, Command command) {
-    if (!_commandsNotTested.contains(commandKey)) {
+    if (!commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () async {
         p = project();
         var result = await p.run(['help', commandKey]);

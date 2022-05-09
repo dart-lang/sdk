@@ -28,7 +28,7 @@ class SubtypeOfSealedClassTest extends PubPackageResolutionTest {
       meta: true,
     );
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -48,7 +48,7 @@ class Bar extends Foo {}
       meta: true,
     );
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -68,7 +68,7 @@ class Bar implements Foo {}
       meta: true,
     );
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -89,7 +89,7 @@ class Bar2 = Bar1 with Foo;
       meta: true,
     );
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed mixin Foo {}
 ''');
@@ -110,7 +110,7 @@ class Bar2 = Bar1 with Foo;
       meta: true,
     );
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed mixin Foo {}
 ''');
@@ -130,7 +130,7 @@ class Bar extends Object with Foo {}
       meta: true,
     );
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -156,7 +156,7 @@ mixin Bar5 implements Foo {}
   }
 
   test_withinPackageLibDirectory_OK() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -172,7 +172,7 @@ mixin Bar5 implements Foo {}
   }
 
   test_withinPackageTestDirectory_OK() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -192,13 +192,13 @@ mixin Bar5 implements Foo {}
     var libPath = '$testPackageLibPath/a.dart';
     var partPath = '$testPackageLibPath/b.dart';
 
-    newFile(libPath, content: r'''
+    newFile2(libPath, r'''
 import 'package:meta/meta.dart';
 part 'b.dart';
 @sealed class Foo {}
 ''');
 
-    newFile(partPath, content: r'''
+    newFile2(partPath, r'''
 part of 'a.dart';
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}

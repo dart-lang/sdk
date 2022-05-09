@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -65,20 +66,26 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     flutterFolder = MockPackages.instance.addFlutter(resourceProvider);
   }
 
   Future<void> test_children() async {
-    newDotPackagesFile(projectPath, content: '''
-flutter:${flutterFolder.toUri()}
-''');
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newPackageConfigJsonFile(
+      projectPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'flutter', rootPath: flutterFolder.parent.path))
+          .toContent(toUriStr: toUriStr),
+    );
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   strong-mode: true
 ''');
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
     var code = '''
 import 'package:flutter/widgets.dart';
 

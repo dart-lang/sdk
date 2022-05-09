@@ -118,7 +118,7 @@ class _BaseGenerator {
 
   /// Return the nullable [encodedType] of the [type].
   String encodedType2(idl_model.FieldType type) {
-    return encodedType(type) + '?';
+    return '${encodedType(type)}?';
   }
 
   /// Add the prefix `idl.` to a type name, unless that type name is the name of
@@ -186,7 +186,7 @@ class _BuilderGenerator extends _BaseGenerator {
   _BuilderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
       : super(idl, outBuffer);
 
-  String get builderName => name + 'Builder';
+  String get builderName => '${name}Builder';
 
   String get name => cls.name;
 
@@ -279,7 +279,7 @@ class _BuilderGenerator extends _BaseGenerator {
       // Write objects and remember Offset(s).
       for (idl_model.FieldDeclaration field in cls.fields) {
         idl_model.FieldType fieldType = field.type;
-        String offsetName = 'offset_' + field.name;
+        String offsetName = 'offset_${field.name}';
         if (fieldType.isList ||
             fieldType.typeName == 'String' ||
             _idl.classes.containsKey(fieldType.typeName)) {
@@ -290,7 +290,7 @@ class _BuilderGenerator extends _BaseGenerator {
       for (idl_model.FieldDeclaration field in cls.fields) {
         idl_model.FieldType fieldType = field.type;
         String valueName = field.name;
-        String offsetName = 'offset_' + field.name;
+        String offsetName = 'offset_${field.name}';
         String? condition;
         String? writeCode;
         if (fieldType.isList) {
@@ -337,11 +337,11 @@ class _BuilderGenerator extends _BaseGenerator {
       for (idl_model.FieldDeclaration field in cls.fields) {
         int index = field.id;
         idl_model.FieldType fieldType = field.type;
-        String valueName = '_' + field.name;
+        String valueName = '_${field.name}';
         if (fieldType.isList ||
             fieldType.typeName == 'String' ||
             _idl.classes.containsKey(fieldType.typeName)) {
-          String offsetName = 'offset_' + field.name;
+          String offsetName = 'offset_${field.name}';
           out('if ($offsetName != null) {');
           outWithIndent('fbBuilder.addOffset($index, $offsetName);');
           out('}');
@@ -790,7 +790,7 @@ class _CodeGenerator {
         Token token = comment.tokens.first;
         return token.lexeme.split('\n').map((String line) {
           line = line.trimLeft();
-          if (line.startsWith('*')) line = ' ' + line;
+          if (line.startsWith('*')) line = ' $line';
           return line;
         }).join('\n');
       } else if (comment.tokens
@@ -1069,12 +1069,12 @@ class _MixinGenerator extends _BaseGenerator {
         if (convertItem == null) {
           convertField = localName;
         } else if (type.isList) {
-          convertField = '$localName.map((_value) =>'
-              ' ${convertItem('_value')}).toList()';
+          convertField = '$localName.map((value) =>'
+              ' ${convertItem('value')}).toList()';
         } else {
           convertField = convertItem(localName);
         }
-        return '_result[${quoted(name)}] = $convertField';
+        return 'result[${quoted(name)}] = $convertField';
       }
 
       void writeConditionalStatement(String condition, String statement) {
@@ -1087,7 +1087,7 @@ class _MixinGenerator extends _BaseGenerator {
       out('@override');
       out('Map<String, Object> toJson() {');
       indent(() {
-        out('Map<String, Object> _result = <String, Object>{};');
+        out('Map<String, Object> result = <String, Object>{};');
 
         indent(() {
           for (idl_model.FieldDeclaration field in cls.fields) {
@@ -1099,7 +1099,7 @@ class _MixinGenerator extends _BaseGenerator {
           }
         });
 
-        out('return _result;');
+        out('return result;');
       });
       out('}');
       out();

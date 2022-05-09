@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 
 main() {
@@ -1683,9 +1684,9 @@ class Wrong<T> {
 
   void test_invalidTypedef() {
     parseCompilationUnit("typedef var Function(var arg);", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 7),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
       expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
       expectedError(ParserErrorCode.VAR_RETURN_TYPE, 8, 3),
       expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 1),
     ]);
@@ -1704,43 +1705,64 @@ class Wrong<T> {
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     Expression expression = parseStringLiteral("'\\u{'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 3)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 3)
+    ]);
+  }
+
+  void test_invalidUnicodeEscape_incomplete_noDigits_noBracket() {
+    Expression expression = parseStringLiteral("'\\u'");
+    expectNotNullIfNoErrors(expression);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED, 1, 2)
+    ]);
   }
 
   void test_invalidUnicodeEscape_incomplete_someDigits() {
     Expression expression = parseStringLiteral("'\\u{0A'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 5)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 5)
+    ]);
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
     Expression expression = parseStringLiteral("'\\u0 and some more'");
     expectNotNullIfNoErrors(expression);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET, 1, 3)
+    ]);
+  }
+
+  void test_invalidUnicodeEscape_too_high_number_variable() {
+    Expression expression = parseStringLiteral("'\\u{110000}'");
+    expectNotNullIfNoErrors(expression);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 3)]);
+        [expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 9)]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_fixed() {
     Expression expression = parseStringLiteral("'\\u04'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 4)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET, 1, 4)
+    ]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_variable() {
     Expression expression = parseStringLiteral("'\\u{}'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 4)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 4)
+    ]);
   }
 
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
-    Expression expression = parseStringLiteral("'\\u{12345678}'");
+    Expression expression = parseStringLiteral("'\\u{0000000001}'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 9)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET, 1, 9)
+    ]);
   }
 
   void test_libraryDirectiveNotFirst() {
@@ -2431,7 +2453,7 @@ class Wrong<T> {
   }
 
   void test_positionalAfterNamedArgument() {
-    createParser('(x: 1, 2)');
+    createParser('(x: 1, 2)', featureSet: FeatureSets.language_2_16);
     ArgumentList list = parser.parseArgumentList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors(

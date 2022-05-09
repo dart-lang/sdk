@@ -61,3 +61,10 @@ abstract class IrDataExtractor<T> extends DataExtractor<T>
     super.visitLabeledStatement(node);
   }
 }
+
+/// Print a message with a source location.
+void reportHere(
+    DiagnosticReporter reporter, Spannable node, String debugMessage) {
+  reporter.reportInfoMessage(
+      node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+}

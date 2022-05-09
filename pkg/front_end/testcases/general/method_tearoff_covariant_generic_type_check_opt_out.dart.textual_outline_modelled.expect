@@ -1,4 +1,4 @@
-// @dart = 2.6
+// @dart = 2.9
 class A<X extends num> {
   void f<Y extends X>(Y y) {}
 }

@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:macro/macro.dart";
+
+class DataClass extends core::Object {
+  final field core::String string;
+  constructor •({required core::String string = #C1}) → self::DataClass
+    : self::DataClass::string = string, super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = null
+}

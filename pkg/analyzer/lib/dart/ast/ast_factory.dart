@@ -7,12 +7,14 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// A collection of factory methods which may be used to create concrete
 /// instances of the interfaces that constitute the AST.
 ///
 /// Clients should not extend, implement or mix-in this class.
+@Deprecated('Should not be used by clients')
 abstract class AstFactory {
   /// Returns a newly created list of adjacent strings. To be syntactically
   /// valid, the list of [strings] must contain at least two elements.
@@ -119,16 +121,18 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the class does not have the
   /// corresponding attribute. The [abstractKeyword] can be `null` if the class
   /// is not abstract. The [macroKeyword] can be `null` if the class is not a
-  /// macro class. The [typeParameters] can be `null` if the class does not
-  /// have any type parameters. Any or all of the [extendsClause], [withClause],
-  /// and [implementsClause] can be `null` if the class does not have the
-  /// corresponding clause. The list of [members] can be `null` if the class
-  /// does not have any members.
+  /// macro class. The [augmentKeyword] can be `null` if the class is not an
+  /// augmentation class. The [typeParameters] can be `null` if the class does
+  /// not have any type parameters. Any or all of the [extendsClause],
+  /// [withClause], and [implementsClause] can be `null` if the class does not
+  /// have the corresponding clause. The list of [members] can be `null` if the
+  /// class does not have any members.
   ClassDeclaration classDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
       Token? abstractKeyword,
       Token? macroKeyword,
+      Token? augmentKeyword,
       Token classKeyword,
       SimpleIdentifier name,
       TypeParameterList? typeParameters,
@@ -144,7 +148,8 @@ abstract class AstFactory {
   /// corresponding attribute. The [typeParameters] can be `null` if the class
   /// does not have any type parameters. The [abstractKeyword] can be `null` if
   /// the class is not abstract. The [macroKeyword] can be `null` if the class
-  /// is not a macro class. The [implementsClause] can be `null` if the
+  /// is not a macro class. The [augmentKeyword] can be `null` if the class is
+  /// not an augmentation class.  The [implementsClause] can be `null` if the
   /// class does not implement any interfaces.
   ClassTypeAlias classTypeAlias(
       Comment? comment,
@@ -155,6 +160,7 @@ abstract class AstFactory {
       Token equals,
       Token? abstractKeyword,
       Token? macroKeyword,
+      Token? augmentKeyword,
       NamedType superclass,
       WithClause withClause,
       ImplementsClause? implementsClause,
@@ -171,13 +177,15 @@ abstract class AstFactory {
   /// `null` (or omitted) if there are no directives in the compilation unit.
   /// The list of `declarations` can be `null` (or omitted) if there are no
   /// declarations in the compilation unit.
-  CompilationUnit compilationUnit(
-      {required Token beginToken,
-      ScriptTag? scriptTag,
-      List<Directive>? directives,
-      List<CompilationUnitMember>? declarations,
-      required Token endToken,
-      required FeatureSet featureSet});
+  CompilationUnit compilationUnit({
+    required Token beginToken,
+    ScriptTag? scriptTag,
+    List<Directive>? directives,
+    List<CompilationUnitMember>? declarations,
+    required Token endToken,
+    required FeatureSet featureSet,
+    LineInfo? lineInfo,
+  });
 
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(
@@ -329,6 +337,7 @@ abstract class AstFactory {
     required ImplementsClause? implementsClause,
     required Token leftBracket,
     required List<EnumConstantDeclaration> constants,
+    required Token? semicolon,
     required List<ClassMember> members,
     required Token rightBracket,
   });
@@ -396,12 +405,14 @@ abstract class AstFactory {
 
   /// Returns a newly created field declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
-  /// the corresponding attribute. The [staticKeyword] can be `null` if the
-  /// field is not a static field.
+  /// the corresponding attribute. The [abstractKeyword], [augmentKeyword],
+  /// [covariantKeyword], [externalKeyword] and [staticKeyword] can be `null` if
+  /// the field does not have the corresponding modifier.
   FieldDeclaration fieldDeclaration2(
       {Comment? comment,
       List<Annotation>? metadata,
       Token? abstractKeyword,
+      Token? augmentKeyword,
       Token? covariantKeyword,
       Token? externalKeyword,
       Token? staticKeyword,
@@ -489,13 +500,15 @@ abstract class AstFactory {
 
   /// Returns a newly created function declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
-  /// corresponding attribute. The [externalKeyword] can be `null` if the
-  /// function is not an external function. The [returnType] can be `null` if no
-  /// return type was specified. The [propertyKeyword] can be `null` if the
-  /// function is neither a getter or a setter.
+  /// corresponding attribute. The [augmentKeyword] can be `null` if the
+  /// function is not a function augmentation. The [externalKeyword] can be
+  /// `null` if the function is not an external function. The [returnType] can
+  /// be `null` if no return type was specified. The [propertyKeyword] can be
+  /// `null` if the function is neither a getter or a setter.
   FunctionDeclaration functionDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
+      Token? augmentKeyword,
       Token? externalKeyword,
       TypeAnnotation? returnType,
       Token? propertyKeyword,
@@ -617,8 +630,8 @@ abstract class AstFactory {
     required List<DartType> typeArgumentTypes,
   });
 
-  /// Returns a newly created import directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// Returns a newly created import directive. Either or both of the [comment]
+  /// and [metadata] can be `null` if the function does not have the
   /// corresponding attribute. The [deferredKeyword] can be `null` if the import
   /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
   /// does not specify a prefix. The list of [combinators] can be `null` if
@@ -737,6 +750,7 @@ abstract class AstFactory {
   MixinDeclaration mixinDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
+      Token? augmentKeyword,
       Token mixinKeyword,
       SimpleIdentifier name,
       TypeParameterList? typeParameters,

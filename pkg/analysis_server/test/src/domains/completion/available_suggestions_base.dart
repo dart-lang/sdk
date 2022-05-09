@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -72,17 +73,19 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
 
     newPubspecYamlFile('/home/test', '');
-    newDotPackagesFile('/home/test', content: '''
-test:${toUri('/home/test/lib')}
-''');
+    newPackageConfigJsonFile(
+      '/home/test',
+      (PackageConfigFileBuilder()..add(name: 'test', rootPath: '/home/test'))
+          .toContent(toUriStr: toUriStr),
+    );
 
-    createProject();
+    await createProject();
     handler = server.handlers.whereType<CompletionDomainHandler>().single;
     _setCompletionSubscriptions([CompletionService.AVAILABLE_SUGGESTION_SETS]);
   }

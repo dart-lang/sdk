@@ -25,9 +25,6 @@ abstract class AbstractIgnoreDiagnostic extends CorrectionProducer {
     String ignoreCommentType,
   ) async {
     final lineInfo = unit.lineInfo;
-    if (lineInfo == null) {
-      return;
-    }
 
     await builder.addDartFileEdit(file, (builder) {
       final offset = insertDesc.offset;

@@ -5,12 +5,12 @@
 // @dart = 2.7
 
 class A {
-  /*member: A.instanceMethod:deps=[local],direct,explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*member: A.instanceMethod:deps=[local],explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)],test*/
   instanceMethod<T>(t) => t is T;
 }
 
 main() {
-  /*implicit=[local.T],indirect,needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
+  /*implicit=[local.T],needsArgs,selectors=[Selector(call, call, arity=1, types=1)],test*/
   local<T>(t) {
     var a = new A();
     a.instanceMethod<T>(t);

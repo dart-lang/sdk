@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/arglist_contributor
 import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
+import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -26,6 +27,7 @@ import 'package:analysis_server/src/services/completion/dart/redirecting_contrib
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/super_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
@@ -96,7 +98,7 @@ class DartCompletionManager {
   /// that are not yet imported, but could be imported into the requested
   /// target. It is up to the client to make copies of [CompletionSuggestion]s
   /// with the import index property updated.
-  final Map<protocol.CompletionSuggestion, Uri>? notImportedSuggestions;
+  final NotImportedSuggestions? notImportedSuggestions;
 
   /// Initialize a newly created completion manager. The parameters
   /// [includedElementKinds], [includedElementNames], and
@@ -116,7 +118,7 @@ class DartCompletionManager {
                 includedElementNames == null &&
                 includedSuggestionRelevanceTags == null));
 
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
@@ -125,12 +127,12 @@ class DartCompletionManager {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.path)) {
-      return const <CompletionSuggestion>[];
+      return const <CompletionSuggestionBuilder>[];
     }
 
     // Don't suggest in comments.
     if (request.target.isCommentText) {
-      return const <CompletionSuggestion>[];
+      return const <CompletionSuggestionBuilder>[];
     }
 
     request.checkAborted();
@@ -141,6 +143,7 @@ class DartCompletionManager {
       ArgListContributor(request, builder),
       ClosureContributor(request, builder),
       CombinatorContributor(request, builder),
+      EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       FieldFormalContributor(request, builder),
       KeywordContributor(request, builder),
@@ -153,6 +156,7 @@ class DartCompletionManager {
       if (enableOverrideContributor) OverrideContributor(request, builder),
       RedirectingContributor(request, builder),
       StaticMemberContributor(request, builder),
+      SuperFormalContributor(request, builder),
       TypeMemberContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
       VariableNameContributor(request, builder),
@@ -497,4 +501,11 @@ class DartCompletionRequest {
       throw AbortCompletion();
     }
   }
+}
+
+/// Information provided by [NotImportedContributor] in addition to suggestions.
+class NotImportedSuggestions {
+  /// This flag is set to `true` if the contributor decided to stop before it
+  /// processed all available libraries, e.g. we ran out of budget.
+  bool isIncomplete = false;
 }

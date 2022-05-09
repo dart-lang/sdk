@@ -37,7 +37,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
       if (declaration is ClassDeclaration) {
         var extendsClause = declaration.extendsClause;
         if (extendsClause != null &&
-            extendsClause.superclass2.name.name == 'ErrorCode') {
+            extendsClause.superclass.name.name == 'ErrorCode') {
           String className = declaration.name.name;
           for (ClassMember member in declaration.members) {
             if (member is FieldDeclaration && member.isStatic) {
@@ -45,7 +45,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
               if ((fields.type == null ? bad() : true) &&
                   fields.type!.toSource() == className) {
                 String fieldName = fields.variables[0].name.name;
-                declaredCodes.add(className + '.' + fieldName);
+                declaredCodes.add('$className.$fieldName');
               }
             }
           }

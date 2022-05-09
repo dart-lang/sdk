@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 main() {
   try {
     Uri base = Uri.base;
-    Expect.isTrue(Uri.base.scheme == "file" || Uri.base.scheme == "http");
+    Expect.isTrue(Uri.base.isScheme("file") || Uri.base.isScheme("http"));
   } on UnsupportedError catch (e) {
     Expect.isTrue(e.toString().contains("'Uri.base' is not supported"));
   }

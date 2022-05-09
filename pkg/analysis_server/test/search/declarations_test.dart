@@ -83,11 +83,11 @@ enum E {
   }
 
   Future<void> test_maxResults() async {
-    newFile(join(testFolder, 'a.dart'), content: r'''
+    newFile2(join(testFolder, 'a.dart'), r'''
 class A {}
 class B {}
 ''').path;
-    newFile(join(testFolder, 'b.dart'), content: r'''
+    newFile2(join(testFolder, 'b.dart'), r'''
 class C {}
 class D {}
 ''').path;
@@ -124,8 +124,8 @@ mixin M {
   }
 
   Future<void> test_multipleFiles() async {
-    var a = newFile(join(testFolder, 'a.dart'), content: 'class A {}').path;
-    var b = newFile(join(testFolder, 'b.dart'), content: 'class B {}').path;
+    var a = newFile2(join(testFolder, 'a.dart'), 'class A {}').path;
+    var b = newFile2(join(testFolder, 'b.dart'), 'class B {}').path;
 
     await _getDeclarations();
 
@@ -153,8 +153,8 @@ mixin M {
   }
 
   Future<void> test_onlyForFile() async {
-    var a = newFile(join(testFolder, 'a.dart'), content: 'class A {}').path;
-    newFile(join(testFolder, 'b.dart'), content: 'class B {}').path;
+    var a = newFile2(join(testFolder, 'a.dart'), 'class A {}').path;
+    newFile2(join(testFolder, 'b.dart'), 'class B {}').path;
 
     await _getDeclarations(file: a);
 

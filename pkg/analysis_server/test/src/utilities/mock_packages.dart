@@ -53,6 +53,10 @@ class BazelMockPackages {
     _addFiles(provider, 'flutter');
   }
 
+  void addMeta(MemoryResourceProvider provider) {
+    _addFiles(provider, 'meta');
+  }
+
   /// Add files of the given [packageName] to the [provider].
   Folder _addFiles(MemoryResourceProvider provider, String packageName) {
     var packagesPath = provider.convertPath('/workspace/third_party/dart');

@@ -35,7 +35,7 @@ final tests = <IsolateTest>[
     result = await service.lookupPackageUris(
       isolateId,
       [
-        ...uris.sublist(0, 3),
+        ...uris.sublist(0, 3).cast<String>(),
         'does_not_exist.dart',
       ],
     );

@@ -96,7 +96,7 @@ static Dart_Isolate main_isolate = NULL;
     SAVE_ERROR_AND_EXIT(result);                                               \
   }
 
-static void WriteDepsFile(Dart_Isolate isolate) {
+static void WriteDepsFile() {
   if (Options::depfile() == NULL) {
     return;
   }
@@ -142,7 +142,7 @@ static void OnExitHook(int64_t exit_code) {
     if (Options::gen_snapshot_kind() == kAppJIT) {
       Snapshot::GenerateAppJIT(Options::snapshot_filename());
     }
-    WriteDepsFile(main_isolate);
+    WriteDepsFile();
   }
 }
 
@@ -502,7 +502,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   ASSERT(flags != nullptr);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: All isolates start from the app snapshot.
+  // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
+  // mode - so we launch the vm-service from the main app AOT snapshot.
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
@@ -688,16 +689,36 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != NULL);
   uint8_t* kernel_buffer = NULL;
-  std::shared_ptr<uint8_t> parent_kernel_buffer;
+  std::shared_ptr<uint8_t> kernel_buffer_ptr;
   intptr_t kernel_buffer_size = 0;
   AppSnapshot* app_snapshot = NULL;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: All isolates start from the app snapshot.
+  const uint8_t* isolate_snapshot_data = nullptr;
+  const uint8_t* isolate_snapshot_instructions = nullptr;
+  if (is_main_isolate) {
+    isolate_snapshot_data = app_isolate_snapshot_data;
+    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
+  } else {
+    // AOT: All isolates need to be run from AOT compiled snapshots.
+    const bool kForceLoadElfFromMemory = false;
+    app_snapshot =
+        Snapshot::TryReadAppSnapshot(script_uri, kForceLoadElfFromMemory);
+    if (app_snapshot == nullptr) {
+      *error = Utils::StrDup(
+          "The uri provided to `Isolate.spawnUri()` does not "
+          "contain a valid AOT snapshot.");
+      return nullptr;
+    }
+
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+  }
+
   bool isolate_run_app_snapshot = true;
-  const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      app_isolate_snapshot_instructions;
   flags->null_safety =
       Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
                             isolate_snapshot_instructions, nullptr, -1);
@@ -729,13 +750,14 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   if (flags->copy_parent_code && callback_data != nullptr) {
     auto parent_isolate_group_data =
         reinterpret_cast<IsolateData*>(callback_data)->isolate_group_data();
-    parent_kernel_buffer = parent_isolate_group_data->kernel_buffer();
-    kernel_buffer = parent_kernel_buffer.get();
+    kernel_buffer_ptr = parent_isolate_group_data->kernel_buffer();
+    kernel_buffer = kernel_buffer_ptr.get();
     kernel_buffer_size = parent_isolate_group_data->kernel_buffer_size();
   }
 
   if (kernel_buffer == NULL && !isolate_run_app_snapshot) {
-    dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size);
+    dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size,
+                   /*decode_uri=*/true, &kernel_buffer_ptr);
   }
   PathSanitizer script_uri_sanitizer(script_uri);
   PathSanitizer packages_config_sanitizer(packages_config);
@@ -749,9 +771,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   auto isolate_group_data = new IsolateGroupData(
       script_uri, packages_config, app_snapshot, isolate_run_app_snapshot);
   if (kernel_buffer != NULL) {
-    if (parent_kernel_buffer) {
+    if (kernel_buffer_ptr) {
       isolate_group_data->SetKernelBufferAlreadyOwned(
-          std::move(parent_kernel_buffer), kernel_buffer_size);
+          std::move(kernel_buffer_ptr), kernel_buffer_size);
     } else {
       isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
                                                     kernel_buffer_size);
@@ -867,6 +889,16 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
                                           error, &exit_code);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static const char* RegisterKernelBlob(const uint8_t* kernel_buffer,
+                                      intptr_t kernel_buffer_size) {
+  return dfe.RegisterKernelBlob(kernel_buffer, kernel_buffer_size);
+}
+static void UnregisterKernelBlob(const char* kernel_blob_uri) {
+  dfe.UnregisterKernelBlob(kernel_blob_uri);
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 static void OnIsolateShutdown(void* isolate_group_data, void* isolate_data) {
   Dart_EnterScope();
   Dart_Handle sticky_error = Dart_GetStickyError();
@@ -937,6 +969,20 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
 
+static void CompileAndSaveKernel(const char* script_name,
+                                 const char* package_config_override,
+                                 CommandLineOptions* dart_options) {
+  if (vm_run_app_snapshot) {
+    Syslog::PrintErr("Cannot create a script snapshot from an app snapshot.\n");
+    // The snapshot would contain references to the app snapshot instead of
+    // the core snapshot.
+    Platform::Exit(kErrorExitCode);
+  }
+  Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
+                           package_config_override);
+  WriteDepsFile();
+}
+
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
@@ -1001,71 +1047,59 @@ void RunMainIsolate(const char* script_name,
 
   Dart_EnterScope();
 
-  auto isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_IsolateGroupData(isolate));
-  if (Options::gen_snapshot_kind() == kKernel) {
-    if (vm_run_app_snapshot) {
-      Syslog::PrintErr(
-          "Cannot create a script snapshot from an app snapshot.\n");
-      // The snapshot would contain references to the app snapshot instead of
-      // the core snapshot.
-      Platform::Exit(kErrorExitCode);
-    }
-    Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
-                             isolate_group_data->resolved_packages_config());
-  } else {
-    // Lookup the library of the root script.
-    Dart_Handle root_lib = Dart_RootLibrary();
+  // Kernel snapshots should have been handled before reaching this point.
+  ASSERT(Options::gen_snapshot_kind() != kKernel);
+  // Lookup the library of the root script.
+  Dart_Handle root_lib = Dart_RootLibrary();
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    if (Options::compile_all()) {
-      result = Dart_CompileAll();
-      CHECK_RESULT(result);
-    }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-    if (Dart_IsNull(root_lib)) {
-      ErrorExit(kErrorExitCode, "Unable to find root library for '%s'\n",
-                script_name);
-    }
-
-    // Create a closure for the main entry point which is in the exported
-    // namespace of the root library or invoke a getter of the same name
-    // in the exported namespace and return the resulting closure.
-    Dart_Handle main_closure =
-        Dart_GetField(root_lib, Dart_NewStringFromCString("main"));
-    CHECK_RESULT(main_closure);
-    if (!Dart_IsClosure(main_closure)) {
-      ErrorExit(kErrorExitCode, "Unable to find 'main' in root library '%s'\n",
-                script_name);
-    }
-
-    // Call _startIsolate in the isolate library to enable dispatching the
-    // initial startup message.
-    const intptr_t kNumIsolateArgs = 2;
-    Dart_Handle isolate_args[kNumIsolateArgs];
-    isolate_args[0] = main_closure;                          // entryPoint
-    isolate_args[1] = dart_options->CreateRuntimeOptions();  // args
-
-    Dart_Handle isolate_lib =
-        Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
-    result =
-        Dart_Invoke(isolate_lib, Dart_NewStringFromCString("_startMainIsolate"),
-                    kNumIsolateArgs, isolate_args);
-    CHECK_RESULT(result);
-
-    // Keep handling messages until the last active receive port is closed.
-    result = Dart_RunLoop();
-    // Generate an app snapshot after execution if specified.
-    if (Options::gen_snapshot_kind() == kAppJIT) {
-      if (!Dart_IsCompilationError(result)) {
-        Snapshot::GenerateAppJIT(Options::snapshot_filename());
-      }
-    }
+  if (Options::compile_all()) {
+    result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  WriteDepsFile(isolate);
+  if (Dart_IsNull(root_lib)) {
+    ErrorExit(kErrorExitCode, "Unable to find root library for '%s'\n",
+              script_name);
+  }
+
+  // Create a closure for the main entry point which is in the exported
+  // namespace of the root library or invoke a getter of the same name
+  // in the exported namespace and return the resulting closure.
+  Dart_Handle main_closure =
+      Dart_GetField(root_lib, Dart_NewStringFromCString("main"));
+  CHECK_RESULT(main_closure);
+  if (!Dart_IsClosure(main_closure)) {
+    ErrorExit(kErrorExitCode, "Unable to find 'main' in root library '%s'\n",
+              script_name);
+  }
+
+  // Call _startIsolate in the isolate library to enable dispatching the
+  // initial startup message.
+  const intptr_t kNumIsolateArgs = 2;
+  Dart_Handle isolate_args[kNumIsolateArgs];
+  isolate_args[0] = main_closure;                          // entryPoint
+  isolate_args[1] = dart_options->CreateRuntimeOptions();  // args
+
+  Dart_Handle isolate_lib =
+      Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
+  result =
+      Dart_Invoke(isolate_lib, Dart_NewStringFromCString("_startMainIsolate"),
+                  kNumIsolateArgs, isolate_args);
+  CHECK_RESULT(result);
+
+  // Keep handling messages until the last active receive port is closed.
+  result = Dart_RunLoop();
+  // Generate an app snapshot after execution if specified.
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    if (!Dart_IsCompilationError(result)) {
+      Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    }
+  }
+  CHECK_RESULT(result);
+
+  WriteDepsFile();
 
   Dart_ExitScope();
 
@@ -1309,6 +1343,10 @@ void main(int argc, char** argv) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   init_params.start_kernel_isolate =
       dfe.UseDartFrontend() && dfe.CanUseDartFrontend();
+  if (init_params.start_kernel_isolate) {
+    init_params.register_kernel_blob = RegisterKernelBlob;
+    init_params.unregister_kernel_blob = UnregisterKernelBlob;
+  }
 #else
   init_params.start_kernel_isolate = false;
 #endif
@@ -1350,8 +1388,14 @@ void main(int argc, char** argv) {
           script_name);
       Platform::Exit(kErrorExitCode);
     } else {
-      // Run the main isolate until we aren't told to restart.
-      RunMainIsolate(script_name, package_config_override, &dart_options);
+      if (Options::gen_snapshot_kind() == kKernel) {
+        CompileAndSaveKernel(script_name, package_config_override,
+                             &dart_options);
+
+      } else {
+        // Run the main isolate until we aren't told to restart.
+        RunMainIsolate(script_name, package_config_override, &dart_options);
+      }
     }
   }
 
@@ -1392,3 +1436,8 @@ int main(int argc, char** argv) {
   dart::bin::main(argc, argv);
   UNREACHABLE();
 }
+
+// TODO(riscv): Why is this missing from libc?
+#if defined(__riscv)
+char __libc_single_threaded = 0;
+#endif

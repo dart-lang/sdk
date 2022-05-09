@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +20,7 @@ void main() {
   });
 }
 
-class AbstractNavigationTest extends AbstractAnalysisTest {
+class AbstractNavigationTest extends PubPackageAnalysisServerTest {
   late List<NavigationRegion> regions;
   late List<NavigationTarget> targets;
   late List<String> targetFiles;
@@ -89,7 +90,23 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
-    assertHasFileTarget(testFile, offset, length);
+    assertHasFileTarget(testFile.path, offset, length);
+  }
+
+  /// TODO(scheglov) Improve target matching.
+  void assertHasTargetInDartCore(String search) {
+    var dartCoreFile = getFile('/sdk/lib/core/core.dart');
+    var dartCoreContent = dartCoreFile.readAsStringSync();
+
+    var offset = dartCoreContent.indexOf(search);
+    expect(offset, isNot(-1));
+
+    if (dartCoreContent.contains(search, offset + search.length)) {
+      fail('Not unique');
+    }
+
+    var length = findIdentifierLength(search);
+    assertHasFileTarget(dartCoreFile.path, offset, length);
   }
 
   /// Validates that there is a target in [testTargets]  with [testFile], at the
@@ -162,8 +179,13 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   final Completer<void> _resultsAvailable = Completer();
 
-  Future prepareNavigation() async {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
+  Future<void> prepareNavigation() async {
+    await handleSuccessfulRequest(
+      AnalysisSetSubscriptionsParams({
+        AnalysisService.NAVIGATION: [testFile.path],
+      }).toRequest('0'),
+    );
+
     await _resultsAvailable.future;
     assertRegionsSorted();
   }
@@ -172,7 +194,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       var params = AnalysisNavigationParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         regions = params.regions;
         targets = params.targets;
         targetFiles = params.files;
@@ -182,9 +204,9 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -241,7 +263,7 @@ void f() {}
 ''');
     await prepareNavigation();
     assertHasRegionString('A<int>(0)', 'A'.length);
-    assertHasTarget('A(_);', 0);
+    assertHasTarget('A(_);');
   }
 
   Future<void> test_annotationConstructor_implicit() async {
@@ -258,7 +280,7 @@ main() {
   }
 
   Future<void> test_annotationConstructor_importPrefix() async {
-    newFile(join(testFolder, 'my_annotation.dart'), content: r'''
+    newFile2('$testPackageLibPath/my_annotation.dart', r'''
 library an;
 class MyAnnotation {
   const MyAnnotation();
@@ -317,7 +339,7 @@ main() {
 ''');
     await prepareNavigation();
     assertHasRegionString('A()', 'A'.length);
-    assertHasTarget('A();', 0);
+    assertHasTarget('A();');
   }
 
   Future<void> test_annotationField() async {
@@ -333,7 +355,7 @@ main() {
   }
 
   Future<void> test_annotationField_importPrefix() async {
-    newFile(join(testFolder, 'mayn.dart'), content: r'''
+    newFile2('$testPackageLibPath/mayn.dart', r'''
 library an;
 const myan = new Object();
 ''');
@@ -347,19 +369,7 @@ main() {
     assertHasRegion('myan // ref');
   }
 
-  Future<void> test_class_fromSDK() async {
-    addTestFile('''
-int V = 42;
-''');
-    await prepareNavigation();
-    assertHasRegion('int V');
-    var targetIndex = testTargetIndexes[0];
-    var target = targets[targetIndex];
-    expect(target.startLine, greaterThan(0));
-    expect(target.startColumn, greaterThan(0));
-  }
-
-  Future<void> test_constructor_named() async {
+  Future<void> test_class_constructor_named() async {
     addTestFile('''
 class A {
   A.named(BBB p) {}
@@ -377,7 +387,7 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  Future<void> test_constructor_unnamed() async {
+  Future<void> test_class_constructor_unnamed() async {
     addTestFile('''
 class A {
   A(BBB p) {}
@@ -387,12 +397,12 @@ class BBB {}
     await prepareNavigation();
     // has region for complete "A.named"
     assertHasRegion('A(BBB');
-    assertHasTarget('A(BBB', 0);
+    assertHasTarget('A(BBB');
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  Future<void> test_constructorReference_named() async {
+  Future<void> test_class_constructorReference_named() async {
     addTestFile('''
 class A {}
 class B<T> {
@@ -408,7 +418,7 @@ void f() {
     assertHasRegionTarget('A>', 'A {}');
   }
 
-  Future<void> test_constructorReference_unnamed_declared() async {
+  Future<void> test_class_constructorReference_unnamed_declared() async {
     addTestFile('''
 class A {
   A();
@@ -418,11 +428,11 @@ void f() {
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('A.new;', 'A();', targetLength: 0);
-    assertHasRegionTarget('new;', 'A();', targetLength: 0);
+    assertHasRegionTarget('A.new;', 'A();');
+    assertHasRegionTarget('new;', 'A();');
   }
 
-  Future<void> test_constructorReference_unnamed_declared_new() async {
+  Future<void> test_class_constructorReference_unnamed_declared_new() async {
     addTestFile('''
 class A {
   A.new();
@@ -436,7 +446,7 @@ void f() {
     assertHasRegionTarget('new;', 'new();');
   }
 
-  Future<void> test_constructorReference_unnamed_default() async {
+  Future<void> test_class_constructorReference_unnamed_default() async {
     addTestFile('''
 class A {}
 void f() {
@@ -448,55 +458,7 @@ void f() {
     assertHasRegionTarget('new;', 'A {}');
   }
 
-  Future<void> test_enum_constant() async {
-    addTestFile('''
-enum E { a, b }
-void f() {
-  E.a;
-}
-''');
-    await prepareNavigation();
-    assertHasRegion('a;');
-    assertHasTarget('a,');
-  }
-
-  Future<void> test_enum_index() async {
-    addTestFile('''
-enum E { a, b }
-void f() {
-  E.a.index;
-}
-''');
-    await prepareNavigation();
-    assertHasRegion('index');
-    assertHasTarget('E {');
-  }
-
-  Future<void> test_enum_values() async {
-    addTestFile('''
-enum E { a, b }
-void f() {
-  E.values;
-}
-''');
-    await prepareNavigation();
-    assertHasRegion('values');
-    assertHasTarget('E');
-  }
-
-  Future<void> test_extension_on() async {
-    addTestFile('''
-class C //1
-{}
-extension E on C //2
-{}
-''');
-    await prepareNavigation();
-    assertHasRegion('C //2');
-    assertHasTarget('C //1');
-  }
-
-  Future<void> test_factoryRedirectingConstructor_implicit() async {
+  Future<void> test_class_factoryRedirectingConstructor_implicit() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -510,7 +472,7 @@ class B {
   }
 
   Future<void>
-      test_factoryRedirectingConstructor_implicit_withTypeArgument() async {
+      test_class_factoryRedirectingConstructor_implicit_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -529,7 +491,7 @@ class C<T> {}
     }
   }
 
-  Future<void> test_factoryRedirectingConstructor_named() async {
+  Future<void> test_class_factoryRedirectingConstructor_named() async {
     addTestFile('''
 class A {
   factory A() = B.named;
@@ -550,7 +512,7 @@ class B {
   }
 
   Future<void>
-      test_factoryRedirectingConstructor_named_withTypeArgument() async {
+      test_class_factoryRedirectingConstructor_named_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -575,7 +537,7 @@ class C<T> {
     }
   }
 
-  Future<void> test_factoryRedirectingConstructor_unnamed() async {
+  Future<void> test_class_factoryRedirectingConstructor_unnamed() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -586,11 +548,11 @@ class B {
 ''');
     await prepareNavigation();
     assertHasRegion('B;');
-    assertHasTarget('B() {}', 0);
+    assertHasTarget('B() {}');
   }
 
   Future<void>
-      test_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
+      test_class_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -603,7 +565,7 @@ class C<T> {
     await prepareNavigation();
     {
       assertHasRegion('C<A>');
-      assertHasTarget('C() {}', 0);
+      assertHasTarget('C() {}');
     }
     {
       assertHasRegion('A>;');
@@ -611,7 +573,7 @@ class C<T> {
     }
   }
 
-  Future<void> test_factoryRedirectingConstructor_unresolved() async {
+  Future<void> test_class_factoryRedirectingConstructor_unresolved() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -621,7 +583,7 @@ class A {
     // don't check regions, but there should be no exceptions
   }
 
-  Future<void> test_fieldFormalParameter() async {
+  Future<void> test_class_fieldFormalParameter() async {
     addTestFile('''
 class AAA {
   int fff = 123;
@@ -632,7 +594,7 @@ class AAA {
     assertHasRegionTarget('fff);', 'fff = 123');
   }
 
-  Future<void> test_fieldFormalParameter_unresolved() async {
+  Future<void> test_class_fieldFormalParameter_unresolved() async {
     addTestFile('''
 class AAA {
   AAA(this.fff);
@@ -640,6 +602,201 @@ class AAA {
 ''');
     await prepareNavigation();
     assertNoRegion('fff);', 3);
+  }
+
+  Future<void> test_class_fromSDK() async {
+    addTestFile('''
+int V = 42;
+''');
+    await prepareNavigation();
+    assertHasRegion('int V');
+    var targetIndex = testTargetIndexes[0];
+    var target = targets[targetIndex];
+    expect(target.startLine, greaterThan(0));
+    expect(target.startColumn, greaterThan(0));
+  }
+
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('a;');
+    assertHasTarget('a,');
+  }
+
+  Future<void> test_enum_constructor_named() async {
+    addTestFile('''
+const a = 0;
+
+enum E<T> {
+  v<int>.named(a); // 1
+  E.named(int _) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('v<int', 'named(int');
+    assertHasRegion('int>');
+    assertHasRegionTarget('named(a); // 1', 'named(int');
+    assertHasRegionTarget('a); // 1', 'a = 0');
+
+    assertHasRegion('int _');
+  }
+
+  Future<void> test_enum_constructor_unnamed() async {
+    addTestFile('''
+enum E {
+  v1,
+  v2(),
+  v3.new();
+  const E();
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('v1', 'E();');
+    assertHasRegionTarget('v2()', 'E();');
+    assertHasRegionTarget('v3', 'E();');
+    assertHasRegionTarget('new()', 'E();');
+  }
+
+  Future<void> test_enum_field() async {
+    addTestFile('''
+enum E {
+  v;
+  final int foo = 0;
+  void bar() {
+    foo;
+    foo = 1;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int foo');
+    assertHasRegionTarget('foo;', 'foo = 0;');
+    assertHasRegionTarget('foo = 1;', 'foo = 0;');
+  }
+
+  Future<void> test_enum_getter() async {
+    addTestFile('''
+enum E {
+  v;
+  int get foo => 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int get');
+    assertHasRegionTarget('foo;', 'foo =>');
+  }
+
+  Future<void> test_enum_implements() async {
+    addTestFile('''
+class A {}
+
+enum E implements A { // ref
+  v
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('A { // ref', 'A {}');
+  }
+
+  Future<void> test_enum_index() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a.index;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('index');
+    assertHasTargetInDartCore('index;');
+  }
+
+  Future<void> test_enum_method() async {
+    addTestFile('''
+enum E {
+  v;
+  void foo(int a) {}
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int ');
+  }
+
+  Future<void> test_enum_setter() async {
+    addTestFile('''
+enum E {
+  v;
+  set foo(int _) {}
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegion('int _');
+    assertHasRegionTarget('foo = 0;', 'foo(');
+  }
+
+  Future<void> test_enum_typeParameter() async {
+    addTestFile('''
+enum E<T> {
+  v(0);
+  const E(T t);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('T t', 'T>');
+  }
+
+  Future<void> test_enum_values() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.values;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('values');
+    assertHasTarget('E');
+  }
+
+  Future<void> test_enum_with() async {
+    addTestFile('''
+mixin M {}
+
+enum E with M { // ref
+  v
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('M { // ref', 'M {}');
+  }
+
+  Future<void> test_extension_on() async {
+    addTestFile('''
+class C //1
+{}
+extension E on C //2
+{}
+''');
+    await prepareNavigation();
+    assertHasRegion('C //2');
+    assertHasTarget('C //1');
   }
 
   Future<void> test_functionReference_className_staticMethod() async {
@@ -670,7 +827,7 @@ void f() {
   }
 
   Future<void> test_functionReference_importPrefix_function() async {
-    newFile(join(testFolder, 'a.dart'), content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo<T>() {}
 ''');
     addTestFile('''
@@ -869,7 +1026,7 @@ main() {
 ''');
     await prepareNavigation();
     assertHasRegionString('A();', 'A'.length);
-    assertHasTarget('A() {}', 0);
+    assertHasTarget('A() {}');
   }
 
   Future<void> test_instanceCreation_unnamed_withTypeArgument() async {
@@ -885,7 +1042,7 @@ main() {
     await prepareNavigation();
     {
       assertHasRegionString('B<A>();', 'B'.length);
-      assertHasTarget('B() {}', 0);
+      assertHasTarget('B() {}');
     }
     {
       assertHasRegion('A>();');
@@ -919,8 +1076,8 @@ library my.lib;
   }
 
   Future<void> test_multiplyDefinedElement() async {
-    newFile('$projectPath/bin/libA.dart', content: 'library A; int TEST = 1;');
-    newFile('$projectPath/bin/libB.dart', content: 'library B; int TEST = 2;');
+    newFile2('$testPackageLibPath/libA.dart', 'library A; int TEST = 1;');
+    newFile2('$testPackageLibPath/libB.dart', 'library B; int TEST = 2;');
     addTestFile('''
 import 'libA.dart';
 import 'libB.dart';
@@ -930,6 +1087,19 @@ main() {
 ''');
     await prepareNavigation();
     assertNoRegionAt('TEST');
+  }
+
+  Future<void> test_namedExpression_name() async {
+    addTestFile('''
+void f(int a, int b, {int? c, int? d}) {}
+
+void g() {
+  f(0, c: 2, 1, d: 3);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('c: 2', 'c,');
+    assertHasRegionTarget('d: 3', 'd}) {}');
   }
 
   Future<void> test_operator_arithmetic() async {
@@ -998,7 +1168,7 @@ main() {
 
   Future<void> test_partOf() async {
     var libCode = 'library lib; part "test.dart";';
-    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
+    var libFile = newFile2('$testPackageLibPath/lib.dart', libCode).path;
     addTestFile('part of lib;');
     await prepareNavigation();
     assertHasRegionString('lib');
@@ -1044,7 +1214,7 @@ class A {
     await prepareNavigation();
     {
       assertHasRegion('this();');
-      assertHasTarget('A() {}', 0);
+      assertHasTarget('A() {}');
     }
     {
       assertHasRegion('this.foo');
@@ -1057,9 +1227,10 @@ class A {
   }
 
   Future<void> test_string_configuration() async {
-    newFile('$projectPath/bin/lib.dart', content: '').path;
-    var lib2File = newFile('$projectPath/bin/lib2.dart', content: '').path;
-    addTestFile('import "lib.dart" if (dart.library.html) "lib2.dart";');
+    newFile2('$testPackageLibPath/lib.dart', '').path;
+    var lib2File = newFile2('$testPackageLibPath/lib2.dart', '').path;
+    newFile2(
+        testFilePath, 'import "lib.dart" if (dart.library.html) "lib2.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib2.dart"');
     assertHasFileTarget(lib2File, 0, 0);
@@ -1067,7 +1238,7 @@ class A {
 
   Future<void> test_string_export() async {
     var libCode = 'library lib;';
-    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
+    var libFile = newFile2('$testPackageLibPath/lib.dart', libCode).path;
     addTestFile('export "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -1082,7 +1253,7 @@ class A {
 
   Future<void> test_string_import() async {
     var libCode = 'library lib;';
-    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
+    var libFile = newFile2('$testPackageLibPath/lib.dart', libCode).path;
     addTestFile('import "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -1104,7 +1275,7 @@ class A {
   Future<void> test_string_part() async {
     var unitCode = 'part of lib;  f() {}';
     var unitFile =
-        newFile('$projectPath/bin/test_unit.dart', content: unitCode).path;
+        newFile2('$testPackageLibPath/test_unit.dart', unitCode).path;
     addTestFile('''
 library lib;
 part "test_unit.dart";
@@ -1145,7 +1316,7 @@ class B extends A {
     await prepareNavigation();
     {
       assertHasRegionString('super');
-      assertHasTarget('A() {}', 0);
+      assertHasTarget('A() {}');
     }
     {
       assertHasRegion('super.named');
@@ -1168,6 +1339,62 @@ class B extends A {
     await prepareNavigation();
     assertHasRegionString('super');
     assertHasTarget('A {');
+  }
+
+  Future<void> test_superFormalParameter_requiredNamed() async {
+    addTestFile('''
+class A {
+  A({required int a}); // 0
+}
+class B extends A {
+  B({required super.a}); // 1
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('a}); // 1', 'a}); // 0');
+  }
+
+  Future<void> test_superFormalParameter_requiredPositional() async {
+    addTestFile('''
+class A {
+  A(int a); // 0
+}
+class B extends A {
+  B(super.a); // 1
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('super.a', 'a); // 0');
+    assertHasRegionTarget('a); // 1', 'a); // 0');
+  }
+
+  Future<void>
+      test_superFormalParameter_requiredPositional_functionTyped() async {
+    addTestFile('''
+class A {
+  A(Object a); // 0
+}
+class B extends A {
+  B(int super.a<T>(T b)); // 1
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('a<T>', 'a); // 0');
+    assertHasRegion('int ');
+    assertHasRegionTarget('T>', 'T>');
+    assertHasRegionTarget('T b', 'T>');
+    assertHasRegionTarget('b))', 'b))');
+  }
+
+  Future<void> test_superFormalParameter_requiredPositional_unresolved() async {
+    addTestFile('''
+class A {}
+class B extends A {
+  B(super.a); // 1
+}
+''');
+    await prepareNavigation();
+    assertNoRegionAt('a); // 1');
   }
 
   Future<void> test_targetElement() async {

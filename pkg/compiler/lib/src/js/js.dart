@@ -37,6 +37,7 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     bool allowVariableMinification = true,
     List<CodeOutputListener> listeners = const []}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
+      utf8: compilerOptions.features.writeUtf8.isEnabled,
       shouldCompressOutput: compilerOptions.enableMinification,
       minifyLocalVariables: allowVariableMinification);
   CodeBuffer outBuffer = CodeBuffer(listeners);

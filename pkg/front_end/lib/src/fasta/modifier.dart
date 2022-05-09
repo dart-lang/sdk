@@ -8,6 +8,7 @@ import 'problems.dart' show unhandled;
 
 enum ModifierEnum {
   Abstract,
+  Augment,
   Const,
   Covariant,
   External,
@@ -20,7 +21,9 @@ enum ModifierEnum {
 
 const int abstractMask = 1;
 
-const int constMask = abstractMask << 1;
+const int augmentMask = abstractMask << 1;
+
+const int constMask = augmentMask << 1;
 
 const int covariantMask = constMask << 1;
 
@@ -60,6 +63,8 @@ const int varMask = 0;
 
 const Modifier Abstract = const Modifier(ModifierEnum.Abstract, abstractMask);
 
+const Modifier Augment = const Modifier(ModifierEnum.Augment, augmentMask);
+
 const Modifier Const = const Modifier(ModifierEnum.Const, constMask);
 
 const Modifier Covariant =
@@ -83,6 +88,7 @@ class Modifier {
 
   factory Modifier.fromString(String string) {
     if (identical('abstract', string)) return Abstract;
+    if (identical('augment', string)) return Augment;
     if (identical('const', string)) return Const;
     if (identical('covariant', string)) return Covariant;
     if (identical('external', string)) return External;

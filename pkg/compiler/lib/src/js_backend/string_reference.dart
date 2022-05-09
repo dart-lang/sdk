@@ -101,14 +101,14 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
   StringReference(this.constant) : sourceInformation = null;
   StringReference._(this.constant, this._value, this.sourceInformation);
 
-  factory StringReference.readFromDataSource(DataSource source) {
+  factory StringReference.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     StringConstantValue constant = source.readConstant() as StringConstantValue;
     source.end(tag);
     return StringReference(constant);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeConstant(constant);
     sink.end(tag);

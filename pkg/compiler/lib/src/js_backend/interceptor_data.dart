@@ -4,9 +4,9 @@
 
 library js_backend.interceptor_data;
 
-import '../common/names.dart' show Identifiers;
-import '../common_elements.dart'
+import '../common/elements.dart'
     show CommonElements, KCommonElements, KElementEnvironment;
+import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -21,12 +21,12 @@ import 'native_data.dart';
 abstract class InterceptorData {
   /// Deserializes a [InterceptorData] object from [source].
   factory InterceptorData.readFromDataSource(
-      DataSource source,
+      DataSourceReader source,
       NativeData nativeData,
       CommonElements commonElements) = InterceptorDataImpl.readFromDataSource;
 
   /// Serializes this [InterceptorData] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Returns `true` if [cls] is an intercepted class.
   bool isInterceptedClass(ClassEntity element);
@@ -110,8 +110,8 @@ class InterceptorDataImpl implements InterceptorData {
       this.interceptedClasses,
       this.classesMixedIntoInterceptedClasses);
 
-  factory InterceptorDataImpl.readFromDataSource(
-      DataSource source, NativeData nativeData, CommonElements commonElements) {
+  factory InterceptorDataImpl.readFromDataSource(DataSourceReader source,
+      NativeData nativeData, CommonElements commonElements) {
     source.begin(tag);
     int interceptedMembersCount = source.readInt();
     Map<String, Set<MemberEntity>> interceptedMembers = {};
@@ -129,7 +129,7 @@ class InterceptorDataImpl implements InterceptorData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(interceptedMembers.length);
     interceptedMembers.forEach((String name, Set<MemberEntity> members) {

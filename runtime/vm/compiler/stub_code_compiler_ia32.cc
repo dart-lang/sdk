@@ -41,16 +41,13 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ testl(EAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ BranchIf(NOT_ZERO, &done);
 
-  if (preserve_registers) {
-    __ EnterCallRuntimeFrame(2 * target::kWordSize);
-  } else {
-    __ ReserveAlignedFrameSpace(2 * target::kWordSize);
-  }
-  __ movl(Address(ESP, 1 * target::kWordSize), THR);
-  __ movl(Address(ESP, 0 * target::kWordSize), EAX);
-  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
-  if (preserve_registers) {
-    __ LeaveCallRuntimeFrame();
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/2 * target::kWordSize,
+                        preserve_registers);
+    __ movl(Address(ESP, 1 * target::kWordSize), THR);
+    __ movl(Address(ESP, 0 * target::kWordSize), EAX);
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
 
   __ Bind(&done);
@@ -157,7 +154,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+static void GenerateExitSafepointStubCommon(Assembler* assembler,
+                                            uword runtime_entry_offset) {
   __ pushal();
   __ subl(SPREG, Immediate(8));
   __ movsd(Address(SPREG, 0), XMM0);
@@ -171,7 +169,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ movl(Address(THR, target::Thread::execution_state_offset()),
           Immediate(target::Thread::vm_execution_state()));
 
-  __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ movl(EAX, Address(THR, runtime_entry_offset));
   __ call(EAX);
   __ LeaveFrame();
 
@@ -179,6 +177,18 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ addl(SPREG, Immediate(8));
   __ popal();
   __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
+}
+
+void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
+    Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler,
+      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Calls a native function inside a safepoint.
@@ -423,16 +433,21 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
-  __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
-  __ movl(Address(ESP, argv_offset), EAX);      // Set argv in NativeArguments.
-  __ leal(EAX,
-          Address(EBP, 2 * target::kWordSize));  // Compute return value addr.
-  __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
-  __ leal(
-      EAX,
-      Address(ESP, 2 * target::kWordSize));  // Pointer to the NativeArguments.
-  __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
+  // Set thread in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);
+  // Set argc in NativeArguments.
+  __ movl(Address(ESP, argc_tag_offset), EDX);
+  // Set argv in NativeArguments.
+  __ movl(Address(ESP, argv_offset), EAX);
+  // Compute return value addr.
+  __ leal(EAX, Address(EBP, (target::frame_layout.param_end_from_fp + 1) *
+                                target::kWordSize));
+  // Set retval in NativeArguments.
+  __ movl(Address(ESP, retval_offset), EAX);
+  // Pointer to the NativeArguments.
+  __ leal(EAX, Address(ESP, 2 * target::kWordSize));
+  // Pass the pointer to the NativeArguments.
+  __ movl(Address(ESP, 0), EAX);
 
   __ movl(Address(ESP, target::kWordSize), ECX);  // Function to call.
   __ call(wrapper_address);
@@ -633,15 +648,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  __ movl(ECX, ESP);  // Preserve saved registers block.
-  __ ReserveAlignedFrameSpace(2 * target::kWordSize);
-  __ movl(Address(ESP, 0 * target::kWordSize),
-          ECX);  // Start of register block.
-  bool is_lazy =
-      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-  __ movl(Address(ESP, 1 * target::kWordSize), Immediate(is_lazy ? 1 : 0));
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
-  // Result (EAX) is stack-size (FP - SP) in bytes.
+  {
+    __ movl(ECX, ESP);  // Preserve saved registers block.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/2 * target::kWordSize,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ movl(Address(ESP, 0 * target::kWordSize),
+            ECX);  // Start of register block.
+    __ movl(Address(ESP, 1 * target::kWordSize), Immediate(is_lazy ? 1 : 0));
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (EAX) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX temporarily.
@@ -668,9 +687,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ pushl(EBX);  // Preserve exception as first local.
     __ pushl(ECX);  // Preserve stacktrace as first local.
   }
-  __ ReserveAlignedFrameSpace(1 * target::kWordSize);
-  __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/1 * target::kWordSize,
+                        /*preserve_registers=*/false);
+    __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
+    rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
     __ movl(EBX, Address(EBP, target::frame_layout.first_local_from_fp *
@@ -951,12 +974,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 //   ESP + 16 : current thread.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  const intptr_t kTargetCodeOffset = 3 * target::kWordSize;
-  const intptr_t kArgumentsDescOffset = 4 * target::kWordSize;
-  const intptr_t kArgumentsOffset = 5 * target::kWordSize;
-  const intptr_t kThreadOffset = 6 * target::kWordSize;
-
-  __ pushl(Address(ESP, 0));  // Marker for the profiler.
+  const intptr_t kTargetCodeOffset = 2 * target::kWordSize;
+  const intptr_t kArgumentsDescOffset = 3 * target::kWordSize;
+  const intptr_t kArgumentsOffset = 4 * target::kWordSize;
+  const intptr_t kThreadOffset = 5 * target::kWordSize;
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1071,7 +1092,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
-  __ popl(ECX);
 
   __ ret();
 }
@@ -1309,7 +1329,6 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == EDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == kNoRegister);
 COMPILE_ASSERT(kWriteBarrierSlotReg == EDI);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           Address stub_code,
                                            bool cards) {
   Label remember_card;
 
@@ -1391,13 +1410,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
-  // Setup frame, push callee-saved registers.
-
-  __ EnterCallRuntimeFrame(1 * target::kWordSize);
-  __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  // Restore callee-saved registers, tear down frame.
-  __ LeaveCallRuntimeFrame();
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/1 * target::kWordSize,
+                        /*preserve_registers=*/true);
+    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+  }
   __ ret();
 
   __ Bind(&lost_race);
@@ -1429,11 +1448,15 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
-    __ EnterCallRuntimeFrame(2 * target::kWordSize);
-    __ movl(Address(ESP, 0 * target::kWordSize), EDX);  // Object
-    __ movl(Address(ESP, 1 * target::kWordSize), EDI);  // Slot
-    __ CallRuntime(kRememberCardRuntimeEntry, 2);
-    __ LeaveCallRuntimeFrame();
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/2 * target::kWordSize,
+                          /*preserve_registers=*/true);
+      __ movl(Address(ESP, 0 * target::kWordSize), EDX);  // Object
+      __ movl(Address(ESP, 1 * target::kWordSize), EDI);  // Slot
+      rt.Call(kRememberCardRuntimeEntry, 2);
+    }
     __ popl(ECX);
     __ popl(EAX);
     __ ret();
@@ -1441,15 +1464,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 }
 
 void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler, Address(THR, target::Thread::write_barrier_code_offset()),
-      false);
+  GenerateWriteBarrierStubHelper(assembler, false);
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler,
-      Address(THR, target::Thread::array_write_barrier_code_offset()), true);
+  GenerateWriteBarrierStubHelper(assembler, true);
 }
 
 void StubCodeCompiler::GenerateAllocateObjectStub(Assembler* assembler) {
@@ -2527,12 +2546,18 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #endif
 
   Label exit_through_non_ffi;
-  // Check if we exited generated from FFI. If so do transition.
+  // Check if we exited generated from FFI. If so do transition - this is needed
+  // because normally runtime calls transition back to generated via destructor
+  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
+  // have this boilerplate, don't have this stack resource, have to transition
+  // explicitly.
   __ cmpl(compiler::Address(
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(ECX, /*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(ECX, /*leave_safepoint=*/true,
+                                 /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
   // Set tag.
@@ -3040,8 +3065,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ xorl(ECX, ECX); /* Zero. */
     __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
-        EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),
-        EDI);
+        EAX, FieldAddress(EAX, target::PointerBase::data_offset()), EDI);
     Label done, init_loop;
     __ Bind(&init_loop);
     __ cmpl(EDI, EBX);

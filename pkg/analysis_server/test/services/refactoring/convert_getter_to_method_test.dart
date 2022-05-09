@@ -20,6 +20,28 @@ class ConvertGetterToMethodTest extends RefactoringTest {
   @override
   late ConvertGetterToMethodRefactoring refactoring;
 
+  Future<void> test_change_extensionMethod() async {
+    await indexTestUnit('''
+extension A on String {
+  int get test => 1;
+}
+void f(String a) {
+  var va = a.test;
+}
+''');
+    var element = findElement.getter('test', of: 'A');
+    _createRefactoringForElement(element);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension A on String {
+  int test() => 1;
+}
+void f(String a) {
+  var va = a.test();
+}
+''');
+  }
+
   Future<void> test_change_function() async {
     await indexTestUnit('''
 int get test => 42;

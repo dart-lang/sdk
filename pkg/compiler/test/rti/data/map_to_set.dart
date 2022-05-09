@@ -5,13 +5,13 @@
 // @dart = 2.7
 
 /*prod.class: global#Map:deps=[Class],needsArgs*/
-/*spec.class: global#Map:deps=[Class],explicit=[Map,Map<Object?,Object?>],indirect,needsArgs*/
+/*spec.class: global#Map:deps=[Class],explicit=[Map,Map<Object?,Object?>],needsArgs,test*/
 
 /*prod.class: global#LinkedHashMap:deps=[Map],implicit=[LinkedHashMap.K],needsArgs*/
-/*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
+/*spec.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs,test*/
 
 /*prod.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
-/*spec.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap,JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
+/*spec.class: global#JsLinkedHashMap:deps=[LinkedHashMap],explicit=[JsLinkedHashMap,JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K],needsArgs,test*/
 
 /*prod.class: global#double:*/
 /*spec.class: global#double:implicit=[double]*/
@@ -25,7 +25,7 @@ main() {
   set is Set<String>;
 }
 
-/*spec.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*spec.class: Class:implicit=[Class.S,Class.T],needsArgs,test*/
 /*prod.class: Class:needsArgs*/
 class Class<T, S> {
   m() {

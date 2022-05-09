@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
+// Try removing the extra positional arguments.
+//   const E2.named(int value) : this(value, value); // Error.
+//                                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::one, self::E1::two];
+  final field core::int foo;
+  static const field self::E1 one = const self::E1::•(0, "one", 1);
+  static const field self::E1 two = const self::E1::named(1, "two", 2);
+  const constructor •(core::int index, core::String name, core::int foo) → self::E1
+    : self::E1::foo = foo, super core::_Enum::•(index, name)
+    ;
+  const constructor named(core::int index, core::String name, core::int value) → self::E1
+    : this self::E1::•(index, name, value)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::one, self::E2::two];
+  final field core::int foo;
+  static const field self::E2 one = const self::E2::•(0, "one", 1);
+  static const field self::E2 two = const self::E2::named(1, "two", 2);
+  const constructor •(core::int index, core::String name, core::int foo) → self::E2
+    : self::E2::foo = foo, super core::_Enum::•(index, name)
+    ;
+  const constructor named(core::int index, core::String name, core::int value) → self::E2
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
+Try removing the extra positional arguments.
+  const E2.named(int value) : this(value, value); // Error.
+                                  ^"
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_initializers.dart:5:6 -> ListConstant(const <E1*>[const E1{E1.foo: 1, _Enum.index: 0, _Enum._name: "one"}, const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:6:3 -> InstanceConstant(const E1{E1.foo: 1, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:7:3 -> InstanceConstant(const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: StaticGet @ org-dartlang-testcase:///redirecting_initializers.dart:15:6 -> InstanceConstant(const E2{E2.foo: 1, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:16:3 -> InstanceConstant(const E2{E2.foo: 1, _Enum.index: 0, _Enum._name: "one"})
+Extra constant evaluation: evaluated: 23, effectively constant: 5

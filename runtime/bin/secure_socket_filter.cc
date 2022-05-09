@@ -175,17 +175,6 @@ void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
   GetFilter(args)->GetSelectedProtocol(args);
 }
 
-void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
-  bool use_session_cache =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
-  bool request_client_certificate =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
-  bool require_client_certificate =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  GetFilter(args)->Renegotiate(use_session_cache, request_client_certificate,
-                               require_client_certificate);
-}
-
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_Handle handshake_complete =
@@ -205,6 +194,15 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
         "Illegal argument to RegisterBadCertificateCallback"));
   }
   GetFilter(args)->RegisterBadCertificateCallback(callback);
+}
+
+void FUNCTION_NAME(SecureSocket_RegisterKeyLogPort)(Dart_NativeArguments args) {
+  Dart_Handle port = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  ASSERT(!Dart_IsNull(port));
+
+  Dart_Port port_id;
+  ThrowIfError(Dart_SendPortGetId(port, &port_id));
+  GetFilter(args)->RegisterKeyLogPort(port_id);
 }
 
 void FUNCTION_NAME(SecureSocket_PeerCertificate)(Dart_NativeArguments args) {
@@ -465,6 +463,10 @@ Dart_Handle SSLFilter::PeerCertificate() {
   return X509Helper::WrappedX509Certificate(ca);
 }
 
+void SSLFilter::RegisterKeyLogPort(Dart_Port key_log_port) {
+  key_log_port_ = key_log_port;
+}
+
 void SSLFilter::InitializeLibrary() {
   MutexLocker locker(mutex_);
   if (!library_initialized_) {
@@ -502,6 +504,10 @@ void SSLFilter::Connect(const char* hostname,
   SSL_set_bio(ssl_, ssl_side, ssl_side);
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
+
+  if (context->allow_tls_renegotiation()) {
+    SSL_set_renegotiate_mode(ssl_, ssl_renegotiate_freely);
+  }
   context->RegisterCallbacks(ssl_);
   SSL_set_ex_data(ssl_, ssl_cert_context_index, context);
 
@@ -595,10 +601,14 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
     return SSL_ERROR_WANT_CERTIFICATE_VERIFY;
   }
   if (callback_error != NULL) {
-    // The SSL_do_handshake will try performing a handshake and might call
-    // a CertificateCallback. If the certificate validation
-    // failed the 'callback_error" will be set by the certificateCallback
-    // logic and we propagate the error"
+    // The SSL_do_handshake will try performing a handshake and might call one
+    // or both of:
+    //   SSLCertContext::KeyLogCallback
+    //   SSLCertContext::CertificateCallback
+    //
+    // If either of those functions fail, and this.callback_error has not
+    // already been set, then they will set this.callback_error to an error
+    // handle i.e. only the first error will be captured and propogated.
     Dart_PropagateError(callback_error);
   }
   if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {
@@ -643,17 +653,6 @@ void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, Dart_NewStringFromUTF8(protocol, length));
   }
-}
-
-void SSLFilter::Renegotiate(bool use_session_cache,
-                            bool request_client_certificate,
-                            bool require_client_certificate) {
-  // The SSL_REQUIRE_CERTIFICATE option only takes effect if the
-  // SSL_REQUEST_CERTIFICATE option is also set, so set it.
-  request_client_certificate =
-      request_client_certificate || require_client_certificate;
-  // TODO(24070, 24069): Implement setting the client certificate parameters,
-  //   and triggering rehandshake.
 }
 
 void SSLFilter::FreeResources() {
@@ -727,6 +726,13 @@ int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
       int error = SSL_get_error(ssl_, bytes_processed);
       if (SSL_LOG_DATA) {
         Syslog::Print("SSL_read returned error %d\n", error);
+      }
+      switch (error) {
+        case SSL_ERROR_SYSCALL:
+        case SSL_ERROR_SSL:
+          return -1;
+        default:
+          break;
       }
       bytes_processed = 0;
     }

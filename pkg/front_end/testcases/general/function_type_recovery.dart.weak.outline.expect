@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -10,6 +10,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef F = ((core::String*) →* core::int*) →* core::int*;
+typedef F = ((core::String) → core::int) → core::int;
 static method main() → dynamic
   ;

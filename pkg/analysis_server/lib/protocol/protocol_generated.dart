@@ -2583,9 +2583,9 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   /// the normal package: URI resolution mechanism.
   ///
   /// If a package root is a file, then the analyzer will behave as though that
-  /// file is a ".packages" file in the source directory. The effect is the
-  /// same as specifying the file as a "--packages" parameter to the Dart VM
-  /// when executing any Dart file inside the source directory.
+  /// file is a ".dart_tool/package_config.json" file in the source directory.
+  /// The effect is the same as specifying the file as a "--packages" parameter
+  /// to the Dart VM when executing any Dart file inside the source directory.
   ///
   /// Files in any directories that are not overridden by this mapping have
   /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
@@ -4215,6 +4215,68 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
       );
 }
 
+/// CompletionCaseMatchingMode
+///
+/// enum {
+///   FIRST_CHAR
+///   ALL_CHARS
+///   NONE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionCaseMatchingMode implements Enum {
+  /// Match the first character case only when filtering completions, the
+  /// default for this enumeration.
+  static const CompletionCaseMatchingMode FIRST_CHAR =
+      CompletionCaseMatchingMode._('FIRST_CHAR');
+
+  /// Match all character cases when filtering completion lists.
+  static const CompletionCaseMatchingMode ALL_CHARS =
+      CompletionCaseMatchingMode._('ALL_CHARS');
+
+  /// Do not match character cases when filtering completion lists.
+  static const CompletionCaseMatchingMode NONE =
+      CompletionCaseMatchingMode._('NONE');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<CompletionCaseMatchingMode> VALUES =
+      <CompletionCaseMatchingMode>[FIRST_CHAR, ALL_CHARS, NONE];
+
+  @override
+  final String name;
+
+  const CompletionCaseMatchingMode._(this.name);
+
+  factory CompletionCaseMatchingMode(String name) {
+    switch (name) {
+      case 'FIRST_CHAR':
+        return FIRST_CHAR;
+      case 'ALL_CHARS':
+        return ALL_CHARS;
+      case 'NONE':
+        return NONE;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory CompletionCaseMatchingMode.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return CompletionCaseMatchingMode(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'CompletionCaseMatchingMode', json);
+  }
+
+  @override
+  String toString() => 'CompletionCaseMatchingMode.$name';
+
+  String toJson() => name;
+}
+
 /// completion.existingImports params
 ///
 /// {
@@ -4683,6 +4745,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
 ///   "file": FilePath
 ///   "offset": int
 ///   "maxResults": int
+///   "completionCaseMatchingMode": optional CompletionCaseMatchingMode
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -4698,6 +4761,19 @@ class CompletionGetSuggestions2Params implements RequestParams {
   /// to true.
   int maxResults;
 
+  /// The mode of code completion being invoked. If no value is provided,
+  /// MATCH_FIRST_CHAR will be assumed.
+  CompletionCaseMatchingMode? completionCaseMatchingMode;
+
+  /// The mode of code completion being invoked. If no value is provided, BASIC
+  /// will be assumed. BASIC is also the only currently supported.
+  CompletionMode? completionMode;
+
+  /// The number of times that the user has invoked code completion at the same
+  /// code location, counting from 1. If no value is provided, 1 will be
+  /// assumed.
+  int? invocationCount;
+
   /// The approximate time in milliseconds that the server should spend. The
   /// server will perform some steps anyway, even if it takes longer than the
   /// specified timeout. This field is intended to be used for benchmarking,
@@ -4705,7 +4781,10 @@ class CompletionGetSuggestions2Params implements RequestParams {
   int? timeout;
 
   CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults,
-      {this.timeout});
+      {this.completionCaseMatchingMode,
+      this.completionMode,
+      this.invocationCount,
+      this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4730,11 +4809,31 @@ class CompletionGetSuggestions2Params implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'maxResults');
       }
+      CompletionCaseMatchingMode? completionCaseMatchingMode;
+      if (json.containsKey('completionCaseMatchingMode')) {
+        completionCaseMatchingMode = CompletionCaseMatchingMode.fromJson(
+            jsonDecoder,
+            jsonPath + '.completionCaseMatchingMode',
+            json['completionCaseMatchingMode']);
+      }
+      CompletionMode? completionMode;
+      if (json.containsKey('completionMode')) {
+        completionMode = CompletionMode.fromJson(
+            jsonDecoder, jsonPath + '.completionMode', json['completionMode']);
+      }
+      int? invocationCount;
+      if (json.containsKey('invocationCount')) {
+        invocationCount = jsonDecoder.decodeInt(
+            jsonPath + '.invocationCount', json['invocationCount']);
+      }
       int? timeout;
       if (json.containsKey('timeout')) {
         timeout = jsonDecoder.decodeInt(jsonPath + '.timeout', json['timeout']);
       }
       return CompletionGetSuggestions2Params(file, offset, maxResults,
+          completionCaseMatchingMode: completionCaseMatchingMode,
+          completionMode: completionMode,
+          invocationCount: invocationCount,
           timeout: timeout);
     } else {
       throw jsonDecoder.mismatch(
@@ -4753,6 +4852,19 @@ class CompletionGetSuggestions2Params implements RequestParams {
     result['file'] = file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
+    var completionCaseMatchingMode = this.completionCaseMatchingMode;
+    if (completionCaseMatchingMode != null) {
+      result['completionCaseMatchingMode'] =
+          completionCaseMatchingMode.toJson();
+    }
+    var completionMode = this.completionMode;
+    if (completionMode != null) {
+      result['completionMode'] = completionMode.toJson();
+    }
+    var invocationCount = this.invocationCount;
+    if (invocationCount != null) {
+      result['invocationCount'] = invocationCount;
+    }
     var timeout = this.timeout;
     if (timeout != null) {
       result['timeout'] = timeout;
@@ -4774,6 +4886,9 @@ class CompletionGetSuggestions2Params implements RequestParams {
       return file == other.file &&
           offset == other.offset &&
           maxResults == other.maxResults &&
+          completionCaseMatchingMode == other.completionCaseMatchingMode &&
+          completionMode == other.completionMode &&
+          invocationCount == other.invocationCount &&
           timeout == other.timeout;
     }
     return false;
@@ -4784,6 +4899,9 @@ class CompletionGetSuggestions2Params implements RequestParams {
         file,
         offset,
         maxResults,
+        completionCaseMatchingMode,
+        completionMode,
+        invocationCount,
         timeout,
       );
 }
@@ -4794,7 +4912,6 @@ class CompletionGetSuggestions2Params implements RequestParams {
 ///   "replacementOffset": int
 ///   "replacementLength": int
 ///   "suggestions": List<CompletionSuggestion>
-///   "libraryUrisToImport": List<String>
 ///   "isIncomplete": bool
 /// }
 ///
@@ -4820,31 +4937,16 @@ class CompletionGetSuggestions2Result implements ResponseResult {
   /// (if isIncomplete was true).
   ///
   /// This list contains suggestions from both imported, and not yet imported
-  /// libraries. Items from not yet imported libraries will have
-  /// libraryUriToImportIndex set, which is an index into the
-  /// libraryUrisToImport in this response.
+  /// libraries. Items from not yet imported libraries will have isNotImported
+  /// set to true.
   List<CompletionSuggestion> suggestions;
-
-  /// The list of libraries with declarations that are not yet available in the
-  /// file where completion was requested, most often because the library is
-  /// not yet imported. The declarations still might be included into the
-  /// suggestions, and the client should use getSuggestionDetails2 on selection
-  /// to make the library available in the file.
-  ///
-  /// Each item is the URI of a library, such as package:foo/bar.dart or
-  /// file:///home/me/workspace/foo/test/bar_test.dart.
-  List<String> libraryUrisToImport;
 
   /// True if the number of suggestions after filtering was greater than the
   /// requested maxResults.
   bool isIncomplete;
 
-  CompletionGetSuggestions2Result(
-      this.replacementOffset,
-      this.replacementLength,
-      this.suggestions,
-      this.libraryUrisToImport,
-      this.isIncomplete);
+  CompletionGetSuggestions2Result(this.replacementOffset,
+      this.replacementLength, this.suggestions, this.isIncomplete);
 
   factory CompletionGetSuggestions2Result.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4874,15 +4976,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
       }
-      List<String> libraryUrisToImport;
-      if (json.containsKey('libraryUrisToImport')) {
-        libraryUrisToImport = jsonDecoder.decodeList(
-            jsonPath + '.libraryUrisToImport',
-            json['libraryUrisToImport'],
-            jsonDecoder.decodeString);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'libraryUrisToImport');
-      }
       bool isIncomplete;
       if (json.containsKey('isIncomplete')) {
         isIncomplete = jsonDecoder.decodeBool(
@@ -4890,8 +4983,8 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'isIncomplete');
       }
-      return CompletionGetSuggestions2Result(replacementOffset,
-          replacementLength, suggestions, libraryUrisToImport, isIncomplete);
+      return CompletionGetSuggestions2Result(
+          replacementOffset, replacementLength, suggestions, isIncomplete);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'completion.getSuggestions2 result', json);
@@ -4913,7 +5006,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
     result['suggestions'] = suggestions
         .map((CompletionSuggestion value) => value.toJson())
         .toList();
-    result['libraryUrisToImport'] = libraryUrisToImport;
     result['isIncomplete'] = isIncomplete;
     return result;
   }
@@ -4933,8 +5025,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
           replacementLength == other.replacementLength &&
           listEqual(suggestions, other.suggestions,
               (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
-          listEqual(libraryUrisToImport, other.libraryUrisToImport,
-              (String a, String b) => a == b) &&
           isIncomplete == other.isIncomplete;
     }
     return false;
@@ -4945,7 +5035,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
         replacementOffset,
         replacementLength,
         suggestions,
-        libraryUrisToImport,
         isIncomplete,
       );
 }
@@ -5088,6 +5177,58 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   int get hashCode => id.hashCode;
+}
+
+/// CompletionMode
+///
+/// enum {
+///   BASIC
+///   SMART
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionMode implements Enum {
+  /// Basic code completion invocation type, and the default for this
+  /// enumeration.
+  static const CompletionMode BASIC = CompletionMode._('BASIC');
+
+  /// Smart code completion, currently not implemented.
+  static const CompletionMode SMART = CompletionMode._('SMART');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<CompletionMode> VALUES = <CompletionMode>[BASIC, SMART];
+
+  @override
+  final String name;
+
+  const CompletionMode._(this.name);
+
+  factory CompletionMode(String name) {
+    switch (name) {
+      case 'BASIC':
+        return BASIC;
+      case 'SMART':
+        return SMART;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory CompletionMode.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return CompletionMode(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'CompletionMode', json);
+  }
+
+  @override
+  String toString() => 'CompletionMode.$name';
+
+  String toJson() => name;
 }
 
 /// completion.registerLibraryPaths params
@@ -6115,6 +6256,140 @@ class EditBulkFixesResult implements ResponseResult {
         edits,
         details,
       );
+}
+
+/// edit.formatIfEnabled params
+///
+/// {
+///   "directories": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class EditFormatIfEnabledParams implements RequestParams {
+  /// The paths of the directories containing the code to be formatted.
+  List<String> directories;
+
+  EditFormatIfEnabledParams(this.directories);
+
+  factory EditFormatIfEnabledParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      List<String> directories;
+      if (json.containsKey('directories')) {
+        directories = jsonDecoder.decodeList(jsonPath + '.directories',
+            json['directories'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'directories');
+      }
+      return EditFormatIfEnabledParams(directories);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'edit.formatIfEnabled params', json);
+    }
+  }
+
+  factory EditFormatIfEnabledParams.fromRequest(Request request) {
+    return EditFormatIfEnabledParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['directories'] = directories;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'edit.formatIfEnabled', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditFormatIfEnabledParams) {
+      return listEqual(
+          directories, other.directories, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => directories.hashCode;
+}
+
+/// edit.formatIfEnabled result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class EditFormatIfEnabledResult implements ResponseResult {
+  /// The edit(s) to be applied in order to format the code. The list will be
+  /// empty if none of the files were formatted, whether because they were not
+  /// eligible to be formatted or because they were already formatted.
+  List<SourceFileEdit> edits;
+
+  EditFormatIfEnabledResult(this.edits);
+
+  factory EditFormatIfEnabledResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      List<SourceFileEdit> edits;
+      if (json.containsKey('edits')) {
+        edits = jsonDecoder.decodeList(
+            jsonPath + '.edits',
+            json['edits'],
+            (String jsonPath, Object? json) =>
+                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'edits');
+      }
+      return EditFormatIfEnabledResult(edits);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'edit.formatIfEnabled result', json);
+    }
+  }
+
+  factory EditFormatIfEnabledResult.fromResponse(Response response) {
+    return EditFormatIfEnabledResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['edits'] =
+        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditFormatIfEnabledResult) {
+      return listEqual(
+          edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => edits.hashCode;
 }
 
 /// edit.format params

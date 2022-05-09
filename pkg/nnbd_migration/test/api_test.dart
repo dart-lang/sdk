@@ -54,13 +54,13 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool warnOnWeakCode = false,
       bool allowErrors = false}) async {
     for (var path in migratedInput.keys) {
-      newFile(path, content: migratedInput[path]!);
+      newFile2(path, migratedInput[path]!);
     }
     for (var path in input.keys) {
-      newFile(path, content: input[path]!);
+      newFile2(path, input[path]!);
     }
     var listener = TestMigrationListener();
-    var migration = NullabilityMigration(listener, getLineInfo,
+    var migration = NullabilityMigration(listener,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
@@ -387,6 +387,88 @@ class MyComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_contentChild_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ContentChild('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ContentChild`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ContentChild('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_contentChildren_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ContentChildren('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ContentChildren`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ContentChildren('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_optional_constructor_param() async {
     addAngularPackage();
     var content = '''
@@ -508,6 +590,47 @@ class MyComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_viewChild_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ViewChild`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_viewChild_setter() async {
     addAngularPackage();
     var content = '''
@@ -527,6 +650,71 @@ class MyComponent {
   @ViewChild('foo')
   set bar(Element? element) {}
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChildren_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ViewChildren('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ViewChildren`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ViewChildren('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_annotation_named_constructor() async {
+    var content = '''
+class C {
+  final List<Object> values;
+  const factory C.ints(List<int> list) = C;
+  const C(this.values);
+}
+
+@C.ints([1, 2, 3])
+class D {}
+''';
+    var expected = '''
+class C {
+  final List<Object> values;
+  const factory C.ints(List<int> list) = C;
+  const C(this.values);
+}
+
+@C.ints([1, 2, 3])
+class D {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -789,6 +977,26 @@ class FooBuilder implements Builder<Foo, FooBuilder> {
         {path1: file1, path2: file2}, {path1: expected1, path2: anything});
   }
 
+  Future<void> test_built_value_nullable_getter_interface_only() async {
+    addBuiltValuePackage();
+    var content = '''
+import 'package:built_value/built_value.dart';
+
+abstract class Foo {
+  @nullable
+  int get value;
+}
+''';
+    var expected = '''
+import 'package:built_value/built_value.dart';
+
+abstract class Foo {
+  int? get value;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_call_already_migrated_extension() async {
     var content = '''
 import 'already_migrated.dart';
@@ -954,7 +1162,6 @@ Map<int, String?> Function() f(C<String?> c) => c;
     });
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
   Future<void> test_call_tearoff_futureOr() async {
     var content = '''
 import 'dart:async';
@@ -1025,7 +1232,6 @@ Map<int, String?> Function() f(C c) => c;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
   Future<void> test_call_tearoff_raw_function() async {
     var content = '''
 class C {
@@ -7574,6 +7780,47 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_quiver_checkNotNull_field_formal_initializer() async {
+    addQuiverPackage();
+    var content = '''
+import 'package:quiver/check.dart';
+class C {
+  final int i;
+  C(this.i) {
+    checkNotNull(i);
+  }
+}
+void f(bool b, int i) {
+  if (b) new C(i);
+}
+main() {
+  f(false, null);
+}
+''';
+    // Note: since the reference to `i` in `checkNotNull(i)` refers to the field
+    // rather than the formal parameter, this isn't considered sufficient to
+    // mark the field as non-nullable (even though that's the clear intention
+    // in this case).  Changing the behavior to match user intent would require
+    // more development work; for now we just want to make sure we provide a
+    // fairly reasonable migration without crashing.
+    var expected = '''
+import 'package:quiver/check.dart';
+class C {
+  final int? i;
+  C(this.i) {
+    checkNotNull(i);
+  }
+}
+void f(bool b, int? i) {
+  if (b) new C(i);
+}
+main() {
+  f(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_quiver_checkNotNull_implies_non_null_intent() async {
     addQuiverPackage();
     var content = '''
@@ -9178,6 +9425,58 @@ int f(int x, int? y) {
 ''';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
+
+  Future<void> test_whereNotNull() async {
+    var content = '''
+Iterable<String> f(Iterable<String/*?*/> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+Iterable<String> f(Iterable<String?> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_and_firstWhereOrNull() async {
+    var content = '''
+Iterable<String> f(Iterable<String/*?*/> it) => it.where((s) => s != null);
+int g(Iterable<int> it) => it.firstWhere((i) => i != 0, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension, IterableNullableExtension;
+
+Iterable<String> f(Iterable<String?> it) => it.whereNotNull();
+int? g(Iterable<int> it) => it.firstWhereOrNull((i) => i != 0);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_complexType() async {
+    var content = '''
+Iterable<Map<String, int>> f(Iterable<Map<String/*?*/, int>/*?*/> it)
+    => it.where((m) => m != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+Iterable<Map<String?, int>> f(Iterable<Map<String?, int>?> it)
+    => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_noContext() async {
+    var content = '''
+f(Iterable<String/*?*/> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+f(Iterable<String?> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
@@ -9185,12 +9484,6 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
   bool get _usePermissiveMode => true;
-
-  // TODO(danrubel): Remove this once the superclass test has been fixed.
-  // This runs in permissive mode but not when permissive mode is disabled.
-  Future<void> test_instanceCreation_noTypeArguments_noParameters() async {
-    super.test_instanceCreation_noTypeArguments_noParameters();
-  }
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to

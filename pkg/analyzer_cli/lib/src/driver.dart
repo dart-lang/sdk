@@ -39,10 +39,10 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-late StringSink errorSink = io.stderr;
+StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-late StringSink outSink = io.stdout;
+StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {
@@ -125,7 +125,7 @@ class Driver implements CommandLineStarter {
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 3; i++) {
-        buildSdkSummary(
+        await buildSdkSummary2(
           resourceProvider: PhysicalResourceProvider.INSTANCE,
           sdkPath: options.dartSdkPath!,
         );
@@ -248,7 +248,7 @@ class Driver implements CommandLineStarter {
             analysisDriver.sourceFactory,
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
           );
-          formatter.formatErrors([
+          await formatter.formatErrors([
             ErrorsResultImpl(analysisDriver.currentSession, path,
                 pathContext.toUri(path), lineInfo, false, errors)
           ]);
@@ -304,7 +304,7 @@ class Driver implements CommandLineStarter {
                 allResult = allResult.max(severity);
               }
               var lineInfo = LineInfo.fromContent(content);
-              formatter.formatErrors([
+              await formatter.formatErrors([
                 ErrorsResultImpl(analysisDriver.currentSession, path,
                     pathContext.toUri(path), lineInfo, false, errors)
               ]);
@@ -320,7 +320,7 @@ class Driver implements CommandLineStarter {
             var lineInfo = LineInfo.fromContent(content);
             var errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
-            formatter.formatErrors([
+            await formatter.formatErrors([
               ErrorsResultImpl(analysisDriver.currentSession, path,
                   pathContext.toUri(path), lineInfo, false, errors)
             ]);
@@ -523,14 +523,14 @@ class _AnalysisContextProvider {
     }
 
     // Exclude patterns are relative to the directory with the options file.
-    return PathFilter(contextRoot.root.path, optionsFile.parent2.path,
+    return PathFilter(contextRoot.root.path, optionsFile.parent.path,
         analysisContext!.analysisOptions.excludePatterns);
   }
 
   void configureForPath(String path) {
     var folder = _resourceProvider.getFolder(path);
     if (!folder.exists) {
-      folder = _resourceProvider.getFile(path).parent2;
+      folder = _resourceProvider.getFile(path).parent;
     }
 
     // In batch mode we are given separate file paths to analyze.

@@ -15,6 +15,9 @@ static_field_lowering/opt_in: SemiFuzzFailure
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
+enhanced_enums/declared_hashcode: TypeCheckError
+enhanced_enums/declared_index: TypeCheckError
+enhanced_enums/simple_mixins: RuntimeError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.

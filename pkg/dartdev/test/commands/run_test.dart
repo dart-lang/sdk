@@ -14,16 +14,17 @@ import '../utils.dart';
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
 const devToolsMessagePrefix =
     'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
-const observatoryMessagePrefix = 'Observatory listening on http://127.0.0.1:';
+const dartVMServiceMessagePrefix =
+    'The Dart VM service is listening on http://127.0.0.1:';
 
 void main() {
   group('run', run, timeout: longTimeout);
 }
 
 void run() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -214,7 +215,7 @@ void main(List<String> args) => print("$b $args");
     expect(
       result.stdout,
       matches(
-          r'Observatory listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -236,7 +237,7 @@ void main(List<String> args) => print("$b $args");
 
     expect(
       result.stdout,
-      contains('Observatory listening on http://127.0.0.1:8181/\n'),
+      contains('The Dart VM service is listening on http://127.0.0.1:8181/\n'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -258,7 +259,7 @@ void main(List<String> args) => print("$b $args");
     expect(
       result.stdout,
       matches(
-          r'Observatory listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+          r'The Dart VM service is listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -333,6 +334,26 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
+  test('--enable-service-port-fallback', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    final result = await p.run(
+      [
+        'run',
+        '--enable-vm-service=${server.port}',
+        '--enable-service-port-fallback',
+        p.relativeFilePath,
+      ],
+    );
+    final regexp = RegExp(
+      r'The Dart VM service is listening on http:\/\/127.0.0.1:(\d*)\/[a-zA-Z0-9_-]+=\/\n.*',
+    );
+    final vmServicePort =
+        int.parse(regexp.firstMatch(result.stdout)!.group(1)!);
+    expect(server.port != vmServicePort, isTrue);
+    await server.close();
+  });
+
   test('without verbose CFE info', () async {
     final p = project(mainSrc: '''void main() {}''');
 
@@ -345,7 +366,7 @@ void main(List<String> args) => print("$b $args");
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -361,7 +382,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
 
       test('dart simple', () async {
@@ -372,7 +393,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
     });
 
@@ -386,7 +407,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, contains(devToolsMessagePrefix));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
 
       test('dart simple', () async {
@@ -397,7 +418,7 @@ void main(List<String> args) => print("$b $args");
           p.relativeFilePath,
         ]);
         expect(result.stdout, contains(devToolsMessagePrefix));
-        expect(result.stdout, contains(observatoryMessagePrefix));
+        expect(result.stdout, contains(dartVMServiceMessagePrefix));
       });
     });
   });
@@ -497,7 +518,7 @@ void main(List<String> args) => print("$b $args");
         final readyCompleter = Completer<void>();
         final completer = Completer<void>();
 
-        StreamSubscription sub;
+        late StreamSubscription sub;
         sub = process.stdout.transform(utf8.decoder).listen((event) async {
           if (event.contains('ready')) {
             readyCompleter.complete();

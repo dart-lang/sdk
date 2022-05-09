@@ -14,21 +14,21 @@ library /*isNonNullableByDefault*/;
 // class DND2 extends Object with M<dynamic> Function() {
 //       ^
 //
-// pkg/front_end/testcases/regress/issue_41265.crash_dart:9:7: Error: Can't use a function type as supertype.
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:9:43: Error: Can't use a function type as supertype.
 // class DND1 extends Object with M<dynamic> Function()> {
-//       ^
+//                                           ^
 //
-// pkg/front_end/testcases/regress/issue_41265.crash_dart:12:7: Error: Can't use a function type as supertype.
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:12:43: Error: Can't use a function type as supertype.
 // class DND2 extends Object with M<dynamic> Function() {
-//       ^
+//                                           ^
 //
-// pkg/front_end/testcases/regress/issue_41265.crash_dart:15:7: Error: Can't use a function type as supertype.
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:15:31: Error: Can't use a function type as supertype.
 // class DND3 extends M<dynamic> Function() {
-//       ^
+//                               ^
 //
-// pkg/front_end/testcases/regress/issue_41265.crash_dart:18:7: Error: Can't use a function type as supertype.
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:18:34: Error: Can't use a function type as supertype.
 // class DND4 implements M<dynamic> Function() {
-//       ^
+//                                  ^
 //
 import self as self;
 import "dart:core" as core;

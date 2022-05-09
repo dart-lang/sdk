@@ -2602,9 +2602,7 @@ static void TestDirectAccess(Dart_Handle lib,
   // Now try allocating a string with outstanding Acquires and it should
   // return an error.
   result = NewString("We expect an error here");
-  EXPECT_ERROR(result,
-               "Internal Dart data pointers have been acquired, "
-               "please release them using Dart_TypedDataReleaseData.");
+  EXPECT_ERROR(result, "Callbacks into the Dart VM are currently prohibited");
 
   // Now modify the values in the directly accessible array and then check
   // it we see the changes back in dart.
@@ -2810,6 +2808,34 @@ TEST_CASE(DartAPI_ByteDataDirectAccessVerified) {
   TestByteDataDirectAccess();
 }
 
+static void NopCallback(void* isolate_callback_data, void* peer) {}
+
+TEST_CASE(DartAPI_ExternalAllocationDuringNoCallbackScope) {
+  Dart_Handle bytes = Dart_NewTypedData(Dart_TypedData_kUint8, 100);
+  EXPECT_VALID(bytes);
+
+  intptr_t gc_count_before = Thread::Current()->heap()->Collections(Heap::kNew);
+
+  Dart_TypedData_Type type;
+  void* data;
+  intptr_t len;
+  Dart_Handle result = Dart_TypedDataAcquireData(bytes, &type, &data, &len);
+  EXPECT_VALID(result);
+
+  Dart_WeakPersistentHandle weak =
+      Dart_NewWeakPersistentHandle(bytes, NULL, 100 * MB, NopCallback);
+  EXPECT_VALID(reinterpret_cast<Dart_Handle>(weak));
+
+  EXPECT_EQ(gc_count_before,
+            Thread::Current()->heap()->Collections(Heap::kNew));
+
+  result = Dart_TypedDataReleaseData(bytes);
+  EXPECT_VALID(result);
+
+  EXPECT_LT(gc_count_before,
+            Thread::Current()->heap()->Collections(Heap::kNew));
+}
+
 static void ExternalTypedDataAccessTests(Dart_Handle obj,
                                          Dart_TypedData_Type expected_type,
                                          uint8_t data[],
@@ -2918,8 +2944,6 @@ TEST_CASE(DartAPI_ExternalUint8ClampedArrayAccess) {
   EXPECT_VALID(result);
   EXPECT(value);
 }
-
-static void NopCallback(void* isolate_callback_data, void* peer) {}
 
 static void UnreachedCallback(void* isolate_callback_data, void* peer) {
   UNREACHABLE();
@@ -3608,6 +3632,23 @@ TEST_CASE(DartAPI_FinalizableHandleErrors) {
 static Dart_PersistentHandle persistent_handle1;
 static Dart_WeakPersistentHandle weak_persistent_handle2;
 static Dart_WeakPersistentHandle weak_persistent_handle3;
+
+static void WeakPersistentHandlePeerCleanupEnsuresIGFinalizer(
+    void* isolate_callback_data,
+    void* peer) {
+  ASSERT(IsolateGroup::Current() != nullptr);
+}
+
+TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizerAtShutdown) {
+  const char* kTestString1 = "Test String1";
+  int peer3 = 0;
+  Dart_EnterScope();
+  CHECK_API_SCOPE(thread);
+  Dart_Handle ref3 = Dart_NewStringFromCString(kTestString1);
+  weak_persistent_handle3 = Dart_NewWeakPersistentHandle(
+      ref3, &peer3, 0, WeakPersistentHandlePeerCleanupEnsuresIGFinalizer);
+  Dart_ExitScope();
+}
 
 static void WeakPersistentHandlePeerCleanupFinalizer(
     void* isolate_callback_data,
@@ -9525,39 +9566,6 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Isolate", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
-}
-
-static void HintFreedNative(Dart_NativeArguments args) {
-  int64_t size = 0;
-  EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));
-  Dart_HintFreed(size);
-}
-
-static Dart_NativeFunction HintFreed_native_lookup(Dart_Handle name,
-                                                   int argument_count,
-                                                   bool* auto_setup_scope) {
-  return HintFreedNative;
-}
-
-TEST_CASE(DartAPI_HintFreed) {
-  const char* kScriptChars = R"(
-@pragma("vm:external-name", "Test_nativeFunc")
-external void hintFreed(int size);
-void main() {
-  var v;
-  for (var i = 0; i < 100; i++) {
-    var t = [];
-    for (var j = 0; j < 10000; j++) {
-      t.add(List.filled(100, null));
-    }
-    v = t;
-    hintFreed(100 * 10000 * 4);
-  }
-})";
-  Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, &HintFreed_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
 }
 
 static void NotifyIdleShortNative(Dart_NativeArguments args) {

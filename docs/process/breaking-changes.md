@@ -29,7 +29,7 @@ abide by the following basic conditions:
 
 * Must contain no static analysis **errors**.
 
-* Must not rely on a certain runtime **error** being thrown (in other words, 
+* Must not rely on a certain runtime **error** being thrown (in other words,
   a new SDK might throw fewer errors than an old SDK).
 
 * Must access libraries via the public API (for example, must not reach into
@@ -44,6 +44,13 @@ abide by the following basic conditions:
 
 Compatibility is only considered between stable releases (i.e. releases from the
 [Dart stable channel](https://dart.dev/tools/sdk/archive#stable-channel)).
+
+## Breaking change implementation timing
+
+To avoid shipping features that have not been thoroughly vetted, we implement a
+policy of not including breaking changes in the final beta before a release.
+Breaking changes must be included in the beta before the final beta to be
+considered for the next stable release.
 
 ## Breaking change notification
 
@@ -76,7 +83,7 @@ to a change being released in a dev channel release.
   * A request that developers may leave comments in the linked issue, if this
     breaking change poses a severe problem.
 
-Once you have sent the announce email, please let devoncarew@ know in order
+Once you have sent the announce email, please let kevinjchisholm@ know in order
 to start the review and approval process.
 
 ### Step 2: Approval

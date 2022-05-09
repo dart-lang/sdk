@@ -623,6 +623,20 @@ class UntaggedObject {
     }
   }
 
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  type ExchangeCompressedPointer(compressed_type const* addr, type value) {
+    compressed_type previous_value =
+        reinterpret_cast<std::atomic<compressed_type>*>(
+            const_cast<compressed_type*>(addr))
+            ->exchange(static_cast<compressed_type>(value), order);
+    if (value.IsHeapObject()) {
+      CheckHeapPointerStore(value, Thread::Current());
+    }
+    return static_cast<type>(previous_value.Decompress(heap_base()));
+  }
+
   template <std::memory_order order = std::memory_order_relaxed>
   SmiPtr LoadSmi(SmiPtr const* addr) const {
     return reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
@@ -911,6 +925,15 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   Compressed##type name##_;
 
+// Used to define untagged object fields that can have values wrapped in
+// WeakSerializationReferences. Since WeakSerializationReferences are only used
+// during precompilation, these fields have type CompressedObjectPtr in the
+// precompiler and the normally expected type otherwise.
+//
+// Fields that are defined with WSR_COMPRESSED_POINTER_FIELD should have
+// getters and setters that are declared in object.h with
+// PRECOMPILER_WSR_FIELD_DECLARATION and defined in object.cc with
+// PRECOMPILER_WSR_FIELD_DEFINITION.
 #if defined(DART_PRECOMPILER)
 #define WSR_COMPRESSED_POINTER_FIELD(Type, Name)                               \
   COMPRESSED_POINTER_FIELD(ObjectPtr, Name)
@@ -1987,11 +2010,26 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   VISIT_NOTHING();
 
  public:
-  struct Payload {
+  // Note: AOT snapshots pack these structures without any padding in between
+  // so payload structure should not have any alignment requirements.
+  // alignas(1) is here to trigger a compiler error if we violate this.
+  struct alignas(1) Payload {
+    using FlagsAndSizeHeader = uint32_t;
+
     // The most significant bits are the length of the encoded payload, in
     // bytes (excluding the header itself). The low bits determine the
     // expected payload contents, as described below.
-    uint32_t flags_and_size;
+    DART_FORCE_INLINE FlagsAndSizeHeader flags_and_size() const {
+      // Note: |this| does not necessarily satisfy alignment requirements
+      // of uint32_t so we should use bit_cast.
+      return bit_copy<FlagsAndSizeHeader, Payload>(*this);
+    }
+
+    DART_FORCE_INLINE void set_flags_and_size(FlagsAndSizeHeader value) {
+      // Note: |this| does not necessarily satisfy alignment requirements
+      // of uint32_t hence the byte copy below.
+      memcpy(reinterpret_cast<void*>(this), &value, sizeof(value));  // NOLINT
+    }
 
     // Variable length data follows here. The contents of the payload depend on
     // the type of CompressedStackMaps (CSM) being represented. There are three
@@ -2044,10 +2082,15 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
     // done where the payload is decoded up to the entry whose PC offset
     // is greater or equal to the given PC.
 
-    uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-    const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+    uint8_t* data() {
+      return reinterpret_cast<uint8_t*>(this) + sizeof(FlagsAndSizeHeader);
+    }
+
+    const uint8_t* data() const {
+      return reinterpret_cast<const uint8_t*>(this) +
+             sizeof(FlagsAndSizeHeader);
+    }
   };
-  static_assert(sizeof(Payload) == sizeof(uint32_t));
 
  private:
   // We are using OPEN_ARRAY_START rather than embedding Payload directly into
@@ -2055,17 +2098,20 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   // padding at the end of UntaggedCompressedStackMaps - so we would not be
   // able to use sizeof(UntaggedCompressedStackMaps) as the size of the header
   // anyway.
-  Payload* payload() { OPEN_ARRAY_START(Payload, uint32_t); }
-  const Payload* payload() const { OPEN_ARRAY_START(Payload, uint32_t); }
+  Payload* payload() { OPEN_ARRAY_START(Payload, uint8_t); }
+  const Payload* payload() const { OPEN_ARRAY_START(Payload, uint8_t); }
 
-  class GlobalTableBit : public BitField<uint32_t, bool, 0, 1> {};
-  class UsesTableBit
-      : public BitField<uint32_t, bool, GlobalTableBit::kNextBit, 1> {};
+  class GlobalTableBit
+      : public BitField<Payload::FlagsAndSizeHeader, bool, 0, 1> {};
+  class UsesTableBit : public BitField<Payload::FlagsAndSizeHeader,
+                                       bool,
+                                       GlobalTableBit::kNextBit,
+                                       1> {};
   class SizeField
-      : public BitField<uint32_t,
-                        uint32_t,
+      : public BitField<Payload::FlagsAndSizeHeader,
+                        Payload::FlagsAndSizeHeader,
                         UsesTableBit::kNextBit,
-                        sizeof(Payload::flags_and_size) * kBitsPerByte -
+                        sizeof(Payload::FlagsAndSizeHeader) * kBitsPerByte -
                             UsesTableBit::kNextBit> {};
 
   friend class Object;
@@ -2800,6 +2846,9 @@ class UntaggedTwoByteString : public UntaggedString {
 // TypedData extends this with a length field, while Pointer extends this with
 // TypeArguments field.
 class UntaggedPointerBase : public UntaggedInstance {
+ public:
+  uint8_t* data() { return data_; }
+
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
@@ -3242,7 +3291,7 @@ class UntaggedRegExp : public UntaggedInstance {
 class UntaggedWeakProperty : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, key)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, key)  // Weak reference.
   VISIT_FROM(key)
   COMPRESSED_POINTER_FIELD(ObjectPtr, value)
   VISIT_TO(value)
@@ -3250,8 +3299,10 @@ class UntaggedWeakProperty : public UntaggedInstance {
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  CompressedWeakPropertyPtr next_;
+  COMPRESSED_POINTER_FIELD(WeakPropertyPtr, next_seen_by_gc)
 
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3260,6 +3311,139 @@ class UntaggedWeakProperty : public UntaggedInstance {
   friend class ScavengerVisitorBase;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
+};
+
+class UntaggedWeakReference : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakReference);
+
+  COMPRESSED_POINTER_FIELD(ObjectPtr, target)  // Weak reference.
+  VISIT_FROM(target)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_TO(type_arguments)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  // Linked list is chaining all pending weak properties. Not visited by
+  // pointer visitors.
+  COMPRESSED_POINTER_FIELD(WeakReferencePtr, next_seen_by_gc)
+
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+  friend class FastObjectCopy;  // For OFFSET_OF
+  friend class SlowObjectCopy;  // For OFFSET_OF
+};
+
+class UntaggedFinalizerBase : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FinalizerBase);
+
+  // The isolate this finalizer belongs to. Updated on sent and exit and set
+  // to null on isolate shutdown. See Isolate::finalizers_.
+  Isolate* isolate_;
+
+  COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
+  VISIT_FROM(detachments)
+  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
+  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
+
+// With compressed pointers, the first field in a subclass is at offset 28.
+// If the fields would be public, the first field in a subclass is at offset 32.
+// On Windows, it is always at offset 32, no matter public/private.
+// This makes it 32 for all OSes.
+// We can't use ALIGN8 on the first fields of the subclasses because they use
+// the COMPRESSED_POINTER_FIELD macro to define it.
+#ifdef DART_COMPRESSED_POINTERS
+  uint32_t align_next_field;
+#endif
+
+  template <typename GCVisitorType>
+  friend void MournFinalized(GCVisitorType* visitor);
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
+class UntaggedFinalizer : public UntaggedFinalizerBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Finalizer);
+
+  COMPRESSED_POINTER_FIELD(ClosurePtr, callback)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_TO(type_arguments)
+
+  template <std::memory_order order = std::memory_order_relaxed>
+  FinalizerEntryPtr exchange_entries_collected(FinalizerEntryPtr value) {
+    return ExchangeCompressedPointer<FinalizerEntryPtr,
+                                     CompressedFinalizerEntryPtr, order>(
+        &entries_collected_, value);
+  }
+
+  template <typename GCVisitorType>
+  friend void MournFinalized(GCVisitorType* visitor);
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
+class UntaggedNativeFinalizer : public UntaggedFinalizerBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(NativeFinalizer);
+
+  COMPRESSED_POINTER_FIELD(PointerPtr, callback)
+  VISIT_TO(callback)
+
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
+class UntaggedFinalizerEntry : public UntaggedInstance {
+ public:
+  intptr_t external_size() { return external_size_; }
+  void set_external_size(intptr_t value) { external_size_ = value; }
+
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FinalizerEntry);
+
+  COMPRESSED_POINTER_FIELD(ObjectPtr, value)  // Weak reference.
+  VISIT_FROM(value)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, detach)  // Weak reference.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, token)
+  COMPRESSED_POINTER_FIELD(FinalizerBasePtr, finalizer)  // Weak reference.
+  // Used for the linked list in Finalizer::entries_collected_. That cannot be
+  // an ordinary list because we need to add elements during a GC so we cannot
+  // modify the heap.
+  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, next)
+  VISIT_TO(next)
+
+  // Linked list is chaining all pending. Not visited by pointer visitors.
+  // Only populated during the GC, otherwise null.
+  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, next_seen_by_gc)
+
+  intptr_t external_size_;
+
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
+  template <typename GCVisitorType>
+  friend void MournFinalized(GCVisitorType* visitor);
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+  friend class ScavengerFinalizerVisitor;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

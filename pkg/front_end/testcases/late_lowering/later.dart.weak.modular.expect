@@ -81,9 +81,9 @@ class A extends core::Object {
     }
     return let final core::int? #t1 = this.{self::A::_#A#b}{core::int?} in #t1{core::int};
   }
-  set b(core::int #t2) → void {
+  set b(core::int b#param) → void {
     this.{self::A::_#A#b#isSet} = true;
-    this.{self::A::_#A#b} = #t2;
+    this.{self::A::_#A#b} = b#param;
   }
   method foo(core::int x) → dynamic {}
 }
@@ -95,13 +95,13 @@ class B extends core::Object /*hasConstConstructor*/  {
     ;
   get x() → core::int {
     if(!this.{self::B::_#B#x#isSet}{core::bool}) {
-      final core::int #t3 = 42;
+      final core::int #t2 = 42;
       if(this.{self::B::_#B#x#isSet}{core::bool})
         throw new _in::LateError::fieldADI("x");
-      this.{self::B::_#B#x} = #t3;
+      this.{self::B::_#B#x} = #t2;
       this.{self::B::_#B#x#isSet} = true;
     }
-    return let final core::int? #t4 = this.{self::B::_#B#x}{core::int?} in #t4{core::int};
+    return let final core::int? #t3 = this.{self::B::_#B#x}{core::int?} in #t3{core::int};
   }
 }
 class C extends core::Object {
@@ -111,13 +111,13 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::C::_#C#x}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("x");
-  set x(core::int #t6) → void
+    return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::C::_#C#x}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("x");
+  set x(core::int x#param) → void
     if(this.{self::C::_#C#x#isSet}{core::bool})
       throw new _in::LateError::fieldAI("x");
     else {
       this.{self::C::_#C#x#isSet} = true;
-      this.{self::C::_#C#x} = #t6;
+      this.{self::C::_#C#x} = x#param;
     }
   method initVars() → dynamic {
     this.{self::C::x} = 42;
@@ -145,18 +145,18 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     core::print(s);
   }
   block {
-    final core::List<core::int> #t7 = <core::int>[];
+    final core::List<core::int> #t5 = <core::int>[];
     for (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t7.{core::List::add}{Invariant}(i){(core::int) → void};
-  } =>#t7;
+      #t5.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t5;
 }
-static method hest() → dynamic async {
+static method hest() → dynamic async /* futureValueType= dynamic */ {
   await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String>["hest"])) {
     core::print(s);
   }
   return "hest";
 }
-static method fisk() → dynamic async {
+static method fisk() → dynamic async /* futureValueType= dynamic */ {
   lowered core::String? #s1;
   lowered core::bool #s1#isSet = false;
   function #s1#get() → core::String {
@@ -168,9 +168,9 @@ static method fisk() → dynamic async {
     }
     return #s1{core::String};
   }
-  function #s1#set(core::String #t8) → dynamic {
+  function #s1#set(core::String s1#param) → dynamic {
     #s1#isSet = true;
-    return #s1 = #t8;
+    return #s1 = s1#param;
   }
   lowered core::String? #s2;
   lowered core::bool #s2#isSet = false;
@@ -183,22 +183,22 @@ static method fisk() → dynamic async {
     }
     return #s2{core::String};
   }
-  function #s2#set(core::String #t9) → dynamic {
+  function #s2#set(core::String s2#param) → dynamic {
     #s2#isSet = true;
-    return #s2 = #t9;
+    return #s2 = s2#param;
   }
   lowered core::Function? #f;
   lowered core::bool #f#isSet = false;
   function #f#get() → core::Function {
     if(!#f#isSet) {
-      #f = () → asy::Future<dynamic> async => await self::hest();
+      #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest();
       #f#isSet = true;
     }
     return #f{core::Function};
   }
-  function #f#set(core::Function #t10) → dynamic {
+  function #f#set(core::Function f#param) → dynamic {
     #f#isSet = true;
-    return #f = #t10;
+    return #f = f#param;
   }
 }
 static method main() → dynamic {}

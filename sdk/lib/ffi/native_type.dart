@@ -98,14 +98,6 @@ class Uint64 extends _NativeInteger {
   const Uint64();
 }
 
-/// Represents a native pointer-sized integer in C.
-///
-/// [IntPtr] is not constructible in the Dart code and serves purely as marker
-/// in type signatures.
-class IntPtr extends _NativeInteger {
-  const IntPtr();
-}
-
 /// Represents a native 32 bit float in C.
 ///
 /// [Float] is not constructible in the Dart code and serves purely as marker

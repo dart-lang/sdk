@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -21,12 +22,16 @@ class ForResolver {
     required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
-  void resolveElement(ForElementImpl node) {
+  void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
+    void visitBody() {
+      node.body.resolveElement(_resolver, context);
+    }
+
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, node.body);
+      _forParts(node, forLoopParts, visitBody);
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body);
+      _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
   }
 
@@ -34,10 +39,14 @@ class ForResolver {
     _resolver.checkUnreachableNode(node);
 
     var forLoopParts = node.forLoopParts;
+    void visitBody() {
+      node.body.accept(_resolver);
+    }
+
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, node.body);
+      _forParts(node, forLoopParts, visitBody);
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body);
+      _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
   }
 
@@ -66,12 +75,8 @@ class ForResolver {
     }
   }
 
-  void _forEachParts(
-    AstNode node,
-    bool isAsync,
-    ForEachParts forEachParts,
-    AstNode body,
-  ) {
+  void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,
+      void Function() visitBody) {
     Expression iterable = forEachParts.iterable;
     DeclaredIdentifier? loopVariable;
     SimpleIdentifier? identifier;
@@ -104,14 +109,14 @@ class ForResolver {
         }
       }
     }
+    InterfaceType? targetType;
     if (valueType != null) {
-      InterfaceType targetType = isAsync
+      targetType = isAsync
           ? _resolver.typeProvider.streamType(valueType)
           : _resolver.typeProvider.iterableType(valueType);
-      InferenceContext.setType(iterable, targetType);
     }
 
-    iterable.accept(_resolver);
+    _resolver.analyzeExpression(iterable, targetType);
     iterable = forEachParts.iterable;
 
     _resolver.nullableDereferenceVerifier.expression(
@@ -140,12 +145,12 @@ class ForResolver {
           elementType ?? DynamicTypeImpl.instance, null);
     }
 
-    body.accept(_resolver);
+    visitBody();
 
     _resolver.flowAnalysis.flow?.forEach_end();
   }
 
-  void _forParts(AstNode node, ForParts forParts, AstNode body) {
+  void _forParts(AstNode node, ForParts forParts, void Function() visitBody) {
     if (forParts is ForPartsWithDeclarations) {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
@@ -156,8 +161,7 @@ class ForResolver {
 
     var condition = forParts.condition;
     if (condition != null) {
-      InferenceContext.setType(condition, _resolver.typeProvider.boolType);
-      condition.accept(_resolver);
+      _resolver.analyzeExpression(condition, _resolver.typeProvider.boolType);
       condition = forParts.condition!;
       var whyNotPromoted =
           _resolver.flowAnalysis.flow?.whyNotPromoted(condition);
@@ -166,7 +170,7 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
-    body.accept(_resolver);
+    visitBody();
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
     forParts.updaters.accept(_resolver);

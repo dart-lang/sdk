@@ -36,12 +36,12 @@ class InvalidExportOfInternalElement_BazelPackageTest
     MockPackages.addMetaPackageFiles(
       getFolder(metaPath),
     );
-    newFile('$testPackageBazelBinPath/my.packages');
+    newFile2('$testPackageBazelBinPath/my.packages', '');
     newFolder('$workspaceRootPath/bazel-out');
   }
 
   void test_exporterIsInBazelBinLib() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -56,7 +56,7 @@ export 'src/foo.dart';
   }
 
   void test_exporterIsInBazelBinLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -69,7 +69,7 @@ export 'foo.dart';
   }
 
   void test_exporterIsInGenfilesLib() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -84,7 +84,7 @@ export 'src/foo.dart';
   }
 
   void test_exporterIsInGenfilesLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -97,7 +97,7 @@ export 'foo.dart';
   }
 
   void test_exporterIsInLib() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -112,7 +112,7 @@ export 'src/foo.dart';
   }
 
   void test_exporterIsInLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -125,7 +125,7 @@ export 'foo.dart';
   }
 
   void test_exporterIsInTest() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -138,7 +138,7 @@ export 'package:dart.my/src/foo.dart';
   }
 
   void test_internalIsInBazelBin() async {
-    newFile('$testPackageBazelBinPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageBazelBinPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -151,7 +151,7 @@ export 'package:dart.my/src/foo.dart';
   }
 
   void test_internalIsInGenfiles() async {
-    newFile('$testPackageGenfilesPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageGenfilesPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -164,7 +164,7 @@ export 'package:dart.my/src/foo.dart';
   }
 
   void test_internalIsInLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -188,7 +188,7 @@ We try to analyze a file in .dart_tool, which is implicitly excluded from
 analysis. So, there is no context to analyze it.
 ''')
   void test_exporterInGeneratedLib() async {
-    newFile('$testPackageRootPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageRootPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -207,7 +207,7 @@ We try to analyze a file in .dart_tool, which is implicitly excluded from
 analysis. So, there is no context to analyze it.
 ''')
   void test_exporterInGeneratedLibSrc() async {
-    newFile('$testPackageRootPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageRootPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -220,7 +220,7 @@ export 'package:test/src/foo.dart';
   }
 
   void test_exporterInLib() async {
-    newFile('$testPackageRootPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageRootPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -235,7 +235,7 @@ export 'package:test/src/foo.dart';
   }
 
   void test_exporterInLibSrc() async {
-    newFile('$testPackageRootPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageRootPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -248,7 +248,7 @@ export 'package:test/src/foo.dart';
   }
 
   void test_internalIsInGeneratedLibSrc() async {
-    newFile('$testPackageDartToolPath/lib/src/foo.dart', content: r'''
+    newFile2('$testPackageDartToolPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -262,7 +262,7 @@ export 'package:test/src/foo.dart';
 
   @override
   void test_internalIsLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -289,7 +289,7 @@ version: 0.0.1
   }
 
   void test_exporterIsInLib() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -304,7 +304,7 @@ export 'src/foo.dart';
   }
 
   void test_exporterIsInLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -317,7 +317,7 @@ export 'foo.dart';
   }
 
   void test_exporterIsInTest() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -330,7 +330,7 @@ export 'package:test/src/foo.dart';
   }
 
   void test_internalIsLibSrc() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -350,7 +350,7 @@ mixin InvalidExportOfInternalElementTest on ContextResolutionTest {
   String get testPackageLibPath;
 
   void test_hideCombinator_internalHidden() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 class Two {}
@@ -362,7 +362,7 @@ export 'src/foo.dart' hide One;
   }
 
   void test_hideCombinator_internalNotHidden() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 class Two {}
@@ -376,7 +376,7 @@ export 'src/foo.dart' hide Two;
   }
 
   void test_indirectlyViaFunction_parameter() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal typedef int IntFunc(int x);
 int func(IntFunc f, int x) => f(x);
@@ -390,7 +390,7 @@ export 'src/foo.dart' show func;
   }
 
   void test_indirectlyViaFunction_parameter_generic() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal typedef IntFunc = int Function(int);
 int func(IntFunc f, int x) => f(x);
@@ -404,7 +404,7 @@ export 'src/foo.dart' show func;
   }
 
   void test_indirectlyViaFunction_parameter_generic_typeArg() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal typedef IntFunc<T> = int Function(T);
 int func(IntFunc<num> f, int x) => f(x);
@@ -418,7 +418,7 @@ export 'src/foo.dart' show func;
   }
 
   void test_indirectlyViaFunction_returnType() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal typedef int IntFunc(int x);
 IntFunc func() => (int x) => x;
@@ -432,7 +432,7 @@ export 'src/foo.dart' show func;
   }
 
   void test_indirectlyViaFunction_typeArgument_bounded() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal typedef int IntFunc(int x);
 void func<T extends IntFunc>() {}
@@ -446,7 +446,7 @@ export 'src/foo.dart' show func;
   }
 
   void test_indirectlyViaFunction_typeArgument_unbounded() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal typedef int IntFunc(int x);
 void func<T>() {}
@@ -458,7 +458,7 @@ export 'src/foo.dart' show func;
   }
 
   void test_noCombinators() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -471,11 +471,11 @@ export 'src/foo.dart';
   }
 
   void test_noCombinators_indirectExport() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 export 'bar.dart';
 ''');
 
-    newFile('$testPackageLibPath/src/bar.dart', content: r'''
+    newFile2('$testPackageLibPath/src/bar.dart', r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -488,7 +488,7 @@ export 'src/foo.dart';
   }
 
   void test_noCombinators_library() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 @internal
 library foo;
 
@@ -503,7 +503,7 @@ export 'src/foo.dart';
   }
 
   void test_noCombinators_library_notInternal() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 library foo;
 ''');
 
@@ -513,7 +513,7 @@ export 'src/foo.dart';
   }
 
   void test_noCombinators_noInternal() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 class One {}
 ''');
 
@@ -523,7 +523,7 @@ export 'src/foo.dart';
   }
 
   void test_showCombinator_internalNotShown() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 class Two {}
@@ -535,7 +535,7 @@ export 'src/foo.dart' show Two;
   }
 
   void test_showCombinator_internalShown() async {
-    newFile(testPackageImplementationFilePath, content: r'''
+    newFile2(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 class Two {}

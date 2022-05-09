@@ -97,22 +97,25 @@ def HostCpuForArch(arch):
     m = platform.machine()
     if m == 'aarch64' or m == 'arm64':
         return 'arm64'
-    if m == 'armv7l' or m == 'armv6l':
+    if m == 'armv7l':
         return 'arm'
 
-    if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
+    if arch in ['ia32', 'arm', 'simarm', 'simarm_x64', 'riscv32', 'simriscv32']:
         return 'x86'
     if arch in [
-            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c', 'simarm64c'
+            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c',
+            'simarm64c', 'riscv64', 'simriscv64'
     ]:
         return 'x64'
 
 
 # The C compiler's target.
 def TargetCpuForArch(arch, target_os):
-    if arch in ['ia32', 'simarm', 'simarmv6']:
+    if arch in ['ia32', 'simarm', 'simriscv32']:
         return 'x86'
-    if arch in ['x64', 'simarm64', 'simarm_x64', 'x64c', 'simarm64c']:
+    if arch in [
+            'x64', 'simarm64', 'simarm_x64', 'simriscv64', 'x64c', 'simarm64c'
+    ]:
         return 'x64'
     if arch == 'arm_x64':
         return 'arm'
@@ -129,10 +132,12 @@ def DartTargetCpuForArch(arch):
         return 'x64'
     if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
-    if arch in ['armv6', 'simarmv6']:
-        return 'armv6'
     if arch in ['arm64', 'simarm64', 'arm64c', 'simarm64c']:
         return 'arm64'
+    if arch in ['riscv32', 'simriscv32']:
+        return 'riscv32'
+    if arch in ['riscv64', 'simriscv64']:
+        return 'riscv64'
     return arch
 
 
@@ -170,6 +175,9 @@ def UseSysroot(args, gn_args):
         return False
     # Our Debian Jesse sysroot has incorrect annotations on realloc.
     if gn_args['is_ubsan']:
+        return False
+    # Our Debian Jesse sysroot doesn't support RISCV
+    if gn_args['target_cpu'] in ['riscv32', 'riscv64']:
         return False
     # Otherwise use the sysroot.
     return True
@@ -213,6 +221,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
                                     (gn_args['target_cpu'] != 'arm') and
+                                    (gn_args['target_cpu'] != 'riscv32') and
+                                    (gn_args['target_cpu'] != 'riscv64') and
                                     sanitizer == 'none')
 
     # Use mallinfo2 if specified on the command line
@@ -226,11 +236,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             gn_args['arm_version'] = 7
             gn_args['arm_float_abi'] = floatabi
             gn_args['arm_use_neon'] = True
-        elif gn_args['target_cpu'] == 'armv6':
-            floatabi = 'softfp' if args.arm_float_abi == '' else args.arm_float_abi
-            gn_args['target_cpu'] = 'arm'
-            gn_args['arm_version'] = 6
-            gn_args['arm_float_abi'] = floatabi
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -269,6 +274,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             'exe.stripped/dart_precompiled_runtime_product')
         gn_args['gen_snapshot_stripped_binary'] = (
             'exe.stripped/gen_snapshot_product')
+        gn_args['analyze_snapshot_binary'] = (
+            'exe.stripped/analyze_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -332,7 +339,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c'
+        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c,simriscv32,simriscv64'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
@@ -370,8 +377,13 @@ def ProcessOptions(args):
                     (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'x64c',
-                    'arm64c'
+                    'ia32',
+                    'x64',
+                    'arm',
+                    'arm_x64',
+                    'arm64',
+                    'x64c',
+                    'arm64c',
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."

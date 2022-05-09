@@ -21,8 +21,8 @@ void main() {
 class CiderSignatureHelpComputerTest extends CiderServiceTest {
   late _CorrectionContext _correctionContext;
 
-  void test_noDefaultConstructor() {
-    var result = _compute('''
+  void test_noDefaultConstructor() async {
+    var result = await _compute('''
 class A {
   A._();
 }
@@ -33,7 +33,7 @@ final a = A(^);
     expect(result, null);
   }
 
-  void test_params_multipleNamed() {
+  void test_params_multipleNamed() async {
     final content = '''
 /// Does foo.
 foo(String s, {bool b = true, bool a}) {
@@ -42,7 +42,7 @@ foo(String s, {bool b = true, bool a}) {
 ''';
     final expectedLabel = 'foo(String s, {bool b = true, bool a})';
 
-    testSignature(
+    await testSignature(
         content,
         expectedLabel,
         'Does foo.',
@@ -54,7 +54,7 @@ foo(String s, {bool b = true, bool a}) {
         CharacterLocation(3, 7));
   }
 
-  void test_params_multipleOptional() {
+  void test_params_multipleOptional() async {
     final content = '''
 /// Does foo.
 foo(String s, [bool b = true, bool a]) {
@@ -63,7 +63,7 @@ foo(String s, [bool b = true, bool a]) {
 ''';
 
     final expectedLabel = 'foo(String s, [bool b = true, bool a])';
-    testSignature(
+    await testSignature(
         content,
         expectedLabel,
         'Does foo.',
@@ -75,7 +75,7 @@ foo(String s, [bool b = true, bool a]) {
         CharacterLocation(3, 7));
   }
 
-  void test_retrigger_validLocation() {
+  void test_retrigger_validLocation() async {
     final content = '''
 /// Does foo.
 foo(String s, {bool b = true, bool a}) {
@@ -84,7 +84,7 @@ foo(String s, {bool b = true, bool a}) {
 ''';
     final expectedLabel = 'foo(String s, {bool b = true, bool a})';
 
-    testSignature(
+    await testSignature(
         content,
         expectedLabel,
         'Does foo.',
@@ -96,7 +96,7 @@ foo(String s, {bool b = true, bool a}) {
         CharacterLocation(3, 7));
   }
 
-  void test_simple() {
+  void test_simple() async {
     final content = '''
 /// Does foo.
 foo(String s, int i) {
@@ -104,7 +104,7 @@ foo(String s, int i) {
 }
 ''';
     final expectedLabel = 'foo(String s, int i)';
-    testSignature(
+    await testSignature(
         content,
         expectedLabel,
         'Does foo.',
@@ -115,7 +115,7 @@ foo(String s, int i) {
         CharacterLocation(3, 7));
   }
 
-  void test_triggerCharacter_validLocation() {
+  void test_triggerCharacter_validLocation() async {
     final content = '''
 /// Does foo.
 foo(String s, int i) {
@@ -124,7 +124,7 @@ foo(String s, int i) {
 ''';
 
     final expectedLabel = 'foo(String s, int i)';
-    testSignature(
+    await testSignature(
         content,
         expectedLabel,
         'Does foo.',
@@ -135,7 +135,7 @@ foo(String s, int i) {
         CharacterLocation(3, 7));
   }
 
-  void test_typeParams_class() {
+  void test_typeParams_class() async {
     final content = '''
 /// My Foo.
 class Foo<T1, T2 extends String> {}
@@ -143,7 +143,7 @@ class Foo<T1, T2 extends String> {}
 class Bar extends Foo<^> {}
 ''';
 
-    testSignature(
+    await testSignature(
         content,
         'class Foo<T1, T2 extends String>',
         'My Foo.',
@@ -154,7 +154,7 @@ class Bar extends Foo<^> {}
         CharacterLocation(4, 23));
   }
 
-  void test_typeParams_function() {
+  void test_typeParams_function() async {
     final content = '''
 /// My Foo.
 void foo<T1, T2 extends String>() {
@@ -162,7 +162,7 @@ void foo<T1, T2 extends String>() {
 }
 ''';
 
-    testSignature(
+    await testSignature(
         content,
         'void foo<T1, T2 extends String>()',
         'My Foo.',
@@ -173,7 +173,7 @@ void foo<T1, T2 extends String>() {
         CharacterLocation(3, 7));
   }
 
-  void test_typeParams_method() {
+  void test_typeParams_method() async {
     final content = '''
 class Foo {
   /// My Foo.
@@ -183,7 +183,7 @@ class Foo {
 }
 ''';
 
-    testSignature(
+    await testSignature(
         content,
         'void foo<T1, T2 extends String>()',
         'My Foo.',
@@ -194,13 +194,13 @@ class Foo {
         CharacterLocation(4, 9));
   }
 
-  void testSignature(
+  Future<void> testSignature(
       String content,
       String expectedLabel,
       String expectedDoc,
       List<ParameterInformation> expectedParameters,
-      CharacterLocation leftParenLocation) {
-    var result = _compute(content);
+      CharacterLocation leftParenLocation) async {
+    var result = await _compute(content);
     var signature = result!.signatureHelp.signatures.first;
     final expected =
         MarkupContent(kind: MarkupKind.Markdown, value: expectedDoc);
@@ -211,12 +211,12 @@ class Foo {
     expect(result.callStart == leftParenLocation, isTrue);
   }
 
-  SignatureHelpResponse? _compute(String content) {
+  Future<SignatureHelpResponse?> _compute(String content) async {
     _updateFile(content);
 
     return CiderSignatureHelpComputer(
       fileResolver,
-    ).compute(
+    ).compute2(
       convertPath(testPath),
       _correctionContext.line,
       _correctionContext.character,
@@ -232,7 +232,7 @@ class Foo {
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content: content);
+    newFile2(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

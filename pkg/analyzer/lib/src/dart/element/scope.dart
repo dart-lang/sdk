@@ -45,7 +45,10 @@ class EnclosedScope implements Scope {
   }
 
   void _addGetter(Element element) {
-    _addTo(_getters, element);
+    var id = element.name;
+    if (id != null) {
+      _getters[id] ??= element;
+    }
   }
 
   void _addPropertyAccessor(PropertyAccessorElement element) {
@@ -57,12 +60,11 @@ class EnclosedScope implements Scope {
   }
 
   void _addSetter(Element element) {
-    _addTo(_setters, element);
-  }
-
-  void _addTo(Map<String, Element> map, Element element) {
-    var id = element.displayName;
-    map[id] ??= element;
+    var name = element.name;
+    if (name != null && name.endsWith('=')) {
+      var id = name.substring(0, name.length - 1);
+      _setters[id] ??= element;
+    }
   }
 }
 
@@ -83,7 +85,8 @@ class FormalParameterScope extends EnclosedScope {
     List<ParameterElement> elements,
   ) : super(parent) {
     for (var parameter in elements) {
-      if (parameter is! FieldFormalParameterElement) {
+      if (parameter is! FieldFormalParameterElement &&
+          parameter is! SuperFormalParameterElement) {
         _addGetter(parameter);
       }
     }

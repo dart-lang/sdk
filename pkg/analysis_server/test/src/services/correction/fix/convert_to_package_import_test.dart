@@ -11,13 +11,75 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToPackageImportBulkTest);
-    defineReflectiveTests(ConvertToPackageImportTest);
+    defineReflectiveTests(
+        ConvertToPackageImport_AvoidRelativeLibImportsBulkTest);
+    defineReflectiveTests(ConvertToPackageImport_AvoidRelativeLibImportsTest);
+    defineReflectiveTests(
+        ConvertToPackageImport_AlwaysUsePackageImportsBulkTest);
+    defineReflectiveTests(ConvertToPackageImport_AlwaysUsePackageImportsTest);
   });
 }
 
 @reflectiveTest
-class ConvertToPackageImportBulkTest extends BulkFixProcessorTest {
+class ConvertToPackageImport_AlwaysUsePackageImportsBulkTest
+    extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.always_use_package_imports;
+
+  Future<void> test_singleFile() async {
+    writeTestPackageConfig(config: PackageConfigFileBuilder());
+    addSource('$testPackageLibPath/foo.dart', 'class Foo {}');
+    addSource('$testPackageLibPath/bar.dart', 'class Bar {}');
+
+    testFile = convertPath('$testPackageLibPath/test.dart');
+
+    await resolveTestCode('''
+import 'foo.dart';
+import 'bar.dart';
+
+var foo = Foo();
+var bar = Bar();
+''');
+    await assertHasFix('''
+import 'package:test/foo.dart';
+import 'package:test/bar.dart';
+
+var foo = Foo();
+var bar = Bar();
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToPackageImport_AlwaysUsePackageImportsTest
+    extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
+
+  @override
+  String get lintCode => LintNames.always_use_package_imports;
+
+  Future<void> test_relativeImport() async {
+    newFile2('$testPackageLibPath/foo.dart', '''
+class Foo {}
+''');
+    await resolveTestCode('''
+import 'foo.dart';
+
+var foo = Foo();
+''');
+
+    await assertHasFix('''
+import 'package:test/foo.dart';
+
+var foo = Foo();
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToPackageImport_AvoidRelativeLibImportsBulkTest
+    extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.avoid_relative_lib_imports;
 
@@ -42,7 +104,8 @@ var bar = Bar();
 }
 
 @reflectiveTest
-class ConvertToPackageImportTest extends FixProcessorLintTest {
+class ConvertToPackageImport_AvoidRelativeLibImportsTest
+    extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
 
@@ -55,7 +118,7 @@ class ConvertToPackageImportTest extends FixProcessorLintTest {
     // This test fails because any attempt to specify a relative path that
     // includes 'lib' (which the lint requires) results in a malformed URI when
     // trying to resolve the import.
-    newFile('$testPackageLibPath/foo/bar.dart', content: '''
+    newFile2('$testPackageLibPath/foo/bar.dart', '''
 class C {}
 ''');
     await resolveTestCode('''

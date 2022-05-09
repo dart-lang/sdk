@@ -112,6 +112,7 @@ class Flags {
   static const String reportAllMetrics = '--report-all-metrics';
 
   static const String dillDependencies = '--dill-dependencies';
+  static const String sources = '--sources';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
   static const String noClosedWorldInData = '--no-closed-world-in-data';
@@ -141,6 +142,10 @@ class Flags {
   static const String conditionalDirectives = '--conditional-directives';
 
   static const String cfeInvocationModes = '--cfe-invocation-modes';
+
+  /// Flag to indicate how the compiler is invoked. Used to ensure
+  /// dart2js is only invoked from supported tools and through the Dart CLI.
+  static const String invoker = '--invoker';
 
   /// Flag to stop after splitting the program.
   static const String stopAfterProgramSplit = '--stop-after-program-split';

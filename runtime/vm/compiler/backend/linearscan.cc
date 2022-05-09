@@ -321,6 +321,16 @@ UsePosition* LiveRange::AddUse(intptr_t pos, Location* location_slot) {
 }
 
 void LiveRange::AddSafepoint(intptr_t pos, LocationSummary* locs) {
+  if (spill_slot().IsConstant() &&
+      (locs->always_calls() && !locs->callee_safe_call())) {
+    // Constants have pseudo spill slot assigned to them from
+    // the very beginning. This means that we don't need to associate
+    // "always_calls" safepoints with these ranges, because they will never
+    // be spilled. We still need to associate slow-path safepoints because
+    // a value might be allocated to a register across a slow-path call.
+    return;
+  }
+
   ASSERT(IsInstructionStartPosition(pos));
   SafepointPosition* safepoint =
       new SafepointPosition(ToInstructionEnd(pos), locs);
@@ -452,6 +462,28 @@ void FlowGraphAllocator::BlockLocation(Location loc,
     BlockRegisterLocation(loc, from, to, blocked_fpu_registers_, fpu_regs_);
   } else {
     UNREACHABLE();
+  }
+}
+
+void FlowGraphAllocator::BlockCpuRegisters(intptr_t registers,
+                                           intptr_t from,
+                                           intptr_t to) {
+  for (intptr_t r = 0; r < kNumberOfCpuRegisters; r++) {
+    if ((registers & (1 << r)) != 0) {
+      BlockLocation(Location::RegisterLocation(static_cast<Register>(r)), from,
+                    to);
+    }
+  }
+}
+
+void FlowGraphAllocator::BlockFpuRegisters(intptr_t fpu_registers,
+                                           intptr_t from,
+                                           intptr_t to) {
+  for (intptr_t r = 0; r < kNumberOfFpuRegisters; r++) {
+    if ((fpu_registers & (1 << r)) != 0) {
+      BlockLocation(Location::FpuRegisterLocation(static_cast<FpuRegister>(r)),
+                    from, to);
+    }
   }
 }
 
@@ -1379,6 +1411,21 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
   }
 
+  // Block all volatile (i.e. not native ABI callee-save) registers.
+  if (locs->native_leaf_call()) {
+    BlockCpuRegisters(kDartVolatileCpuRegs, pos, pos + 1);
+    BlockFpuRegisters(kAbiVolatileFpuRegs, pos, pos + 1);
+#if defined(TARGET_ARCH_ARM)
+    // We do not yet have a way to say that we only want FPU registers that
+    // overlap S registers.
+    // Block all Q/D FPU registers above the 8/16 that have S registers in
+    // VFPv3-D32.
+    // This way we avoid ending up trying to do single-word operations on
+    // registers that don't support it.
+    BlockFpuRegisters(kFpuRegistersWithoutSOverlap, pos, pos + 1);
+#endif
+  }
+
   // Block all allocatable registers for calls.
   if (locs->always_calls() && !locs->callee_safe_call()) {
     // Expected shape of live range:
@@ -1387,16 +1434,9 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //              [--)
     //
     // The stack bitmap describes the position i.
-    for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
-      BlockLocation(Location::RegisterLocation(static_cast<Register>(reg)), pos,
-                    pos + 1);
-    }
+    BlockCpuRegisters(kAllCpuRegistersList, pos, pos + 1);
 
-    for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
-      BlockLocation(
-          Location::FpuRegisterLocation(static_cast<FpuRegister>(reg)), pos,
-          pos + 1);
-    }
+    BlockFpuRegisters(kAllFpuRegistersList, pos, pos + 1);
 
 #if defined(DEBUG)
     // Verify that temps, inputs and output were specified as fixed
@@ -1416,8 +1456,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                pair->At(1).policy() == Location::kAny);
       } else {
         ASSERT(!locs->in(j).IsUnallocated() ||
-               locs->in(j).policy() == Location::kAny ||
-               locs->in(j).policy() == Location::kRequiresStackSlot);
+               locs->in(j).policy() == Location::kAny);
       }
     }
 
@@ -1431,7 +1470,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 #endif
   }
 
-  if (locs->can_call()) {
+  if (locs->can_call() && !locs->native_leaf_call()) {
     safepoints_.Add(current);
   }
 

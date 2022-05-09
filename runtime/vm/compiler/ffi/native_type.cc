@@ -368,8 +368,6 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
     case kFfiInt64Cid:
     case kFfiUint64Cid:
       return kInt64;
-    case kFfiIntPtrCid:
-      return compiler::target::kWordSize == 4 ? kInt32 : kInt64;
     case kFfiFloatCid:
       return kFloat;
     case kFfiDoubleCid:
@@ -766,6 +764,37 @@ const NativePrimitiveType& NativeCompoundType::FirstPrimitiveMember() const {
     }
   }
   UNREACHABLE();
+}
+
+intptr_t NativePrimitiveType::PrimitivePairMembers(
+    const NativePrimitiveType** first,
+    const NativePrimitiveType** second,
+    intptr_t offset_in_members) const {
+  if (offset_in_members == 0) *first = this;
+  if (offset_in_members == 1) *second = this;
+  return offset_in_members + 1;
+}
+
+intptr_t NativeArrayType::PrimitivePairMembers(
+    const NativePrimitiveType** first,
+    const NativePrimitiveType** second,
+    intptr_t offset_in_members) const {
+  for (intptr_t i = 0; i < length_; i++) {
+    offset_in_members =
+        element_type_.PrimitivePairMembers(first, second, offset_in_members);
+  }
+  return offset_in_members;
+}
+
+intptr_t NativeCompoundType::PrimitivePairMembers(
+    const NativePrimitiveType** first,
+    const NativePrimitiveType** second,
+    intptr_t offset_in_members) const {
+  for (intptr_t i = 0; i < members().length(); i++) {
+    offset_in_members =
+        members_[i]->PrimitivePairMembers(first, second, offset_in_members);
+  }
+  return offset_in_members;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

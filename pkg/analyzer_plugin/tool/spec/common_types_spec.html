@@ -380,16 +380,37 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
-      <field name="libraryUriToImportIndex" experimental="true" optional="true">
-        <ref>int</ref>
+      <field name="libraryUri" optional="true">
+        <ref>String</ref>
         <p>
-          The index in the list of libraries that could be imported to make
-          this suggestion accessible in the file where completion was requested.
-          The server provides this list of libraries together with suggestions,
-          so that information about the library can be shared for multiple
-          suggestions. This field is omitted if the library is  already
-          imported, so that the suggestion can be inserted as is, or if
-          <tt>getSuggestions</tt> was used rather than <tt>getSuggestions2</tt>.
+          This field  is omitted if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
+        <p>
+          This field  is omitted if this suggestion corresponds to a locally
+          declared element.
+        </p>
+        <p>
+          If this suggestion corresponds to an already imported element,
+          then this field is the URI of a library that provides this element,
+          not the URI of the library where the element is declared.
+        </p>
+        <p>
+          If this suggestion corresponds to an element from a not yet
+          imported library, this field is the URI of a library that could be
+          imported to make this suggestion  accessible in the file where
+          completion was requested, such as <tt>package:foo/bar.dart</tt> or
+          <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+        </p>
+      </field>
+      <field name="isNotImported" optional="true">
+        <ref>bool</ref>
+        <p>
+          True if the suggestion is for an element from a not yet imported
+          library. This field is omitted if the element is declared locally,
+          or is from library is already imported, so that the suggestion can
+          be inserted as is, or if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
         </p>
       </field>
     </object>
@@ -714,6 +735,7 @@
       </value>
       <value><code>ENUM</code></value>
       <value><code>ENUM_CONSTANT</code></value>
+      <value><code>EXTENSION</code></value>
       <value>
         <code>FIELD</code>
         <p>Deprecated - no longer sent.</p>
@@ -986,13 +1008,21 @@
       the user edit the variable name after the operation, all occurrences of
       the name could be edited simultaneously.
     </p>
+    <p>
+      Edit groups may have a length of 0 and function as tabstops where there
+      is no default text, for example, an edit that inserts an <tt>if</tt>
+      statement might provide an empty group between parens where a condition
+      should be typed. For this reason, it's also valid for a group to contain
+      only a single position that is not linked to others.
+    </p>
     <object>
       <field name="positions">
         <list>
           <ref>Position</ref>
         </list>
         <p>
-          The positions of the regions that should be edited simultaneously.
+          The positions of the regions (after applying the relevant edits) that
+          should be edited simultaneously.
         </p>
       </field>
       <field name="length">

@@ -14,7 +14,7 @@ import 'package:args/args.dart';
 import 'package:glob/glob.dart';
 
 void main(List<String> args) async {
-  final parser = new ArgParser();
+  final parser = ArgParser();
   parser.addMultiOption("builder",
       abbr: "b",
       help: "Select the builders matching the glob [option is repeatable]",
@@ -40,15 +40,15 @@ ${parser.usage}""");
   }
 
   int count = int.parse(options["count"]);
-  final globs = new List<Glob>.from(
-      options["builder"].map((String pattern) => new Glob(pattern)));
+  final globs = List<Glob>.from(
+      options["builder"].map((String pattern) => Glob(pattern)));
 
   // Download the most recent builds from buildbucket.
   const maxBuilds = 1000;
   final url = Uri.parse("https://cr-buildbucket.appspot.com"
       "/prpc/buildbucket.v2.Builds/SearchBuilds");
   const maxRetries = 3;
-  const timeout = const Duration(seconds: 30);
+  const timeout = Duration(seconds: 30);
   final query = jsonEncode({
     "predicate": {
       "builder": {"project": "dart", "bucket": "ci.sandbox"},
@@ -60,7 +60,7 @@ ${parser.usage}""");
   late Map<String, dynamic> searchResult;
   for (int i = 1; i <= maxRetries; i++) {
     try {
-      final client = new HttpClient();
+      final client = HttpClient();
       final request = await client.postUrl(url).timeout(timeout)
         ..headers.contentType = ContentType.json
         ..headers.add(HttpHeaders.acceptHeader, ContentType.json)
@@ -74,10 +74,10 @@ ${parser.usage}""");
       const prefix = ")]}'";
       searchResult = await (response
           .cast<List<int>>()
-          .transform(new Utf8Decoder())
+          .transform(Utf8Decoder())
           .map((event) =>
               event.startsWith(prefix) ? event.substring(prefix.length) : event)
-          .transform(new JsonDecoder())
+          .transform(JsonDecoder())
           .cast<Map<String, dynamic>>()
           .first
           .timeout(timeout));
@@ -132,7 +132,7 @@ ${parser.usage}""");
     }
     final commit = input["id"] as String;
     final buildersForCommit =
-        buildersForCommits.putIfAbsent(commit, () => new Set<String>());
+        buildersForCommits.putIfAbsent(commit, () => <String>{});
     buildersForCommit.add(builder);
   }
 

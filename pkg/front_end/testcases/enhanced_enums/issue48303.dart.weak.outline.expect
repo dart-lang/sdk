@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class M1 extends core::Enum /*isMixinDeclaration*/  {
+  method mixedInMethod1(core::int v) → core::int
+    ;
+}
+abstract class _E&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method mixedInMethod1(core::int v) → core::int
+    return super.{self::M1::mixedInMethod1}(v);
+}
+class E extends self::_E&_Enum&M1 /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::e1, self::E::e2, self::E::e3];
+  static const field self::E e1 = const self::E::•(0, "e1");
+  static const field self::E e2 = const self::E::•(1, "e2");
+  static const field self::E e3 = const self::E::•(2, "e3");
+  const constructor •(core::int index, core::String name) → self::E
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48303.dart:9:6 -> ListConstant(const <E*>[const E{}, const E{}, const E{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:10:3 -> InstanceConstant(const E{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:11:3 -> InstanceConstant(const E{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:12:3 -> InstanceConstant(const E{})
+Extra constant evaluation: evaluated: 11, effectively constant: 4

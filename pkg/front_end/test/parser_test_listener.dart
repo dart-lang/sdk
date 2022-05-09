@@ -199,16 +199,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
+    seen(augmentToken);
     seen(name);
     doPrint('beginClassDeclaration('
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
+        '$augmentToken, '
         '$name)');
     indent++;
   }
@@ -259,10 +261,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
+    seen(augmentToken);
     seen(mixinKeyword);
     seen(name);
-    doPrint('beginMixinDeclaration(' '$mixinKeyword, ' '$name)');
+    doPrint(
+        'beginMixinDeclaration(' '$augmentToken, ' '$mixinKeyword, ' '$name)');
     indent++;
   }
 
@@ -662,6 +667,7 @@ class ParserTestListener implements Listener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -672,6 +678,7 @@ class ParserTestListener implements Listener {
       Token endToken) {
     indent--;
     seen(abstractToken);
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -681,6 +688,7 @@ class ParserTestListener implements Listener {
     seen(endToken);
     doPrint('endClassFields('
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -694,6 +702,7 @@ class ParserTestListener implements Listener {
   @override
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -704,6 +713,7 @@ class ParserTestListener implements Listener {
       Token endToken) {
     indent--;
     seen(abstractToken);
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -713,6 +723,7 @@ class ParserTestListener implements Listener {
     seen(endToken);
     doPrint('endMixinFields('
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -726,6 +737,7 @@ class ParserTestListener implements Listener {
   @override
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -736,6 +748,7 @@ class ParserTestListener implements Listener {
       Token endToken) {
     indent--;
     seen(abstractToken);
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -745,6 +758,7 @@ class ParserTestListener implements Listener {
     seen(endToken);
     doPrint('endExtensionFields('
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -758,6 +772,7 @@ class ParserTestListener implements Listener {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -768,6 +783,7 @@ class ParserTestListener implements Listener {
       Token endToken) {
     indent--;
     seen(abstractToken);
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -777,6 +793,7 @@ class ParserTestListener implements Listener {
     seen(endToken);
     doPrint('endEnumFields('
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1022,16 +1039,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
+    seen(augmentToken);
     seen(name);
     doPrint('beginNamedMixinApplication('
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
+        '$augmentToken, '
         '$name)');
     indent++;
   }
@@ -1149,11 +1168,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     indent--;
     seen(importKeyword);
+    seen(augmentToken);
     seen(semicolon);
-    doPrint('endImport(' '$importKeyword, ' '$semicolon)');
+    doPrint('endImport(' '$importKeyword, ' '$augmentToken, ' '$semicolon)');
   }
 
   @override
@@ -1408,12 +1428,14 @@ class ParserTestListener implements Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -1422,6 +1444,7 @@ class ParserTestListener implements Listener {
     seen(name);
     doPrint('beginMethod('
         '$declarationKind, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1792,6 +1815,7 @@ class ParserTestListener implements Listener {
   void beginFields(
       DeclarationKind declarationKind,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1799,6 +1823,7 @@ class ParserTestListener implements Listener {
       Token? varFinalOrConst,
       Token lastConsumed) {
     seen(abstractToken);
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -1808,6 +1833,7 @@ class ParserTestListener implements Listener {
     doPrint('beginFields('
         '$declarationKind, '
         '$abstractToken, '
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1847,10 +1873,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
     seen(lastConsumed);
+    seen(augmentToken);
     seen(externalToken);
-    doPrint('beginTopLevelMethod(' '$lastConsumed, ' '$externalToken)');
+    doPrint('beginTopLevelMethod('
+        '$lastConsumed, '
+        '$augmentToken, '
+        '$externalToken)');
     indent++;
   }
 

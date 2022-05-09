@@ -74,6 +74,19 @@ int Function(int) f = C();
     ]);
   }
 
+  test_invalid_interfaceType_enum_interfaces() async {
+    await assertErrorsInCode('''
+class I {}
+class J {}
+enum E implements J {
+  v
+}
+I x = E.v;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 56, 3),
+    ]);
+  }
+
   test_invalid_noCall_functionContext() async {
     await assertErrorsInCode('''
 class C {}
@@ -261,6 +274,16 @@ Fn f = C();
 ''');
   }
 
+  test_valid_interfaceType_enum_interfaces() async {
+    await assertNoErrorsInCode('''
+class I {}
+enum E implements I {
+  v
+}
+I x = E.v;
+''');
+  }
+
   test_valid_nonGenericCall() async {
     await assertNoErrorsInCode('''
 class C {
@@ -360,11 +383,16 @@ int Function() foo(int Function<T extends int>() f) {
 }
 ''');
 
-    assertFunctionReference(
-      findNode.functionReference('f;'),
-      findElement.parameter('f'),
-      'int Function()',
-    );
+    assertResolvedNodeText(findNode.functionReference('f;'), r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+    staticElement: f@49
+    staticType: int Function<T extends int>()
+  staticType: int Function()
+  typeArgumentTypes
+    int
+''');
   }
 
   test_functionTearoff_inferredTypeArgs() async {
@@ -428,7 +456,6 @@ void f(Never x) {
   x = null;
 }
 ''', [
-      if (hasAssignmentLeftResolution) error(HintCode.DEAD_CODE, 24, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
     ]);
   }
@@ -441,7 +468,6 @@ void f() {
   x = null;
 }
 ''', [
-      if (hasAssignmentLeftResolution) error(HintCode.DEAD_CODE, 37, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
     ]);
   }

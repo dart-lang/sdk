@@ -60,7 +60,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_invalid() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(projectPath, content: ';');
+    newAnalysisOptionsYamlFile2(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     var analysisOptions = analysisContext.analysisOptionsImpl;
@@ -69,9 +69,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_languageOptions() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(
+    newAnalysisOptionsYamlFile2(
       projectPath,
-      content: AnalysisOptionsFileConfig(
+      AnalysisOptionsFileConfig(
         strictRawTypes: true,
       ).toContent(),
     );
@@ -98,7 +98,7 @@ environment:
 
   void test_analysisOptions_sdkVersionConstraint_noPubspec() {
     var projectPath = convertPath('/home/test');
-    newFile('$projectPath/lib/a.dart');
+    newFile2('$projectPath/lib/a.dart', '');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     var analysisOptions = analysisContext.driver.analysisOptions;
@@ -167,7 +167,7 @@ environment:
 
   void test_sourceFactory_bazelWorkspace() {
     var projectPath = convertPath('/workspace/my/module');
-    newFile('/workspace/WORKSPACE');
+    newFile2('/workspace/WORKSPACE', '');
     newFolder('/workspace/bazel-bin');
     newFolder('/workspace/bazel-genfiles');
 
@@ -186,7 +186,7 @@ environment:
 
   void test_sourceFactory_pubWorkspace() {
     var projectPath = convertPath('/home/my');
-    newFile('/home/my/pubspec.yaml');
+    newFile2('/home/my/pubspec.yaml', '');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     expect(analysisContext.contextRoot.workspace, isA<PubWorkspace>());

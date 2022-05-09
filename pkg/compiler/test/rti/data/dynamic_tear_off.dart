@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*member: staticMethod:direct,explicit=[staticMethod.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
+/*member: staticMethod:explicit=[staticMethod.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)],test*/
 staticMethod<T>(t) => t is T;
 
 main() {

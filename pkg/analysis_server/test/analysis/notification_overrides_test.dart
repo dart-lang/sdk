@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
+class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
   late List<Override> overridesList;
   late Override overrideObject;
 
@@ -104,8 +105,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     }
   }
 
-  Future prepareOverrides() {
-    addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
+  Future<void> prepareOverrides() async {
+    await addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
     return _resultsAvailable.future;
   }
 
@@ -113,7 +114,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OVERRIDES) {
       var params = AnalysisOverridesParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         overridesList = params.overrides;
         _resultsAvailable.complete();
       }
@@ -121,9 +122,9 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -142,7 +143,7 @@ class B implements A {
     assertHasInterfaceMember('m() {} // in A');
   }
 
-  Future<void> test_BAD_fieldByMethod() async {
+  Future<void> test_class_BAD_fieldByMethod() async {
     addTestFile('''
 class A {
   int fff; // in A
@@ -155,7 +156,7 @@ class B extends A {
     assertNoOverride('fff() {} // in B');
   }
 
-  Future<void> test_BAD_getterByMethod() async {
+  Future<void> test_class_BAD_getterByMethod() async {
     addTestFile('''
 class A {
   get fff => null;
@@ -168,7 +169,7 @@ class B extends A {
     assertNoOverride('fff() {}');
   }
 
-  Future<void> test_BAD_getterBySetter() async {
+  Future<void> test_class_BAD_getterBySetter() async {
     addTestFile('''
 class A {
   get fff => null;
@@ -181,7 +182,7 @@ class B extends A {
     assertNoOverride('fff(x) {}');
   }
 
-  Future<void> test_BAD_methodByField() async {
+  Future<void> test_class_BAD_methodByField() async {
     addTestFile('''
 class A {
   fff() {} // in A
@@ -194,7 +195,7 @@ class B extends A {
     assertNoOverride('fff; // in B');
   }
 
-  Future<void> test_BAD_methodByGetter() async {
+  Future<void> test_class_BAD_methodByGetter() async {
     addTestFile('''
 class A {
   fff() {}
@@ -207,7 +208,7 @@ class B extends A {
     assertNoOverride('fff => null');
   }
 
-  Future<void> test_BAD_methodBySetter() async {
+  Future<void> test_class_BAD_methodBySetter() async {
     addTestFile('''
 class A {
   fff(x) {} // A
@@ -220,8 +221,8 @@ class B extends A {
     assertNoOverride('fff(x) {} // B');
   }
 
-  Future<void> test_BAD_privateByPrivate_inDifferentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+  Future<void> test_class_BAD_privateByPrivate_inDifferentLib() async {
+    newFile2('$testPackageLibPath/lib.dart', r'''
 class A {
   void _m() {}
 }
@@ -236,7 +237,7 @@ class B extends A {
     assertNoOverride('_m() {} // in B');
   }
 
-  Future<void> test_BAD_setterByGetter() async {
+  Future<void> test_class_BAD_setterByGetter() async {
     addTestFile('''
 class A {
   set fff(x) {}
@@ -249,7 +250,7 @@ class B extends A {
     assertNoOverride('fff => null;');
   }
 
-  Future<void> test_BAD_setterByMethod() async {
+  Future<void> test_class_BAD_setterByMethod() async {
     addTestFile('''
 class A {
   set fff(x) {} // A
@@ -262,7 +263,7 @@ class B extends A {
     assertNoOverride('fff(x) {} // B');
   }
 
-  Future<void> test_definedInInterface_ofInterface() async {
+  Future<void> test_class_definedInInterface_ofInterface() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -278,7 +279,7 @@ class C implements B {
     assertHasInterfaceMember('m() {} // in A');
   }
 
-  Future<void> test_definedInInterface_ofSuper() async {
+  Future<void> test_class_definedInInterface_ofSuper() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -294,39 +295,7 @@ class C extends B {
     assertHasInterfaceMember('m() {} // in A');
   }
 
-  Future<void> test_inMixin_interface_method_direct_single() async {
-    addTestFile('''
-class A {
-  m() {} // in A
-}
-
-mixin M implements A {
-  m() {} // in M
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('m() {} // in M');
-    assertNoSuperMember();
-    assertHasInterfaceMember('m() {} // in A');
-  }
-
-  Future<void> test_inMixin_superclassConstraint_method_direct() async {
-    addTestFile('''
-class A {
-  m() {} // in A
-}
-
-mixin M on A {
-  m() {} // in M
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('m() {} // in M');
-    assertHasSuperElement('m() {} // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_interface_method_direct_multiple() async {
+  Future<void> test_class_interface_method_direct_multiple() async {
     addTestFile('''
 class IA {
   m() {} // in IA
@@ -345,7 +314,7 @@ class A implements IA, IB {
     assertHasInterfaceMember('m() {} // in IB');
   }
 
-  Future<void> test_interface_method_direct_single() async {
+  Future<void> test_class_interface_method_direct_single() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -360,7 +329,7 @@ class B implements A {
     assertHasInterfaceMember('m() {} // in A');
   }
 
-  Future<void> test_interface_method_indirect_single() async {
+  Future<void> test_class_interface_method_indirect_single() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -377,7 +346,7 @@ class C implements B {
     assertHasInterfaceMember('m() {} // in A');
   }
 
-  Future<void> test_interface_stopWhenFound() async {
+  Future<void> test_class_interface_stopWhenFound() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -395,7 +364,7 @@ class C implements B {
     assertHasInterfaceMember('m() {} // in B');
   }
 
-  Future<void> test_mix_sameMethod() async {
+  Future<void> test_class_mix_sameMethod() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -412,7 +381,7 @@ class C extends A implements A {
     assertNoInterfaceMembers();
   }
 
-  Future<void> test_mix_sameMethod_Object_hashCode() async {
+  Future<void> test_class_mix_sameMethod_Object_hashCode() async {
     addTestFile('''
 class A {}
 abstract class B {}
@@ -424,6 +393,536 @@ class C extends A implements A {
     assertHasOverride('hashCode => 42;');
     expect(overrideObject.superclassMember, isNotNull);
     expect(overrideObject.interfaceMembers, isNull);
+  }
+
+  Future<void> test_class_staticMembers() async {
+    addTestFile('''
+class A {
+  static int F = 0;
+  static void M() {}
+  static int get G => 0;
+  static void set S(int v) {}
+}
+class B extends A {
+  static int F = 0;
+  static void M() {}
+  static int get G => 0;
+  static void set S(int v) {}
+}
+''');
+    await prepareOverrides();
+    expect(overridesList, isEmpty);
+  }
+
+  Future<void> test_class_super_fieldByField() async {
+    addTestFile('''
+class A {
+  int fff; // in A
+}
+class B extends A {
+  int fff; // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('fff; // in B');
+    assertHasSuperElement('fff; // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_fieldByGetter() async {
+    addTestFile('''
+class A {
+  int fff; // in A
+}
+class B extends A {
+  get fff => 0; // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('fff => 0; // in B');
+    assertHasSuperElement('fff; // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_fieldBySetter() async {
+    addTestFile('''
+class A {
+  int fff; // in A
+}
+class B extends A {
+  set fff(x) {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('fff(x) {} // in B');
+    assertHasSuperElement('fff; // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_getterByField() async {
+    addTestFile('''
+class A {
+  get fff => 0; // in A
+  set fff(x) {} // in A
+}
+class B extends A {
+  int fff; // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('fff; // in B');
+    assertHasSuperElement('fff => 0; // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_getterByGetter() async {
+    addTestFile('''
+class A {
+  get fff => 0; // in A
+}
+class B extends A {
+  get fff => 0; // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('fff => 0; // in B');
+    assertHasSuperElement('fff => 0; // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_method_direct() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends A {
+  m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_method_indirect() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends A {
+}
+class C extends B {
+  m() {} // in C
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_method_privateByPrivate() async {
+    addTestFile('''
+class A {
+  _m() {} // in A
+}
+class B extends A {
+  _m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('_m() {} // in B');
+    assertHasSuperElement('_m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_method_superTypeCycle() async {
+    addTestFile('''
+class A extends B {
+  m() {} // in A
+}
+class B extends A {
+  m() {} // in B
+}
+''');
+    await prepareOverrides();
+    // must finish
+  }
+
+  Future<void> test_class_super_setterBySetter() async {
+    addTestFile('''
+class A {
+  set fff(x) {} // in A
+}
+class B extends A {
+  set fff(x) {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('fff(x) {} // in B');
+    assertHasSuperElement('fff(x) {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_enum_interface_getterByGetter() async {
+    addTestFile('''
+class A {
+  int get foo => 0; // A
+}
+
+enum E implements A {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo => 0; // E');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo => 0; // A');
+  }
+
+  Future<void> test_enum_interface_methodByMethod() async {
+    addTestFile('''
+class A {
+  void foo() {} // A
+}
+
+enum E implements A {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo() {} // E');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo() {} // A');
+  }
+
+  Future<void> test_enum_interface_methodByMethod2() async {
+    addTestFile('''
+class A {
+  void foo() {} // A
+}
+
+class B {
+  void foo() {} // B
+}
+
+enum E implements A, B {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo() {} // E');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo() {} // A');
+    assertHasInterfaceMember('foo() {} // B');
+  }
+
+  Future<void> test_enum_interface_methodByMethod_indirect() async {
+    addTestFile('''
+abstract class A {
+  void foo(); // A
+}
+
+abstract class B implements A {}
+
+enum E implements B {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo() {} // E');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo(); // A');
+  }
+
+  Future<void> test_enum_interface_setterBySetter() async {
+    addTestFile('''
+class A {
+  set foo(int _) {} // A
+}
+
+enum E implements A {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo(int _) {} // E');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo(int _) {} // A');
+  }
+
+  Future<void> test_enum_super_fieldByField() async {
+    addTestFile('''
+mixin M {
+  final int foo = 0; // M
+}
+
+enum E with M {
+  v;
+  final int foo = 0; // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo = 0; // E');
+    assertHasSuperElement('foo = 0; // M');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_enum_super_fieldByGetter() async {
+    addTestFile('''
+mixin M {
+  final int foo = 0; // M
+}
+
+enum E with M {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo => 0; // E');
+    assertHasSuperElement('foo = 0; // M');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_enum_super_fieldByMethod() async {
+    addTestFile('''
+mixin M {
+  final int foo = 0; // M
+}
+
+enum E with M {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo() {} // E');
+  }
+
+  Future<void> test_enum_super_fieldBySetter() async {
+    addTestFile('''
+mixin M {
+  final int foo = 0; // M
+}
+
+enum E with M {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo(int _) {} // E');
+  }
+
+  Future<void> test_enum_super_getterByField() async {
+    addTestFile('''
+mixin M {
+  int get foo => 0; // M
+}
+
+enum E with M {
+  v;
+  final int foo = 0; // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo = 0; // E');
+    assertHasSuperElement('foo => 0; // M');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_enum_super_getterByGetter() async {
+    addTestFile('''
+mixin M {
+  int get foo => 0; // M
+}
+
+enum E with M {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo => 0; // E');
+    assertHasSuperElement('foo => 0; // M');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_enum_super_getterByMethod() async {
+    addTestFile('''
+mixin M {
+  int get foo => 0; // M
+}
+
+enum E with M {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo() {} // E');
+  }
+
+  Future<void> test_enum_super_getterBySetter() async {
+    addTestFile('''
+mixin M {
+  int get foo => 0; // M
+}
+
+enum E with M {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo(int _) {} // E');
+  }
+
+  Future<void> test_enum_super_methodByField() async {
+    addTestFile('''
+mixin M {
+  void foo() {} // M
+}
+
+enum E with M {
+  v;
+  final int foo = 0; // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo = 0; // E');
+  }
+
+  Future<void> test_enum_super_methodByGetter() async {
+    addTestFile('''
+mixin M {
+  void foo() {} // M
+}
+
+enum E with M {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo => 0; // E');
+  }
+
+  Future<void> test_enum_super_methodByMethod() async {
+    addTestFile('''
+mixin M {
+  void foo() {} // M
+}
+
+enum E with M {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo() {} // E');
+    assertHasSuperElement('foo() {} // M');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_enum_super_methodBySetter() async {
+    addTestFile('''
+mixin M {
+  void foo() {} // M
+}
+
+enum E with M {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo(int _) {} // E');
+  }
+
+  Future<void> test_enum_super_setterByField() async {
+    addTestFile('''
+mixin M {
+  set foo(int _) {} // M
+}
+
+enum E with M {
+  v;
+  final int foo = 0; // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo = 0; // E');
+  }
+
+  Future<void> test_enum_super_setterByGetter() async {
+    addTestFile('''
+mixin M {
+  set foo(int _) {} // M
+}
+
+enum E with M {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo => 0; // E');
+  }
+
+  Future<void> test_enum_super_setterByMethod() async {
+    addTestFile('''
+mixin M {
+  set foo(int _) {} // M
+}
+
+enum E with M {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('foo() {} // E');
+  }
+
+  Future<void> test_enum_super_setterBySetter() async {
+    addTestFile('''
+mixin M {
+  set foo(int _) {} // M
+}
+
+enum E with M {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo(int _) {} // E');
+    assertHasSuperElement('foo(int _) {} // M');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_mixin_interface_method_direct_single() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+
+mixin M implements A {
+  m() {} // in M
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in M');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
   }
 
   Future<void> test_mixin_method_direct() async {
@@ -475,173 +974,19 @@ class C extends B {
     assertNoInterfaceMembers();
   }
 
-  Future<void> test_staticMembers() async {
-    addTestFile('''
-class A {
-  static int F = 0;
-  static void M() {}
-  static int get G => 0;
-  static void set S(int v) {}
-}
-class B extends A {
-  static int F = 0;
-  static void M() {}
-  static int get G => 0;
-  static void set S(int v) {}
-}
-''');
-    await prepareOverrides();
-    expect(overridesList, isEmpty);
-  }
-
-  Future<void> test_super_fieldByField() async {
-    addTestFile('''
-class A {
-  int fff; // in A
-}
-class B extends A {
-  int fff; // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff; // in B');
-    assertHasSuperElement('fff; // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_fieldByGetter() async {
-    addTestFile('''
-class A {
-  int fff; // in A
-}
-class B extends A {
-  get fff => 0; // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff => 0; // in B');
-    assertHasSuperElement('fff; // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_fieldBySetter() async {
-    addTestFile('''
-class A {
-  int fff; // in A
-}
-class B extends A {
-  set fff(x) {} // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff(x) {} // in B');
-    assertHasSuperElement('fff; // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_getterByField() async {
-    addTestFile('''
-class A {
-  get fff => 0; // in A
-  set fff(x) {} // in A
-}
-class B extends A {
-  int fff; // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff; // in B');
-    assertHasSuperElement('fff => 0; // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_getterByGetter() async {
-    addTestFile('''
-class A {
-  get fff => 0; // in A
-}
-class B extends A {
-  get fff => 0; // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff => 0; // in B');
-    assertHasSuperElement('fff => 0; // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_method_direct() async {
+  Future<void> test_mixin_superclassConstraint_method_direct() async {
     addTestFile('''
 class A {
   m() {} // in A
 }
-class B extends A {
-  m() {} // in B
+
+mixin M on A {
+  m() {} // in M
 }
 ''');
     await prepareOverrides();
-    assertHasOverride('m() {} // in B');
+    assertHasOverride('m() {} // in M');
     assertHasSuperElement('m() {} // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_method_indirect() async {
-    addTestFile('''
-class A {
-  m() {} // in A
-}
-class B extends A {
-}
-class C extends B {
-  m() {} // in C
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('m() {} // in C');
-    assertHasSuperElement('m() {} // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_method_privateByPrivate() async {
-    addTestFile('''
-class A {
-  _m() {} // in A
-}
-class B extends A {
-  _m() {} // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('_m() {} // in B');
-    assertHasSuperElement('_m() {} // in A');
-    assertNoInterfaceMembers();
-  }
-
-  Future<void> test_super_method_superTypeCycle() async {
-    addTestFile('''
-class A extends B {
-  m() {} // in A
-}
-class B extends A {
-  m() {} // in B
-}
-''');
-    await prepareOverrides();
-    // must finish
-  }
-
-  Future<void> test_super_setterBySetter() async {
-    addTestFile('''
-class A {
-  set fff(x) {} // in A
-}
-class B extends A {
-  set fff(x) {} // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff(x) {} // in B');
-    assertHasSuperElement('fff(x) {} // in A');
     assertNoInterfaceMembers();
   }
 }

@@ -196,10 +196,9 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               Register start_reg) {
   intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
-    __ movq(
-        array_reg,
-        compiler::FieldAddress(
-            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+    __ movq(array_reg,
+            compiler::FieldAddress(
+                array_reg, compiler::target::PointerBase::data_offset()));
     offset = 0;
   } else {
     switch (array_cid) {
@@ -560,22 +559,9 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
-      __ xorps(destination.fpu_reg(), destination.fpu_reg());
-    } else {
-      ASSERT(tmp != kNoRegister);
-      __ LoadObject(tmp, value_);
-      __ movsd(destination.fpu_reg(),
-               compiler::FieldAddress(tmp, Double::value_offset()));
-    }
+    __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
   } else if (destination.IsDoubleStackSlot()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
-      __ xorps(FpuTMP, FpuTMP);
-    } else {
-      ASSERT(tmp != kNoRegister);
-      __ LoadObject(tmp, value_);
-      __ movsd(FpuTMP, compiler::FieldAddress(tmp, Double::value_offset()));
-    }
+    __ LoadDImmediate(FpuTMP, Double::Cast(value_).value());
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
@@ -1189,29 +1175,38 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  // Use R10 as a temp register. We can't use RDI, RSI, RDX, R8, R9 as they are
-  // arg registers, and R11 is TMP.
-  return MakeLocationSummaryInternal(zone, is_optimizing, R10);
+  // Use R10 as a temp. register. We can't use RDI, RSI, RDX, R8, R9 as they are
+  // argument registers, and R11 is TMP.
+  return MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(CallingConventions::kSecondNonArgumentRegister) | R(R10) |
+       R(CallingConventions::kFfiAnyNonAbiRegister)));
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  // For regular calls, this holds the FP for rebasing the original locations
+  // during EmitParamMoves.
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
   // Note: R12 doubles as CODE_REG, which gets clobbered during frame setup in
   // regular calls.
-  const Register saved_sp = locs()->temp(0).reg();
-  // For regular calls, this holds the FP for rebasing the original locations
-  // during EmitParamMoves.
-  const Register saved_fp = locs()->temp(1).reg();
-  const Register temp = locs()->temp(2).reg();
-  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_sp = locs()->temp(2).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_sp)) != 0);
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_fp)) != 0);
-  // temp doesn't need to be preserved.
+  ASSERT(IsCalleeSavedRegister(saved_sp));
+  ASSERT(IsCalleeSavedRegister(saved_fp));
+  // Other temps don't need to be preserved.
 
   if (is_leaf_) {
     __ movq(saved_sp, SPREG);
@@ -1336,7 +1331,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SaveArguments(compiler);
 
   // Enter the entry frame. Push a dummy return address for consistency with
-  // EnterFrame on ARM(64).
+  // EnterFrame on ARM(64). NativeParameterInstr expects this frame has size
+  // -exit_link_slot_from_entry_fp, verified below.
   __ PushImmediate(compiler::Immediate(0));
   __ EnterFrame(0);
 
@@ -1547,8 +1543,8 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Address of input bytes.
   __ movq(bytes_reg,
-          compiler::FieldAddress(
-              bytes_reg, compiler::target::TypedDataBase::data_field_offset()));
+          compiler::FieldAddress(bytes_reg,
+                                 compiler::target::PointerBase::data_offset()));
 
   // Pointers to start, end and end-16.
   __ leaq(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));
@@ -2023,8 +2019,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movb(element_address,
                 compiler::Immediate(static_cast<int8_t>(constant.Value())));
       } else {
-        ASSERT(locs()->in(2).reg() == RAX);
-        __ movb(element_address, RAX);
+        __ movb(element_address, ByteRegisterOf(locs()->in(2).reg()));
       }
       break;
     case kTypedDataUint8ClampedArrayCid:
@@ -2042,18 +2037,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movb(element_address,
                 compiler::Immediate(static_cast<int8_t>(value)));
       } else {
-        ASSERT(locs()->in(2).reg() == RAX);
+        const Register storedValueReg = locs()->in(2).reg();
         compiler::Label store_value, store_0xff;
-        __ CompareImmediate(RAX, compiler::Immediate(0xFF));
+        __ CompareImmediate(storedValueReg, compiler::Immediate(0xFF));
         __ j(BELOW_EQUAL, &store_value, compiler::Assembler::kNearJump);
         // Clamp to 0x0 or 0xFF respectively.
         __ j(GREATER, &store_0xff);
-        __ xorq(RAX, RAX);
+        __ xorq(storedValueReg, storedValueReg);
         __ jmp(&store_value, compiler::Assembler::kNearJump);
         __ Bind(&store_0xff);
-        __ LoadImmediate(RAX, compiler::Immediate(0xFF));
+        __ LoadImmediate(storedValueReg, compiler::Immediate(0xFF));
         __ Bind(&store_value);
-        __ movb(element_address, RAX);
+        __ movb(element_address, ByteRegisterOf(storedValueReg));
       }
       break;
     }
@@ -4217,9 +4212,13 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(value == result);
+  // Optimistically untag value.
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movsxd(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
+  // Undo untagging by multiplying value by 2.
+  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+  __ movsxd(result,
+            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
   ASSERT(value != result);
   // Cannot speculatively untag with value == result because it erases the
@@ -4237,9 +4236,13 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(value == result);
+  // Optimistically untag value.
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movq(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
+  // Undo untagging by multiplying value by 2.
+  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+  __ movq(result,
+          compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
   ASSERT(value != result);
   // Cannot speculatively untag with value == result because it erases the
@@ -4285,9 +4288,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(is_truncating());
     compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
+    // Optimistically untag value.
     __ SmiUntag(value);
     __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-    __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
+    // Undo untagging by multiplying value by 2.
+    // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+    __ movq(value,
+            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
     // Cannot speculatively untag because it erases the upper bits needed to
     // dereference when it is a Mint.
@@ -4306,8 +4313,10 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Optimistically untag value.
     __ SmiUntagOrCheckClass(value, kMintCid, &done);
     __ j(NOT_EQUAL, deopt);
-    // Undo untagging by multiplying value with 2.
-    __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
+    // Undo untagging by multiplying value by 2.
+    // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+    __ movq(value,
+            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
     // Cannot speculatively untag because it erases the upper bits needed to
     // dereference when it is a Mint.
@@ -5031,18 +5040,11 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Save RSP. R13 is chosen because it is callee saved so we do not need to
-  // back it up before calling into the runtime.
-  static const Register kSavedSPReg = R13;
-  __ movq(kSavedSPReg, RSP);
-  __ ReserveAlignedFrameSpace(0);
-
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
   // Call the function. Parameters are already in their correct spots.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-
-  // Restore RSP.
-  __ movq(RSP, kSavedSPReg);
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
@@ -5381,7 +5383,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
   // double arguments and XMM0 to return the result.
   ASSERT(R13 != CALLEE_SAVED_TEMP);
-  ASSERT(((1 << R13) & CallingConventions::kCalleeSaveCpuRegisters) != 0);
+  ASSERT(IsCalleeSavedRegister(R13));
 
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     ASSERT(InputCount() == 2);
@@ -5438,13 +5440,11 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   XmmRegister base = locs->in(0).fpu_reg();
   XmmRegister exp = locs->in(1).fpu_reg();
   XmmRegister result = locs->out(0).fpu_reg();
-  Register temp = locs->temp(InvokeMathCFunctionInstr::kObjectTempIndex).reg();
   XmmRegister zero_temp =
       locs->temp(InvokeMathCFunctionInstr::kDoubleTempIndex).fpu_reg();
 
   __ xorps(zero_temp, zero_temp);
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, 1.0);
 
   compiler::Label check_base, skip_call;
   // exponent == 0.0 -> return 1.0;
@@ -5458,15 +5458,13 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ j(EQUAL, &return_base, compiler::Assembler::kNearJump);
 
   // exponent == 2.0 ?
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(2.0)));
-  __ movsd(XMM0, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(XMM0, 2.0);
   __ comisd(exp, XMM0);
   compiler::Label return_base_times_2;
   __ j(EQUAL, &return_base_times_2, compiler::Assembler::kNearJump);
 
   // exponent == 3.0 ?
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(3.0)));
-  __ movsd(XMM0, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(XMM0, 3.0);
   __ comisd(exp, XMM0);
   __ j(NOT_EQUAL, &check_base);
 
@@ -5500,22 +5498,19 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ j(PARITY_ODD, &try_sqrt, compiler::Assembler::kNearJump);
   // Return NaN.
   __ Bind(&return_nan);
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, NAN);
   __ jmp(&skip_call);
 
   compiler::Label do_pow, return_zero;
   __ Bind(&try_sqrt);
   // Before calling pow, check if we could use sqrt instead of pow.
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(kNegInfinity)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, kNegInfinity);
   // base == -Infinity -> call pow;
   __ comisd(base, result);
   __ j(EQUAL, &do_pow, compiler::Assembler::kNearJump);
 
   // exponent == 0.5 ?
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, 0.5);
   __ comisd(exp, result);
   __ j(NOT_EQUAL, &do_pow, compiler::Assembler::kNearJump);
 
@@ -5531,18 +5526,15 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ jmp(&skip_call);
 
   __ Bind(&do_pow);
-
-  // Save RSP.
-  __ movq(locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg(), RSP);
-  __ ReserveAlignedFrameSpace(0);
-  __ movaps(XMM0, locs->in(0).fpu_reg());
-  ASSERT(locs->in(1).fpu_reg() == XMM1);
-
-  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
-  __ movaps(locs->out(0).fpu_reg(), XMM0);
-  // Restore RSP.
-  __ movq(RSP, locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg());
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    __ movaps(XMM0, locs->in(0).fpu_reg());
+    ASSERT(locs->in(1).fpu_reg() == XMM1);
+    rt.Call(instr->TargetFunction(), kInputCount);
+    __ movaps(locs->out(0).fpu_reg(), XMM0);
+  }
   __ Bind(&skip_call);
 }
 
@@ -5552,21 +5544,15 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
   ASSERT(locs()->in(0).fpu_reg() == XMM0);
   if (InputCount() == 2) {
     ASSERT(locs()->in(1).fpu_reg() == XMM1);
   }
-
-  // Save RSP.
-  __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
-  __ ReserveAlignedFrameSpace(0);
-
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), InputCount());
+  rt.Call(TargetFunction(), InputCount());
   ASSERT(locs()->out(0).fpu_reg() == XMM0);
-
-  // Restore RSP.
-  __ movq(RSP, locs()->temp(kSavedSpTempIndex).reg());
 }
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,

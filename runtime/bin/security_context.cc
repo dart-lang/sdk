@@ -74,11 +74,22 @@ int SSLCertContext::CertificateCallback(int preverify_ok,
         "BadCertificateCallback returned a value that was not a boolean",
         Dart_Null()));
   }
-  if (Dart_IsError(result)) {
+  // See SSLFilter::Handshake for the semantics of filter->callback_error.
+  if (Dart_IsError(result) && filter->callback_error == nullptr) {
     filter->callback_error = result;
     return 0;
   }
   return static_cast<int>(DartUtils::GetBooleanValue(result));
+}
+
+void SSLCertContext::KeyLogCallback(const SSL* ssl, const char* line) {
+  SSLFilter* filter = static_cast<SSLFilter*>(
+      SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
+
+  Dart_Port port = filter->key_log_port();
+  if (port != ILLEGAL_PORT) {
+    DartUtils::PostString(port, line);
+  }
 }
 
 SSLCertContext* SSLCertContext::GetSecurityContext(Dart_NativeArguments args) {
@@ -807,6 +818,7 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
   SSL_CTX* ctx = SSL_CTX_new(TLS_method());
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, SSLCertContext::CertificateCallback);
+  SSL_CTX_set_keylog_callback(ctx, SSLCertContext::KeyLogCallback);
   SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
   SSL_CTX_set_cipher_list(ctx, "HIGH:MEDIUM");
   SSLCertContext* context = new SSLCertContext(ctx);
@@ -863,6 +875,22 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   ASSERT(context != NULL);
 
   context->TrustBuiltinRoots();
+}
+
+void FUNCTION_NAME(SecurityContext_SetAllowTlsRenegotiation)(
+    Dart_NativeArguments args) {
+  SSLCertContext* context = SSLCertContext::GetSecurityContext(args);
+  Dart_Handle allow_tls_handle = ThrowIfError(Dart_GetNativeArgument(args, 1));
+
+  ASSERT(context != NULL);
+  ASSERT(allow_tls_handle != NULL);
+
+  if (!Dart_IsBoolean(allow_tls_handle)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Non-boolean argument passed to SetAllowTlsRenegotiation"));
+  }
+  bool allow = DartUtils::GetBooleanValue(allow_tls_handle);
+  context->set_allow_tls_renegotiation(allow);
 }
 
 void FUNCTION_NAME(X509_Der)(Dart_NativeArguments args) {

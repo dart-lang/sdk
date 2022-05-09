@@ -52,6 +52,22 @@ abstract class Enum {
   /// orders enum values by their [index] value, which corresponds
   /// to the source order of the enum element declarations in
   /// the `enum` declaration.
+  ///
+  /// Example:
+  /// ```dart
+  /// enum Season { spring, summer, autumn, winter }
+  ///
+  /// void main() {
+  ///   var relationByIndex =
+  ///       Enum.compareByIndex(Season.spring, Season.summer); // < 0
+  ///   relationByIndex =
+  ///       Enum.compareByIndex(Season.summer, Season.spring); // > 0
+  ///   relationByIndex =
+  ///       Enum.compareByIndex(Season.spring, Season.winter); // < 0
+  ///   relationByIndex =
+  ///       Enum.compareByIndex(Season.winter, Season.spring); // > 0
+  /// }
+  /// ```
   @Since("2.15")
   static int compareByIndex<T extends Enum>(T value1, T value2) =>
       value1.index - value2.index;
@@ -64,6 +80,17 @@ abstract class Enum {
   /// This [Comparator] compares two enum values by comparing their names,
   /// and can be used to sort enum values by their names.
   /// The comparison uses [String.compareTo], and is therefore case sensitive.
+  ///
+  /// Example:
+  /// ```dart
+  /// enum Season { spring, summer, autumn, winter }
+  ///
+  /// void main() {
+  ///   var seasons = [...Season.values]..sort(Enum.compareByName);
+  ///   print(seasons);
+  ///   // [Season.autumn, Season.spring, Season.summer, Season.winter]
+  /// }
+  /// ```
   @Since("2.15")
   static int compareByName<T extends Enum>(T value1, T value2) =>
       value1.name.compareTo(value2.name);

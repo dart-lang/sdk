@@ -59,7 +59,7 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -437,7 +437,7 @@ main() {
 class NullableTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   @override
-  bool get typeToStringWithNullability => true;
+  bool get isNullSafetyEnabled => true;
 
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''

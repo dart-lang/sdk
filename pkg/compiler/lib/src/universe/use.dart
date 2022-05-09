@@ -59,7 +59,7 @@ class DynamicUse {
     return DynamicUse(selector, otherReceiverConstraint, _typeArguments);
   }
 
-  factory DynamicUse.readFromDataSource(DataSource source) {
+  factory DynamicUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Selector selector = Selector.readFromDataSource(source);
     bool hasConstraint = source.readBool();
@@ -72,7 +72,7 @@ class DynamicUse {
     return DynamicUse(selector, receiverConstraint, typeArguments);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     selector.writeToDataSink(sink);
     sink.writeBool(receiverConstraint != null);
@@ -215,7 +215,7 @@ class StaticUse {
     return true;
   }
 
-  factory StaticUse.readFromDataSource(DataSource source) {
+  factory StaticUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity element = source.readMember();
     StaticUseKind kind = source.readEnum(StaticUseKind.values);
@@ -234,7 +234,7 @@ class StaticUse {
         typeArguments: typeArguments);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     assert(element is MemberEntity, "Unsupported entity: $element");
     sink.writeMember(element);
@@ -727,7 +727,7 @@ class TypeUse {
         this.kind = kind,
         this.hashCode = Hashing.objectsHash(type, kind, deferredImport);
 
-  factory TypeUse.readFromDataSource(DataSource source) {
+  factory TypeUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     DartType type = source.readDartType();
     TypeUseKind kind = source.readEnum(TypeUseKind.values);
@@ -736,7 +736,7 @@ class TypeUse {
     return TypeUse.internal(type, kind, deferredImport);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartType(type);
     sink.writeEnum(kind);
@@ -900,14 +900,14 @@ class ConstantUse {
 
   ConstantUse._(this.value);
 
-  factory ConstantUse.readFromDataSource(DataSource source) {
+  factory ConstantUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ConstantValue value = source.readConstant();
     source.end(tag);
     return ConstantUse._(value);
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeConstant(value);
     sink.end(tag);

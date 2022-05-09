@@ -244,7 +244,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     ''';
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
     final newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
-    newFile(mainFilePath, content: withoutMarkers(mainContent));
+    newFile2(mainFilePath, withoutMarkers(mainContent));
     await pumpEventQueue(times: 5000);
     await provideConfig(
       () async {
@@ -539,7 +539,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     final a = new [[Ob^ject]]();
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final request = makeRequest(

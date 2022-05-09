@@ -1,0 +1,301 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:8:11: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   int get hashCode => 42; // Error.
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:14:14: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   String get hashCode => "foo"; // Error.
+//              ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:20:13: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   final int hashCode = 42; // Error.
+//             ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:26:16: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   List<String> hashCode() => []; // Error.
+//                ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:32:13: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   Never get hashCode => throw 42; // Error.
+//             ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:38:22: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   final int foo = 0, hashCode = 1, bar = 2; // Error.
+//                      ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:64:18: Error: An enum can't declare a non-abstract member named 'hashCode'.
+//   static int get hashCode => 42; // Error.
+//                  ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:26:16: Error: Can't declare a member that conflicts with an inherited one.
+//   List<String> hashCode() => []; // Error.
+//                ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:64:18: Error: Can't declare a member that conflicts with an inherited one.
+//   static int get hashCode => 42; // Error.
+//                  ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:70:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set hashCode(int value) {} // Error.
+//                   ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:74:3: Error: Can't declare a member that conflicts with an inherited one.
+//   hashCode // Error.
+//   ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:14:14: Error: The return type of the method 'E2.hashCode' is 'String', which does not match the return type, 'int', of the overridden method, 'Object.hashCode'.
+// Change to a subtype of 'int'.
+//   String get hashCode => "foo"; // Error.
+//              ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the overridden method ('hashCode').
+//   int get hashCode => _getHash(this);
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:52:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'String' of the setter 'E8.hashCode'.
+//   void set hashCode(String value) {} // Error.
+//            ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the declaration of the getter 'Object.hashCode'.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:58:14: Error: The return type of the method 'E9.hashCode' is 'double', which does not match the return type, 'int', of the overridden method, 'Object.hashCode'.
+// Change to a subtype of 'int'.
+//   double get hashCode; // Error.
+//              ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the overridden method ('hashCode').
+//   int get hashCode => _getHash(this);
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:55:6: Error: The implementation of 'hashCode' in the non-abstract class 'E9' does not conform to its interface.
+// enum E9 {
+//      ^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: The return type of the method 'Object.hashCode' is 'int', which does not match the return type, 'double', of the overridden method, 'E9.hashCode'.
+// Change to a subtype of 'double'.
+//   int get hashCode => _getHash(this);
+//           ^
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:58:14: Context: This is the overridden method ('hashCode').
+//   double get hashCode; // Error.
+//              ^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:87:6: Error: The implementation of 'hashCode' in the non-abstract class 'E14' does not conform to its interface.
+// enum E14 implements I14 { element } // Error.
+//      ^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: The return type of the method 'Object.hashCode' is 'int', which does not match the return type, 'Never', of the overridden method, 'I14.hashCode'.
+// Change to a subtype of 'Never'.
+//   int get hashCode => _getHash(this);
+//           ^
+// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:84:13: Context: This is the overridden method ('hashCode').
+//   Never get hashCode;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
+  static const field self::E1 element = const self::E1::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  get hashCode() → core::int
+    ;
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
+  static const field self::E2 element = const self::E2::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  get hashCode() → core::String
+    ;
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
+  final field core::int hashCode;
+  static const field self::E3 element = const self::E3::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::element];
+  static const field self::E4 element = const self::E4::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+  method hashCode() → core::List<core::String>
+    ;
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E5> values = const <self::E5>[self::E5::element];
+  static const field self::E5 element = const self::E5::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+  get hashCode() → Never
+    ;
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
+  final field core::int foo;
+  final field core::int hashCode;
+  final field core::int bar;
+  static const field self::E6 element = const self::E6::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E7> values = const <self::E7>[self::E7::element];
+  static const field self::E7 element = const self::E7::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E7
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+  set hashCode(core::int value) → void
+    ;
+  abstract get hashCode() → core::int;
+}
+class E8 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E8> values = const <self::E8>[self::E8::element];
+  static const field self::E8 element = const self::E8::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E8
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+  set hashCode(core::String value) → void
+    ;
+}
+class E9 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E9> values = const <self::E9>[self::E9::element];
+  static const field self::E9 element = const self::E9::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E9
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+  abstract get hashCode() → core::double;
+}
+class E10 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E10> values = const <self::E10>[self::E10::element];
+  static const field self::E10 element = const self::E10::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E10
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
+  static get hashCode() → core::int
+    ;
+}
+class E11 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E11> values = const <self::E11>[self::E11::element];
+  static const field self::E11 element = const self::E11::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E11
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E11.${this.{core::_Enum::_name}{core::String}}";
+  static set hashCode(core::int value) → void
+    ;
+}
+class E12 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E12> values = const <self::E12>[self::E12::hashCode];
+  static const field self::E12 hashCode = const self::E12::•(0, "hashCode");
+  const constructor •(core::int index, core::String name) → self::E12
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E12.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class I13 extends core::Object {
+  synthetic constructor •() → self::I13
+    ;
+  abstract get hashCode() → core::int;
+}
+class E13 extends core::_Enum implements self::I13 /*isEnum*/  {
+  static const field core::List<self::E13> values = const <self::E13>[self::E13::element];
+  static const field self::E13 element = const self::E13::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E13
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E13.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class I14 extends core::Object {
+  synthetic constructor •() → self::I14
+    ;
+  abstract get hashCode() → Never;
+}
+class E14 extends core::_Enum implements self::I14 /*isEnum*/  {
+  static const field core::List<self::E14> values = const <self::E14>[self::E14::element];
+  static const field self::E14 element = const self::E14::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E14
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E14.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get hashCode() → Never; -> self::I14::hashCode
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:5:6 -> ListConstant(const <E1*>[const E1{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:6:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:11:6 -> ListConstant(const <E2*>[const E2{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:12:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:17:6 -> ListConstant(const <E3*>[const E3{E3.hashCode: null, _Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:18:3 -> InstanceConstant(const E3{E3.hashCode: null, _Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:23:6 -> ListConstant(const <E4*>[const E4{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:24:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:29:6 -> ListConstant(const <E5*>[const E5{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:30:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:35:6 -> ListConstant(const <E6*>[const E6{E6.foo: null, E6.hashCode: null, E6.bar: null, _Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:36:3 -> InstanceConstant(const E6{E6.foo: null, E6.hashCode: null, E6.bar: null, _Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:41:6 -> ListConstant(const <E7*>[const E7{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:42:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:49:6 -> ListConstant(const <E8*>[const E8{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:50:3 -> InstanceConstant(const E8{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:55:6 -> ListConstant(const <E9*>[const E9{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:56:3 -> InstanceConstant(const E9{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:61:6 -> ListConstant(const <E10*>[const E10{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:62:3 -> InstanceConstant(const E10{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:67:6 -> ListConstant(const <E11*>[const E11{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:68:3 -> InstanceConstant(const E11{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:73:6 -> ListConstant(const <E12*>[const E12{_Enum.index: 0, _Enum._name: "hashCode"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:74:3 -> InstanceConstant(const E12{_Enum.index: 0, _Enum._name: "hashCode"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:81:6 -> ListConstant(const <E13*>[const E13{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:81:27 -> InstanceConstant(const E13{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:87:6 -> ListConstant(const <E14*>[const E14{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:87:27 -> InstanceConstant(const E14{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 98, effectively constant: 28

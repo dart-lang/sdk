@@ -73,6 +73,7 @@ class B {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_classMemberVariable() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -107,6 +108,7 @@ class B {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_classStaticVariable() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -197,6 +199,7 @@ class A {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_topLevelVariable() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -212,6 +215,7 @@ class A {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_topLevelVariable_assignment_field() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -228,6 +232,7 @@ class A{
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_topLevelVariable_assignment_functionExpression() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -273,6 +278,7 @@ class A{
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_topLevelVariable_binaryExpression() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -290,7 +296,7 @@ class A {
   }
 
   test_topLevelVariable_libraryAnnotation() async {
-    newFile('$testPackageLibPath/library.dart', content: '''
+    newFile2('$testPackageLibPath/library.dart', '''
 @doNotStore
 library lib;
 
@@ -310,6 +316,7 @@ class A {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_topLevelVariable_ternary() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';

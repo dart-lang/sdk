@@ -4,10 +4,10 @@
 
 // @dart = 2.7
 
-/*member: staticMethod1:deps=[staticMethod2],direct,explicit=[staticMethod1.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
+/*member: staticMethod1:deps=[staticMethod2],explicit=[staticMethod1.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)],test*/
 staticMethod1<T>(t) => t is T;
 
-/*member: staticMethod2:implicit=[staticMethod2.T],indirect,needsArgs,selectors=[Selector(call, call, arity=2, types=1)]*/
+/*member: staticMethod2:implicit=[staticMethod2.T],needsArgs,selectors=[Selector(call, call, arity=2, types=1)],test*/
 staticMethod2<T>(a, t) => a<T>(t);
 
 main() {

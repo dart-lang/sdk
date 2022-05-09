@@ -1,19 +1,19 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method getElements() → core::Iterable<core::int*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
-    core::int* :await_jump_var = 0;
+static method getElements() → core::Iterable<core::int> /* originally sync* */ {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
+    core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>* :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
+    function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
       {
-        core::Iterable<core::int*>* elements;
-        elements = (() → core::Iterable<core::int*>* /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
-            core::int* :await_jump_var = 0;
+        core::Iterable<core::int> elements;
+        elements = (() → core::Iterable<core::int> /* originally sync* */ {
+          function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
+            core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<dynamic>* :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
+            function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_current} = 7;
@@ -24,8 +24,8 @@ static method getElements() → core::Iterable<core::int*>* /* originally sync* 
             }
             return :sync_op;
           }
-          return new core::_SyncIterable::•<core::int*>(:sync_op_gen);
-        })(){() →* core::Iterable<core::int*>*};
+          return new core::_SyncIterable::•<core::int>(:sync_op_gen);
+        })(){() → core::Iterable<core::int>};
         {
           :iterator.{core::_SyncIterator::_yieldEachIterable} = elements;
           [yield] true;
@@ -35,7 +35,7 @@ static method getElements() → core::Iterable<core::int*>* /* originally sync* 
     }
     return :sync_op;
   }
-  return new core::_SyncIterable::•<core::int*>(:sync_op_gen);
+  return new core::_SyncIterable::•<core::int>(:sync_op_gen);
 }
 static method main() → dynamic
   return core::print(self::getElements());

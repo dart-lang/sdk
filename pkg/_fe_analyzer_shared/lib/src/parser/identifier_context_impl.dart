@@ -124,8 +124,12 @@ class CombinatorIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (isOneOfOrEof(identifier, followingValues) ||
-        looksLikeStartOfNextTopLevelDeclaration(identifier)) {
+    if (isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
+        (identifier.next == null ||
+            !isOneOfOrEof(identifier.next!, followingValues))) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -504,7 +508,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
 /// See [IdentifierContext.fieldInitializer].
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
-      : super('fieldInitializer', isContinuation: true);
+      : super('fieldInitializer', inDeclaration: true, isContinuation: true);
 
   @override
   bool get allowsNewAsIdentifier => true;
@@ -603,8 +607,12 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
         isOneOfOrEof(identifier.next!, followingValues)) {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
-    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-        isOneOfOrEof(identifier, followingValues)) {
+    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
+        (identifier.next == null ||
+            !isOneOfOrEof(identifier.next!, followingValues))) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else if (isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -802,8 +810,12 @@ class LibraryIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (isOneOfOrEof(identifier, followingValues) ||
-        looksLikeStartOfNextTopLevelDeclaration(identifier)) {
+    if (isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
+        (identifier.next == null ||
+            !isOneOfOrEof(identifier.next!, followingValues))) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {

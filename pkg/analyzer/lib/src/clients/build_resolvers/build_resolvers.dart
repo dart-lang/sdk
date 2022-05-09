@@ -46,12 +46,12 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     ...uriResolvers,
   ]);
 
-  var dataStore = SummaryDataStore([]);
+  var dataStore = SummaryDataStore();
   dataStore.addBundle('', sdkBundle);
 
   var logger = PerformanceLog(null);
   var scheduler = AnalysisDriverScheduler(logger);
-  var driver = AnalysisDriver.tmp1(
+  var driver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
@@ -75,6 +75,12 @@ class AnalysisDriverForPackageBuild {
 
   AnalysisSession get currentSession {
     return _driver.currentSession;
+  }
+
+  /// Return a [Future] that completes after pending file changes are applied,
+  /// so that [currentSession] can be used to compute results.
+  Future<void> applyPendingFileChanges() {
+    return _driver.applyPendingFileChanges();
   }
 
   /// The file with the given [path] might have changed - updated, added or

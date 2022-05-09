@@ -4,15 +4,6 @@
 
 part of dart.async;
 
-/// The onValue and onError handlers return either a value or a future
-typedef FutureOr<T> _FutureOnValue<S, T>(S value);
-
-/// Test used by [Future.catchError] to handle skip some errors.
-typedef bool _FutureErrorTest(Object error);
-
-/// Used by [WhenFuture].
-typedef dynamic _FutureAction();
-
 abstract class _Completer<T> implements Completer<T> {
   final _Future<T> future = new _Future<T>();
 
@@ -80,7 +71,6 @@ class _FutureListener<S, T> {
   static const int stateWhenComplete = maskWhenComplete;
   static const int maskType =
       maskValue | maskError | maskTestError | maskWhenComplete;
-  static const int stateIsAwait = 16;
 
   // Listeners on the same future are linked through this link.
   _FutureListener? _nextListener;
@@ -107,11 +97,10 @@ class _FutureListener<S, T> {
         state = (errorCallback == null) ? stateThen : stateThenOnerror;
 
   _FutureListener.thenAwait(
-      this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
+      this.result, FutureOr<T> Function(S) onValue, Function errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
-        state = ((errorCallback == null) ? stateThen : stateThenOnerror) |
-            stateIsAwait;
+        state = stateThenOnerror;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
       : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
@@ -126,23 +115,22 @@ class _FutureListener<S, T> {
   bool get handlesError => (state & maskError != 0);
   bool get hasErrorTest => (state & maskType == stateCatchErrorTest);
   bool get handlesComplete => (state & maskType == stateWhenComplete);
-  bool get isAwait => (state & stateIsAwait != 0);
 
   FutureOr<T> Function(S) get _onValue {
     assert(handlesValue);
-    return callback as dynamic;
+    return unsafeCast<FutureOr<T> Function(S)>(callback);
   }
 
   Function? get _onError => errorCallback;
 
-  _FutureErrorTest get _errorTest {
+  bool Function(Object) get _errorTest {
     assert(hasErrorTest);
-    return callback as dynamic;
+    return unsafeCast<bool Function(Object)>(callback);
   }
 
-  _FutureAction get _whenCompleteAction {
+  dynamic Function() get _whenCompleteAction {
     assert(handlesComplete);
-    return callback as dynamic;
+    return unsafeCast<dynamic Function()>(callback);
   }
 
   /// Whether this listener has an error callback.
@@ -304,27 +292,6 @@ class _Future<T> implements Future<T> {
   bool get _hasError => (_state & _stateError) != 0;
   bool get _ignoreError => (_state & _stateIgnoreError) != 0;
 
-  static List<Function>? _continuationFunctions(_Future<Object> future) {
-    List<Function>? result = null;
-    while (true) {
-      if (future._mayAddListener) return result;
-      assert(!future._isComplete);
-      assert(!future._isChained);
-      // So _resultOrListeners contains listeners.
-      _FutureListener<Object, Object>? listener = future._resultOrListeners;
-      if (listener != null &&
-          listener._nextListener == null &&
-          listener.isAwait) {
-        (result ??= <Function>[]).add(listener.handleValue);
-        future = listener.result;
-        assert(!future._isComplete);
-      } else {
-        break;
-      }
-    }
-    return result;
-  }
-
   void _setChained(_Future source) {
     assert(_mayAddListener);
     _state = _stateChained | (_state & _stateIgnoreError);
@@ -360,9 +327,7 @@ class _Future<T> implements Future<T> {
   /// Registers a system created result and error continuation.
   ///
   /// Used by the implementation of `await` to listen to a future.
-  /// The system created listeners are not registered in the zone,
-  /// and the listener is marked as being from an `await`.
-  /// This marker is used in [_continuationFunctions].
+  /// The system created listeners are not registered in the zone.
   Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
     _Future<E> result = new _Future<E>();
     _addListener(new _FutureListener<T, E>.thenAwait(result, f, onError));
@@ -631,6 +596,41 @@ class _Future<T> implements Future<T> {
     // unneeded check be implicit to match dart2js unsound optimizations in the
     // user code.
     _asyncCompleteWithValue(value as dynamic); // Value promoted to T.
+  }
+
+  /// Internal helper function used by the implementation of `async` functions.
+  ///
+  /// Like [_asyncComplete], but avoids type checks that are guaranteed to
+  /// succeed by the way the function is called.
+  /// Should be used judiciously.
+  void _asyncCompleteUnchecked(/*FutureOr<T>*/ dynamic value) {
+    // Ensure [value] is FutureOr<T>, do so using an `as` check so it works
+    // also correctly in non-sound null-safety mode.
+    assert(identical(value as FutureOr<T>, value));
+    final typedValue = unsafeCast<FutureOr<T>>(value);
+
+    // Doing just "is Future" is not sufficient.
+    // If `T` is Object` and `value` is `Future<Object?>.value(null)`,
+    // then value is a `Future`, but not a `Future<T>`, and going through the
+    // `_chainFuture` branch would end up assigning `null` to `Object`.
+    if (typedValue is Future<T>) {
+      _chainFuture(typedValue);
+      return;
+    }
+    _asyncCompleteWithValue(unsafeCast<T>(typedValue));
+  }
+
+  /// Internal helper function used to implement `async` functions.
+  ///
+  /// Like [_asyncCompleteUnchecked], but avoids a `is Future<T>` check due to
+  /// having a static guarantee on the callsite that the [value] cannot be a
+  /// [Future].
+  /// Should be used judiciously.
+  void _asyncCompleteUncheckedNoFuture(/*T*/ dynamic value) {
+    // Ensure [value] is T, do so using an `as` check so it works also correctly
+    // in non-sound null-safety mode.
+    assert(identical(value as T, value));
+    _asyncCompleteWithValue(unsafeCast<T>(value));
   }
 
   void _asyncCompleteWithValue(T value) {

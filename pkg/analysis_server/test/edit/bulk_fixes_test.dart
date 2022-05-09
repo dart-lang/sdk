@@ -52,15 +52,15 @@ class BulkFixesTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     registerLintRules();
     handler = EditDomainHandler(server);
-    createProject();
+    await createProject();
   }
 
   Future<void> test_annotateOverrides_excludedFile() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   exclude:
     - test/**
@@ -69,7 +69,7 @@ linter:
     - annotate_overrides
 ''');
 
-    newFile('$projectPath/test/test.dart', content: '''
+    newFile2('$projectPath/test/test.dart', '''
 class A {
   void f() {}
 }
@@ -83,7 +83,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   exclude:
     - test/data/**
@@ -91,7 +91,7 @@ analyzer:
 
     // Sub-project.
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
+    newAnalysisOptionsYamlFile2(subprojectRoot, '''
 linter:
   rules:
     - annotate_overrides
@@ -101,7 +101,7 @@ linter:
 name: subproject
 ''');
 
-    newFile('$subprojectRoot/test.dart', content: '''
+    newFile2('$subprojectRoot/test.dart', '''
 class A {
   void f() {}
 }
@@ -115,7 +115,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_subProject() async {
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
+    newAnalysisOptionsYamlFile2(subprojectRoot, '''
 linter:
   rules:
     - annotate_overrides
@@ -147,7 +147,7 @@ class B extends A {
   }
 
   Future<void> test_details() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 linter:
   rules:
     - annotate_overrides
@@ -155,7 +155,7 @@ linter:
 ''');
 
     var fileA = convertPath('$projectPath/a.dart');
-    newFile(fileA, content: '''
+    newFile2(fileA, '''
 class A {
   A f() => new A();
 }
@@ -181,7 +181,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 linter:
   rules:
     - unnecessary_new
@@ -205,7 +205,7 @@ A f() => A();
     if (Platform.isWindows) {
       fail('Should not be passing on Windows, but it does');
     }
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 linter:
   rules:
     - prefer_collection_literals
@@ -228,7 +228,7 @@ class A {
   }
 
   Future<void> test_unnecessaryNew_ignoredInOptions() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   errors:
     unnecessary_new: ignore
@@ -244,7 +244,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew_ignoredInSource() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 linter:
   rules:
     - unnecessary_new

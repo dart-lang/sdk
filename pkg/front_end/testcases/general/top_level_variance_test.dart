@@ -1,7 +1,9 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // @dart=2.9
+
 // Testing that instantiate-to-bound and super-bounded types take the
 // variance of formal type parameters into account when a type alias is
 // used as a raw type.
@@ -160,7 +162,4 @@ void testNested() {
   F<B<FinvCyclicCoBound<Function(dynamic)>>> target12 = fsource12;
 }
 
-main() {
-  testTopLevel();
-  testNested();
-}
+main() {}

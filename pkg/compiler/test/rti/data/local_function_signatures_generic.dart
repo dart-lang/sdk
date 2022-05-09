@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   method1() {
@@ -27,7 +27,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*spec.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec.member: Class2.method4:explicit=[method4.T*],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)],test*/
   /*prod.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
@@ -47,14 +47,14 @@ class Class3 {
 
 class Class4 {
   /*prod.member: Class4.method6:needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
-  /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
+  /*spec.member: Class4.method6:explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)],test*/
   method6<T>() {
     /*needsSignature*/ num local(num n, T t) => null;
     return local;
   }
 }
 
-/*spec.member: method7:direct,explicit=[method7.T*],needsArgs*/
+/*spec.member: method7:explicit=[method7.T*],needsArgs,test*/
 /*prod.member: method7:needsArgs*/
 method7<T>() {
   /*needsSignature*/
@@ -69,7 +69,7 @@ method8<T>() {
   return local;
 }
 
-/*spec.member: method9:direct,explicit=[method9.T*],needsArgs*/
+/*spec.member: method9:explicit=[method9.T*],needsArgs,test*/
 /*prod.member: method9:needsArgs*/
 method9<T>() {
   /*needsSignature*/ num local(num n, T t) => null;
@@ -77,7 +77,7 @@ method9<T>() {
 }
 
 method10() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
+  /*spec.explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature,test*/
   /*prod.needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   num local<T>(T n) => null;
   return local;
@@ -90,7 +90,7 @@ method11() {
 }
 
 method12() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
+  /*spec.explicit=[local.T*],needsArgs,needsSignature,test*/
   /*prod.needsArgs,needsSignature*/ num local<T>(num n, T t) => null;
   return local;
 }
@@ -102,7 +102,7 @@ num Function(num) method13() {
 }
 
 num Function(num) method14() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
+  /*spec.explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature,test*/
   /*prod.needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   num local<T>(T n) => null;
   return local;
@@ -118,19 +118,19 @@ num Function(num) method15() {
 test(o) => o is num Function(num);
 
 main() {
-  Expect.isFalse(test(new Class1().method1()));
-  Expect.isFalse(test(new Class1().method2()));
-  Expect.isFalse(test(new Class1().method3()));
-  Expect.isTrue(test(new Class2().method4<num>()));
-  Expect.isTrue(test(new Class3().method5<num>()));
-  Expect.isFalse(test(new Class4().method6<num>()));
-  Expect.isTrue(test(method7<num>()));
-  Expect.isTrue(test(method8<num>()));
-  Expect.isFalse(test(method9()));
-  Expect.isFalse(test(method10()));
-  Expect.isFalse(test(method11()));
-  Expect.isFalse(test(method12()));
-  Expect.isTrue(test(method13()));
-  Expect.isTrue(test(method14()));
-  Expect.isTrue(test(method15()));
+  makeLive(test(new Class1().method1()));
+  makeLive(test(new Class1().method2()));
+  makeLive(test(new Class1().method3()));
+  makeLive(test(new Class2().method4<num>()));
+  makeLive(test(new Class3().method5<num>()));
+  makeLive(test(new Class4().method6<num>()));
+  makeLive(test(method7<num>()));
+  makeLive(test(method8<num>()));
+  makeLive(test(method9()));
+  makeLive(test(method10()));
+  makeLive(test(method11()));
+  makeLive(test(method12()));
+  makeLive(test(method13()));
+  makeLive(test(method14()));
+  makeLive(test(method15()));
 }

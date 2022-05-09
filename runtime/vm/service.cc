@@ -72,6 +72,56 @@ DEFINE_FLAG(bool,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+DEFINE_FLAG(
+    charp,
+    log_service_response_sizes,
+    nullptr,
+    "Log sizes of service responses and events to a file in CSV format.");
+
+void* Service::service_response_size_log_file_ = nullptr;
+
+void Service::LogResponseSize(const char* method, JSONStream* js) {
+  if (service_response_size_log_file_ == nullptr) {
+    return;
+  }
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  char* entry =
+      OS::SCreate(nullptr, "%s, %" Pd "\n", method, js->buffer()->length());
+  (*file_write)(entry, strlen(entry), service_response_size_log_file_);
+  free(entry);
+}
+
+void Service::Init() {
+  if (FLAG_log_service_response_sizes == nullptr) {
+    return;
+  }
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
+    OS::PrintErr("Error: Could not access file callbacks.");
+    UNREACHABLE();
+  }
+  ASSERT(service_response_size_log_file_ == nullptr);
+  service_response_size_log_file_ =
+      (*file_open)(FLAG_log_service_response_sizes, true);
+  if (service_response_size_log_file_ == nullptr) {
+    OS::PrintErr("Warning: Failed to open service response size log file: %s\n",
+                 FLAG_log_service_response_sizes);
+    return;
+  }
+}
+
+void Service::Cleanup() {
+  if (service_response_size_log_file_ == nullptr) {
+    return;
+  }
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  (*file_close)(service_response_size_log_file_);
+  service_response_size_log_file_ = nullptr;
+}
+
 static void PrintInvalidParamError(JSONStream* js, const char* param) {
 #if !defined(PRODUCT)
   js->PrintError(kInvalidParams, "%s: invalid '%s' parameter: %s", js->method(),
@@ -367,7 +417,8 @@ static StreamInfo* const streams_[] = {
     &Service::timeline_stream, &Service::profiler_stream,
 };
 
-bool Service::ListenStream(const char* stream_id) {
+bool Service::ListenStream(const char* stream_id,
+                           bool include_private_members) {
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: starting stream '%s'\n", stream_id);
   }
@@ -375,6 +426,7 @@ bool Service::ListenStream(const char* stream_id) {
   for (intptr_t i = 0; i < num_streams; i++) {
     if (strcmp(stream_id, streams_[i]->id()) == 0) {
       streams_[i]->set_enabled(true);
+      streams_[i]->set_include_private_members(include_private_members);
       return true;
     }
   }
@@ -986,6 +1038,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
         return T->StealStickyError();
       }
       method->entry(T, &js);
+      Service::LogResponseSize(c_method_name, &js);
       js.PostReply();
       return T->StealStickyError();
     }
@@ -1152,9 +1205,9 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
   if (!ServiceIsolate::IsRunning()) {
     OS::PrintErr("  Start the vm-service to debug.\n");
   } else if (ServiceIsolate::server_address() == NULL) {
-    OS::PrintErr("  Connect to Observatory to debug.\n");
+    OS::PrintErr("  Connect to the Dart VM service to debug.\n");
   } else {
-    OS::PrintErr("  Connect to Observatory at %s to debug.\n",
+    OS::PrintErr("  Connect to the Dart VM service at %s to debug.\n",
                  ServiceIsolate::server_address());
   }
   const Error& err = Error::Handle(Thread::Current()->sticky_error());
@@ -1164,7 +1217,7 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
 }
 
 void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
-  if (event->stream_info() != NULL && !event->stream_info()->enabled()) {
+  if (event->stream_info() != nullptr && !event->stream_info()->enabled()) {
     if (FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
       // If we are about to pause a running program which has no
       // debugger connected, tell the user about it.
@@ -1172,7 +1225,7 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     }
     // Ignore events when no one is listening to the event stream.
     return;
-  } else if (event->stream_info() != NULL &&
+  } else if (event->stream_info() != nullptr &&
              FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
     ReportPauseOnConsole(event);
   }
@@ -1180,8 +1233,12 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     return;
   }
   JSONStream js;
+  if (event->stream_info() != nullptr) {
+    js.set_include_private_members(
+        event->stream_info()->include_private_members());
+  }
   const char* stream_id = event->stream_id();
-  ASSERT(stream_id != NULL);
+  ASSERT(stream_id != nullptr);
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("jsonrpc", "2.0");
@@ -1232,6 +1289,8 @@ void Service::PostEventImpl(Isolate* isolate,
           kind, stream_id);
     }
   }
+
+  Service::LogResponseSize(kind, event);
 
   // Message is of the format [<stream id>, <json string>].
   //
@@ -1493,6 +1552,31 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
       UNIMPLEMENTED();
       break;
   }
+}
+
+static const MethodParameter* const
+    set_stream_include_private_members_params[] = {
+        NO_ISOLATE_PARAMETER,
+        new BoolParameter("includePrivateMembers", true),
+        nullptr,
+};
+
+static void SetStreamIncludePrivateMembers(Thread* thread, JSONStream* js) {
+  const char* stream_id = js->LookupParam("streamId");
+  if (stream_id == nullptr) {
+    PrintMissingParamError(js, "streamId");
+    return;
+  }
+  bool include_private_members =
+      BoolParameter::Parse(js->LookupParam("includePrivateMembers"), false);
+  intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_include_private_members(include_private_members);
+      break;
+    }
+  }
+  PrintSuccess(js);
 }
 
 static void ActOnIsolateGroup(JSONStream* js,
@@ -2773,6 +2857,51 @@ static const MethodParameter* const build_expression_evaluation_scope_params[] =
         NULL,
 };
 
+static void CollectStringifiedType(Zone* zone,
+                                   const AbstractType& type,
+                                   const GrowableObjectArray& output) {
+  Instance& instance = Instance::Handle(zone);
+  if (type.IsFunctionType()) {
+    // The closure class
+    // (IsolateGroup::Current()->object_store()->closure_class())
+    // is statically typed weird (the call method redirects to itself)
+    // and the type is therefore not useful for the CFE. We use null instead.
+    output.Add(instance);
+    return;
+  }
+  if (type.IsDynamicType()) {
+    // Dynamic is weird in that it seems to have a class with no name and a
+    // library called something like '7189777121420'. We use null instead.
+    output.Add(instance);
+    return;
+  }
+  if (type.IsTypeParameter() && type.IsAbstractType()) {
+    // Calling type_class on an abstract type parameter will crash the VM.
+    // We use null instead.
+    output.Add(instance);
+    return;
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  const Library& lib = Library::Handle(zone, cls.library());
+
+  instance ^= lib.url();
+  output.Add(instance);
+
+  instance ^= cls.ScrubbedName();
+  output.Add(instance);
+
+  instance ^= Smi::New((intptr_t)type.nullability());
+  output.Add(instance);
+
+  const TypeArguments& srcArguments = TypeArguments::Handle(type.arguments());
+  instance ^= Smi::New(srcArguments.Length());
+  output.Add(instance);
+  for (int i = 0; i < srcArguments.Length(); i++) {
+    const AbstractType& src_type = AbstractType::Handle(srcArguments.TypeAt(i));
+    CollectStringifiedType(zone, src_type, output);
+  }
+}
+
 static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
     return;
@@ -2793,6 +2922,10 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_bounds =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_defaults =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   String& klass_name = String::Handle(zone);
   String& method_name = String::Handle(zone);
   String& library_uri = String::Handle(zone);
@@ -2812,7 +2945,8 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     }
 
     ActivationFrame* frame = stack->FrameAt(framePos);
-    frame->BuildParameters(param_names, param_values, type_params_names);
+    frame->BuildParameters(param_names, param_values, type_params_names,
+                           type_params_bounds, type_params_defaults);
 
     if (frame->function().is_static()) {
       const Class& cls = Class::Handle(zone, frame->function().Owner());
@@ -2892,6 +3026,28 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       jsonParamNames.AddValue(param_name.ToCString());
     }
   }
+  {
+    const JSONArray jsonParamTypes(&report, "param_types");
+    Object& obj = Object::Handle();
+    Instance& instance = Instance::Handle();
+    const GrowableObjectArray& param_types =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < param_names.Length(); i++) {
+      obj = param_values.At(i);
+      if (obj.IsNull()) {
+        param_types.Add(obj);
+      } else if (obj.IsInstance()) {
+        instance ^= param_values.At(i);
+        type = instance.GetType(Heap::kNew);
+        CollectStringifiedType(zone, type, param_types);
+      }
+    }
+    for (intptr_t i = 0; i < param_types.Length(); i++) {
+      instance ^= param_types.At(i);
+      jsonParamTypes.AddValue(instance.ToCString());
+    }
+  }
 
   {
     JSONArray jsonTypeParamsNames(&report, "type_params_names");
@@ -2899,6 +3055,36 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < type_params_names.Length(); i++) {
       type_param_name ^= type_params_names.At(i);
       jsonTypeParamsNames.AddValue(type_param_name.ToCString());
+    }
+  }
+  {
+    const JSONArray jsonParamTypes(&report, "type_params_bounds");
+    const GrowableObjectArray& type_params_bounds_strings =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < type_params_bounds.Length(); i++) {
+      type ^= type_params_bounds.At(i);
+      CollectStringifiedType(zone, type, type_params_bounds_strings);
+    }
+    Instance& instance = Instance::Handle();
+    for (intptr_t i = 0; i < type_params_bounds_strings.Length(); i++) {
+      instance ^= type_params_bounds_strings.At(i);
+      jsonParamTypes.AddValue(instance.ToCString());
+    }
+  }
+  {
+    const JSONArray jsonParamTypes(&report, "type_params_defaults");
+    const GrowableObjectArray& type_params_defaults_strings =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < type_params_defaults.Length(); i++) {
+      type ^= type_params_defaults.At(i);
+      CollectStringifiedType(zone, type, type_params_defaults_strings);
+    }
+    Instance& instance = Instance::Handle();
+    for (intptr_t i = 0; i < type_params_defaults_strings.Length(); i++) {
+      instance ^= type_params_defaults_strings.At(i);
+      jsonParamTypes.AddValue(instance.ToCString());
     }
   }
   report.AddProperty("libraryUri", library_uri.ToCString());
@@ -2952,7 +3138,10 @@ static const MethodParameter* const compile_expression_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new StringParameter("expression", true),
     new StringParameter("definitions", false),
+    new StringParameter("definitionTypes", false),
     new StringParameter("typeDefinitions", false),
+    new StringParameter("typeBounds", false),
+    new StringParameter("typeDefaults", false),
     new StringParameter("libraryUri", true),
     new StringParameter("klass", false),
     new BoolParameter("isStatic", false),
@@ -2986,11 +3175,29 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
     PrintInvalidParamError(js, "definitions");
     return;
   }
+  const GrowableObjectArray& param_types =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("definitionTypes"), param_types)) {
+    PrintInvalidParamError(js, "definitionTypes");
+    return;
+  }
 
   const GrowableObjectArray& type_params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
   if (!ParseCSVList(js->LookupParam("typeDefinitions"), type_params)) {
     PrintInvalidParamError(js, "typedDefinitions");
+    return;
+  }
+  const GrowableObjectArray& type_bounds =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("typeBounds"), type_bounds)) {
+    PrintInvalidParamError(js, "typeBounds");
+    return;
+  }
+  const GrowableObjectArray& type_defaults =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("typeDefaults"), type_defaults)) {
+    PrintInvalidParamError(js, "typeDefaults");
     return;
   }
 
@@ -3001,7 +3208,10 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
       KernelIsolate::CompileExpressionToKernel(
           kernel_buffer, kernel_buffer_len, js->LookupParam("expression"),
           Array::Handle(Array::MakeFixedLength(params)),
+          Array::Handle(Array::MakeFixedLength(param_types)),
           Array::Handle(Array::MakeFixedLength(type_params)),
+          Array::Handle(Array::MakeFixedLength(type_bounds)),
+          Array::Handle(Array::MakeFixedLength(type_defaults)),
           js->LookupParam("libraryUri"), js->LookupParam("klass"),
           js->LookupParam("method"), is_static);
 
@@ -3061,6 +3271,10 @@ static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   }
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_bounds =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_defaults =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
   const ExternalTypedData& kernel_data = ExternalTypedData::Handle(
       zone, DecodeKernelBuffer(js->LookupParam("kernelBytes")));
@@ -3076,7 +3290,8 @@ static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
     ActivationFrame* frame = stack->FrameAt(frame_pos);
     TypeArguments& type_arguments = TypeArguments::Handle(
         zone,
-        frame->BuildParameters(param_names, param_values, type_params_names));
+        frame->BuildParameters(param_names, param_values, type_params_names,
+                               type_params_bounds, type_params_defaults));
 
     const Object& result = Object::Handle(
         zone,
@@ -3380,11 +3595,9 @@ static void GetPorts(Thread* thread, JSONStream* js) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
-    SourceReport::kCallSitesStr,
-    SourceReport::kCoverageStr,
-    SourceReport::kPossibleBreakpointsStr,
-    SourceReport::kProfileStr,
-    NULL,
+    SourceReport::kCallSitesStr,           SourceReport::kCoverageStr,
+    SourceReport::kPossibleBreakpointsStr, SourceReport::kProfileStr,
+    SourceReport::kBranchCoverageStr,      NULL,
 };
 #endif
 
@@ -3423,6 +3636,8 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kPossibleBreakpoints;
     } else if (strcmp(*riter, SourceReport::kProfileStr) == 0) {
       report_set |= SourceReport::kProfile;
+    } else if (strcmp(*riter, SourceReport::kBranchCoverageStr) == 0) {
+      report_set |= SourceReport::kBranchCoverage;
     }
     riter++;
   }
@@ -4174,7 +4389,7 @@ static void GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
   bool include_code_samples =
       BoolParameter::Parse(js->LookupParam("_code"), false);
 #if defined(DEBUG)
-  IsolateGroup::Current()->heap()->CollectAllGarbage();
+  IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
 #endif
   if (CheckNativeAllocationProfilerDisabled(thread, js)) {
     return;
@@ -4220,7 +4435,7 @@ static void GetAllocationProfileImpl(Thread* thread,
   }
   if (should_collect) {
     isolate_group->UpdateLastAllocationProfileGCTimestamp();
-    isolate_group->heap()->CollectAllGarbage();
+    isolate_group->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   isolate_group->class_table()->AllocationProfilePrintJSON(js, internal);
 }
@@ -4842,7 +5057,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsSystemIsolate(isolate)) {
+    if (!IsSystemIsolate(isolate) && isolate->is_service_registered()) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -5626,6 +5841,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
+  { "_setStreamIncludePrivateMembers", SetStreamIncludePrivateMembers,
+    set_stream_include_private_members_params },
   { "setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,

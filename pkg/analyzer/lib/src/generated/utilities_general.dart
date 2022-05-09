@@ -50,8 +50,8 @@ class LimitedQueue<E> extends ListQueue<E> {
   LimitedQueue(this.limit);
 
   @override
-  void add(E o) {
-    super.add(o);
+  void add(E value) {
+    super.add(value);
     while (length > limit) {
       remove(first);
     }

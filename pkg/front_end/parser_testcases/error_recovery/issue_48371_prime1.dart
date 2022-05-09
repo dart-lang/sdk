@@ -1,0 +1,3 @@
+library enum;
+
+main() {}

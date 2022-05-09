@@ -8,15 +8,16 @@ library type_test_helper;
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/options.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
+import 'package:compiler/src/world.dart' show JClosedWorld;
 import 'memory_compiler.dart' as memory;
 
 extension DartTypeHelpers on DartType {
@@ -46,7 +47,7 @@ class TypeEnvironment {
         options: [Flags.disableTypeInference]..addAll(options),
         diagnosticHandler: collector,
         beforeRun: (compiler) {
-          compiler.stopAfterTypeInference = true;
+          compiler.stopAfterGlobalTypeInferenceForTesting = true;
         });
     Compiler compiler = result.compiler;
     if (expectNoErrors || expectNoWarningsOrErrors) {

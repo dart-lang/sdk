@@ -75,8 +75,8 @@ class GnWorkspace extends Workspace {
   }
 
   @override
-  WorkspacePackage? findPackageFor(String path) {
-    var startFolder = provider.getFolder(path);
+  WorkspacePackage? findPackageFor(String filePath) {
+    var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
       if (folder.path.length < root.length) {
         // We've walked up outside of [root], so [path] is definitely not
@@ -99,7 +99,7 @@ class GnWorkspace extends Workspace {
   static GnWorkspace? find(ResourceProvider provider, String filePath) {
     Resource resource = provider.getResource(filePath);
     if (resource is File) {
-      filePath = resource.parent2.path;
+      filePath = resource.parent.path;
     }
 
     var startFolder = provider.getFolder(filePath);

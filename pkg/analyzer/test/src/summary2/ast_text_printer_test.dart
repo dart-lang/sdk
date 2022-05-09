@@ -25,7 +25,7 @@ void assertParseCodeAndPrintAst(ParseBase base, String code,
   code = code.replaceAll('\r\n', '\n');
   code = code.replaceAll('\r', '\n');
 
-  var path = base.newFile('/home/test/lib/test.dart', content: code).path;
+  var path = base.newFile2('/home/test/lib/test.dart', code).path;
 
   ParseResult parseResult;
   try {

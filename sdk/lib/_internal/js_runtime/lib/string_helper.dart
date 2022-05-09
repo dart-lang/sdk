@@ -173,9 +173,21 @@ String stringReplaceAllUnchecked(
     return stringReplaceJS(receiver, re, replacement);
   }
 
+  return stringReplaceAllGeneral(receiver, pattern, replacement);
+}
+
+String stringReplaceAllGeneral(
+    String receiver, Pattern pattern, String replacement) {
   checkNull(pattern);
-  // TODO(floitsch): implement generic String.replace (with patterns).
-  throw "String.replaceAll(Pattern) UNIMPLEMENTED";
+  int startIndex = 0;
+  StringBuffer result = StringBuffer();
+  for (Match match in pattern.allMatches(receiver)) {
+    result.write(substring2Unchecked(receiver, startIndex, match.start));
+    result.write(replacement);
+    startIndex = match.end;
+  }
+  result.write(substring1Unchecked(receiver, startIndex));
+  return result.toString();
 }
 
 /// Replaces all non-overlapping occurences of [pattern] in [receiver] with

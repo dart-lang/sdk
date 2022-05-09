@@ -906,6 +906,34 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Helpers used for isolate exit tests.
+////////////////////////////////////////////////////////////////////////////////
+
+// This method consumes and ignores unwind error raised by `Isolate.exit` called
+// by dart `callIsolateExit` method.
+DART_EXPORT void IsolateExitTest_LookupAndCallIsolateExit(int i) {
+  Dart_Handle root_lib = Dart_RootLibrary();
+  fprintf(stderr, "IsolateExitTest_LookupAndCallIsolateExit i:%d\n", i);
+  if (i > 0) {
+    Dart_Handle method_name =
+        Dart_NewStringFromCString("recurseLookupAndCallWorker");
+    Dart_Handle dart_args[1];
+    dart_args[0] = Dart_NewInteger(i - 1);
+    Dart_Handle result = Dart_Invoke(root_lib, method_name, 1, dart_args);
+    ENSURE(Dart_IsError(result));
+  } else {
+    Dart_Handle method_name = Dart_NewStringFromCString("callIsolateExit");
+    Dart_Handle result = Dart_Invoke(root_lib, method_name, 0, NULL);
+    if (Dart_IsError(result)) {
+      fprintf(stderr,
+              "%d failed to invoke %s in child isolate: %s, carrying on..\n", i,
+              "callIsolateExit", Dart_GetError(result));
+    }
+    ENSURE(Dart_IsError(result));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Functions for handle tests.
 //
 // vmspecific_handle_test.dart (statically linked).
@@ -1081,6 +1109,13 @@ DART_EXPORT void ReleaseClosureCallback() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// NativeFinalizer tests
+
+DART_EXPORT void SetArgumentTo42(intptr_t* token) {
+  *token = 42;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Functions for testing @FfiNative.
 
 DART_EXPORT Dart_Handle GetRootLibraryUrl() {
@@ -1105,11 +1140,11 @@ intptr_t PassAsPointer(void* ptr) {
 }
 
 intptr_t PassAsPointerAndValue(void* ptr, intptr_t value) {
-  return reinterpret_cast<intptr_t>(value);
+  return value;
 }
 
 intptr_t PassAsValueAndPointer(intptr_t value, void* ptr) {
-  return reinterpret_cast<intptr_t>(value);
+  return value;
 }
 
 intptr_t* AllocateResource(intptr_t value) {

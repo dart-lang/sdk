@@ -65,10 +65,20 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_int8x10) {
   RunSignatureTest(Z, "int8x10", arguments, int8type);
 }
 
-UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_floatx10) {
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_floatx20) {
   const auto& floatType = *new (Z) NativePrimitiveType(kFloat);
 
-  auto& arguments = *new (Z) NativeTypes(Z, 10);
+  auto& arguments = *new (Z) NativeTypes(Z, 20);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
+  arguments.Add(&floatType);
   arguments.Add(&floatType);
   arguments.Add(&floatType);
   arguments.Add(&floatType);
@@ -80,7 +90,35 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_floatx10) {
   arguments.Add(&floatType);
   arguments.Add(&floatType);
 
-  RunSignatureTest(Z, "floatx10", arguments, floatType);
+  RunSignatureTest(Z, "floatx20", arguments, floatType);
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_doublex20) {
+  const auto& doubleType = *new (Z) NativePrimitiveType(kDouble);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 20);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+  arguments.Add(&doubleType);
+
+  RunSignatureTest(Z, "doublex20", arguments, doubleType);
 }
 
 // Test with 3-byte struct.

@@ -4,7 +4,7 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';

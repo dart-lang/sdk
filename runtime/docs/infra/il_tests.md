@@ -11,6 +11,17 @@ create an IL test.
 
 IL tests are placed in files ending with `_il_test.dart`.
 
+To run an IL test you need to use `tools/test.py` runner with AOT configuration:
+
+```
+# Run against ReleaseX64 AOT compiler
+$ tools/test.py -n dartkp-linux-release-x64 $path_to_an_il_test
+$ tools/test.py -c dartkp -m release $path_to_an_il_test
+```
+
+Tests require `gen_snapshot`, `dart_precompiled_runtime` and
+`vm_platform_strong.dill` to be built for the target configuration.
+
 Each IL test should contain one or more of the functions marked with a
 `@pragma('vm:testing:print-flow-graph'[, 'phases filter'])`.
 
@@ -36,6 +47,10 @@ void matchIL$foo(FlowGraph graph) {
 
 Actual matching is done by the `pkg/vm/tool/compare_il` script.
 
+In order to test IL of the inner (local) function, use
+`@pragma('vm:testing:match-inner-flow-graph', 'inner name')`.
+Specifying a particular phase is not supported for inner closures.
+
 ## Example
 
 ```dart
@@ -53,5 +68,16 @@ void matchIL$factorial(FlowGraph graph) {
       match.Branch(match.EqualityCompare(match.any, match.any, kind: '==')),
     ]),
   ]);
+}
+
+@pragma('vm:testing:match-inner-flow-graph', 'bar')
+void foo() {
+  @pragma('vm:testing:print-flow-graph')
+  bar() {
+  }
+}
+
+void matchIL$foo_bar(FlowGraph graph) {
+  // Test IL of local bar() in foo().
 }
 ```

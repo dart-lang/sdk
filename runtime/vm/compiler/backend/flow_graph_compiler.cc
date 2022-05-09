@@ -676,6 +676,13 @@ void FlowGraphCompiler::VisitBlocks() {
       Instruction* instr = it.Current();
       set_current_instruction(instr);
       StatsBegin(instr);
+      // Unoptimized code always stores boxed values on the expression stack.
+      // However, unboxed representation is allowed for instruction inputs and
+      // outputs of certain types (e.g. for doubles).
+      // Unboxed inputs/outputs are handled in the instruction prologue
+      // and epilogue, but flagged as a mismatch on the IL level.
+      RELEASE_ASSERT(!is_optimizing() ||
+                     !instr->HasUnmatchedInputRepresentations());
 
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {
@@ -1789,9 +1796,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         result_location = Location::FpuRegisterLocation(
             AllocateFreeFpuRegister(blocked_fpu_registers));
         break;
-      case Location::kRequiresStackSlot:
-        UNREACHABLE();
-        break;
     }
     locs->set_out(0, result_location);
   }
@@ -2446,7 +2450,7 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
   return false;
 }
 
-void FlowGraphCompiler::GenerateCidRangesCheck(
+bool FlowGraphCompiler::GenerateCidRangesCheck(
     compiler::Assembler* assembler,
     Register class_id_reg,
     const CidRangeVector& cid_ranges,
@@ -2460,7 +2464,7 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
     if (fall_through_if_inside) {
       assembler->Jump(outside_range_lbl);
     }
-    return;
+    return false;
   }
 
   int bias = 0;
@@ -2477,6 +2481,27 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
     bias = EmitTestAndCallCheckCid(assembler, jump_label, class_id_reg, range,
                                    bias, jump_on_miss);
   }
+  return bias != 0;
+}
+
+int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
+                                               compiler::Label* label,
+                                               Register class_id_reg,
+                                               const CidRangeValue& range,
+                                               int bias,
+                                               bool jump_on_miss) {
+  const intptr_t cid_start = range.cid_start;
+  if (range.IsSingleCid()) {
+    assembler->CompareImmediate(class_id_reg, cid_start - bias);
+    assembler->BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);
+  } else {
+    assembler->AddImmediate(class_id_reg, bias - cid_start);
+    bias = cid_start;
+    assembler->CompareImmediate(class_id_reg, range.Extent());
+    assembler->BranchIf(jump_on_miss ? UNSIGNED_GREATER : UNSIGNED_LESS_EQUAL,
+                        label);
+  }
+  return bias;
 }
 
 bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
@@ -3430,6 +3455,12 @@ void FlowGraphCompiler::EmitNativeMove(
   // If the location, payload, and container are equal, we're done.
   if (source.Equals(destination) && src_payload_type.Equals(dst_payload_type) &&
       src_container_type.Equals(dst_container_type)) {
+#if defined(TARGET_ARCH_RISCV64)
+    // Except we might still need to adjust for the difference between C's
+    // representation of uint32 (sign-extended to 64 bits) and Dart's
+    // (zero-extended).
+    EmitNativeMoveArchitecture(destination, source);
+#endif
     return;
   }
 
@@ -3476,8 +3507,9 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   // Split moves from stack to stack, none of the architectures provides
-  // memory to memory move instructions.
+  // memory to memory move instructions. But RISC-V needs to avoid TMP.
   if (source.IsStack() && destination.IsStack()) {
     Register scratch = TMP;
     if (TMP == kNoRegister) {
@@ -3493,6 +3525,7 @@ void FlowGraphCompiler::EmitNativeMove(
     }
     return;
   }
+#endif
 
   const bool sign_or_zero_extend = dst_container_size > src_container_size;
 
@@ -3572,60 +3605,6 @@ void FlowGraphCompiler::EmitMoveFromNative(
   }
 }
 
-void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
-                                      Location src,
-                                      Representation src_type,
-                                      TemporaryRegisterAllocator* temp) {
-  ASSERT(src.IsConstant());
-  const auto& dst_type = dst.payload_type();
-  if (dst.IsExpressibleAsLocation() &&
-      dst_type.IsExpressibleAsRepresentation() &&
-      dst_type.AsRepresentationOverApprox(zone_) == src_type) {
-    // We can directly emit the const in the right place and representation.
-    const Location dst_loc = dst.AsLocation();
-    EmitMove(dst_loc, src, temp);
-  } else {
-    // We need an intermediate location.
-    Location intermediate;
-    if (dst_type.IsInt()) {
-      if (TMP == kNoRegister) {
-        Register scratch = temp->AllocateTemporary();
-        Location::RegisterLocation(scratch);
-      } else {
-        intermediate = Location::RegisterLocation(TMP);
-      }
-    } else {
-      ASSERT(dst_type.IsFloat());
-      intermediate = Location::FpuRegisterLocation(FpuTMP);
-    }
-
-    if (src.IsPairLocation()) {
-      for (intptr_t i : {0, 1}) {
-        const Representation src_type_split =
-            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
-                                                                 src_type)
-                .Split(zone_, i)
-                .AsRepresentation();
-        const auto& intermediate_native =
-            compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
-                                                        src_type_split);
-        EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
-        EmitNativeMove(dst.Split(zone_, 2, i), intermediate_native, temp);
-      }
-    } else {
-      const auto& intermediate_native =
-          compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
-                                                      src_type);
-      EmitMove(intermediate, src, temp);
-      EmitNativeMove(dst, intermediate_native, temp);
-    }
-
-    if (dst_type.IsInt() && TMP == kNoRegister) {
-      temp->ReleaseTemporary();
-    }
-  }
-  return;
-}
 
 // The assignment to loading units here must match that in
 // AssignLoadingUnitsCodeVisitor, which runs after compilation is done.

@@ -185,6 +185,39 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
+    "dart2wasm_hostasserts": [
+      ".packages",
+      ".dart_tool/package_config.json",
+      "out/ReleaseX64/dart",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk/",
+      "tests/.dart_tool/package_config.json",
+      "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
+      "tests/corelib/",
+      "tests/web/",
+      "tests/dartdevc/",
+      "tests/language/",
+      "tests/language_2/",
+      "tests/lib/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/ffi/",
+      "third_party/d8/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseX64/dart"
+    ],
     "front-end": [
       ".packages",
       ".dart_tool/package_config.json",
@@ -235,18 +268,7 @@
     ],
     "fuzzer": [
       "runtime/tools/dartfuzz/",
-      "out/DebugIA32/",
-      "out/DebugSIMARM/",
-      "out/DebugSIMARM64/",
-      "out/DebugSIMARM64C/",
-      "out/DebugX64/",
-      "out/DebugX64C/",
-      "out/ReleaseIA32/",
-      "out/ReleaseSIMARM/",
-      "out/ReleaseSIMARM64/",
-      "out/ReleaseSIMARM64C/",
-      "out/ReleaseX64/",
-      "out/ReleaseX64C/",
+      "out/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "tools/sdks/dart-sdk/",
@@ -267,64 +289,8 @@
     ],
     "vm-kernel": [
       "benchmarks/",
-      "out/DebugIA32/",
-      "out/DebugX64/",
-      "out/DebugX64C/",
-      "out/DebugSIMARM/",
-      "out/DebugSIMARM64/",
-      "out/DebugSIMARM64C/",
-      "out/DebugSIMARM_X64/",
-      "out/DebugAndroidARM/",
-      "out/DebugAndroidARM_X64/",
-      "out/DebugAndroidARM64/",
-      "out/DebugAndroidARM64C/",
-      "out/ReleaseIA32/",
-      "out/ReleaseX64/",
-      "out/ReleaseX64C/",
-      "out/ReleaseSIMARM/",
-      "out/ReleaseSIMARM64/",
-      "out/ReleaseSIMARM64C/",
-      "out/ReleaseSIMARM_X64/",
-      "out/ReleaseAndroidARM/",
-      "out/ReleaseAndroidARM_X64/",
-      "out/ReleaseAndroidARM64/",
-      "out/ReleaseAndroidARM64C/",
-      "out/ReleaseASANX64/",
-      "out/ReleaseLSANX64/",
-      "out/ReleaseMSANX64/",
-      "out/ReleaseTSANX64/",
-      "out/ReleaseUBSANX64/",
-      "out/ReleaseXARM64/",
-      "out/ProductIA32/",
-      "out/ProductX64/",
-      "out/ProductX64C/",
-      "out/ProductSIMARM/",
-      "out/ProductSIMARM64/",
-      "out/ProductSIMARM64C/",
-      "out/ProductSIMARM_X64/",
-      "out/ProductAndroidARM/",
-      "out/ProductAndroidARM64/",
-      "out/ProductAndroidARM64C/",
-      "xcodebuild/DebugIA32/",
-      "xcodebuild/DebugSIMARM/",
-      "xcodebuild/DebugSIMARM64/",
-      "xcodebuild/DebugSIMARM64C/",
-      "xcodebuild/DebugX64/",
-      "xcodebuild/DebugX64C/",
-      "xcodebuild/DebugXARM64/",
-      "xcodebuild/DebugARM64/",
-      "xcodebuild/ProductX64/",
-      "xcodebuild/ProductX64C/",
-      "xcodebuild/ProductXARM64/",
-      "xcodebuild/ProductARM64/",
-      "xcodebuild/ReleaseIA32/",
-      "xcodebuild/ReleaseSIMARM/",
-      "xcodebuild/ReleaseSIMARM64/",
-      "xcodebuild/ReleaseSIMARM64C/",
-      "xcodebuild/ReleaseX64/",
-      "xcodebuild/ReleaseX64C/",
-      "xcodebuild/ReleaseXARM64/",
-      "xcodebuild/ReleaseARM64/",
+      "out/",
+      "xcodebuild/",
       "pkg/",
       "samples/",
       "samples_2/",
@@ -482,61 +448,61 @@
         "builder-tag": "analyzer_use_fasta"
       }
     },
-    "dartk-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64)": {
+    "dartk-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
       }
     },
-    "dartk-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64)": {
+    "dartk-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
         "timeout": 240
       }
     },
-    "dartk-msan-linux-(debug|product|release)-(x64|simarm64)": {
+    "dartk-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
         "timeout": 240
       }
     },
-    "dartk-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64)": {
+    "dartk-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
         "timeout": 240
       }
     },
-    "dartk-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64)": {
+    "dartk-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
         "timeout": 240
       }
     },
-    "dartkp-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64)": {
+    "dartkp-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
       }
     },
-    "dartkp-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64)": {
+    "dartkp-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
         "timeout": 240
       }
     },
-    "dartkp-msan-linux-(debug|product|release)-(x64|simarm64)": {
+    "dartkp-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
         "timeout": 240
       }
     },
-    "dartkp-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64)": {
+    "dartkp-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
         "timeout": 240
       }
     },
-    "dartkp-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64)": {
+    "dartkp-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
         "timeout": 240
@@ -772,6 +738,13 @@
         "builder-tag": "dart2js-strong"
       }
     },
+    "dart2wasm-hostasserts-linux-x64-d8": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240,
+        "builder-tag": "dart2wasm"
+      }
+    },
     "dartkp-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
@@ -784,12 +757,12 @@
       }
     },
     "dartk-android-(debug|product|release)-(arm|arm64|arm64c)": {},
-    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c)": {
+    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "use-elf": true
       }
     },
-    "dartkp-dwarf-(linux|win|mac)-product-(arm64|arm64c|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartkp-dwarf-(linux|win|mac)-product-(arm64|arm64c|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "dwarf",
         "vm-options": [
@@ -858,7 +831,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "enable-asserts": true,
         "use-elf": true,
@@ -872,13 +845,13 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|simriscv32|simriscv64|x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
@@ -888,7 +861,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "use-elf": true,
         "builder-tag": "vm_nnbd"
@@ -905,8 +878,8 @@
         "enable-asserts": true
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c)": {},
-    "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c)": {
+    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {},
+    "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": [
@@ -925,12 +898,12 @@
         "hot-reload-rollback": true
       }
     },
-    "dartk-linux-(debug|product|release)-(arm|arm64|arm64c)-qemu": {
+    "dartk-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true
       }
     },
-    "dartkp-linux-(debug|product|release)-(arm|arm64|arm64c)-qemu": {
+    "dartkp-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true
       }
@@ -1297,6 +1270,48 @@
     },
     {
       "builders": [
+        "vm-precomp-ffi-qemu-linux-release-riscv64"
+      ],
+      "meta": {
+        "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "--use-qemu",
+            "dart_precompiled_runtime",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simriscv64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "vm unit tests",
+          "arguments": [
+            "-ndartk-linux-${mode}-riscv64-qemu",
+            "vm/cc"
+          ]
+        },
+        {
+          "name": "ffi tests",
+          "arguments": [
+            "-ndartkp-linux-${mode}-riscv64-qemu",
+            "ffi_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-nnbd-mac-release-arm64"
       ],
       "meta": {
@@ -1465,7 +1480,8 @@
         "vm-kernel-precomp-linux-product-x64c",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
-        "vm-kernel-precomp-linux-release-simarm64c",
+        "vm-kernel-precomp-linux-release-simriscv32",
+        "vm-kernel-precomp-linux-release-simriscv64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
         "vm-kernel-precomp-win-release-x64",
@@ -1497,8 +1513,11 @@
       "builders": [
         "vm-kernel-precomp-linux-debug-x64",
         "vm-kernel-precomp-linux-debug-x64c",
+        "vm-kernel-precomp-linux-debug-simarm",
         "vm-kernel-precomp-linux-debug-simarm64",
         "vm-kernel-precomp-linux-debug-simarm64c",
+        "vm-kernel-precomp-linux-debug-simriscv32",
+        "vm-kernel-precomp-linux-debug-simriscv64",
         "vm-kernel-precomp-win-debug-x64c"
       ],
       "meta": {
@@ -1741,16 +1760,55 @@
             "--no-goma",
             "runtime"
           ]
+        },
+        {
+          "name": "build dart simriscv64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=simriscv64",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
         }
       ]
     },
     {
       "builders": [
+        "vm-kernel-msvc-windows"
+      ],
+      "meta": {
+        "description": "This configuration builds the VM with MSVC."
+      },
+      "steps": [
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=x64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-linux-debug-simarm",
         "vm-kernel-linux-debug-simarm64",
         "vm-kernel-linux-debug-simarm64c",
+        "vm-kernel-linux-debug-simriscv32",
+        "vm-kernel-linux-debug-simriscv64",
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-simarm64c",
+        "vm-kernel-linux-release-simriscv32",
+        "vm-kernel-linux-release-simriscv64",
         "vm-kernel-linux-release-ia32",
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
@@ -1789,6 +1847,8 @@
         "vm-kernel-nnbd-linux-release-simarm",
         "vm-kernel-nnbd-linux-release-simarm64",
         "vm-kernel-nnbd-linux-release-simarm64c",
+        "vm-kernel-nnbd-linux-release-simriscv32",
+        "vm-kernel-nnbd-linux-release-simriscv64",
         "vm-kernel-nnbd-linux-release-x64",
         "vm-kernel-nnbd-linux-release-x64c",
         "vm-kernel-nnbd-mac-debug-arm64",
@@ -2190,17 +2250,6 @@
           ]
         },
         {
-          "name": "ddc weak modular tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
-            "-ndartdevk-weak-${system}-release-chrome",
-            "--verbose",
-            "--use-sdk"
-          ]
-        },
-        {
           "name": "ddc nnbd weak tests",
           "arguments": [
             "-ndartdevk-weak-linux-release-chrome",
@@ -2210,7 +2259,7 @@
             "dartdevc",
             "web"
           ],
-          "shards": 5,
+          "shards": 2,
           "fileset": "web_platform_nnbd"
         },
         {
@@ -2223,6 +2272,26 @@
           "fileset": "web_platform_nnbd"
         },
         {
+          "name": "ddc nnbd strong co19 tests",
+          "arguments": [
+            "-ndartdevk-strong-linux-release-chrome",
+            "co19"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc weak modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevk-weak-${system}-release-chrome",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
           "name": "ddc nnbd strong tests",
           "arguments": [
             "-ndartdevk-strong-linux-release-chrome",
@@ -2231,13 +2300,6 @@
             "lib",
             "dartdevc",
             "web"
-          ]
-        },
-        {
-          "name": "ddc nnbd strong co19 tests",
-          "arguments": [
-            "-ndartdevk-strong-linux-release-chrome",
-            "co19"
           ]
         }
       ]
@@ -2325,7 +2387,9 @@
         "vm-kernel-optcounter-threshold-linux-release-x64c",
         "vm-kernel-optcounter-threshold-linux-release-simarm",
         "vm-kernel-optcounter-threshold-linux-release-simarm64",
-        "vm-kernel-optcounter-threshold-linux-release-simarm64c"
+        "vm-kernel-optcounter-threshold-linux-release-simarm64c",
+        "vm-kernel-optcounter-threshold-linux-release-simriscv32",
+        "vm-kernel-optcounter-threshold-linux-release-simriscv64"
       ],
       "meta": {
         "description": "This is the configuration for the kernel optcounter builders, under the vm-kernel group. They run the same tests as the ordinary VM kernel builders, but add extra options to the vm."
@@ -2887,6 +2951,34 @@
     },
     {
       "builders": [
+        "dart2wasm-linux-x64-d8"
+      ],
+      "meta": {
+        "description": "dart2wasm tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "dart2wasm d8 tests",
+          "arguments": [
+            "-ndart2wasm-hostasserts-linux-x64-d8",
+            "language",
+            "corelib",
+            "web/wasm"
+          ],
+          "shards": 30,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
@@ -2894,7 +2986,7 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart (clang builds)",
           "script": "tools/build.py",
           "arguments": [
             "--arch=ia32,x64,arm,arm64",
@@ -2904,10 +2996,21 @@
           ]
         },
         {
+          "name": "build dart (gcc builds)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--no-clang",
+            "--arch=riscv64",
+            "--mode=release",
+            "--check-clean",
+            "create_sdk"
+          ]
+        },
+        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "--arch=ia32,x64,arm,arm64"
+            "--arch=ia32,x64,arm,arm64,riscv64"
           ]
         },
         {
@@ -3443,6 +3546,15 @@
           ]
         },
         {
+          "name": "analyze pkg/dds_service_extensions",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/dds_service_extensions"
+          ]
+        },
+        {
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -3500,10 +3612,12 @@
         },
         {
           "name": "validate SDK API docs",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartdoc",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
+            "doc",
             "--sdk-docs",
-            "--no-generate-docs"
+            "--dry-run",
+            "--verbose"
           ]
         },
         {
@@ -3825,21 +3939,50 @@
       },
       "steps": [
         {
-          "name": "build dart (aot and jit)",
+          "name": "build dart (x64)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=x64,x64c,simarm64,simarm64c",
+            "--arch=x64,x64c",
             "runtime",
             "dart_precompiled_runtime"
           ]
         },
         {
-          "name": "build dart (jit)",
+          "name": "build dart (arm64)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=ia32,simarm",
+            "--arch=simarm64,simarm64c",
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "build dart (riscv)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=simriscv32,simriscv64",
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "build dart (ia32)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=ia32",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart (arm)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=simarm",
             "runtime"
           ]
         },
@@ -3903,7 +4046,8 @@
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--no-aot",
             "--no-sound-null-safety",
-            "-o", "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
           ]
         },
@@ -3914,7 +4058,8 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--no-aot",
-            "-o", "runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
           ]
         },
@@ -3926,7 +4071,8 @@
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--aot",
             "--no-sound-null-safety",
-            "-o", "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
           ]
         },
@@ -3937,7 +4083,8 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--aot",
-            "-o", "runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
           ]
         },

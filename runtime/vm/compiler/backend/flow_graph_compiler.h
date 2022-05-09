@@ -613,12 +613,6 @@ class FlowGraphCompiler : public ValueObject {
                           const compiler::ffi::NativeLocation& src,
                           TemporaryRegisterAllocator* temp);
 
-  // Emits a Dart const to a native location.
-  void EmitMoveConst(const compiler::ffi::NativeLocation& dst,
-                     Location src,
-                     Representation src_type,
-                     TemporaryRegisterAllocator* temp);
-
   bool CheckAssertAssignableTypeTestingABILocations(
       const LocationSummary& locs);
 
@@ -727,7 +721,9 @@ class FlowGraphCompiler : public ValueObject {
   // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
   // supplied, since it will be jumped to in the last case if the cid is outside
   // the range.
-  static void GenerateCidRangesCheck(compiler::Assembler* assembler,
+  //
+  // Returns whether [class_id_reg] is clobbered by the check.
+  static bool GenerateCidRangesCheck(compiler::Assembler* assembler,
                                      Register class_id_reg,
                                      const CidRangeVector& cid_ranges,
                                      compiler::Label* inside_range_lbl,

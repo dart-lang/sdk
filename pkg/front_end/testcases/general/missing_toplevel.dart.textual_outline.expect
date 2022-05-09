@@ -1,10 +1,9 @@
-// @dart = 2.9
 class EmptyClass {}
 
 var emptyClass = new EmptyClass();
 
 class ClassWithProperty {
-  EmptyClass property;
+  EmptyClass property = new EmptyClass();
 }
 
 var classWithProperty = new ClassWithProperty();
@@ -16,7 +15,7 @@ class ClassWithIndexSet {
 var classWithIndexSet = new ClassWithIndexSet();
 
 class ClassWithIndexGet {
-  int operator [](int index) => 42;
+  int? operator [](int index) => 42;
 }
 
 var classWithIndexGet = new ClassWithIndexGet();

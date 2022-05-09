@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:cli_util/cli_util.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

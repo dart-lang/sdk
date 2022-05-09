@@ -171,6 +171,7 @@ static constexpr intptr_t EM_386 = 3;
 static constexpr intptr_t EM_ARM = 40;
 static constexpr intptr_t EM_X86_64 = 62;
 static constexpr intptr_t EM_AARCH64 = 183;
+static constexpr intptr_t EM_RISCV = 243;
 
 static const intptr_t EV_CURRENT = 1;
 

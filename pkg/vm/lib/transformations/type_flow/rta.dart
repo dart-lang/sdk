@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
 
 import 'calls.dart' as calls
     show Selector, DirectSelector, InterfaceSelector, VirtualSelector;
@@ -184,13 +185,13 @@ class RapidTypeAnalysis {
   final Set<Member> visited = {};
   final List<Member> workList = [];
 
-  RapidTypeAnalysis(Component component, this.coreTypes, this.hierarchy,
-      LibraryIndex libraryIndex, this.protobufHandler) {
+  RapidTypeAnalysis(Component component, this.coreTypes, Target target,
+      this.hierarchy, LibraryIndex libraryIndex, this.protobufHandler) {
     Procedure? main = component.mainMethod;
     if (main != null) {
       addMember(main);
     }
-    final annotationMatcher = ConstantPragmaAnnotationParser(coreTypes);
+    final annotationMatcher = ConstantPragmaAnnotationParser(coreTypes, target);
     final nativeCodeOracle = NativeCodeOracle(libraryIndex, annotationMatcher);
     component.accept(PragmaEntryPointsVisitor(
         _EntryPointsListenerImpl(this), nativeCodeOracle, annotationMatcher));

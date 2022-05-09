@@ -37,12 +37,16 @@ def ArchiveArtifacts(tarfile, builddir, channel):
 if __name__ == '__main__':
     bot_name = os.environ.get('BUILDBOT_BUILDERNAME')
     channel = bot_utils.GetChannelFromName(bot_name)
-    if channel not in (bot_utils.Channel.BLEEDING_EDGE, bot_utils.Channel.TRY):
+    if os.environ.get('DART_EXPERIMENTAL_BUILD') == '1':
+        print('Not uploading artifacts on experimental builds')
+    elif channel == bot_utils.Channel.TRY:
+        print('Not uploading artifacts on try builds')
+    elif channel == bot_utils.Channel.BLEEDING_EDGE:
+        print('Not uploading artifacts on bleeding edge')
+    else:
         builddir = os.path.join(bot_utils.DART_DIR, utils.GetBuildDir(HOST_OS),
                                 'src_and_installation')
         version = utils.GetVersion()
         tarfilename = 'dart-%s.tar.gz' % version
         tarfile = os.path.join(builddir, tarfilename)
         ArchiveArtifacts(tarfile, builddir, channel)
-    else:
-        print('Not uploading artifacts on bleeding edge')

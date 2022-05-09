@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   /*member: Class1.method1:*/
@@ -17,7 +17,7 @@ class Class1 {
   Object method3(num n) => null;
 }
 
-/*spec.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
+/*spec.class: Class2:explicit=[Class2.T*],needsArgs,test*/
 class Class2<T> {
   num method4(T n) => null;
 }
@@ -28,7 +28,7 @@ class Class3<T> {
   T method5(num n) => null;
 }
 
-/*spec.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
+/*spec.class: Class4:explicit=[Class4.T*],needsArgs,test*/
 class Class4<T> {
   /*member: Class4.method6:*/
   num method6(num n, T t) => null;
@@ -47,13 +47,13 @@ Object method9(num n) => null;
 test(o) => o is num Function(num);
 
 main() {
-  Expect.isTrue(test(new Class1().method1));
-  Expect.isFalse(test(new Class1().method2));
-  Expect.isFalse(test(new Class1().method3));
-  Expect.isTrue(test(new Class2<num>().method4));
-  Expect.isTrue(test(new Class3<num>().method5));
-  Expect.isFalse(test(new Class4<num>().method6));
-  Expect.isTrue(test(method7));
-  Expect.isFalse(test(method8));
-  Expect.isFalse(test(method9));
+  makeLive(test(new Class1().method1));
+  makeLive(test(new Class1().method2));
+  makeLive(test(new Class1().method3));
+  makeLive(test(new Class2<num>().method4));
+  makeLive(test(new Class3<num>().method5));
+  makeLive(test(new Class4<num>().method6));
+  makeLive(test(method7));
+  makeLive(test(method8));
+  makeLive(test(method9));
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <limits>
+#include <memory>
 
 #include "include/dart_api.h"
 
@@ -16,17 +17,21 @@
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/debugger_api_impl_test.h"
+#include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/simulator.h"
 #include "vm/symbols.h"
+#include "vm/tagged_pointer.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -3643,7 +3648,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
@@ -3668,7 +3673,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
     weak2.set_key(key2);
     weak2.set_value(value2);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3693,7 +3698,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3783,7 +3788,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
@@ -3806,7 +3811,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  GCTestHelper::CollectAllGarbage();
+  GCTestHelper::CollectNewSpace();
   EXPECT(weak1.key() == Object::null());
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
@@ -3855,6 +3860,1502 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
   EXPECT(weak2.value() == Object::null());
+}
+
+static void WeakReference_PreserveOne(Thread* thread, Heap::Space space) {
+  auto& weak = WeakReference::Handle();
+  const auto& target = String::Handle(OneByteString::New("target", space));
+  {
+    HANDLESCOPE(thread);
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    weak ^= WeakReference::New(space);
+    weak.set_target(target);
+    weak.SetTypeArguments(type_arguments);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT(weak.target() != Object::null());
+  EXPECT(weak.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_PreserveOne_NewSpace) {
+  WeakReference_PreserveOne(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_PreserveOne_OldSpace) {
+  WeakReference_PreserveOne(thread, Heap::kOld);
+}
+
+static void WeakReference_ClearOne(Thread* thread, Heap::Space space) {
+  auto& weak = WeakReference::Handle();
+  {
+    HANDLESCOPE(thread);
+    const auto& target = String::Handle(OneByteString::New("target", space));
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    weak ^= WeakReference::New(space);
+    weak.set_target(target);
+    weak.SetTypeArguments(type_arguments);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT(weak.target() == Object::null());
+  EXPECT(weak.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_ClearOne_NewSpace) {
+  WeakReference_ClearOne(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_ClearOne_OldSpace) {
+  WeakReference_ClearOne(thread, Heap::kOld);
+}
+
+static void WeakReference_Clear_ReachableThroughWeakProperty(
+    Thread* thread,
+    Heap::Space space) {
+  auto& weak_property = WeakProperty::Handle();
+  const auto& key = String::Handle(OneByteString::New("key", space));
+  {
+    HANDLESCOPE(thread);
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    const auto& weak_reference =
+        WeakReference::Handle(WeakReference::New(space));
+    const auto& target = String::Handle(OneByteString::New("target", space));
+    weak_reference.set_target(target);
+    weak_reference.SetTypeArguments(type_arguments);
+
+    weak_property ^= WeakProperty::New(space);
+    weak_property.set_key(key);
+    weak_property.set_value(weak_reference);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  const auto& weak_reference =
+      WeakReference::CheckedHandle(Z, weak_property.value());
+  EXPECT(weak_reference.target() == Object::null());
+  EXPECT(weak_reference.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Clear_ReachableThroughWeakProperty_NewSpace) {
+  WeakReference_Clear_ReachableThroughWeakProperty(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Clear_ReachableThroughWeakProperty_OldSpace) {
+  WeakReference_Clear_ReachableThroughWeakProperty(thread, Heap::kOld);
+}
+
+static void WeakReference_Preserve_ReachableThroughWeakProperty(
+    Thread* thread,
+    Heap::Space space) {
+  auto& weak_property = WeakProperty::Handle();
+  const auto& key = String::Handle(OneByteString::New("key", space));
+  const auto& target = String::Handle(OneByteString::New("target", space));
+  {
+    HANDLESCOPE(thread);
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    const auto& type_arguments =
+        TypeArguments::Handle(object_store->type_argument_double());
+    const auto& weak_reference =
+        WeakReference::Handle(WeakReference::New(space));
+    weak_reference.set_target(target);
+    weak_reference.SetTypeArguments(type_arguments);
+
+    weak_property ^= WeakProperty::New(space);
+    weak_property.set_key(key);
+    weak_property.set_value(weak_reference);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  const auto& weak_reference =
+      WeakReference::CheckedHandle(Z, weak_property.value());
+  EXPECT(weak_reference.target() != Object::null());
+  EXPECT(weak_reference.GetTypeArguments() != Object::null());
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Preserve_ReachableThroughWeakProperty_NewSpace) {
+  WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    WeakReference_Preserve_ReachableThroughWeakProperty_OldSpace) {
+  WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kOld);
+}
+
+static int NumEntries(const FinalizerEntry& entry, intptr_t acc = 0) {
+  if (entry.IsNull()) {
+    return acc;
+  }
+  return NumEntries(FinalizerEntry::Handle(entry.next()), acc + 1);
+}
+
+static void Finalizer_PreserveOne(Thread* thread,
+                                  Heap::Space space,
+                                  bool with_detach) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
+  const auto& value = String::Handle(OneByteString::New("value", space));
+  entry.set_value(value);
+  auto& detach = Object::Handle();
+  if (with_detach) {
+    detach = OneByteString::New("detach", space);
+  } else {
+    detach = Object::null();
+  }
+  entry.set_detach(detach);
+  const auto& token = String::Handle(OneByteString::New("token", space));
+  entry.set_token(token);
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // Nothing in the entry should have been collected.
+  EXPECT_NE(Object::null(), entry.value());
+  EXPECT((entry.detach() == Object::null()) ^ with_detach);
+  EXPECT_NE(Object::null(), entry.token());
+
+  // The entry should not have moved to the collected list.
+  EXPECT_EQ(0,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have no messages.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveNoDetachOne_NewSpace) {
+  Finalizer_PreserveOne(thread, Heap::kNew, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveNoDetachOne_OldSpace) {
+  Finalizer_PreserveOne(thread, Heap::kOld, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveWithDetachOne_NewSpace) {
+  Finalizer_PreserveOne(thread, Heap::kNew, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveWithDetachOne_OldSpace) {
+  Finalizer_PreserveOne(thread, Heap::kOld, true);
+}
+
+static void Finalizer_ClearDetachOne(Thread* thread, Heap::Space space) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
+  const auto& value = String::Handle(OneByteString::New("value", space));
+  entry.set_value(value);
+  const auto& token = String::Handle(OneByteString::New("token", space));
+  entry.set_token(token);
+
+  {
+    HANDLESCOPE(thread);
+    const auto& detach = String::Handle(OneByteString::New("detach", space));
+    entry.set_detach(detach);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // Detach should have been collected.
+  EXPECT_NE(Object::null(), entry.value());
+  EXPECT_EQ(Object::null(), entry.detach());
+  EXPECT_NE(Object::null(), entry.token());
+
+  // The entry should not have moved to the collected list.
+  EXPECT_EQ(0,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have no messages.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachOne_NewSpace) {
+  Finalizer_ClearDetachOne(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachOne_OldSpace) {
+  Finalizer_ClearDetachOne(thread, Heap::kOld);
+}
+
+static void Finalizer_ClearValueOne(Thread* thread,
+                                    Heap::Space space,
+                                    bool null_token) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
+  const auto& detach = String::Handle(OneByteString::New("detach", space));
+  auto& token = Object::Handle();
+  if (null_token) {
+    // Null is a valid token in Dart finalizers.
+    token = Object::null();
+  } else {
+    token = OneByteString::New("token", space);
+  }
+  entry.set_token(token);
+  entry.set_detach(detach);
+
+  {
+    HANDLESCOPE(thread);
+    const auto& value = String::Handle(OneByteString::New("value", space));
+    entry.set_value(value);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // Value should have been collected.
+  EXPECT_EQ(Object::null(), entry.value());
+  EXPECT_NE(Object::null(), entry.detach());
+
+  // The entry should have moved to the collected list.
+  EXPECT_EQ(1,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have 1 message.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(1, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueOne_NewSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kNew, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueOne_OldSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kOld, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueNullTokenOne_NewSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kNew, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueNullTokenOne_OldSpace) {
+  Finalizer_ClearValueOne(thread, Heap::kOld, true);
+}
+
+static void Finalizer_DetachOne(Thread* thread,
+                                Heap::Space space,
+                                bool clear_value) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
+  const auto& detach = String::Handle(OneByteString::New("detach", space));
+  entry.set_detach(detach);
+
+  // Simulate calling detach, setting the token of the entry to the entry.
+  entry.set_token(entry);
+
+  auto& value = String::Handle();
+  {
+    HANDLESCOPE(thread);
+
+    const auto& object = String::Handle(OneByteString::New("value", space));
+    entry.set_value(object);
+    if (!clear_value) {
+      value = object.ptr();
+    }
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT((entry.value() == Object::null()) ^ !clear_value);
+  EXPECT_NE(Object::null(), entry.detach());
+  EXPECT_EQ(entry.ptr(), entry.token());
+
+  // The entry should have been removed entirely
+  EXPECT_EQ(0,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  // We should have no message.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachOne_NewSpace) {
+  Finalizer_DetachOne(thread, Heap::kNew, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachOne_OldSpace) {
+  Finalizer_DetachOne(thread, Heap::kOld, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachAndClearValueOne_NewSpace) {
+  Finalizer_DetachOne(thread, Heap::kNew, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_DetachAndClearValueOne_OldSpace) {
+  Finalizer_DetachOne(thread, Heap::kOld, true);
+}
+
+static void Finalizer_GcFinalizer(Thread* thread, Heap::Space space) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+
+  const auto& detach = String::Handle(OneByteString::New("detach", space));
+  const auto& token = String::Handle(OneByteString::New("token", space));
+
+  {
+    HANDLESCOPE(thread);
+    const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
+    finalizer.set_isolate(thread->isolate());
+    const auto& entry =
+        FinalizerEntry::Handle(FinalizerEntry::New(finalizer, space));
+    entry.set_detach(detach);
+    entry.set_token(token);
+    const auto& value = String::Handle(OneByteString::New("value", space));
+    entry.set_value(value);
+  }
+
+  if (space == Heap::kNew) {
+    GCTestHelper::CollectNewSpace();
+  } else {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  // We should have no message, the Finalizer itself has been GCed.
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(0, aq.queue()->Length());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_GcFinalizer_NewSpace) {
+  Finalizer_GcFinalizer(thread, Heap::kNew);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_GcFinalizer_OldSpace) {
+  Finalizer_GcFinalizer(thread, Heap::kOld);
+}
+
+static void Finalizer_TwoEntriesCrossGen(
+    Thread* thread,
+    Heap::Space* spaces,
+    bool collect_old_space,
+    bool collect_new_space,
+    bool evacuate_new_space_and_collect_old_space,
+    bool clear_value_1,
+    bool clear_value_2,
+    bool clear_detach_1,
+    bool clear_detach_2) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  // We're reusing the isolate in a loop, so there are messages from previous
+  // runs of this test.
+  intptr_t queue_length_start = 0;
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    queue_length_start = aq.queue()->Length();
+  }
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(spaces[0]));
+  finalizer.set_isolate(thread->isolate());
+  const auto& entry1 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[1]));
+  const auto& entry2 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[2]));
+
+  auto& value1 = String::Handle();
+  auto& detach1 = String::Handle();
+  const auto& token1 = String::Handle(OneByteString::New("token1", spaces[3]));
+  entry1.set_token(token1);
+
+  auto& value2 = String::Handle();
+  auto& detach2 = String::Handle();
+  const auto& token2 = String::Handle(OneByteString::New("token2", spaces[4]));
+  entry2.set_token(token2);
+  entry2.set_detach(detach2);
+
+  {
+    HANDLESCOPE(thread);
+    auto& object = String::Handle();
+
+    object ^= OneByteString::New("value1", spaces[5]);
+    entry1.set_value(object);
+    if (!clear_value_1) {
+      value1 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[6]);
+    entry1.set_detach(object);
+    if (!clear_detach_1) {
+      detach1 = object.ptr();
+    }
+
+    object ^= OneByteString::New("value2", spaces[7]);
+    entry2.set_value(object);
+    if (!clear_value_2) {
+      value2 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[8]);
+    entry2.set_detach(object);
+    if (!clear_detach_2) {
+      detach2 = object.ptr();
+    }
+  }
+
+  if (collect_old_space) {
+    GCTestHelper::CollectOldSpace();
+  }
+  if (collect_new_space) {
+    GCTestHelper::CollectNewSpace();
+  }
+  if (evacuate_new_space_and_collect_old_space) {
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT((entry1.value() == Object::null()) ^ !clear_value_1);
+  EXPECT((entry2.value() == Object::null()) ^ !clear_value_2);
+  EXPECT((entry1.detach() == Object::null()) ^ !clear_detach_1);
+  EXPECT((entry2.detach() == Object::null()) ^ !clear_detach_2);
+  EXPECT_NE(Object::null(), entry1.token());
+  EXPECT_NE(Object::null(), entry2.token());
+
+  const intptr_t expect_num_cleared =
+      (clear_value_1 ? 1 : 0) + (clear_value_2 ? 1 : 0);
+  EXPECT_EQ(expect_num_cleared,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  const intptr_t expect_num_messages = expect_num_cleared == 0 ? 0 : 1;
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(expect_num_messages + queue_length_start, aq.queue()->Length());
+  }
+}
+
+const intptr_t kFinalizerTwoEntriesNumObjects = 9;
+
+static void Finalizer_TwoEntries(Thread* thread,
+                                 Heap::Space space,
+                                 bool clear_value_1,
+                                 bool clear_value_2,
+                                 bool clear_detach_1,
+                                 bool clear_detach_2) {
+  const bool collect_old_space = true;
+  const bool collect_new_space = space == Heap::kNew;
+  const bool evacuate_new_space_and_collect_old_space = !collect_new_space;
+
+  Heap::Space spaces[kFinalizerTwoEntriesNumObjects];
+  for (intptr_t i = 0; i < kFinalizerTwoEntriesNumObjects; i++) {
+    spaces[i] = space;
+  }
+  Finalizer_TwoEntriesCrossGen(
+      thread, spaces, collect_old_space, collect_new_space,
+      evacuate_new_space_and_collect_old_space, clear_value_1, clear_value_2,
+      clear_detach_1, clear_detach_2);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueTwo_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, true, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueTwo_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, true, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearFirstValue_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, true, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearFirstValue_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, true, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearSecondValue_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, false, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearSecondValue_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, false, true, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveTwo_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, false, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveTwo_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, false, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachTwo_NewSpace) {
+  Finalizer_TwoEntries(thread, Heap::kNew, false, false, true, true);
+}
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachTwo_OldSpace) {
+  Finalizer_TwoEntries(thread, Heap::kOld, false, false, true, true);
+}
+
+static void Finalizer_TwoEntriesCrossGen(Thread* thread, intptr_t test_i) {
+  ASSERT(test_i < (1 << kFinalizerTwoEntriesNumObjects));
+  Heap::Space spaces[kFinalizerTwoEntriesNumObjects];
+  for (intptr_t i = 0; i < kFinalizerTwoEntriesNumObjects; i++) {
+    spaces[i] = ((test_i >> i) & 0x1) == 0x1 ? Heap::kOld : Heap::kNew;
+  }
+  // Either collect or evacuate new space.
+  for (const bool collect_new_space : {false, true}) {
+    // Always run old space collection first.
+    const bool collect_old_space = true;
+    // Always run old space collection after new space.
+    const bool evacuate_new_space_and_collect_old_space = true;
+    for (intptr_t test_j = 0; test_j < 16; test_j++) {
+      const bool clear_value_1 = (test_j >> 0 & 0x1) == 0x1;
+      const bool clear_value_2 = (test_j >> 1 & 0x1) == 0x1;
+      const bool clear_detach_1 = (test_j >> 2 & 0x1) == 0x1;
+      const bool clear_detach_2 = (test_j >> 3 & 0x1) == 0x1;
+      Finalizer_TwoEntriesCrossGen(
+          thread, spaces, collect_old_space, collect_new_space,
+          evacuate_new_space_and_collect_old_space, clear_value_1,
+          clear_value_2, clear_detach_1, clear_detach_2);
+    }
+  }
+}
+#define FINALIZER_CROSS_GEN_TEST_CASE(n)                                       \
+  ISOLATE_UNIT_TEST_CASE(Finalizer_CrossGen_##n) {                             \
+    Finalizer_TwoEntriesCrossGen(thread, n);                                   \
+  }
+
+#define REPEAT_512(V)                                                          \
+  V(0)                                                                         \
+  V(1)                                                                         \
+  V(2)                                                                         \
+  V(3)                                                                         \
+  V(4)                                                                         \
+  V(5)                                                                         \
+  V(6)                                                                         \
+  V(7)                                                                         \
+  V(8)                                                                         \
+  V(9)                                                                         \
+  V(10)                                                                        \
+  V(11)                                                                        \
+  V(12)                                                                        \
+  V(13)                                                                        \
+  V(14)                                                                        \
+  V(15)                                                                        \
+  V(16)                                                                        \
+  V(17)                                                                        \
+  V(18)                                                                        \
+  V(19)                                                                        \
+  V(20)                                                                        \
+  V(21)                                                                        \
+  V(22)                                                                        \
+  V(23)                                                                        \
+  V(24)                                                                        \
+  V(25)                                                                        \
+  V(26)                                                                        \
+  V(27)                                                                        \
+  V(28)                                                                        \
+  V(29)                                                                        \
+  V(30)                                                                        \
+  V(31)                                                                        \
+  V(32)                                                                        \
+  V(33)                                                                        \
+  V(34)                                                                        \
+  V(35)                                                                        \
+  V(36)                                                                        \
+  V(37)                                                                        \
+  V(38)                                                                        \
+  V(39)                                                                        \
+  V(40)                                                                        \
+  V(41)                                                                        \
+  V(42)                                                                        \
+  V(43)                                                                        \
+  V(44)                                                                        \
+  V(45)                                                                        \
+  V(46)                                                                        \
+  V(47)                                                                        \
+  V(48)                                                                        \
+  V(49)                                                                        \
+  V(50)                                                                        \
+  V(51)                                                                        \
+  V(52)                                                                        \
+  V(53)                                                                        \
+  V(54)                                                                        \
+  V(55)                                                                        \
+  V(56)                                                                        \
+  V(57)                                                                        \
+  V(58)                                                                        \
+  V(59)                                                                        \
+  V(60)                                                                        \
+  V(61)                                                                        \
+  V(62)                                                                        \
+  V(63)                                                                        \
+  V(64)                                                                        \
+  V(65)                                                                        \
+  V(66)                                                                        \
+  V(67)                                                                        \
+  V(68)                                                                        \
+  V(69)                                                                        \
+  V(70)                                                                        \
+  V(71)                                                                        \
+  V(72)                                                                        \
+  V(73)                                                                        \
+  V(74)                                                                        \
+  V(75)                                                                        \
+  V(76)                                                                        \
+  V(77)                                                                        \
+  V(78)                                                                        \
+  V(79)                                                                        \
+  V(80)                                                                        \
+  V(81)                                                                        \
+  V(82)                                                                        \
+  V(83)                                                                        \
+  V(84)                                                                        \
+  V(85)                                                                        \
+  V(86)                                                                        \
+  V(87)                                                                        \
+  V(88)                                                                        \
+  V(89)                                                                        \
+  V(90)                                                                        \
+  V(91)                                                                        \
+  V(92)                                                                        \
+  V(93)                                                                        \
+  V(94)                                                                        \
+  V(95)                                                                        \
+  V(96)                                                                        \
+  V(97)                                                                        \
+  V(98)                                                                        \
+  V(99)                                                                        \
+  V(100)                                                                       \
+  V(101)                                                                       \
+  V(102)                                                                       \
+  V(103)                                                                       \
+  V(104)                                                                       \
+  V(105)                                                                       \
+  V(106)                                                                       \
+  V(107)                                                                       \
+  V(108)                                                                       \
+  V(109)                                                                       \
+  V(110)                                                                       \
+  V(111)                                                                       \
+  V(112)                                                                       \
+  V(113)                                                                       \
+  V(114)                                                                       \
+  V(115)                                                                       \
+  V(116)                                                                       \
+  V(117)                                                                       \
+  V(118)                                                                       \
+  V(119)                                                                       \
+  V(120)                                                                       \
+  V(121)                                                                       \
+  V(122)                                                                       \
+  V(123)                                                                       \
+  V(124)                                                                       \
+  V(125)                                                                       \
+  V(126)                                                                       \
+  V(127)                                                                       \
+  V(128)                                                                       \
+  V(129)                                                                       \
+  V(130)                                                                       \
+  V(131)                                                                       \
+  V(132)                                                                       \
+  V(133)                                                                       \
+  V(134)                                                                       \
+  V(135)                                                                       \
+  V(136)                                                                       \
+  V(137)                                                                       \
+  V(138)                                                                       \
+  V(139)                                                                       \
+  V(140)                                                                       \
+  V(141)                                                                       \
+  V(142)                                                                       \
+  V(143)                                                                       \
+  V(144)                                                                       \
+  V(145)                                                                       \
+  V(146)                                                                       \
+  V(147)                                                                       \
+  V(148)                                                                       \
+  V(149)                                                                       \
+  V(150)                                                                       \
+  V(151)                                                                       \
+  V(152)                                                                       \
+  V(153)                                                                       \
+  V(154)                                                                       \
+  V(155)                                                                       \
+  V(156)                                                                       \
+  V(157)                                                                       \
+  V(158)                                                                       \
+  V(159)                                                                       \
+  V(160)                                                                       \
+  V(161)                                                                       \
+  V(162)                                                                       \
+  V(163)                                                                       \
+  V(164)                                                                       \
+  V(165)                                                                       \
+  V(166)                                                                       \
+  V(167)                                                                       \
+  V(168)                                                                       \
+  V(169)                                                                       \
+  V(170)                                                                       \
+  V(171)                                                                       \
+  V(172)                                                                       \
+  V(173)                                                                       \
+  V(174)                                                                       \
+  V(175)                                                                       \
+  V(176)                                                                       \
+  V(177)                                                                       \
+  V(178)                                                                       \
+  V(179)                                                                       \
+  V(180)                                                                       \
+  V(181)                                                                       \
+  V(182)                                                                       \
+  V(183)                                                                       \
+  V(184)                                                                       \
+  V(185)                                                                       \
+  V(186)                                                                       \
+  V(187)                                                                       \
+  V(188)                                                                       \
+  V(189)                                                                       \
+  V(190)                                                                       \
+  V(191)                                                                       \
+  V(192)                                                                       \
+  V(193)                                                                       \
+  V(194)                                                                       \
+  V(195)                                                                       \
+  V(196)                                                                       \
+  V(197)                                                                       \
+  V(198)                                                                       \
+  V(199)                                                                       \
+  V(200)                                                                       \
+  V(201)                                                                       \
+  V(202)                                                                       \
+  V(203)                                                                       \
+  V(204)                                                                       \
+  V(205)                                                                       \
+  V(206)                                                                       \
+  V(207)                                                                       \
+  V(208)                                                                       \
+  V(209)                                                                       \
+  V(210)                                                                       \
+  V(211)                                                                       \
+  V(212)                                                                       \
+  V(213)                                                                       \
+  V(214)                                                                       \
+  V(215)                                                                       \
+  V(216)                                                                       \
+  V(217)                                                                       \
+  V(218)                                                                       \
+  V(219)                                                                       \
+  V(220)                                                                       \
+  V(221)                                                                       \
+  V(222)                                                                       \
+  V(223)                                                                       \
+  V(224)                                                                       \
+  V(225)                                                                       \
+  V(226)                                                                       \
+  V(227)                                                                       \
+  V(228)                                                                       \
+  V(229)                                                                       \
+  V(230)                                                                       \
+  V(231)                                                                       \
+  V(232)                                                                       \
+  V(233)                                                                       \
+  V(234)                                                                       \
+  V(235)                                                                       \
+  V(236)                                                                       \
+  V(237)                                                                       \
+  V(238)                                                                       \
+  V(239)                                                                       \
+  V(240)                                                                       \
+  V(241)                                                                       \
+  V(242)                                                                       \
+  V(243)                                                                       \
+  V(244)                                                                       \
+  V(245)                                                                       \
+  V(246)                                                                       \
+  V(247)                                                                       \
+  V(248)                                                                       \
+  V(249)                                                                       \
+  V(250)                                                                       \
+  V(251)                                                                       \
+  V(252)                                                                       \
+  V(253)                                                                       \
+  V(254)                                                                       \
+  V(255)                                                                       \
+  V(256)                                                                       \
+  V(257)                                                                       \
+  V(258)                                                                       \
+  V(259)                                                                       \
+  V(260)                                                                       \
+  V(261)                                                                       \
+  V(262)                                                                       \
+  V(263)                                                                       \
+  V(264)                                                                       \
+  V(265)                                                                       \
+  V(266)                                                                       \
+  V(267)                                                                       \
+  V(268)                                                                       \
+  V(269)                                                                       \
+  V(270)                                                                       \
+  V(271)                                                                       \
+  V(272)                                                                       \
+  V(273)                                                                       \
+  V(274)                                                                       \
+  V(275)                                                                       \
+  V(276)                                                                       \
+  V(277)                                                                       \
+  V(278)                                                                       \
+  V(279)                                                                       \
+  V(280)                                                                       \
+  V(281)                                                                       \
+  V(282)                                                                       \
+  V(283)                                                                       \
+  V(284)                                                                       \
+  V(285)                                                                       \
+  V(286)                                                                       \
+  V(287)                                                                       \
+  V(288)                                                                       \
+  V(289)                                                                       \
+  V(290)                                                                       \
+  V(291)                                                                       \
+  V(292)                                                                       \
+  V(293)                                                                       \
+  V(294)                                                                       \
+  V(295)                                                                       \
+  V(296)                                                                       \
+  V(297)                                                                       \
+  V(298)                                                                       \
+  V(299)                                                                       \
+  V(300)                                                                       \
+  V(301)                                                                       \
+  V(302)                                                                       \
+  V(303)                                                                       \
+  V(304)                                                                       \
+  V(305)                                                                       \
+  V(306)                                                                       \
+  V(307)                                                                       \
+  V(308)                                                                       \
+  V(309)                                                                       \
+  V(310)                                                                       \
+  V(311)                                                                       \
+  V(312)                                                                       \
+  V(313)                                                                       \
+  V(314)                                                                       \
+  V(315)                                                                       \
+  V(316)                                                                       \
+  V(317)                                                                       \
+  V(318)                                                                       \
+  V(319)                                                                       \
+  V(320)                                                                       \
+  V(321)                                                                       \
+  V(322)                                                                       \
+  V(323)                                                                       \
+  V(324)                                                                       \
+  V(325)                                                                       \
+  V(326)                                                                       \
+  V(327)                                                                       \
+  V(328)                                                                       \
+  V(329)                                                                       \
+  V(330)                                                                       \
+  V(331)                                                                       \
+  V(332)                                                                       \
+  V(333)                                                                       \
+  V(334)                                                                       \
+  V(335)                                                                       \
+  V(336)                                                                       \
+  V(337)                                                                       \
+  V(338)                                                                       \
+  V(339)                                                                       \
+  V(340)                                                                       \
+  V(341)                                                                       \
+  V(342)                                                                       \
+  V(343)                                                                       \
+  V(344)                                                                       \
+  V(345)                                                                       \
+  V(346)                                                                       \
+  V(347)                                                                       \
+  V(348)                                                                       \
+  V(349)                                                                       \
+  V(350)                                                                       \
+  V(351)                                                                       \
+  V(352)                                                                       \
+  V(353)                                                                       \
+  V(354)                                                                       \
+  V(355)                                                                       \
+  V(356)                                                                       \
+  V(357)                                                                       \
+  V(358)                                                                       \
+  V(359)                                                                       \
+  V(360)                                                                       \
+  V(361)                                                                       \
+  V(362)                                                                       \
+  V(363)                                                                       \
+  V(364)                                                                       \
+  V(365)                                                                       \
+  V(366)                                                                       \
+  V(367)                                                                       \
+  V(368)                                                                       \
+  V(369)                                                                       \
+  V(370)                                                                       \
+  V(371)                                                                       \
+  V(372)                                                                       \
+  V(373)                                                                       \
+  V(374)                                                                       \
+  V(375)                                                                       \
+  V(376)                                                                       \
+  V(377)                                                                       \
+  V(378)                                                                       \
+  V(379)                                                                       \
+  V(380)                                                                       \
+  V(381)                                                                       \
+  V(382)                                                                       \
+  V(383)                                                                       \
+  V(384)                                                                       \
+  V(385)                                                                       \
+  V(386)                                                                       \
+  V(387)                                                                       \
+  V(388)                                                                       \
+  V(389)                                                                       \
+  V(390)                                                                       \
+  V(391)                                                                       \
+  V(392)                                                                       \
+  V(393)                                                                       \
+  V(394)                                                                       \
+  V(395)                                                                       \
+  V(396)                                                                       \
+  V(397)                                                                       \
+  V(398)                                                                       \
+  V(399)                                                                       \
+  V(400)                                                                       \
+  V(401)                                                                       \
+  V(402)                                                                       \
+  V(403)                                                                       \
+  V(404)                                                                       \
+  V(405)                                                                       \
+  V(406)                                                                       \
+  V(407)                                                                       \
+  V(408)                                                                       \
+  V(409)                                                                       \
+  V(410)                                                                       \
+  V(411)                                                                       \
+  V(412)                                                                       \
+  V(413)                                                                       \
+  V(414)                                                                       \
+  V(415)                                                                       \
+  V(416)                                                                       \
+  V(417)                                                                       \
+  V(418)                                                                       \
+  V(419)                                                                       \
+  V(420)                                                                       \
+  V(421)                                                                       \
+  V(422)                                                                       \
+  V(423)                                                                       \
+  V(424)                                                                       \
+  V(425)                                                                       \
+  V(426)                                                                       \
+  V(427)                                                                       \
+  V(428)                                                                       \
+  V(429)                                                                       \
+  V(430)                                                                       \
+  V(431)                                                                       \
+  V(432)                                                                       \
+  V(433)                                                                       \
+  V(434)                                                                       \
+  V(435)                                                                       \
+  V(436)                                                                       \
+  V(437)                                                                       \
+  V(438)                                                                       \
+  V(439)                                                                       \
+  V(440)                                                                       \
+  V(441)                                                                       \
+  V(442)                                                                       \
+  V(443)                                                                       \
+  V(444)                                                                       \
+  V(445)                                                                       \
+  V(446)                                                                       \
+  V(447)                                                                       \
+  V(448)                                                                       \
+  V(449)                                                                       \
+  V(450)                                                                       \
+  V(451)                                                                       \
+  V(452)                                                                       \
+  V(453)                                                                       \
+  V(454)                                                                       \
+  V(455)                                                                       \
+  V(456)                                                                       \
+  V(457)                                                                       \
+  V(458)                                                                       \
+  V(459)                                                                       \
+  V(460)                                                                       \
+  V(461)                                                                       \
+  V(462)                                                                       \
+  V(463)                                                                       \
+  V(464)                                                                       \
+  V(465)                                                                       \
+  V(466)                                                                       \
+  V(467)                                                                       \
+  V(468)                                                                       \
+  V(469)                                                                       \
+  V(470)                                                                       \
+  V(471)                                                                       \
+  V(472)                                                                       \
+  V(473)                                                                       \
+  V(474)                                                                       \
+  V(475)                                                                       \
+  V(476)                                                                       \
+  V(477)                                                                       \
+  V(478)                                                                       \
+  V(479)                                                                       \
+  V(480)                                                                       \
+  V(481)                                                                       \
+  V(482)                                                                       \
+  V(483)                                                                       \
+  V(484)                                                                       \
+  V(485)                                                                       \
+  V(486)                                                                       \
+  V(487)                                                                       \
+  V(488)                                                                       \
+  V(489)                                                                       \
+  V(490)                                                                       \
+  V(491)                                                                       \
+  V(492)                                                                       \
+  V(493)                                                                       \
+  V(494)                                                                       \
+  V(495)                                                                       \
+  V(496)                                                                       \
+  V(497)                                                                       \
+  V(498)                                                                       \
+  V(499)                                                                       \
+  V(500)                                                                       \
+  V(501)                                                                       \
+  V(502)                                                                       \
+  V(503)                                                                       \
+  V(504)                                                                       \
+  V(505)                                                                       \
+  V(506)                                                                       \
+  V(507)                                                                       \
+  V(508)                                                                       \
+  V(509)                                                                       \
+  V(510)                                                                       \
+  V(511)
+
+REPEAT_512(FINALIZER_CROSS_GEN_TEST_CASE)
+
+#undef FINALIZER_CROSS_GEN_TEST_CASE
+
+// Force the marker to add a FinalizerEntry to the store buffer during marking.
+//
+// This test requires two entries, one in new space, one in old space.
+// The scavenger should run first, adding the entry to collected_entries.
+// The marker runs right after, swapping the collected_entries with the entry
+// in old space, _and_ setting the next field to the entry in new space.
+// This forces the entry to be added to the store-buffer _during_ marking.
+//
+// Then, the compacter needs to be used. Which will move the entry in old
+// space.
+//
+// If the thread's store buffer block is not released after that, the compactor
+// will not update it, causing an outdated address to be released to the store
+// buffer later.
+//
+// This causes two types of errors to trigger with --verify-store-buffer:
+// 1. We see the address in the store buffer but the object is no entry there.
+//    Also can cause segfaults on reading garbage or unallocated memory.
+// 2. We see the entry has a marked bit, but can't find it in the store buffer.
+ISOLATE_UNIT_TEST_CASE(Finalizer_Regress_48843) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+  SetFlagScope<bool> sfs2(&FLAG_verify_store_buffer, true);
+#endif
+  SetFlagScope<bool> sfs3(&FLAG_use_compactor, true);
+
+  const auto& finalizer = Finalizer::Handle(Finalizer::New(Heap::kOld));
+  finalizer.set_isolate(thread->isolate());
+
+  const auto& detach1 =
+      String::Handle(OneByteString::New("detach1", Heap::kNew));
+  const auto& token1 = String::Handle(OneByteString::New("token1", Heap::kNew));
+  const auto& detach2 =
+      String::Handle(OneByteString::New("detach2", Heap::kOld));
+  const auto& token2 = String::Handle(OneByteString::New("token2", Heap::kOld));
+
+  {
+    HANDLESCOPE(thread);
+    const auto& entry1 =
+        FinalizerEntry::Handle(FinalizerEntry::New(finalizer, Heap::kNew));
+    entry1.set_detach(detach1);
+    entry1.set_token(token1);
+
+    const auto& entry2 =
+        FinalizerEntry::Handle(FinalizerEntry::New(finalizer, Heap::kOld));
+    entry2.set_detach(detach2);
+    entry2.set_token(token2);
+
+    {
+      HANDLESCOPE(thread);
+      const auto& value1 =
+          String::Handle(OneByteString::New("value1", Heap::kNew));
+      entry1.set_value(value1);
+      const auto& value2 =
+          String::Handle(OneByteString::New("value2", Heap::kOld));
+      entry2.set_value(value2);
+      // Lose both values.
+    }
+
+    // First collect new space.
+    GCTestHelper::CollectNewSpace();
+    // Then old space, this will make the old space entry point to the new
+    // space entry.
+    // Also, this must be a mark compact, not a mark sweep, to move the entry.
+    GCTestHelper::CollectOldSpace();
+  }
+
+  // Imagine callbacks running.
+  // Entries themselves become unreachable.
+  finalizer.set_entries_collected(
+      FinalizerEntry::Handle(FinalizerEntry::null()));
+
+  // There should be a single entry in the store buffer.
+  // And it should crash when seeing the address in the buffer.
+  GCTestHelper::CollectNewSpace();
+
+  // We should no longer be processing the entries.
+  GCTestHelper::CollectOldSpace();
+  GCTestHelper::CollectNewSpace();
+}
+
+void NativeFinalizer_TwoEntriesCrossGen_Finalizer(void* peer) {
+  intptr_t* token = reinterpret_cast<intptr_t*>(peer);
+  (*token)++;
+}
+
+static void NativeFinalizer_TwoEntriesCrossGen(
+    Thread* thread,
+    Heap::Space* spaces,
+    bool collect_new_space,
+    bool evacuate_new_space_and_collect_old_space,
+    bool clear_value_1,
+    bool clear_value_2,
+    bool clear_detach_1,
+    bool clear_detach_2) {
+#ifdef DEBUG
+  SetFlagScope<bool> sfs(&FLAG_trace_finalizers, true);
+#endif
+
+  intptr_t token1_memory = 0;
+  intptr_t token2_memory = 0;
+
+  MessageHandler* handler = thread->isolate()->message_handler();
+  // We're reusing the isolate in a loop, so there are messages from previous
+  // runs of this test.
+  intptr_t queue_length_start = 0;
+  {
+    MessageHandler::AcquiredQueues aq(handler);
+    queue_length_start = aq.queue()->Length();
+  }
+
+  ObjectStore* object_store = thread->isolate_group()->object_store();
+  const auto& void_type = Type::Handle(object_store->never_type());
+  const auto& callback = Pointer::Handle(Pointer::New(
+      void_type,
+      reinterpret_cast<uword>(&NativeFinalizer_TwoEntriesCrossGen_Finalizer),
+      spaces[3]));
+
+  const auto& finalizer =
+      NativeFinalizer::Handle(NativeFinalizer::New(spaces[0]));
+  finalizer.set_callback(callback);
+  finalizer.set_isolate(thread->isolate());
+
+  const auto& isolate_finalizers =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const auto& weak1 = WeakReference::Handle(WeakReference::New());
+  weak1.set_target(finalizer);
+  isolate_finalizers.Add(weak1);
+  thread->isolate()->set_finalizers(isolate_finalizers);
+
+  const auto& all_entries = LinkedHashSet::Handle(LinkedHashSet::NewDefault());
+  finalizer.set_all_entries(all_entries);
+  const auto& all_entries_data = Array::Handle(all_entries.data());
+  THR_Print("entry1 space: %s\n", spaces[1] == Heap::kNew ? "new" : "old");
+  const auto& entry1 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[1]));
+  all_entries_data.SetAt(0, entry1);
+  THR_Print("entry2 space: %s\n", spaces[2] == Heap::kNew ? "new" : "old");
+  const auto& entry2 =
+      FinalizerEntry::Handle(FinalizerEntry::New(finalizer, spaces[2]));
+  all_entries_data.SetAt(1, entry2);
+  all_entries.set_used_data(2);  // Don't bother setting the index.
+
+  const intptr_t external_size1 = 1024;
+  const intptr_t external_size2 = 2048;
+  entry1.set_external_size(external_size1);
+  entry2.set_external_size(external_size2);
+  IsolateGroup::Current()->heap()->AllocatedExternal(external_size1, spaces[5]);
+  IsolateGroup::Current()->heap()->AllocatedExternal(external_size2, spaces[7]);
+
+  auto& value1 = String::Handle();
+  auto& detach1 = String::Handle();
+  const auto& token1 = Pointer::Handle(Pointer::New(
+      void_type, reinterpret_cast<uword>(&token1_memory), spaces[3]));
+  entry1.set_token(token1);
+
+  auto& value2 = String::Handle();
+  auto& detach2 = String::Handle();
+  const auto& token2 = Pointer::Handle(Pointer::New(
+      void_type, reinterpret_cast<uword>(&token2_memory), spaces[4]));
+  entry2.set_token(token2);
+  entry2.set_detach(detach2);
+
+  {
+    HANDLESCOPE(thread);
+    auto& object = String::Handle();
+
+    THR_Print("value1 space: %s\n", spaces[5] == Heap::kNew ? "new" : "old");
+    object ^= OneByteString::New("value1", spaces[5]);
+    entry1.set_value(object);
+    if (!clear_value_1) {
+      value1 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[6]);
+    entry1.set_detach(object);
+    if (!clear_detach_1) {
+      detach1 = object.ptr();
+    }
+
+    THR_Print("value2 space: %s\n", spaces[7] == Heap::kNew ? "new" : "old");
+    object ^= OneByteString::New("value2", spaces[7]);
+    entry2.set_value(object);
+    if (!clear_value_2) {
+      value2 = object.ptr();
+    }
+
+    object ^= OneByteString::New("detach", spaces[8]);
+    entry2.set_detach(object);
+    if (!clear_detach_2) {
+      detach2 = object.ptr();
+    }
+  }
+
+  THR_Print("CollectOldSpace\n");
+  GCTestHelper::CollectOldSpace();
+  if (collect_new_space) {
+    THR_Print("CollectNewSpace\n");
+    GCTestHelper::CollectNewSpace();
+  }
+  if (evacuate_new_space_and_collect_old_space) {
+    THR_Print("CollectAllGarbage\n");
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  EXPECT((entry1.value() == Object::null()) ^ !clear_value_1);
+  EXPECT((entry2.value() == Object::null()) ^ !clear_value_2);
+  EXPECT((entry1.detach() == Object::null()) ^ !clear_detach_1);
+  EXPECT((entry2.detach() == Object::null()) ^ !clear_detach_2);
+  EXPECT_NE(Object::null(), entry1.token());
+  EXPECT_NE(Object::null(), entry2.token());
+
+  const intptr_t expect_num_cleared =
+      (clear_value_1 ? 1 : 0) + (clear_value_2 ? 1 : 0);
+  EXPECT_EQ(expect_num_cleared,
+            NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
+
+  EXPECT_EQ(clear_value_1 ? 1 : 0, token1_memory);
+  EXPECT_EQ(clear_value_2 ? 1 : 0, token2_memory);
+
+  const intptr_t expect_num_messages = expect_num_cleared == 0 ? 0 : 1;
+  {
+    // Acquire ownership of message handler queues.
+    MessageHandler::AcquiredQueues aq(handler);
+    EXPECT_EQ(expect_num_messages + queue_length_start, aq.queue()->Length());
+  }
+
+  // Simulate detachments.
+  entry1.set_token(entry1);
+  entry2.set_token(entry2);
+  all_entries_data.SetAt(0, Object::Handle(Object::null()));
+  all_entries_data.SetAt(1, Object::Handle(Object::null()));
+  all_entries.set_used_data(0);
+}
+
+static void NativeFinalizer_TwoEntriesCrossGen(Thread* thread,
+                                               intptr_t test_i) {
+  ASSERT(test_i < (1 << kFinalizerTwoEntriesNumObjects));
+  Heap::Space spaces[kFinalizerTwoEntriesNumObjects];
+  for (intptr_t i = 0; i < kFinalizerTwoEntriesNumObjects; i++) {
+    spaces[i] = ((test_i >> i) & 0x1) == 0x1 ? Heap::kOld : Heap::kNew;
+  }
+  // Either collect or evacuate new space.
+  for (const bool collect_new_space : {true, false}) {
+    // Always run old space collection after new space.
+    const bool evacuate_new_space_and_collect_old_space = true;
+    const bool clear_value_1 = true;
+    const bool clear_value_2 = true;
+    const bool clear_detach_1 = false;
+    const bool clear_detach_2 = false;
+    THR_Print(
+        "collect_new_space: %s evacuate_new_space_and_collect_old_space: %s\n",
+        collect_new_space ? "true" : "false",
+        evacuate_new_space_and_collect_old_space ? "true" : "false");
+    NativeFinalizer_TwoEntriesCrossGen(thread, spaces, collect_new_space,
+                                       evacuate_new_space_and_collect_old_space,
+                                       clear_value_1, clear_value_2,
+                                       clear_detach_1, clear_detach_2);
+  }
+}
+
+#define FINALIZER_NATIVE_CROSS_GEN_TEST_CASE(n)                                \
+  ISOLATE_UNIT_TEST_CASE(NativeFinalizer_CrossGen_##n) {                       \
+    NativeFinalizer_TwoEntriesCrossGen(thread, n);                             \
+  }
+
+REPEAT_512(FINALIZER_NATIVE_CROSS_GEN_TEST_CASE)
+
+#undef FINALIZER_NATIVE_CROSS_GEN_TEST_CASE
+
+#undef REPEAT_512
+
+static ClassPtr GetClass(const Library& lib, const char* name) {
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
+  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  return cls.ptr();
+}
+
+TEST_CASE(ImplementsFinalizable) {
+  Zone* const zone = Thread::Current()->zone();
+
+  const char* kScript = R"(
+import 'dart:ffi';
+
+class AImpl implements A {}
+class ASub extends A {}
+// Wonky class order and non-alhpabetic naming on purpose.
+class C extends Z {}
+class E extends D {}
+class A implements Finalizable {}
+class Z implements A {}
+class D implements C {}
+class X extends E {}
+)";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(h_lib);
+
+  TransitionNativeToVM transition(thread);
+  const Library& lib = Library::CheckedHandle(zone, Api::UnwrapHandle(h_lib));
+  EXPECT(!lib.IsNull());
+
+  const auto& class_x = Class::Handle(zone, GetClass(lib, "X"));
+  ClassFinalizer::FinalizeTypesInClass(class_x);
+  EXPECT(class_x.implements_finalizable());
+
+  const auto& class_a_impl = Class::Handle(zone, GetClass(lib, "AImpl"));
+  ClassFinalizer::FinalizeTypesInClass(class_a_impl);
+  EXPECT(class_a_impl.implements_finalizable());
+
+  const auto& class_a_sub = Class::Handle(zone, GetClass(lib, "ASub"));
+  ClassFinalizer::FinalizeTypesInClass(class_a_sub);
+  EXPECT(class_a_sub.implements_finalizable());
 }
 
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
@@ -3913,13 +5414,6 @@ static FieldPtr GetField(const Class& cls, const char* name) {
       Field::Handle(cls.LookupField(String::Handle(String::New(name))));
   EXPECT(!field.IsNull());
   return field.ptr();
-}
-
-static ClassPtr GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.ptr();
 }
 
 ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
@@ -5078,12 +6572,14 @@ static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
     // Check data, only for non-nested.
     const auto& data1 = Array::Handle(map1.data());
     const auto& data2 = Array::Handle(map2.data());
-    const bool data_length_equal = data1.Length() == data2.Length();
+    const intptr_t data1_length = Smi::Value(map1.used_data());
+    const intptr_t data2_length = Smi::Value(map2.used_data());
+    const bool data_length_equal = data1_length == data2_length;
     bool data_equal = data_length_equal;
     if (data_length_equal) {
       auto& object1 = Instance::Handle();
       auto& object2 = Instance::Handle();
-      for (intptr_t i = 0; i < data1.Length(); i++) {
+      for (intptr_t i = 0; i < data1_length; i++) {
         object1 ^= data1.At(i);
         object2 ^= data2.At(i);
         data_equal &= object1.CanonicalizeEquals(object2);
@@ -5094,14 +6590,14 @@ static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
         THR_Print("LinkedHashBaseEqual Data not equal.\n");
         THR_Print("LinkedHashBaseEqual data1.length %" Pd " data1.length %" Pd
                   " \n",
-                  data1.Length(), data2.Length());
+                  data1_length, data2_length);
         auto& object1 = Instance::Handle();
-        for (intptr_t i = 0; i < data1.Length(); i++) {
+        for (intptr_t i = 0; i < data1_length; i++) {
           object1 ^= data1.At(i);
           THR_Print("LinkedHashBaseEqual data1[%" Pd "] %s\n", i,
                     object1.ToCString());
         }
-        for (intptr_t i = 0; i < data2.Length(); i++) {
+        for (intptr_t i = 0; i < data2_length; i++) {
           object1 ^= data2.At(i);
           THR_Print("LinkedHashBaseEqual data2[%" Pd "] %s\n", i,
                     object1.ToCString());
@@ -5167,7 +6663,7 @@ static LinkedHashMapPtr ConstructImmutableMap(
     const TypeArguments& type_arguments) {
   auto& map = LinkedHashMap::Handle(ImmutableLinkedHashMap::NewUninitialized());
 
-  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
     data.SetAt(i, Object::Handle(input_data.At(i)));
   }
@@ -5558,7 +7054,7 @@ static LinkedHashSetPtr ConstructImmutableSet(
     const TypeArguments& type_arguments) {
   auto& set = LinkedHashSet::Handle(ImmutableLinkedHashSet::NewUninitialized());
 
-  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  const auto& data = Array::Handle(Array::New(used_data));
   for (intptr_t i = 0; i < used_data; i++) {
     data.SetAt(i, Object::Handle(input_data.At(i)));
   }
@@ -5982,6 +7478,23 @@ ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
 #undef EXPECT_NOT_SUBTYPE
 #undef EXPECT_SUBTYPE
 
+static void ExpectTypesEquivalent(const Expect& expect,
+                                  const AbstractType& expected,
+                                  const AbstractType& got,
+                                  TypeEquality kind) {
+  if (got.IsEquivalent(expected, kind)) return;
+  TextBuffer buffer(128);
+  buffer.AddString("Expected type ");
+  expected.PrintName(Object::kScrubbedName, &buffer);
+  buffer.AddString(", got ");
+  got.PrintName(Object::kScrubbedName, &buffer);
+  expect.Fail("%s", buffer.buffer());
+}
+
+#define EXPECT_TYPES_EQUAL(expected, got)                                      \
+  ExpectTypesEquivalent(Expect(__FILE__, __LINE__), expected, got,             \
+                        TypeEquality::kCanonical);
+
 TEST_CASE(Class_GetInstantiationOf) {
   const char* kScript = R"(
     class B<T> {}
@@ -6002,17 +7515,6 @@ TEST_CASE(Class_GetInstantiationOf) {
 
   const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
   const auto& class_list = Class::Handle(zone, GetClass(core_lib, "List"));
-
-  auto expect_type_equal = [](const AbstractType& expected,
-                              const AbstractType& got) {
-    if (got.Equals(expected)) return;
-    TextBuffer buffer(128);
-    buffer.AddString("Expected type ");
-    expected.PrintName(Object::kScrubbedName, &buffer);
-    buffer.AddString(", got ");
-    got.PrintName(Object::kScrubbedName, &buffer);
-    dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
-  };
 
   const auto& decl_type_b = Type::Handle(zone, class_b.DeclarationType());
   const auto& decl_type_list = Type::Handle(zone, class_list.DeclarationType());
@@ -6043,7 +7545,7 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& inst_b_a1 =
         Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
     EXPECT(!inst_b_a1.IsNull());
-    expect_type_equal(type_b_list_a1_y, inst_b_a1);
+    EXPECT_TYPES_EQUAL(type_b_list_a1_y, inst_b_a1);
   }
 
   // Test that A2.GetInstantiationOf(B) returns B<List<A2::X>>.
@@ -6071,8 +7573,342 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& inst_b_a2 =
         Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));
     EXPECT(!inst_b_a2.IsNull());
-    expect_type_equal(type_b_list_a2_x, inst_b_a2);
+    EXPECT_TYPES_EQUAL(type_b_list_a2_x, inst_b_a2);
   }
 }
+
+#undef EXPECT_TYPES_EQUAL
+
+#define EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got)                   \
+  ExpectTypesEquivalent(Expect(__FILE__, __LINE__), expected, got,             \
+                        TypeEquality::kSyntactical);
+
+static TypePtr CreateFutureOrType(const AbstractType& param,
+                                  Nullability nullability) {
+  const auto& async_lib = Library::Handle(Library::AsyncLibrary());
+  const auto& future_or_class =
+      Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
+  const auto& tav = TypeArguments::Handle(TypeArguments::New(1));
+  tav.SetTypeAt(0, param);
+  const auto& type =
+      AbstractType::Handle(Type::New(future_or_class, tav, nullability));
+  return Type::RawCast(
+      ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize));
+}
+
+static TypePtr CreateFutureType(const AbstractType& param,
+                                Nullability nullability) {
+  ObjectStore* const object_store = IsolateGroup::Current()->object_store();
+  const auto& future_class = Class::Handle(object_store->future_class());
+  const auto& tav = TypeArguments::Handle(TypeArguments::New(1));
+  tav.SetTypeAt(0, param);
+  const auto& type = Type::Handle(Type::New(future_class, tav, nullability));
+  return Type::RawCast(
+      ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize));
+}
+
+ISOLATE_UNIT_TEST_CASE(AbstractType_NormalizeFutureOrType) {
+  // This should be kept up to date with any changes in
+  // https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
+
+  ObjectStore* const object_store = IsolateGroup::Current()->object_store();
+
+  auto normalized_future_or = [&](const AbstractType& param,
+                                  Nullability nullability) -> AbstractTypePtr {
+    const auto& type = Type::Handle(CreateFutureOrType(param, nullability));
+    return type.NormalizeFutureOrType(Heap::kNew);
+  };
+
+  // NORM(FutureOr<T>) =
+  //   let S be NORM(T)
+  //   if S is a top type then S
+  {
+    const auto& type = AbstractType::Handle(normalized_future_or(
+        Object::dynamic_type(), Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::dynamic_type(), type);
+  }
+
+  {
+    const auto& type = AbstractType::Handle(
+        normalized_future_or(Object::void_type(), Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::void_type(), type);
+  }
+
+  {
+    const auto& type_nullable_object =
+        Type::Handle(object_store->nullable_object_type());
+    const auto& type = AbstractType::Handle(
+        normalized_future_or(type_nullable_object, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, type);
+  }
+
+  //   if S is Object then S
+
+  {
+    const auto& type_non_nullable_object =
+        Type::Handle(object_store->non_nullable_object_type());
+    const auto& type = AbstractType::Handle(normalized_future_or(
+        type_non_nullable_object, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_non_nullable_object, type);
+  }
+
+  //   if S is Object* then S
+
+  {
+    const auto& type_legacy_object =
+        Type::Handle(object_store->legacy_object_type());
+    const auto& type = AbstractType::Handle(
+        normalized_future_or(type_legacy_object, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_legacy_object, type);
+  }
+
+  //   if S is Never then Future<Never>
+
+  {
+    const auto& type_never = Type::Handle(object_store->never_type());
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_never, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_never, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  //   if S is Null then Future<Null>?
+
+  {
+    const auto& type_null = Type::Handle(object_store->null_type());
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_null, Nullability::kNonNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  //   else FutureOr<S>
+
+  // NORM(T?) =
+  //   let S be NORM(T)
+  //   ...
+  //   if S is FutureOr<R> and R is nullable then S
+
+  {
+    const auto& type_nullable_int =
+        Type::Handle(object_store->nullable_int_type());
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_nullable_int, Nullability::kNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+}
+
+TEST_CASE(AbstractType_InstantiatedFutureOrIsNormalized) {
+  const char* kScript = R"(
+import 'dart:async';
+
+FutureOr<T>? foo<T>() { return null; }
+FutureOr<T?> bar<T>() { return null; }
+)";
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(api_lib);
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+  ObjectStore* const object_store = IsolateGroup::Current()->object_store();
+
+  const auto& null_tav = Object::null_type_arguments();
+  auto instantiate_future_or =
+      [&](const AbstractType& generic,
+          const AbstractType& param) -> AbstractTypePtr {
+    const auto& tav = TypeArguments::Handle(TypeArguments::New(1));
+    tav.SetTypeAt(0, param);
+    return generic.InstantiateFrom(null_tav, tav, kCurrentAndEnclosingFree,
+                                   Heap::kNew);
+  };
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+  const auto& foo = Function::Handle(zone, GetFunction(root_lib, "foo"));
+  const auto& bar = Function::Handle(zone, GetFunction(root_lib, "bar"));
+  const auto& foo_sig = FunctionType::Handle(zone, foo.signature());
+  const auto& bar_sig = FunctionType::Handle(zone, bar.signature());
+
+  const auto& nullable_future_or_T =
+      AbstractType::Handle(zone, foo_sig.result_type());
+  const auto& future_or_nullable_T =
+      AbstractType::Handle(zone, bar_sig.result_type());
+
+  const auto& type_nullable_object =
+      Type::Handle(object_store->nullable_object_type());
+  const auto& type_non_nullable_object =
+      Type::Handle(object_store->non_nullable_object_type());
+  const auto& type_legacy_object =
+      Type::Handle(object_store->legacy_object_type());
+
+  // Testing same cases as AbstractType_NormalizeFutureOrType.
+
+  // FutureOr<T>?[top type] = top type
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, Object::dynamic_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::dynamic_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, Object::void_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::void_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T?>[top type] = top type
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, Object::dynamic_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::dynamic_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, Object::void_type()));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(Object::void_type(), got);
+  }
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T?>[Object] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_non_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T?>[Object*] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_legacy_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T>?[Object] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_non_nullable_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  // FutureOr<T>?[Object*] = Object?
+
+  {
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_legacy_object));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
+  }
+
+  const auto& type_never = Type::Handle(object_store->never_type());
+  const auto& type_null = Type::Handle(object_store->null_type());
+
+  // FutureOr<T?>[Never] = Future<Null>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_never));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[Never] = Future<Never>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_never, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_never));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T?>[Null] = Future<Null>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_null));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[Null] = Future<Null>?
+
+  {
+    const auto& expected =
+        Type::Handle(CreateFutureType(type_null, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_null));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  const auto& type_nullable_int =
+      Type::Handle(object_store->nullable_int_type());
+  const auto& type_non_nullable_int =
+      Type::Handle(object_store->non_nullable_int_type());
+
+  // FutureOr<T?>[int] = FutureOr<int?>
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_non_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T?>[int?] = FutureOr<int?>
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(future_or_nullable_T, type_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[int?] = FutureOr<int?>
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_nullable_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[int] = FutureOr<int>?
+
+  {
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_non_nullable_int, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        instantiate_future_or(nullable_future_or_T, type_non_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+}
+
+#undef EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT
 
 }  // namespace dart

@@ -97,7 +97,13 @@ class DartDevelopmentServiceClient {
   void _registerJsonRpcMethods() {
     _clientPeer.registerMethod('streamListen', (parameters) async {
       final streamId = parameters['streamId'].asString;
-      await dds.streamManager.streamListen(this, streamId);
+      final includePrivates =
+          parameters['_includePrivateMembers'].asBoolOr(false);
+      await dds.streamManager.streamListen(
+        this,
+        streamId,
+        includePrivates: includePrivates,
+      );
       return RPCResponses.success;
     });
 

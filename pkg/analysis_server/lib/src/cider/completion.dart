@@ -54,14 +54,17 @@ class CiderCompletionComputer {
     @visibleForTesting void Function(ResolvedUnitResult)? testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      var resolvedUnit = performance.run('resolution', (performance) {
-        return _fileResolver.resolve(
-          completionLine: line,
-          completionColumn: column,
-          path: path,
-          performance: performance,
-        );
-      });
+      var resolvedUnit = await performance.runAsync(
+        'resolution',
+        (performance) async {
+          return _fileResolver.resolve2(
+            completionLine: line,
+            completionColumn: column,
+            path: path,
+            performance: performance,
+          );
+        },
+      );
 
       if (testResolvedUnit != null) {
         testResolvedUnit(resolvedUnit);
@@ -131,7 +134,7 @@ class CiderCompletionComputer {
       });
 
       var result = CiderCompletionResult._(
-        suggestions: suggestions,
+        suggestions: suggestions.map((e) => e.build()).toList(),
         performance: CiderCompletionPerformance._(
           operations: _performanceRoot.children.first,
         ),
@@ -157,25 +160,25 @@ class CiderCompletionComputer {
   ///
   /// TODO(scheglov) Implement show / hide combinators.
   /// TODO(scheglov) Implement prefixes.
-  List<CompletionSuggestion> _importedLibrariesSuggestions({
+  List<CompletionSuggestionBuilder> _importedLibrariesSuggestions({
     required LibraryElement target,
     required OperationPerformanceImpl performance,
   }) {
-    var suggestions = <CompletionSuggestion>[];
+    var suggestionBuilders = <CompletionSuggestionBuilder>[];
     for (var importedLibrary in target.importedLibraries) {
       var importedSuggestions = _importedLibrarySuggestions(
         element: importedLibrary,
         performance: performance,
       );
-      suggestions.addAll(importedSuggestions);
+      suggestionBuilders.addAll(importedSuggestions);
     }
-    performance.getDataInt('count').add(suggestions.length);
-    return suggestions;
+    performance.getDataInt('count').add(suggestionBuilders.length);
+    return suggestionBuilders;
   }
 
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
-  List<CompletionSuggestion> _importedLibrarySuggestions({
+  List<CompletionSuggestionBuilder> _importedLibrarySuggestions({
     required LibraryElement element,
     required OperationPerformanceImpl performance,
   }) {
@@ -198,13 +201,15 @@ class CiderCompletionComputer {
       );
       _cache._importedLibraries[path] = cacheEntry;
     }
-    return cacheEntry.suggestions;
+    return cacheEntry.suggestionBuilders;
   }
 
   /// Compute all unprefixed suggestions for all elements exported from
   /// the library.
-  List<CompletionSuggestion> _librarySuggestions(LibraryElement element) {
+  List<CompletionSuggestionBuilder> _librarySuggestions(
+      LibraryElement element) {
     var suggestionBuilder = SuggestionBuilder(_dartCompletionRequest);
+    suggestionBuilder.libraryUriStr = element.source.uri.toString();
     var visitor = LibraryElementSuggestionBuilder(
         _dartCompletionRequest, suggestionBuilder);
     var exportMap = element.exportNamespace.definedNames;
@@ -250,7 +255,7 @@ class CiderPosition {
 
 class _CiderImportedLibrarySuggestions {
   final String signature;
-  final List<CompletionSuggestion> suggestions;
+  final List<CompletionSuggestionBuilder> suggestionBuilders;
 
-  _CiderImportedLibrarySuggestions(this.signature, this.suggestions);
+  _CiderImportedLibrarySuggestions(this.signature, this.suggestionBuilders);
 }

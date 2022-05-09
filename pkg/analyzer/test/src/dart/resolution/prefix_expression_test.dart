@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,15 +32,23 @@ void f(A? a) {
           55, 6),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('!a'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: boolElement.getMethod('!'),
-      type: 'bool',
-    );
+    assertResolvedNodeText(findNode.prefix('!a'), r'''
+PrefixExpression
+  operator: !
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@47
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: bool
+    staticType: bool?
+  staticElement: <null>
+  staticType: bool
+''');
   }
 
   test_minus_no_nullShorting() async {
@@ -58,15 +65,23 @@ void f(A? a) {
           50, 1),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('-a'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: intElement.getMethod('unary-'),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.prefix('-a'), r'''
+PrefixExpression
+  operator: -
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@43
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: int
+    staticType: int?
+  staticElement: dart:core::@class::int::@method::unary-
+  staticType: int
+''');
   }
 
   test_plusPlus_depromote() async {
@@ -82,19 +97,20 @@ void f(Object x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'A',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Object',
-      element: findElement.method('+'),
-      type: 'Object',
-    );
-
-    if (hasAssignmentLeftResolution) {
-      assertType(findNode.simple('x;'), 'A');
-    }
+    assertResolvedNodeText(findNode.prefix('++x'), r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@63
+    staticType: null
+  readElement: x@63
+  readType: A
+  writeElement: x@63
+  writeType: Object
+  staticElement: self::@class::A::@method::+
+  staticType: Object
+''');
   }
 
   test_plusPlus_nullShorting() async {
@@ -108,15 +124,27 @@ void f(A? a) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++a'),
-      readElement: findElement.getter('foo'),
-      readType: 'int',
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      element: numElement.getMethod('+'),
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.prefix('++a'), r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@38
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::foo
+  readType: int
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int?
+''');
   }
 
   test_tilde_no_nullShorting() async {
@@ -133,15 +161,23 @@ void f(A? a) {
           50, 1),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('~a'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: intElement.getMethod('~'),
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.prefix('~a'), r'''
+PrefixExpression
+  operator: ~
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@43
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@class::A::@getter::foo
+      staticType: int
+    staticType: int?
+  staticElement: dart:core::@class::int::@method::~
+  staticType: int
+''');
   }
 }
 
@@ -157,23 +193,38 @@ main() {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f();'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['bool'],
-      invokeType: 'bool Function()',
-      type: 'bool',
-    );
-
-    assertPrefixExpression(
-      findNode.prefix('!f()'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: boolElement.getMethod('!'),
-      type: 'bool',
-    );
+    var node = findNode.methodInvocation('f();');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: bool Function()
+  staticType: bool
+  typeArgumentTypes
+    bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: bool* Function()*
+  staticType: bool*
+  typeArgumentTypes
+    bool*
+''');
+    }
   }
 
   test_bang_bool_localVariable() async {
@@ -183,15 +234,30 @@ void f(bool x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('!x'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: boolElement.getMethod('!'),
-      type: 'bool',
-    );
+    var node = findNode.prefix('!x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: bool
+  staticElement: <null>
+  staticType: bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: bool*
+  staticElement: <null>
+  staticType: bool*
+''');
+    }
   }
 
   test_bang_int_localVariable() async {
@@ -203,15 +269,30 @@ void f(int x) {
       error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('!x'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'bool',
-    );
+    var node = findNode.prefix('!x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: int
+  staticElement: <null>
+  staticType: bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: int*
+  staticElement: <null>
+  staticType: bool*
+''');
+    }
   }
 
   test_inc_indexExpression_instance() async {
@@ -226,18 +307,56 @@ void f(A a) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@91
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@91
+      staticType: A*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@method::[]
+  readType: int*
+  writeElement: self::@class::A::@method::[]=
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_indexExpression_super() async {
@@ -254,18 +373,54 @@ class B extends A {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@method::[]
+  readType: int*
+  writeElement: self::@class::A::@method::[]=
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_indexExpression_this() async {
@@ -280,18 +435,54 @@ class A {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@method::[]
+  readType: int*
+  writeElement: self::@class::A::@method::[]=
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_minus_simpleIdentifier_parameter_int() async {
@@ -301,18 +492,32 @@ void f(int x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('-x'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: elementMatcher(
-        intElement.getMethod('unary-'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('-x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: int
+  staticElement: dart:core::@class::int::@method::unary-
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::int::@method::unary-
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_notLValue_extensionOverride() async {
@@ -332,15 +537,60 @@ void f(C c) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('++Ext'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      element: findElement.method('+'),
-      type: 'int',
-    );
+    var node = findNode.prefix('++Ext');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: Ext
+      staticElement: self::@extension::Ext
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: c
+          staticElement: c@89
+          staticType: C
+      rightParenthesis: )
+    extendedType: C
+    staticType: null
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: self::@extension::Ext::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: Ext
+      staticElement: self::@extension::Ext
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: c
+          staticElement: c@89
+          staticType: C*
+      rightParenthesis: )
+    extendedType: C*
+    staticType: null
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: self::@extension::Ext::@method::+
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_notLValue_simpleIdentifier_typeLiteral() async {
@@ -352,15 +602,38 @@ void f() {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
     ]);
 
-    assertPrefixExpression(
-      findNode.prefix('++int'),
-      readElement: intElement,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
-    );
+    var node = findNode.prefix('++int');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: int
+    staticElement: <null>
+    staticType: null
+  readElement: dart:core::@class::int
+  readType: dynamic
+  writeElement: dart:core::@class::int
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: int
+    staticElement: <null>
+    staticType: null
+  readElement: dart:core::@class::int
+  readType: dynamic
+  writeElement: dart:core::@class::int
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    }
   }
 
   test_plusPlus_prefixedIdentifier_instance() async {
@@ -374,22 +647,60 @@ void f(A a) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@35
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@35
+      staticType: A*
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_prefixedIdentifier_topLevel() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -400,24 +711,56 @@ void f() {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-
-    var prefix = findNode.prefix('++');
-    assertPrefixExpression(
-      prefix,
-      readElement: importFind.topGet('x'),
-      readType: 'int',
-      writeElement: importFind.topSet('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
-
-    var prefixed = prefix.operand as PrefixedIdentifier;
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  readElement: package:test/a.dart::@getter::x
+  readType: int
+  writeElement: package:test/a.dart::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  readElement: package:test/a.dart::@getter::x
+  readType: int*
+  writeElement: package:test/a.dart::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_propertyAccess_instance() async {
@@ -431,18 +774,72 @@ void f() {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: self::@class::A
+            staticType: null
+          type: A
+        staticElement: self::@class::A::@constructor::•
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: self::@class::A
+            staticType: null
+          type: A*
+        staticElement: self::@class::A::@constructor::•
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_propertyAccess_super() async {
@@ -462,18 +859,52 @@ class B extends A {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.getter('x', of: 'A'),
-      readType: 'int',
-      writeElement: findElement.setter('x', of: 'A'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_propertyAccess_this() async {
@@ -488,18 +919,52 @@ class A {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++'),
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_simpleIdentifier_parameter_double() async {
@@ -509,18 +974,40 @@ void f(double x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'double',
-      writeElement: findElement.parameter('x'),
-      writeType: 'double',
-      element: elementMatcher(
-        doubleElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  readElement: x@14
+  readType: double
+  writeElement: x@14
+  writeType: double
+  staticElement: dart:core::@class::double::@method::+
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  readElement: x@14
+  readType: double*
+  writeElement: x@14
+  writeType: double*
+  staticElement: MethodMember
+    base: dart:core::@class::double::@method::+
+    isLegacy: true
+  staticType: double*
+''');
+    }
   }
 
   test_plusPlus_simpleIdentifier_parameter_int() async {
@@ -530,18 +1017,40 @@ void f(int x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'int',
-      writeElement: findElement.parameter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  readElement: x@11
+  readType: int
+  writeElement: x@11
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  readElement: x@11
+  readType: int*
+  writeElement: x@11
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_plusPlus_simpleIdentifier_parameter_num() async {
@@ -551,18 +1060,40 @@ void f(num x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'num',
-      writeElement: findElement.parameter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  readElement: x@11
+  readType: num
+  writeElement: x@11
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  readElement: x@11
+  readType: num*
+  writeElement: x@11
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: num*
+''');
+    }
   }
 
   test_plusPlus_simpleIdentifier_parameter_typeParameter() async {
@@ -577,18 +1108,40 @@ void f<T extends num>(T x) {
       ], legacy: []),
     );
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'T',
-      writeElement: findElement.parameter('x'),
-      writeType: 'T',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@24
+    staticType: null
+  readElement: x@24
+  readType: T
+  writeElement: x@24
+  writeType: T
+  staticElement: dart:core::@class::num::@method::+
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@24
+    staticType: null
+  readElement: x@24
+  readType: T*
+  writeElement: x@24
+  writeType: T*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: num*
+''');
+    }
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_superSetter() async {
@@ -605,22 +1158,43 @@ class B extends A {
 }
 ''');
 
-    var prefix = findNode.prefix('++x');
-    assertPrefixExpression(
-      prefix,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::B::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::B::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      prefix.operand,
+      node.operand,
     );
   }
 
@@ -635,22 +1209,43 @@ class A {
 }
 ''');
 
-    var prefix = findNode.prefix('++x');
-    assertPrefixExpression(
-      prefix,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      prefix.operand,
+      node.operand,
     );
   }
 
@@ -665,22 +1260,43 @@ void f() {
 }
 ''');
 
-    var prefix = findNode.prefix('++x');
-    assertPrefixExpression(
-      prefix,
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@getter::x
+  readType: int*
+  writeElement: self::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      prefix.operand,
+      node.operand,
     );
   }
 
@@ -697,22 +1313,43 @@ class A {
 }
 ''');
 
-    var prefix = findNode.prefix('++x');
-    assertPrefixExpression(
-      prefix,
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@getter::x
+  readType: int*
+  writeElement: self::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      prefix.operand,
+      node.operand,
     );
   }
 
@@ -727,18 +1364,40 @@ class A {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('++x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  readElement: self::@getter::x
+  readType: int*
+  writeElement: self::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_tilde_simpleIdentifier_parameter_int() async {
@@ -748,18 +1407,32 @@ void f(int x) {
 }
 ''');
 
-    assertPrefixExpression(
-      findNode.prefix('~x'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: elementMatcher(
-        intElement.getMethod('~'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.prefix('~x');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ~
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: int
+  staticElement: dart:core::@class::int::@method::~
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ~
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::int::@method::~
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 }
 

@@ -25,6 +25,42 @@ const y = x + 1;
     ]);
   }
 
+  test_enum_constant_values() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(values);
+  const E(Object a);
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 1),
+    ]);
+  }
+
+  test_enum_constants() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1(v2), v2(v1);
+  const E(E other);
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 2),
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 19, 2),
+    ]);
+  }
+
+  test_enum_fields() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static const x = y + 1;
+  static const y = x + 1;
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 29, 1),
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 55, 1),
+    ]);
+  }
+
   test_field() async {
     await assertErrorsInCode(r'''
 class A {
@@ -37,9 +73,9 @@ class A {
   }
 
   test_fromMapLiteral() async {
-    newFile(
+    newFile2(
       '$testPackageLibPath/constants.dart',
-      content: r'''
+      r'''
 const int x = y;
 const int y = x;
 ''',

@@ -97,7 +97,7 @@ class NameListener {
 /// `function` or `instanceof`, and their `name` field controls whether they
 /// refer to the same variable.
 class TemporaryNamer extends LocalNamer {
-  _FunctionScope scope;
+  _FunctionScope _scope;
 
   /// Listener to be notified when a name is selected (rename or not) for an
   /// `Identifier`.
@@ -106,23 +106,23 @@ class TemporaryNamer extends LocalNamer {
   final NameListener _nameListener;
 
   TemporaryNamer(Node node, [this._nameListener])
-      : scope = _RenameVisitor.build(node).rootScope;
+      : _scope = _RenameVisitor.build(node).rootScope;
 
   @override
   String getName(Identifier node) {
-    var name = scope.renames[identifierKey(node)] ?? node.name;
+    var name = _scope.renames[identifierKey(node)] ?? node.name;
     _nameListener?.nameSelected(node, name);
     return name;
   }
 
   @override
   void enterScope(Node node) {
-    scope = scope.childScopes[node];
+    _scope = _scope.childScopes[node];
   }
 
   @override
   void leaveScope() {
-    scope = scope.parent;
+    _scope = _scope.parent;
   }
 }
 

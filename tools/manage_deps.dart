@@ -19,8 +19,8 @@
 library bump;
 
 import 'dart:io';
-import 'package:args/command_runner.dart';
 
+import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
 class BumpCommand extends Command<int> {
@@ -36,6 +36,7 @@ This will:
 4. Prompt to create a CL
 ''';
 
+  @override
   String get invocation =>
       './tools/manage_deps.dart bump <path/to/dependency> <options>';
 
@@ -230,6 +231,7 @@ List<String> runProcessForLines(List<String> cmd,
     cmd[0],
     cmd.skip(1).toList(),
     workingDirectory: workingDirectory,
+    environment: {'DEPOT_TOOLS_UPDATE': '0'},
   );
   printSuccessTrailer(result, onFailure);
   final output = (result.stdout as String);

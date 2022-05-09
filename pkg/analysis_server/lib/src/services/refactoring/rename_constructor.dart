@@ -10,8 +10,6 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -55,12 +53,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     // prepare references
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
-    // append declaration
-    if (element.isSynthetic) {
-      await _replaceSynthetic();
-    } else {
-      references.add(_createDeclarationReference());
-    }
     // update references
     for (var reference in references) {
       String replacement;
@@ -69,7 +61,23 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       } else {
         replacement = reference.isConstructorTearOff ? '.new' : '';
       }
+      if (reference.isInvocationByEnumConstantWithoutArguments) {
+        replacement += '()';
+      }
       reference.addEdit(change, replacement);
+    }
+    // Update the declaration.
+    if (element.isSynthetic) {
+      await _replaceSynthetic();
+    } else {
+      doSourceChange_addSourceEdit(
+        change,
+        element.source,
+        newSourceEdit_range(
+          _declarationNameRange(),
+          newName.isNotEmpty ? '.$newName' : '',
+        ),
+      );
     }
   }
 
@@ -88,25 +96,14 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  SourceReference _createDeclarationReference() {
-    SourceRange sourceRange;
+  SourceRange _declarationNameRange() {
     var offset = element.periodOffset;
     var nameEnd = element.nameEnd!;
     if (offset != null) {
-      sourceRange = range.startOffsetEndOffset(offset, nameEnd);
+      return range.startOffsetEndOffset(offset, nameEnd);
     } else {
-      sourceRange = SourceRange(nameEnd, 0);
+      return SourceRange(nameEnd, 0);
     }
-    return SourceReference(SearchMatchImpl(
-        element.source.fullName,
-        element.library.source,
-        element.source,
-        element.library,
-        element,
-        true,
-        true,
-        MatchKind.DECLARATION,
-        sourceRange));
   }
 
   Future<void> _replaceSynthetic() async {
@@ -118,32 +115,46 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       return;
     }
 
-    var classNode = result.node;
-    if (classNode is! ClassDeclaration) {
-      return;
-    }
-
     var resolvedUnit = result.resolvedUnit;
     if (resolvedUnit == null) {
       return;
     }
 
-    var utils = CorrectionUtils(resolvedUnit);
-    var location =
-        utils.prepareNewConstructorLocation(resolvedUnit.session, classNode);
-    if (location == null) {
-      return;
-    }
+    var node = result.node;
+    if (node is ClassDeclaration) {
+      var utils = CorrectionUtils(resolvedUnit);
+      var location = utils.prepareNewConstructorLocation(session, node);
+      if (location == null) {
+        return;
+      }
 
-    var header = '${classElement.name}.$newName();';
-    doSourceChange_addElementEdit(
-      change,
-      classElement,
-      SourceEdit(
-        location.offset,
-        0,
-        location.prefix + header + location.suffix,
-      ),
-    );
+      var header = '${classElement.name}.$newName();';
+      doSourceChange_addElementEdit(
+        change,
+        classElement,
+        SourceEdit(
+          location.offset,
+          0,
+          location.prefix + header + location.suffix,
+        ),
+      );
+    } else if (node is EnumDeclaration) {
+      var utils = CorrectionUtils(resolvedUnit);
+      var location = utils.prepareEnumNewConstructorLocation(node);
+      if (location == null) {
+        return;
+      }
+
+      var header = 'const ${classElement.name}.$newName();';
+      doSourceChange_addElementEdit(
+        change,
+        classElement,
+        SourceEdit(
+          location.offset,
+          0,
+          location.prefix + header + location.suffix,
+        ),
+      );
+    }
   }
 }

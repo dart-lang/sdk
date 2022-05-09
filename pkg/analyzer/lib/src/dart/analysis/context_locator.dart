@@ -125,7 +125,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
 
     for (File file in includedFiles) {
-      Folder parent = file.parent2;
+      Folder parent = file.parent;
 
       var location = _contextRootLocation(
         parent,
@@ -186,7 +186,7 @@ class ContextLocatorImpl implements ContextLocator {
       optionsFile = defaultOptionsFile;
     } else {
       optionsFile = _findOptionsFile(parent);
-      optionsFolderToChooseRoot = optionsFile?.parent2;
+      optionsFolderToChooseRoot = optionsFile?.parent;
     }
 
     File? packagesFile;
@@ -380,17 +380,6 @@ class ContextLocatorImpl implements ContextLocator {
 
     var rootPath = folder.path;
 
-    // TODO(scheglov) Do we need this?
-    if (_hasPackageFileInPath(rootPath)) {
-      // A Bazel or Gn workspace that includes a '.packages' file is treated
-      // like a normal (non-Bazel/Gn) directory. But may still use
-      // package:build or Pub.
-      return PackageBuildWorkspace.find(
-              resourceProvider, packageMap, rootPath) ??
-          PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
-          BasicWorkspace.find(resourceProvider, packageMap, rootPath);
-    }
-
     Workspace? workspace;
     workspace = BazelWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
@@ -478,7 +467,7 @@ class ContextLocatorImpl implements ContextLocator {
               var excludedComponents = posix.split(excludedPath);
               if (pathContext.isRelative(excludedPath)) {
                 excludedComponents = [
-                  ...pathContext.split(optionsFile.parent2.path),
+                  ...pathContext.split(optionsFile.parent.path),
                   ...excludedComponents,
                 ];
               }
@@ -519,16 +508,7 @@ class ContextLocatorImpl implements ContextLocator {
       return file;
     }
 
-    return _getFile(folder, file_paths.dotPackages);
-  }
-
-  /// Return `true` if either the directory at [rootPath] or a parent of that
-  /// directory contains a `.packages` file.
-  bool _hasPackageFileInPath(String rootPath) {
-    var folder = resourceProvider.getFolder(rootPath);
-    return folder.withAncestors.any((current) {
-      return current.getChildAssumingFile('.packages').exists;
-    });
+    return null;
   }
 
   /// Add to the given lists of [folders] and [files] all of the resources in
@@ -558,7 +538,7 @@ class ContextLocatorImpl implements ContextLocator {
   }
 
   static Folder _fileSystemRoot(Resource resource) {
-    for (var current = resource.parent2;; current = current.parent2) {
+    for (var current = resource.parent;; current = current.parent) {
       if (current.isRoot) {
         return current;
       }

@@ -5,40 +5,24 @@
 library fasta.formal_parameter_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
-    show
-        isMandatoryFormalParameterKind,
-        isOptionalNamedFormalParameterKind,
-        isOptionalPositionalFormalParameterKind;
-
-import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show FormalParameterKind;
-
+    show FormalParameterKind, FormalParameterKindExtension;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, VariableDeclaration;
-
 import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
-
-import '../modifier.dart';
-
-import '../scope.dart' show Scope;
-
-import '../source/source_library_builder.dart';
-
 import '../kernel/body_builder.dart' show BodyBuilder;
-
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-
+import '../modifier.dart';
+import '../scope.dart' show Scope;
+import '../source/source_factory_builder.dart';
+import '../source/source_field_builder.dart';
+import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
-
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
-import 'factory_builder.dart';
-import 'field_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -46,18 +30,42 @@ import 'named_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
+abstract class ParameterBuilder {
+  /// List of metadata builders for the metadata declared on this parameter.
+  List<MetadataBuilder>? get metadata;
+  TypeBuilder? get type;
+
+  /// The kind of this parameter, i.e. if it's required, positional optional,
+  /// or named optional.
+  FormalParameterKind get kind;
+
+  bool get isPositional;
+  bool get isRequiredPositional;
+  bool get isNamed;
+  bool get isRequiredNamed;
+
+  String? get name;
+
+  ParameterBuilder clone(
+      List<NamedTypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration);
+}
+
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
 class FormalParameterBuilder extends ModifierBuilderImpl
-    implements VariableBuilder {
+    implements VariableBuilder, ParameterBuilder {
   static const String noNameSentinel = 'no name sentinel';
 
   /// List of metadata builders for the metadata declared on this parameter.
+  @override
   final List<MetadataBuilder>? metadata;
 
   @override
   final int modifiers;
 
+  @override
   final TypeBuilder? type;
 
   @override
@@ -66,9 +74,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   final Uri? fileUri;
 
-  /// The kind of this parameter, i.e. if it's required, positional optional,
-  /// or named optional.
-  FormalParameterKind kind = FormalParameterKind.mandatory;
+  @override
+  final FormalParameterKind kind;
 
   /// The variable declaration created for this formal parameter.
   @override
@@ -87,8 +94,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   final bool isExtensionThis;
 
-  FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      LibraryBuilder? compilationUnit, int charOffset,
+  FormalParameterBuilder(this.metadata, this.kind, this.modifiers, this.type,
+      this.name, LibraryBuilder? compilationUnit, int charOffset,
       {Uri? fileUri, this.isExtensionThis: false})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
         super(compilationUnit, charOffset);
@@ -96,21 +103,23 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   String get debugName => "FormalParameterBuilder";
 
-  // TODO(johnniwinther): Cleanup `isRequired` semantics in face of required
-  // named parameters.
-  bool get isRequired => isMandatoryFormalParameterKind(kind);
+  @override
+  bool get isRequiredPositional => kind.isRequiredPositional;
 
-  // TODO(johnniwinther): Rename to `isRequired`.
-  bool get isNamedRequired => (modifiers & requiredMask) != 0;
+  // TODO(johnniwinther): This was previously named `isOptional` so we might
+  // have some uses that intended to use the now existing `isOptional` method.
+  bool get isOptionalPositional => !isRequiredPositional;
 
-  bool get isPositional {
-    return isOptionalPositionalFormalParameterKind(kind) ||
-        isMandatoryFormalParameterKind(kind);
-  }
+  @override
+  bool get isRequiredNamed => kind.isRequiredNamed;
 
-  bool get isNamed => isOptionalNamedFormalParameterKind(kind);
+  @override
+  bool get isPositional => kind.isPositional;
 
-  bool get isOptional => !isRequired;
+  @override
+  bool get isNamed => kind.isNamed;
+
+  bool get isOptional => kind.isOptional;
 
   @override
   bool get isLocal => true;
@@ -145,10 +154,10 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,
           isFinal: isFinal,
-          isConst: isConst,
+          isConst: false,
           isInitializingFormal: isInitializingFormal,
           isCovariantByDeclaration: isCovariantByDeclaration,
-          isRequired: isNamedRequired,
+          isRequired: isRequiredNamed,
           hasDeclaredInitializer: hasDeclaredInitializer,
           isLowered: isExtensionThis)
         ..fileOffset = charOffset;
@@ -156,22 +165,15 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     return variable!;
   }
 
-  FormalParameterBuilder clone(
+  @override
+  ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
     // how it should be cloned.  Consider cloning it instead of reusing it.
-    return new FormalParameterBuilder(
-        metadata,
-        modifiers,
-        type?.clone(newTypes, contextLibrary, contextDeclaration),
-        name,
-        parent as LibraryBuilder?,
-        charOffset,
-        fileUri: fileUri,
-        isExtensionThis: isExtensionThis)
-      ..kind = kind;
+    return new FunctionTypeParameterBuilder(metadata, kind,
+        type?.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
@@ -180,6 +182,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
           metadata,
+          kind,
           modifiers | finalMask | initializingFormalMask,
           type,
           name,
@@ -192,6 +195,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
           metadata,
+          kind,
           modifiers | finalMask | superInitializingFormalMask,
           type,
           name,
@@ -208,7 +212,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   void finalizeInitializingFormal(ClassBuilder classBuilder) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
-    if (fieldBuilder is FieldBuilder) {
+    if (fieldBuilder is SourceFieldBuilder) {
       variable!.type = fieldBuilder.inferType();
     } else {
       variable!.type = const DynamicType();
@@ -259,4 +263,43 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
     initializerToken = null;
   }
+}
+
+class FunctionTypeParameterBuilder implements ParameterBuilder {
+  @override
+  final List<MetadataBuilder>? metadata;
+
+  @override
+  final FormalParameterKind kind;
+
+  @override
+  final TypeBuilder? type;
+
+  @override
+  final String? name;
+
+  FunctionTypeParameterBuilder(this.metadata, this.kind, this.type, this.name);
+
+  @override
+  ParameterBuilder clone(
+      List<NamedTypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
+    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
+    // how it should be cloned.  Consider cloning it instead of reusing it.
+    return new FunctionTypeParameterBuilder(metadata, kind,
+        type?.clone(newTypes, contextLibrary, contextDeclaration), name);
+  }
+
+  @override
+  bool get isNamed => kind.isNamed;
+
+  @override
+  bool get isRequiredNamed => kind.isRequiredNamed;
+
+  @override
+  bool get isPositional => kind.isPositional;
+
+  @override
+  bool get isRequiredPositional => kind.isRequiredPositional;
 }

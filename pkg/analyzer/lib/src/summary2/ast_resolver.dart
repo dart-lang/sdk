@@ -50,9 +50,13 @@ class AstResolver {
     flowAnalysisHelper: _flowAnalysis,
   );
 
-  AstResolver(this._linker, this._unitElement, this._nameScope, AstNode node,
-      {this.enclosingClassElement, this.enclosingExecutableElement})
-      : _featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
+  AstResolver(
+    this._linker,
+    this._unitElement,
+    this._nameScope, {
+    this.enclosingClassElement,
+    this.enclosingExecutableElement,
+  }) : _featureSet = _unitElement.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
     node.accept(_resolutionVisitor);
@@ -89,14 +93,11 @@ class AstResolver {
       node.accept(_resolutionVisitor);
       // Node may have been rewritten so get it again.
       node = getNode();
-      if (contextType != null) {
-        InferenceContext.setType(node, contextType);
-      }
       node.accept(_scopeResolverVisitor);
     }
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
-    node.accept(_resolverVisitor);
+    _resolverVisitor.analyzeExpression(node, contextType);
     _flowAnalysis.topLevelDeclaration_exit();
   }
 

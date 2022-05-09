@@ -109,13 +109,7 @@ class Timeline {
       _stack.add(null);
       return;
     }
-    var block = new _SyncBlock._(name);
-    if (arguments != null) {
-      block._arguments = arguments;
-    }
-    if (flow != null) {
-      block.flow = flow;
-    }
+    var block = new _SyncBlock._(name, arguments: arguments, flow: flow);
     _stack.add(block);
     block._startSync();
   }
@@ -125,7 +119,7 @@ class Timeline {
     if (!_hasTimeline) {
       return;
     }
-    if (_stack.length == 0) {
+    if (_stack.isEmpty) {
       throw new StateError('Uneven calls to startSync and finishSync');
     }
     // Pop top item off of stack.
@@ -340,31 +334,30 @@ class _SyncBlock {
 
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
-  Map? _arguments;
+  final Map? arguments;
 
   /// An (optional) flow event associated with this block.
-  Flow? _flow;
+  final Flow? flow;
 
-  _SyncBlock._(this.name);
+  late final String _jsonArguments = _argumentsAsJson(arguments);
+
+  _SyncBlock._(this.name, {this.arguments, this.flow});
 
   /// Start this block of time.
   void _startSync() {
-    _reportTaskEvent(0, 'B', category, name, _argumentsAsJson(_arguments));
+    _reportTaskEvent(0, 'B', category, name, _jsonArguments);
   }
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportTaskEvent(0, 'E', category, name, _argumentsAsJson(_arguments));
-    if (_flow != null) {
-      _reportFlowEvent(category, "${_flow!.id}", _flow!._type, _flow!.id,
+    _reportTaskEvent(0, 'E', category, name, _jsonArguments);
+    final Flow? tempFlow = flow;
+    if (tempFlow != null) {
+      _reportFlowEvent(category, "${tempFlow.id}", tempFlow._type, tempFlow.id,
           _argumentsAsJson(null));
     }
-  }
-
-  void set flow(Flow f) {
-    _flow = f;
   }
 }
 

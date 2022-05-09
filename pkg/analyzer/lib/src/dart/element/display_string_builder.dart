@@ -73,6 +73,9 @@ class ElementDisplayStringBuilder {
   void writeEnumElement(EnumElementImpl element) {
     _write('enum ');
     _write(element.displayName);
+    _writeTypeParameters(element.typeParameters);
+    _writeTypesIfNotEmpty(' with ', element.mixins);
+    _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
   void writeExecutableElement(ExecutableElement element, String name) {

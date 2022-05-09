@@ -16,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
@@ -27,6 +28,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/api/model.dart';
+
+/// During evaluation of enum constants we might need to report an error
+/// that is associated with the [InstanceCreationExpression], but this
+/// expression is synthetic. Instead, we remember the corresponding
+/// [EnumConstantDeclaration] and report the error on it.
+final enumConstantErrorNodes = Expando<EnumConstantDeclaration>();
 
 /// Helper class encapsulating the methods for evaluating constants and
 /// constant instance creation expressions.
@@ -101,6 +108,17 @@ class ConstantEvaluationEngine {
                 [dartObject.type, constant.type]);
           }
         }
+
+        if (dartObject != null) {
+          var enumConstant = _enumConstant(constant);
+          if (enumConstant != null) {
+            dartObject.updateEnumConstant(
+              index: enumConstant.index,
+              name: enumConstant.name,
+            );
+          }
+        }
+
         constant.evaluationResult =
             EvaluationResultImpl(dartObject, errorListener.errors);
       }
@@ -176,6 +194,18 @@ class ConstantEvaluationEngine {
   /// [callback].
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
+    if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
+      var enclosing = constant.enclosingElement;
+      if (enclosing is EnumElementImpl) {
+        if (enclosing.name == 'values') {
+          return;
+        }
+        if (constant.name == enclosing.name) {
+          return;
+        }
+      }
+    }
+
     ReferenceFinder referenceFinder = ReferenceFinder(callback);
     if (constant is ConstructorElement) {
       constant = constant.declaration;
@@ -359,6 +389,21 @@ class ConstantEvaluationEngine {
       return null;
     }
     return redirectedConstructor;
+  }
+
+  static _EnumConstant? _enumConstant(VariableElementImpl element) {
+    if (element is ConstFieldElementImpl && element.isEnumConstant) {
+      var enum_ = element.enclosingElement;
+      if (enum_ is EnumElementImpl) {
+        var index = enum_.constants.indexOf(element);
+        assert(index >= 0);
+        return _EnumConstant(
+          index: index,
+          name: element.name,
+        );
+      }
+    }
+    return null;
   }
 
   static DartObjectImpl _nullObject(LibraryElementImpl library) {
@@ -636,7 +681,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
     var typeElement =
-        node.constructorName.type2.name.staticElement as TypeDefiningElement;
+        node.constructorName.type.name.staticElement as TypeDefiningElement;
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
@@ -1917,6 +1962,16 @@ class EvaluationResultImpl {
   }
 }
 
+class _EnumConstant {
+  final int index;
+  final String name;
+
+  _EnumConstant({
+    required this.index,
+    required this.name,
+  });
+}
+
 /// The result of evaluation the initializers declared on a const constructor.
 class _InitializersEvaluationResult {
   /// The result of a const evaluation of an initializer, if one was performed,
@@ -1942,7 +1997,7 @@ class _InitializersEvaluationResult {
 
   /// If a superinitializer was encountered, the arguments passed to the super
   /// constructor, otherwise `null`.
-  final NodeList<Expression>? superArguments;
+  final List<Expression>? superArguments;
 
   _InitializersEvaluationResult(
     this.result, {
@@ -2145,6 +2200,34 @@ class _InstanceCreationEvaluator {
     );
   }
 
+  void _addImplicitArgumentsFromSuperFormals(List<Expression> superArguments) {
+    var positionalIndex = 0;
+    for (var parameter in _constructor.parameters) {
+      if (parameter is SuperFormalParameterElement) {
+        var value = astFactory.simpleIdentifier(
+          StringToken(TokenType.STRING, parameter.name, -1),
+        )
+          ..staticElement = parameter
+          ..staticType = parameter.type;
+        if (parameter.isPositional) {
+          superArguments.insert(positionalIndex++, value);
+        } else {
+          superArguments.add(
+            astFactory.namedExpression(
+              astFactory.label(
+                astFactory.simpleIdentifier(
+                  StringToken(TokenType.STRING, parameter.name, -1),
+                )..staticElement = parameter,
+                StringToken(TokenType.COLON, ':', -1),
+              ),
+              value,
+            )..staticType = value.typeOrThrow,
+          );
+        }
+      }
+    }
+  }
+
   void _checkFields() {
     var fields = _constructor.enclosingElement.fields;
     for (var field in fields) {
@@ -2217,7 +2300,7 @@ class _InstanceCreationEvaluator {
     // If we encounter a superinitializer, store the name of the constructor,
     // and the arguments.
     String? superName;
-    NodeList<Expression>? superArguments;
+    List<Expression>? superArguments;
     for (var initializer in constructorBase.constantInitializers) {
       if (initializer is ConstructorFieldInitializer) {
         var initializerExpression = initializer.expression;
@@ -2249,7 +2332,8 @@ class _InstanceCreationEvaluator {
         if (name != null) {
           superName = name.name;
         }
-        superArguments = initializer.argumentList.arguments;
+        superArguments = initializer.argumentList.arguments.toList();
+        _addImplicitArgumentsFromSuperFormals(superArguments);
       } else if (initializer is RedirectingConstructorInvocation) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
@@ -2286,6 +2370,12 @@ class _InstanceCreationEvaluator {
         }
       }
     }
+
+    if (definingType.superclass != null && superArguments == null) {
+      superArguments = [];
+      _addImplicitArgumentsFromSuperFormals(superArguments);
+    }
+
     return _InitializersEvaluationResult(null,
         evaluationIsComplete: false,
         superName: superName,
@@ -2368,7 +2458,7 @@ class _InstanceCreationEvaluator {
   /// Otherwise these parameters are `null`.
   void _checkSuperConstructorCall({
     required String? superName,
-    required NodeList<Expression>? superArguments,
+    required List<Expression>? superArguments,
   }) {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
@@ -2505,7 +2595,7 @@ class _InstanceCreationEvaluator {
       declaredVariables,
       errorReporter,
       library,
-      node,
+      enumConstantErrorNodes[node] ?? node,
       constructor,
       typeArguments,
       namedNodes: namedNodes,
@@ -2569,7 +2659,7 @@ extension RuntimeExtensions on TypeSystemImpl {
     DartType type,
   ) {
     if (!isNonNullableByDefault) {
-      type = toLegacyType(type);
+      type = toLegacyTypeIfOptOut(type);
     }
     var objType = obj.type;
     return isSubtypeOf(objType, type);

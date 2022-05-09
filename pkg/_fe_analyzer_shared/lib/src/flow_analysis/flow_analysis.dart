@@ -44,6 +44,9 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   final Set<AssignedVariablesNodeInfo<Variable>> _deferredInfos =
       new Set<AssignedVariablesNodeInfo<Variable>>.identity();
 
+  /// Keeps track of whether [finish] has been called.
+  bool _isFinished = false;
+
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
   /// local function, closure, or late variable initializer which might need to
@@ -56,6 +59,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// statement, the body of the switch statement should be covered, but the
   /// switch expression should not.
   void beginNode() {
+    assert(!_isFinished);
     _stack.add(new AssignedVariablesNodeInfo<Variable>());
   }
 
@@ -65,7 +69,9 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// It is not required for the declaration to be seen prior to its use (this
   /// is to allow for error recovery in the analyzer).
   void declare(Variable variable) {
+    assert(!_isFinished);
     _stack.last._declared.add(variable);
+    _anywhere._declared.add(variable);
   }
 
   /// This method may be called during pre-traversal, to mark the end of a
@@ -83,6 +89,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// See [beginNode] for more details.
   AssignedVariablesNodeInfo<Variable> deferNode(
       {bool isClosureOrLateVariableInitializer: false}) {
+    assert(!_isFinished);
     AssignedVariablesNodeInfo<Variable> info = _stack.removeLast();
     info._read.removeAll(info._declared);
     info._written.removeAll(info._declared);
@@ -116,6 +123,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// needed, use [discardNode] to discard the effects of one of the [beginNode]
   /// calls.
   void discardNode() {
+    assert(!_isFinished);
     AssignedVariablesNodeInfo<Variable> discarded = _stack.removeLast();
     AssignedVariablesNodeInfo<Variable> last = _stack.last;
     last._declared.addAll(discarded._declared);
@@ -138,6 +146,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   ///
   /// See [beginNode] for more details.
   void endNode(Node node, {bool isClosureOrLateVariableInitializer: false}) {
+    assert(!_isFinished);
     storeInfo(
         node,
         deferNode(
@@ -148,6 +157,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// Call this after visiting the code to be analyzed, to check invariants.
   void finish() {
     assert(() {
+      assert(!_isFinished);
       assert(
           _deferredInfos.isEmpty, "Deferred infos not stored: $_deferredInfos");
       assert(_stack.length == 1, "Unexpected stack: $_stack");
@@ -164,6 +174,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
           'Variables captured but not declared: $undeclaredCaptures');
       return true;
     }());
+    _isFinished = true;
   }
 
   /// Call this method between calls to [beginNode] and [endNode]/[deferNode],
@@ -174,15 +185,18 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// and sets; their initializers are partially built after building their
   /// loop conditions but before completely building their bodies.
   AssignedVariablesNodeInfo<Variable> popNode() {
+    assert(!_isFinished);
     return _stack.removeLast();
   }
 
   /// Call this method to un-do the effect of [popNode].
   void pushNode(AssignedVariablesNodeInfo<Variable> node) {
+    assert(!_isFinished);
     _stack.add(node);
   }
 
   void read(Variable variable) {
+    assert(!_isFinished);
     _stack.last._read.add(variable);
     _anywhere._read.add(variable);
   }
@@ -205,6 +219,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// This method may be called at any time between a call to [deferNode] and
   /// the call to [finish], to store assigned variable info for the node.
   void storeInfo(Node node, AssignedVariablesNodeInfo<Variable> info) {
+    assert(!_isFinished);
     // Caller should not try to store the same piece of info more than once.
     assert(_deferredInfos.remove(info));
     _info[node] = info;
@@ -221,6 +236,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// This method should be called during pre-traversal, to mark a write to a
   /// variable.
   void write(Variable variable) {
+    assert(!_isFinished);
     _stack.last._written.add(variable);
     _anywhere._written.add(variable);
   }
@@ -326,6 +342,28 @@ class DemoteViaExplicitWrite<Variable extends Object>
 
   @override
   String toString() => 'DemoteViaExplicitWrite($node)';
+}
+
+/// Information gathered by flow analysis about an argument to either
+/// `identical` or `operator ==`.
+class EqualityInfo<Variable extends Object, Type extends Object> {
+  /// The [ExpressionInfo] for the expression.  This is used to determine
+  /// whether the expression is a `null` literal.
+  final ExpressionInfo<Variable, Type>? _expressionInfo;
+
+  /// The type of the expression on the LHS of `==` or `!=`.
+  final Type _type;
+
+  /// If the LHS of `==` or `!=` is a reference, the thing being referred to.
+  /// Otherwise `null`.
+  final ReferenceWithType<Variable, Type>? _reference;
+
+  EqualityInfo._(this._expressionInfo, this._type, this._reference);
+
+  @override
+  String toString() =>
+      'EqualityInfo(expressionInfo: $_expressionInfo, type: $_type, reference: '
+      '$_reference)';
 }
 
 /// A collection of flow models representing the possible outcomes of evaluating
@@ -463,14 +501,27 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [condition] should be the condition of the loop.
   void doStatement_end(Expression condition);
 
-  /// Call this method just after visiting a binary `==` or `!=` expression.
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
-      {bool notEqual = false});
+  /// Call this method just after visiting either side of a binary `==` or `!=`
+  /// expression, or an argument to `identical`.
+  ///
+  /// Returns information about the expression that will later be needed by
+  /// [equalityOperation_end].
+  ///
+  /// Note: the return type is nullable because legacy type promotion doesn't
+  /// need to record information about equality operands.
+  EqualityInfo<Variable, Type>? equalityOperand_end(
+      Expression operand, Type type);
 
-  /// Call this method just after visiting the left hand side of a binary `==`
-  /// or `!=` expression.
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType);
+  /// Call this method just after visiting the operands of a binary `==` or `!=`
+  /// expression, or an invocation of `identical`.
+  ///
+  /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
+  /// [equalityOperand_end].
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
+      {bool notEqual = false});
 
   /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
   /// return `null` if (a) no info is associated with [target], or (b) another
@@ -1090,21 +1141,24 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
-      {bool notEqual = false}) {
-    _wrap(
-        'equalityOp_end($wholeExpression, $rightOperand, $rightOperandType, '
-        'notEqual: $notEqual)',
-        () => _wrapped.equalityOp_end(
-            wholeExpression, rightOperand, rightOperandType,
-            notEqual: notEqual));
-  }
+  EqualityInfo<Variable, Type>? equalityOperand_end(
+          Expression operand, Type type) =>
+      _wrap('equalityOperand_end($operand, $type)',
+          () => _wrapped.equalityOperand_end(operand, type),
+          isQuery: true);
 
   @override
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
-    _wrap('equalityOp_rightBegin($leftOperand, $leftOperandType)',
-        () => _wrapped.equalityOp_rightBegin(leftOperand, leftOperandType));
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
+      {bool notEqual = false}) {
+    _wrap(
+        'equalityOperation_end($wholeExpression, $leftOperandInfo, '
+        '$rightOperandInfo, notEqual: $notEqual)',
+        () => _wrapped.equalityOperation_end(
+            wholeExpression, leftOperandInfo, rightOperandInfo,
+            notEqual: notEqual));
   }
 
   @override
@@ -1722,7 +1776,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
     Map<Variable?, VariableModel<Variable, Type>>? newVariableInfo;
 
     for (Variable variable in writtenVariables) {
-      VariableModel<Variable, Type> info = infoFor(variable);
+      VariableModel<Variable, Type>? info = variableInfo[variable];
+      if (info == null) continue;
       VariableModel<Variable, Type> newInfo =
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
@@ -1734,16 +1789,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     for (Variable variable in capturedVariables) {
       VariableModel<Variable, Type>? info = variableInfo[variable];
-      if (info == null) {
-        (newVariableInfo ??=
-            new Map<Variable?, VariableModel<Variable, Type>>.of(
-                variableInfo))[variable] = new VariableModel<Variable, Type>(
-            promotedTypes: null,
-            tested: const [],
-            assigned: false,
-            unassigned: false,
-            ssaNode: null);
-      } else if (!info.writeCaptured) {
+      if (info == null) continue;
+      if (!info.writeCaptured) {
         (newVariableInfo ??=
             new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = info.writeCapture();
@@ -3399,26 +3446,6 @@ class _DemotionResult<Type extends Object> {
   _DemotionResult(this.promotedTypes, this.nonPromotionHistory);
 }
 
-/// [_FlowContext] representing an equality comparison using `==` or `!=`.
-class _EqualityOpContext<Variable extends Object, Type extends Object>
-    extends _BranchContext<Variable, Type> {
-  /// The type of the expression on the LHS of `==` or `!=`.
-  final Type _leftOperandType;
-
-  /// If the LHS of `==` or `!=` is a reference, the thing being referred to.
-  /// Otherwise `null`.
-  final ReferenceWithType<Variable, Type>? _leftOperandReference;
-
-  _EqualityOpContext(ExpressionInfo<Variable, Type>? conditionInfo,
-      this._leftOperandType, this._leftOperandReference)
-      : super(conditionInfo);
-
-  @override
-  String toString() =>
-      '_EqualityOpContext(conditionInfo: $_conditionInfo, lhsType: '
-      '$_leftOperandType)';
-}
-
 class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
@@ -3456,8 +3483,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Otherwise `null`.
   ReferenceWithType<Variable, Type>? _expressionReference;
 
-  int _functionNestingLevel = 0;
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   /// Indicates whether initializers of implicitly typed variables should be
@@ -3468,7 +3493,20 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final bool respectImplicitlyTypedVarInitializers;
 
   _FlowAnalysisImpl(this.typeOperations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers});
+      {required this.respectImplicitlyTypedVarInitializers}) {
+    if (!_assignedVariables._isFinished) {
+      _assignedVariables.finish();
+    }
+    AssignedVariablesNodeInfo<Variable> anywhere = _assignedVariables._anywhere;
+    Set<Variable> implicitlyDeclaredVars = {
+      ...anywhere._read,
+      ...anywhere._written
+    };
+    implicitlyDeclaredVars.removeAll(anywhere._declared);
+    for (Variable variable in implicitlyDeclaredVars) {
+      declare(variable, true);
+    }
+  }
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
@@ -3580,22 +3618,30 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
+  EqualityInfo<Variable, Type> equalityOperand_end(
+          Expression operand, Type type) =>
+      new EqualityInfo<Variable, Type>._(
+          _getExpressionInfo(operand), type, _getExpressionReference(operand));
+
+  @override
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
       {bool notEqual = false}) {
-    _EqualityOpContext<Variable, Type> context =
-        _stack.removeLast() as _EqualityOpContext<Variable, Type>;
-    ExpressionInfo<Variable, Type>? lhsInfo = context._conditionInfo;
+    // Note: leftOperandInfo and rightOperandInfo are nullable in the base class
+    // to account for the fact that legacy type promotion doesn't record
+    // information about legacy operands.  But since we are currently in full
+    // (post null safety) flow analysis logic, we can safely assume that they
+    // are not null.
     ReferenceWithType<Variable, Type>? lhsReference =
-        context._leftOperandReference;
-    Type leftOperandType = context._leftOperandType;
-    ExpressionInfo<Variable, Type>? rhsInfo = _getExpressionInfo(rightOperand);
+        leftOperandInfo!._reference;
     ReferenceWithType<Variable, Type>? rhsReference =
-        _getExpressionReference(rightOperand);
+        rightOperandInfo!._reference;
     TypeClassification leftOperandTypeClassification =
-        typeOperations.classifyType(leftOperandType);
+        typeOperations.classifyType(leftOperandInfo._type);
     TypeClassification rightOperandTypeClassification =
-        typeOperations.classifyType(rightOperandType);
+        typeOperations.classifyType(rightOperandInfo._type);
     if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
         rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
       booleanLiteral(wholeExpression, !notEqual);
@@ -3609,25 +3655,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // but weak mode it might produce an "equal" result.  We don't want flow
       // analysis behavior to depend on mode, so we conservatively assume that
       // either result is possible.
-    } else if (lhsInfo is _NullInfo<Variable, Type> && rhsReference != null) {
+    } else if (leftOperandInfo._expressionInfo is _NullInfo<Variable, Type> &&
+        rhsReference != null) {
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, rhsReference);
       _storeExpressionInfo(
           wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
-    } else if (rhsInfo is _NullInfo<Variable, Type> && lhsReference != null) {
+    } else if (rightOperandInfo._expressionInfo is _NullInfo<Variable, Type> &&
+        lhsReference != null) {
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, lhsReference);
       _storeExpressionInfo(
           wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
     }
-  }
-
-  @override
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
-    _stack.add(new _EqualityOpContext<Variable, Type>(
-        _getExpressionInfo(leftOperand),
-        leftOperandType,
-        _getExpressionReference(leftOperand)));
   }
 
   @override
@@ -3712,7 +3752,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    ++_functionNestingLevel;
     _current = _current.conservativeJoin(const [], info._written);
     _stack.add(new _FunctionExpressionContext(_current));
     _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
@@ -3721,8 +3760,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void functionExpression_end() {
-    --_functionNestingLevel;
-    assert(_functionNestingLevel >= 0);
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _FunctionExpressionContext<Variable, Type>;
     _current = context._previous;
@@ -4479,12 +4516,16 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void doStatement_end(Expression condition) {}
 
   @override
-  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
-      Type rightOperandType,
-      {bool notEqual = false}) {}
+  EqualityInfo<Variable, Type>? equalityOperand_end(
+          Expression operand, Type type) =>
+      null;
 
   @override
-  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {}
+  void equalityOperation_end(
+      Expression wholeExpression,
+      EqualityInfo<Variable, Type>? leftOperandInfo,
+      EqualityInfo<Variable, Type>? rightOperandInfo,
+      {bool notEqual = false}) {}
 
   @override
   ExpressionInfo<Variable, Type>? expressionInfoForTesting(Expression target) {

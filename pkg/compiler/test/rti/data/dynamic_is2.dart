@@ -6,12 +6,12 @@
 
 /*spec.class: A:explicit=[A*]*/
 class A {
-  /*member: A.instanceMethod:deps=[B.instanceMethod],direct,explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*member: A.instanceMethod:deps=[B.instanceMethod],explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)],test*/
   instanceMethod<T>(t) => t is T;
 }
 
 class B {
-  /*member: B.instanceMethod:implicit=[instanceMethod.T],indirect,needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)]*/
+  /*member: B.instanceMethod:implicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)],test*/
   instanceMethod<T>(A a, t) => a.instanceMethod<T>(t);
 }
 

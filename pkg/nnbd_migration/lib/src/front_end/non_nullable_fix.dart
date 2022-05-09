@@ -57,8 +57,6 @@ class NonNullableFix {
 
   final ResourceProvider resourceProvider;
 
-  final LineInfo Function(String) _getLineInfo;
-
   /// The HTTP server that serves the preview tool.
   HttpPreviewServer? _server;
 
@@ -85,8 +83,8 @@ class NonNullableFix {
   /// Completes when the server has been shutdown.
   late Completer<void> serverIsShutdown;
 
-  NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      this.bindAddress, this._logger, this.shouldBeMigratedFunction,
+  NonNullableFix(this.listener, this.resourceProvider, this.bindAddress,
+      this._logger, this.shouldBeMigratedFunction,
       {List<String> included = const [],
       this.preferredPort,
       this.summaryPath,
@@ -176,7 +174,7 @@ class NonNullableFix {
             ? null
             : MigrationSummary(summaryPath, resourceProvider, includedRoot));
     adapter = NullabilityMigrationAdapter(listener);
-    migration = NullabilityMigration(adapter, _getLineInfo,
+    migration = NullabilityMigration(adapter,
         permissive: true, instrumentation: instrumentationListener);
   }
 
@@ -193,10 +191,11 @@ class NonNullableFix {
     // This method may be called multiple times, for example during a re-run.
     // But the preview server should only be started once.
     if (_server == null) {
-      var wrappedApplyHookWithShutdown = () {
+      void wrappedApplyHookWithShutdown() {
         shutdownServer();
         applyHook();
-      };
+      }
+
       _server = HttpPreviewServer(state, rerun, wrappedApplyHookWithShutdown,
           bindAddress, preferredPort, _logger);
       _server!.serveHttp();
@@ -263,7 +262,7 @@ class NonNullableFix {
         packageMap['languageVersion'] = _intendedLanguageVersion;
         // Pub appears to always use a two-space indent. This will minimize the
         // diff between the previous text and the new text.
-        var newText = JsonEncoder.withIndent('  ').convert(configMap) + '\n';
+        var newText = '${JsonEncoder.withIndent('  ').convert(configMap)}\n';
 
         // TODO(srawlins): This is inelegant. We add an "edit" which replaces
         // the entire content of the package config file with new content, while

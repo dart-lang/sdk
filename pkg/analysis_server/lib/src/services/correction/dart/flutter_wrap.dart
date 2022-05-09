@@ -44,6 +44,16 @@ class FlutterWrap extends MultiCorrectionProducer {
     var widgetExpressions = <Expression>[];
     if (analyzer.hasSelectedNodes) {
       for (var selectedNode in analyzer.selectedNodes) {
+        // If the user has selected exactly a Widget constructor name (without
+        // the argument list), expand the selection.
+        //
+        //    Text('foo')
+        //   [^^^^]
+        var parent = selectedNode.parent;
+        if (selectedNode is ConstructorName &&
+            parent is InstanceCreationExpression) {
+          selectedNode = parent;
+        }
         if (selectedNode is! Expression ||
             !flutter.isWidgetExpression(selectedNode)) {
           return;

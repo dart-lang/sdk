@@ -3,12 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 _fe_analyzer_shared/lib/src/parser/parser/Exports: Fail
-_fe_analyzer_shared/lib/src/scanner/abstract_scanner/ImportsTwice: Fail
 _fe_analyzer_shared/lib/src/scanner/scanner/Exports: Fail
-_fe_analyzer_shared/lib/src/scanner/string_scanner/ImportsTwice: Fail
-_fe_analyzer_shared/lib/src/scanner/token_impl/ImportsTwice: Fail
-_fe_analyzer_shared/lib/src/scanner/utf8_bytes_scanner/ImportsTwice: Fail
-front_end/lib/src/api_prototype/compiler_options/ImportsTwice: Fail
 front_end/lib/src/api_prototype/compiler_options/Exports: Fail
 front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
 front_end/lib/src/api_prototype/front_end/Exports: Fail
@@ -17,11 +12,7 @@ front_end/lib/src/api_prototype/language_version/Exports: Fail
 front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail
 front_end/lib/src/api_prototype/terminal_color_support/Exports: Fail
 front_end/lib/src/fasta/fasta_codes/Exports: Fail
-front_end/lib/src/fasta/incremental_compiler/ImportsTwice: Fail
-front_end/lib/src/fasta/kernel/body_builder/ImportsTwice: Fail
 front_end/lib/src/fasta/messages/Exports: Fail
-front_end/lib/src/fasta/source/value_kinds/ImportsTwice: Fail
 front_end/lib/src/testing/id_testing_helper/Exports: Fail
 kernel/lib/ast/Exports: Fail
 kernel/lib/kernel/Exports: Fail
-kernel/lib/testing/type_parser_environment/ImportsTwice: Fail

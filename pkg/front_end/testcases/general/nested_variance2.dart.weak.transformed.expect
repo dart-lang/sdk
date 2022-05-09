@@ -1,0 +1,203 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+// Try changing type arguments so that they conform to the bounds.
+//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
+//                     ^
+// pkg/front_end/testcases/general/nested_variance2.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
+// class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
+//                                                         ^
+// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Context: If you want 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
+//  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//  - 'Object' is from 'dart:core'.
+//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
+//                     ^
+//
+// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
+// Try changing type arguments so that they conform to the bounds.
+//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
+//                     ^
+// pkg/front_end/testcases/general/nested_variance2.dart:49:27: Context: This is the type variable whose bound isn't conformed to.
+// typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
+//                           ^
+// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Context: If you want 'FinvCyclicCoBound<dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
+//  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//  - 'Object' is from 'dart:core'.
+//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
+//                     ^
+//
+// pkg/front_end/testcases/general/nested_variance2.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()' because 'Null' is nullable and 'Never' isn't.
+//  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
+//                                          ^
+//
+// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+// Try changing type arguments so that they conform to the bounds.
+//   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
+//                        ^
+// pkg/front_end/testcases/general/nested_variance2.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
+// class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
+//                                                         ^
+// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Context: If you want 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'B<AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>>' must then satisfy its bounds, which it does not.
+//  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//  - 'Object' is from 'dart:core'.
+//   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
+//                        ^
+//
+// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
+// Try changing type arguments so that they conform to the bounds.
+//   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
+//                        ^
+// pkg/front_end/testcases/general/nested_variance2.dart:49:27: Context: This is the type variable whose bound isn't conformed to.
+// typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
+//                           ^
+// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Context: If you want 'FinvCyclicCoBound<dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'B<AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>>' must then satisfy its bounds, which it does not.
+//  - 'B' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//  - 'Object' is from 'dart:core'.
+//   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<invariant X extends core::Object? = dynamic> = <Y extends X% = dynamic>() → void;
+typedef Fcov<X extends core::Object? = dynamic> = () → X%;
+typedef Fcon<contravariant X extends core::Object? = dynamic> = (X%) → dynamic;
+typedef Finv<invariant X extends core::Object? = dynamic> = (X%) → X%;
+typedef FcovBound<X extends core::num> = () → X;
+typedef FconBound<contravariant X extends core::num> = (X) → dynamic;
+typedef FinvBound<invariant X extends core::num> = (X) → X;
+typedef FcovCyclicBound<X extends self::A<X> = self::A<dynamic>> = () → X;
+typedef FconCyclicBound<contravariant X extends self::A<X> = self::A<Never>> = (X) → dynamic;
+typedef FinvCyclicBound<invariant X extends self::A<X> = self::A<dynamic>> = (X) → X;
+typedef FcovCyclicCoBound<X extends (X) → dynamic = (Never) → dynamic> = () → X;
+typedef FconCyclicCoBound<contravariant X extends (X) → dynamic = (dynamic) → dynamic> = (X) → dynamic;
+typedef FinvCyclicCoBound<invariant X extends (X) → dynamic = (dynamic) → dynamic> = (X) → X;
+class Acov<X extends () → self::Acov::Y% = () → dynamic, Y extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Acov<self::Acov::X, self::Acov::Y%>
+    : super core::Object::•()
+    ;
+}
+class Acon<X extends (self::Acon::Y%) → dynamic = (Never) → dynamic, Y extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Acon<self::Acon::X, self::Acon::Y%>
+    : super core::Object::•()
+    ;
+}
+class Ainv<X extends (self::Ainv::Y%) → self::Ainv::Y% = (dynamic) → dynamic, Y extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Ainv<self::Ainv::X, self::Ainv::Y%>
+    : super core::Object::•()
+    ;
+}
+class AcovBound<X extends () → self::AcovBound::Y = () → core::num, Y extends core::num> extends core::Object {
+  synthetic constructor •() → self::AcovBound<self::AcovBound::X, self::AcovBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AconBound<X extends (self::AconBound::Y) → dynamic = (Never) → dynamic, Y extends core::num> extends core::Object {
+  synthetic constructor •() → self::AconBound<self::AconBound::X, self::AconBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AinvBound<X extends (self::AinvBound::Y) → self::AinvBound::Y = (core::num) → core::num, Y extends core::num> extends core::Object {
+  synthetic constructor •() → self::AinvBound<self::AinvBound::X, self::AinvBound::Y>
+    : super core::Object::•()
+    ;
+}
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+class AcovCyclicBound<X extends () → self::AcovCyclicBound::Y = () → self::A<dynamic>, Y extends self::A<self::AcovCyclicBound::Y> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::AcovCyclicBound<self::AcovCyclicBound::X, self::AcovCyclicBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AconCyclicBound<X extends (self::AconCyclicBound::Y) → dynamic = (Never) → dynamic, Y extends self::A<self::AconCyclicBound::Y> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::AconCyclicBound<self::AconCyclicBound::X, self::AconCyclicBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AinvCyclicBound<X extends (self::AinvCyclicBound::Y) → self::AinvCyclicBound::Y = (self::A<dynamic>) → self::A<dynamic>, Y extends self::A<self::AinvCyclicBound::Y> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::AinvCyclicBound<self::AinvCyclicBound::X, self::AinvCyclicBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AcovCyclicCoBound<X extends () → self::AcovCyclicCoBound::Y = () → (Never) → dynamic, Y extends (self::AcovCyclicCoBound::Y) → dynamic = (Never) → dynamic> extends core::Object {
+  synthetic constructor •() → self::AcovCyclicCoBound<self::AcovCyclicCoBound::X, self::AcovCyclicCoBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y) → dynamic = (Never) → dynamic, Y extends (self::AconCyclicCoBound::Y) → dynamic = (Never) → dynamic> extends core::Object {
+  synthetic constructor •() → self::AconCyclicCoBound<self::AconCyclicCoBound::X, self::AconCyclicCoBound::Y>
+    : super core::Object::•()
+    ;
+}
+class AinvCyclicCoBound<X extends (self::AinvCyclicCoBound::Y) → self::AinvCyclicCoBound::Y = ((Never) → dynamic) → (Never) → dynamic, Y extends (self::AinvCyclicCoBound::Y) → dynamic = (Never) → dynamic> extends core::Object {
+  synthetic constructor •() → self::AinvCyclicCoBound<self::AinvCyclicCoBound::X, self::AinvCyclicCoBound::Y>
+    : super core::Object::•()
+    ;
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+}
+static method toF<X extends core::Object? = dynamic>(self::toF::X% x) → <Y extends self::toF::X% = dynamic>() → void
+  return throw "";
+static method testTypeAliasAsTypeArgument(self::Acov<() → dynamic, dynamic> source1, self::Acon<(Never) → dynamic, dynamic> source2, self::Ainv<(dynamic) → dynamic, dynamic> source3, self::AcovBound<() → core::num, core::num> source4, self::AconBound<(Never) → dynamic, core::num> source5, self::AinvBound<(core::num) → core::num, core::num> source6, self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>> source7, self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>> source8, self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic> source10, self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic> source11) → void {
+  <Y extends self::Acov<() → dynamic, dynamic> = dynamic>() → void fsource1 = self::toF<self::Acov<() → dynamic, dynamic>>(source1);
+  <Y extends self::Acov<() → dynamic, dynamic> = dynamic>() → void target1 = fsource1;
+  <Y extends self::Acon<(Never) → dynamic, dynamic> = dynamic>() → void fsource2 = self::toF<self::Acon<(Never) → dynamic, dynamic>>(source2);
+  <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void target2 = invalid-expression "pkg/front_end/testcases/general/nested_variance2.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()' because 'Null' is nullable and 'Never' isn't.
+ - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+  F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
+                                         ^" in fsource2;
+  <Y extends self::Ainv<(dynamic) → dynamic, dynamic> = dynamic>() → void fsource3 = self::toF<self::Ainv<(dynamic) → dynamic, dynamic>>(source3);
+  <Y extends self::Ainv<(dynamic) → dynamic, dynamic> = dynamic>() → void target3 = fsource3;
+  <Y extends self::AcovBound<() → core::num, core::num> = dynamic>() → void fsource4 = self::toF<self::AcovBound<() → core::num, core::num>>(source4);
+  <Y extends self::AcovBound<() → core::num, core::num> = dynamic>() → void target4 = fsource4;
+  <Y extends self::AconBound<(Never) → dynamic, core::num> = dynamic>() → void fsource5 = self::toF<self::AconBound<(Never) → dynamic, core::num>>(source5);
+  <Y extends self::AconBound<(Never) → dynamic, core::num> = dynamic>() → void target5 = fsource5;
+  <Y extends self::AinvBound<(core::num) → core::num, core::num> = dynamic>() → void fsource6 = self::toF<self::AinvBound<(core::num) → core::num, core::num>>(source6);
+  <Y extends self::AinvBound<(core::num) → core::num, core::num> = dynamic>() → void target6 = fsource6;
+  <Y extends self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>> = dynamic>() → void fsource7 = self::toF<self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>>>(source7);
+  <Y extends self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>> = dynamic>() → void target7 = fsource7;
+  <Y extends self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>> = dynamic>() → void fsource8 = self::toF<self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>>>(source8);
+  <Y extends self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>> = dynamic>() → void target8 = fsource8;
+  self::AinvCyclicBound<(self::A<dynamic>) → self::A<dynamic>, self::A<dynamic>> source9 = throw "";
+  <Y extends self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic> = dynamic>() → void fsource10 = self::toF<self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic>>(source10);
+  <Y extends self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic> = dynamic>() → void target10 = fsource10;
+  <Y extends self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic> = dynamic>() → void fsource11 = self::toF<self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic>>(source11);
+  <Y extends self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic> = dynamic>() → void target11 = fsource11;
+  self::AinvCyclicCoBound<((Never) → dynamic) → (Never) → dynamic, (Never) → dynamic> source12 = throw "";
+}
+static method testNested(self::B<self::Acov<() → dynamic, dynamic>> source1, self::B<self::Acon<(Never) → dynamic, dynamic>> source2, self::B<self::Ainv<(dynamic) → dynamic, dynamic>> source3, self::B<self::AcovBound<() → core::num, core::num>> source4, self::B<self::AconBound<(Never) → dynamic, core::num>> source5, self::B<self::AinvBound<(core::num) → core::num, core::num>> source6, self::B<self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>>> source7, self::B<self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>>> source8, self::B<self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic>> source10, self::B<self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic>> source11) → void {
+  <Y extends self::B<self::Acov<() → dynamic, dynamic>> = dynamic>() → void fsource1 = self::toF<self::B<self::Acov<() → dynamic, dynamic>>>(source1);
+  <Y extends self::B<self::Acov<() → dynamic, dynamic>> = dynamic>() → void target1 = fsource1;
+  <Y extends self::B<self::Acon<(Never) → dynamic, dynamic>> = dynamic>() → void fsource2 = self::toF<self::B<self::Acon<(Never) → dynamic, dynamic>>>(source2);
+  <Y extends self::B<self::Acon<(Never) → dynamic, dynamic>> = dynamic>() → void target2 = fsource2;
+  <Y extends self::B<self::Ainv<(dynamic) → dynamic, dynamic>> = dynamic>() → void fsource3 = self::toF<self::B<self::Ainv<(dynamic) → dynamic, dynamic>>>(source3);
+  <Y extends self::B<self::Ainv<(dynamic) → dynamic, dynamic>> = dynamic>() → void target3 = fsource3;
+  <Y extends self::B<self::AcovBound<() → core::num, core::num>> = dynamic>() → void fsource4 = self::toF<self::B<self::AcovBound<() → core::num, core::num>>>(source4);
+  <Y extends self::B<self::AcovBound<() → core::num, core::num>> = dynamic>() → void target4 = fsource4;
+  <Y extends self::B<self::AconBound<(Never) → dynamic, core::num>> = dynamic>() → void fsource5 = self::toF<self::B<self::AconBound<(Never) → dynamic, core::num>>>(source5);
+  <Y extends self::B<self::AconBound<(Never) → dynamic, core::num>> = dynamic>() → void target5 = fsource5;
+  <Y extends self::B<self::AinvBound<(core::num) → core::num, core::num>> = dynamic>() → void fsource6 = self::toF<self::B<self::AinvBound<(core::num) → core::num, core::num>>>(source6);
+  <Y extends self::B<self::AinvBound<(core::num) → core::num, core::num>> = dynamic>() → void target6 = fsource6;
+  <Y extends self::B<self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>>> = dynamic>() → void fsource7 = self::toF<self::B<self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>>>>(source7);
+  <Y extends self::B<self::AcovCyclicBound<() → self::A<dynamic>, self::A<dynamic>>> = dynamic>() → void target7 = fsource7;
+  <Y extends self::B<self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>>> = dynamic>() → void fsource8 = self::toF<self::B<self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>>>>(source8);
+  <Y extends self::B<self::AconCyclicBound<(Never) → dynamic, self::A<dynamic>>> = dynamic>() → void target8 = fsource8;
+  self::B<self::AinvCyclicBound<(self::A<dynamic>) → self::A<dynamic>, self::A<dynamic>>> source9 = throw "";
+  <Y extends self::B<self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic>> = dynamic>() → void fsource10 = self::toF<self::B<self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic>>>(source10);
+  <Y extends self::B<self::AcovCyclicCoBound<() → (Never) → dynamic, (Never) → dynamic>> = dynamic>() → void target10 = fsource10;
+  <Y extends self::B<self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic>> = dynamic>() → void fsource11 = self::toF<self::B<self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic>>>(source11);
+  <Y extends self::B<self::AconCyclicCoBound<(Never) → dynamic, (Never) → dynamic>> = dynamic>() → void target11 = fsource11;
+  self::B<self::AinvCyclicCoBound<((Never) → dynamic) → (Never) → dynamic, (Never) → dynamic>> source12 = throw "";
+}
+static method main() → dynamic {}

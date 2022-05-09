@@ -1550,7 +1550,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       this.protobufHandler,
       PragmaAnnotationParser? matcher)
       : annotationMatcher =
-            matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
+            matcher ?? new ConstantPragmaAnnotationParser(coreTypes, target) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
         _genericInterfacesInfo, environment, target.flags.enableNullSafety);

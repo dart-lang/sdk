@@ -265,7 +265,6 @@ class PageSpaceController {
                                  int64_t start,
                                  int64_t end);
   void EvaluateAfterLoading(SpaceUsage after);
-  void HintFreed(intptr_t size);
 
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
@@ -359,7 +358,6 @@ class PageSpace {
   void EvaluateAfterLoading() {
     page_space_controller_.EvaluateAfterLoading(usage_);
   }
-  void HintFreed(intptr_t size) { page_space_controller_.HintFreed(size); }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
   int64_t CapacityInWords() const {
@@ -436,6 +434,8 @@ class PageSpace {
 
   bool ShouldStartIdleMarkSweep(int64_t deadline);
   bool ShouldPerformIdleMarkCompact(int64_t deadline);
+  void NotifyIdle(int64_t deadline);
+  void AssistTasks(MonitorLocker* ml);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
@@ -578,7 +578,7 @@ class PageSpace {
                             int64_t pre_wait_for_sweepers,
                             int64_t pre_safe_point);
   void SweepLarge();
-  void Sweep();
+  void Sweep(bool exclusive);
   void ConcurrentSweep(IsolateGroup* isolate_group);
   void Compact(Thread* thread);
 
@@ -616,6 +616,8 @@ class PageSpace {
   OldPage* large_pages_ = nullptr;
   OldPage* large_pages_tail_ = nullptr;
   OldPage* image_pages_ = nullptr;
+  OldPage* sweep_regular_ = nullptr;
+  OldPage* sweep_large_ = nullptr;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;

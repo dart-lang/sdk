@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   /*member: Class1.method1:*/
@@ -18,7 +18,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*spec.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,needsInst=[<num*>,<num*>]*/
+  /*spec.member: Class2.method4:explicit=[method4.T*],needsArgs,needsInst=[<num*>,<num*>],test*/
   num method4<T>(T n) => null;
 }
 
@@ -28,17 +28,17 @@ class Class3 {
 }
 
 class Class4 {
-  /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs*/
+  /*spec.member: Class4.method6:explicit=[method6.T*],needsArgs,test*/
   num method6<T>(num n, T t) => null;
 }
 
-/*spec.member: method7:direct,explicit=[method7.T*],needsArgs,needsInst=[<num*>,<num*>]*/
+/*spec.member: method7:explicit=[method7.T*],needsArgs,needsInst=[<num*>,<num*>],test*/
 num method7<T>(T n) => null;
 
 /*member: method8:*/
 T method8<T>(num n) => null;
 
-/*spec.member: method9:direct,explicit=[method9.T*],needsArgs*/
+/*spec.member: method9:explicit=[method9.T*],needsArgs,test*/
 num method9<T>(num n, T t) => null;
 
 @pragma('dart2js:noInline')
@@ -47,13 +47,13 @@ test(o) => o is num Function(num);
 forceInstantiation(num Function(num) f) => f;
 
 main() {
-  Expect.isFalse(test(new Class1().method1));
-  Expect.isFalse(test(new Class1().method2));
-  Expect.isFalse(test(new Class1().method3));
-  Expect.isTrue(test(forceInstantiation(new Class2().method4)));
-  Expect.isTrue(test(forceInstantiation(new Class3().method5)));
-  Expect.isFalse(test(new Class4().method6));
-  Expect.isTrue(test(forceInstantiation(method7)));
-  Expect.isTrue(test(forceInstantiation(method8)));
-  Expect.isFalse(test(method9));
+  makeLive(test(new Class1().method1));
+  makeLive(test(new Class1().method2));
+  makeLive(test(new Class1().method3));
+  makeLive(test(forceInstantiation(new Class2().method4)));
+  makeLive(test(forceInstantiation(new Class3().method5)));
+  makeLive(test(new Class4().method6));
+  makeLive(test(forceInstantiation(method7)));
+  makeLive(test(forceInstantiation(method8)));
+  makeLive(test(method9));
 }

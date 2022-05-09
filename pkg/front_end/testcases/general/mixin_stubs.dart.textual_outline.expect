@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class Super {
   void concreteExtendsConcreteMixin() {}
   void concreteExtendsAbstractMixin() {}

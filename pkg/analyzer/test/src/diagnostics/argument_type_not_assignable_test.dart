@@ -85,6 +85,27 @@ n(int i) {}
 ''');
   }
 
+  test_enumConstant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(0);
+  const E(String a);
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 13, 1),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 13, 1),
+    ]);
+  }
+
+  test_enumConstant_implicitDouble() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(0);
+  const E(double a);
+}
+''');
+  }
+
   test_expressionFromConstructorTearoff_withoutTypeArgs() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -189,7 +210,7 @@ main() {
 mixin ArgumentTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_ambiguousClassName() async {
     // See dartbug.com/19624
-    newFile('$testPackageLibPath/lib2.dart', content: '''
+    newFile2('$testPackageLibPath/lib2.dart', '''
 class _A {}
 g(h(_A a)) {}''');
     await assertErrorsInCode('''
@@ -217,6 +238,17 @@ main() {}
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3),
     ]);
+  }
+
+  test_annotation_type_arguments_inferred() async {
+    await assertNoErrorsInCode('''
+@C([])
+int i = 0;
+
+class C<T> {
+  const C(List<List<T>> arg);
+}
+''');
   }
 
   test_annotation_unnamedConstructor() async {

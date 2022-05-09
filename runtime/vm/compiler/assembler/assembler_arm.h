@@ -354,7 +354,7 @@ class FieldAddress : public Address {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false);
+                     intptr_t far_branch_level = 0);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -614,9 +614,12 @@ class Assembler : public AssemblerBase {
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
-                                   bool exit_safepoint);
+                                   bool exit_safepoint,
+                                   bool ignore_unwind_in_progress = false);
   void EnterFullSafepoint(Register scratch0, Register scratch1);
-  void ExitFullSafepoint(Register scratch0, Register scratch1);
+  void ExitFullSafepoint(Register scratch0,
+                         Register scratch1,
+                         bool ignore_unwind_in_progress);
 
   // Miscellaneous instructions.
   void clrex();
@@ -773,7 +776,6 @@ class Assembler : public AssemblerBase {
                   ObjectPoolBuilderEntry::Patchability patchable =
                       ObjectPoolBuilderEntry::kNotPatchable,
                   CodeEntryKind entry_kind = CodeEntryKind::kNormal);
-  void BranchLinkToRuntime();
 
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const Code& code,
@@ -1256,12 +1258,7 @@ class Assembler : public AssemblerBase {
   // Requires a scratch register in addition to the assembler temporary.
   void EmitEntryFrameVerification(Register scratch);
 
-  // Create a frame for calling into runtime that preserves all volatile
-  // registers.  Frame's SP is guaranteed to be correctly aligned and
-  // frame_space bytes are reserved under it.
-  void EnterCallRuntimeFrame(intptr_t frame_space);
-  void LeaveCallRuntimeFrame();
-
+  // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to

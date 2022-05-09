@@ -578,8 +578,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Expression argument, int index, Set<String> usedNames) {
     // append type name
     var type = argument.staticType;
+    var library = dartFileEditBuilder.resolvedUnit.libraryElement;
     if (type == null || type.isBottom || type.isDartCoreNull) {
       type = DynamicTypeImpl.instance;
+    }
+    if (argument is NamedExpression &&
+        library.isNonNullableByDefault &&
+        type.nullabilitySuffix == NullabilitySuffix.none) {
+      write('required ');
     }
     if (writeType(type, addSupertypeProposals: true, groupName: 'TYPE$index')) {
       write(' ');
@@ -954,7 +960,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       name = expression.methodName.name;
     } else if (expression is InstanceCreationExpression) {
       var constructorName = expression.constructorName;
-      var typeName = constructorName.type2;
+      var typeName = constructorName.type;
       var typeNameIdentifier = typeName.name;
       // new ClassName()
       if (typeNameIdentifier is SimpleIdentifier) {
@@ -1350,9 +1356,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void addInsertion(
-          int offset, void Function(DartEditBuilder builder) buildEdit) =>
+          int offset, void Function(DartEditBuilder builder) buildEdit,
+          {bool insertBeforeExisting = false}) =>
       super.addInsertion(
-          offset, (builder) => buildEdit(builder as DartEditBuilder));
+          offset, (builder) => buildEdit(builder as DartEditBuilder),
+          insertBeforeExisting: insertBeforeExisting);
 
   @override
   void addReplacement(SourceRange range,
@@ -1499,15 +1507,18 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Prepare information about existing imports.
     LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
-    PartDirective? partDirective;
+    ExportDirective? firstExportDirective;
+    PartDirective? firstPartDirective;
     var unit = resolvedUnit.unit;
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
         importDirectives.add(directive);
+      } else if (directive is ExportDirective) {
+        firstExportDirective ??= directive;
       } else if (directive is PartDirective) {
-        partDirective = directive;
+        firstPartDirective ??= directive;
       }
     }
 
@@ -1626,7 +1637,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
                 builder.writeln();
               }
             } else {
-              if (isLastExistingDart || isLastExistingPackage) {
+              if (!isDart && (isLastExistingDart || isLastExistingPackage)) {
                 builder.writeln();
               }
             }
@@ -1654,9 +1665,22 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    // Insert imports: before a part directive.
-    if (partDirective != null) {
-      addInsertion(partDirective.offset, (EditBuilder builder) {
+    // Insert imports: before any export directives.
+    if (firstExportDirective != null) {
+      addInsertion(firstExportDirective.offset, (EditBuilder builder) {
+        for (var i = 0; i < importList.length; i++) {
+          var import = importList[i];
+          writeImport(builder, import);
+          builder.writeln();
+        }
+        builder.writeln();
+      });
+      return;
+    }
+
+    // Insert imports: before any part directives.
+    if (firstPartDirective != null) {
+      addInsertion(firstPartDirective.offset, (EditBuilder builder) {
         for (var i = 0; i < importList.length; i++) {
           var import = importList[i];
           writeImport(builder, import);
@@ -1673,19 +1697,36 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (unit.declarations.isNotEmpty) {
       offset = unit.declarations.first.offset;
       insertEmptyLineAfter = true;
+    } else if (fileEdit.edits.isNotEmpty) {
+      // If this file has edits (besides the imports) the imports should go
+      // at the same offset as those edits and _not_ at `unit.end`. This is
+      // because if the document is non-zero length, `unit.end` could be after
+      // where the new edits will be inserted, but imports should go before
+      // generated non-import code.
+
+      // Edits are always sorted such that the first one has the lowest offset.
+      offset = fileEdit.edits.first.offset;
+
+      // Also ensure there's a blank line between the imports and the other
+      // code.
+      insertEmptyLineAfter = fileEdit.edits.isNotEmpty;
     } else {
       offset = unit.end;
     }
-    addInsertion(offset, (EditBuilder builder) {
-      for (var i = 0; i < importList.length; i++) {
-        var import = importList[i];
-        writeImport(builder, import);
-        builder.writeln();
-        if (i == importList.length - 1 && insertEmptyLineAfter) {
+    addInsertion(
+      offset,
+      (EditBuilder builder) {
+        for (var i = 0; i < importList.length; i++) {
+          var import = importList[i];
+          writeImport(builder, import);
           builder.writeln();
+          if (i == importList.length - 1 && insertEmptyLineAfter) {
+            builder.writeln();
+          }
         }
-      }
-    });
+      },
+      insertBeforeExisting: true,
+    );
   }
 
   /// Return the import element used to import the given [element] into the

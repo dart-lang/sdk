@@ -1,5 +1,4 @@
 // @dart = 2.9
-// @dart = 2.9
 extension Extension on int {
   Class operator [](Class cls) => new Class();
   void operator []=(Class cls, Class value) {}

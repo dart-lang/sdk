@@ -48,10 +48,13 @@ class CreateClass extends CorrectionProducer {
     } else {
       return;
     }
-    if (!mightBeTypeIdentifier(nameNode)) {
+
+    final className = nameOfType(nameNode);
+    if (className == null) {
       return;
     }
-    className = nameNode.name;
+    this.className = className;
+
     // prepare environment
     Element targetUnit;
     var prefix = '';

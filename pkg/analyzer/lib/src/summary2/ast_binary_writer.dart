@@ -166,7 +166,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     // We need to inform the applier about the right shape of the AST.
     // _sink.writeByte(node.name != null ? 1 : 0);
 
-    _writeNode(node.type2);
+    _writeNode(node.type);
     _writeOptionalNode(node.name);
 
     _sink.writeElement(node.staticElement);
@@ -356,6 +356,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNode(node.condition);
     _writeNode(node.thenElement);
     _writeOptionalNode(node.elseElement);
+  }
+
+  @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _writeByte(Tag.ImplicitCallReference);
+    _writeNode(node.expression);
+    _writeOptionalNode(node.typeArguments);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+
+    _sink.writeElement(node.staticElement);
+
+    _storeExpression(node);
   }
 
   @override

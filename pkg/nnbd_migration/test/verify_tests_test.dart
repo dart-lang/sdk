@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 
 void main() {
   var provider = PhysicalResourceProvider.INSTANCE;

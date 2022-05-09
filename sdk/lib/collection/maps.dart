@@ -125,9 +125,9 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   }
 
   void addAll(Map<K, V> other) {
-    for (K key in other.keys) {
-      this[key] = other[key] as V;
-    }
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
   }
 
   bool containsValue(Object? value) {

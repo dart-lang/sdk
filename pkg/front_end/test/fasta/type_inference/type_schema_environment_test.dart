@@ -46,13 +46,13 @@ class TypeSchemaEnvironmentTest {
         "the core library and the test library.");
     Library firstLibrary = typeParserEnvironment.component.libraries.first;
     Library secondLibrary = typeParserEnvironment.component.libraries.last;
-    if (firstLibrary.importUri.scheme == "dart" &&
+    if (firstLibrary.importUri.isScheme("dart") &&
         firstLibrary.importUri.path == "core") {
       _coreLibrary = firstLibrary;
       _testLibrary = secondLibrary;
     } else {
       assert(
-          secondLibrary.importUri.scheme == "dart" &&
+          secondLibrary.importUri.isScheme("dart") &&
               secondLibrary.importUri.path == "core",
           "One of the libraries is expected to be 'dart:core'.");
       _coreLibrary == secondLibrary;

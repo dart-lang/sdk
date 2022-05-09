@@ -64,6 +64,7 @@ part of dart.core;
 /// For example, the [String.contains] method will use a [RangeError]
 /// if its `startIndex` isn't in the range `0..length`,
 /// which is easily created by `RangeError.range(startIndex, 0, length)`.
+@pragma('flutter:keep-to-string-in-subtypes')
 class Error {
   Error(); // Prevent use as mixin.
 
@@ -461,6 +462,7 @@ class FallThroughError extends Error {
 ///
 /// No longer used in Dart 2 where it has become a compile-time error
 /// to call the constructor of an abstract class.
+@Deprecated("No longer relevant in Dart 2.0")
 class AbstractClassInstantiationError extends Error {
   final String _className;
   AbstractClassInstantiationError(String className) : _className = className;

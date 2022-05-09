@@ -35,8 +35,10 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/built_value_transformer.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
+import 'package:nnbd_migration/src/utilities/where_not_null_transformer.dart';
 import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
 import 'package:nnbd_migration/src/variables.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -124,10 +126,13 @@ class FixBuilder {
   /// equivalents.
   final WhereOrNullTransformer _whereOrNullTransformer;
 
-  /// Indicates whether an import of package:collection's `IterableExtension`
-  /// will need to be added.
+  /// Helper that assists us in transforming calls to `Iterable.where` to
+  /// `Iterable.whereNotNull`.
+  final WhereNotNullTransformer _whereNotNullTransformer;
+
+  /// The set of extensions that need to be imported from package:collection.
   @visibleForTesting
-  bool needsIterableExtension = false;
+  final Set<String> neededCollectionPackageExtensions = {};
 
   /// Map of additional package dependencies that will be required by the
   /// migrated code.  Keys are package names; values indicate the minimum
@@ -178,7 +183,9 @@ class FixBuilder {
       this._neededPackages)
       : typeProvider = _typeSystem.typeProvider,
         _whereOrNullTransformer =
-            WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem) {
+            WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem),
+        _whereNotNullTransformer =
+            WhereNotNullTransformer(_typeSystem.typeProvider, _typeSystem) {
     migrationResolutionHooks._fixBuilder = this;
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
@@ -331,6 +338,8 @@ class MigrationResolutionHooksImpl
   final Map<MethodInvocation, DartType Function(DartType)>
       _deferredMethodInvocationProcessing = {};
 
+  final Map<Expression, DartType?> _contextTypes = {};
+
   TypeProvider get typeProvider => _fixBuilder!.typeProvider;
 
   @override
@@ -341,7 +350,7 @@ class MigrationResolutionHooksImpl
   }
 
   @override
-  List<InterfaceType> getClassInterfaces(ClassElementImpl element) {
+  List<InterfaceType> getClassInterfaces(AbstractClassElementImpl element) {
     return _wrapExceptions(
         _fixBuilder!.unit,
         () => element.interfacesInternal,
@@ -376,17 +385,14 @@ class MigrationResolutionHooksImpl
   @override
   List<ParameterElement> getExecutableParameters(
       ExecutableElementImpl element) {
-    if (_fixBuilder!._graph.isBeingMigrated(element.library.source)) {
-      // The element is part of a library that's being migrated, so its
-      // parameters all have been visited (and thus have their own final
-      // types).  So we don't need to do anything.
-      return const ElementTypeProvider().getExecutableParameters(element);
-    } else {
-      // The element is not part of a library that's being migrated, so its
-      // parameters probably haven't been visited; we need to get the parameters
-      // from the final function type.
-      return getExecutableType(element).parameters;
-    }
+    // Note: even if the element is part of a library that's being migrated,
+    // there's no guarantee that the parameter elements have been appropriately
+    // updated by the migration process, because they might be synthetic
+    // parameters.  (This happens when the code being migrated contains a mixin
+    // application and there's a synthetic constructor).  So we can't safely get
+    // the parameters out of the element.  But it is always safe to defer to
+    // `getExecutableType` and get the parameter list from the function type.
+    return getExecutableType(element).parameters;
   }
 
   @override
@@ -514,8 +520,10 @@ class MigrationResolutionHooksImpl
   }
 
   @override
-  DartType modifyExpressionType(Expression node, DartType type) =>
+  DartType modifyExpressionType(
+          Expression node, DartType type, DartType? contextType) =>
       _wrapExceptions(node, () => type, () {
+        _contextTypes[node] = contextType;
         if (node is NamedExpression) {
           // Do not attempt to modify named expressions.  We should already have
           // been called for [node.expression], and we should have made the
@@ -551,6 +559,12 @@ class MigrationResolutionHooksImpl
       return postMigrationType;
     }
     return type;
+  }
+
+  @override
+  void reportBinaryExpressionContext(
+      BinaryExpression node, DartType? contextType) {
+    _contextTypes[node] = contextType;
   }
 
   @override
@@ -593,6 +607,15 @@ class MigrationResolutionHooksImpl
     (_fixBuilder!._getChange(node) as NodeChangeForExpression)
         .addExpressionChange(change, info);
     return change.resultType;
+  }
+
+  /// Ensures that the migrated file will contain an import of the extension
+  /// called [extensionName] from `package:collection/collection.dart`, and that
+  /// the pubspec will be appropriately updated (if necessary).
+  void _addCollectionPackageExtension(String extensionName) {
+    _fixBuilder!.neededCollectionPackageExtensions.add(extensionName);
+    _fixBuilder!._neededPackages['collection'] =
+        Version.parse('1.15.0-nullsafety.4');
   }
 
   DartType _addNullCheck(Expression node, DartType type,
@@ -720,35 +743,15 @@ class MigrationResolutionHooksImpl
     }
     if (type.isDynamic) return type;
     var ancestor = _findNullabilityContextAncestor(node);
-    context ??=
-        InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
+    context ??= _contextTypes[ancestor] ?? DynamicTypeImpl.instance;
     if (!_isSubtypeOrCoercible(type, context)) {
-      var transformationInfo =
-          _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
-      if (transformationInfo != null) {
-        // We can fix this by dropping the node and changing the method call.
-        _fixBuilder!.needsIterableExtension = true;
-        _fixBuilder!._neededPackages['collection'] =
-            Version.parse('1.15.0-nullsafety.4');
-        var info = AtomicEditInfo(
-            NullabilityFixDescription.changeMethodName(
-                transformationInfo.originalName,
-                transformationInfo.replacementName),
-            {});
-        (_fixBuilder!._getChange(transformationInfo.methodInvocation.methodName)
-                as NodeChangeForMethodName)
-            .replaceWith(transformationInfo.replacementName, info);
-        (_fixBuilder!._getChange(
-                    transformationInfo.methodInvocation.argumentList)
-                as NodeChangeForArgumentList)
-            .dropArgument(transformationInfo.orElseArgument, info);
-        _deferredMethodInvocationProcessing[
-                transformationInfo.methodInvocation] =
-            (methodInvocationType) => _fixBuilder!._typeSystem
-                .makeNullable(methodInvocationType as TypeImpl);
-        return type;
-      }
-      return _addCastOrNullCheck(node, type, context);
+      return _tryTransformOrElse(node, type) ??
+          _tryTransformWhere(node, type) ??
+          _addCastOrNullCheck(node, type, context);
+    } else {
+      // Even if the type is a subtype of its context, we still want to
+      // transform `.where`.
+      type = _tryTransformWhere(node, type) ?? type;
     }
     if (!_fixBuilder!._typeSystem.isNullable(type)) return type;
     if (_needsNullCheckDueToStructure(ancestor)) {
@@ -838,6 +841,63 @@ class MigrationResolutionHooksImpl
         .map(_transformCollectionElement)
         .whereType<CollectionElement>()
         .toList();
+  }
+
+  /// If [node] is an `orElse` argument to an iterable method that should be
+  /// transformed, transforms it and returns [type] (this indicates to the
+  /// caller that no further transformations to this expression need to be
+  /// considered); otherwise returns `null`.
+  DartType? _tryTransformOrElse(Expression node, DartType type) {
+    var transformationInfo =
+        _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
+    if (transformationInfo != null) {
+      // We can fix this by dropping the node and changing the method call.
+      _addCollectionPackageExtension('IterableExtension');
+      var info = AtomicEditInfo(
+          NullabilityFixDescription.changeMethodName(
+              transformationInfo.originalName,
+              transformationInfo.replacementName),
+          {});
+      (_fixBuilder!._getChange(transformationInfo.methodInvocation.methodName)
+              as NodeChangeForMethodName)
+          .replaceWith(transformationInfo.replacementName, info);
+      (_fixBuilder!._getChange(transformationInfo.methodInvocation.argumentList)
+              as NodeChangeForArgumentList)
+          .dropArgument(transformationInfo.orElseArgument, info);
+      _deferredMethodInvocationProcessing[transformationInfo.methodInvocation] =
+          (methodInvocationType) => _fixBuilder!._typeSystem
+              .makeNullable(methodInvocationType as TypeImpl);
+      return type;
+    }
+    return null;
+  }
+
+  /// If [node] is a call to `Iterable.where` that should be transformed,
+  /// transforms it and returns the type of the transformed method call (this
+  /// indicates to the caller that no further transformations to this expression
+  /// need to be considered); otherwise returns `null`.
+  DartType? _tryTransformWhere(Expression node, DartType type) {
+    var transformationInfo = _fixBuilder!._whereNotNullTransformer
+        .tryTransformMethodInvocation(node);
+    if (transformationInfo != null) {
+      // We can fix this by dropping the method call's argument and changing the
+      // call.
+      _addCollectionPackageExtension('IterableNullableExtension');
+      var info = AtomicEditInfo(
+          NullabilityFixDescription.changeMethodName(
+              transformationInfo.originalName,
+              transformationInfo.replacementName),
+          {});
+      (_fixBuilder!._getChange(transformationInfo.methodInvocation.methodName)
+              as NodeChangeForMethodName)
+          .replaceWith(transformationInfo.replacementName, info);
+      (_fixBuilder!._getChange(transformationInfo.methodInvocation.argumentList)
+              as NodeChangeForArgumentList)
+          .dropArgument(transformationInfo.argument, info);
+      return _fixBuilder!._whereNotNullTransformer
+          .transformPostMigrationInvocationType(type);
+    }
+    return null;
   }
 
   /// Runs the computation in [compute].  If an exception occurs and
@@ -1005,19 +1065,25 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
           .removeLanguageVersionComment = true;
     }
-    if (_fixBuilder.needsIterableExtension) {
+    if (_fixBuilder.neededCollectionPackageExtensions.isNotEmpty) {
       var packageCollectionImport =
           _findImportDirective(node, 'package:collection/collection.dart');
       if (packageCollectionImport != null) {
         for (var combinator in packageCollectionImport.combinators) {
           if (combinator is ShowCombinator) {
-            _ensureShows(combinator, 'IterableExtension');
+            for (var extensionName
+                in _fixBuilder.neededCollectionPackageExtensions) {
+              _ensureShows(combinator, extensionName);
+            }
           }
         }
       } else {
-        (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
-            .addImport(
-                'package:collection/collection.dart', 'IterableExtension');
+        var change =
+            _fixBuilder._getChange(node) as NodeChangeForCompilationUnit;
+        for (var extensionName
+            in _fixBuilder.neededCollectionPackageExtensions) {
+          change.addImport('package:collection/collection.dart', extensionName);
+        }
       }
     }
     super.visitCompilationUnit(node);
@@ -1239,25 +1305,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isGetter && node.isAbstract) {
-      for (var annotation in node.metadata) {
-        if (annotation.arguments == null) {
-          var element = annotation.element;
-          if (element is PropertyAccessorElement &&
-              element.name == 'nullable') {
-            if (element.enclosingElement is CompilationUnitElement) {
-              if (element.library.source.uri.toString() ==
-                  'package:built_value/built_value.dart') {
-                var info = AtomicEditInfo(
-                    NullabilityFixDescription.removeNullableAnnotation, {});
-                (_fixBuilder._getChange(node) as NodeChangeForMethodDeclaration)
-                  ..annotationToRemove = annotation
-                  ..removeAnnotationInfo = info;
-              }
-            }
-          }
-        }
-      }
+    var nullableAnnotation = BuiltValueTransformer.findNullableAnnotation(node);
+    if (nullableAnnotation != null) {
+      var info = AtomicEditInfo(
+          NullabilityFixDescription.removeNullableAnnotation, {});
+      (_fixBuilder._getChange(node) as NodeChangeForMethodDeclaration)
+        ..annotationToRemove = nullableAnnotation
+        ..removeAnnotationInfo = info;
     }
     super.visitMethodDeclaration(node);
   }

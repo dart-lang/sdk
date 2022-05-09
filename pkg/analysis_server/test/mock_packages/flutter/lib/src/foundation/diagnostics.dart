@@ -7,7 +7,9 @@ mixin DiagnosticableMixin {}
 
 mixin Diagnosticable {}
 
-abstract class DiagnosticableTree with Diagnosticable {}
+abstract class DiagnosticableTree with Diagnosticable {
+  const DiagnosticableTree();
+}
 
 class DiagnosticPropertiesBuilder {
   void add(DiagnosticsNode property) {}

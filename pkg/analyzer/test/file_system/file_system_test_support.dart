@@ -84,7 +84,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     Folder destination = provider.getFolder(join(tempPath, 'destination'));
 
     File copy = file.copyTo(destination);
-    expect(copy.parent2, destination);
+    expect(copy.parent, destination);
     expect(copy.shortName, file.shortName);
     expect(copy.exists, isTrue);
     expect(copy.readAsStringSync(), 'contents');
@@ -111,11 +111,11 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_delete_existing() {
     File file = getFile(exists: true);
     expect(file.exists, isTrue);
-    expect(file.parent2.getChildren(), contains(file));
+    expect(file.parent.getChildren(), contains(file));
 
     file.delete();
     expect(file.exists, isFalse);
-    expect(file.parent2.getChildren(), isNot(contains(file)));
+    expect(file.parent.getChildren(), isNot(contains(file)));
   }
 
   test_delete_notExisting();
@@ -232,7 +232,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_parent2() {
     File file = getFile(exists: true);
 
-    var parent = file.parent2;
+    var parent = file.parent;
     expect(parent.exists, isTrue);
     expect(parent.path, defaultFolderPath);
   }
@@ -497,7 +497,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
         getFolder(exists: true, folderPath: join(tempPath, 'destination'));
 
     Folder copy = source.copyTo(destination);
-    expect(copy.parent2, destination);
+    expect(copy.parent, destination);
     _verifyStructure(copy, source);
   }
 
@@ -512,7 +512,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_delete() {
     File file =
         getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
-    var folder = file.parent2;
+    var folder = file.parent;
     expect(folder.exists, isTrue);
     expect(file.exists, isTrue);
 
@@ -665,9 +665,9 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     expect(children, hasLength(3));
     children.sort((a, b) => a.shortName.compareTo(b.shortName));
     // check that each child exists
-    children.forEach((child) {
+    for (var child in children) {
       expect(child.exists, true);
-    });
+    }
     // check names
     expect(children[0].shortName, 'a.txt');
     expect(children[1].shortName, 'bFolder');
@@ -781,7 +781,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_parent() {
     Folder folder = getFolder(exists: true);
 
-    var parent = folder.parent2;
+    var parent = folder.parent;
     expect(parent.path, equals(tempPath));
     //
     // Since the OS is in control of where tempPath is, we don't know how far it
@@ -789,7 +789,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     // in a folder with a shorter path, and that we reach the root eventually.
     //
     while (true) {
-      var grandParent = parent.parent2;
+      var grandParent = parent.parent;
       if (grandParent.isRoot) {
         break;
       }

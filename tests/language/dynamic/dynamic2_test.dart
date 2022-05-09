@@ -5,14 +5,14 @@
 // Test the prohibited use of 'dynamic' in extending and implementing classes.
 
 class A
-//    ^
-// [cfe] The type 'dynamic' can't be used as supertype.
   extends dynamic
   //      ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
+  // [cfe] The type 'dynamic' can't be used as supertype.
   implements dynamic
   //         ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
+  // [cfe] The type 'dynamic' can't be used as supertype.
 {}
 
 main() {

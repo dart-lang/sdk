@@ -1,0 +1,4 @@
+// @dart = 2.16
+enum A { a; A() : super(); }
+enum B { b; const B() : super(); }
+main() {}

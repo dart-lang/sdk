@@ -1,0 +1,11 @@
+enum E with M1 {
+  e1,
+  e2,
+  e3;
+}
+
+expectEquals(x, y) {}
+main() {}
+mixin M1 on Enum {
+  int mixedInMethod1(int v) => v;
+}

@@ -4,7 +4,9 @@
 
 // @dart = 2.7
 
-/*spec.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
+import 'package:compiler/src/util/testing.dart';
+
+/*spec.class: Class:explicit=[Class.T*],implicit=[Class.T],needsArgs,test*/
 /*prod.class: Class:needsArgs*/
 class Class<T> {
   method() {
@@ -17,7 +19,7 @@ class Class<T> {
     // async.errorHandler callback.
     list.forEach(
         /*needsSignature*/
-        (x) => print(x));
+        (x) => makeLive(x));
   }
 }
 

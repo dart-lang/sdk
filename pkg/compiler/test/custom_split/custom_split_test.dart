@@ -24,8 +24,11 @@ const List<String> tests = [
   'diamond_and',
   'diamond_fuse',
   'diamond_or',
+  'fuse_with_and',
+  'fuse_with_or',
   'two_step',
   'two_branch',
+  'just_fuse',
 ];
 
 Map<String, List<String>> createPerTestOptions() {

@@ -28,7 +28,7 @@ f(int a, int? b) {
   }
 
   test_equal_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var a = 0;
 ''');
@@ -91,7 +91,7 @@ f(int a, int? b) {
   }
 
   test_notEqual_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var a = 0;
 ''');

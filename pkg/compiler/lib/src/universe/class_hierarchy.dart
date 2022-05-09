@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
+import '../kernel/element_map.dart' show KernelToElementMap;
 import '../serialization/serialization.dart';
 import 'class_set.dart';
 
@@ -14,11 +15,11 @@ import 'class_set.dart';
 abstract class ClassHierarchy {
   /// Deserializes a [ClassHierarchy] object from [source].
   factory ClassHierarchy.readFromDataSource(
-          DataSource source, CommonElements commonElements) =
+          DataSourceReader source, CommonElements commonElements) =
       ClassHierarchyImpl.readFromDataSource;
 
   /// Serializes this [ClassHierarchy] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
@@ -169,7 +170,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       this._commonElements, this._classHierarchyNodes, this._classSets);
 
   factory ClassHierarchyImpl.readFromDataSource(
-      DataSource source, CommonElements commonElements) {
+      DataSourceReader source, CommonElements commonElements) {
     source.begin(tag);
     Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
         ClassHierarchyNodesMap();
@@ -191,7 +192,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(_classSets.length);
     ClassHierarchyNode node =
@@ -574,9 +575,9 @@ class ClassHierarchyBuilder {
   final Map<ClassEntity, Set<ClassEntity>> mixinUses = {};
 
   final CommonElements _commonElements;
-  final ClassQueries _classQueries;
+  final KernelToElementMap _elementMap;
 
-  ClassHierarchyBuilder(this._commonElements, this._classQueries);
+  ClassHierarchyBuilder(this._commonElements, this._elementMap);
 
   ClassHierarchy close() {
     assert(
@@ -589,18 +590,18 @@ class ClassHierarchyBuilder {
   }
 
   void registerClass(ClassEntity cls) {
-    _ensureClassSet(_classQueries.getDeclaration(cls));
+    _ensureClassSet(cls);
   }
 
   ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
     return _classHierarchyNodes.putIfAbsent(cls, () {
       ClassHierarchyNode parentNode;
-      ClassEntity superclass = _classQueries.getSuperClass(cls);
+      ClassEntity superclass = _elementMap.getSuperClass(cls);
       if (superclass != null) {
         parentNode = _ensureClassHierarchyNode(superclass);
       }
       return ClassHierarchyNode(
-          parentNode, cls, _classQueries.getHierarchyDepth(cls));
+          parentNode, cls, _elementMap.getHierarchyDepth(cls));
     });
   }
 
@@ -609,14 +610,14 @@ class ClassHierarchyBuilder {
       ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
       ClassSet classSet = ClassSet(node);
 
-      for (InterfaceType type in _classQueries.getSupertypes(cls)) {
+      for (InterfaceType type in _elementMap.getSuperTypes(cls)) {
         // TODO(johnniwinther): Optimization: Avoid adding [cls] to
         // superclasses.
         ClassSet subtypeSet = _ensureClassSet(type.element);
         subtypeSet.addSubtype(node);
       }
 
-      ClassEntity appliedMixin = _classQueries.getAppliedMixin(cls);
+      ClassEntity appliedMixin = _elementMap.getAppliedMixin(cls);
       while (appliedMixin != null) {
         // TODO(johnniwinther): Use the data stored in [ClassSet].
         registerMixinUse(cls, appliedMixin);
@@ -630,7 +631,7 @@ class ClassHierarchyBuilder {
         //    class C = Object with B;
         //
         // we need to register that C not only mixes in B but also A.
-        appliedMixin = _classQueries.getAppliedMixin(appliedMixin);
+        appliedMixin = _elementMap.getAppliedMixin(appliedMixin);
       }
       return classSet;
     });
@@ -641,7 +642,7 @@ class ClassHierarchyBuilder {
     // subtype set.
     ClassEntity cls = node.cls;
     if (cls != _commonElements.functionClass &&
-        _classQueries.implementsFunction(cls)) {
+        _elementMap.implementsFunction(cls)) {
       ClassSet subtypeSet = _ensureClassSet(_commonElements.functionClass);
       subtypeSet.addSubtype(node);
     }
@@ -910,32 +911,6 @@ class _LiveSet {
     }
     return false;
   }
-}
-
-abstract class ClassQueries {
-  /// Returns the declaration of [cls].
-  ClassEntity getDeclaration(covariant ClassEntity cls);
-
-  /// Returns the class mixed into [cls] if any.
-  // TODO(johnniwinther): Replace this by a `getAppliedMixins` function that
-  // return transitively mixed in classes like in:
-  //     class A {}
-  //     class B = Object with A;
-  //     class C = Object with B;
-  ClassEntity getAppliedMixin(covariant ClassEntity cls);
-
-  /// Returns the hierarchy depth of [cls].
-  int getHierarchyDepth(covariant ClassEntity cls);
-
-  /// Returns `true` if [cls] implements `Function` either explicitly or through
-  /// a `call` method.
-  bool implementsFunction(covariant ClassEntity cls);
-
-  /// Returns the superclass of [cls] if any.
-  ClassEntity getSuperClass(covariant ClassEntity cls);
-
-  /// Returns all supertypes of [cls].
-  Iterable<InterfaceType> getSupertypes(covariant ClassEntity cls);
 }
 
 /// Enum values defining subset of classes included in queries.

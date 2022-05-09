@@ -345,7 +345,7 @@ class Isolate {
   /// of the isolate identified by [controlPort],
   /// the pause request is ignored by the receiving isolate.
   Capability pause([Capability? resumeCapability]) {
-    resumeCapability ??= new Capability();
+    resumeCapability ??= Capability();
     _pause(resumeCapability);
     return resumeCapability;
   }
@@ -533,12 +533,12 @@ class Isolate {
       var listMessage = message as List<Object?>;
       var errorDescription = listMessage[0] as String;
       var stackDescription = listMessage[1] as String;
-      var error = new RemoteError(errorDescription, stackDescription);
+      var error = RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }
 
     controller.onListen = () {
-      RawReceivePort receivePort = new RawReceivePort(handleError);
+      RawReceivePort receivePort = RawReceivePort(handleError);
       port = receivePort;
       this.addErrorListener(receivePort.sendPort);
     };
@@ -616,6 +616,9 @@ abstract class SendPort implements Capability {
   ///     therefore not be sent.
   ///   - [ReceivePort]
   ///   - [DynamicLibrary]
+  ///   - [Finalizable]
+  ///   - [Finalizer]
+  ///   - [NativeFinalizer]
   ///   - [Pointer]
   ///   - [UserTag]
   ///   - `MirrorReference`
@@ -765,7 +768,7 @@ class RemoteError implements Error {
   final StackTrace stackTrace;
   RemoteError(String description, String stackDescription)
       : _description = description,
-        stackTrace = new StackTrace.fromString(stackDescription);
+        stackTrace = StackTrace.fromString(stackDescription);
   String toString() => _description;
 }
 

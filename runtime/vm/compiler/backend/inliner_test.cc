@@ -230,7 +230,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
 
       // Loop body
       kMatchAndMoveTargetEntry,
-      kWordSize == 4 ? kMatchAndMoveBoxInt64 : kNop,
       kMatchAndMoveBoxInt64,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBinaryInt64Op,

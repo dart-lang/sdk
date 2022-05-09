@@ -95,4 +95,12 @@ class DoesNotExtend implements NativeFieldWrapperClass1 {
   external static int bad3(DoesNotExtend obj); //# 11: compile-time error
 }
 
+// Error: 'FfiNative' can't be declared with optional parameters.
+@FfiNative<Void Function([Double])>('doesntmatter') //# 12: compile-time error
+external static int badOptParam(); //# 12: compile-time error
+
+// Error: 'FfiNative' can't be declared with named parameters.
+@FfiNative<Void Function({Double})>('doesntmatter') //# 13: compile-time error
+external static int badNamedParam(); //# 13: compile-time error
+
 void main() {/* Intentionally empty: Compile-time error tests. */}

@@ -504,6 +504,8 @@ class ChangeContentOverlay implements HasToJson {
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
+///   "libraryUri": optional String
+///   "isNotImported": optional bool
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -612,14 +614,28 @@ class CompletionSuggestion implements HasToJson {
   /// if the parameterName field is omitted.
   String? parameterType;
 
-  /// The index in the list of libraries that could be imported to make this
-  /// suggestion accessible in the file where completion was requested. The
-  /// server provides this list of libraries together with suggestions, so that
-  /// information about the library can be shared for multiple suggestions.
-  /// This field is omitted if the library is already imported, so that the
-  /// suggestion can be inserted as is, or if getSuggestions was used rather
-  /// than getSuggestions2.
-  int? libraryUriToImportIndex;
+  /// This field is omitted if getSuggestions was used rather than
+  /// getSuggestions2.
+  ///
+  /// This field is omitted if this suggestion corresponds to a locally
+  /// declared element.
+  ///
+  /// If this suggestion corresponds to an already imported element, then this
+  /// field is the URI of a library that provides this element, not the URI of
+  /// the library where the element is declared.
+  ///
+  /// If this suggestion corresponds to an element from a not yet imported
+  /// library, this field is the URI of a library that could be imported to
+  /// make this suggestion accessible in the file where completion was
+  /// requested, such as package:foo/bar.dart or
+  /// file:///home/me/workspace/foo/test/bar_test.dart.
+  String? libraryUri;
+
+  /// True if the suggestion is for an element from a not yet imported library.
+  /// This field is omitted if the element is declared locally, or is from
+  /// library is already imported, so that the suggestion can be inserted as
+  /// is, or if getSuggestions was used rather than getSuggestions2.
+  bool? isNotImported;
 
   CompletionSuggestion(
       this.kind,
@@ -645,7 +661,8 @@ class CompletionSuggestion implements HasToJson {
       this.hasNamedParameters,
       this.parameterName,
       this.parameterType,
-      this.libraryUriToImportIndex});
+      this.libraryUri,
+      this.isNotImported});
 
   factory CompletionSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -784,11 +801,15 @@ class CompletionSuggestion implements HasToJson {
         parameterType = jsonDecoder.decodeString(
             jsonPath + '.parameterType', json['parameterType']);
       }
-      int? libraryUriToImportIndex;
-      if (json.containsKey('libraryUriToImportIndex')) {
-        libraryUriToImportIndex = jsonDecoder.decodeInt(
-            jsonPath + '.libraryUriToImportIndex',
-            json['libraryUriToImportIndex']);
+      String? libraryUri;
+      if (json.containsKey('libraryUri')) {
+        libraryUri = jsonDecoder.decodeString(
+            jsonPath + '.libraryUri', json['libraryUri']);
+      }
+      bool? isNotImported;
+      if (json.containsKey('isNotImported')) {
+        isNotImported = jsonDecoder.decodeBool(
+            jsonPath + '.isNotImported', json['isNotImported']);
       }
       return CompletionSuggestion(kind, relevance, completion, selectionOffset,
           selectionLength, isDeprecated, isPotential,
@@ -808,7 +829,8 @@ class CompletionSuggestion implements HasToJson {
           hasNamedParameters: hasNamedParameters,
           parameterName: parameterName,
           parameterType: parameterType,
-          libraryUriToImportIndex: libraryUriToImportIndex);
+          libraryUri: libraryUri,
+          isNotImported: isNotImported);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestion', json);
     }
@@ -888,9 +910,13 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result['parameterType'] = parameterType;
     }
-    var libraryUriToImportIndex = this.libraryUriToImportIndex;
-    if (libraryUriToImportIndex != null) {
-      result['libraryUriToImportIndex'] = libraryUriToImportIndex;
+    var libraryUri = this.libraryUri;
+    if (libraryUri != null) {
+      result['libraryUri'] = libraryUri;
+    }
+    var isNotImported = this.isNotImported;
+    if (isNotImported != null) {
+      result['isNotImported'] = isNotImported;
     }
     return result;
   }
@@ -927,7 +953,8 @@ class CompletionSuggestion implements HasToJson {
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
           parameterType == other.parameterType &&
-          libraryUriToImportIndex == other.libraryUriToImportIndex;
+          libraryUri == other.libraryUri &&
+          isNotImported == other.isNotImported;
     }
     return false;
   }
@@ -957,7 +984,8 @@ class CompletionSuggestion implements HasToJson {
         hasNamedParameters,
         parameterName,
         parameterType,
-        libraryUriToImportIndex,
+        libraryUri,
+        isNotImported,
       ]);
 }
 
@@ -1869,6 +1897,7 @@ class HighlightRegion implements HasToJson {
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -1981,6 +2010,9 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType ENUM_CONSTANT =
       HighlightRegionType._('ENUM_CONSTANT');
+
+  static const HighlightRegionType EXTENSION =
+      HighlightRegionType._('EXTENSION');
 
   /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
@@ -2197,6 +2229,7 @@ class HighlightRegionType implements Enum {
     DYNAMIC_PARAMETER_REFERENCE,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION,
     FIELD,
     FIELD_STATIC,
     FUNCTION,
@@ -2301,6 +2334,8 @@ class HighlightRegionType implements Enum {
         return ENUM;
       case 'ENUM_CONSTANT':
         return ENUM_CONSTANT;
+      case 'EXTENSION':
+        return EXTENSION;
       case 'FIELD':
         return FIELD;
       case 'FIELD_STATIC':
@@ -2682,7 +2717,8 @@ class KytheVName implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
-  /// The positions of the regions that should be edited simultaneously.
+  /// The positions of the regions (after applying the relevant edits) that
+  /// should be edited simultaneously.
   List<Position> positions;
 
   /// The length of the regions that should be edited simultaneously.
@@ -4339,8 +4375,14 @@ class SourceChange implements HasToJson {
   }
 
   /// Adds [edit] to the [FileEdit] for the given [file].
-  void addEdit(String file, int fileStamp, SourceEdit edit) =>
-      addEditToSourceChange(this, file, fileStamp, edit);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void addEdit(String file, int fileStamp, SourceEdit edit,
+          {bool insertBeforeExisting = false}) =>
+      addEditToSourceChange(this, file, fileStamp, edit,
+          insertBeforeExisting: insertBeforeExisting);
 
   /// Adds the given [FileEdit].
   void addFileEdit(SourceFileEdit edit) {
@@ -4563,10 +4605,22 @@ class SourceFileEdit implements HasToJson {
   }
 
   /// Adds the given [Edit] to the list.
-  void add(SourceEdit edit) => addEditForSource(this, edit);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void add(SourceEdit edit, {bool insertBeforeExisting = false}) =>
+      addEditForSource(this, edit, insertBeforeExisting: insertBeforeExisting);
 
   /// Adds the given [Edit]s.
-  void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void addAll(Iterable<SourceEdit> edits,
+          {bool insertBeforeExisting = false}) =>
+      addAllEditsForSource(this, edits,
+          insertBeforeExisting: insertBeforeExisting);
 
   @override
   String toString() => json.encode(toJson());

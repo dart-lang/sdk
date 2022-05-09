@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -11,51 +11,31 @@ import "dart:core" as core;
 
 import "package:expect/expect.dart";
 
-class C<T extends core::Object* = dynamic> extends core::Object {
-  field core::String* trace;
-  constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::C<self::C::T*>*
+class C<T extends core::Object? = dynamic> extends core::Object {
+  field core::String trace;
+  constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::C<self::C::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class M extends core::Object {
-  synthetic constructor •() → self::M*
+  synthetic constructor •() → self::M
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class D = self::C<core::String*> with self::M {
-  synthetic constructor •({dynamic a, dynamic b}) → self::D*
+class D = self::C<core::String> with self::M {
+  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::D
     : super self::C::•(a: a, b: b)
     ;
 }
 class E extends self::D {
-  synthetic constructor •() → self::E*
+  synthetic constructor •() → self::E
     ;
 }
-abstract class _F&C&M = self::C<core::int*> with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •({dynamic a, dynamic b}) → self::_F&C&M*
+abstract class _F&C&M = self::C<core::int> with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::_F&C&M
     : super self::C::•(a: a, b: b)
     ;
 }
 class F extends self::_F&C&M {
-  synthetic constructor •() → self::F*
+  synthetic constructor •() → self::F
     ;
 }
 static method main() → dynamic
@@ -64,4 +44,6 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:9:15 -> TypeLiteralConstant(<invalid>)
-Extra constant evaluation: evaluated: 5, effectively constant: 1
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:14:7 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:18:7 -> TypeLiteralConstant(<invalid>)
+Extra constant evaluation: evaluated: 7, effectively constant: 3

@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 
 main() {
@@ -153,8 +152,7 @@ class C {}
   }
 
   void test_parse_toplevel_member_called_late_calling_self() {
-    var unit = parseCompilationUnit('void late() { late(); }',
-        featureSet: nonNullable);
+    var unit = parseCompilationUnit('void late() { late(); }');
     var method = unit.declarations[0] as FunctionDeclaration;
 
     expect(method.documentationComment, isNull);
@@ -228,10 +226,7 @@ class C {}
         expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
         expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
       ],
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: Version.parse('2.3.0'),
-        flags: [],
-      ),
+      featureSet: FeatureSets.language_2_3,
     );
   }
 

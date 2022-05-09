@@ -185,6 +185,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
         return FieldFormalParameterMember(
             _typeProvider, p, _substitution, isLegacy);
       }
+      if (p is SuperFormalParameterElement) {
+        return SuperFormalParameterMember(
+            _typeProvider, p, _substitution, isLegacy);
+      }
       return ParameterMember(_typeProvider, p, _substitution, isLegacy);
     }).toList();
   }
@@ -417,6 +421,9 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
 
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
 
   @override
   bool get isEntryPoint => declaration.isEntryPoint;
@@ -993,6 +1000,64 @@ class PropertyAccessorMember extends ExecutableMember
       false,
     );
   }
+}
+
+class SuperFormalParameterMember extends ParameterMember
+    implements SuperFormalParameterElement {
+  factory SuperFormalParameterMember(
+    TypeProviderImpl typeProvider,
+    SuperFormalParameterElement declaration,
+    MapSubstitution substitution,
+    bool isLegacy,
+  ) {
+    var freshTypeParameters = _SubstitutedTypeParameters(
+      declaration.typeParameters,
+      substitution,
+    );
+    return SuperFormalParameterMember._(
+      typeProvider,
+      declaration,
+      freshTypeParameters.substitution,
+      isLegacy,
+      freshTypeParameters.elements,
+    );
+  }
+
+  SuperFormalParameterMember._(
+    TypeProviderImpl typeProvider,
+    SuperFormalParameterElement declaration,
+    MapSubstitution substitution,
+    bool isLegacy,
+    List<TypeParameterElement> typeParameters,
+  ) : super._(
+          typeProvider,
+          declaration,
+          substitution,
+          isLegacy,
+          typeParameters,
+        );
+
+  @override
+  bool get hasDefaultValue => declaration.hasDefaultValue;
+
+  @override
+  bool get isCovariant => declaration.isCovariant;
+
+  @override
+  ParameterElement? get superConstructorParameter {
+    var superConstructorParameter =
+        (declaration as SuperFormalParameterElement).superConstructorParameter;
+    if (superConstructorParameter == null) {
+      return null;
+    }
+
+    return ParameterMember(
+        _typeProvider, superConstructorParameter, _substitution, isLegacy);
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitSuperFormalParameterElement(this);
 }
 
 class TopLevelVariableMember extends VariableMember

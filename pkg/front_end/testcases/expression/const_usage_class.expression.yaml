@@ -2,8 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-entry_point: "main.dart"
-definitions: []
-position: "main.dart#ConstClass"
+sources: |
+  class ConstClass {
+    static const ConstClass classConst42 = ConstClass(42);
+    final int x;
+    const ConstClass(this.x);
+  }
+position: "#ConstClass"
 expression: |
   classConst42.x

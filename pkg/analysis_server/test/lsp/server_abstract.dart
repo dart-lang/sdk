@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -203,16 +204,16 @@ abstract class AbstractLspAnalysisServerTest
         processRunner: processRunner);
     server.pluginManager = pluginManager;
 
-    projectFolderPath = convertPath('/home/test');
+    projectFolderPath = convertPath('/home/my_project');
     projectFolderUri = Uri.file(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
-    newFile(join(projectFolderPath, 'lib', 'file.dart'));
+    newFile2(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
-    pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
+    pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
     pubspecFileUri = Uri.file(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
@@ -303,6 +304,7 @@ mixin ClientCapabilitiesHelperMixin {
           formats: [],
           tokenModifiers: [],
           tokenTypes: []).toJson(),
+      'typeDefinition': {'dynamicRegistration': true},
     });
   }
 
@@ -509,6 +511,7 @@ mixin ClientCapabilitiesHelperMixin {
   ) {
     return extendTextDocumentCapabilities(source, {
       'definition': {'linkSupport': true},
+      'typeDefinition': {'linkSupport': true},
       'implementation': {'linkSupport': true}
     });
   }
@@ -583,33 +586,33 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 
     if (meta || flutter) {
       var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent2.path);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
     }
 
     if (flutter) {
       {
         var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent2.path);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
       }
       {
         var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent2.path);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
       }
     }
 
     if (pedantic) {
       var libFolder = MockPackages.instance.addPedantic(resourceProvider);
-      config.add(name: 'pedantic', rootPath: libFolder.parent2.path);
+      config.add(name: 'pedantic', rootPath: libFolder.parent.path);
     }
 
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent2.path);
+      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';
     var content = config.toContent(toUriStr: toUriStr);
-    newFile(path, content: content);
+    newFile2(path, content);
   }
 }
 
@@ -867,8 +870,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return executeCommand(command);
   }
 
-  Future<Object?> executeCommand(Command command,
-      {Either2<int, String>? workDoneToken}) async {
+  Future<T> executeCommand<T>(
+    Command command, {
+    T Function(Map<String, Object?>)? decoder,
+    Either2<int, String>? workDoneToken,
+  }) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
@@ -877,7 +883,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         workDoneToken: workDoneToken,
       ),
     );
-    return expectSuccessfulResponseTo(request, (result) => result);
+    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
+        request, decoder ?? (result) => result as T);
   }
 
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
@@ -1055,6 +1062,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
+      {CompletionContext? context}) async {
+    final response = await getCompletionList(uri, pos, context: context);
+    return response.items;
+  }
+
+  Future<CompletionList> getCompletionList(Uri uri, Position pos,
       {CompletionContext? context}) {
     final request = makeRequest(
       Method.textDocument_completion,
@@ -1064,8 +1077,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(CompletionItem.fromJson));
+    return expectSuccessfulResponseTo(request, CompletionList.fromJson);
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
@@ -1284,6 +1296,43 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
+  Future<Either2<List<Location>, List<LocationLink>>> getTypeDefinition(
+      Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_typeDefinition,
+      TypeDefinitionParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _generateFromJsonFor(
+          _canParseList(Location.canParse),
+          _fromJsonList(Location.fromJson),
+          _canParseList(LocationLink.canParse),
+          _fromJsonList(LocationLink.fromJson)),
+    );
+  }
+
+  Future<List<Location>> getTypeDefinitionAsLocation(
+      Uri uri, Position pos) async {
+    final results = await getTypeDefinition(uri, pos);
+    return results.map(
+      (locations) => locations,
+      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
+    );
+  }
+
+  Future<List<LocationLink>> getTypeDefinitionAsLocationLinks(
+      Uri uri, Position pos) async {
+    final results = await getTypeDefinition(uri, pos);
+    return results.map(
+      (locations) => throw 'Expected List<LocationLink> got List<Location>',
+      (locationLinks) => locationLinks,
+    );
+  }
+
   Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
     final request = makeRequest(
       Method.workspace_symbol,
@@ -1361,7 +1410,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
+    bool failTestOnAnyErrorNotification = true,
   }) async {
+    if (failTestOnAnyErrorNotification) {
+      errorNotificationsFromServer.listen((NotificationMessage error) {
+        fail('${error.toJson()}');
+      });
+    }
+
     final clientCapabilities = ClientCapabilities(
       workspace: workspaceCapabilities,
       textDocument: textDocumentCapabilities,

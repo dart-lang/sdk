@@ -290,7 +290,7 @@ class TestMinimizer {
 
     // For all dart files: Parse them as set their source as the parsed source
     // to "get around" any encoding issues when printing later.
-    Map<Uri, Uint8List> copy = new Map.from(_fs.data);
+    Map<Uri?, Uint8List?> copy = new Map.of(_fs.data);
     for (Uri? uri in _fs.data.keys) {
       if (await _shouldQuit()) break;
       String uriString = uri.toString();
@@ -726,7 +726,7 @@ class TestMinimizer {
 
     // TODO(jensj): don't use full uris.
     print("""
-# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
@@ -778,9 +778,9 @@ worlds:
   void _rewriteImportsExportsToUriInternal(
       Token uriToken, Uri oldUri, List<_Replacement> replacements, Uri newUri) {
     Uri tokenUri = _getUri(uriToken, oldUri, resolvePackage: false);
-    if (tokenUri.scheme == "package" || tokenUri.scheme == "dart") return;
+    if (tokenUri.isScheme("package") || tokenUri.isScheme("dart")) return;
     Uri asPackageUri = _getImportUri(tokenUri);
-    if (asPackageUri.scheme == "package") {
+    if (asPackageUri.isScheme("package")) {
       // Just replace with this package uri.
       replacements.add(new _Replacement(
         uriToken.offset - 1,
@@ -803,7 +803,7 @@ worlds:
     String uriString = uriToken.lexeme;
     uriString = uriString.substring(1, uriString.length - 1);
     Uri uriTokenUri = uri.resolve(uriString);
-    if (resolvePackage && uriTokenUri.scheme == "package") {
+    if (resolvePackage && uriTokenUri.isScheme("package")) {
       Package package = _latestCrashingIncrementalCompiler!
           .getPackageForPackageName(uriTokenUri.pathSegments.first)!;
       uriTokenUri = package.packageUriRoot
@@ -910,7 +910,7 @@ worlds:
     // Check if there now are any unused files.
     if (_latestComponent == null) return;
     Set<Uri> neededUris = _latestComponent!.uriToSource.keys.toSet();
-    Map<Uri, Uint8List> copy = new Map.from(_fs.data);
+    Map<Uri?, Uint8List?> copy = new Map.of(_fs.data);
     bool removedSome = false;
     if (await _shouldQuit()) return;
     for (MapEntry<Uri?, Uint8List?> entry in _fs.data.entries) {
@@ -947,7 +947,7 @@ worlds:
 
     if (!limitTo1) {
       if (await _shouldQuit()) return;
-      Map<Uri, Uint8List> copy = new Map.from(_fs.data);
+      Map<Uri?, Uint8List?> copy = new Map.of(_fs.data);
       // Try to remove content of i and the next 9 (10 files in total).
       for (int j = uriIndex; j < uriIndex + 10 && j < uris.length; j++) {
         Uri uri = uris[j];
@@ -1223,7 +1223,7 @@ worlds:
       // Try to load json and remove blocks.
       try {
         Map json = jsonDecode(utf8.decode(data));
-        Map jsonModified = new Map.from(json);
+        Map jsonModified = new Map.of(json);
         List packages = json["packages"];
         List packagesModified = new List.from(packages);
         jsonModified["packages"] = packagesModified;

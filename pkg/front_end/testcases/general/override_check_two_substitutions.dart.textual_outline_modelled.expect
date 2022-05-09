@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A<T> {
   void f<U>(Map<T, U> m) {}
 }

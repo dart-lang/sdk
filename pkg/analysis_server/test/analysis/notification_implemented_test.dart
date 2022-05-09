@@ -5,11 +5,11 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
+class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
   List<ImplementedClass>? implementedClasses;
   List<ImplementedMember>? implementedMembers;
 
@@ -85,8 +85,8 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   /// Subscribe for `IMPLEMENTED` and wait for the notification.
-  Future prepareImplementedElements() {
-    subscribeForImplemented();
+  Future<void> prepareImplementedElements() async {
+    await subscribeForImplemented();
     return waitForImplementedElements();
   }
 
@@ -94,7 +94,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
       var params = AnalysisImplementedParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         implementedClasses = params.classes;
         implementedMembers = params.members;
       }
@@ -102,14 +102,14 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  void subscribeForImplemented() {
+  Future<void> subscribeForImplemented() async {
     setPriorityFiles([testFile]);
-    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
+    await addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -122,25 +122,6 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
-  Future<void> test_afterIncrementalResolution() async {
-    subscribeForImplemented();
-    addTestFile('''
-class A {}
-class B extends A {}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedClass('A {');
-    // add a space
-    implementedClasses = null;
-    testCode = '''
-class A  {}
-class B extends A {}
-''';
-    server.updateContent('1', {testFile: AddContentOverlay(testCode)});
-    await waitForImplementedElements();
-    assertHasImplementedClass('A  {');
-  }
-
   Future<void> test_class_extended() async {
     addTestFile('''
 class A {}
@@ -150,7 +131,7 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
-  Future<void> test_class_implemented() async {
+  Future<void> test_class_implementedBy_class() async {
     addTestFile('''
 class A {}
 class B implements A {}
@@ -159,7 +140,67 @@ class B implements A {}
     assertHasImplementedClass('A {');
   }
 
-  Future<void> test_class_inMixin() async {
+  Future<void> test_class_implementedBy_enum() async {
+    addTestFile('''
+class A {}
+
+enum E implements A {
+  v
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+  }
+
+  Future<void> test_class_implementedBy_enum_getterByGetter() async {
+    addTestFile('''
+class A {
+  int get foo => 0; // A
+}
+
+enum E implements A {
+  v;
+  int get foo => 0; // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo => 0; // A');
+    assertNoImplementedMember('foo => 0; // E');
+  }
+
+  Future<void> test_class_implementedBy_enum_methodByMethod() async {
+    addTestFile('''
+class A {
+  void foo() {} // A
+}
+
+enum E implements A {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo() {} // A');
+    assertNoImplementedMember('foo() {} // E');
+  }
+
+  Future<void> test_class_implementedBy_enum_setterBySetter() async {
+    addTestFile('''
+class A {
+  set foo(int _) {} // A
+}
+
+enum E implements A {
+  v;
+  set foo(int _) {} // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo(int _) {} // A');
+    assertNoImplementedMember('foo(int _) {} // E');
+  }
+
+  Future<void> test_class_implementedBy_mixin() async {
     addTestFile('''
 class A {} // ref
 class B {} // ref
@@ -174,13 +215,40 @@ mixin M on A, B implements C, D {}
     assertHasImplementedClass('D {} // ref');
   }
 
-  Future<void> test_class_mixed() async {
+  Future<void> test_class_mixedBy_class() async {
     addTestFile('''
 class A {}
 class B = Object with A;
 ''');
     await prepareImplementedElements();
     assertHasImplementedClass('A {');
+  }
+
+  Future<void> test_class_mixedBy_enum() async {
+    addTestFile('''
+mixin M {}
+enum E with M {
+  v
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('M {}');
+  }
+
+  Future<void> test_class_mixedBy_enum_methodByMethod() async {
+    addTestFile('''
+class M {
+  void foo() {} // M
+}
+
+enum E with M {
+  v;
+  void foo() {} // E
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo() {} // M');
+    assertNoImplementedMember('foo() {} // E');
   }
 
   Future<void> test_field_withField() async {
@@ -278,7 +346,7 @@ class C extends A {
   }
 
   Future<void> test_method_withMethod_private_differentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 import 'test.dart';
 class B extends A {
   void _m() {}

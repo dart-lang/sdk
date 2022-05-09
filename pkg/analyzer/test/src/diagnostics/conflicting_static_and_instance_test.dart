@@ -451,7 +451,7 @@ class B extends A {
 
 @reflectiveTest
 class ConflictingStaticAndInstanceEnumTest extends PubPackageResolutionTest {
-  test_hashCode() async {
+  test_constant_hashCode() async {
     await assertErrorsInCode(r'''
 enum E {
   a, hashCode, b
@@ -461,7 +461,7 @@ enum E {
     ]);
   }
 
-  test_index() async {
+  test_constant_index() async {
     await assertErrorsInCode(r'''
 enum E {
   a, index, b
@@ -471,7 +471,7 @@ enum E {
     ]);
   }
 
-  test_noSuchMethod() async {
+  test_constant_noSuchMethod() async {
     await assertErrorsInCode(r'''
 enum E {
   a, noSuchMethod, b
@@ -481,7 +481,7 @@ enum E {
     ]);
   }
 
-  test_runtimeType() async {
+  test_constant_runtimeType() async {
     await assertErrorsInCode(r'''
 enum E {
   a, runtimeType, b
@@ -491,7 +491,18 @@ enum E {
     ]);
   }
 
-  test_toString() async {
+  test_constant_this_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+    ]);
+  }
+
+  test_constant_toString() async {
     await assertErrorsInCode(r'''
 enum E {
   a, toString, b
@@ -500,10 +511,280 @@ enum E {
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 8),
     ]);
   }
+
+  test_field_dartCoreEnum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static final int hashCode = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 33, 8),
+    ]);
+  }
+
+  test_field_mixin_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int get foo => 0;
+}
+
+enum E with M {
+  v;
+  static final int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
+    ]);
+  }
+
+  test_field_mixin_method() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  static final int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 69, 3),
+    ]);
+  }
+
+  test_field_mixin_setter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  set foo(int _) {}
+}
+
+enum E with M {
+  v;
+  static final int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
+    ]);
+  }
+
+  test_field_this_constant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+    ]);
+  }
+
+  test_field_this_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static final int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 33, 3),
+    ]);
+  }
+
+  test_field_this_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static final int foo = 0;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 33, 3),
+    ]);
+  }
+
+  test_field_this_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static final int foo = 0;
+  set foo(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 33, 3),
+    ]);
+  }
+
+  test_getter_this_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int get foo => 0;
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 3),
+    ]);
+  }
+
+  test_method_dartCoreEnum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int hashCode() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 27, 8),
+    ]);
+  }
+
+  test_method_mixin_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int get foo => 0;
+}
+
+enum E with M {
+  v;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 3),
+    ]);
+  }
+
+  test_method_mixin_method() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 64, 3),
+    ]);
+  }
+
+  test_method_mixin_setter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  set foo(int _) {}
+}
+
+enum E with M {
+  v;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 3),
+    ]);
+  }
+
+  test_method_this_constant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+    ]);
+  }
+
+  test_method_this_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 28, 3),
+    ]);
+  }
+
+  test_method_this_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 28, 3),
+    ]);
+  }
+
+  test_method_this_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+  set foo(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 28, 3),
+    ]);
+  }
+
+  test_setter_this_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static set foo(_) {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 27, 3),
+    ]);
+  }
 }
 
 @reflectiveTest
 class ConflictingStaticAndInstanceMixinTest extends PubPackageResolutionTest {
+  test_dartCoreEnum_index_field() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static int index = 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 5),
+    ]);
+  }
+
+  test_dartCoreEnum_index_getter() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static int get index => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 35, 5),
+    ]);
+  }
+
+  test_dartCoreEnum_index_method() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static int index() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 5),
+    ]);
+  }
+
+  test_dartCoreEnum_index_setter() async {
+    await assertErrorsInCode(r'''
+mixin M on Enum {
+  static set index(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 5),
+    ]);
+  }
+
   test_inConstraint_getter_getter() async {
     await assertErrorsInCode(r'''
 class A {

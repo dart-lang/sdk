@@ -202,7 +202,7 @@ static void DoThrowNullError(Isolate* isolate,
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   const CodeSourceMap& map =
@@ -373,7 +373,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Double::New(0.0)));
 }
@@ -385,28 +385,28 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxDouble, 0) {
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Integer::New(kMaxInt64)));
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Float32x4::New(0.0, 0.0, 0.0, 0.0)));
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
   arguments.SetReturn(Object::Handle(zone, Int32x4::New(0, 0, 0, 0)));
 }
@@ -2680,7 +2680,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
   auto isolate_group = thread->isolate_group();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   bool do_deopt = false;
@@ -3608,10 +3608,46 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   ASSERT(thread->top_exit_frame_info() != 0);
 
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
+  if (thread->is_unwind_in_progress()) {
+    // Clean up safepoint unwind error marker to prevent safepoint tripping.
+    // The safepoint marker will get restored just before jumping back
+    // to generated code.
+    thread->SetUnwindErrorInProgress(false);
+    NoSafepointScope no_safepoint;
+    Error unwind_error;
+    unwind_error ^=
+        thread->isolate()->isolate_object_store()->preallocated_unwind_error();
+    Exceptions::PropagateError(unwind_error);
+  }
   thread->ExitSafepoint();
+
   TRACE_RUNTIME_CALL("%s", "ExitSafepoint done");
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
+
+// This is expected to be invoked when jumping to destination frame,
+// during exception handling.
+extern "C" void DFLRT_ExitSafepointIgnoreUnwindInProgress(
+    NativeArguments __unusable_) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress");
+  Thread* thread = Thread::Current();
+  ASSERT(thread->top_exit_frame_info() != 0);
+
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
+
+  // Compared to ExitSafepoint above we are going to ignore
+  // is_unwind_in_progress flag because this is called as part of JumpToFrame
+  // exception handler - we want this transition to complete so that the next
+  // safepoint check does error propagation.
+  thread->ExitSafepoint();
+
+  TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress done");
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
+                              0,
+                              false,
+                              &DFLRT_ExitSafepointIgnoreUnwindInProgress);
 
 // Not registered as a runtime entry because we can't use Thread to look it up.
 static Thread* GetThreadForNativeCallback(uword callback_id,

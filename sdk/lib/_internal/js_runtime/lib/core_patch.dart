@@ -13,6 +13,7 @@ import 'dart:_js_helper'
         checkInt,
         Closure,
         ConstantMap,
+        convertDartClosureToJS,
         getRuntimeType,
         JsLinkedHashMap,
         jsonEncodeNative,
@@ -23,7 +24,8 @@ import 'dart:_js_helper'
         quoteStringForRegExp,
         getTraceFromException,
         RuntimeError,
-        wrapException;
+        wrapException,
+        wrapZoneUnaryCallback;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -114,6 +116,52 @@ class Expando<T extends Object> {
       throw new ArgumentError.value(object,
           "Expandos are not allowed on strings, numbers, booleans or null");
     }
+  }
+}
+
+// Patch for WeakReference implementation.
+@patch
+class WeakReference<T extends Object> {
+  @patch
+  factory WeakReference(T object) {
+    return _WeakReferenceWrapper<T>(object);
+  }
+}
+
+class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
+  final Object _weakRef;
+
+  _WeakReferenceWrapper(T object) : _weakRef = JS('', 'new WeakRef(#)', object);
+
+  T? get target => JS('', '#.deref()', _weakRef);
+}
+
+// Patch for Finalizer implementation.
+@patch
+class Finalizer<T> {
+  @patch
+  factory Finalizer(void Function(T) object) {
+    return _FinalizationRegistryWrapper<T>(object);
+  }
+}
+
+class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
+  final Object _registry;
+
+  _FinalizationRegistryWrapper(void Function(T) callback)
+      : _registry = JS('', 'new FinalizationRegistry(#)',
+            convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1));
+
+  void attach(Object value, T token, {Object? detach}) {
+    if (detach != null) {
+      JS('', '#.register(#, #, #)', _registry, value, token, detach);
+    } else {
+      JS('', '#.register(#, #)', _registry, value, token);
+    }
+  }
+
+  void detach(Object detachToken) {
+    JS('', '#.unregister(#)', _registry, detachToken);
   }
 }
 
@@ -478,7 +526,7 @@ class Map<K, V> {
   factory Map.unmodifiable(Map other) = ConstantMap<K, V>.from;
 
   @patch
-  factory Map() = JsLinkedHashMap<K, V>.es6;
+  factory Map() = JsLinkedHashMap<K, V>;
 }
 
 @patch

@@ -156,6 +156,10 @@ class FlowGraphAllocator : public ValueObject {
                              bool* blocked_registers,
                              LiveRange** blocking_ranges);
 
+  void BlockCpuRegisters(intptr_t registers, intptr_t from, intptr_t to);
+
+  void BlockFpuRegisters(intptr_t fpu_registers, intptr_t from, intptr_t to);
+
   intptr_t NumberOfRegisters() const { return number_of_registers_; }
 
   // Find all safepoints that are covered by this live range.

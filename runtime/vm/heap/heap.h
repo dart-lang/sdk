@@ -83,6 +83,7 @@ class Heap {
   void FreedExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
   void PromotedExternal(intptr_t size);
+  void CheckExternalGC(Thread* thread);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;
@@ -104,9 +105,7 @@ class Heap {
   ObjectPtr FindNewObject(FindObjectVisitor* visitor);
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
-  void HintFreed(intptr_t size);
   void NotifyIdle(int64_t deadline);
-  void NotifyLowMemory();
 
   // Collect a single generation.
   void CollectGarbage(Space space);
@@ -117,13 +116,15 @@ class Heap {
   // mark-sweep treats new space as roots, a cycle between unreachable old and
   // new objects will not be collected until the new objects are promoted.
   // Verification based on heap iteration should instead use CollectAllGarbage.
-  void CollectMostGarbage(GCReason reason = GCReason::kFull);
+  void CollectMostGarbage(GCReason reason = GCReason::kFull,
+                          bool compact = false);
 
   // Collect both generations by performing an evacuation followed by a
   // mark-sweep. If incremental marking was in progress, perform another
   // mark-sweep. This function will collect all unreachable objects, including
   // those in inter-generational cycles or stored during incremental marking.
-  void CollectAllGarbage(GCReason reason = GCReason::kFull);
+  void CollectAllGarbage(GCReason reason = GCReason::kFull,
+                         bool compact = false);
 
   void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
@@ -395,7 +396,6 @@ class Heap {
   friend class Become;       // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
-  friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
   friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
@@ -405,7 +405,7 @@ class Heap {
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;
-  friend class MetricsTestHelper;
+  friend class GCTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
@@ -471,7 +471,7 @@ class GCTestHelper : public AllStatic {
   static void CollectNewSpace() {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->new_space()->Scavenge(GCReason::kDebugging);
+    thread->heap()->CollectNewSpaceGarbage(thread, GCReason::kDebugging);
   }
 
   // Fully collect old gen and wait for the sweeper to finish. The normal call
@@ -488,10 +488,10 @@ class GCTestHelper : public AllStatic {
     WaitForGCTasks();
   }
 
-  static void CollectAllGarbage() {
+  static void CollectAllGarbage(bool compact = false) {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->CollectAllGarbage(GCReason::kDebugging);
+    thread->heap()->CollectAllGarbage(GCReason::kDebugging, compact);
   }
 
   static void WaitForGCTasks() {

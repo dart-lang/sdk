@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -424,7 +425,7 @@ void main() async {
       when(generator.compile()).thenAnswer((_) =>
           Future<IncrementalCompilerResult>.value(
               IncrementalCompilerResult(Component())));
-      when(generator.compile(entryPoint: anyNamed("entryPoint"))).thenAnswer(
+      when(generator.compile(entryPoints: anyNamed("entryPoints"))).thenAnswer(
           (_) => Future<IncrementalCompilerResult>.value(
               IncrementalCompilerResult(Component())));
       final _MockedBinaryPrinterFactory printerFactory =
@@ -1651,6 +1652,68 @@ class BarState extends State<FizzWidget> {
         'test-scheme:///foo.dart'
       ];
       expect(await starter(args), 0);
+    });
+
+    test('compile multiple sources', () async {
+      final src1 = File('${tempDir.path}/src1.dart')
+        ..createSync()
+        ..writeAsStringSync("main() {}\n");
+      final src2 = File('${tempDir.path}/src2.dart')
+        ..createSync()
+        ..writeAsStringSync("entryPoint2() {}\n");
+      final src3 = File('${tempDir.path}/src3.dart')
+        ..createSync()
+        ..writeAsStringSync("entryPoint3() {}\n");
+      final packagesFile = File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\n");
+      final dillFile = File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--packages=${packagesFile.path}',
+        '--source=${src2.path}',
+        '--source=${src3.path}',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${src1.uri}\n'.codeUnits);
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        expect(dillFile.existsSync(), equals(true));
+        expect(result.filename, dillFile.path);
+        expect(result.errorsCount, 0);
+
+        final component = loadComponentFromBinary(dillFile.path);
+        // Contains (at least) the 3 files we want.
+        final srcUris = {src1.uri, src2.uri, src3.uri};
+        expect(
+            component.libraries
+                .where((lib) => srcUris.contains(lib.fileUri))
+                .length,
+            srcUris.length);
+        inputStreamController.add('quit\n'.codeUnits);
+      });
+      expect(await result, 0);
+      inputStreamController.close();
     });
 
     group('http uris', () {

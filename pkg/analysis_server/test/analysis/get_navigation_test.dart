@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../mocks.dart';
 import 'notification_navigation_test.dart';
 
 void main() {
@@ -23,12 +22,9 @@ class GetNavigationTest extends AbstractNavigationTest {
   static const String requestId = 'test-getNavigation';
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    server.handlers = [
-      AnalysisDomainHandler(server),
-    ];
-    createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_beforeAnalysisComplete() async {
@@ -38,7 +34,7 @@ main() {
   print(test);
 }
 ''');
-    await _getNavigation(testFile, testCode.indexOf('test);'), 0);
+    await _getNavigation(search: 'test);');
     assertHasRegion('test);');
     assertHasTarget('test = 0');
   }
@@ -49,8 +45,7 @@ main() {
 String main() {
 }''');
     await waitForTasksFinished();
-    var search = 'Returns';
-    await _getNavigation(testFile, testCode.indexOf(search), 1);
+    await _getNavigation(search: 'Returns', length: 1);
     expect(regions, hasLength(0));
   }
 
@@ -60,10 +55,24 @@ String main() {
 String main() {
 }''');
     await waitForTasksFinished();
-    var search = '[String';
-    await _getNavigation(testFile, testCode.indexOf(search), 1);
+    await _getNavigation(search: '[String', length: 1);
     expect(regions, hasLength(1));
     assertHasRegion('String]');
+  }
+
+  Future<void> test_comment_toolSeeCodeComment() async {
+    var examplePath = 'examples/api/foo.dart';
+    newFile2('$testPackageLibPath/$examplePath', '');
+    addTestFile('''
+/// {@tool dartpad}
+/// ** See code in $examplePath **
+/// {@end-tool}
+String main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(search: examplePath, length: 1);
+    expect(regions, hasLength(1));
+    assertHasRegion(examplePath, examplePath.length);
   }
 
   Future<void> test_constructorInvocation() async {
@@ -74,32 +83,33 @@ String main() {
 class Foo {
   // ...
   // ...
-  Foo() {
-    print('');
-  }
+  Foo() {}
+  Foo.named() {}
   // ...
 }
 
 final a = Foo();
-final b = new Foo();
+final b = new Foo.named(); // 0
 ''');
     await waitForTasksFinished();
 
-    // Without `new`
-    await _getNavigation(testFile, testCode.indexOf('Foo();'), 0);
+    // Without `new` / unnamed
+    await _getNavigation(search: 'Foo();');
     expect(regions, hasLength(1));
     expect(regions.first.targets, hasLength(1));
     var target = targets[regions.first.targets.first];
     expect(target.kind, ElementKind.CONSTRUCTOR);
-    expect(target.offset, testCode.indexOf('Foo() {'));
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
 
-    // With `new`
-    await _getNavigation(testFile, testCode.indexOf('new Foo();') + 4, 0);
+    // With `new` / named
+    await _getNavigation(search: 'named(); // 0');
     expect(regions, hasLength(1));
     expect(regions.first.targets, hasLength(1));
     target = targets[regions.first.targets.first];
     expect(target.kind, ElementKind.CONSTRUCTOR);
-    expect(target.offset, testCode.indexOf('Foo() {'));
+    expect(target.offset, findOffset('named() {'));
+    expect(target.length, 5);
   }
 
   Future<void> test_fieldType() async {
@@ -113,7 +123,7 @@ class Bar {
 }
 ''';
     addTestFile(text);
-    await _getNavigation(testFile, text.indexOf('Foo foo'), 0);
+    await _getNavigation(search: 'Foo foo');
     expect(targets, hasLength(1));
     var target = targets.first;
     expect(target.kind, ElementKind.CLASS);
@@ -124,7 +134,7 @@ class Bar {
   }
 
   Future<void> test_fileDoesNotExist() async {
-    var file = convertPath('$projectPath/doesNotExist.dart');
+    var file = convertPath('$testPackageLibPath/doesNotExist.dart');
     var request = _createGetNavigationRequest(file, 0, 100);
     var response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);
@@ -134,15 +144,16 @@ class Bar {
     expect(result['regions'], isEmpty);
   }
 
+  /// TODO(scheglov) Rewrite these tests to work with any file.
+  @FailingTest(reason: 'requires infrastructure rewriting')
   Future<void> test_fileOutsideOfRoot() async {
-    testFile = convertPath('/outside.dart');
-    addTestFile('''
+    var file = newFile2('/outside.dart', '''
 main() {
   var test = 0;
   print(test);
 }
 ''');
-    await _getNavigation(testFile, testCode.indexOf('test);'), 0);
+    await _getNavigation(file: file, search: 'test);');
     assertHasRegion('test);');
     assertHasTarget('test = 0');
   }
@@ -154,7 +165,7 @@ import 'dart:math';
 main() {
 }''');
     await waitForTasksFinished();
-    await _getNavigation(testFile, 0, 17);
+    await _getNavigation(offset: 0, length: 17);
     expect(regions, hasLength(1));
     assertHasRegionString("'dart:math'");
     expect(testTargets, hasLength(1));
@@ -168,7 +179,7 @@ import 'dart:math';
 main() {
 }''');
     await waitForTasksFinished();
-    await _getNavigation(testFile, 7, 11);
+    await _getNavigation(offset: 7, length: 11);
     expect(regions, hasLength(1));
     assertHasRegionString("'dart:math'");
     expect(testTargets, hasLength(1));
@@ -176,8 +187,8 @@ main() {
   }
 
   Future<void> test_importUri_configurations() async {
-    final ioFile = newFile(join(testFolder, 'io.dart'));
-    final htmlFile = newFile(join(testFolder, 'html.dart'));
+    final ioFile = newFile2('$testPackageLibPath/io.dart', '');
+    final htmlFile = newFile2('$testPackageLibPath/html.dart', '');
     addTestFile('''
 import 'foo.dart'
   if (dart.library.io) 'io.dart'
@@ -188,7 +199,7 @@ main() {
     await waitForTasksFinished();
 
     // Request navigations for 'io.dart'
-    await _getNavigation(testFile, 41, 9);
+    await _getNavigation(offset: 41, length: 9);
     expect(regions, hasLength(1));
     assertHasRegionString("'io.dart'");
     expect(testTargets, hasLength(1));
@@ -197,7 +208,7 @@ main() {
     expect(targetFiles[target.fileIndex], equals(ioFile.path));
 
     // Request navigations for 'html.dart'
-    await _getNavigation(testFile, 76, 11);
+    await _getNavigation(offset: 76, length: 11);
     expect(regions, hasLength(1));
     assertHasRegionString("'html.dart'");
     expect(testTargets, hasLength(1));
@@ -208,20 +219,22 @@ main() {
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = _createGetNavigationRequest('test.dart', 0, 0);
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: requestId,
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         _createGetNavigationRequest(convertPath('/foo/../bar/test.dart'), 0, 0);
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure(requestId, RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: requestId,
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -238,7 +251,7 @@ main() {
     await waitForTasksFinished();
     // request navigation
     var navCode = ' + bbb + ';
-    await _getNavigation(testFile, testCode.indexOf(navCode), navCode.length);
+    await _getNavigation(search: navCode, length: navCode.length);
     // verify
     {
       assertHasRegion('aaa +');
@@ -271,32 +284,32 @@ void f(A a) {
     await waitForTasksFinished();
     {
       var search = '[0';
-      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
       var search = ']; // []';
-      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
       var search = '[1';
-      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
       var search = '] = 1';
-      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
       var search = '[2';
-      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
       var search = '] += 2';
-      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
   }
@@ -309,7 +322,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    await _getNavigation(testFile, testCode.indexOf(');'), 0);
+    await _getNavigation(search: ');');
     assertHasRegion('test);');
     assertHasTarget('test = 0');
   }
@@ -322,7 +335,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    await _getNavigation(testFile, testCode.indexOf('test);'), 0);
+    await _getNavigation(search: 'test);');
     assertHasRegion('test);');
     assertHasTarget('test = 0');
   }
@@ -332,8 +345,23 @@ main() {
         .toRequest(requestId);
   }
 
-  Future<void> _getNavigation(String file, int offset, int length) async {
-    var request = _createGetNavigationRequest(file, offset, length);
+  Future<void> _getNavigation({
+    File? file,
+    int? offset,
+    String? search,
+    int length = 0,
+  }) async {
+    file ??= testFile;
+
+    if (offset == null) {
+      if (search != null) {
+        offset = offsetInFile(file, search);
+      } else {
+        throw ArgumentError("Either 'offset' or 'search' must be provided");
+      }
+    }
+
+    var request = _createGetNavigationRequest(file.path, offset, length);
     var response = await serverChannel.sendRequest(request);
     var result = AnalysisGetNavigationResult.fromResponse(response);
     targetFiles = result.files;

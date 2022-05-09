@@ -260,7 +260,7 @@ class RunningProcess {
       _commandComplete(0);
     } else {
       var processEnvironment = _createProcessEnvironment();
-      var args = command.arguments;
+      var args = [...command.nonBatchArguments, ...command.arguments];
       var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
@@ -285,7 +285,9 @@ class RunningProcess {
               executable = '/usr/bin/sample';
             } else if (io.Platform.isWindows) {
               var isX64 = command.executable.contains("X64") ||
-                  command.executable.contains("SIMARM64");
+                  command.executable.contains("SIMARM64") ||
+                  command.executable.contains("SIMARM64C") ||
+                  command.executable.contains("SIMRISCV64");
               if (configuration.windowsSdkPath != null) {
                 executable = configuration.windowsSdkPath +
                     "\\Debuggers\\${isX64 ? 'x64' : 'x86'}\\cdb.exe";

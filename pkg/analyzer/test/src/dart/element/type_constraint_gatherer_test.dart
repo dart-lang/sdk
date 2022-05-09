@@ -1137,5 +1137,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);
     expect(isMatch, isFalse);
+    expect(gatherer.isConstraintSetEmpty, isTrue);
   }
 }

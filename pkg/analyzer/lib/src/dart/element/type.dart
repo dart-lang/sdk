@@ -40,7 +40,7 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -82,15 +82,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   final NullabilitySuffix nullabilitySuffix;
 
   FunctionTypeImpl({
-    required List<TypeParameterElement> typeFormals,
+    required this.typeFormals,
     required List<ParameterElement> parameters,
-    required DartType returnType,
-    required NullabilitySuffix nullabilitySuffix,
+    required this.returnType,
+    required this.nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
-  })  : typeFormals = typeFormals,
-        parameters = _sortNamedParameters(parameters),
-        returnType = returnType,
-        nullabilitySuffix = nullabilitySuffix,
+  })  : parameters = _sortNamedParameters(parameters),
         super(null, alias: alias);
 
   @override
@@ -180,8 +177,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // To test this, we instantiate both types with the same (unique) type
       // variables, and see if the result is equal.
       if (typeFormals.isNotEmpty) {
-        var freshVariables = FunctionTypeImpl.relateTypeFormals(
-            this, other, (t, s, _, __) => t == s);
+        var freshVariables =
+            FunctionTypeImpl.relateTypeFormals(this, other, (t, s) => t == s);
         if (freshVariables == null) {
           return false;
         }
@@ -295,9 +292,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   static List<TypeParameterType>? relateTypeFormals(
       FunctionType f1,
       FunctionType f2,
-      bool Function(DartType bound2, DartType bound1,
-              TypeParameterElement formal2, TypeParameterElement formal1)
-          relation) {
+      bool Function(DartType bound2, DartType bound1) relation) {
     List<TypeParameterElement> params1 = f1.typeFormals;
     List<TypeParameterElement> params2 = f2.typeFormals;
     return relateTypeFormals2(params1, params2, relation);
@@ -306,9 +301,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   static List<TypeParameterType>? relateTypeFormals2(
       List<TypeParameterElement> params1,
       List<TypeParameterElement> params2,
-      bool Function(DartType bound2, DartType bound1,
-              TypeParameterElement formal2, TypeParameterElement formal1)
-          relation) {
+      bool Function(DartType bound2, DartType bound1) relation) {
     int count = params1.length;
     if (params2.length != count) {
       return null;
@@ -340,7 +333,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           .substituteType(bound1);
       bound2 = Substitution.fromPairs(variables2, variablesFresh)
           .substituteType(bound2);
-      if (!relation(bound2, bound1, p2, p1)) {
+      if (!relation(bound2, bound1)) {
         return null;
       }
 
@@ -454,10 +447,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.typeArguments,
     required this.nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
-  }) : super(
-          element,
-          alias: alias,
-        );
+  }) : super(element, alias: alias) {
+    var typeParameters = element.typeParameters;
+    if (typeArguments.length != typeParameters.length) {
+      throw ArgumentError(
+        '[typeParameters.length: ${typeParameters.length}]'
+        '[typeArguments.length: ${typeArguments.length}]'
+        '[element: $element]'
+        '[reference: ${element is ClassElementImpl ? element.reference : null}]'
+        '[typeParameters: $typeParameters]'
+        '[typeArguments: $typeArguments]',
+      );
+    }
+  }
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -529,6 +531,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   bool get isDartCoreDouble {
     return element.name == "double" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreEnum {
+    return element.isDartCoreEnum;
   }
 
   @override
@@ -911,7 +918,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   String get name => 'Never';
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -988,6 +995,9 @@ abstract class TypeImpl implements DartType {
   bool get isDartCoreDouble => false;
 
   @override
+  bool get isDartCoreEnum => false;
+
+  @override
   bool get isDartCoreFunction => false;
 
   @override
@@ -1033,7 +1043,7 @@ abstract class TypeImpl implements DartType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  InterfaceType? asInstanceOf(ClassElement element) => null;
+  InterfaceType? asInstanceOf(ClassElement targetElement) => null;
 
   @override
   String getDisplayString({
@@ -1182,8 +1192,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  InterfaceType? asInstanceOf(ClassElement element) {
-    return bound.asInstanceOf(element);
+  InterfaceType? asInstanceOf(ClassElement targetElement) {
+    return bound.asInstanceOf(targetElement);
   }
 
   @override
@@ -1251,7 +1261,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
-  bool operator ==(Object object) => identical(object, this);
+  bool operator ==(Object other) => identical(other, this);
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {

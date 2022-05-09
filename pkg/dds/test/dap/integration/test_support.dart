@@ -33,15 +33,21 @@ final useInProcessDap = Platform.environment['DAP_TEST_INTERNAL'] == 'true';
 /// This is useful for debugging locally or on the bots and will include both
 /// DAP traffic (between the test DAP client and the DAP server) and the VM
 /// Service traffic (wrapped in a custom 'dart.log' event).
-final verboseLogging = Platform.environment['DAP_TEST_VERBOSE'] == 'true';
+///
+/// Verbose logging is temporarily enabled for all test runs to try and
+/// understand failures noted at https://github.com/dart-lang/sdk/issues/48274.
+/// Once resolved, this variable can be set back to the result of:
+///     Platform.environment['DAP_TEST_VERBOSE'] == 'true'
+final verboseLogging = true;
 
 /// A [RegExp] that matches the `path` part of a VM Service URI that contains
 /// an authentication token.
 final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 
-/// A [RegExp] that matches the "Observatory listening on" banner that is sent
+/// A [RegExp] that matches the "The Dart VM service is listening on" banner that is sent
 /// by the VM when not using --write-service-info.
-final vmServiceBannerPattern = RegExp(r'Observatory listening on ([^\s]+)\s');
+final vmServiceBannerPattern =
+    RegExp(r'The Dart VM service is listening on ([^\s]+)\s');
 
 /// The root of the SDK containing the current running VM.
 final sdkRoot = path.dirname(path.dirname(Platform.resolvedExecutable));
@@ -133,15 +139,15 @@ Future<Uri> waitForStdoutVmServiceBanner(Process process) {
 class DapTestSession {
   DapTestServer server;
   DapTestClient client;
-  final Directory _testDir =
+  final Directory testDir =
       Directory.systemTemp.createTempSync('dart-sdk-dap-test');
   late final Directory testAppDir;
   late final Directory testPackagesDir;
 
   DapTestSession._(this.server, this.client) {
-    testAppDir = _testDir.createTempSync('app');
+    testAppDir = testDir.createTempSync('app');
     createPubspec(testAppDir, 'my_test_project');
-    testPackagesDir = _testDir.createTempSync('packages');
+    testPackagesDir = testDir.createTempSync('packages');
   }
 
   /// Adds package with [name] (optionally at [packageFolderUri]) to the
@@ -236,7 +242,30 @@ environment:
     await server.stop();
 
     // Clean up any temp folders created during the test runs.
-    _testDir.deleteSync(recursive: true);
+    await tryDelete(testDir);
+  }
+
+  /// Tries to delete [dir] multiple times before printing a warning and giving up.
+  ///
+  /// This avoids "The process cannot access the file because it is being
+  /// used by another process" errors on Windows trying to delete folders that
+  /// have only very recently been unlocked.
+  Future<void> tryDelete(Directory dir) async {
+    const maxAttempts = 10;
+    const delay = Duration(milliseconds: 100);
+    var attempt = 0;
+    while (++attempt <= maxAttempts) {
+      try {
+        testDir.deleteSync(recursive: true);
+        break;
+      } catch (e) {
+        if (attempt == maxAttempts) {
+          print('Failed to delete $testDir after $maxAttempts attempts.\n$e');
+          break;
+        }
+        await Future.delayed(delay);
+      }
+    }
   }
 
   static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {

@@ -9,9 +9,7 @@ library dart2js.test.memory_source_file_helper;
 import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
-import 'package:compiler/compiler_new.dart';
-
-export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
+import 'package:compiler/compiler.dart';
 
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;
@@ -31,7 +29,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
   @override
   Future<Input<List<int>>> readBytesFromUri(
       Uri resourceUri, InputKind inputKind) {
-    if (resourceUri.scheme != 'memory') {
+    if (!resourceUri.isScheme('memory')) {
       return super.readBytesFromUri(resourceUri, inputKind);
     }
     // TODO(johnniwinther): We should use inputs already in the cache. Some

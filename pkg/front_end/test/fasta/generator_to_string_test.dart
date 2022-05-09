@@ -94,7 +94,9 @@ Future<void> main() async {
                 new DillTarget(c.options.ticker, uriTranslator,
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
-            .loader);
+            .loader,
+        isUnsupported: false,
+        isAugmentation: false);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);
@@ -117,7 +119,7 @@ Future<void> main() async {
         new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 
-    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null);
+    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
     engine.prepareTopLevel(coreTypes, hierarchy);
 
     BodyBuilder helper = new BodyBuilder(

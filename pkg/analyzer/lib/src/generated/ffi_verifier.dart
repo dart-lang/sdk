@@ -24,6 +24,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorExtensionName = 'AllocatorAlloc';
   static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
+  static const _finalizableClassName = 'Finalizable';
   static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
   static const _ffiNativeName = 'FfiNative';
@@ -77,7 +78,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      final NamedType superclass = extendsClause.superclass2;
+      final NamedType superclass = extendsClause.superclass;
       final ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
         final className = ffiClass.name;
@@ -116,7 +117,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     void checkSupertype(NamedType typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
       final superName = typename.name.staticElement?.name;
-      if (superName == _allocatorClassName) {
+      if (superName == _allocatorClassName ||
+          superName == _finalizableClassName) {
         return;
       }
       if (typename.ffiClass != null) {
@@ -131,22 +133,38 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var implementsClause = node.implementsClause;
     if (implementsClause != null) {
-      for (NamedType type in implementsClause.interfaces2) {
+      for (NamedType type in implementsClause.interfaces) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
       }
     }
     var withClause = node.withClause;
     if (withClause != null) {
-      for (NamedType type in withClause.mixinTypes2) {
+      for (NamedType type in withClause.mixinTypes) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
       }
     }
 
-    if (inCompound && node.declaredElement!.typeParameters.isNotEmpty) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.name]);
+    if (inCompound) {
+      if (node.declaredElement!.typeParameters.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.name]);
+      }
+      final implementsClause = node.implementsClause;
+      if (implementsClause != null) {
+        final compoundType = node.declaredElement!.thisType;
+        final structType = compoundType.superclass!;
+        final ffiLibrary = structType.element.library;
+        final finalizableElement = ffiLibrary.getType(_finalizableClassName)!;
+        final finalizableType = finalizableElement.thisType;
+        if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
+              node.name,
+              [node.name.name]);
+        }
+      }
     }
     super.visitClassDeclaration(node);
   }

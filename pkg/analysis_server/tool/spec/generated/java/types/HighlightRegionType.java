@@ -50,6 +50,8 @@ public class HighlightRegionType {
 
   public static final String ENUM_CONSTANT = "ENUM_CONSTANT";
 
+  public static final String EXTENSION = "EXTENSION";
+
   /**
    * Deprecated - no longer sent.
    */

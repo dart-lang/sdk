@@ -177,7 +177,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   static List<_InternetAddress> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY}) {
+      {InternetAddressType type: InternetAddressType.any}) {
     var response = _nativeLookupRequest(host, type._value);
     if (response is OSError) {
       throw response;
@@ -307,9 +307,9 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   @pragma("vm:external-name", "SynchronousSocket_CloseSync")
   external _nativeCloseSync();
   @pragma("vm:external-name", "SynchronousSocket_GetPort")
-  external int _nativeGetPort();
+  external _nativeGetPort();
   @pragma("vm:external-name", "SynchronousSocket_GetRemotePeer")
-  external List _nativeGetRemotePeer();
+  external _nativeGetRemotePeer();
   @pragma("vm:external-name", "SynchronousSocket_Read")
   external _nativeRead(int len);
   @pragma("vm:external-name", "SynchronousSocket_ReadList")

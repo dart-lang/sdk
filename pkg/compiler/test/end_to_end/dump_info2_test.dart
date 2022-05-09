@@ -6,7 +6,7 @@
 
 import 'dart:convert';
 
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;

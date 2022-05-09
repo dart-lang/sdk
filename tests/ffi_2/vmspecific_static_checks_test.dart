@@ -879,3 +879,10 @@ class AbiSpecificInteger4
 {
   const AbiSpecificInteger4();
 }
+
+class MyFinalizableStruct extends Struct
+    implements Finalizable //# 2000: compile-time error
+{
+   Pointer<Void> field;
+}
+

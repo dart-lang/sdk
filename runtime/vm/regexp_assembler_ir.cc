@@ -299,14 +299,12 @@ ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
 
   const Object& retval =
       Object::Handle(zone, DartEntry::InvokeFunction(fun, args));
-  if (retval.IsUnwindError()) {
-    Exceptions::PropagateError(Error::Cast(retval));
+  if (retval.IsLanguageError()) {
+    Exceptions::ThrowCompileTimeError(LanguageError::Cast(retval));
+    UNREACHABLE();
   }
   if (retval.IsError()) {
-    const Error& error = Error::Cast(retval);
-    OS::PrintErr("%s\n", error.ToErrorCString());
-    // Should never happen.
-    UNREACHABLE();
+    Exceptions::PropagateError(Error::Cast(retval));
   }
 
   if (retval.IsNull()) {

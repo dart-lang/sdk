@@ -22,9 +22,7 @@ import 'package:pub_semver/pub_semver.dart';
 class BazelFileUriResolver extends ResourceUriResolver {
   final BazelWorkspace workspace;
 
-  BazelFileUriResolver(BazelWorkspace workspace)
-      : workspace = workspace,
-        super(workspace.provider);
+  BazelFileUriResolver(this.workspace) : super(workspace.provider);
 
   @override
   Source? resolveAbsolute(Uri uri) {
@@ -83,7 +81,7 @@ class BazelPackageUriResolver extends UriResolver {
   }
 
   Source? _resolveAbsolute(Uri uri) {
-    if (uri.scheme == 'file') {
+    if (uri.isScheme('file')) {
       var path = fileUriToNormalizedPath(_context, uri);
       var pathRelativeToRoot = _workspace._relativeToRoot(path);
       if (pathRelativeToRoot == null) return null;
@@ -91,7 +89,7 @@ class BazelPackageUriResolver extends UriResolver {
       var file = _workspace.findFile(fullFilePath);
       return file?.createSource(uri);
     }
-    if (uri.scheme != 'package') {
+    if (!uri.isScheme('package')) {
       return null;
     }
     String uriPath = Uri.decodeComponent(uri.path);
@@ -447,7 +445,7 @@ class BazelWorkspace extends Workspace
     var context = provider.pathContext;
     var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
-      var parent = folder.parent2;
+      var parent = folder.parent;
 
       // Found the READONLY folder, might be a git-based workspace.
       Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
@@ -692,13 +690,16 @@ class BazelWorkspacePackage extends WorkspacePackage {
           .getFolder(root)
           .getChildAssumingFile('BUILD')
           .readAsStringSync();
-      var hasNonNullableFlag = buildContent
+      var flattenedBuildContent = buildContent
           .split('\n')
           .map((e) => e.trim())
           .where((e) => !e.startsWith('#'))
           .map((e) => e.replaceAll(' ', ''))
-          .join()
-          .contains('dart_package(null_safety=True');
+          .join();
+      var hasNonNullableFlag = const {
+        'dart_package(null_safety=True',
+        'dart_package(sound_null_safety=True',
+      }.any(flattenedBuildContent.contains);
       if (hasNonNullableFlag) {
         // Enabled by default.
       } else {

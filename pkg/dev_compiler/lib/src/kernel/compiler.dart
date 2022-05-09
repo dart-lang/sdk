@@ -496,10 +496,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   String jsLibraryAlias(Library library) {
     var uri = library.importUri.normalizePath();
-    if (uri.scheme == 'dart') return null;
+    if (uri.isScheme('dart')) return null;
 
     Iterable<String> segments;
-    if (uri.scheme == 'package') {
+    if (uri.isScheme('package')) {
       // Strip the package name.
       segments = uri.pathSegments.skip(1);
     } else {
@@ -518,6 +518,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Iterable<String> jsPartDebuggerNames(Library library) =>
       library.parts.map((part) => part.partUri);
 
+  /// True when [library] is the sdk internal library 'dart:_internal'.
+  bool _isDartInternal(Library library) {
+    var importUri = library.importUri;
+    return importUri.isScheme('dart') && importUri.path == '_internal';
+  }
+
   @override
   bool isSdkInternalRuntime(Library l) {
     return isSdkInternalRuntimeUri(l.importUri);
@@ -525,7 +531,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   String libraryToModule(Library library) {
-    if (library.importUri.scheme == 'dart') {
+    if (library.importUri.isScheme('dart')) {
       // TODO(jmesserly): we need to split out HTML.
       return js_ast.dartSdkModule;
     }
@@ -1128,8 +1134,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass).asInterfaceType;
       var mixinName =
-          getLocalClassName(superclass) + '_' + getLocalClassName(mixinClass);
-      var mixinId = _emitTemporaryId(mixinName + '\$');
+          '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
+      var mixinId = _emitTemporaryId('$mixinName\$');
       // Collect all forwarding stub setters from anonymous mixins classes.
       // These will contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1240,7 +1246,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           case 'Future':
           case 'Stream':
           case 'StreamSubscription':
-            return runtimeCall('is' + interface.name);
+            return runtimeCall('is${interface.name}');
         }
       }
       return null;
@@ -1321,23 +1327,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fields = c.fields
         .where((f) => f.isStatic && !isRedirectingFactoryField(f))
         .toList();
-    if (c.isEnum) {
-      // We know enum fields can be safely emitted as const fields, as long
-      // as the `values` field is emitted last.
-      var classRef = _emitTopLevelName(c);
-      var valueField = fields.firstWhere((f) => f.name.text == 'values');
-      fields.remove(valueField);
-      fields.add(valueField);
-      for (var f in fields) {
-        assert(f.isConst);
-        body.add(defineValueOnClass(
-                c,
-                classRef,
-                _emitStaticMemberName(f.name.text),
-                _visitInitializer(f.initializer, f.annotations))
-            .toStatement());
-      }
-    } else if (fields.isNotEmpty) {
+    if (fields.isNotEmpty) {
       body.add(_emitLazyFields(_emitTopLevelName(c), fields,
           (n) => _emitStaticMemberName(n.name.text)));
     }
@@ -1934,7 +1924,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _isForwardingStub(Procedure member) {
     if (member.isForwardingStub || member.isForwardingSemiStub) {
-      if (_currentLibrary.importUri.scheme != 'dart') return true;
+      if (!_currentLibrary.importUri.isScheme('dart')) return true;
       // TODO(jmesserly): external methods in the SDK seem to get incorrectly
       // tagged as forwarding stubs even if they are patched. Perhaps there is
       // an ordering issue in CFE. So for now we pattern match to see if it
@@ -2248,7 +2238,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _hierarchy.getClassAsInstanceOf(c.superclass, _coreTypes.iterableClass);
     if (parentIterable != null) return null;
 
-    if (c.enclosingLibrary.importUri.scheme == 'dart' &&
+    if (c.enclosingLibrary.importUri.isScheme('dart') &&
         c.procedures.any((m) => _jsExportName(m) == 'Symbol.iterator')) {
       return null;
     }
@@ -2629,7 +2619,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.PropertyAccess _emitFutureOrNameNoInterop({String suffix = ''}) {
     return js_ast.PropertyAccess(emitLibraryName(_coreTypes.asyncLibrary),
-        propertyName('FutureOr' + suffix));
+        propertyName('FutureOr$suffix'));
   }
 
   /// Emits the member name portion of a top-level member.
@@ -2758,7 +2748,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fn = _emitFunction(p.function, p.name.text)
       ..sourceInformation = _nodeEnd(p.fileEndOffset);
 
-    if (_currentLibrary.importUri.scheme == 'dart' &&
+    if (_currentLibrary.importUri.isScheme('dart') &&
         _isInlineJSFunction(p.function.body)) {
       fn = js_ast.simplifyPassThroughArrowFunCallBody(fn);
     }
@@ -3007,19 +2997,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //   * `class A extends B {...}` where B is the InterfaceType.
     //   * Emitting non-null constructor calls.
     // * The InterfaceType is the Null type.
-    // * The types were written in JS context or as part of the dart:_runtime
-    //   library.
-    if (!emitNullability ||
-        type == _coreTypes.deprecatedNullType ||
-        // TODO(38701) Remove these once the SDK has unforked and is running
-        // "opted-in"
-        !coreLibrary.isNonNullableByDefault &&
-            (_isInForeignJS || isSdkInternalRuntime(currentLibrary))) {
+    if (!emitNullability || type == _coreTypes.deprecatedNullType) {
       return typeRep;
     }
 
     if (type.nullability == Nullability.undetermined) {
-      throw UnsupportedError('Undetermined Nullability');
+      _undeterminedNullabilityError(type);
     }
 
     // Emit non-nullable version directly.
@@ -3054,7 +3037,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     typeRep ??= _emitFutureOrNameNoInterop();
 
     if (type.declaredNullability == Nullability.undetermined) {
-      throw UnsupportedError('Undetermined Nullability');
+      _undeterminedNullabilityError(type);
     }
 
     // Emit non-nullable version directly.
@@ -3067,6 +3050,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // use it everywhere it appears.
     return _typeTable.nameType(type, typeRep);
   }
+
+  void /* Never */ _undeterminedNullabilityError(DartType type) =>
+      throw UnsupportedError(
+          'Undetermined Nullability encounted while compiling '
+          '${currentLibrary.fileUri}, which contains the type: $type.');
 
   /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
   ///
@@ -3738,7 +3726,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _reifyGenericFunction(Member m) =>
       m == null ||
-      m.enclosingLibrary.importUri.scheme != 'dart' ||
+      !m.enclosingLibrary.importUri.isScheme('dart') ||
       !m.annotations
           .any((a) => isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric'));
 
@@ -4280,7 +4268,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var previous = _inLabeledContinueSwitch;
     _inLabeledContinueSwitch = hasLabeledContinue(node);
 
-    var cases = <js_ast.SwitchCase>[];
+    var cases = <js_ast.SwitchClause>[];
 
     if (_inLabeledContinueSwitch) {
       var labelState = _emitTemporaryId('labelState');
@@ -4321,13 +4309,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Helper for visiting a SwitchCase statement.
   ///
-  /// lastSwitchCase is only used when the current switch statement contains
+  /// [lastSwitchCase] is only used when the current switch statement contains
   /// labeled continues. Dart permits the final case to implicitly break, but
   /// switch statements with labeled continues must explicitly break/continue
   /// to escape the surrounding infinite loop.
-  List<js_ast.SwitchCase> _visitSwitchCase(SwitchCase node,
+  List<js_ast.SwitchClause> _visitSwitchCase(SwitchCase node,
       {bool lastSwitchCase = false}) {
-    var cases = <js_ast.SwitchCase>[];
+    var cases = <js_ast.SwitchClause>[];
     var emptyBlock = js_ast.Block.empty();
     // TODO(jmesserly): make sure we are statically checking fall through
     var body = _visitStatement(node.body).toBlock();
@@ -4336,10 +4324,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         expressions.isNotEmpty && !node.isDefault ? expressions.last : null;
     for (var e in expressions) {
       var jsExpr = _visitExpression(e);
-      cases.add(js_ast.SwitchCase(jsExpr, e == lastExpr ? body : emptyBlock));
+      cases.add(js_ast.Case(jsExpr, e == lastExpr ? body : emptyBlock));
     }
     if (node.isDefault) {
-      cases.add(js_ast.SwitchCase.defaultCase(body));
+      cases.add(js_ast.Default(body));
     }
     // Switch statements with continue labels must explicitly break from their
     // last case to escape the additional loop around the switch.
@@ -4348,7 +4336,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       assert(_switchLabelStates.containsKey(node.parent));
       var breakStmt = js_ast.Break(_switchLabelStates[node.parent].label);
       var switchBody = js_ast.Block(cases.last.body.statements..add(breakStmt));
-      var updatedSwitch = js_ast.SwitchCase(cases.last.expression, switchBody);
+      var lastCase = cases.last;
+      var updatedSwitch = lastCase is js_ast.Case
+          ? js_ast.Case(lastCase.expression, switchBody)
+          : js_ast.Default(switchBody);
       cases.removeLast();
       cases.add(updatedSwitch);
     }
@@ -4377,8 +4368,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Statement visitIfStatement(IfStatement node) {
-    return js_ast.If(_visitTest(node.condition), _visitScope(node.then),
-        _visitScope(node.otherwise));
+    var condition = _visitTest(node.condition);
+    var then = _visitScope(node.then);
+    if (node.otherwise != null) {
+      return js_ast.If(condition, then, _visitScope(node.otherwise));
+    }
+    return js_ast.If.noElse(condition, then);
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope
@@ -5465,6 +5460,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target.isFactory) return _emitFactoryInvocation(node);
 
     // Optimize some internal SDK calls.
+    if (_isDartInternal(target.enclosingLibrary)) {
+      var args = node.arguments;
+      if (args.positional.length == 1 &&
+          args.types.length == 1 &&
+          args.named.isEmpty &&
+          target.name.text == 'unsafeCast') {
+        return args.positional.single.accept(this);
+      }
+    }
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
       var name = target.name.text;
       if (node.arguments.positional.isEmpty &&
@@ -5684,7 +5688,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _isWebLibrary(Uri importUri) =>
       importUri != null &&
-      importUri.scheme == 'dart' &&
+      importUri.isScheme('dart') &&
       (importUri.path == 'html' ||
           importUri.path == 'svg' ||
           importUri.path == 'indexed_db' ||
@@ -5784,7 +5788,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (args.positional.isEmpty &&
         args.named.isEmpty &&
-        ctorClass.enclosingLibrary.importUri.scheme == 'dart') {
+        ctorClass.enclosingLibrary.importUri.isScheme('dart')) {
       // Skip the slow SDK factory constructors when possible.
       switch (ctorClass.name) {
         case 'Map':
@@ -6300,7 +6304,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]);
 
   bool _reifyFunctionType(FunctionNode f) {
-    if (_currentLibrary.importUri.scheme != 'dart') return true;
+    if (!_currentLibrary.importUri.isScheme('dart')) return true;
     var parent = f.parent;
 
     // SDK libraries can skip reification if they request it.
@@ -6329,7 +6333,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// under which functions are compiled and exported.
   String _jsExportName(NamedNode n) {
     var library = getLibrary(n);
-    if (library == null || library.importUri.scheme != 'dart') return null;
+    if (library == null || !library.importUri.isScheme('dart')) return null;
 
     return _annotationName(n, isJSExportNameAnnotation);
   }
@@ -6355,7 +6359,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitConstant(Constant node) {
     if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
-      var isSdk = node.target.enclosingLibrary.importUri.scheme == 'dart';
+      var isSdk = node.target.enclosingLibrary.importUri.isScheme('dart');
       if (_isInForeignJS) {
         return _emitStaticTarget(node.target);
       }
@@ -6442,11 +6446,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the constant as an integer, if possible.
     if (value.isFinite) {
       var intValue = value.toInt();
-      const _MIN_INT32 = -0x80000000;
-      const _MAX_INT32 = 0x7FFFFFFF;
+      const minInt32 = -0x80000000;
+      const maxInt32 = 0x7FFFFFFF;
       if (intValue.toDouble() == value &&
-          intValue >= _MIN_INT32 &&
-          intValue <= _MAX_INT32) {
+          intValue >= minInt32 &&
+          intValue <= maxInt32) {
         return js.number(intValue);
       }
     }
@@ -6466,7 +6470,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitStringConstant(StringConstant node) =>
       js.escapedString(node.value, '"');
 
-  // DDC does not currently use the non-primivite constant nodes; rather these
+  // DDC does not currently use the non-primitive constant nodes; rather these
   // are emitted via their normal expression nodes.
   @override
   js_ast.Expression defaultConstant(Constant node) => _emitInvalidNode(node);

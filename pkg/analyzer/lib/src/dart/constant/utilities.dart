@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
 typedef ReferenceFinderCallback = void Function(
@@ -138,6 +139,17 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     if (defaultValue != null && node.declaredElement != null) {
       constantsToCompute.add(node.declaredElement!);
     }
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    super.visitEnumConstantDeclaration(node);
+
+    var element = node.declaredElement as ConstFieldElementImpl;
+    constantsToCompute.add(element);
+
+    var constantInitializer = element.constantInitializer!;
+    enumConstantErrorNodes[constantInitializer] = node;
   }
 
   @override

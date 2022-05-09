@@ -1,9 +1,10 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // Test that if, while etc create an implicit scope if the body
 // is not a compound statement.
-// @dart=2.9
+
 import "package:expect/expect.dart";
 
 class ImplicitScopeTest {

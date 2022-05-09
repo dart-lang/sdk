@@ -38,6 +38,13 @@ class GCMarker {
   // Marking must later be finalized by calling MarkObjects.
   void StartConcurrentMark(PageSpace* page_space);
 
+  // Called when a synchronous GC is required, but concurrent marking is still
+  // in progress.
+  void AssistConcurrentMark();
+
+  // Perform incremental marking if available.
+  void NotifyIdle(int64_t deadline);
+
   // (Re)mark roots, drain the marking queue and finalize weak references.
   // Does not required StartConcurrentMark to have been previously called.
   void MarkObjects(PageSpace* page_space);

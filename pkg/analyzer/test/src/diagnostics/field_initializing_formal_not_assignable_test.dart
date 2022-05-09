@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class FieldInitializingFormalNotAssignableTest
     extends PubPackageResolutionTest {
-  test_dynamic() async {
+  test_class_dynamic() async {
     await assertErrorsInCode('''
 class A {
   int x;
@@ -28,7 +28,7 @@ class A {
     ]);
   }
 
-  test_unrelated() async {
+  test_class_unrelated() async {
     await assertErrorsInCode('''
 class A {
   int x;
@@ -36,6 +36,33 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
+          13),
+    ]);
+  }
+
+  test_enum_dynamic() async {
+    await assertErrorsInCode('''
+enum E {
+  v(0);
+  final int x;
+  const E(dynamic this.x);
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 42,
+          14),
+    ]);
+  }
+
+  test_enum_unrelated() async {
+    await assertErrorsInCode('''
+enum E {
+  v('');
+  final int x;
+  const E(String this.x);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 13, 2),
+      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 43,
           13),
     ]);
   }

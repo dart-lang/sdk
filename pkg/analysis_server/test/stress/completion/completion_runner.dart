@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -11,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A runner that can request code completion at the location of each identifier
 /// in a Dart file.
@@ -203,8 +203,8 @@ class CompletionRunner {
     }
   }
 
-  List<CompletionSuggestion> _filterBy(
-      List<CompletionSuggestion> suggestions, String pattern) {
+  List<CompletionSuggestionBuilder> _filterBy(
+      List<CompletionSuggestionBuilder> suggestions, String pattern) {
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(pattern))
         .toList();
@@ -220,7 +220,8 @@ class CompletionRunner {
 
   /// If the given list of [suggestions] includes a suggestion for the given
   /// [identifier], return the index of the suggestion. Otherwise, return `-1`.
-  int _indexOf(List<CompletionSuggestion> suggestions, String identifier) {
+  int _indexOf(
+      List<CompletionSuggestionBuilder> suggestions, String identifier) {
     for (var i = 0; i < suggestions.length; i++) {
       if (suggestions[i].completion == identifier) {
         return i;
@@ -237,7 +238,7 @@ class CompletionRunner {
   }
 
   /// Print information about the given [suggestions].
-  void _printSuggestions(List<CompletionSuggestion> suggestions) {
+  void _printSuggestions(List<CompletionSuggestionBuilder> suggestions) {
     if (suggestions.isEmpty) {
       output.writeln('  No suggestions');
       return;
@@ -248,7 +249,8 @@ class CompletionRunner {
     }
   }
 
-  List<CompletionSuggestion> _sort(List<CompletionSuggestion> suggestions) {
+  List<CompletionSuggestionBuilder> _sort(
+      List<CompletionSuggestionBuilder> suggestions) {
     suggestions.sort((first, second) => second.relevance - first.relevance);
     return suggestions;
   }

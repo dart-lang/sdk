@@ -17,6 +17,36 @@ main() {
 @reflectiveTest
 class MixinOfNonClassTest extends PubPackageResolutionTest
     with MixinOfNonClassTestCases {
+  test_enum_enum() async {
+    await assertErrorsInCode(r'''
+enum E1 { v }
+enum E2 with E1 { v }
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 27, 2),
+    ]);
+  }
+
+  test_enum_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+int A = 7;
+enum E with A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 23, 1),
+    ]);
+  }
+
+  test_enum_undefined() async {
+    await assertErrorsInCode(r'''
+enum E with M {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 12, 1),
+    ]);
+  }
+
   test_Never() async {
     await assertErrorsInCode('''
 class A with Never {}
@@ -27,16 +57,7 @@ class A with Never {}
 }
 
 mixin MixinOfNonClassTestCases on PubPackageResolutionTest {
-  test_class() async {
-    await assertErrorsInCode(r'''
-int A = 7;
-class B extends Object with A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1),
-    ]);
-  }
-
-  test_enum() async {
+  test_class_enum() async {
     await assertErrorsInCode(r'''
 enum E { ONE }
 class A extends Object with E {}
@@ -45,19 +66,16 @@ class A extends Object with E {}
     ]);
   }
 
-  @failingTest
-  test_non_class() async {
-    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
-    // TODO(brianwilkerson) Fix the offset and length.
+  test_class_topLevelVariable() async {
     await assertErrorsInCode(r'''
-var A;
-class B extends Object mixin A {}
+int A = 7;
+class B extends Object with A {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 0, 0),
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1),
     ]);
   }
 
-  test_typeAlias() async {
+  test_class_typeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
 int B = 7;
@@ -67,7 +85,7 @@ class C = A with B;
     ]);
   }
 
-  test_undefined() async {
+  test_class_undefined() async {
     await assertErrorsInCode(r'''
 class C with M {}
 ''', [
@@ -107,7 +125,7 @@ class C with M {}
   }
 
   test_undefined_ignore_part_exists_uriGenerated_nameIgnorable() async {
-    newFile('$testPackageLibPath/a.g.dart', content: r'''
+    newFile2('$testPackageLibPath/a.g.dart', r'''
 part of 'test.dart';
 ''');
 

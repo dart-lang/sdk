@@ -1,0 +1,123 @@
+class An {
+  An({num x = 3.14});
+}
+
+class Ap {
+  Ap([num x = 3.14]);
+}
+
+class Bn extends An {
+  Bn({int super.x});
+  Bn.req({required int super.x});
+}
+
+class Bp extends Ap {
+  Bp([int super.x]);
+  Bp.req(int super.x);
+}
+
+class C1 extends S1 {
+  C1([super.x]) : c = x + 1;
+  int c;
+}
+
+class C2 extends S2 {
+  C2({super.x}) : c = x + 1;
+  int c;
+}
+
+class C3 extends S3 {
+  C3([super.x = 42]) : c = x + 1;
+  int c;
+}
+
+class C4 extends S4 {
+  C4({super.x = 42}) : c = x + 1;
+  int c;
+}
+
+class C5 extends S5 {
+  C5([int super.x]);
+}
+
+class C6 extends S6 {
+  C6([int? super.x]);
+  int? b;
+}
+
+class C7 extends S7 {
+  C7([super.x]) : c = x + 1;
+  int c;
+}
+
+class C8 extends S8 {
+  C8([super.x]) : c = x + 1;
+  int c;
+}
+
+class C9 extends S9 {
+  C9([super.x]) : c = x + 1;
+  int c;
+}
+
+class CC7 extends C7 {
+  CC7([super.x]) : cc = x * 1;
+  int cc;
+}
+
+class CC8 extends C8 {
+  CC8([super.x]) : cc = x * 1;
+  int cc;
+}
+
+class CC9 extends C9 {
+  CC9([super.x]) : cc = x * 1;
+  int cc;
+}
+
+class S1 {
+  S1([int x = 0]) : s = x - 1;
+  int s;
+}
+
+class S2 {
+  S2({int x = 0}) : s = x - 1;
+  int s;
+}
+
+class S3 {
+  S3([int x = 0]) : s = x - 1;
+  int s;
+}
+
+class S4 {
+  S4({int x = 0}) : s = x - 1;
+  int s;
+}
+
+class S5 {
+  S5([num x = 3.14]) : a = x - 1;
+  num a;
+}
+
+class S6 {
+  S6([num? x = 3.14]) : a = x;
+  num? a;
+}
+
+class S7 {
+  S7([int x = 0]) : s = x - 1;
+  int s;
+}
+
+class S8 {
+  S8([int x = 0]) : s = x - 1;
+  int s;
+}
+
+class S9 {
+  S9([int x = 0]) : s = x - 1;
+  int s;
+}
+
+main() {}

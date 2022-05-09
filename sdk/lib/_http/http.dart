@@ -53,7 +53,7 @@ part 'websocket_impl.dart';
 /// ```dart
 /// import 'dart:io';
 ///
-/// Future<void> main() async {
+/// void main() async {
 ///   var server = await HttpServer.bind(InternetAddress.anyIPv6, 80);
 ///   await server.forEach((HttpRequest request) {
 ///     request.response.write('Hello, world!');
@@ -82,7 +82,7 @@ part 'websocket_impl.dart';
 /// ```dart
 /// import 'dart:io';
 ///
-/// Future<void> main() async {
+/// void main() async {
 ///   var chain =
 ///       Platform.script.resolve('certificates/server_chain.pem').toFilePath();
 ///   var key = Platform.script.resolve('certificates/server_key.pem').toFilePath();
@@ -1516,6 +1516,46 @@ abstract class HttpClient {
   /// Add credentials to be used for authorizing HTTP requests.
   void addCredentials(Uri url, String realm, HttpClientCredentials credentials);
 
+  /// Sets the function used to create socket connections.
+  ///
+  /// The URL requested (e.g. through [getUrl]) and proxy configuration
+  /// ([f.proxyHost] and [f.proxyPort]) are passed as arguments. [f.proxyHost]
+  /// and [f.proxyPort] will be `null` if the connection is not made through
+  /// a proxy.
+  ///
+  /// Since connections may be reused based on host and port, it is important
+  /// that the function not ignore [f.proxyHost] and [f.proxyPort] if they are
+  /// not `null`. If proxies are not meaningful for the returned [Socket], you
+  /// can set [findProxy] to use a direct connection.
+  ///
+  /// For example:
+  ///
+  /// ```dart
+  /// import "dart:io";
+  ///
+  /// void main() async {
+  ///   HttpClient client = HttpClient()
+  ///     ..connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) {
+  ///         assert(proxyHost == null);
+  ///         assert(proxyPort == null);
+  ///         var address = InternetAddress("/var/run/docker.sock",
+  ///             type: InternetAddressType.unix);
+  ///         return Socket.startConnect(address, 0);
+  ///     }
+  ///     ..findProxy = (Uri uri) => 'DIRECT';
+  ///
+  ///   final request = await client.getUrl(Uri.parse("http://ignored/v1.41/info"));
+  ///   final response = await request.close();
+  ///   print(response.statusCode);
+  ///   await response.drain();
+  ///   client.close();
+  /// }
+  /// ```
+  void set connectionFactory(
+      Future<ConnectionTask<Socket>> Function(
+              Uri url, String? proxyHost, int? proxyPort)?
+          f);
+
   /// Sets the function used to resolve the proxy server to be used for
   /// opening a HTTP connection to the specified [url]. If this
   /// function is not set, direct connections will always be used.
@@ -1647,6 +1687,21 @@ abstract class HttpClient {
   /// has changed since then.
   void set badCertificateCallback(
       bool Function(X509Certificate cert, String host, int port)? callback);
+
+  /// Sets a callback that will be called when new TLS keys are exchanged with
+  /// the server. It will receive one line of text in
+  /// [NSS Key Log Format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format)
+  /// for each call. Writing these lines to a file will allow tools (such as
+  /// [Wireshark](https://gitlab.com/wireshark/wireshark/-/wikis/TLS#tls-decryption))
+  /// to decrypt communication between the this client and the server. This is
+  /// meant to allow network-level debugging of secure sockets and should not
+  /// be used in production code. For example:
+  ///
+  ///     final log = File('keylog.txt');
+  ///     final client = HttpClient();
+  ///     client.keyLog = (line) => log.writeAsStringSync(line,
+  ///         mode: FileMode.append);
+  void set keyLog(Function(String line)? callback);
 
   /// Shuts down the HTTP client.
   ///

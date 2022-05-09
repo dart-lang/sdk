@@ -36,6 +36,12 @@
 #include "vm/symbols.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool,
+            print_huge_methods,
+            false,
+            "Print huge methods (less optimized)");
+
 namespace kernel {
 
 #define Z (zone_)
@@ -768,6 +774,23 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   FinalizeCoverageArray();
   result->set_coverage_array(coverage_array());
 
+  if (streaming_flow_graph_builder.num_ast_nodes() >
+      FLAG_huge_method_cutoff_in_ast_nodes) {
+    if (FLAG_print_huge_methods) {
+      OS::PrintErr(
+          "Warning: \'%s\' from \'%s\' is too large. Some optimizations have "
+          "been "
+          "disabled, and the compiler might run out of memory. "
+          "Consider refactoring this code into smaller components.\n",
+          function.QualifiedUserVisibleNameCString(),
+          String::Handle(Z, Library::Handle(
+                                Z, Class::Handle(Z, function.Owner()).library())
+                                .url())
+              .ToCString());
+    }
+    result->mark_huge_method();
+  }
+
   return result;
 }
 
@@ -790,6 +813,51 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       Return(TokenPosition::kNoSource, /* omit_result_type_check = */ false);
   return body;
 }
+
+#define LOAD_NATIVE_FIELD(V)                                                   \
+  V(ByteDataViewLength, TypedDataBase_length)                                  \
+  V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
+  V(ByteDataViewTypedData, TypedDataView_typed_data)                           \
+  V(Finalizer_getCallback, Finalizer_callback)                                 \
+  V(FinalizerBase_getAllEntries, FinalizerBase_all_entries)                    \
+  V(FinalizerBase_getDetachments, FinalizerBase_detachments)                   \
+  V(FinalizerEntry_getDetach, FinalizerEntry_detach)                           \
+  V(FinalizerEntry_getNext, FinalizerEntry_next)                               \
+  V(FinalizerEntry_getToken, FinalizerEntry_token)                             \
+  V(FinalizerEntry_getValue, FinalizerEntry_value)                             \
+  V(NativeFinalizer_getCallback, NativeFinalizer_callback)                     \
+  V(GrowableArrayLength, GrowableObjectArray_length)                           \
+  V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
+  V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
+  V(LinkedHashBase_getData, LinkedHashBase_data)                               \
+  V(LinkedHashBase_getDeletedKeys, LinkedHashBase_deleted_keys)                \
+  V(LinkedHashBase_getHashMask, LinkedHashBase_hash_mask)                      \
+  V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
+  V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
+  V(ObjectArrayLength, Array_length)                                           \
+  V(TypedDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                 \
+  V(TypedDataViewTypedData, TypedDataView_typed_data)                          \
+  V(TypedListBaseLength, TypedDataBase_length)                                 \
+  V(WeakProperty_getKey, WeakProperty_key)                                     \
+  V(WeakProperty_getValue, WeakProperty_value)                                 \
+  V(WeakReference_getTarget, WeakReference_target)
+
+#define STORE_NATIVE_FIELD(V)                                                  \
+  V(Finalizer_setCallback, Finalizer_callback)                                 \
+  V(FinalizerBase_setAllEntries, FinalizerBase_all_entries)                    \
+  V(FinalizerBase_setDetachments, FinalizerBase_detachments)                   \
+  V(FinalizerEntry_setToken, FinalizerEntry_token)                             \
+  V(NativeFinalizer_setCallback, NativeFinalizer_callback)                     \
+  V(LinkedHashBase_setData, LinkedHashBase_data)                               \
+  V(LinkedHashBase_setIndex, LinkedHashBase_index)                             \
+  V(WeakProperty_setKey, WeakProperty_key)                                     \
+  V(WeakProperty_setValue, WeakProperty_value)                                 \
+  V(WeakReference_setTarget, WeakReference_target)
+
+#define STORE_NATIVE_FIELD_NO_BARRIER(V)                                       \
+  V(LinkedHashBase_setDeletedKeys, LinkedHashBase_deleted_keys)                \
+  V(LinkedHashBase_setHashMask, LinkedHashBase_hash_mask)                      \
+  V(LinkedHashBase_setUsedData, LinkedHashBase_used_data)
 
 bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     const Function& function) {
@@ -833,7 +901,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -847,7 +914,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
@@ -866,44 +932,31 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiAsExternalTypedDataFloat:
     case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+    case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+    case MethodRecognizer::kFinalizerBase_setIsolate:
+    case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+    case MethodRecognizer::kFinalizerEntry_allocate:
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
-    case MethodRecognizer::kGrowableArrayLength:
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedListBaseLength:
-    case MethodRecognizer::kByteDataViewLength:
-    case MethodRecognizer::kByteDataViewOffsetInBytes:
-    case MethodRecognizer::kTypedDataViewOffsetInBytes:
-    case MethodRecognizer::kByteDataViewTypedData:
-    case MethodRecognizer::kTypedDataViewTypedData:
     case MethodRecognizer::kClassIDgetID:
+    case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
-    case MethodRecognizer::kLinkedHashBase_getIndex:
-    case MethodRecognizer::kLinkedHashBase_setIndex:
-    case MethodRecognizer::kLinkedHashBase_getData:
-    case MethodRecognizer::kLinkedHashBase_setData:
-    case MethodRecognizer::kLinkedHashBase_getHashMask:
-    case MethodRecognizer::kLinkedHashBase_setHashMask:
-    case MethodRecognizer::kLinkedHashBase_getUsedData:
-    case MethodRecognizer::kLinkedHashBase_setUsedData:
-    case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
-    case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
-    case MethodRecognizer::kImmutableLinkedHashBase_getData:
-    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
-    case MethodRecognizer::kWeakProperty_getKey:
-    case MethodRecognizer::kWeakProperty_setKey:
-    case MethodRecognizer::kWeakProperty_getValue:
-    case MethodRecognizer::kWeakProperty_setValue:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
+#define CASE(method, slot) case MethodRecognizer::k##method:
+      LOAD_NATIVE_FIELD(CASE)
+      STORE_NATIVE_FIELD(CASE)
+      STORE_NATIVE_FIELD_NO_BARRIER(CASE)
+#undef CASE
       return true;
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
@@ -928,7 +981,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
       return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
-#elif defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
       return true;
 #else
       return false;
@@ -1089,40 +1143,31 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         body += StrictCompare(Token::kEQ_STRICT);
       }
       break;
-    case MethodRecognizer::kGrowableArrayLength:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::GrowableObjectArray_length());
-      break;
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::Array_length());
-      break;
-    case MethodRecognizer::kTypedListBaseLength:
-    case MethodRecognizer::kByteDataViewLength:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::TypedDataBase_length());
-      break;
-    case MethodRecognizer::kByteDataViewOffsetInBytes:
-    case MethodRecognizer::kTypedDataViewOffsetInBytes:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::TypedDataView_offset_in_bytes());
-      break;
-    case MethodRecognizer::kByteDataViewTypedData:
-    case MethodRecognizer::kTypedDataViewTypedData:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::TypedDataView_data());
-      break;
     case MethodRecognizer::kClassIDgetID:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadClassId();
       break;
+    case MethodRecognizer::kGrowableArrayAllocateWithData: {
+      ASSERT(function.IsFactory());
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      const Class& cls =
+          Class::ZoneHandle(Z, compiler::GrowableObjectArrayClass().ptr());
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += AllocateObject(TokenPosition::kNoSource, cls, 1);
+      LocalVariable* object = MakeTemporary();
+      body += LoadLocal(object);
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreNativeField(Slot::GrowableObjectArray_data(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+      body += LoadLocal(object);
+      body += IntConstant(0);
+      body += StoreNativeField(Slot::GrowableObjectArray_length(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+      break;
+    }
     case MethodRecognizer::kGrowableArrayCapacity:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1208,23 +1253,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashBase_getIndex:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_index());
-      break;
-    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::ImmutableLinkedHashBase_index());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setIndex:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_index());
-      body += NullConstant();
-      break;
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1235,89 +1263,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
                            StoreInstanceFieldInstr::Kind::kOther,
                            kEmitStoreBarrier, compiler::Assembler::kRelease);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getData:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_data());
-      break;
-    case MethodRecognizer::kImmutableLinkedHashBase_getData:
-      ASSERT(function.NumParameters() == 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::ImmutableLinkedHashBase_data());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setData:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_data());
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getHashMask:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_hash_mask());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setHashMask:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_hash_mask(),
-                               StoreInstanceFieldInstr::Kind::kOther,
-                               kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getUsedData:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_used_data());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setUsedData:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_used_data(),
-                               StoreInstanceFieldInstr::Kind::kOther,
-                               kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashBase_deleted_keys());
-      break;
-    case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashBase_deleted_keys(),
-                               StoreInstanceFieldInstr::Kind::kOther,
-                               kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kWeakProperty_getKey:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::WeakProperty_key());
-      break;
-    case MethodRecognizer::kWeakProperty_setKey:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::WeakProperty_key());
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kWeakProperty_getValue:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::WeakProperty_value());
-      break;
-    case MethodRecognizer::kWeakProperty_setValue:
-      ASSERT_EQUAL(function.NumParameters(), 2);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::WeakProperty_value());
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:
@@ -1352,7 +1297,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -1376,7 +1320,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_pointer);
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til LoadIndexed.
-      body += LoadUntagged(compiler::target::PointerBase::data_field_offset());
+      body += LoadUntagged(compiler::target::PointerBase::data_offset());
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
@@ -1417,8 +1361,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         LocalVariable* pointer = MakeTemporary();
         body += LoadLocal(pointer);
         body += LoadLocal(address);
-        body += UnboxTruncate(kUnboxedFfiIntPtr);
-        body += StoreNativeField(Slot::Pointer_data_field());
+        body += UnboxTruncate(kUnboxedIntPtr);
+        body += StoreNativeField(Slot::PointerBase_data());
         body += DropTempsPreserveTop(1);  // Drop [address] keep [pointer].
       }
       body += DropTempsPreserveTop(1);  // Drop [arg_offset].
@@ -1431,7 +1375,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
@@ -1490,13 +1433,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_pointer);  // Pointer.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til StoreIndexed.
-      body += LoadUntagged(compiler::target::PointerBase::data_field_offset());
+      body += LoadUntagged(compiler::target::PointerBase::data_offset());
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadLocal(arg_value_not_null);
       if (kind == MethodRecognizer::kFfiStorePointer) {
         // This can only be Pointer, so it is always safe to LoadUntagged.
-        body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+        body += LoadUntagged(compiler::target::PointerBase::data_offset());
         body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
       } else {
         // Avoid any unnecessary (and potentially deoptimizing) int
@@ -1527,15 +1470,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
-      body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += StoreNativeField(Slot::Pointer_data_field());
+      body += UnboxTruncate(kUnboxedIntPtr);
+      body += StoreNativeField(Slot::PointerBase_data());
     } break;
     case MethodRecognizer::kFfiGetAddress: {
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // This can only be Pointer, so it is always safe to LoadUntagged.
-      body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+      body += LoadUntagged(compiler::target::PointerBase::data_offset());
       body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
       body += Box(kUnboxedFfiIntPtr);
     } break;
@@ -1585,9 +1528,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // Initialize the result's data pointer field.
       body += LoadLocal(typed_data_object);
       body += LoadLocal(arg_pointer);
-      body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+      body += LoadUntagged(compiler::target::PointerBase::data_offset());
       body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
-      body += StoreNativeField(Slot::TypedDataBase_data_field(),
+      body += StoreNativeField(Slot::PointerBase_data(),
                                StoreInstanceFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
     } break;
@@ -1643,6 +1586,106 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += MathUnary(MathUnaryInstr::kSqrt);
     } break;
+    case MethodRecognizer::kFinalizerBase_setIsolate:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadIsolate();
+      body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+      body += StoreNativeField(Slot::FinalizerBase_isolate());
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
+      ASSERT_EQUAL(function.NumParameters(), 0);
+      body += LoadIsolate();
+      body += RawLoadField(compiler::target::Isolate::finalizers_offset());
+      break;
+    case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadIsolate();
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += RawStoreField(compiler::target::Isolate::finalizers_offset());
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      ASSERT(this->optimizing_);
+      // This relies on being force-optimized to do an 'atomic' exchange w.r.t.
+      // the GC.
+      // As an alternative design we could introduce an ExchangeNativeFieldInstr
+      // that uses the same machine code as std::atomic::exchange. Or we could
+      // use an FfiNative to do that in C.
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      // No GC from here til StoreNativeField.
+      body += LoadNativeField(Slot::FinalizerBase_entries_collected());
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += NullConstant();
+      body += StoreNativeField(Slot::FinalizerBase_entries_collected());
+      break;
+    case MethodRecognizer::kFinalizerEntry_allocate: {
+      // Object value, Object token, Object detach, FinalizerBase finalizer
+      ASSERT_EQUAL(function.NumParameters(), 4);
+
+      const auto class_table = thread_->isolate_group()->class_table();
+      ASSERT(class_table->HasValidClassAt(kFinalizerEntryCid));
+      const auto& finalizer_entry_class =
+          Class::ZoneHandle(H.zone(), class_table->At(kFinalizerEntryCid));
+
+      body +=
+          AllocateObject(TokenPosition::kNoSource, finalizer_entry_class, 0);
+      LocalVariable* const entry = MakeTemporary("entry");
+      // No GC from here to the end.
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += StoreNativeField(Slot::FinalizerEntry_value());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreNativeField(Slot::FinalizerEntry_token());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(2));
+      body += StoreNativeField(Slot::FinalizerEntry_detach());
+      body += LoadLocal(entry);
+      body += LoadLocal(parsed_function_->RawParameterVariable(3));
+      body += StoreNativeField(Slot::FinalizerEntry_finalizer());
+      body += LoadLocal(entry);
+      body += UnboxedIntConstant(0, kUnboxedIntPtr);
+      body += StoreNativeField(Slot::FinalizerEntry_external_size());
+      break;
+    }
+    case MethodRecognizer::kFinalizerEntry_getExternalSize:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::FinalizerEntry_external_size());
+      body += Box(kUnboxedInt64);
+      break;
+#define IL_BODY(method, slot)                                                  \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 1);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body += LoadNativeField(Slot::slot());                                     \
+    break;
+      LOAD_NATIVE_FIELD(IL_BODY)
+#undef IL_BODY
+#define IL_BODY(method, slot)                                                  \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 2);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body += LoadLocal(parsed_function_->RawParameterVariable(1));              \
+    body += StoreNativeField(Slot::slot());                                    \
+    body += NullConstant();                                                    \
+    break;
+      STORE_NATIVE_FIELD(IL_BODY)
+#undef IL_BODY
+#define IL_BODY(method, slot)                                                  \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 2);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body += LoadLocal(parsed_function_->RawParameterVariable(1));              \
+    body += StoreNativeField(                                                  \
+        Slot::slot(), StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier); \
+    body += NullConstant();                                                    \
+    break;
+      STORE_NATIVE_FIELD_NO_BARRIER(IL_BODY)
+#undef IL_BODY
     default: {
       UNREACHABLE();
       break;
@@ -1676,7 +1719,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
 
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
-  body += StoreNativeField(token_pos, Slot::TypedDataView_data(),
+  body += StoreNativeField(token_pos, Slot::TypedDataView_typed_data(),
                            StoreInstanceFieldInstr::Kind::kInitializing);
 
   body += LoadLocal(view_object);
@@ -1697,12 +1740,12 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   // instructions!
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
-  body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+  body += LoadUntagged(compiler::target::PointerBase::data_offset());
   body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
   body += LoadLocal(offset_in_bytes);
   body += UnboxSmiToIntptr();
   body += AddIntptrIntegers();
-  body += StoreNativeField(Slot::TypedDataBase_data_field());
+  body += StoreNativeField(Slot::PointerBase_data());
 
   return body;
 }
@@ -1842,13 +1885,14 @@ Fragment FlowGraphBuilder::CheckBoolean(TokenPosition position) {
 
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
-                                           AssertAssignableInstr::Kind kind) {
+                                           AssertAssignableInstr::Kind kind,
+                                           TokenPosition token_pos) {
   Fragment instructions;
   if (!dst_type.IsTopTypeForSubtyping()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
-    instructions += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
-                                                      dst_type, dst_name, kind);
+    instructions +=
+        AssertAssignableLoadTypeArguments(token_pos, dst_type, dst_name, kind);
     instructions += Drop();
   }
   return instructions;
@@ -3682,7 +3726,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
                                   setter_value->needs_type_check();
     if (needs_type_check) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
-                              AssertAssignableInstr::kParameterCheck);
+                              AssertAssignableInstr::kParameterCheck,
+                              field.token_pos());
     }
     body += BuildNullAssertions();
     if (field.is_late()) {
@@ -3950,6 +3995,13 @@ Fragment FlowGraphBuilder::AllocateHandle(LocalVariable* api_local_scope) {
   return code;
 }
 
+Fragment FlowGraphBuilder::RawLoadField(int32_t offset) {
+  Fragment code;
+  code += UnboxedIntConstant(offset, kUnboxedIntPtr);
+  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
+  return code;
+}
+
 Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
   Fragment code;
   Value* value = Pop();
@@ -3976,9 +4028,7 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
 Fragment FlowGraphBuilder::UnwrapHandle() {
   Fragment code;
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
-  code += IntConstant(compiler::target::LocalHandle::ptr_offset());
-  code += UnboxTruncate(kUnboxedIntPtr);
-  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
+  code += RawLoadField(compiler::target::LocalHandle::ptr_offset());
   return code;
 }
 
@@ -4012,6 +4062,19 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
                                    Instruction::kNotSpeculative);
   Push(unbox);
   return Fragment(unbox);
+}
+
+Fragment FlowGraphBuilder::LoadThread() {
+  LoadThreadInstr* instr = new (Z) LoadThreadInstr();
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment FlowGraphBuilder::LoadIsolate() {
+  Fragment body;
+  body += LoadThread();
+  body += LoadUntagged(compiler::target::Thread::isolate_offset());
+  return body;
 }
 
 // TODO(http://dartbug.com/47487): Support unboxed output value.
@@ -4085,8 +4148,8 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   LocalVariable* pointer = MakeTemporary();
   code += LoadLocal(pointer);
   code += LoadLocal(address);
-  code += UnboxTruncate(kUnboxedFfiIntPtr);
-  code += StoreNativeField(Slot::Pointer_data_field());
+  code += UnboxTruncate(kUnboxedIntPtr);
+  code += StoreNativeField(Slot::PointerBase_data());
   code += StoreLocal(TokenPosition::kNoSource, result);
   code += Drop();  // StoreLocal^
   code += Drop();  // address
@@ -4148,7 +4211,7 @@ Fragment FlowGraphBuilder::CopyFromCompoundToStack(
   for (intptr_t i = 0; i < num_defs; i++) {
     body += LoadLocal(variable);
     body += LoadTypedDataBaseFromCompound();
-    body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+    body += LoadUntagged(compiler::target::PointerBase::data_offset());
     body += IntConstant(offset_in_bytes);
     const Representation representation = representations[i];
     offset_in_bytes += RepresentationUtils::ValueSize(representation);
@@ -4170,7 +4233,7 @@ Fragment FlowGraphBuilder::PopFromStackToTypedDataBase(
   for (intptr_t i = 0; i < num_defs; i++) {
     const Representation representation = representations[i];
     body += LoadLocal(uint8_list);
-    body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+    body += LoadUntagged(compiler::target::PointerBase::data_offset());
     body += IntConstant(offset_in_bytes);
     body += LoadLocal(definitions->At(i));
     body += StoreIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
@@ -4224,7 +4287,7 @@ Fragment FlowGraphBuilder::CopyFromTypedDataBaseToUnboxedAddress(
     const classid_t typed_data_cidd = typed_data_cid(chunk_sizee);
 
     body += LoadLocal(typed_data_base);
-    body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+    body += LoadUntagged(compiler::target::PointerBase::data_offset());
     body += IntConstant(offset_in_bytes);
     body += LoadIndexed(typed_data_cidd, /*index_scale=*/1,
                         /*index_unboxed=*/false);
@@ -4269,7 +4332,7 @@ Fragment FlowGraphBuilder::CopyFromUnboxedAddressToTypedDataBase(
     LocalVariable* chunk_value = MakeTemporary("chunk_value");
 
     body += LoadLocal(typed_data_base);
-    body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+    body += LoadUntagged(compiler::target::PointerBase::data_offset());
     body += IntConstant(offset_in_bytes);
     body += LoadLocal(chunk_value);
     body += StoreIndexedTypedData(typed_data_cidd, /*index_scale=*/1,
@@ -4428,7 +4491,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
     // This can only be Pointer, so it is always safe to LoadUntagged.
-    body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+    body += LoadUntagged(compiler::target::PointerBase::data_offset());
     body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
   } else if (marshaller.IsHandle(arg_index)) {
     body += WrapHandle(api_local_scope);
@@ -4560,7 +4623,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
                     ->context_variables()[0]));
 
   // This can only be Pointer, so it is always safe to LoadUntagged.
-  body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+  body += LoadUntagged(compiler::target::PointerBase::data_offset());
   body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
 
   if (marshaller.PassTypedData()) {
@@ -4719,8 +4782,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   if (marshaller.IsPointer(compiler::ffi::kResultIndex) ||
       marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
-    catch_body += IntConstant(0);
-    catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
+    catch_body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
   } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
     catch_body +=

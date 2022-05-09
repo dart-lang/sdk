@@ -37,15 +37,15 @@ class Divergent<T extends core::Object? = dynamic> extends core::Object implemen
   no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>
     return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 0, #C3, #C12, core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>;
 }
-static method test() → dynamic /* originally async */ {
+static method test() → dynamic /* futureValueType= dynamic */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
-  FutureOr<dynamic>? :return_value;
+  dynamic :return_value;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L1:
       {
@@ -53,7 +53,7 @@ static method test() → dynamic /* originally async */ {
  - 'Future' is from 'dart:async'.
  - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
   Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
-                                                                          ^" in (() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> /* originally async */ {
+                                                                          ^" in (() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> /* futureValueType= self::Divergent<self::Divergent<self::Divergent<core::int>>> */ /* originally async */ {
           final asy::_Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> :async_future = new asy::_Future::•<self::Divergent<self::Divergent<self::Divergent<core::int>>>>();
           core::bool* :is_sync = false;
           FutureOr<self::Divergent<self::Divergent<self::Divergent<core::int>>>>? :return_value;
@@ -61,7 +61,7 @@ static method test() → dynamic /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
-          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+          function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
             try {
               #L2:
               {
@@ -80,12 +80,12 @@ static method test() → dynamic /* originally async */ {
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :async_op(){() → dynamic};
+          :async_op(null, null){() → dynamic};
           :is_sync = true;
           return :async_future;
         })(){() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>>} as{TypeError,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<core::int>>>;
       }
-      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
@@ -93,7 +93,7 @@ static method test() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() → dynamic};
+  :async_op(null, null){() → dynamic};
   :is_sync = true;
   return :async_future;
 }

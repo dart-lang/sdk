@@ -35,13 +35,34 @@ f() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
     ]);
-    var invocation = findNode.methodInvocation('m();');
-    assertMethodInvocation(
-      invocation,
-      null,
-      'dynamic',
-      expectedType: 'dynamic',
-    );
+
+    var node = findNode.methodInvocation('m();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ExtensionOverride
+    extensionName: SimpleIdentifier
+      token: E
+      staticElement: self::@extension::E
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    extendedType: String
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_static_withInference() async {

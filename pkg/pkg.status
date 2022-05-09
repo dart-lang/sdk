@@ -145,6 +145,8 @@ vm_service/test/*: SkipByDesign # Uses dart:io
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
+dds/test/devtools_server/devtools_server_connection_test: Pass, Slow
+dds/test/devtools_server/devtools_server_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
 front_end/test/fasta/text_serialization_test: Pass, Slow, Timeout
@@ -234,7 +236,7 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.
-[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 *: Skip
 
 [ $mode == debug || $runtime != vm || $system == android ]

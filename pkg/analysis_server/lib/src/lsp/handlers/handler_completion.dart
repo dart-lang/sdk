@@ -21,7 +21,9 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
@@ -31,13 +33,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
-class CompletionHandler
-    extends MessageHandler<CompletionParams, List<CompletionItem>>
+class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
+  /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
-  CompletionHandler(
-      LspAnalysisServer server, this.suggestFromUnimportedLibraries)
-      : super(server);
+
+  CompletionHandler(LspAnalysisServer server, LspInitializationOptions options)
+      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
+        super(server);
 
   @override
   Method get handlesMessage => Method.textDocument_completion;
@@ -47,17 +50,13 @@ class CompletionHandler
       CompletionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<CompletionItem>>> handle(
+  Future<ErrorOr<CompletionList>> handle(
       CompletionParams params, CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+      return serverNotInitializedError;
     }
-
-    final includeSuggestionSets =
-        suggestFromUnimportedLibraries && clientCapabilities.applyEdit;
 
     final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
@@ -75,18 +74,35 @@ class CompletionHandler
         await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      Future<ErrorOr<List<CompletionItem>>>? serverResultsFuture;
+      Future<ErrorOr<CompletionList>>? serverResultsFuture;
       final pathContext = server.resourceProvider.pathContext;
       final fileExtension = pathContext.extension(path.result);
 
+      final maxResults = server.clientConfiguration
+          .forResource(path.result)
+          .maxCompletionItems;
+
+      CompletionPerformance? completionPerformance;
       if (fileExtension == '.dart' && !unit.isError) {
+        final result = unit.result;
+        var performanceOperation = OperationPerformanceImpl('<root>');
+        completionPerformance = CompletionPerformance(
+          operation: performanceOperation,
+          path: result.path,
+          content: result.content,
+          offset: offset,
+        );
+        server.performanceStats.completion.add(completionPerformance);
+
         serverResultsFuture = _getServerDartItems(
           clientCapabilities,
-          includeSuggestionSets,
-          unit.result,
+          result,
+          completionPerformance,
+          performanceOperation,
           offset,
           triggerCharacter,
           token,
+          maxResults: maxResults,
         );
       } else if (fileExtension == '.yaml') {
         YamlCompletionGenerator? generator;
@@ -110,7 +126,8 @@ class CompletionHandler
         }
       }
 
-      serverResultsFuture ??= Future.value(success(const <CompletionItem>[]));
+      serverResultsFuture ??=
+          Future.value(success(CompletionList(isIncomplete: false, items: [])));
 
       final pluginResultsFuture = _getPluginResults(
           clientCapabilities, lineInfo.result, path.result, offset);
@@ -125,9 +142,26 @@ class CompletionHandler
       if (serverResults.isError) return serverResults;
       if (pluginResults.isError) return pluginResults;
 
-      return success(
-        serverResults.result.followedBy(pluginResults.result).toList(),
-      );
+      final untruncatedItems = serverResults.result.items
+          .followedBy(pluginResults.result.items)
+          .toList();
+
+      final truncatedItems = untruncatedItems.length > maxResults
+          ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
+          : untruncatedItems;
+
+      // If we're tracing performance (only Dart), record the number of results
+      // after truncation.
+      completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
+
+      return success(CompletionList(
+        // If any set of the results is incomplete, the whole batch must be
+        // marked as such.
+        isIncomplete: serverResults.result.isIncomplete ||
+            pluginResults.result.isIncomplete ||
+            truncatedItems.length != untruncatedItems.length,
+        items: truncatedItems,
+      ));
     });
   }
 
@@ -174,7 +208,32 @@ class CompletionHandler
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
-  Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
+  Future<List<CompletionItem>> _getDartSnippetItems({
+    required LspClientCapabilities clientCapabilities,
+    required ResolvedUnitResult unit,
+    required int offset,
+    required LineInfo lineInfo,
+  }) async {
+    final request = DartSnippetRequest(
+      unit: unit,
+      offset: offset,
+    );
+    final snippetManager = DartSnippetManager();
+    final snippets = await snippetManager.computeSnippets(request);
+
+    return snippets
+        .map((snippet) => snippetToCompletionItem(
+              server,
+              clientCapabilities,
+              unit.path,
+              lineInfo,
+              toPosition(lineInfo.getLocation(offset)),
+              snippet,
+            ))
+        .toList();
+  }
+
+  Future<ErrorOr<CompletionList>> _getPluginResults(
     LspClientCapabilities capabilities,
     LineInfo lineInfo,
     String path,
@@ -188,34 +247,33 @@ class CompletionHandler
         .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
         .toList();
 
-    return success(_pluginResultsToItems(
-      capabilities,
-      lineInfo,
-      offset,
-      pluginResults,
-    ).toList());
+    return success(CompletionList(
+      isIncomplete: false,
+      items: _pluginResultsToItems(
+        capabilities,
+        lineInfo,
+        offset,
+        pluginResults,
+      ).toList(),
+    ));
   }
 
-  Future<ErrorOr<List<CompletionItem>>> _getServerDartItems(
+  Future<ErrorOr<CompletionList>> _getServerDartItems(
     LspClientCapabilities capabilities,
-    bool includeSuggestionSets,
     ResolvedUnitResult unit,
+    CompletionPerformance completionPerformance,
+    OperationPerformanceImpl operationPerformance,
     int offset,
     String? triggerCharacter,
-    CancellationToken token,
-  ) async {
-    var performance = OperationPerformanceImpl('<root>');
-    return await performance.runAsync(
+    CancellationToken token, {
+    required int maxResults,
+  }) async {
+    final useSuggestionSets =
+        suggestFromUnimportedLibraries && capabilities.applyEdit;
+
+    return await operationPerformance.runAsync(
       'request',
       (performance) async {
-        final completionPerformance = CompletionPerformance(
-          operation: performance,
-          path: unit.path,
-          content: unit.content,
-          offset: offset,
-        );
-        server.performanceStats.completion.add(completionPerformance);
-
         final completionRequest = DartCompletionRequest.forResolvedUnit(
           resolvedUnit: unit,
           offset: offset,
@@ -226,14 +284,14 @@ class CompletionHandler
 
         if (triggerCharacter != null) {
           if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
-            return success([]);
+            return success(CompletionList(isIncomplete: false, items: []));
           }
         }
 
         Set<ElementKind>? includedElementKinds;
         Set<String>? includedElementNames;
         List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
-        if (includeSuggestionSets) {
+        if (useSuggestionSets) {
           includedElementKinds = <ElementKind>{};
           includedElementNames = <String>{};
           includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
@@ -247,10 +305,14 @@ class CompletionHandler
             includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
           );
 
-          final serverSuggestions = await contributor.computeSuggestions(
+          final serverSuggestions2 = await contributor.computeSuggestions(
             completionRequest,
             performance,
           );
+
+          final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
+            return serverSuggestion.build();
+          }).toList();
 
           final insertLength = _computeInsertLength(
             offset,
@@ -284,18 +346,22 @@ class CompletionHandler
                     offset, itemReplacementOffset, itemInsertLength);
               }
 
+              // Convert to LSP ranges using the LineInfo.
+              Range? replacementRange = toRange(
+                  unit.lineInfo, itemReplacementOffset, itemReplacementLength);
+              Range? insertionRange = toRange(
+                  unit.lineInfo, itemReplacementOffset, itemInsertLength);
+
               return toCompletionItem(
                 capabilities,
                 unit.lineInfo,
                 item,
-                itemReplacementOffset,
-                itemInsertLength,
-                itemReplacementLength,
-                // TODO(dantup): Including commit characters in every completion
-                // increases the payload size. The LSP spec is ambigious
-                // about how this should be handled (and VS Code requires it) but
-                // this should be removed (or made conditional based on a capability)
-                // depending on how the spec is updated.
+                replacementRange: replacementRange,
+                insertionRange: insertionRange,
+                // TODO(dantup): Move commit characters to the main response
+                // and remove from each individual item (to reduce payload size)
+                // once the following change ships (and the Dart VS Code
+                // extension is updated to use it).
                 // https://github.com/microsoft/vscode-languageserver-node/issues/673
                 includeCommitCharacters:
                     server.clientConfiguration.global.previewCommitCharacters,
@@ -390,11 +456,10 @@ class CompletionHandler
                         completionRequest.replacementOffset,
                         insertLength,
                         completionRequest.replacementLength,
-                        // TODO(dantup): Including commit characters in every completion
-                        // increases the payload size. The LSP spec is ambigious
-                        // about how this should be handled (and VS Code requires it) but
-                        // this should be removed (or made conditional based on a capability)
-                        // depending on how the spec is updated.
+                        // TODO(dantup): Move commit characters to the main response
+                        // and remove from each individual item (to reduce payload size)
+                        // once the following change ships (and the Dart VS Code
+                        // extension is updated to use it).
                         // https://github.com/microsoft/vscode-languageserver-node/issues/673
                         includeCommitCharacters: server
                             .clientConfiguration.global.previewCommitCharacters,
@@ -404,26 +469,50 @@ class CompletionHandler
             });
           }
 
+          // Add in any snippets.
+          final snippetsEnabled =
+              server.clientConfiguration.forResource(unit.path).enableSnippets;
+          // We can only produce edits with edit builders for files inside
+          // the root, so skip snippets entirely if not.
+          final isEditableFile =
+              unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
+          if (capabilities.completionSnippets &&
+              snippetsEnabled &&
+              isEditableFile) {
+            results.addAll(await _getDartSnippetItems(
+              clientCapabilities: capabilities,
+              unit: unit,
+              offset: offset,
+              lineInfo: unit.lineInfo,
+            ));
+          }
+
           // Perform fuzzy matching based on the identifier in front of the caret to
           // reduce the size of the payload.
           final fuzzyPattern = completionRequest.targetPrefix;
           final fuzzyMatcher =
               FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 
-          final matchingResults =
-              results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
+          final matchingResults = results
+              .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
+              .toList();
 
-          completionPerformance.suggestionCount = results.length;
+          // Transmitted count will be set after combining with plugins.
+          completionPerformance.computedSuggestionCount =
+              matchingResults.length;
 
-          return success(matchingResults);
+          return success(
+              CompletionList(isIncomplete: false, items: matchingResults));
         } on AbortCompletion {
-          return success([]);
+          return success(CompletionList(isIncomplete: false, items: []));
+        } on InconsistentAnalysisException {
+          return success(CompletionList(isIncomplete: false, items: []));
         }
       },
     );
   }
 
-  Future<ErrorOr<List<CompletionItem>>> _getServerYamlItems(
+  Future<ErrorOr<CompletionList>> _getServerYamlItems(
     YamlCompletionGenerator generator,
     LspClientCapabilities capabilities,
     String path,
@@ -437,23 +526,25 @@ class CompletionHandler
       suggestions.replacementOffset,
       suggestions.replacementLength,
     );
+    final replacementRange = toRange(
+        lineInfo, suggestions.replacementOffset, suggestions.replacementLength);
+    final insertionRange =
+        toRange(lineInfo, suggestions.replacementOffset, insertLength);
+
     final completionItems = suggestions.suggestions
         .map(
           (item) => toCompletionItem(
             capabilities,
             lineInfo,
             item,
-            suggestions.replacementOffset,
-            insertLength,
-            suggestions.replacementLength,
+            replacementRange: replacementRange,
+            insertionRange: insertionRange,
             includeCommitCharacters: false,
             completeFunctionCalls: false,
             // Add on any completion-kind-specific resolution data that will be
             // used during resolve() calls to provide additional information.
             resolutionData: item.kind == CompletionSuggestionKind.PACKAGE_NAME
                 ? PubPackageCompletionItemResolutionInfo(
-                    file: path,
-                    offset: offset,
                     // The completion for package names may contain a trailing
                     // ': ' for convenience, so if it's there, trim it off.
                     packageName: item.completion.split(':').first,
@@ -462,7 +553,7 @@ class CompletionHandler
           ),
         )
         .toList();
-    return success(completionItems);
+    return success(CompletionList(isIncomplete: false, items: completionItems));
   }
 
   /// Returns true if [node] is part of an invocation and already has an argument
@@ -495,18 +586,23 @@ class CompletionHandler
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
   ) {
     return pluginResults.expand((result) {
+      final insertLength = _computeInsertLength(
+        offset,
+        result.replacementOffset,
+        result.replacementLength,
+      );
+      final replacementRange =
+          toRange(lineInfo, result.replacementOffset, result.replacementLength);
+      final insertionRange =
+          toRange(lineInfo, result.replacementOffset, insertLength);
+
       return result.results.map(
         (item) => toCompletionItem(
           capabilities,
           lineInfo,
           item,
-          result.replacementOffset,
-          _computeInsertLength(
-            offset,
-            result.replacementOffset,
-            result.replacementLength,
-          ),
-          result.replacementLength,
+          replacementRange: replacementRange,
+          insertionRange: insertionRange,
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their
           // completions.
@@ -548,5 +644,38 @@ class CompletionHandler
     }
 
     return true; // Any other trigger character can be handled always.
+  }
+
+  /// Compares [CompletionItem]s by the `sortText` field, which is derived from
+  /// relevance.
+  ///
+  /// For items with the same relevance, shorter items are sorted first so that
+  /// truncation always removes longer items first (which can be included by
+  /// typing more of their characters).
+  static int sortTextComparer(CompletionItem item1, CompletionItem item2) {
+    // Note: It should never be the case that we produce items without sortText
+    // but if they're null, fall back to label which is what the client would do
+    // when sorting.
+    final item1Text = item1.sortText ?? item1.label;
+    final item2Text = item2.sortText ?? item2.label;
+
+    // If both items have the same text, this means they had the same relevance.
+    // In this case, sort by the length of the name ascending, so that shorter
+    // items are first. This is because longer items can be obtained by typing
+    // additional characters where shorter ones may not.
+    //
+    // For example, with:
+    //   - String aaa1;
+    //   - String aaa2;
+    //   - ...
+    //   - String aaa(N); // up to past the truncation amount
+    //   - String aaa;    // declared last, same prefix
+    //
+    // Typing 'aaa' should not allow 'aaa' to be truncated before 'aaa1'.
+    if (item1Text == item2Text) {
+      return item1.label.length.compareTo(item2.label.length);
+    }
+
+    return item1Text.compareTo(item2Text);
   }
 }

@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
@@ -257,14 +257,14 @@ main() {
 checkTest(Compiler compiler, NoSuchMethodTest test) {
   ElementEnvironment frontendEnvironment =
       compiler.frontendStrategy.elementEnvironment;
-  NoSuchMethodRegistryImpl registry =
+  NoSuchMethodRegistry registry =
       compiler.frontendStrategy.noSuchMethodRegistry;
-  NoSuchMethodResolver resolver = registry.internalResolverForTesting;
+  var resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = frontendEnvironment.lookupClassMember(
       compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');
   JClosedWorld backendClosedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment backendEnvironment = backendClosedWorld.elementEnvironment;
-  NoSuchMethodDataImpl data = backendClosedWorld.noSuchMethodData;
+  NoSuchMethodData data = backendClosedWorld.noSuchMethodData;
 
   // Test [NoSuchMethodResolver] results for each method.
   for (NoSuchMethodInfo info in test.methods) {

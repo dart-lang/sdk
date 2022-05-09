@@ -9,8 +9,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ReturnOfDoNotStoreTest);
     defineReflectiveTests(ReturnOfDoNotStoreInTestsTest);
+    defineReflectiveTests(ReturnOfDoNotStoreTest);
   });
 }
 
@@ -22,6 +22,7 @@ class ReturnOfDoNotStoreInTestsTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_noHintsInTestDir() async {
     // Code that is in a test dir (the default for PubPackageResolutionTests)
     // should not trigger the hint.
@@ -58,6 +59,7 @@ class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromClosureInFunction() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -74,6 +76,7 @@ String f() {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromFunction() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -96,6 +99,7 @@ String getV3() => v;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromGetter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -117,6 +121,7 @@ String get v3 => _v;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromGetter_binaryExpression() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -134,6 +139,7 @@ String? get v => _v ?? _v2;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromGetter_ternary() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -153,6 +159,7 @@ String get v => b ? _v : _v2;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromMethod() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';

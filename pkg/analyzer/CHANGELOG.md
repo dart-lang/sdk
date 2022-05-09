@@ -1,6 +1,34 @@
-## 3.1.0-dev
+## 3.4.1
+* Remove checks for consistency after operations in `AnalysisSession`.
+
+## 3.4.0
+* Deprecated `Resource.parent2`, use `parent` instead.
+* Deprecated `astFactory`, clients should not create AST nodes manually.
+* Changed `CompilationUnit.lineInfo` to be non-nullable.
+* Changed `CompilationUnitElement.lineInfo` to be non-nullable.
+* Deprecated `ResourceProviderMixin.newFile`, use `newFile2` instead.
+* Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile`.
+* Added `AnalysisContext.changeFile` and `AnalysisContext.applyPendingFileChanges`.
+* Deprecated `buildSdkSummary`, use asynchronous `buildSdkSummary2` instead.
+
+## 3.3.1
+* Report HintCode.OVERRIDE_ON_NON_OVERRIDING_xyz on enum.
+
+## 3.3.0
+* Added `getField` to `ExtensionElement`.
+* Added `isGenerative` to `ConstructorElement`.
+* Added `isDartCoreEnum` to `ClassElement` and `DartType`.
+* Deprecated `superclass2`, `mixinTypes2`, etc. Use `superclass`, `mixinTypes`, etc.
+* APIs for `enhanced-enums` language feature.
+
+## 3.2.0
+* Deprecated `changes` getter in `File` and `Folder`, use `watch()` instead.
+
+## 3.1.0
 * New internal API for `package:dart_style`.
 * Removed deprecated non-API `MockSdk` class.
+* Removed deprecated `AnalysisDriver` constructor.
+* Updated the current language version to `2.17`.
 
 ## 3.0.0
 * Removed deprecated `DartType.aliasElement/aliasArguments`.

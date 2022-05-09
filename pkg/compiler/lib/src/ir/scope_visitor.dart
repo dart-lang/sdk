@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -115,7 +114,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       }
     } else {
       assert(node is ir.Procedure || node is ir.Constructor);
-      if (!(node is ir.Procedure && ir.isRedirectingFactory(node))) {
+      if (!(node is ir.Procedure && node.isRedirectingFactory)) {
         // Skip redirecting factories: they contain invalid expressions only
         // used to suppport internal CFE modular compilation.
         node.accept(this);
@@ -865,9 +864,13 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     complexity = complexity.combine(visitExpressions(node.expressions));
     if (node.isConst) {
       return const EvaluationComplexity.constant();
-    } else {
+    }
+    if (complexity.isLazy) return complexity;
+    if (node.expressions.every(_isWellBehavedEagerHashKey)) {
+      // Includes empty set literals.
       return complexity.makeEager();
     }
+    return const EvaluationComplexity.lazy();
   }
 
   @override
@@ -879,9 +882,33 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     complexity = complexity.combine(visitNodes(node.entries));
     if (node.isConst) {
       return const EvaluationComplexity.constant();
-    } else {
+    }
+    if (node.entries.length > 10) return const EvaluationComplexity.lazy();
+    if (complexity.isLazy) return complexity;
+    if (node.entries
+        .map((entry) => entry.key)
+        .every(_isWellBehavedEagerHashKey)) {
+      // Includes empty map literals.
       return complexity.makeEager();
     }
+    return const EvaluationComplexity.lazy();
+  }
+
+  bool _isWellBehavedEagerHashKey(ir.Expression key) {
+    // Well-behaved eager keys for LinkedHashMap and LinkedHashSet must not
+    // indirectly use any lazy-initialized variables.
+    //
+    // TODO(45681): Improve the analysis. (1) Use static type of the [key]
+    // expression. (2) Use information about the class heirarchy and overloading
+    // of `get:hashCode` to detect safe implementations. This will pick up a lot
+    // of enum and enum-like classes.
+    if (key is ir.ConstantExpression) {
+      if (key.constant is ir.StringConstant) return true;
+      if (key.constant is ir.IntConstant) return true;
+      if (key.constant is ir.DoubleConstant) return true;
+      if (key.constant is ir.StaticTearOffConstant) return true;
+    }
+    return false;
   }
 
   @override

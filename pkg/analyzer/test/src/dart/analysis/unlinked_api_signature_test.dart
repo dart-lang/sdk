@@ -27,11 +27,11 @@ class UnitApiSignatureTest extends ParseBase {
   void assertSignature(String oldCode, String newCode, {required bool same}) {
     var path = convertPath('/test.dart');
 
-    newFile(path, content: oldCode);
+    newFile2(path, oldCode);
     var oldUnit = parseUnit(path).unit;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
-    newFile(path, content: newCode);
+    newFile2(path, newCode);
     var newUnit = parseUnit(path).unit;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 

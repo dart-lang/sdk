@@ -560,13 +560,13 @@ testDoWhile2() {
   return a;
 }
 
-/*member: testDoWhile3:[exact=JSUInt31]*/
+/*member: testDoWhile3:Value([exact=JSBool], value: false)*/
 testDoWhile3() {
   dynamic a = 42;
   do {
     a = 'foo';
     if (true) continue;
-    return 42;
+    return false;
   } while (true);
   // ignore: dead_code
   return a;

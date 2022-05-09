@@ -33,7 +33,7 @@ class SingleRootFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme != markerScheme) {
+    if (!uri.isScheme(markerScheme)) {
       throw new FileSystemException(
           uri,
           "This SingleRootFileSystem only handles URIs with the '$markerScheme'"

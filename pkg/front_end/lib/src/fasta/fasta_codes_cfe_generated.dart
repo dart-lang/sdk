@@ -4113,6 +4113,42 @@ Message _withArgumentsOptionalNonNullableWithoutInitializerError(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(
+            DartType _type, String name, bool isNonNullableByDefault)>
+    templateOptionalSuperParameterWithoutInitializer = const Template<
+            Message Function(
+                DartType _type, String name, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
+        withArguments: _withArgumentsOptionalSuperParameterWithoutInitializer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, String name, bool isNonNullableByDefault)>
+    codeOptionalSuperParameterWithoutInitializer = const Code<
+        Message Function(
+            DartType _type, String name, bool isNonNullableByDefault)>(
+  "OptionalSuperParameterWithoutInitializer",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOptionalSuperParameterWithoutInitializer(
+    DartType _type, String name, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String type = typeParts.join();
+  return new Message(codeOptionalSuperParameterWithoutInitializer,
+      problemMessage:
+          """Type '${type}' of the optional super-initializer parameter '${name}' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(String name, String name2, DartType _type,
             DartType _type2, String name3, bool isNonNullableByDefault)>
     templateOverrideTypeMismatchParameter = const Template<

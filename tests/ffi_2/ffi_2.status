@@ -20,6 +20,7 @@ regress_47594_test: Skip # Profiler is not available in Product.
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
 regress_47594_test: Skip # DartDev is not available on Android.
+vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available on Android tester.
 
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
@@ -33,7 +34,7 @@ vmspecific_handle_test: SkipByDesign # Symbols are not exposed on purpose and ar
 [ $system != android && $system != linux && $system != macos && $system != windows ]
 *: Skip # FFI not yet supported on other OSes.
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
 *: Skip # FFI not yet supported on the arm simulator.
 
 [ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]

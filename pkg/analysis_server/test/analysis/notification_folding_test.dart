@@ -9,7 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationFoldingTest extends AbstractAnalysisTest {
+class AnalysisNotificationFoldingTest extends PubPackageAnalysisServerTest {
   static const sampleCode = '''
 import 'dart:async';
 import 'dart:core';
@@ -40,7 +40,7 @@ main async() {}
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FOLDING) {
       var params = AnalysisFoldingParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         lastRegions = params.regions;
         _regionsReceived.complete(null);
       }
@@ -51,13 +51,13 @@ main async() {}
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  void subscribeForFolding() {
-    addAnalysisSubscription(AnalysisService.FOLDING, testFile);
+  Future<void> subscribeForFolding() async {
+    await addAnalysisSubscription(AnalysisService.FOLDING, testFile);
   }
 
   Future<void> test_afterAnalysis() async {
@@ -65,7 +65,7 @@ main async() {}
     await waitForTasksFinished();
     expect(lastRegions, isNull);
 
-    await waitForFolding(() => subscribeForFolding());
+    await waitForFolding(() async => await subscribeForFolding());
 
     expect(lastRegions, expectedResults);
   }
@@ -80,18 +80,18 @@ main async() {}
     expect(lastRegions, isNull);
 
     // With no content, there should be zero regions.
-    await waitForFolding(() => subscribeForFolding());
+    await waitForFolding(() async => await subscribeForFolding());
     expect(lastRegions, hasLength(0));
 
     // With sample code there will be folding regions.
-    await waitForFolding(() => modifyTestFile(sampleCode));
+    await waitForFolding(() async => modifyTestFile(sampleCode));
 
     expect(lastRegions, expectedResults);
   }
 
-  Future waitForFolding(void Function() action) {
+  Future<void> waitForFolding(Future<void> Function() action) async {
     _regionsReceived = Completer();
-    action();
+    await action();
     return _regionsReceived.future;
   }
 }

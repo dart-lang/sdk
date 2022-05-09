@@ -154,6 +154,7 @@ class Search {
         var unitResult = await _driver.getUnitElement(file);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
+          unitResult.element.enums.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
       }
@@ -258,7 +259,7 @@ class Search {
           try {
             unitElement.accept(
               _FunctionElementVisitor((element) {
-                addDeclaration(unitElement.lineInfo!, element);
+                addDeclaration(unitElement.lineInfo, element);
               }),
             );
           } on _MaxNumberOfDeclarationsError {
@@ -534,6 +535,8 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles, const {
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+      IndexRelationKind.IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
+          SearchResultKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF:
           SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
@@ -682,7 +685,9 @@ class Search {
       },
       searchedFiles,
     ));
-    if (parameter.isNamed || parameter.isOptionalPositional) {
+    if (parameter.isNamed ||
+        parameter.isOptionalPositional ||
+        parameter.enclosingElement is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
@@ -785,6 +790,7 @@ enum SearchResultKind {
   READ_WRITE,
   WRITE,
   INVOCATION,
+  INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
   REFERENCE,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
 }

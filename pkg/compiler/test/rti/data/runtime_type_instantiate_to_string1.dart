@@ -4,11 +4,13 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*member: global#instantiate1:needsArgs*/
 
 main() {
-  /*spec.direct,explicit=[id.T*],needsArgs,needsInst=[<int*>],needsSignature*/
+  /*spec.explicit=[id.T*],needsArgs,needsInst=[<int*>],needsSignature,test*/
   T id<T>(T t, String s) => t;
   int Function(int, String s) x = id;
-  print("${x.runtimeType}");
+  makeLive("${x.runtimeType}");
 }

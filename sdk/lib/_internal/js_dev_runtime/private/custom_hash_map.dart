@@ -69,7 +69,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
   @notNull
   bool containsKey(Object? key) {
     if (key is K) {
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
         for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
@@ -96,7 +96,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   V? operator [](Object? key) {
     if (key is K) {
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
         for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
@@ -113,7 +113,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   void operator []=(K key, V value) {
     var keyMap = _keyMap;
-    int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
+    int hash = JS('!', '# & 0x3fffffff', _hashCode(key));
     var buckets = JS('', '#.get(#)', keyMap, hash);
     if (buckets == null) {
       JS('', '#.set(#, [#])', keyMap, hash, key);
@@ -132,12 +132,12 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       }
     }
     JS('', '#.set(#, #)', _map, key, value);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
     var keyMap = _keyMap;
-    int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
+    int hash = JS('!', '# & 0x3fffffff', _hashCode(key));
     var buckets = JS('', '#.get(#)', keyMap, hash);
     if (buckets == null) {
       JS('', '#.set(#, [#])', keyMap, hash, key);
@@ -152,13 +152,13 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
     V value = ifAbsent();
     if (value == null) JS('', '# = null', value); // coerce undefined to null.
     JS('', '#.set(#, #)', _map, key, value);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
     return value;
   }
 
   V? remove(Object? key) {
     if (key is K) {
-      int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
+      int hash = JS('!', '# & 0x3fffffff', _hashCode(key));
       var keyMap = _keyMap;
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) return null; // not found
@@ -174,7 +174,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
           var map = _map;
           V value = JS('', '#.get(#)', map, k);
           JS('', '#.delete(#)', map, k);
-          _modifications = (_modifications + 1) & 0x3ffffff;
+          _modifications = (_modifications + 1) & 0x3fffffff;
           return value == null ? null : value; // coerce undefined to null.
         }
       }
@@ -187,7 +187,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
     if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 }

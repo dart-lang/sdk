@@ -3,10 +3,6 @@ library from "org-dartlang-test:///lib.dart" as lib {
 //
 // Problems in library:
 //
-// org-dartlang-test:///lib.dart:4:21: Error: Expected 0 type arguments.
-// class Bar<X extends Foo<Null>> {}
-//                     ^
-//
 // org-dartlang-test:///lib.dart:4:21: Error: Type 'Foo' not found.
 // class Bar<X extends Foo<Null>> {}
 //                     ^^^

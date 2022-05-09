@@ -509,7 +509,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         if (replacement != nullptr) break;
         FALL_THROUGH;
       case Token::kTRUNCDIV:
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_IS_64_BIT)
         // TODO(ajcbik): 32-bit archs too?
         break;
 #else

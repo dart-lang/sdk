@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ConstWithNonTypeTest extends PubPackageResolutionTest {
   test_fromLibrary() async {
-    newFile('$testPackageLibPath/lib1.dart');
+    newFile2('$testPackageLibPath/lib1.dart', '');
     await assertErrorsInCode('''
 import 'lib1.dart' as lib;
 void f() {

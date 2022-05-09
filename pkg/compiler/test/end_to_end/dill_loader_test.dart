@@ -6,12 +6,11 @@
 
 import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
 import 'package:compiler/src/kernel/dart2js_target.dart';
-import 'package:compiler/src/kernel/loader.dart';
+import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
@@ -38,14 +37,19 @@ main() {
 
     List<int> kernelBinary =
         serializeComponent((await kernelForProgram(uri, options)).component);
-    CompilerImpl compiler = compilerFor(
+    var compiler = compilerFor(
         entryPoint: uri,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output);
-    await compiler.setupSdk();
-    KernelResult result = await compiler.kernelLoader.load();
-    compiler.frontendStrategy.registerLoadedLibraries(result);
+    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+        compiler.options,
+        compiler.provider,
+        compiler.reporter,
+        compiler.initializedCompilerState,
+        false));
+    compiler.frontendStrategy
+        .registerLoadedLibraries(result.component, result.libraries);
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);

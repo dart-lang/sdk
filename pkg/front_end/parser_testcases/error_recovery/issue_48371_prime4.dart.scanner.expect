@@ -1,0 +1,23 @@
+import "lib.dart" show enum;
+import "lib.dart" hide enum;
+import "lib.dart" as enum show enum hide enum;
+import "lib.dart" show enum hide enum as enum;
+import "lib.dart" show enum, x, enum;
+import "lib.dart" hide enum, x, enum;
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+
+main() {}
+
+
+import[KeywordToken] "lib.dart"[StringToken] show[KeywordToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] hide[KeywordToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] as[KeywordToken] enum[KeywordToken] show[KeywordToken] enum[KeywordToken] hide[KeywordToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] show[KeywordToken] enum[KeywordToken] hide[KeywordToken] enum[KeywordToken] as[KeywordToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] show[KeywordToken] enum[KeywordToken],[SimpleToken] x[StringToken],[SimpleToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] hide[KeywordToken] enum[KeywordToken],[SimpleToken] x[StringToken],[SimpleToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] as[KeywordToken] enum[KeywordToken] show[KeywordToken] enum[KeywordToken],[SimpleToken] x[StringToken],[SimpleToken] enum[KeywordToken] hide[KeywordToken] enum[KeywordToken],[SimpleToken] x[StringToken],[SimpleToken] enum[KeywordToken];[SimpleToken]
+import[KeywordToken] "lib.dart"[StringToken] show[KeywordToken] enum[KeywordToken],[SimpleToken] x[StringToken],[SimpleToken] enum[KeywordToken] hide[KeywordToken] enum[KeywordToken],[SimpleToken] x[StringToken],[SimpleToken] enum[KeywordToken] as[KeywordToken] enum[KeywordToken];[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

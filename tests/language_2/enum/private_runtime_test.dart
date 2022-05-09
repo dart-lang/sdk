@@ -22,6 +22,4 @@ enum Enum1 {
 
 main() {
   Expect.equals('Enum1._A,Enum1._B', Enum1.values.join(','));
-
-
 }

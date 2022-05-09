@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -248,16 +249,12 @@ abstract class InlineMethodRefactoring implements Refactoring {
   bool isAvailable();
 }
 
-/// [Refactoring] to move/rename a file.
+/// [Refactoring] to move/rename a file or folder.
 abstract class MoveFileRefactoring implements Refactoring {
   /// Returns a new [MoveFileRefactoring] instance.
-  factory MoveFileRefactoring(
-      ResourceProvider resourceProvider,
-      RefactoringWorkspace workspace,
-      ResolvedUnitResult resolveResult,
-      String oldFilePath) {
-    return MoveFileRefactoringImpl(
-        resourceProvider, workspace, resolveResult, oldFilePath);
+  factory MoveFileRefactoring(ResourceProvider resourceProvider,
+      RefactoringWorkspace workspace, String oldFilePath) {
+    return MoveFileRefactoringImpl(resourceProvider, workspace, oldFilePath);
   }
 
   /// The new file path to which the given file is being moved.
@@ -266,6 +263,8 @@ abstract class MoveFileRefactoring implements Refactoring {
 
 /// Abstract interface for all refactorings.
 abstract class Refactoring {
+  set cancellationToken(CancellationToken token);
+
   /// The ids of source edits that are not known to be valid.
   ///
   /// An edit is not known to be valid if there was insufficient type
@@ -418,7 +417,7 @@ abstract class RenameRefactoring implements Refactoring {
     // Rename the class when on `new` in an instance creation.
     if (node is InstanceCreationExpression) {
       var creation = node;
-      var typeIdentifier = creation.constructorName.type2.name;
+      var typeIdentifier = creation.constructorName.type.name;
       element = typeIdentifier.staticElement;
       offset = typeIdentifier.offset;
       length = typeIdentifier.length;

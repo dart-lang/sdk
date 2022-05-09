@@ -454,8 +454,15 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (name != null) {
       writeWord(name);
     }
+    List<String> flags = [];
+    if (library.isUnsupported) {
+      flags.add('isUnsupported');
+    }
     if (library.isNonNullableByDefault) {
-      writeWord("/*isNonNullableByDefault*/");
+      flags.add('isNonNullableByDefault');
+    }
+    if (flags.isNotEmpty) {
+      writeWord('/*${flags.join(',')}*/');
     }
     endLine(';');
 
@@ -780,6 +787,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
+    if (function.futureValueType != null) {
+      writeSpaced("/* futureValueType=");
+      writeNode(function.futureValueType);
+      writeSpaced("*/");
+    }
     if (function.dartAsyncMarker != AsyncMarker.Sync &&
         function.dartAsyncMarker != function.asyncMarker) {
       writeSpaced("/* originally");
@@ -841,9 +853,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
   }
 
-  void writeFunctionType(FunctionType node,
-      {List<VariableDeclaration>? typedefPositional,
-      List<VariableDeclaration>? typedefNamed}) {
+  void writeFunctionType(FunctionType node) {
     if (state == WORD) {
       ensureSpace();
     }
@@ -851,38 +861,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('(');
     List<DartType> positional = node.positionalParameters;
 
-    bool parametersAnnotated = false;
-    if (typedefPositional != null) {
-      for (VariableDeclaration formal in typedefPositional) {
-        parametersAnnotated =
-            parametersAnnotated || formal.annotations.length > 0;
-      }
-    }
-    if (typedefNamed != null) {
-      for (VariableDeclaration formal in typedefNamed) {
-        parametersAnnotated =
-            parametersAnnotated || formal.annotations.length > 0;
-      }
-    }
-
-    if (parametersAnnotated && typedefPositional != null) {
-      writeList(typedefPositional.take(node.requiredParameterCount),
-          writeVariableDeclaration);
-    } else {
-      writeList(positional.take(node.requiredParameterCount), writeType);
-    }
+    writeList(positional.take(node.requiredParameterCount), writeType);
 
     if (node.requiredParameterCount < positional.length) {
       if (node.requiredParameterCount > 0) {
         writeComma();
       }
       writeSymbol('[');
-      if (parametersAnnotated && typedefPositional != null) {
-        writeList(typedefPositional.skip(node.requiredParameterCount),
-            writeVariableDeclaration);
-      } else {
-        writeList(positional.skip(node.requiredParameterCount), writeType);
-      }
+      writeList(positional.skip(node.requiredParameterCount), writeType);
       writeSymbol(']');
     }
     if (node.namedParameters.isNotEmpty) {
@@ -890,11 +876,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         writeComma();
       }
       writeSymbol('{');
-      if (parametersAnnotated && typedefNamed != null) {
-        writeList(typedefNamed, writeVariableDeclaration);
-      } else {
-        writeList(node.namedParameters, visitNamedType);
-      }
+      writeList(node.namedParameters, visitNamedType);
       writeSymbol('}');
     }
     writeSymbol(')');
@@ -1471,9 +1453,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSpaced('=');
     DartType? type = node.type;
     if (type is FunctionType) {
-      writeFunctionType(type,
-          typedefPositional: node.positionalParameters,
-          typedefNamed: node.namedParameters);
+      writeFunctionType(type);
     } else {
       writeNode(type);
     }
@@ -1982,6 +1962,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitLibraryDependency(LibraryDependency node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
     String uriString;

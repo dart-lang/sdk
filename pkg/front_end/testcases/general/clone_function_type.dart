@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 // In the classes below the function type is cloned when the anonymous mixin
 // application is desugared into a named mixin application, in order to re-bind
 // the type builders for its subterms.
@@ -171,88 +171,88 @@ class Km3<Z> extends Object with Am3<TdK, Z> {}
 // its factories, including the bounds that are type builders.
 
 class Af1<X extends Function(int)> {
-  factory Af1.foo() => null;
+  factory Af1.foo() => throw '';
 }
 
 class Bf1<X extends Function(int x)> {
-  factory Bf1.foo() => null;
+  factory Bf1.foo() => throw '';
 }
 
 class Cf1<X extends int Function()> {
-  factory Cf1.foo() => null;
+  factory Cf1.foo() => throw '';
 }
 
 class Df1<X extends Function()> {
-  factory Df1.foo() => null;
+  factory Df1.foo() => throw '';
 }
 
 // Compile-time error: Named parameters should have names.
 class Ef1<X extends Function({int})> {
-  factory Ef1.foo() => null;
+  factory Ef1.foo() => throw '';
 }
 
 class Ff1<X extends Function({int x})> {
-  factory Ff1.foo() => null;
+  factory Ff1.foo() => throw '';
 }
 
 class Gf1<X extends Function([int])> {
-  factory Gf1.foo() => null;
+  factory Gf1.foo() => throw '';
 }
 
 class Hf1<X extends Function([int x])> {
-  factory Hf1.foo() => null;
+  factory Hf1.foo() => throw '';
 }
 
 class If1<X extends Function> {
-  factory If1.foo() => null;
+  factory If1.foo() => throw '';
 }
 
 class Jf1<X extends Function(Function Function)> {
-  factory Jf1.foo() => null;
+  factory Jf1.foo() => throw '';
 }
 
 class Kf1<X extends Function(Function Function() Function) Function()> {
-  factory Kf1.foo() => null;
+  factory Kf1.foo() => throw '';
 }
 
 class Bf2<X extends TdB> {
-  factory Bf2.foo() => null;
+  factory Bf2.foo() => throw '';
 }
 
 class Cf2<X extends TdC> {
-  factory Cf2.foo() => null;
+  factory Cf2.foo() => throw '';
 }
 
 class Df2<X extends TdD> {
-  factory Df2.foo() => null;
+  factory Df2.foo() => throw '';
 }
 
 class Ef2<X extends TdE> {
-  factory Ef2.foo() => null;
+  factory Ef2.foo() => throw '';
 }
 
 class Ff2<X extends TdF> {
-  factory Ff2.foo() => null;
+  factory Ff2.foo() => throw '';
 }
 
 class Gf2<X extends TdG> {
-  factory Gf2.foo() => null;
+  factory Gf2.foo() => throw '';
 }
 
 class Hf2<X extends TdH> {
-  factory Hf2.foo() => null;
+  factory Hf2.foo() => throw '';
 }
 
 class If2<X extends TdI> {
-  factory If2.foo() => null;
+  factory If2.foo() => throw '';
 }
 
 class Jf2<X extends TdJ> {
-  factory Jf2.foo() => null;
+  factory Jf2.foo() => throw '';
 }
 
 class Kf2<X extends TdK> {
-  factory Kf2.foo() => null;
+  factory Kf2.foo() => throw '';
 }
 
 main() {}

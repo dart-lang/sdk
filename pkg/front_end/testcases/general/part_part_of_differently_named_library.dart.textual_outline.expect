@@ -1,4 +1,3 @@
-// @dart = 2.9
 library foo;
 
 import 'part_part_of_differently_named_library_lib2.dart';

@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/named_arguments_anywhere/trailing_comma1.dart:17:21: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//     c.instance1(z:z,,);
+//                     ^
+//
+// pkg/front_end/testcases/named_arguments_anywhere/trailing_comma1.dart:18:21: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//     c.instance2(z:z,,);
+//                     ^
+//
+// pkg/front_end/testcases/named_arguments_anywhere/trailing_comma1.dart:17:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     c.instance1(z:z,,);
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method instance1({dynamic z = #C1}) → void {}
+  method instance2(dynamic a, {dynamic z = #C1}) → void {}
+}
+class Bad extends core::Object {
+  synthetic constructor •() → self::Bad
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    let final core::int #t1 = self::z in invalid-expression "pkg/front_end/testcases/named_arguments_anywhere/trailing_comma1.dart:17:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    c.instance1(z:z,,);
+               ^" in self::c.{self::C::instance1}{<inapplicable>}.(invalid-expression "pkg/front_end/testcases/named_arguments_anywhere/trailing_comma1.dart:17:21: Error: This couldn't be parsed.
+    c.instance1(z:z,,);
+                    ^", z: #t1){(invalid-type, {z: invalid-type}) → invalid-type};
+    let final self::C #t2 = self::c in let final core::int #t3 = self::z in #t2.{self::C::instance2}(invalid-expression "pkg/front_end/testcases/named_arguments_anywhere/trailing_comma1.dart:18:21: Error: This couldn't be parsed.
+    c.instance2(z:z,,);
+                    ^", z: #t3){(dynamic, {z: dynamic}) → void};
+  }
+}
+static field self::C c = new self::C::•();
+static field core::int z = 42;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

@@ -183,7 +183,7 @@ class _ClassInterfaceType {
         );
       }
     } else {
-      var legacyType = _typeSystem.toLegacyType(type) as InterfaceType;
+      var legacyType = _typeSystem.toLegacyTypeIfOptOut(type) as InterfaceType;
       if (_currentResult == null) {
         _currentResult = legacyType;
       } else {

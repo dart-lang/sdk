@@ -37,5 +37,5 @@ class ResourceUriResolver extends UriResolver {
   Uri restoreAbsolute(Source source) => pathToUri(source.fullName);
 
   /// Return `true` if the given [uri] is a `file` URI.
-  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
+  static bool isFileUri(Uri uri) => uri.isScheme(FILE_SCHEME);
 }

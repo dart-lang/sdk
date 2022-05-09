@@ -5,14 +5,17 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test_base.dart' show ParserTestCase;
+import '../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -237,7 +240,7 @@ class FieldFormalParameterTest {
 }
 
 @reflectiveTest
-class IndexExpressionTest {
+class IndexExpressionTest extends _AstTest {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
       target: AstTestFactory.identifier3("a"),
@@ -261,14 +264,10 @@ class IndexExpressionTest {
   }
 
   void test_inGetterContext_nonAssignment() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // a[b] + c
-    AstTestFactory.binaryExpression(
-        expression, TokenType.PLUS, AstTestFactory.identifier3("c"));
-    expect(expression.inGetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+var v = ^a[b] + c;
+''');
+    expect(node.inGetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_compound_left() {
@@ -316,14 +315,10 @@ class IndexExpressionTest {
   }
 
   void test_inSetterContext_nonAssignment() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    AstTestFactory.binaryExpression(
-        expression, TokenType.PLUS, AstTestFactory.identifier3("c"));
-    // a[b] + cc
-    expect(expression.inSetterContext(), isFalse);
+    var node = _parseStringToNode<IndexExpression>(r'''
+var v = ^a[b] + c;
+''');
+    expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_postfix_bang() {
@@ -1053,7 +1048,7 @@ class PropertyAccessTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class SimpleIdentifierTest extends ParserTestCase {
+class SimpleIdentifierTest extends _AstTest {
   void test_inGetterContext() {
     for (_WrapperKind wrapper in _WrapperKind.values) {
       for (_AssignmentKind assignment in _AssignmentKind.values) {
@@ -1200,8 +1195,8 @@ class SimpleIdentifierTest extends ParserTestCase {
 
   SimpleIdentifier _createIdentifier(
       _WrapperKind wrapper, _AssignmentKind assignment) {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("a");
-    Expression expression = identifier;
+    var identifier = AstTestFactory.identifier3("a");
+    ExpressionImpl expression = identifier;
     while (true) {
       if (wrapper == _WrapperKind.PREFIXED_LEFT) {
         expression = AstTestFactory.identifier(
@@ -1221,8 +1216,11 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
     while (true) {
       if (assignment == _AssignmentKind.BINARY) {
-        AstTestFactory.binaryExpression(
-            expression, TokenType.PLUS, AstTestFactory.identifier3("_"));
+        BinaryExpressionImpl(
+          leftOperand: expression,
+          operator: TokenFactory.tokenFromType(TokenType.PLUS),
+          rightOperand: AstTestFactory.identifier3("_"),
+        );
       } else if (assignment == _AssignmentKind.COMPOUND_LEFT) {
         AstTestFactory.assignmentExpression(
             expression, TokenType.PLUS_EQ, AstTestFactory.identifier3("_"));
@@ -1376,13 +1374,13 @@ class SimpleStringLiteralTest extends ParserTestCase {
     expect(
         astFactory
             .simpleStringLiteral(
-                TokenFactory.tokenFromString("''' \ \nX''"), "X")
+                TokenFactory.tokenFromString("'''  \nX''"), "X")
             .contentsOffset,
         6);
     expect(
         astFactory
             .simpleStringLiteral(
-                TokenFactory.tokenFromString('r""" \ \nX"""'), "X")
+                TokenFactory.tokenFromString('r"""  \nX"""'), "X")
             .contentsOffset,
         7);
   }
@@ -1785,6 +1783,37 @@ class _AssignmentKind {
 
   @override
   String toString() => name;
+}
+
+class _AstTest {
+  T _parseStringToNode<T extends AstNode>(String codeWithMark) {
+    var offset = codeWithMark.indexOf('^');
+    expect(offset, isNot(equals(-1)), reason: 'missing ^');
+
+    var nextOffset = codeWithMark.indexOf('^', offset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+
+    var codeBefore = codeWithMark.substring(0, offset);
+    var codeAfter = codeWithMark.substring(offset + 1);
+    var code = codeBefore + codeAfter;
+
+    var parseResult = parseString(
+      content: code,
+      featureSet: FeatureSets.latestWithExperiments,
+    );
+
+    var node = NodeLocator2(offset).searchWithin(parseResult.unit);
+    if (node == null) {
+      throw StateError('No node at $offset:\n$code');
+    }
+
+    var result = node.thisOrAncestorOfType<T>();
+    if (result == null) {
+      throw StateError('No node of $T at $offset:\n$code');
+    }
+
+    return result;
+  }
 }
 
 class _WrapperKind {

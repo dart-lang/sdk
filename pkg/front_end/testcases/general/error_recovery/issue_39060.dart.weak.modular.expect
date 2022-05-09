@@ -1,30 +1,30 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:4: Error: 's' isn't a type.
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:4: Error: 's' isn't a type.
 //   {s A<}>
 //    ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:6: Error: Expected ';' after this.
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:6: Error: Expected ';' after this.
 //   {s A<}>
 //      ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:8: Error: Expected a type, but got '}'.
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:8: Error: Expected a type, but got '}'.
 //   {s A<}>
 //        ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:8: Error: This couldn't be parsed.
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:8: Error: This couldn't be parsed.
 //   {s A<}>
 //        ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:4:1: Error: Expected '[' before this.
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:1: Error: Expected '[' before this.
 // }
 // ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:4:1: Error: Expected ';' after this.
-// }
-// ^
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:9: Error: Expected ';' after this.
+//   {s A<}>
+//         ^
 //
 import self as self;
 

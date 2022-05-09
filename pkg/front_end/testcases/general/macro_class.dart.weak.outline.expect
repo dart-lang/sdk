@@ -2,23 +2,23 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/macro_class.dart:8:7: Error: This requires the 'macros' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.16 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/macro_class.dart:8:1: Error: This requires the experimental 'macros' language feature to be enabled.
+// Try passing the '--enable-experiment=macros' command line option.
 // macro class Class1 {}
-//       ^^^^^
+// ^^^^^
 //
-// pkg/front_end/testcases/general/macro_class.dart:9:16: Error: This requires the 'macros' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.16 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/macro_class.dart:9:10: Error: This requires the experimental 'macros' language feature to be enabled.
+// Try passing the '--enable-experiment=macros' command line option.
 // abstract macro class Class2 {}
-//                ^^^^^
+//          ^^^^^
 //
-// pkg/front_end/testcases/general/macro_class.dart:10:7: Error: This requires the 'macros' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.16 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/macro_class.dart:10:7: Error: This requires the experimental 'macros' language feature to be enabled.
+// Try passing the '--enable-experiment=macros' command line option.
 // macro class Class3 = Super with Mixin;
 //       ^^^^^
 //
-// pkg/front_end/testcases/general/macro_class.dart:11:16: Error: This requires the 'macros' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.16 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/macro_class.dart:11:16: Error: This requires the experimental 'macros' language feature to be enabled.
+// Try passing the '--enable-experiment=macros' command line option.
 // abstract macro class Class4 = Super with Mixin;
 //                ^^^^^
 //

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,9 +47,11 @@ class B extends A {
   }
 
   test_invalid_notConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(super.a) {}
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 7, 5),
+    ]);
 
     var f = findElement.topFunction('f');
     var element = f.superFormalParameter('a');
@@ -124,6 +127,44 @@ class B extends A {
 
     assertElement(
       findNode.superFormalParameter('super.a'),
+      findElement.unnamedConstructor('B').superFormalParameter('a'),
+    );
+  }
+
+  test_scoping_inBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+
+class B extends A {
+  B(super.a) {
+    a; // ref
+  }
+}
+''');
+
+    assertElement(
+      findNode.simple('a; // ref'),
+      findElement.getter('a', of: 'A'),
+    );
+  }
+
+  test_scoping_inInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  var f;
+  B(super.a) : f = ((){ a; });
+}
+''');
+
+    assertElement(
+      findNode.simple('a; }'),
       findElement.unnamedConstructor('B').superFormalParameter('a'),
     );
   }

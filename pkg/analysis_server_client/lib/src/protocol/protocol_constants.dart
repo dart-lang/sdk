@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.32.8';
+const String PROTOCOL_VERSION = '1.33.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -138,7 +138,13 @@ const String COMPLETION_NOTIFICATION_RESULTS_REPLACEMENT_OFFSET =
 const String COMPLETION_NOTIFICATION_RESULTS_RESULTS = 'results';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS = 'completion.getSuggestions';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2 = 'completion.getSuggestions2';
+const String COMPLETION_REQUEST_GET_SUGGESTIONS2_COMPLETION_CASE_MATCHING_MODE =
+    'completionCaseMatchingMode';
+const String COMPLETION_REQUEST_GET_SUGGESTIONS2_COMPLETION_MODE =
+    'completionMode';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_FILE = 'file';
+const String COMPLETION_REQUEST_GET_SUGGESTIONS2_INVOCATION_COUNT =
+    'invocationCount';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_MAX_RESULTS = 'maxResults';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_OFFSET = 'offset';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_TIMEOUT = 'timeout';
@@ -167,8 +173,6 @@ const String COMPLETION_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS =
     'subscriptions';
 const String COMPLETION_RESPONSE_GET_SUGGESTIONS2_IS_INCOMPLETE =
     'isIncomplete';
-const String COMPLETION_RESPONSE_GET_SUGGESTIONS2_LIBRARY_URIS_TO_IMPORT =
-    'libraryUrisToImport';
 const String COMPLETION_RESPONSE_GET_SUGGESTIONS2_REPLACEMENT_LENGTH =
     'replacementLength';
 const String COMPLETION_RESPONSE_GET_SUGGESTIONS2_REPLACEMENT_OFFSET =
@@ -190,6 +194,8 @@ const String EDIT_REQUEST_BULK_FIXES_INCLUDED = 'included';
 const String EDIT_REQUEST_BULK_FIXES_IN_TEST_MODE = 'inTestMode';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
 const String EDIT_REQUEST_FORMAT_FILE = 'file';
+const String EDIT_REQUEST_FORMAT_IF_ENABLED = 'edit.formatIfEnabled';
+const String EDIT_REQUEST_FORMAT_IF_ENABLED_DIRECTORIES = 'directories';
 const String EDIT_REQUEST_FORMAT_LINE_LENGTH = 'lineLength';
 const String EDIT_REQUEST_FORMAT_SELECTION_LENGTH = 'selectionLength';
 const String EDIT_REQUEST_FORMAT_SELECTION_OFFSET = 'selectionOffset';
@@ -238,6 +244,7 @@ const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
 const String EDIT_RESPONSE_BULK_FIXES_DETAILS = 'details';
 const String EDIT_RESPONSE_BULK_FIXES_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_EDITS = 'edits';
+const String EDIT_RESPONSE_FORMAT_IF_ENABLED_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_SELECTION_LENGTH = 'selectionLength';
 const String EDIT_RESPONSE_FORMAT_SELECTION_OFFSET = 'selectionOffset';
 const String EDIT_RESPONSE_GET_ASSISTS_ASSISTS = 'assists';

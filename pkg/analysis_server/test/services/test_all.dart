@@ -9,6 +9,7 @@ import 'correction/test_all.dart' as correction_all;
 import 'linter/test_all.dart' as linter_all;
 import 'refactoring/test_all.dart' as refactoring_all;
 import 'search/test_all.dart' as search_all;
+import 'snippets/test_all.dart' as snippets_all;
 
 void main() {
   defineReflectiveSuite(() {
@@ -17,5 +18,6 @@ void main() {
     linter_all.main();
     refactoring_all.main();
     search_all.main();
+    snippets_all.main();
   });
 }

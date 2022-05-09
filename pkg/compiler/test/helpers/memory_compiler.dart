@@ -8,9 +8,9 @@ library dart2js.test.memory_compiler;
 
 import 'dart:async';
 
-import 'package:compiler/compiler.dart' show DiagnosticHandler;
-import 'package:compiler/compiler_new.dart'
+import 'package:compiler/compiler.dart'
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
+import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
@@ -24,7 +24,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
-export 'package:compiler/compiler_new.dart' show CompilationResult;
+export 'package:compiler/compiler.dart' show CompilationResult;
 export 'diagnostic_helper.dart';
 
 String sdkPath = 'sdk/lib';
@@ -90,12 +90,12 @@ Future<CompilationResult> runCompiler(
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
     Uri packageConfig,
-    void beforeRun(CompilerImpl compiler),
+    void beforeRun(Compiler compiler),
     bool unsafeToTouchSourceFiles: false}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
-  CompilerImpl compiler = compilerFor(
+  Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
@@ -109,13 +109,13 @@ Future<CompilationResult> runCompiler(
     beforeRun(compiler);
   }
   bool isSuccess = await compiler.run();
-  fe.InitializedCompilerState compilerState = kernelInitializedCompilerState =
-      compiler.kernelLoader.initializedCompilerState;
+  fe.InitializedCompilerState compilerState =
+      kernelInitializedCompilerState = compiler.initializedCompilerState;
   return new CompilationResult(compiler,
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }
 
-CompilerImpl compilerFor(
+Compiler compilerFor(
     {Uri entryPoint,
     Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     CompilerDiagnostics diagnosticHandler,
@@ -174,29 +174,10 @@ CompilerImpl compilerFor(
     ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
-  CompilerImpl compiler = new CompilerImpl(
+  var compiler = new Compiler(
       provider, outputProvider, diagnosticHandler, compilerOptions);
 
   return compiler;
-}
-
-DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
-    SourceFileProvider provider, bool showDiagnostics) {
-  var handler = diagnosticHandler;
-  if (showDiagnostics) {
-    if (diagnosticHandler == null) {
-      handler = new FormattingDiagnosticHandler(provider);
-    } else {
-      var formattingHandler = new FormattingDiagnosticHandler(provider);
-      handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {
-        diagnosticHandler(uri, begin, end, message, kind);
-        formattingHandler(uri, begin, end, message, kind);
-      };
-    }
-  } else if (diagnosticHandler == null) {
-    handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
-  }
-  return handler;
 }
 
 main() {

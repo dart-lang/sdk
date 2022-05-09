@@ -423,6 +423,9 @@ class _SnippetTest extends PubPackageResolutionTest {
   }
 
   @override
+  String get testPackageRootPath => '$workspaceRootPath/docTest';
+
+  @override
   void setUp() {
     super.setUp();
     _createAuxiliaryFiles(snippet.auxiliaryFiles);
@@ -440,17 +443,17 @@ class _SnippetTest extends PubPackageResolutionTest {
         packageConfigBuilder.add(name: packageName, rootPath: packageRootPath);
 
         String pathInLib = uri.pathSegments.skip(1).join('/');
-        newFile(
+        newFile2(
           '$packageRootPath/lib/$pathInLib',
-          content: auxiliaryFiles[uriStr]!,
+          auxiliaryFiles[uriStr]!,
         );
       } else {
-        newFile(
+        newFile2(
           '$testPackageRootPath/$uriStr',
-          content: auxiliaryFiles[uriStr]!,
+          auxiliaryFiles[uriStr]!,
         );
       }
     }
-    writeTestPackageConfig(packageConfigBuilder, meta: true);
+    writeTestPackageConfig(packageConfigBuilder, ffi: true, meta: true);
   }
 }

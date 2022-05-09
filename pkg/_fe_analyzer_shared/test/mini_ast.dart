@@ -963,6 +963,7 @@ class _Declare extends Statement {
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    assignedVariables.declare(variable);
     initializer?._preVisit(assignedVariables);
   }
 
@@ -1412,14 +1413,17 @@ class _MiniAstTypeAnalyzer {
       flow.logicalBinaryOp_begin();
     }
     var leftType = analyzeExpression(lhs);
+    EqualityInfo<Var, Type>? leftInfo;
     if (isEquals) {
-      flow.equalityOp_rightBegin(lhs, leftType);
+      leftInfo = flow.equalityOperand_end(lhs, leftType);
     } else if (isLogical) {
       flow.logicalBinaryOp_rightBegin(lhs, node, isAnd: isAnd);
     }
     var rightType = analyzeExpression(rhs);
     if (isEquals) {
-      flow.equalityOp_end(node, rhs, rightType, notEqual: isNot);
+      flow.equalityOperation_end(
+          node, leftInfo, flow.equalityOperand_end(rhs, rightType),
+          notEqual: isNot);
     } else if (isLogical) {
       flow.logicalBinaryOp_end(node, rhs, isAnd: isAnd);
     }

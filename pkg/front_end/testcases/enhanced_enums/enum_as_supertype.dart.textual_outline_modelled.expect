@@ -1,0 +1,24 @@
+abstract class A extends Enum {
+  int get foo => index;
+}
+
+abstract class B implements Enum {
+  int get foo => index;
+}
+
+enum EA with A { element }
+
+enum EB with B { element }
+
+enum EM with M { element }
+
+enum EN with N { element }
+
+expectEquals(x, y) {}
+main() {}
+mixin M on Enum {
+  int get foo => index;
+}
+mixin N implements Enum {
+  int get foo => index;
+}

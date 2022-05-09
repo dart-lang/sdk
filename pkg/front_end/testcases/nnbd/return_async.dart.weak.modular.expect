@@ -8,21 +8,21 @@ import "dart:async";
 static method throwSync() → asy::Future<void> {
   throw "";
 }
-static method allYield() → asy::Future<void> async {
+static method allYield() → asy::Future<void> async /* futureValueType= void */ {
   await 0;
   await self::allYield2();
 }
-static method allYield2() → asy::Future<void> async {
+static method allYield2() → asy::Future<void> async /* futureValueType= void */ {
   await 0;
   await self::allYield3();
 }
-static method allYield3() → asy::Future<void> async {
+static method allYield3() → asy::Future<void> async /* futureValueType= void */ {
   await 0;
   self::throwSync();
 }
-static method customErrorZone() → asy::Future<void> async {
+static method customErrorZone() → asy::Future<void> async /* futureValueType= void */ {
   final asy::Completer<void> completer = asy::Completer::•<void>();
-  asy::runZonedGuarded<asy::Future<Null>>(() → asy::Future<Null> async {
+  asy::runZonedGuarded<asy::Future<Null>>(() → asy::Future<Null> async /* futureValueType= Null */ {
     await self::allYield();
     completer.{asy::Completer::complete}(null){([FutureOr<void>?]) → void};
   }, (core::Object e, core::StackTrace s) → void {

@@ -95,6 +95,8 @@ class AstBinaryReader {
         return _readGenericFunctionType();
       case Tag.IfElement:
         return _readIfElement();
+      case Tag.ImplicitCallReference:
+        return _readImplicitCallReference();
       case Tag.IndexExpression:
         return _readIndexExpression();
       case Tag.IntegerLiteralNegative1:
@@ -205,7 +207,7 @@ class AstBinaryReader {
       atSign: Tokens.at(),
       name: name,
       typeArguments: typeArguments,
-      period: Tokens.period(),
+      period: constructorName != null ? Tokens.period() : null,
       constructorName: constructorName,
       arguments: arguments,
     );
@@ -238,7 +240,7 @@ class AstBinaryReader {
       Tokens.assert_(),
       Tokens.openParenthesis(),
       condition,
-      Tokens.comma(),
+      message != null ? Tokens.comma() : null,
       message,
       Tokens.closeParenthesis(),
     );
@@ -268,13 +270,13 @@ class AstBinaryReader {
   }
 
   BinaryExpression _readBinaryExpression() {
-    var leftOperand = readNode() as Expression;
-    var rightOperand = readNode() as Expression;
+    var leftOperand = readNode() as ExpressionImpl;
+    var rightOperand = readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = astFactory.binaryExpression(
-      leftOperand,
-      Tokens.fromType(operatorType),
-      rightOperand,
+    var node = BinaryExpressionImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.fromType(operatorType),
+      rightOperand: rightOperand,
     );
     node.staticElement = _reader.readElement() as MethodElement?;
     node.staticInvokeType = _reader.readOptionalFunctionType();
@@ -647,6 +649,22 @@ class AstBinaryReader {
     );
   }
 
+  ImplicitCallReference _readImplicitCallReference() {
+    var expression = readNode() as Expression;
+    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+    var typeArgumentTypes = _reader.readOptionalTypeList()!;
+    var staticElement = _reader.readElement() as MethodElement;
+
+    var node = astFactory.implicitCallReference(
+      expression: expression,
+      staticElement: staticElement,
+      typeArguments: typeArguments,
+      typeArgumentTypes: typeArgumentTypes,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   IndexExpression _readIndexExpression() {
     var flags = _readByte();
     var target = _readOptionalNode() as Expression?;
@@ -837,6 +855,7 @@ class AstBinaryReader {
     var node = astFactory.mixinDeclaration(
       null,
       metadata,
+      null,
       Tokens.mixin_(),
       name,
       typeParameters,

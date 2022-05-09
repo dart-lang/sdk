@@ -402,6 +402,8 @@ abstract class AstVisitor<R> {
 
   R? visitConstructorReference(ConstructorReference node);
 
+  R? visitConstructorSelector(ConstructorSelector node);
+
   R? visitContinueStatement(ContinueStatement node);
 
   R? visitDeclaredIdentifier(DeclaredIdentifier node);
@@ -417,6 +419,8 @@ abstract class AstVisitor<R> {
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
+
+  R? visitEnumConstantArguments(EnumConstantArguments node);
 
   R? visitEnumConstantDeclaration(EnumConstantDeclaration node);
 
@@ -814,9 +818,6 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
-  /// Return the 'macro' keyword, or `null` if the keyword was absent.
-  Token? get macroKeyword;
-
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause? get nativeClause;
@@ -904,14 +905,14 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
-  /// Return the token for the 'macro' keyword, or `null` if this is not
-  /// defining a macro class.
-  Token? get macroKeyword;
-
   @override
   SimpleIdentifier get name;
 
   /// Return the name of the superclass of the class being declared.
+  NamedType get superclass;
+
+  /// Return the name of the superclass of the class being declared.
+  @Deprecated('Use superclass instead')
   NamedType get superclass2;
 
   /// Return the type parameters for the class, or `null` if the class does not
@@ -1062,7 +1063,7 @@ abstract class CompilationUnit implements AstNode {
   LanguageVersionToken? get languageVersionToken;
 
   /// Return the line information for this compilation unit.
-  LineInfo? get lineInfo;
+  LineInfo get lineInfo;
 
   /// Return the script tag at the beginning of the compilation unit, or `null`
   /// if there is no script tag in this compilation unit.
@@ -1338,6 +1339,10 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   Token? get period;
 
   /// Return the name of the type defining the constructor.
+  NamedType get type;
+
+  /// Return the name of the type defining the constructor.
+  @Deprecated('Use type instead')
   NamedType get type2;
 }
 
@@ -1363,6 +1368,20 @@ abstract class ConstructorReferenceNode implements AstNode {
   /// static type information, or `null` if the AST structure has not been
   /// resolved or if the constructor could not be resolved.
   ConstructorElement? get staticElement;
+}
+
+/// The name of a constructor being invoked.
+///
+///    constructorSelector ::=
+///        '.' identifier
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ConstructorSelector implements AstNode {
+  /// Return the constructor name.
+  SimpleIdentifier get name;
+
+  /// Return the period before the constructor name.
+  Token get period;
 }
 
 /// A continue statement.
@@ -1563,10 +1582,41 @@ abstract class EmptyStatement implements Statement {
   Token get semicolon;
 }
 
+/// The arguments part of an enum constant.
+///
+///    enumConstantArguments ::=
+///        [TypeArgumentList]? [ConstructorSelector]? [ArgumentList]
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class EnumConstantArguments implements AstNode {
+  /// Return the explicit arguments (there are always implicit `index` and
+  /// `name` leading arguments) to the invoked constructor.
+  ArgumentList get argumentList;
+
+  /// Return the selector of the constructor that is invoked by this enum
+  /// constant, or `null` if the default constructor is invoked.
+  ConstructorSelector? get constructorSelector;
+
+  /// Return the type arguments applied to the enclosing enum declaration
+  /// when invoking the constructor, or `null` if no type arguments were
+  /// provided.
+  TypeArgumentList? get typeArguments;
+}
+
 /// The declaration of an enum constant.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumConstantDeclaration implements Declaration {
+  /// Return the explicit arguments (there are always implicit `index` and
+  /// `name` leading arguments) to the invoked constructor, or `null` if this
+  /// constant does not provide any explicit arguments.
+  EnumConstantArguments? get arguments;
+
+  /// Return the constructor that is invoked by this enum constant, or `null`
+  /// if the AST structure has not been resolved, or if the constructor could
+  /// not be resolved.
+  ConstructorElement? get constructorElement;
+
   /// Return the name of the constant.
   SimpleIdentifier get name;
 }
@@ -1604,6 +1654,9 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 
   /// Return the right curly bracket.
   Token get rightBracket;
+
+  /// Return the optional semicolon after the last constant.
+  Token? get semicolon;
 
   /// Returns the type parameters for the enumeration, or `null` if the
   /// enumeration does not have any type parameters.
@@ -1731,6 +1784,10 @@ abstract class ExtendsClause implements AstNode {
   Token get extendsKeyword;
 
   /// Return the name of the class that is being extended.
+  NamedType get superclass;
+
+  /// Return the name of the class that is being extended.
+  @Deprecated('Use superclass instead')
   NamedType get superclass2;
 }
 
@@ -2628,6 +2685,10 @@ abstract class ImplementsClause implements AstNode {
   Token get implementsKeyword;
 
   /// Return the list of the interfaces that are being implemented.
+  NodeList<NamedType> get interfaces;
+
+  /// Return the list of the interfaces that are being implemented.
+  @Deprecated('Use interfaces instead')
   NodeList<NamedType> get interfaces2;
 }
 
@@ -3480,6 +3541,10 @@ abstract class OnClause implements AstNode {
   Token get onKeyword;
 
   /// Return the list of the classes are superclass constraints for the mixin.
+  NodeList<NamedType> get superclassConstraints;
+
+  /// Return the list of the classes are superclass constraints for the mixin.
+  @Deprecated('Use superclassConstraints instead')
   NodeList<NamedType> get superclassConstraints2;
 }
 
@@ -4563,6 +4628,10 @@ abstract class WhileStatement implements Statement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class WithClause implements AstNode {
   /// Return the names of the mixins that were specified.
+  NodeList<NamedType> get mixinTypes;
+
+  /// Return the names of the mixins that were specified.
+  @Deprecated('Use mixinTypes instead')
   NodeList<NamedType> get mixinTypes2;
 
   /// Return the token representing the 'with' keyword.

@@ -61,9 +61,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
-    listener?.beginClassDeclaration(begin, abstractToken, macroToken, name);
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
+    listener?.beginClassDeclaration(
+        begin, abstractToken, macroToken, augmentToken, name);
   }
 
   @override
@@ -318,19 +319,21 @@ class ForwardingListener implements Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    listener?.beginMethod(declarationKind, externalToken, staticToken,
-        covariantToken, varFinalOrConst, getOrSet, name);
+    listener?.beginMethod(declarationKind, augmentToken, externalToken,
+        staticToken, covariantToken, varFinalOrConst, getOrSet, name);
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
-    listener?.beginMixinDeclaration(mixinKeyword, name);
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(augmentToken, mixinKeyword, name);
   }
 
   @override
@@ -339,10 +342,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     listener?.beginNamedMixinApplication(
-        begin, abstractToken, macroToken, name);
+        begin, abstractToken, macroToken, augmentToken, name);
   }
 
   @override
@@ -416,8 +419,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
-    listener?.beginTopLevelMethod(lastConsumed, externalToken);
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    listener?.beginTopLevelMethod(lastConsumed, augmentToken, externalToken);
   }
 
   @override
@@ -545,6 +549,7 @@ class ForwardingListener implements Listener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -555,6 +560,7 @@ class ForwardingListener implements Listener {
       Token endToken) {
     listener?.endClassFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -673,6 +679,7 @@ class ForwardingListener implements Listener {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -683,6 +690,7 @@ class ForwardingListener implements Listener {
       Token endToken) {
     listener?.endClassFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -728,6 +736,7 @@ class ForwardingListener implements Listener {
   @override
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -738,6 +747,7 @@ class ForwardingListener implements Listener {
       Token endToken) {
     listener?.endExtensionFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -883,8 +893,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
-    listener?.endImport(importKeyword, semicolon);
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+    listener?.endImport(importKeyword, augmentToken, semicolon);
   }
 
   @override
@@ -976,6 +986,7 @@ class ForwardingListener implements Listener {
   @override
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -986,6 +997,7 @@ class ForwardingListener implements Listener {
       Token endToken) {
     listener?.endMixinFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -1095,14 +1107,23 @@ class ForwardingListener implements Listener {
   void beginFields(
       DeclarationKind declarationKind,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? lateToken,
       Token? varFinalOrConst,
       Token lastConsumed) {
-    listener?.beginFields(declarationKind, abstractToken, externalToken,
-        staticToken, covariantToken, lateToken, varFinalOrConst, lastConsumed);
+    listener?.beginFields(
+        declarationKind,
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        lastConsumed);
   }
 
   @override

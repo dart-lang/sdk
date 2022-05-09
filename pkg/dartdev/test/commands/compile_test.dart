@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:dart2native/macho.dart';
+import 'package:dart2native/macho_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -12,7 +14,7 @@ import '../utils.dart';
 const int compileErrorExitCode = 64;
 
 void main() {
-  group('compile', defineCompileTests, timeout: longTimeout);
+  group('compile -', defineCompileTests, timeout: longTimeout);
 }
 
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
@@ -21,6 +23,61 @@ const String unsoundNullSafetyMessage =
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
+
+  if (Platform.isMacOS) {
+    test('Compile exe for MacOS signing', () async {
+      final p = project(mainSrc: '''void main() {}''');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+      var result = await p.run(
+        [
+          'compile',
+          'exe',
+          '-o',
+          outFile,
+          inFile,
+        ],
+      );
+
+      expect(result.stdout, contains(soundNullSafetyMessage));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(outFile).existsSync(), true,
+          reason: 'File not found: $outFile');
+
+      // Ensure the file contains the __CUSTOM segment.
+      final machOFile = MachOFile();
+      await machOFile.loadFromFile(File(outFile));
+
+      // Throws an exception (and thus the test fails) if the segment doesn't
+      // exist.
+      machOFile.commands.where((segment) {
+        if (segment.asType() is MachOSegmentCommand64) {
+          final segmentName = (segment as MachOSegmentCommand64).segname;
+          final segmentNameTrimmed = String.fromCharCodes(
+              segmentName.takeWhile((value) => value != 0));
+          return segmentNameTrimmed == '__CUSTOM';
+        } else {
+          return false;
+        }
+      }).first;
+
+      // Ensure that the exe can be signed.
+      final codeSigningProcess = await Process.start('codesign', [
+        '-o',
+        'runtime',
+        '-s',
+        '-',
+        outFile,
+      ]);
+
+      final signingResult = await codeSigningProcess.exitCode;
+      expect(signingResult, 0);
+    }, skip: isRunningOnIA32);
+  }
+
   // *** NOTE ***: These tests *must* be run with the `--use-sdk` option
   // as they depend on a fully built SDK to resolve various snapshot files
   // used by compilation.
@@ -99,6 +156,37 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   });
 
+  test('Compile and run jit snapshot with environment variables', () async {
+    final p = project(mainSrc: '''
+        void main() {
+          print('1: ' + const String.fromEnvironment('foo'));
+          print('2: ' + const String.fromEnvironment('bar'));
+        }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'main.jit'));
+
+    var result = await p.run([
+      'compile',
+      'jit-snapshot',
+      '-Dfoo=bar',
+      '--define=bar=foo',
+      '-o',
+      outFile,
+      '-v',
+      inFile,
+    ]);
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    final file = File(outFile);
+    expect(file.existsSync(), true, reason: 'File not found: $outFile');
+
+    result = await p.run(['run', 'main.jit']);
+
+    // Ensure the -D and --define arguments were processed correctly.
+    expect(result.stdout, contains('1: bar'));
+    expect(result.stdout, contains('2: foo'));
+  });
+
   test('Compile and run executable', () async {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -122,9 +210,9 @@ void defineCompileTests() {
       [],
     );
 
-    expect(result.stdout, contains('I love executables'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(result.stdout, contains('I love executables'));
   }, skip: isRunningOnIA32);
 
   test('Compile to executable disabled on IA32', () async {
@@ -189,9 +277,9 @@ void defineCompileTests() {
       [],
     );
 
-    expect(result.stdout, contains('42'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(result.stdout, contains('42'));
   }, skip: isRunningOnIA32);
 
   test('Compile and run aot snapshot', () async {
@@ -412,9 +500,9 @@ void main() {}
       [],
     );
 
-    expect(result.stdout, contains('sound'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(result.stdout, contains('sound'));
   }, skip: isRunningOnIA32);
 
   test('Compile and run exe with --no-sound-null-safety', () async {
@@ -468,7 +556,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -497,7 +585,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
@@ -566,7 +654,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -595,7 +683,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -664,7 +752,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -693,7 +781,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
@@ -720,7 +808,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stdout, contains('Warning: '));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -747,7 +835,8 @@ void main() {
     expect(
       result.stderr,
       predicate(
-        (o) => '$o'.contains('Unexpected arguments after Dart entry point.'),
+        (dynamic o) =>
+            '$o'.contains('Unexpected arguments after Dart entry point.'),
       ),
     );
     expect(result.exitCode, 64);
@@ -818,7 +907,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -846,7 +935,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
   });
@@ -872,7 +961,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
   });
@@ -941,7 +1030,7 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, predicate((o) => '$o'.contains('[foo]')));
+    expect(result.stdout, predicate((dynamic o) => '$o'.contains('[foo]')));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -965,7 +1054,7 @@ void main() {}
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -993,7 +1082,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
   });
@@ -1019,7 +1108,7 @@ void main() {
     );
 
     expect(result.stdout,
-        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
   });

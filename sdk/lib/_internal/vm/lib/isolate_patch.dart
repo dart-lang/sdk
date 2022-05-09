@@ -312,7 +312,7 @@ class Isolate {
   static Isolate get current => _currentIsolate;
 
   @patch
-  String get debugName => _getDebugName(controlPort);
+  String? get debugName => _getDebugName(controlPort);
 
   @patch
   static Future<Uri?> get packageRoot {
@@ -366,7 +366,11 @@ class Isolate {
       throw new UnsupportedError("Isolate.spawn");
     }
     if (script.isScheme("package")) {
-      script = await Isolate.resolvePackageUri(script);
+      if (Isolate._packageSupported()) {
+        // resolving script uri is not really neccessary, but can be useful
+        // for better failed-to-lookup-function-in-a-script spawn errors.
+        script = await Isolate.resolvePackageUri(script);
+      }
     }
 
     final RawReceivePort readyPort =
@@ -652,6 +656,31 @@ class Isolate {
   static Never exit([SendPort? finalMessagePort, Object? message]) {
     _exit(finalMessagePort, message);
   }
+
+  /**
+   * Creates an Uri representing the script which was compiled into kernel
+   * binary in [kernelBlob].
+   * The resulting Uri can be used for the subsequent spawnUri calls.
+   * Such spawnUri will start an isolate which would run the given
+   * compiled script in [kernelBlob].
+   */
+  /*static*/ Uri createUriForKernelBlob(Uint8List kernelBlob) {
+    return Uri.parse(_registerKernelBlob(kernelBlob));
+  }
+
+  /**
+   * Unregisters kernel blob previously registered with
+   * [createUriForKernelBlob] and frees underlying resources.
+   */
+  /*static*/ void unregisterKernelBlobUri(Uri kernelBlobUri) {
+    _unregisterKernelBlob(kernelBlobUri.toString());
+  }
+
+  @pragma("vm:external-name", "Isolate_registerKernelBlob")
+  external static String _registerKernelBlob(Uint8List kernelBlob);
+
+  @pragma("vm:external-name", "Isolate_unregisterKernelBlob")
+  external static void _unregisterKernelBlob(String kernelBlobUri);
 }
 
 @patch

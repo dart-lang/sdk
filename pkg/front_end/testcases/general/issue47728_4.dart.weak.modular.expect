@@ -2,9 +2,9 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue47728_4.dart:9:7: Error: The type 'A' which is an alias of 'dynamic Function()?' can't be used as supertype because it is nullable.
+// pkg/front_end/testcases/general/issue47728_4.dart:9:11: Error: The type 'A' which is an alias of 'dynamic Function()?' can't be used as supertype because it is nullable.
 // class C = A with B;
-//       ^
+//           ^
 // pkg/front_end/testcases/general/issue47728_4.dart:5:9: Context: The issue arises via this type alias.
 // typedef A = Function()?;
 //         ^

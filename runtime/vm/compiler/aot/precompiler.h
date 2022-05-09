@@ -119,7 +119,9 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline uword Hash(Key key) { return key->token_pos().Hash(); }
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(CombineHashes(key->id(), key->token_pos().Hash()));
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -219,7 +221,7 @@ class InstanceKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline uword Hash(Key key) { return key->GetClassId(); }
+  static inline uword Hash(Key key) { return key->CanonicalizeHash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -247,7 +249,6 @@ class Precompiler : public ValueObject {
   }
 
   compiler::SelectorMap* selector_map() {
-    ASSERT(FLAG_use_table_dispatch);
     return dispatch_table_generator_->selector_map();
   }
 

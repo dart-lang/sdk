@@ -6,7 +6,7 @@ library js_backend.runtime_types_new;
 
 import 'package:js_runtime/shared/recipe_syntax.dart';
 
-import '../common_elements.dart' show CommonElements, JCommonElements;
+import '../common/elements.dart' show CommonElements, JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;

@@ -68,6 +68,16 @@ static IntegerPtr UnaryIntegerEvaluateRaw(const Integer& value,
   return Integer::null();
 }
 
+static IntegerPtr BitLengthEvaluateRaw(const Integer& value, Zone* zone) {
+  if (value.IsSmi()) {
+    return Integer::New(Utils::BitLength(Smi::Cast(value).Value()), Heap::kOld);
+  } else if (value.IsMint()) {
+    return Integer::New(Utils::BitLength(Mint::Cast(value).value()),
+                        Heap::kOld);
+  }
+  return Integer::null();
+}
+
 int64_t Evaluator::TruncateTo(int64_t v, Representation r) {
   switch (r) {
     case kTagged: {
@@ -133,6 +143,34 @@ IntegerPtr Evaluator::UnaryIntegerEvaluate(const Object& value,
   const Integer& value_int = Integer::Cast(value);
   Integer& result = Integer::Handle(
       zone, UnaryIntegerEvaluateRaw(value_int, token_kind, zone));
+
+  if (!result.IsNull()) {
+    if (!FlowGraph::IsConstantRepresentable(
+            result, representation,
+            /*tagged_value_must_be_smi=*/true)) {
+      // If this operation is not truncating it would deoptimize on overflow.
+      // Check that we match this behavior and don't produce a value that is
+      // larger than something this operation can produce. We could have
+      // specialized instructions that use this value under this assumption.
+      return Integer::null();
+    }
+
+    result ^= result.Canonicalize(thread);
+  }
+
+  return result.ptr();
+}
+
+IntegerPtr Evaluator::BitLengthEvaluate(const Object& value,
+                                        Representation representation,
+                                        Thread* thread) {
+  if (!value.IsInteger()) {
+    return Integer::null();
+  }
+  Zone* zone = thread->zone();
+  const Integer& value_int = Integer::Cast(value);
+  Integer& result =
+      Integer::Handle(zone, BitLengthEvaluateRaw(value_int, zone));
 
   if (!result.IsNull()) {
     if (!FlowGraph::IsConstantRepresentable(

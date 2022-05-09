@@ -120,7 +120,7 @@ class DillLoader extends Loader {
       assert(libraryBuilder != null, "No library found for $uri.");
       _builders[uri] = libraryBuilder!;
       assert(libraryBuilder.loader == this);
-      if (uri.scheme == "dart") {
+      if (uri.isScheme("dart")) {
         if (uri.path == "core") {
           _coreLibrary = libraryBuilder;
         }
@@ -333,9 +333,11 @@ severity: $severity
     return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
 
+  late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
+
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
-    return type.accept(new TypeBuilderComputer(this));
+    return type.accept(_typeBuilderComputer);
   }
 
   bool containsLibraryBuilder(Uri importUri) =>
@@ -352,7 +354,7 @@ severity: $severity
   void registerLibraryBuilder(DillLibraryBuilder libraryBuilder) {
     Uri importUri = libraryBuilder.importUri;
     libraryBuilder.loader = this;
-    if (importUri.scheme == "dart" && importUri.path == "core") {
+    if (importUri.isScheme("dart") && importUri.path == "core") {
       _coreLibrary = libraryBuilder;
     }
     _builders[importUri] = libraryBuilder;

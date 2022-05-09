@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 

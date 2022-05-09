@@ -242,35 +242,18 @@ class DartUnitHighlightsComputer {
       return false;
     }
 
-    // TODO(dantup): Right now there is no highlight type for extension, so
-    // bail out and do the default thing (which will be to return
-    // IDENTIFIER_DEFAULT). Adding EXTENSION requires coordination with
-    // IntelliJ + bumping protocol version.
-    if (!_computeSemanticTokens) {
-      return false;
-    }
-
     return _addRegion_node(
       node,
-      // TODO(dantup): Change this to EXTENSION and add to LSP mapping when
-      // we have it, but for now use CLASS (which is probably what we'll map it
-      // to for LSP semantic tokens anyway).
-      HighlightRegionType.CLASS,
+      HighlightRegionType.EXTENSION,
     );
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element is FieldFormalParameterElement) {
-      if (node.parent is FieldFormalParameter) {
-        element = element.field;
-      }
-    }
     // prepare type
     HighlightRegionType? type;
     if (element is FieldElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElement && enclosingElement.isEnum) {
+      if (element.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (element.isStatic) {
         type = HighlightRegionType.STATIC_FIELD_DECLARATION;
@@ -284,12 +267,12 @@ class DartUnitHighlightsComputer {
     }
     if (element is PropertyAccessorElement) {
       var accessor = element;
-      var enclosingElement = element.enclosingElement;
-      if (accessor.variable is TopLevelVariableElement) {
+      var variable = accessor.variable;
+      if (variable is TopLevelVariableElement) {
         type = accessor.isGetter
             ? HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE
             : HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
-      } else if (enclosingElement is ClassElement && enclosingElement.isEnum) {
+      } else if (variable is FieldElement && variable.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (accessor.isStatic) {
         type = accessor.isGetter
@@ -698,19 +681,29 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.factoryKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     super.visitConstructorDeclaration(node);
   }
 
   @override
   void visitConstructorReference(ConstructorReference node) {
     var constructorName = node.constructorName;
-    constructorName.type2.accept(this);
+    constructorName.type.accept(this);
 
     // We have a `ConstructorReference` only when it is resolved.
     // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
     //  but this is not expressed via types.
     computer._addRegion_node(
         constructorName.name!, HighlightRegionType.CONSTRUCTOR_TEAR_OFF);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    computer._addRegion_node(
+      node.name,
+      HighlightRegionType.CONSTRUCTOR,
+    );
+    node.visitChildren(this);
   }
 
   @override
@@ -740,6 +733,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitDoubleLiteral(DoubleLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_DOUBLE);
     super.visitDoubleLiteral(node);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    computer._addRegion_node(
+      node.name,
+      HighlightRegionType.ENUM_CONSTANT,
+    );
+    node.visitChildren(this);
   }
 
   @override
@@ -790,6 +792,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+
+    var element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        computer._addRegion_node(
+          node.identifier,
+          HighlightRegionType.INSTANCE_FIELD_REFERENCE,
+        );
+      }
+    }
+
     super.visitFieldFormalParameter(node);
   }
 
@@ -1105,6 +1119,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     computer._addRegion_token(node.superKeyword, HighlightRegionType.KEYWORD);
     super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    computer._addRegion_token(
+      node.superKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_node(
+      node.identifier,
+      HighlightRegionType.PARAMETER_DECLARATION,
+    );
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
   }
 
   @override

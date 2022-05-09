@@ -5,16 +5,31 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonTypeMemberTest);
+    defineReflectiveTests(NonTypeMemberTest1);
+    defineReflectiveTests(NonTypeMemberTest2);
   });
 }
 
 @reflectiveTest
-class NonTypeMemberTest extends CompletionRelevanceTest {
+class NonTypeMemberTest1 extends CompletionRelevanceTest
+    with NonTypeMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class NonTypeMemberTest2 extends CompletionRelevanceTest
+    with NonTypeMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin NonTypeMemberTestCases on CompletionRelevanceTest {
   Future<void> test_contextType_constructorInvocation_before_type() async {
     await addTestFile('''
 class StrWrap {

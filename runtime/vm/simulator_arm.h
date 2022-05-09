@@ -25,14 +25,12 @@ class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
 
-#if !defined(SIMD_VALUE_T_)
 typedef struct {
   union {
     uint32_t u;
     float f;
   } data_[4];
 } simd_value_t;
-#endif
 
 class Simulator {
  public:
@@ -55,6 +53,7 @@ class Simulator {
   }
 
   int32_t get_sp() const { return get_register(SPREG); }
+  int32_t get_lr() const { return get_register(R14); }
 
   // Special case of set_register and get_register to access the raw PC value.
   void set_pc(int32_t value);

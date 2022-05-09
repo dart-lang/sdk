@@ -31,11 +31,9 @@ class A {
   A.illegalSuper() : this(3), super(3);
   //                          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.SUPER_IN_REDIRECTING_CONSTRUCTOR
-  // [cfe] A redirecting constructor can't have other initializers.
+  // [cfe] A redirecting constructor can't have a 'super' initializer.
   //                                ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
-  //                               ^^^
-  // [cfe] Too many positional arguments: 0 allowed, but 1 found.
 }
 
 main() {

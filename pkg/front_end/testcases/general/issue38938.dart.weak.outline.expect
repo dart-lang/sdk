@@ -1,31 +1,21 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue38938.dart:7:7: Error: 'v' is already declared in this scope.
-//   int v;
-//       ^
-// pkg/front_end/testcases/general/issue38938.dart:6:7: Context: Previous declaration of 'v'.
-//   int v;
-//       ^
+// pkg/front_end/testcases/general/issue38938.dart:7:8: Error: 'v' is already declared in this scope.
+//   int? v;
+//        ^
+// pkg/front_end/testcases/general/issue38938.dart:6:8: Context: Previous declaration of 'v'.
+//   int? v;
+//        ^
 //
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int* v;
-  constructor •(core::int* v) → self::A*
+  field core::int? v;
+  constructor •(core::int? v) → self::A
     ;
-  constructor second() → self::A*
+  constructor second() → self::A
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }

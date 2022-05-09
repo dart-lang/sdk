@@ -251,6 +251,7 @@ TypeInfo computeType(final Token token, bool required,
 
   assert(typeParamOrArg == noTypeParamOrArg);
   next = next.next!;
+
   if (optional('.', next)) {
     next = next.next!;
     if (isValidTypeReference(next)) {

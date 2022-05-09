@@ -10,8 +10,8 @@ class Interface extends core::Object {
     ;
   get implementedLateFieldDeclaredGetterSetter() → core::int
     return let final core::int? #t1 = this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter}{core::int?} in #t1 == null ?{core::int} throw new _in::LateError::fieldNI("implementedLateFieldDeclaredGetterSetter") : #t1{core::int};
-  set implementedLateFieldDeclaredGetterSetter(core::int #t2) → void
-    this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter} = #t2;
+  set implementedLateFieldDeclaredGetterSetter(core::int implementedLateFieldDeclaredGetterSetter#param) → void
+    this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter} = implementedLateFieldDeclaredGetterSetter#param;
 }
 class Class extends core::Object implements self::Interface {
   synthetic constructor •() → self::Class

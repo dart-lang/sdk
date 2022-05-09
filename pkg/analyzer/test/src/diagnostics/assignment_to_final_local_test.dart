@@ -10,13 +10,40 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalLocalTest);
-    defineReflectiveTests(AssignmentToFinalLocalWithNullSafetyTest);
+    defineReflectiveTests(AssignmentToFinalLocalWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class AssignmentToFinalLocalTest extends PubPackageResolutionTest {
+  test_localVariable_late() async {
+    await assertNoErrorsInCode('''
+void f() {
+  late final int a;
+  a = 1;
+  a;
+}
+''');
+  }
+
+  test_parameter_superFormal() async {
+    await assertErrorsInCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  var x;
+  B(super.a) : x = (() { a = 0; });
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 78, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class AssignmentToFinalLocalWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_localVariable() async {
     await assertErrorsInCode('''
 f() {
@@ -148,19 +175,5 @@ f() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
-  }
-}
-
-@reflectiveTest
-class AssignmentToFinalLocalWithNullSafetyTest
-    extends PubPackageResolutionTest {
-  test_localVariable_late() async {
-    await assertNoErrorsInCode('''
-void f() {
-  late final int a;
-  a = 1;
-  a;
-}
-''');
   }
 }

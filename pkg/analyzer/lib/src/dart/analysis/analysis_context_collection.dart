@@ -14,7 +14,8 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:cli_util/cli_util.dart';
+import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/util/sdk.dart';
 
 /// An implementation of [AnalysisContextCollection].
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
@@ -42,6 +43,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    MacroKernelBuilder? macroKernelBuilder,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -74,6 +76,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         scheduler: scheduler,
         updateAnalysisOptions: updateAnalysisOptions,
         fileContentCache: fileContentCache,
+        macroKernelBuilder: macroKernelBuilder,
       );
       contexts.add(context);
     }

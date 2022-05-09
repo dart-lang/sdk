@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+  constructor named(core::int foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+  constructor named2(core::int foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+  constructor named3({required core::int foo = #C1}) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •(core::int foo) → self::B1
+    : super self::A1::•(foo)
+    ;
+  constructor named(core::int foo) → self::B1
+    : super self::A1::named(foo)
+    ;
+  constructor named2(core::int foo) → self::B1
+    : super self::A1::named2(foo)
+    ;
+  constructor named3({required core::int foo = #C1}) → self::B1
+    : super self::A1::named3(foo: foo)
+    ;
+}
+class A2 extends core::Object {
+  final field core::int foo;
+  final field core::String bar;
+  constructor •({required core::int foo = #C1, required core::String bar = #C1}) → self::A2
+    : self::A2::foo = foo, self::A2::bar = bar, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •({required core::String bar = #C1, required core::int foo = #C1}) → self::B2
+    : super self::A2::•(bar: bar, foo: foo)
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

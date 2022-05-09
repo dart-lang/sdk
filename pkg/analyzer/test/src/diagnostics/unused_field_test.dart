@@ -85,27 +85,6 @@ void main() {
 ''');
   }
 
-  test_isUsed_privateEnum_publicValue() async {
-    await assertNoErrorsInCode(r'''
-enum _Foo {a, b}
-f() => print('${_Foo.a}${_Foo.b}');
-''');
-  }
-
-  test_isUsed_privateEnum_values() async {
-    await assertNoErrorsInCode(r'''
-enum _Foo {a}
-f() => _Foo.values;
-''');
-  }
-
-  test_isUsed_publicEnum_privateValue() async {
-    await assertNoErrorsInCode(r'''
-enum Foo {_a, _b}
-f() => print('${Foo._a}${Foo._b}');
-''');
-  }
-
   test_isUsed_publicStaticField_privateClass() async {
     await assertNoErrorsInCode(r'''
 class _A {
@@ -323,23 +302,6 @@ class A {
     ]);
   }
 
-  test_notUsed_privateEnum_publicValue() async {
-    await assertErrorsInCode(r'''
-enum _Foo {a}
-f() => _Foo;
-''', [
-      error(HintCode.UNUSED_FIELD, 11, 1),
-    ]);
-  }
-
-  test_notUsed_publicEnum_privateValue() async {
-    await assertErrorsInCode(r'''
-enum Foo {_a}
-''', [
-      error(HintCode.UNUSED_FIELD, 10, 2),
-    ]);
-  }
-
   test_notUsed_publicStaticField_privateClass() async {
     await assertErrorsInCode(r'''
 class _A {
@@ -396,6 +358,145 @@ f(A a) {
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
+  }
+
+  test_privateEnum_publicConstant_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+}
+
+void f() {
+ _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicConstant_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+}
+
+void f() {
+  _E;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 12, 1),
+    ]);
+  }
+
+  test_privateEnum_publicInstanceField_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  final int foo = 0;
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticField_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static final int foo = 0;
+}
+
+void f() {
+  _E.v;
+  _E.foo;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticField_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static final int foo = 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 34, 3),
+    ]);
+  }
+
+  test_privateEnum_values_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v
+}
+
+void f() {
+  _E.values;
+}
+''');
+  }
+
+  test_privateEnum_values_isUsed_hasSetter() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  set foo(int _) {}
+}
+
+void f() {
+  _E.values;
+}
+''');
+  }
+
+  test_publicEnum_privateConstant_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  _v
+}
+
+void f() {
+  E._v;
+}
+''');
+  }
+
+  test_publicEnum_privateConstant_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  _v
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 11, 2),
+    ]);
+  }
+
+  test_publicEnum_privateInstanceField_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  final int _foo = 0;
+}
+
+void f() {
+  E.v._foo;
+}
+''');
+  }
+
+  test_publicEnum_privateInstanceField_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int _foo = 0;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 26, 4),
     ]);
   }
 }

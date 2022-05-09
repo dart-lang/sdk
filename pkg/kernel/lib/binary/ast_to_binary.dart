@@ -1166,12 +1166,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.typeParameters);
     writeNode(node.type!);
 
-    enterScope(typeParameters: node.typeParametersOfFunctionType);
-    writeNodeList(node.typeParametersOfFunctionType);
-    writeVariableDeclarationList(node.positionalParameters);
-    writeVariableDeclarationList(node.namedParameters);
-
-    leaveScope(typeParameters: node.typeParametersOfFunctionType);
     leaveScope(typeParameters: node.typeParameters, variableScope: true);
     leaveScope(memberScope: true);
   }

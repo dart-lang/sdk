@@ -21,11 +21,6 @@ DEFINE_FLAG(bool,
             "enclosing scope (up to innermost loop) and spare the allocation "
             "of a local context.");
 
-int SourceLabel::FunctionLevel() const {
-  ASSERT(owner() != NULL);
-  return owner()->function_level();
-}
-
 LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
     : parent_(parent),
       child_(NULL),
@@ -36,11 +31,9 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       begin_token_pos_(TokenPosition::kNoSource),
       end_token_pos_(TokenPosition::kNoSource),
       variables_(),
-      labels_(),
       context_variables_(),
       context_slots_(new (Thread::Current()->zone())
-                         ZoneGrowableArray<const Slot*>()),
-      referenced_() {
+                         ZoneGrowableArray<const Slot*>()) {
   // Hook this node into the children of the parent, unless the parent has a
   // different function_level, since the local scope of a nested function can
   // be discarded after it has been parsed.
@@ -85,66 +78,6 @@ bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
   ASSERT(parameter->owner() == NULL);
   parameter->set_owner(this);
   return true;
-}
-
-bool LocalScope::AddLabel(SourceLabel* label) {
-  if (LocalLookupLabel(label->name()) != NULL) {
-    return false;
-  }
-  labels_.Add(label);
-  if (label->owner() == NULL) {
-    // Labels must be added to their owner scope first. Subsequent calls
-    // to 'add' treat the label as an alias.
-    label->set_owner(this);
-  }
-  return true;
-}
-
-void LocalScope::MoveLabel(SourceLabel* label) {
-  ASSERT(LocalLookupLabel(label->name()) == NULL);
-  ASSERT(label->kind() == SourceLabel::kForward);
-  labels_.Add(label);
-  label->set_owner(this);
-}
-
-NameReference* LocalScope::FindReference(const String& name) const {
-  ASSERT(name.IsSymbol());
-  intptr_t num_references = referenced_.length();
-  for (intptr_t i = 0; i < num_references; i++) {
-    if (name.ptr() == referenced_[i]->name().ptr()) {
-      return referenced_[i];
-    }
-  }
-  return NULL;
-}
-
-void LocalScope::AddReferencedName(TokenPosition token_pos,
-                                   const String& name) {
-  if (LocalLookupVariable(name) != NULL) {
-    return;
-  }
-  NameReference* ref = FindReference(name);
-  if (ref != NULL) {
-    ref->set_token_pos(token_pos);
-    return;
-  }
-  ref = new NameReference(token_pos, name);
-  referenced_.Add(ref);
-  // Add name reference in innermost enclosing scopes that do not
-  // define a local variable with this name.
-  LocalScope* scope = this->parent();
-  while (scope != NULL && (scope->LocalLookupVariable(name) == NULL)) {
-    scope->referenced_.Add(ref);
-    scope = scope->parent();
-  }
-}
-
-TokenPosition LocalScope::PreviousReferencePos(const String& name) const {
-  NameReference* ref = FindReference(name);
-  if (ref != NULL) {
-    return ref->token_pos();
-  }
-  return TokenPosition::kNoSource;
 }
 
 void LocalScope::AllocateContextVariable(LocalVariable* variable,
@@ -464,17 +397,6 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
   }
 }
 
-SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
-  ASSERT(name.IsSymbol());
-  for (intptr_t i = 0; i < labels_.length(); i++) {
-    SourceLabel* label = labels_[i];
-    if (label->name().ptr() == name.ptr()) {
-      return label;
-    }
-  }
-  return NULL;
-}
-
 LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < variables_.length(); i++) {
@@ -527,71 +449,6 @@ void LocalScope::CaptureVariable(LocalVariable* variable) {
     ASSERT(variable->owner() != scope);  // Item is an alias.
     scope = parent_scope;
   }
-}
-
-SourceLabel* LocalScope::LookupLabel(const String& name) {
-  LocalScope* current_scope = this;
-  while (current_scope != NULL) {
-    SourceLabel* label = current_scope->LocalLookupLabel(name);
-    if (label != NULL) {
-      return label;
-    }
-    current_scope = current_scope->parent();
-  }
-  return NULL;
-}
-
-SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
-  ASSERT((jump_kind == Token::kCONTINUE) || (jump_kind == Token::kBREAK));
-  LocalScope* current_scope = this;
-  while (current_scope != NULL) {
-    for (intptr_t i = 0; i < current_scope->labels_.length(); i++) {
-      SourceLabel* label = current_scope->labels_[i];
-      if ((label->kind() == SourceLabel::kWhile) ||
-          (label->kind() == SourceLabel::kFor) ||
-          (label->kind() == SourceLabel::kDoWhile) ||
-          ((jump_kind == Token::kBREAK) &&
-           (label->kind() == SourceLabel::kSwitch))) {
-        return label;
-      }
-    }
-    current_scope = current_scope->parent();
-  }
-  return NULL;
-}
-
-LocalScope* LocalScope::LookupSwitchScope() {
-  LocalScope* current_scope = this->parent();
-  int this_level = this->function_level();
-  while (current_scope != NULL &&
-         current_scope->function_level() == this_level) {
-    for (int i = 0; i < current_scope->labels_.length(); i++) {
-      SourceLabel* label = current_scope->labels_[i];
-      if (label->kind() == SourceLabel::kSwitch) {
-        // This scope contains a label that is bound to a switch statement,
-        // so it is the scope of the a statement body.
-        return current_scope;
-      }
-    }
-    current_scope = current_scope->parent();
-  }
-  // We did not find a switch statement scope at the same function level.
-  return NULL;
-}
-
-SourceLabel* LocalScope::CheckUnresolvedLabels() {
-  for (int i = 0; i < this->labels_.length(); i++) {
-    SourceLabel* label = this->labels_[i];
-    if (label->kind() == SourceLabel::kForward) {
-      LocalScope* outer_switch = LookupSwitchScope();
-      if (outer_switch == NULL) {
-        return label;
-      } else {
-        outer_switch->MoveLabel(label);
-      }
-    }
-  }
-  return NULL;
 }
 
 int LocalScope::NumCapturedVariables() const {

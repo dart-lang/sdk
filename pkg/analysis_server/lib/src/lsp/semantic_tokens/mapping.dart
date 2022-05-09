@@ -25,16 +25,35 @@ final highlightRegionTokenModifiers =
     CustomSemanticTokenModifiers.importPrefix,
   },
   HighlightRegionType.INSTANCE_FIELD_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_FIELD_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.INSTANCE_GETTER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_GETTER_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.INSTANCE_METHOD_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_METHOD_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_METHOD_TEAR_OFF: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.INSTANCE_SETTER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_SETTER_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.LOCAL_FUNCTION_DECLARATION: {
     SemanticTokenModifiers.declaration
@@ -104,6 +123,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE: SemanticTokenTypes.parameter,
   HighlightRegionType.ENUM: SemanticTokenTypes.enum_,
   HighlightRegionType.ENUM_CONSTANT: SemanticTokenTypes.enumMember,
+  HighlightRegionType.EXTENSION: SemanticTokenTypes.class_,
   HighlightRegionType.FUNCTION_TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.IDENTIFIER_DEFAULT: CustomSemanticTokenTypes.source,
   HighlightRegionType.IMPORT_PREFIX: SemanticTokenTypes.variable,

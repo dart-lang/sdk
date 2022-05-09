@@ -273,21 +273,13 @@ abstract class Generator {
   /// create a [TypeBuilder] for a valid type.
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {required bool allowPotentiallyConstantType}) {
-    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(
-        token.lexeme,
-        nullabilityBuilder,
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState);
+      {required bool allowPotentiallyConstantType,
+      required bool forTypeLiteral}) {
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
-    result.bind(result.buildInvalidTypeDeclarationBuilder(
-        message.withLocation(_uri, fileOffset, lengthForToken(token))));
-    return result;
+    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+        message.withLocation(_uri, fileOffset, lengthForToken(token)));
   }
 
   /* Expression | Generator */ Object qualifiedLookup(Token name) {
@@ -1511,7 +1503,7 @@ class StaticAccessGenerator extends Generator {
       {bool isTypeArgumentsInForest = false}) {
     if (_helper.constantContext != ConstantContext.none &&
         !_helper.isIdentical(readTarget) &&
-        !_helper.enableConstFunctionsInLibrary) {
+        !_helper.libraryFeatures.constFunctions.isEnabled) {
       return _helper.buildProblem(
           templateNotConstantExpression.withArguments('Method invocation'),
           offset,
@@ -2910,12 +2902,14 @@ class DeferredAccessGenerator extends Generator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {required bool allowPotentiallyConstantType}) {
+      {required bool allowPotentiallyConstantType,
+      required bool forTypeLiteral}) {
     String name = "${prefixGenerator._plainNameForRead}."
         "${suffixGenerator._plainNameForRead}";
     TypeBuilder type = suffixGenerator.buildTypeWithResolvedArguments(
         nullabilityBuilder, arguments,
-        allowPotentiallyConstantType: allowPotentiallyConstantType);
+        allowPotentiallyConstantType: allowPotentiallyConstantType,
+        forTypeLiteral: forTypeLiteral);
     LocatedMessage message;
     if (type is NamedTypeBuilder &&
         type.declaration is InvalidTypeDeclarationBuilder) {
@@ -2933,14 +2927,10 @@ class DeferredAccessGenerator extends Generator {
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
-    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
-    result.bind(result.buildInvalidTypeDeclarationBuilder(message));
-    return result;
+    return new NamedTypeBuilder.forInvalidType(
+        name, nullabilityBuilder, message);
   }
 
   @override
@@ -3039,40 +3029,15 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {required bool allowPotentiallyConstantType}) {
-    if (declaration.isExtension && !_helper.enableExtensionTypesInLibrary) {
-      // Extension declarations cannot be used as types.
-      return super.buildTypeWithResolvedArguments(nullabilityBuilder, arguments,
-          allowPotentiallyConstantType: allowPotentiallyConstantType);
-    }
-    if (arguments != null) {
-      int expected = declaration.typeVariablesCount;
-      if (arguments.length != expected) {
-        // Build the type arguments to report any errors they may have.
-        _helper.buildDartTypeArguments(arguments,
-            allowPotentiallyConstantType: allowPotentiallyConstantType);
-        _helper.warnTypeArgumentsMismatch(
-            declaration.name, expected, fileOffset);
-        // We ignore the provided arguments, which will in turn return the
-        // raw type below.
-        // TODO(sigmund): change to use an InvalidType and include the raw type
-        // as a recovery node once the IR can represent it (Issue #29840).
-        arguments = null;
-      }
-    }
-
-    List<TypeBuilder>? argumentBuilders;
-    if (arguments != null) {
-      argumentBuilders =
-          new List<TypeBuilder>.generate(arguments.length, (int i) {
-        return _helper.validateTypeVariableUse(arguments![i],
-            allowPotentiallyConstantType: allowPotentiallyConstantType);
-      }, growable: false);
-    }
-    return new NamedTypeBuilder(
-        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset,
-        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState)
-      ..bind(declaration);
+      {required bool allowPotentiallyConstantType,
+      required bool forTypeLiteral}) {
+    return new NamedTypeBuilder(targetName, nullabilityBuilder,
+        arguments: arguments,
+        fileUri: _uri,
+        charOffset: fileOffset,
+        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState,
+        forTypeLiteral: forTypeLiteral)
+      ..bind(_helper.libraryBuilder, declaration);
   }
 
   @override
@@ -3115,12 +3080,12 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       } else {
         _expression = _forest.createTypeLiteral(
             offsetForToken(token),
-            _helper.buildTypeLiteralDartType(
+            _helper.buildDartType(
                 buildTypeWithResolvedArguments(
                     _helper.libraryBuilder.nonNullableBuilder, typeArguments,
-                    allowPotentiallyConstantType: true),
+                    allowPotentiallyConstantType: true, forTypeLiteral: true),
                 allowPotentiallyConstantType:
-                    _helper.enableConstructorTearOffsInLibrary));
+                    _helper.libraryFeatures.constructorTearoffs.isEnabled));
       }
     }
     return _expression!;
@@ -3145,7 +3110,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           usedAsClassFileUri: _uri);
 
       bool isConstructorTearOff = send is PropertySelector &&
-          _helper.enableConstructorTearOffsInLibrary &&
+          _helper.libraryFeatures.constructorTearoffs.isEnabled &&
           declarationBuilder is ClassBuilder;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
           ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
@@ -3181,11 +3146,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             aliasedTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
-              aliasedTypeArguments.add(new NamedTypeBuilder(typeVariable.name,
-                  const NullabilityBuilder.omitted(), null, _uri, fileOffset,
+              aliasedTypeArguments.add(new NamedTypeBuilder(
+                  typeVariable.name, const NullabilityBuilder.omitted(),
+                  fileUri: _uri,
+                  charOffset: fileOffset,
                   instanceTypeVariableAccess:
                       _helper.instanceTypeVariableAccessState)
-                ..bind(typeVariable));
+                ..bind(_helper.libraryBuilder, typeVariable));
             }
           }
           unaliasedTypeArguments =
@@ -3206,7 +3173,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               "Unexpected non-null typeArguments of "
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
-          if (_helper.enableConstructorTearOffsInLibrary &&
+          if (_helper.libraryFeatures.constructorTearoffs.isEnabled &&
               declarationBuilder is ClassBuilder) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
@@ -3219,6 +3186,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     messageAbstractClassConstructorTearOff,
                     nameOffset,
                     name.text.length);
+              } else if (declarationBuilder.cls.isEnum) {
+                return _helper.buildProblem(messageEnumConstructorTearoff,
+                    nameOffset, name.text.length);
               }
               tearOffExpression = _helper.forest
                   .createConstructorTearOff(token.charOffset, tearOff);
@@ -3264,8 +3234,10 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     allowPotentiallyConstantType: true);
               }
               if (isGenericTypedefTearOff) {
-                if (isProperRenameForClass(_helper.typeEnvironment,
-                    aliasBuilder!.typedef, aliasBuilder.library.library)) {
+                if (isProperRenameForClass(
+                    _helper.typeEnvironment,
+                    aliasBuilder!.typedef,
+                    aliasBuilder.libraryBuilder.library)) {
                   return tearOffExpression;
                 }
                 Procedure? tearOffLowering =
@@ -4178,18 +4150,12 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {required bool allowPotentiallyConstantType}) {
+      {required bool allowPotentiallyConstantType,
+      required bool forTypeLiteral}) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(
-        _plainNameForRead,
-        nullabilityBuilder,
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
     _helper.libraryBuilder.addProblem(
@@ -4197,11 +4163,11 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token),
         _uri);
-    result.bind(result.buildInvalidTypeDeclarationBuilder(message.withLocation(
-        _uri,
-        offsetForToken(prefixGenerator.token),
-        lengthOfSpan(prefixGenerator.token, token))));
-    return result;
+    return new NamedTypeBuilder.forInvalidType(
+        _plainNameForRead,
+        nullabilityBuilder,
+        message.withLocation(_uri, offsetForToken(prefixGenerator.token),
+            lengthOfSpan(prefixGenerator.token, token)));
   }
 
   @override
@@ -4304,19 +4270,11 @@ class ParserErrorGenerator extends Generator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {required bool allowPotentiallyConstantType}) {
-    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(
-        token.lexeme,
-        nullabilityBuilder,
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      {required bool allowPotentiallyConstantType,
+      required bool forTypeLiteral}) {
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
-    result.bind(result.buildInvalidTypeDeclarationBuilder(
-        message.withLocation(_uri, fileOffset, noLength)));
-    return result;
+    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+        message.withLocation(_uri, fileOffset, noLength));
   }
 
   @override
@@ -4492,9 +4450,8 @@ class ThisAccessGenerator extends Generator {
       }
     } else {
       if (isSuper) {
-        Member? getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
-        Member? setter = _helper.lookupInstanceMember(name,
-            isSuper: isSuper, isSetter: true);
+        Member? getter = _helper.lookupSuperMember(name);
+        Member? setter = _helper.lookupSuperMember(name, isSetter: true);
         return new SuperPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'super' token.
@@ -4571,25 +4528,14 @@ class ThisAccessGenerator extends Generator {
       int offset, Name name, Arguments arguments) {
     Constructor? constructor =
         _helper.lookupConstructor(name, isSuper: isSuper);
-    LocatedMessage? message;
-    if (constructor != null) {
-      // The check of the arguments is done later for super initializers if the
-      // 'super-parameters' language feature is enabled. In that case the
-      // additional parameters can be added at a later stage.
-      if (!(isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary)) {
-        message = _helper.checkArgumentsForFunction(
-            constructor.function, arguments, offset, <TypeParameter>[]);
-      }
-    } else {
+    if (constructor == null) {
       String fullName =
           _helper.constructorNameForDiagnostics(name.text, isSuper: isSuper);
-      message = (isSuper
+      LocatedMessage message = (isSuper
               ? templateSuperclassHasNoConstructor
               : templateConstructorNotFound)
           .withArguments(fullName)
           .withLocation(_uri, fileOffset, lengthForToken(token));
-    }
-    if (message != null) {
       return _helper.buildInvalidInitializer(
           _helper.buildUnresolvedError(
               _forest.createNullLiteral(offset),
@@ -4603,10 +4549,10 @@ class ThisAccessGenerator extends Generator {
           offset);
     } else if (isSuper) {
       return _helper.buildSuperInitializer(
-          false, constructor!, arguments, offset);
+          false, constructor, arguments, offset);
     } else {
       return _helper.buildRedirectingInitializer(
-          constructor!, arguments, offset);
+          constructor, arguments, offset);
     }
   }
 
@@ -4652,10 +4598,8 @@ class ThisAccessGenerator extends Generator {
           _helper,
           token,
           index,
-          _helper.lookupInstanceMember(indexGetName, isSuper: true)
-              as Procedure?,
-          _helper.lookupInstanceMember(indexSetName, isSuper: true)
-              as Procedure?);
+          _helper.lookupSuperMember(indexGetName) as Procedure?,
+          _helper.lookupSuperMember(indexSetName) as Procedure?);
     } else {
       return new ThisIndexedAccessGenerator(_helper, token, index,
           thisOffset: fileOffset, isNullAware: isNullAware);
@@ -4842,7 +4786,8 @@ abstract class Selector {
   /// Report an error if the selector name "new" when the constructor-tearoff
   /// feature is enabled.
   void reportNewAsSelector() {
-    if (name.text == 'new' && _helper.enableConstructorTearOffsInLibrary) {
+    if (name.text == 'new' &&
+        _helper.libraryFeatures.constructorTearoffs.isEnabled) {
       _helper.addProblem(messageNewAsSelector, fileOffset, name.text.length);
     }
   }

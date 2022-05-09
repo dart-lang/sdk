@@ -170,5 +170,5 @@ bool _isNativeAnnotation(Expression annotation) {
   var c = getAnnotationClass(annotation);
   return c != null &&
       (c.name == 'Native' || c.name == 'JsPeerInterface') &&
-      c.enclosingLibrary.importUri.scheme == 'dart';
+      c.enclosingLibrary.importUri.isScheme('dart');
 }

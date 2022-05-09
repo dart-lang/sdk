@@ -7,7 +7,7 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import '../../helpers/memory_compiler.dart';
 import '../../../tool/graph_isomorphizer.dart';

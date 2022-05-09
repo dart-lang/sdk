@@ -159,7 +159,7 @@ class X implements A, B, C {
   }
 
   test_field_multiple_gettersSetters_final_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -258,7 +258,7 @@ class X implements A, B, C {
   }
 
   test_field_multiple_gettersSetters_notFinal_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -312,7 +312,7 @@ class C implements A, B {
   }
 
   test_field_single_getter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -330,7 +330,7 @@ abstract class B implements A {
   }
 
   test_field_single_setter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   set foo(int _);
@@ -466,7 +466,7 @@ class C implements A, B {
   }
 
   test_getter_single_getter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -484,7 +484,7 @@ abstract class B implements A {
   }
 
   test_getter_single_setter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   set foo(int _);
@@ -715,7 +715,7 @@ class C<T> implements A<T> {
   }
 
   test_method_parameter_required_single_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A {
   void foo(int p) {}
@@ -895,7 +895,7 @@ class C implements A, B {
   }
 
   test_method_return_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   int foo();
@@ -1057,7 +1057,7 @@ class C implements A, B {
   }
 
   test_setter_single_getter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -1075,7 +1075,7 @@ abstract class B implements A {
   }
 
   test_setter_single_setter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 abstract class A {
   set foo(int _);

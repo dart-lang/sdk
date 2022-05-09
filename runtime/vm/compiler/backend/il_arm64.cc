@@ -232,10 +232,9 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               Register array_reg,
                                               Register start_reg) {
   if (IsTypedDataBaseClassId(array_cid)) {
-    __ ldr(
-        array_reg,
-        compiler::FieldAddress(
-            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+    __ ldr(array_reg,
+           compiler::FieldAddress(
+               array_reg, compiler::target::PointerBase::data_offset()));
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -1228,27 +1227,35 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+#define R(r) (1 << r)
+
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  return MakeLocationSummaryInternal(zone, is_optimizing, R11);
+  return MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(CallingConventions::kSecondNonArgumentRegister) | R(R11) |
+       R(CallingConventions::kFfiAnyNonAbiRegister) | R(R25)));
 }
 
+#undef R
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // The temps are indexed according to their register number.
+  const Register temp1 = locs()->temp(0).reg();
+  const Register temp2 = locs()->temp(1).reg();
   // For regular calls, this holds the FP for rebasing the original locations
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(0).reg();
-  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-                  (1 << saved_fp_or_sp)) != 0);
-  const Register temp1 = locs()->temp(1).reg();
-  const Register temp2 = locs()->temp(2).reg();
-  const Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp_or_sp = locs()->temp(2).reg();
+  const Register temp_csp = locs()->temp(3).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
-  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
-          (1 << saved_fp_or_sp)) != 0);
-  // temps don't need to be preserved.
+  ASSERT(IsCalleeSavedRegister(saved_fp_or_sp));
+  ASSERT(IsCalleeSavedRegister(temp_csp));
+  // Other temps don't need to be preserved.
 
   __ mov(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
 
@@ -1280,14 +1287,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // We are entering runtime code, so the C stack pointer must be restored
     // from the stack limit to the top of the stack.
-    __ mov(R25, CSP);
+    __ mov(temp_csp, CSP);
     __ mov(CSP, SP);
 
     __ blr(branch);
 
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);
-    __ mov(CSP, R25);
+    __ mov(CSP, temp_csp);
 
 #if !defined(PRODUCT)
     __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());
@@ -1316,14 +1323,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // We are entering runtime code, so the C stack pointer must be restored
       // from the stack limit to the top of the stack.
-      __ mov(R25, CSP);
+      __ mov(temp_csp, CSP);
       __ mov(CSP, SP);
 
       __ blr(branch);
 
       // Restore the Dart stack pointer.
       __ mov(SP, CSP);
-      __ mov(CSP, R25);
+      __ mov(CSP, temp_csp);
 
       // Update information in the thread object and leave the safepoint.
       __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);
@@ -1432,7 +1439,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the argument registers, in reverse order.
   SaveArguments(compiler);
 
-  // Enter the entry frame.
+  // Enter the entry frame. NativeParameterInstr expects this frame has size
+  // -exit_link_slot_from_entry_fp, verified below.
   __ EnterFrame(0);
 
   // Save a space for the code object.
@@ -1627,7 +1635,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Address of input bytes.
   __ LoadFieldFromOffset(bytes_reg, bytes_reg,
-                         compiler::target::TypedDataBase::data_field_offset());
+                         compiler::target::PointerBase::data_offset());
 
   // Table.
   __ AddImmediate(
@@ -4708,9 +4716,11 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Call the function.
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  // Call the function. Parameters are already in their correct spots.
+  rt.Call(TargetFunction(), TargetFunction().argument_count());
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5163,9 +5173,15 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 
   __ Bind(&do_pow);
   __ fmovdd(base, saved_base);  // Restore base.
-
-  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
+  {
+    compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                  /*frame_size=*/0,
+                                  /*preserve_registers=*/false);
+    ASSERT(base == V0);
+    ASSERT(exp == V1);
+    rt.Call(instr->TargetFunction(), kInputCount);
+    ASSERT(result == V0);
+  }
   __ Bind(&skip_call);
 }
 
@@ -5174,8 +5190,16 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     InvokeDoublePow(compiler, this);
     return;
   }
-  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
-  __ CallRuntime(TargetFunction(), InputCount());
+
+  compiler::LeafRuntimeScope rt(compiler->assembler(),
+                                /*frame_size=*/0,
+                                /*preserve_registers=*/false);
+  ASSERT(locs()->in(0).fpu_reg() == V0);
+  if (InputCount() == 2) {
+    ASSERT(locs()->in(1).fpu_reg() == V1);
+  }
+  rt.Call(TargetFunction(), InputCount());
+  ASSERT(locs()->out(0).fpu_reg() == V0);
 }
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,
@@ -5286,10 +5310,16 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareObjectRegisters(result_mod, ZR);
   __ b(&done, GE);
   // Result is negative, adjust it.
-  __ CompareObjectRegisters(right, ZR);
-  __ sub(TMP2, result_mod, compiler::Operand(right), compiler::kObjectBytes);
-  __ add(TMP, result_mod, compiler::Operand(right), compiler::kObjectBytes);
-  __ csel(result_mod, TMP, TMP2, GE);
+  if (RangeUtils::IsNegative(divisor_range())) {
+    __ sub(result_mod, result_mod, compiler::Operand(right));
+  } else if (RangeUtils::IsPositive(divisor_range())) {
+    __ add(result_mod, result_mod, compiler::Operand(right));
+  } else {
+    __ CompareObjectRegisters(right, ZR);
+    __ sub(TMP2, result_mod, compiler::Operand(right), compiler::kObjectBytes);
+    __ add(TMP, result_mod, compiler::Operand(right), compiler::kObjectBytes);
+    __ csel(result_mod, TMP, TMP2, GE);
+  }
   __ Bind(&done);
 }
 
@@ -5634,8 +5664,7 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
-    __ CompareRegisters(right, ZR);
-    __ b(slow_path->entry_label(), EQ);
+    __ cbz(slow_path->entry_label(), right);
   }
 
   // Perform actual operation

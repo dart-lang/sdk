@@ -23,7 +23,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var widgetClass = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclass = widgetClass?.extendsClause?.superclass2;
+    var superclass = widgetClass?.extendsClause?.superclass;
     if (widgetClass == null || superclass == null) {
       return;
     }

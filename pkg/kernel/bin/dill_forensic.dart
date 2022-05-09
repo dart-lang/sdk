@@ -12,16 +12,16 @@ import 'package:kernel/binary/tag.dart' show Tag;
 
 void main(List<String> args) {
   if (args.length != 1) {
-    throw "Usage: dart <script> <dillfile>";
+    throw "Usage: dart <script> <dillFile>";
   }
   File file = new File(args.single);
   if (!file.existsSync()) {
     throw "Given file doesn't exist.\n"
-        "Usage: dart <script> <dillfile>";
+        "Usage: dart <script> <dillFile>";
   }
   Uint8List bytes = file.readAsBytesSync();
   List<Component> components = splitAndRead(bytes);
-  print("Sucessfully read ${components.length} sub-components.");
+  print("Successfully read ${components.length} sub-components.");
 
   for (int i = 0; i < components.length; i++) {
     Component component = components[i];
@@ -77,7 +77,7 @@ List<Component> splitAndRead(Uint8List bytes) {
   tagOffsets.add(bytes.length);
 
   // Warning: O(n²) algorithm (though, as the tag is assumed to be rather unique
-  // in normal cases it will probably much better in practise
+  // in normal cases it will probably much better in practice
   // (and n will be low)).
   int fromIndex = 0;
   while (fromIndex < tagOffsets.length - 1) {

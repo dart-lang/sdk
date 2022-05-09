@@ -337,6 +337,12 @@ class NullabilityGraph {
     _pathsBeingMigrated.add(source.fullName);
   }
 
+  /// Creates a graph edge that will try to prevent the given [node] from being
+  /// marked `late`.
+  void preventLate(NullabilityNode node, EdgeOrigin origin) {
+    connect(node, always, origin);
+  }
+
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
   PropagationResult propagate() {

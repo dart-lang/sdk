@@ -1,4 +1,3 @@
-// @dart = 2.9
 class B extends Object with M1, M2 {
   B(value);
 }

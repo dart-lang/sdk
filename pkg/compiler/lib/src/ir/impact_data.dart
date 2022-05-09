@@ -3,19 +3,532 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
+import '../common.dart';
+import '../ir/scope.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
 import 'impact.dart';
 import 'runtime_type_analysis.dart';
 import 'static_type.dart';
+import 'util.dart';
 
-/// [ImpactRegistry] that stores registered impact in an [ImpactData] object.
-abstract class ImpactRegistryMixin implements ImpactRegistry {
-  final ImpactDataImpl _data = ImpactDataImpl();
+/// Visitor that builds an [ImpactData] object for the world impact.
+class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
+  final ImpactData _data = ImpactData();
+
+  @override
+  final VariableScopeModel variableScopeModel;
+
+  @override
+  final ir.StaticTypeContext staticTypeContext;
+
+  @override
+  final bool useAsserts;
+
+  @override
+  final inferEffectivelyFinalVariableTypes;
+
+  ImpactBuilder(this.staticTypeContext, StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy, this.variableScopeModel,
+      {this.useAsserts = false, this.inferEffectivelyFinalVariableTypes = true})
+      : super(
+            staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+
+  /// Return the named arguments names as a list of strings.
+  List<String> _getNamedArguments(ir.Arguments arguments) =>
+      arguments.named.map((n) => n.name).toList();
+
+  ImpactBuilderData computeImpact(ir.Member node) {
+    if (retainDataForTesting) {
+      typeMapsForTesting = {};
+    }
+    node.accept(this);
+    return ImpactBuilderData(
+        node, impactData, typeMapsForTesting, getStaticTypeCache());
+  }
 
   ImpactData get impactData => _data;
+
+  @override
+  void handleIntLiteral(ir.IntLiteral node) {
+    registerIntLiteral(node.value);
+  }
+
+  @override
+  void handleDoubleLiteral(ir.DoubleLiteral node) {
+    registerDoubleLiteral(node.value);
+  }
+
+  @override
+  void handleBoolLiteral(ir.BoolLiteral node) {
+    registerBoolLiteral(node.value);
+  }
+
+  @override
+  void handleStringLiteral(ir.StringLiteral node) {
+    registerStringLiteral(node.value);
+  }
+
+  @override
+  void handleSymbolLiteral(ir.SymbolLiteral node) {
+    registerSymbolLiteral(node.value);
+  }
+
+  @override
+  void handleNullLiteral(ir.NullLiteral node) {
+    registerNullLiteral();
+  }
+
+  @override
+  void handleListLiteral(ir.ListLiteral node) {
+    registerListLiteral(node.typeArgument,
+        isConst: node.isConst, isEmpty: node.expressions.isEmpty);
+  }
+
+  @override
+  void handleSetLiteral(ir.SetLiteral node) {
+    registerSetLiteral(node.typeArgument,
+        isConst: node.isConst, isEmpty: node.expressions.isEmpty);
+  }
+
+  @override
+  void handleMapLiteral(ir.MapLiteral node) {
+    registerMapLiteral(node.keyType, node.valueType,
+        isConst: node.isConst, isEmpty: node.entries.isEmpty);
+  }
+
+  @override
+  void handleStaticGet(
+      ir.Expression node, ir.Member target, ir.DartType resultType) {
+    assert(!(target is ir.Procedure && target.kind == ir.ProcedureKind.Method),
+        "Static tear off registered as static get: $node");
+    registerStaticGet(target, getDeferredImport(node));
+  }
+
+  @override
+  void handleStaticTearOff(
+      ir.Expression node, ir.Member target, ir.DartType resultType) {
+    assert(target is ir.Procedure && target.kind == ir.ProcedureKind.Method,
+        "Static get registered as static tear off: $node");
+    registerStaticTearOff(target, getDeferredImport(node));
+  }
+
+  @override
+  void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
+    registerStaticSet(node.target, getDeferredImport(node));
+  }
+
+  @override
+  void handleAssertStatement(ir.AssertStatement node) {
+    registerAssert(withMessage: node.message != null);
+  }
+
+  @override
+  void handleInstantiation(ir.Instantiation node,
+      ir.FunctionType expressionType, ir.DartType resultType) {
+    registerGenericInstantiation(expressionType, node.typeArguments);
+  }
+
+  void handleAsyncMarker(ir.FunctionNode function) {
+    ir.AsyncMarker asyncMarker = function.asyncMarker;
+    ir.DartType returnType = function.returnType;
+
+    switch (asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        break;
+      case ir.AsyncMarker.SyncStar:
+        ir.DartType elementType = const ir.DynamicType();
+        if (returnType is ir.InterfaceType) {
+          if (returnType.classNode == typeEnvironment.coreTypes.iterableClass) {
+            elementType = returnType.typeArguments.first;
+          }
+        }
+        registerSyncStar(elementType);
+        break;
+
+      case ir.AsyncMarker.Async:
+        ir.DartType elementType = const ir.DynamicType();
+        if (returnType is ir.InterfaceType &&
+            returnType.classNode == typeEnvironment.coreTypes.futureClass) {
+          elementType = returnType.typeArguments.first;
+        } else if (returnType is ir.FutureOrType) {
+          elementType = returnType.typeArgument;
+        }
+        registerAsync(elementType);
+        break;
+
+      case ir.AsyncMarker.AsyncStar:
+        ir.DartType elementType = const ir.DynamicType();
+        if (returnType is ir.InterfaceType) {
+          if (returnType.classNode == typeEnvironment.coreTypes.streamClass) {
+            elementType = returnType.typeArguments.first;
+          }
+        }
+        registerAsyncStar(elementType);
+        break;
+
+      case ir.AsyncMarker.SyncYielding:
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected async marker: ${asyncMarker}");
+    }
+  }
+
+  @override
+  void handleStringConcatenation(ir.StringConcatenation node) {
+    registerStringConcatenation();
+  }
+
+  @override
+  Null handleFunctionDeclaration(ir.FunctionDeclaration node) {
+    registerLocalFunction(node);
+    handleAsyncMarker(node.function);
+  }
+
+  @override
+  void handleFunctionExpression(ir.FunctionExpression node) {
+    registerLocalFunction(node);
+    handleAsyncMarker(node.function);
+  }
+
+  @override
+  void handleVariableDeclaration(ir.VariableDeclaration node) {
+    if (node.initializer == null) {
+      registerLocalWithoutInitializer();
+    }
+  }
+
+  @override
+  void handleIsExpression(ir.IsExpression node) {
+    registerIsCheck(node.type);
+  }
+
+  @override
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
+    if (typeEnvironment.isSubtypeOf(
+        operandType, node.type, ir.SubtypeCheckMode.ignoringNullabilities)) {
+      // Skip unneeded casts.
+      return;
+    }
+    if (node.isTypeError) {
+      registerImplicitCast(node.type);
+    } else {
+      registerAsCast(node.type);
+    }
+  }
+
+  @override
+  void handleThrow(ir.Throw node) {
+    registerThrow();
+  }
+
+  @override
+  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType,
+      ir.DartType iteratorType) {
+    if (node.isAsync) {
+      registerAsyncForIn(iterableType, iteratorType,
+          computeClassRelationFromType(iteratorType));
+    } else {
+      registerSyncForIn(iterableType, iteratorType,
+          computeClassRelationFromType(iteratorType));
+    }
+  }
+
+  @override
+  void handleCatch(ir.Catch node) {
+    registerCatch();
+    if (node.stackTrace != null) {
+      registerStackTrace();
+    }
+    if (node.guard is! ir.DynamicType) {
+      registerCatchType(node.guard);
+    }
+  }
+
+  @override
+  void handleTypeLiteral(ir.TypeLiteral node) {
+    registerTypeLiteral(node.type, getDeferredImport(node));
+  }
+
+  @override
+  void handleFieldInitializer(ir.FieldInitializer node) {
+    registerFieldInitialization(node.field);
+  }
+
+  @override
+  void handleLoadLibrary(ir.LoadLibrary node) {
+    registerLoadLibrary();
+  }
+
+  @override
+  void handleRedirectingInitializer(
+      ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
+    registerRedirectingInitializer(
+        node.target,
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types);
+  }
+
+  @override
+  void handleParameter(ir.VariableDeclaration parameter) {
+    registerParameterCheck(parameter.type);
+  }
+
+  @override
+  void handleSignature(ir.FunctionNode node) {
+    for (ir.TypeParameter parameter in node.typeParameters) {
+      registerParameterCheck(parameter.bound);
+    }
+  }
+
+  @override
+  void handleConstructor(ir.Constructor node) {
+    registerConstructorNode(node);
+  }
+
+  @override
+  void handleField(ir.Field field) {
+    registerParameterCheck(field.type);
+    if (field.initializer != null) {
+      if (!field.isInstanceMember &&
+          !field.isConst &&
+          field.initializer is! ir.NullLiteral) {
+        registerLazyField();
+      }
+    } else {
+      registerNullLiteral();
+    }
+    registerFieldNode(field);
+  }
+
+  @override
+  void handleProcedure(ir.Procedure procedure) {
+    handleAsyncMarker(procedure.function);
+    registerProcedureNode(procedure);
+  }
+
+  @override
+  void handleConstructorInvocation(ir.ConstructorInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType resultType) {
+    registerNew(
+        node.target,
+        node.constructedType,
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types,
+        getDeferredImport(node),
+        isConst: node.isConst);
+    if (node.isConst) {
+      registerConstConstructorInvocationNode(node);
+    }
+  }
+
+  @override
+  void handleStaticInvocation(ir.StaticInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType returnType) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    if (node.target.kind == ir.ProcedureKind.Factory) {
+      // TODO(johnniwinther): We should not mark the type as instantiated but
+      // rather follow the type arguments directly.
+      //
+      // Consider this:
+      //
+      //    abstract class A<T> {
+      //      factory A.regular() => new B<T>();
+      //      factory A.redirect() = B<T>;
+      //    }
+      //
+      //    class B<T> implements A<T> {}
+      //
+      //    main() {
+      //      print(new A<int>.regular() is B<int>);
+      //      print(new A<String>.redirect() is B<String>);
+      //    }
+      //
+      // To track that B is actually instantiated as B<int> and B<String> we
+      // need to follow the type arguments passed to A.regular and A.redirect
+      // to B. Currently, we only do this soundly if we register A<int> and
+      // A<String> as instantiated. We should instead register that A.T is
+      // instantiated as int and String.
+      registerNew(
+          node.target,
+          ir.InterfaceType(node.target.enclosingClass,
+              node.target.enclosingLibrary.nonNullable, typeArguments),
+          positionArguments,
+          namedArguments,
+          node.arguments.types,
+          getDeferredImport(node),
+          isConst: node.isConst);
+    } else {
+      registerStaticInvocation(node.target, positionArguments, namedArguments,
+          typeArguments, getDeferredImport(node));
+    }
+    registerStaticInvocationNode(node);
+  }
+
+  @override
+  void handleDynamicInvocation(
+      ir.InvocationExpression node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerDynamicInvocation(receiverType, relation, node.name,
+        positionArguments, namedArguments, typeArguments);
+  }
+
+  @override
+  void handleFunctionInvocation(
+      ir.InvocationExpression node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    registerFunctionInvocation(
+        receiverType, positionArguments, namedArguments, typeArguments);
+  }
+
+  @override
+  void handleInstanceInvocation(
+      ir.InvocationExpression node,
+      ir.DartType receiverType,
+      ir.Member interfaceTarget,
+      ArgumentTypes argumentTypes) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+
+    if (interfaceTarget is ir.Field ||
+        interfaceTarget is ir.Procedure &&
+            interfaceTarget.kind == ir.ProcedureKind.Getter) {
+      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+          positionArguments, namedArguments, typeArguments);
+      registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
+          namedArguments, typeArguments);
+    } else {
+      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+          positionArguments, namedArguments, typeArguments);
+    }
+  }
+
+  @override
+  void handleLocalFunctionInvocation(
+      ir.InvocationExpression node,
+      ir.FunctionDeclaration function,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    registerLocalFunctionInvocation(
+        function, positionArguments, namedArguments, typeArguments);
+  }
+
+  @override
+  void handleEqualsCall(ir.Expression left, ir.DartType leftType,
+      ir.Expression right, ir.DartType rightType, ir.Member interfaceTarget) {
+    ClassRelation relation = computeClassRelationFromType(leftType);
+    registerInstanceInvocation(leftType, relation, interfaceTarget, 1,
+        const <String>[], const <ir.DartType>[]);
+  }
+
+  @override
+  void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {
+    registerNullLiteral();
+  }
+
+  @override
+  void handleDynamicGet(ir.Expression node, ir.DartType receiverType,
+      ir.Name name, ir.DartType resultType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerDynamicGet(receiverType, relation, name);
+  }
+
+  @override
+  void handleInstanceGet(ir.Expression node, ir.DartType receiverType,
+      ir.Member interfaceTarget, ir.DartType resultType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerInstanceGet(receiverType, relation, interfaceTarget);
+  }
+
+  @override
+  void handleDynamicSet(ir.Expression node, ir.DartType receiverType,
+      ir.Name name, ir.DartType valueType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerDynamicSet(receiverType, relation, name);
+  }
+
+  @override
+  void handleInstanceSet(ir.Expression node, ir.DartType receiverType,
+      ir.Member interfaceTarget, ir.DartType valueType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerInstanceSet(receiverType, relation, interfaceTarget);
+  }
+
+  @override
+  void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType returnType) {
+    registerSuperInvocation(
+        getEffectiveSuperTarget(node.interfaceTarget),
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types);
+  }
+
+  @override
+  void handleSuperPropertyGet(
+      ir.SuperPropertyGet node, ir.DartType resultType) {
+    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget));
+  }
+
+  @override
+  void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
+    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget));
+  }
+
+  @override
+  void handleSuperInitializer(
+      ir.SuperInitializer node, ArgumentTypes argumentTypes) {
+    registerSuperInitializer(
+        node.parent,
+        node.target,
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types);
+  }
+
+  @override
+  Null visitSwitchStatement(ir.SwitchStatement node) {
+    registerSwitchStatementNode(node);
+    return super.visitSwitchStatement(node);
+  }
+
+  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
+  // invocation encoding is no longer used.
+  @override
+  void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
+      ir.DartType receiverType, ir.DartType argumentType) {
+    registerRuntimeTypeUse(node, kind, receiverType, argumentType);
+  }
+
+  @override
+  void handleConstantExpression(ir.ConstantExpression node) {
+    ir.LibraryDependency import = getDeferredImport(node);
+    ConstantImpactVisitor(this, import, node, staticTypeContext)
+        .visitConstant(node.constant);
+  }
 
   void _registerFeature(_Feature feature) {
     _data._features ??= EnumSet<_Feature>();
@@ -451,17 +964,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
-abstract class ImpactData {
-  factory ImpactData.fromDataSource(DataSource source) =
-      ImpactDataImpl.fromDataSource;
-
-  void toDataSink(DataSink sink);
-
-  /// Registers the impact data with [registry].
-  void apply(ImpactRegistry registry);
-}
-
-class ImpactDataImpl implements ImpactData {
+class ImpactData {
   static const String tag = 'ImpactData';
 
   List<_SuperInitializer> _superInitializers;
@@ -509,9 +1012,9 @@ class ImpactDataImpl implements ImpactData {
   List<ir.StaticInvocation> _staticInvocationNodes;
   List<ir.ConstructorInvocation> _constConstructorInvocationNodes;
 
-  ImpactDataImpl();
+  ImpactData();
 
-  ImpactDataImpl.fromDataSource(DataSource source) {
+  ImpactData.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     _superInitializers = source.readList(
         () => _SuperInitializer.fromDataSource(source),
@@ -609,8 +1112,7 @@ class ImpactDataImpl implements ImpactData {
     source.end(tag);
   }
 
-  @override
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
 
     sink.writeList(
@@ -693,7 +1195,7 @@ class ImpactDataImpl implements ImpactData {
     sink.end(tag);
   }
 
-  @override
+  /// Registers the impact data with [registry].
   void apply(ImpactRegistry registry) {
     if (_superInitializers != null) {
       for (_SuperInitializer data in _superInitializers) {
@@ -1047,7 +1549,7 @@ class _CallStructure {
         typeArguments, positionalArguments, namedArguments);
   }
 
-  factory _CallStructure.fromDataSource(DataSource source) {
+  factory _CallStructure.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     int positionalArguments = source.readInt();
@@ -1057,7 +1559,7 @@ class _CallStructure {
         typeArguments, positionalArguments, namedArguments);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNodes(typeArguments);
     sink.writeInt(positionalArguments);
@@ -1075,7 +1577,7 @@ class _SuperInitializer {
 
   _SuperInitializer(this.source, this.target, this.callStructure);
 
-  factory _SuperInitializer.fromDataSource(DataSource source) {
+  factory _SuperInitializer.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Constructor sourceConstructor = source.readMemberNode();
     ir.Constructor targetConstructor = source.readMemberNode();
@@ -1085,7 +1587,7 @@ class _SuperInitializer {
         sourceConstructor, targetConstructor, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(source);
     sink.writeMemberNode(target);
@@ -1102,7 +1604,7 @@ class _SuperInvocation {
 
   _SuperInvocation(this.target, this.callStructure);
 
-  factory _SuperInvocation.fromDataSource(DataSource source) {
+  factory _SuperInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member member = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1110,7 +1612,7 @@ class _SuperInvocation {
     return _SuperInvocation(member, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
@@ -1127,7 +1629,7 @@ class _InstanceAccess {
 
   _InstanceAccess(this.receiverType, this.classRelation, this.target);
 
-  factory _InstanceAccess.fromDataSource(DataSource source) {
+  factory _InstanceAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1136,7 +1638,7 @@ class _InstanceAccess {
     return _InstanceAccess(receiverType, classRelation, target);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1154,7 +1656,7 @@ class _DynamicAccess {
 
   _DynamicAccess(this.receiverType, this.classRelation, this.name);
 
-  factory _DynamicAccess.fromDataSource(DataSource source) {
+  factory _DynamicAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1163,7 +1665,7 @@ class _DynamicAccess {
     return _DynamicAccess(receiverType, classRelation, name);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1180,7 +1682,7 @@ class _FunctionInvocation {
 
   _FunctionInvocation(this.receiverType, this.callStructure);
 
-  factory _FunctionInvocation.fromDataSource(DataSource source) {
+  factory _FunctionInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1188,7 +1690,7 @@ class _FunctionInvocation {
     return _FunctionInvocation(receiverType, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     callStructure.toDataSink(sink);
@@ -1207,7 +1709,7 @@ class _InstanceInvocation {
   _InstanceInvocation(
       this.receiverType, this.classRelation, this.target, this.callStructure);
 
-  factory _InstanceInvocation.fromDataSource(DataSource source) {
+  factory _InstanceInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1218,7 +1720,7 @@ class _InstanceInvocation {
         receiverType, classRelation, target, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1239,7 +1741,7 @@ class _DynamicInvocation {
   _DynamicInvocation(
       this.receiverType, this.classRelation, this.name, this.callStructure);
 
-  factory _DynamicInvocation.fromDataSource(DataSource source) {
+  factory _DynamicInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
@@ -1249,7 +1751,7 @@ class _DynamicInvocation {
     return _DynamicInvocation(receiverType, classRelation, name, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(receiverType);
     sink.writeEnum(classRelation);
@@ -1267,7 +1769,7 @@ class _LocalFunctionInvocation {
 
   _LocalFunctionInvocation(this.localFunction, this.callStructure);
 
-  factory _LocalFunctionInvocation.fromDataSource(DataSource source) {
+  factory _LocalFunctionInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.FunctionDeclaration localFunction = source.readTreeNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1275,7 +1777,7 @@ class _LocalFunctionInvocation {
     return _LocalFunctionInvocation(localFunction, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTreeNode(localFunction);
     callStructure.toDataSink(sink);
@@ -1292,7 +1794,7 @@ class _StaticInvocation {
 
   _StaticInvocation(this.target, this.callStructure, this.import);
 
-  factory _StaticInvocation.fromDataSource(DataSource source) {
+  factory _StaticInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Procedure target = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1301,7 +1803,7 @@ class _StaticInvocation {
     return _StaticInvocation(target, callStructure, import);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
@@ -1323,7 +1825,7 @@ class _ConstructorInvocation {
       this.constructor, this.type, this.callStructure, this.import,
       {this.isConst});
 
-  factory _ConstructorInvocation.fromDataSource(DataSource source) {
+  factory _ConstructorInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member constructor = source.readMemberNode();
     ir.InterfaceType type = source.readDartTypeNode();
@@ -1335,7 +1837,7 @@ class _ConstructorInvocation {
         isConst: isConst);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(constructor);
     sink.writeDartTypeNode(type);
@@ -1375,7 +1877,7 @@ class _TypeUse {
 
   _TypeUse(this.type, this.kind);
 
-  factory _TypeUse.fromDataSource(DataSource source) {
+  factory _TypeUse.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType type = source.readDartTypeNode();
     _TypeUseKind kind = source.readEnum(_TypeUseKind.values);
@@ -1383,7 +1885,7 @@ class _TypeUse {
     return _TypeUse(type, kind);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(type);
     sink.writeEnum(kind);
@@ -1410,7 +1912,7 @@ class _RedirectingInitializer {
 
   _RedirectingInitializer(this.constructor, this.callStructure);
 
-  factory _RedirectingInitializer.fromDataSource(DataSource source) {
+  factory _RedirectingInitializer.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Constructor constructor = source.readMemberNode();
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
@@ -1418,7 +1920,7 @@ class _RedirectingInitializer {
     return _RedirectingInitializer(constructor, callStructure);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(constructor);
     callStructure.toDataSink(sink);
@@ -1434,7 +1936,7 @@ class _TypeLiteral {
 
   _TypeLiteral(this.type, this.import);
 
-  factory _TypeLiteral.fromDataSource(DataSource source) {
+  factory _TypeLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType type = source.readDartTypeNode();
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
@@ -1442,7 +1944,7 @@ class _TypeLiteral {
     return _TypeLiteral(type, import);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(type);
     sink.writeLibraryDependencyNodeOrNull(import);
@@ -1458,7 +1960,7 @@ class _GenericInstantiation {
 
   _GenericInstantiation(this.expressionType, this.typeArguments);
 
-  factory _GenericInstantiation.fromDataSource(DataSource source) {
+  factory _GenericInstantiation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.FunctionType expressionType = source.readDartTypeNode();
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
@@ -1466,7 +1968,7 @@ class _GenericInstantiation {
     return _GenericInstantiation(expressionType, typeArguments);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(expressionType);
     sink.writeDartTypeNodes(typeArguments);
@@ -1482,7 +1984,7 @@ class _StaticAccess {
 
   _StaticAccess(this.target, this.import);
 
-  factory _StaticAccess.fromDataSource(DataSource source) {
+  factory _StaticAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member target = source.readMemberNode();
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
@@ -1490,7 +1992,7 @@ class _StaticAccess {
     return _StaticAccess(target, import);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberNode(target);
     sink.writeLibraryDependencyNodeOrNull(import);
@@ -1508,7 +2010,7 @@ class _MapLiteral {
 
   _MapLiteral(this.keyType, this.valueType, {this.isConst, this.isEmpty});
 
-  factory _MapLiteral.fromDataSource(DataSource source) {
+  factory _MapLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType keyType = source.readDartTypeNode();
     ir.DartType valueType = source.readDartTypeNode();
@@ -1518,7 +2020,7 @@ class _MapLiteral {
     return _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(keyType);
     sink.writeDartTypeNode(valueType);
@@ -1537,7 +2039,7 @@ class _ContainerLiteral {
 
   _ContainerLiteral(this.elementType, {this.isConst, this.isEmpty});
 
-  factory _ContainerLiteral.fromDataSource(DataSource source) {
+  factory _ContainerLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType elementType = source.readDartTypeNode();
     bool isConst = source.readBool();
@@ -1546,7 +2048,7 @@ class _ContainerLiteral {
     return _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeDartTypeNode(elementType);
     sink.writeBool(isConst);
@@ -1567,7 +2069,7 @@ class _RuntimeTypeUse {
 
   _RuntimeTypeUse(this.node, this.kind, this.receiverType, this.argumentType);
 
-  factory _RuntimeTypeUse.fromDataSource(DataSource source) {
+  factory _RuntimeTypeUse.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.TreeNode node = source.readTreeNode();
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
@@ -1577,7 +2079,7 @@ class _RuntimeTypeUse {
     return _RuntimeTypeUse(node, kind, receiverType, argumentType);
   }
 
-  void toDataSink(DataSink sink) {
+  void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTreeNode(node);
     sink.writeEnum(kind);

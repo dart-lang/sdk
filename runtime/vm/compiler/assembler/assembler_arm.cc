@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
+#include "vm/tags.h"
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
 #if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
@@ -30,9 +31,9 @@ DECLARE_FLAG(bool, precompiled_mode);
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder),
-      use_far_branches_(use_far_branches),
+      use_far_branches_(far_branch_level != 0),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Condition cond, Register reg) {
     Call(
@@ -622,7 +623,9 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
+void Assembler::ExitFullSafepoint(Register tmp1,
+                                  Register tmp2,
+                                  bool ignore_unwind_in_progress) {
   Register addr = tmp1;
   Register state = tmp2;
 
@@ -650,7 +653,14 @@ void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
   }
 
   Bind(&slow_path);
-  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    ldr(TMP,
+        Address(THR,
+                target::Thread::
+                    exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
   blx(TMP);
 
@@ -659,10 +669,13 @@ void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
 
 void Assembler::TransitionNativeToGenerated(Register addr,
                                             Register state,
-                                            bool exit_safepoint) {
+                                            bool exit_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (exit_safepoint) {
-    ExitFullSafepoint(addr, state);
+    ExitFullSafepoint(addr, state, ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
@@ -1604,10 +1617,8 @@ void Assembler::LoadPoolPointer(Register reg) {
 void Assembler::SetupGlobalPoolAndDispatchTable() {
   ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-  if (FLAG_use_table_dispatch) {
-    ldr(DISPATCH_TABLE_REG,
-        Address(THR, target::Thread::dispatch_table_array_offset()));
-  }
+  ldr(DISPATCH_TABLE_REG,
+      Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
 void Assembler::LoadIsolate(Register rd) {
@@ -1902,6 +1913,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
     str(value, dest);
   }
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
@@ -2712,11 +2728,6 @@ void Assembler::BranchLinkPatchable(const Code& target,
   BranchLink(target, ObjectPoolBuilderEntry::kPatchable, entry_kind);
 }
 
-void Assembler::BranchLinkToRuntime() {
-  ldr(IP, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-  blx(IP);
-}
-
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           CodeEntryKind entry_kind) {
@@ -3254,62 +3265,91 @@ void Assembler::EmitEntryFrameVerification(Register scratch) {
 #endif
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  Comment("EnterCallRuntimeFrame");
-  // Preserve volatile CPU registers and PP.
-  SPILLS_LR_TO_FRAME(
-      EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0));
-  COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
-
-  // Preserve all volatile FPU registers.
-    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-    if ((lastv - firstv + 1) >= 16) {
-      DRegister mid = static_cast<DRegister>(firstv + 16);
-      vstmd(DB_W, SP, mid, lastv - mid + 1);
-      vstmd(DB_W, SP, firstv, 16);
-    } else {
-      vstmd(DB_W, SP, firstv, lastv - firstv + 1);
-    }
-
-  ReserveAlignedFrameSpace(frame_space);
-}
-
-void Assembler::LeaveCallRuntimeFrame() {
-  // SP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t kPushedFpuRegisterSize =
-      kDartVolatileFpuRegCount * kFpuRegisterSize;
-
-  COMPILE_ASSERT(PP < FP);
-  COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
-  // kVolatileCpuRegCount +1 for PP, -1 because even though LR is volatile,
-  // it is pushed ahead of FP.
-  const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * target::kWordSize + kPushedFpuRegisterSize;
-  AddImmediate(SP, FP, -kPushedRegistersSize);
-
-  // Restore all volatile FPU registers.
-    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-    if ((lastv - firstv + 1) >= 16) {
-      DRegister mid = static_cast<DRegister>(firstv + 16);
-      vldmd(IA_W, SP, firstv, 16);
-      vldmd(IA_W, SP, mid, lastv - mid + 1);
-    } else {
-      vldmd(IA_W, SP, firstv, lastv - firstv + 1);
-    }
-
-  // Restore volatile CPU registers.
-  RESTORES_LR_FROM_FRAME(
-      LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR)));
-}
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  LoadFromOffset(R9, THR, entry.OffsetFromThread());
+  LoadImmediate(R4, argument_count);
+  ldr(IP, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  blx(IP);
 }
+
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#undef __
+#define __ assembler_->
+
+#if defined(VFPv3_D32)
+static const RegisterSet kVolatileFpuRegisters(0, 0xFF0F);  // Q0-Q3, Q8-Q15
+#else
+static const RegisterSet kVolatileFpuRegisters(0, 0x000F);  // Q0-Q3
+#endif
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  if (preserve_registers) {
+    // Preserve volatile CPU registers and PP.
+    SPILLS_LR_TO_FRAME(__ EnterFrame(
+        kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0));
+    COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
+
+    __ PushRegisters(kVolatileFpuRegisters);
+  } else {
+    SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
+    // These registers must always be preserved.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
+  }
+
+  __ ReserveAlignedFrameSpace(frame_size);
+}
+
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(argument_count == entry.argument_count());
+  __ LoadFromOffset(TMP, THR, entry.OffsetFromThread());
+  __ str(TMP,
+         compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ blx(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ str(TMP,
+         compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+}
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // SP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedFpuRegisterSize =
+        kVolatileFpuRegisters.FpuRegisterCount() * kFpuRegisterSize;
+
+    COMPILE_ASSERT(PP < FP);
+    COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
+    // kVolatileCpuRegCount +1 for PP, -1 because even though LR is volatile,
+    // it is pushed ahead of FP.
+    const intptr_t kPushedRegistersSize =
+        kDartVolatileCpuRegCount * target::kWordSize + kPushedFpuRegisterSize;
+    __ AddImmediate(SP, FP, -kPushedRegistersSize);
+
+    __ PopRegisters(kVolatileFpuRegisters);
+
+    // Restore volatile CPU registers.
+    RESTORES_LR_FROM_FRAME(__ LeaveFrame(kDartVolatileCpuRegs | (1 << PP) |
+                                         (1 << FP) | (1 << LR)));
+  } else {
+    RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR)));
+  }
+}
+
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#undef __
+#define __ this->
 
 void Assembler::EnterDartFrame(intptr_t frame_size, bool load_pool_pointer) {
   ASSERT(!constant_pool_allowed());
@@ -3381,6 +3421,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+  COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+
   EnterFrame(1 << FP, 0);
   ReserveAlignedFrameSpace(frame_space);
 }

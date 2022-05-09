@@ -47,6 +47,7 @@ void f(void Function() m) {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_functionType_optionalTypeArgs() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -223,7 +224,7 @@ void g() {
   }
 
   test_topLevelFunction_withImportPrefix_noInference() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 void f<T>() {}
 ''');
     await assertErrorsInCode('''
@@ -237,7 +238,7 @@ void g() {
   }
 
   test_topLevelFunction_withImportPrefix_optionalTypeArgs() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 void f<T>() {}

@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue48487.dart:9:3: Error: The 'enhanced-enums' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.17 or higher.
+//   void test() {
+//   ^
+// pkg/front_end/testcases/general/issue48487.dart:5:1: Context: This is the annotation that opts out this library from the 'enhanced-enums' language feature.
+// // @dart=2.16
+// ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class T extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::T> values = #C4;
+  static const field self::T t = #C3;
+  const constructor •(core::int index, core::String name) → self::T
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "T.${this.{core::_Enum::_name}{core::String}}";
+  method test() → void {
+    core::print("Success");
+  }
+}
+static method main() → void {
+  #C3.{self::T::test}(){() → void};
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "t"
+  #C3 = self::T {index:#C1, _name:#C2}
+  #C4 = <self::T*>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue48487.dart:
+- T. (from org-dartlang-testcase:///issue48487.dart:7:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

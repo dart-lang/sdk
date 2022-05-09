@@ -66,34 +66,12 @@ function mixinPropertiesHard(from, to) {
 // Copies the own properties from [from] to [to] (specialized version of
 // `mixinPropertiesHard` when it is known the properties are disjoint).
 function mixinPropertiesEasy(from, to) {
-  if (#legacyJavaScript) {
-    copyProperties(from, to);
-  } else {
-    Object.assign(to, from);
-  }
+  Object.assign(to, from);
 }
 
 // Only use direct proto access to construct the prototype chain (instead of
 // copying properties) on platforms where we know it works well (Chrome / d8).
 var supportsDirectProtoAccess = #directAccessTestExpression;
-
-// Sets the name property of functions, if the JS engine doesn't set the name
-// itself.
-// As of 2018 only IE11 doesn't set the name.
-function setFunctionNamesIfNecessary(holders) {
-  function t(){};
-  if (typeof t.name == "string") return;
-
-  for (var i = 0; i < holders.length; i++) {
-    var holder = holders[i];
-    var keys = Object.keys(holder);
-    for (var j = 0; j < keys.length; j++) {
-      var key = keys[j];
-      var f = holder[key];
-      if (typeof f == "function") f.name = key;
-    }
-  }
-}
 
 // Makes [cls] inherit from [sup].
 // On Chrome, Firefox and recent IEs this happens by updating the internal
@@ -424,7 +402,6 @@ var #hunkHelpers = (function(){
     lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
-    setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
     updateTypes: updateTypes,
     setOrUpdateInterceptorsByTag: setOrUpdateInterceptorsByTag,
     setOrUpdateLeafTags: setOrUpdateLeafTags,
@@ -447,9 +424,6 @@ if (#isTrackingAllocations) {
 
 // Creates the holders.
 #holders;
-
-// If the name is not set on the functions, do it now.
-hunkHelpers.setFunctionNamesIfNecessary(holders);
 
 // TODO(floitsch): we should build this object as a literal.
 var #staticStateDeclaration = {};
@@ -801,8 +775,6 @@ class FragmentEmitter {
       'call0selector': js.quoteName(call0Name),
       'call1selector': js.quoteName(call1Name),
       'call2selector': js.quoteName(call2Name),
-
-      'legacyJavaScript': _options.features.legacyJavaScript.isEnabled,
     });
     // We assume emitMainFragment will be the last piece of code we emit.
     finalizeCode(mainResourceName, mainCode, holderCode, finalizeHolders: true);
@@ -912,9 +884,7 @@ class FragmentEmitter {
       for (StaticMethod method in library.statics) {
         Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
         propertyMap.forEach((js.Name key, js.Expression value) {
-          var property = _options.features.legacyJavaScript.isEnabled
-              ? js.Property(js.quoteName(key), value)
-              : js.MethodDefinition(js.quoteName(key), value);
+          var property = js.MethodDefinition(js.quoteName(key), value);
           Entity holderKey;
           if (method is StaticStubMethod) {
             // [StaticStubMethod]s should only be created for interceptors.
@@ -1105,25 +1075,15 @@ class FragmentEmitter {
       // to `inherit(P.Object, null)` in the generated code. See if we can
       // remove that.
 
-      if (_options.features.legacyJavaScript.isEnabled) {
-        // IE11 might require us to set 'constructor' but we aren't 100% sure.
-        properties
-            .add(js.Property(js.string("constructor"), classReference(cls)));
-      }
       properties.add(js.Property(_namer.operatorIs(cls.element), js.number(1)));
     }
 
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        js.Property property;
-        if (_options.features.legacyJavaScript.isEnabled) {
-          property = js.Property(name, code);
-        } else {
-          property = code is js.Fun
-              ? js.MethodDefinition(name, code)
-              : js.Property(name, code);
-        }
+        js.Property property = code is js.Fun
+            ? js.MethodDefinition(name, code)
+            : js.Property(name, code);
         registerEntityAst(method.element, property);
         properties.add(property);
       });
@@ -1688,8 +1648,7 @@ class FragmentEmitter {
               : locals.find('_lazy', 'hunkHelpers.lazy')
           : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
       js.Expression staticFieldCode = field.code;
-      if (!_options.features.legacyJavaScript.isEnabled &&
-          staticFieldCode is js.Fun) {
+      if (staticFieldCode is js.Fun) {
         js.Fun fun = staticFieldCode;
         staticFieldCode = js.ArrowFunction(fun.params, fun.body,
                 asyncModifier: fun.asyncModifier)
@@ -1905,14 +1864,8 @@ class FragmentEmitter {
       globals.add(js.Property(js.string(LEAF_TAGS), js.LiteralNull()));
     }
 
-    globals.add(js.Property(
-        js.string(ARRAY_RTI_PROPERTY),
-        _options.features.legacyJavaScript.isEnabled
-            ? js.js(
-                r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
-                r'    ? Symbol("$ti")'
-                r'    : "$ti"')
-            : js.js(r'Symbol("$ti")')));
+    globals.add(
+        js.Property(js.string(ARRAY_RTI_PROPERTY), js.js(r'Symbol("$ti")')));
 
     if (_closedWorld.backendUsage.requiresStartupMetrics) {
       // Copy the metrics object that was stored on the main unit IIFE.

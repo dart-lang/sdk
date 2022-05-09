@@ -148,10 +148,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('class ');
     _visitNode(node.name);
     _visitNode(node.typeParameters);
@@ -164,17 +165,18 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     if (node.abstractKeyword != null) {
       sink.write('abstract ');
     }
     _visitToken(node.macroKeyword, suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('class ');
     _visitNode(node.name);
     _visitNode(node.typeParameters);
     sink.write(' = ');
-    _visitNode(node.superclass2);
+    _visitNode(node.superclass);
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
     sink.write(';');
@@ -239,13 +241,19 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    _visitNode(node.type2);
+    _visitNode(node.type);
     _visitNode(node.name, prefix: '.');
   }
 
   @override
   void visitConstructorReference(ConstructorReference node) {
     _visitNode(node.constructorName);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _visitToken(node.period);
+    _visitNode(node.name);
   }
 
   @override
@@ -306,9 +314,17 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    _visitNode(node.typeArguments);
+    _visitNode(node.constructorSelector);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitNode(node.name);
+    _visitNode(node.arguments);
   }
 
   @override
@@ -321,7 +337,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.implementsClause, prefix: ' ');
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
-    _visitNodeList(node.members, prefix: '; ', separator: ' ');
+    _visitToken(node.semicolon);
+    _visitNodeList(node.members, prefix: ' ', separator: ' ');
     sink.write('}');
   }
 
@@ -361,7 +378,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     sink.write('extends ');
-    _visitNode(node.superclass2);
+    _visitNode(node.superclass);
   }
 
   @override
@@ -607,7 +624,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     sink.write('implements ');
-    _visitNodeList(node.interfaces2, separator: ', ');
+    _visitNodeList(node.interfaces, separator: ', ');
   }
 
   @override
@@ -798,7 +815,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     sink.write('on ');
-    _visitNodeList(node.superclassConstraints2, separator: ', ');
+    _visitNodeList(node.superclassConstraints, separator: ', ');
   }
 
   @override
@@ -1052,7 +1069,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     // added to the interface.
     var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
     if (varianceKeyword != null) {
-      sink.write(varianceKeyword.lexeme + ' ');
+      sink.write('${varianceKeyword.lexeme} ');
     }
     _visitNode(node.name);
     _visitNode(node.bound, prefix: ' extends ');
@@ -1098,7 +1115,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     sink.write('with ');
-    _visitNodeList(node.mixinTypes2, separator: ', ');
+    _visitNodeList(node.mixinTypes, separator: ', ');
   }
 
   @override

@@ -20,7 +20,7 @@ class IfElementConditionFromDeferredLibraryTest extends PubPackageResolutionTest
 mixin IfElementConditionFromDeferredLibraryTestCases
     on PubPackageResolutionTest {
   test_inList_deferred() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -33,7 +33,7 @@ f() {
   }
 
   test_inList_nonConst() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -43,7 +43,7 @@ f() {
   }
 
   test_inList_notDeferred() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as a;
@@ -53,7 +53,7 @@ f() {
   }
 
   test_inMap_deferred() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -66,7 +66,7 @@ f() {
   }
 
   test_inMap_notConst() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -76,7 +76,7 @@ f() {
   }
 
   test_inMap_notDeferred() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as a;
@@ -86,7 +86,7 @@ f() {
   }
 
   test_inSet_deferred() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -99,7 +99,7 @@ f() {
   }
 
   test_inSet_notConst() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -109,7 +109,7 @@ f() {
   }
 
   test_inSet_notDeferred() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
+    newFile2('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as a;

@@ -31,6 +31,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
+        templateExtraneousModifier,
         templateInternalProblemUnhandled,
         templateUnexpectedToken;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -51,26 +52,15 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show StringToken, SyntheticStringToken, SyntheticToken;
+    show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ConstructorNameImpl,
-        EnumDeclarationImpl,
-        ExtensionDeclarationImpl,
-        ImportDirectiveImpl,
-        MethodInvocationImpl,
-        MixinDeclarationImpl,
-        SimpleIdentifierImpl,
-        TypeArgumentListImpl,
-        TypeParameterImpl;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -166,8 +156,10 @@ class AstBuilder extends StackListener {
 
   final FeatureSet _featureSet;
 
+  final LineInfo _lineInfo;
+
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
-      this._featureSet,
+      this._featureSet, this._lineInfo,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
         enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
@@ -244,25 +236,28 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (macroToken != null && !enableMacros) {
-      var feature = ExperimentalFeatures.macros;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          macroToken,
-          macroToken);
-      // Pretend that 'macro' didn't occur while this feature is incomplete.
-      macroToken = null;
+    if (!enableMacros) {
+      if (macroToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            macroToken,
+            macroToken);
+        // Pretend that 'macro' didn't occur while this feature is incomplete.
+        macroToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
@@ -355,6 +350,7 @@ class AstBuilder extends StackListener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -362,6 +358,10 @@ class AstBuilder extends StackListener {
       Token? getOrSet,
       Token name) {
     _Modifiers modifiers = _Modifiers();
+    if (augmentToken != null) {
+      assert(augmentToken.isModifier);
+      modifiers.augmentKeyword = augmentToken;
+    }
     if (externalToken != null) {
       assert(externalToken.isModifier);
       modifiers.externalKeyword = externalToken;
@@ -385,34 +385,42 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (macroToken != null && !enableMacros) {
-      var feature = ExperimentalFeatures.macros;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          macroToken,
-          macroToken);
-      // Pretend that 'macro' didn't occur while this feature is incomplete.
-      macroToken = null;
+    if (!enableMacros) {
+      if (macroToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            macroToken,
+            macroToken);
+        // Pretend that 'macro' didn't occur while this feature is incomplete.
+        macroToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
+    push(augmentToken ?? NullValue.Token);
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
-    push(_Modifiers()..externalKeyword = externalToken);
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    push(_Modifiers()
+      ..augmentKeyword = augmentToken
+      ..externalKeyword = externalToken);
   }
 
   @override
@@ -561,13 +569,13 @@ class AstBuilder extends StackListener {
   void checkFieldFormalParameters(FormalParameterList? parameterList) {
     var parameters = parameterList?.parameters;
     if (parameters != null) {
-      parameters.forEach((FormalParameter param) {
-        if (param is FieldFormalParameter) {
+      for (var parameter in parameters) {
+        if (parameter is FieldFormalParameter) {
           // This error is reported in the BodyBuilder.endFormalParameter.
           handleRecoverableError(messageFieldInitializerOutsideConstructor,
-              param.thisKeyword, param.thisKeyword);
+              parameter.thisKeyword, parameter.thisKeyword);
         }
-      });
+      }
     }
   }
 
@@ -715,10 +723,16 @@ class AstBuilder extends StackListener {
         identical("?..", operatorToken.stringValue)) {
       doDotExpression(operatorToken);
     } else {
-      var right = pop() as Expression;
-      var left = pop() as Expression;
+      var right = pop() as ExpressionImpl;
+      var left = pop() as ExpressionImpl;
       reportErrorIfSuper(right);
-      push(ast.binaryExpression(left, operatorToken, right));
+      push(
+        BinaryExpressionImpl(
+          leftOperand: left,
+          operator: operatorToken,
+          rightOperand: right,
+        ),
+      );
       if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
         var feature = ExperimentalFeatures.triple_shift;
         handleRecoverableError(
@@ -939,6 +953,7 @@ class AstBuilder extends StackListener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -990,6 +1005,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         abstractKeyword: abstractToken,
+        augmentKeyword: augmentToken,
         covariantKeyword: covariantKeyword,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
@@ -1105,7 +1121,8 @@ class AstBuilder extends StackListener {
         directives: directives,
         declarations: declarations,
         endToken: endToken,
-        featureSet: _featureSet);
+        featureSet: _featureSet,
+        lineInfo: _lineInfo);
     push(unit);
   }
 
@@ -1366,6 +1383,7 @@ class AstBuilder extends StackListener {
   @override
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1380,8 +1398,17 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -1552,6 +1579,13 @@ class AstBuilder extends StackListener {
       if (superKeyword != null) {
         assert(thisKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
+        if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
+          handleRecoverableError(
+            templateExtraneousModifier.withArguments(keyword),
+            keyword,
+            keyword,
+          );
+        }
         node = ast.superFormalParameter(
             comment: comment,
             metadata: metadata,
@@ -1587,8 +1621,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    ParameterKind analyzerKind =
-        _toAnalyzerParameterKind(kind, requiredKeyword);
+    ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
     FormalParameter parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
       parameter = ast.defaultFormalParameter(
@@ -1765,7 +1798,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     assert(optional('import', importKeyword));
     assert(optionalOrNull(';', semicolon));
     debugEvent("Import");
@@ -1779,6 +1812,21 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, importKeyword);
 
+    if (!enableMacros) {
+      if (augmentToken != null) {
+        var feature = ExperimentalFeatures.macros;
+        handleRecoverableError(
+            templateExperimentNotEnabled.withArguments(
+              feature.enableString,
+              _versionAsString(ExperimentStatus.currentVersion),
+            ),
+            augmentToken,
+            augmentToken);
+        // Pretend that 'augment' didn't occur while this feature is incomplete.
+        augmentToken = null;
+      }
+    }
+
     directives.add(ast.importDirective(
         comment,
         metadata,
@@ -1789,7 +1837,8 @@ class AstBuilder extends StackListener {
         asKeyword,
         prefix,
         combinators,
-        semicolon ?? Tokens.semicolon()));
+        semicolon ?? Tokens.semicolon(),
+        augmentKeyword: augmentToken));
   }
 
   @override
@@ -1949,7 +1998,7 @@ class AstBuilder extends StackListener {
     FunctionExpression functionExpression =
         ast.functionExpression(typeParameters, parameters, body);
     var functionDeclaration = ast.functionDeclaration(
-        null, metadata, null, returnType, null, name, functionExpression);
+        null, metadata, null, null, returnType, null, name, functionExpression);
     push(ast.functionDeclarationStatement(functionDeclaration));
   }
 
@@ -2025,6 +2074,7 @@ class AstBuilder extends StackListener {
   @override
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2033,8 +2083,17 @@ class AstBuilder extends StackListener {
       int count,
       Token beginToken,
       Token endToken) {
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -2076,6 +2135,7 @@ class AstBuilder extends StackListener {
     }
     var withClause = pop(NullValue.WithClause) as WithClause;
     var superclass = pop() as NamedType;
+    var augmentKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
@@ -2092,6 +2152,7 @@ class AstBuilder extends StackListener {
         equalsToken,
         abstractKeyword,
         macroKeyword,
+        augmentKeyword,
         superclass,
         withClause,
         implementsClause,
@@ -2356,12 +2417,14 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifier;
     var returnType = pop() as TypeAnnotation?;
     var modifiers = pop() as _Modifiers?;
+    var augmentKeyword = modifiers?.augmentKeyword;
     var externalKeyword = modifiers?.externalKeyword;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(ast.functionDeclaration(
         comment,
         metadata,
+        augmentKeyword,
         externalKeyword,
         returnType,
         getOrSet,
@@ -2676,6 +2739,7 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
+    var augmentKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
@@ -2690,6 +2754,7 @@ class AstBuilder extends StackListener {
       metadata,
       abstractKeyword,
       macroKeyword,
+      augmentKeyword,
       classKeyword,
       name,
       typeParameters,
@@ -2801,17 +2866,18 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumElement(Token beginToken) {
     debugEvent("EnumElement");
-    var arguments = pop() as MethodInvocationImpl?;
-    var constructorName = pop() as ConstructorNameImpl?;
+    var tmpArguments = pop() as MethodInvocationImpl?;
+    var tmpConstructor = pop() as ConstructorNameImpl?;
+    var constant = pop() as EnumConstantDeclarationImpl;
 
     if (!enableEnhancedEnums &&
-        (arguments != null ||
-            constructorName != null &&
-                (constructorName.type2.typeArguments != null ||
-                    constructorName.name != null))) {
-      Token token = arguments != null
-          ? arguments.argumentList.beginToken
-          : constructorName!.beginToken;
+        (tmpArguments != null ||
+            tmpConstructor != null &&
+                (tmpConstructor.type.typeArguments != null ||
+                    tmpConstructor.name != null))) {
+      Token token = tmpArguments != null
+          ? tmpArguments.argumentList.beginToken
+          : tmpConstructor!.beginToken;
       var feature = ExperimentalFeatures.enhanced_enums;
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
@@ -2822,6 +2888,38 @@ class AstBuilder extends StackListener {
         token,
       );
     }
+
+    var argumentList = tmpArguments?.argumentList;
+
+    TypeArgumentListImpl? typeArguments;
+    ConstructorSelectorImpl? constructorSelector;
+    if (tmpConstructor != null) {
+      typeArguments = tmpConstructor.type.typeArguments;
+      var constructorNamePeriod = tmpConstructor.period;
+      var constructorNameId = tmpConstructor.name;
+      if (constructorNamePeriod != null && constructorNameId != null) {
+        constructorSelector = ConstructorSelectorImpl(
+          period: constructorNamePeriod,
+          name: constructorNameId,
+        );
+      }
+    }
+
+    // Replace the constant to include arguments.
+    if (argumentList != null) {
+      constant = EnumConstantDeclarationImpl(
+        documentationComment: constant.documentationComment,
+        metadata: constant.metadata,
+        name: constant.name,
+        arguments: EnumConstantArgumentsImpl(
+          typeArguments: typeArguments,
+          constructorSelector: constructorSelector,
+          argumentList: argumentList,
+        ),
+      );
+    }
+
+    push(constant);
   }
 
   @override
@@ -2830,6 +2928,10 @@ class AstBuilder extends StackListener {
 
     var constants = popTypedList2<EnumConstantDeclaration>(elementsCount);
     enumDeclaration!.constants.addAll(constants);
+
+    if (optional(';', elementsEndToken)) {
+      enumDeclaration!.semicolon = elementsEndToken;
+    }
 
     if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
       var feature = ExperimentalFeatures.enhanced_enums;
@@ -2888,6 +2990,7 @@ class AstBuilder extends StackListener {
         implementsClause: implementsClause,
         leftBracket: leftBrace,
         constants: [],
+        semicolon: null,
         members: [],
         rightBracket: leftBrace.endGroup!,
       ),
@@ -3467,6 +3570,7 @@ class AstBuilder extends StackListener {
 
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var onClause = pop(NullValue.IdentifierList) as OnClause?;
+    var augmentKeyword = pop(NullValue.Token) as Token?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
     var metadata = pop() as List<Annotation>?;
@@ -3475,6 +3579,7 @@ class AstBuilder extends StackListener {
     mixinDeclaration = ast.mixinDeclaration(
       comment,
       metadata,
+      augmentKeyword,
       mixinKeyword,
       name,
       typeParameters,
@@ -3681,7 +3786,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
     var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
-      if (declaration.extendsClause?.superclass2 == null) {
+      if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
       }
     }
@@ -3689,15 +3794,15 @@ class AstBuilder extends StackListener {
       if (declaration.withClause == null) {
         declaration.withClause = withClause;
       } else {
-        declaration.withClause!.mixinTypes2.addAll(withClause.mixinTypes2);
+        declaration.withClause!.mixinTypes.addAll(withClause.mixinTypes);
       }
     }
     if (implementsClause != null) {
       if (declaration.implementsClause == null) {
         declaration.implementsClause = implementsClause;
       } else {
-        declaration.implementsClause!.interfaces2
-            .addAll(implementsClause.interfaces2);
+        declaration.implementsClause!.interfaces
+            .addAll(implementsClause.interfaces);
       }
     }
   }
@@ -3739,16 +3844,16 @@ class AstBuilder extends StackListener {
       if (mixinDeclaration!.onClause == null) {
         mixinDeclaration!.onClause = onClause;
       } else {
-        mixinDeclaration!.onClause!.superclassConstraints2
-            .addAll(onClause.superclassConstraints2);
+        mixinDeclaration!.onClause!.superclassConstraints
+            .addAll(onClause.superclassConstraints);
       }
     }
     if (implementsClause != null) {
       if (mixinDeclaration!.implementsClause == null) {
         mixinDeclaration!.implementsClause = implementsClause;
       } else {
-        mixinDeclaration!.implementsClause!.interfaces2
-            .addAll(implementsClause.interfaces2);
+        mixinDeclaration!.implementsClause!.interfaces
+            .addAll(implementsClause.interfaces);
       }
     }
   }
@@ -4215,12 +4320,13 @@ class AstBuilder extends StackListener {
     return ast.variableDeclaration(name, equals, initializer);
   }
 
-  ArgumentList _syntheticArgumentList(Token precedingToken) {
-    int syntheticOffset = precedingToken.end;
-    return ast.argumentList(
-        SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset),
-        [],
-        SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset));
+  ArgumentListImpl _syntheticArgumentList(Token precedingToken) {
+    var syntheticOffset = precedingToken.end;
+    var left = SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset)
+      ..previous = precedingToken;
+    var right = SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset)
+      ..previous = left;
+    return ast.argumentList(left, [], right);
   }
 
   SimpleIdentifier _tmpSimpleIdentifier() {
@@ -4229,17 +4335,16 @@ class AstBuilder extends StackListener {
     );
   }
 
-  ParameterKind _toAnalyzerParameterKind(
-      FormalParameterKind type, Token? requiredKeyword) {
-    if (type == FormalParameterKind.optionalPositional) {
-      return ParameterKind.POSITIONAL;
-    } else if (type == FormalParameterKind.optionalNamed) {
-      if (requiredKeyword != null) {
+  ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
+    switch (type) {
+      case FormalParameterKind.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case FormalParameterKind.requiredNamed:
         return ParameterKind.NAMED_REQUIRED;
-      }
-      return ParameterKind.NAMED;
-    } else {
-      return ParameterKind.REQUIRED;
+      case FormalParameterKind.optionalNamed:
+        return ParameterKind.NAMED;
+      case FormalParameterKind.optionalPositional:
+        return ParameterKind.POSITIONAL;
     }
   }
 
@@ -4272,6 +4377,7 @@ class _InvalidCollectionElement implements CollectionElement {
 /// of modifiers.
 class _Modifiers {
   Token? abstractKeyword;
+  Token? augmentKeyword;
   Token? externalKeyword;
   Token? finalConstOrVarKeyword;
   Token? staticKeyword;

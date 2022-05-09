@@ -8,18 +8,18 @@ static method main(core::List<core::String> args) → dynamic {
   lowered core::bool #recursiveInitLocal#isSet = false;
   function #recursiveInitLocal#get() → () → core::int
     return #recursiveInitLocal#isSet ?{() → core::int} #recursiveInitLocal{() → core::int} : throw new _in::LateError::localNI("recursiveInitLocal");
-  function #recursiveInitLocal#set(() → core::int #t1) → dynamic {
+  function #recursiveInitLocal#set(() → core::int recursiveInitLocal#param) → dynamic {
     #recursiveInitLocal#isSet = true;
-    return #recursiveInitLocal = #t1;
+    return #recursiveInitLocal = recursiveInitLocal#param;
   }
   lowered final core::int? #local;
   lowered core::bool #local#isSet = false;
   function #local#get() → core::int {
     if(!#local#isSet) {
-      final core::int #t2 = #recursiveInitLocal#get(){() → () → core::int}(){() → core::int};
+      final core::int #t1 = #recursiveInitLocal#get(){() → () → core::int}(){() → core::int};
       if(#local#isSet)
         throw new _in::LateError::localADI("local");
-      #local = #t2;
+      #local = #t1;
       #local#isSet = true;
     }
     return #local{core::int};

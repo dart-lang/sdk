@@ -2,47 +2,65 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/issue46925.dart:14:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/constants/issue46925.dart:14:21: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const v1 = MyClass<String>.new;
 //                     ^
+// pkg/front_end/testcases/general/constants/issue46925.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const v1 = MyClass<String>.new;
 //                              ^^^
+// pkg/front_end/testcases/general/constants/issue46925.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: Member not found: 'new'.
 //   const v1 = MyClass<String>.new;
 //                              ^^^
 //
-// pkg/front_end/testcases/general/constants/issue46925.dart:15:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/constants/issue46925.dart:15:21: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const v2 = MyClass<int>.constr;
 //                     ^
+// pkg/front_end/testcases/general/constants/issue46925.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/constants/issue46925.dart:15:27: Error: Member not found: 'constr'.
 //   const v2 = MyClass<int>.constr;
 //                           ^^^^^^
 //
-// pkg/front_end/testcases/general/constants/issue46925.dart:16:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/constants/issue46925.dart:16:21: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const v3 = MyClass<int>.new;
 //                     ^
+// pkg/front_end/testcases/general/constants/issue46925.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const v3 = MyClass<int>.new;
 //                           ^^^
+// pkg/front_end/testcases/general/constants/issue46925.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: Member not found: 'new'.
 //   const v3 = MyClass<int>.new;
 //                           ^^^
 //
-// pkg/front_end/testcases/general/constants/issue46925.dart:17:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/general/constants/issue46925.dart:17:21: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 //   const v4 = MyClass<String>.constr;
 //                     ^
+// pkg/front_end/testcases/general/constants/issue46925.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/constants/issue46925.dart:17:30: Error: Member not found: 'constr'.
 //   const v4 = MyClass<String>.constr;

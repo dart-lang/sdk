@@ -16,61 +16,31 @@ class DefaultValueResolver {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl _typeSystem;
 
-  late CompilationUnitElementImpl _unitElement;
-  ClassElement? _classElement;
-  late ExecutableElement _executableElement;
-  late Scope _scope;
-
   DefaultValueResolver(this._linker, this._libraryElement)
       : _typeSystem = _libraryElement.typeSystem;
 
   void resolve() {
-    for (var unit in _libraryElement.units) {
-      _unitElement = unit as CompilationUnitElementImpl;
-
-      for (var classElement in unit.classes) {
-        _class(classElement);
-      }
-
-      for (var extensionElement in unit.extensions) {
-        _extension(extensionElement);
-      }
-
-      for (var classElement in unit.mixins) {
-        _class(classElement);
-      }
-
-      for (var element in unit.functions) {
-        _function(element);
-      }
+    for (var unitElement in _libraryElement.units.impl) {
+      _UnitContext(unitElement)
+        ..forEach(unitElement.classes, _class)
+        ..forEach(unitElement.extensions, _extension)
+        ..forEach(unitElement.functions, _executable)
+        ..forEach(unitElement.mixins, _class);
     }
   }
 
-  void _class(ClassElement classElement) {
-    _classElement = classElement;
-
-    for (var element in classElement.constructors) {
-      _constructor(element as ConstructorElementImpl);
-    }
-
-    for (var element in classElement.methods) {
-      _setScopeFromElement(element);
-      _method(element as MethodElementImpl);
-    }
-
-    _classElement = null;
+  void _class(_UnitContext context, ClassElement element) {
+    _ClassContext(context, element)
+      ..forEach(element.constructors, _constructor)
+      ..forEach(element.methods, _executable);
   }
 
-  void _constructor(ConstructorElementImpl element) {
+  void _constructor(_ClassContext context, ConstructorElement element) {
     if (element.isSynthetic) return;
-
-    _executableElement = element;
-    _setScopeFromElement(element);
-
-    _parameters(element.parameters);
+    _executable(context, element);
   }
 
-  DefaultFormalParameter? _defaultParameter(ParameterElementImpl element) {
+  DefaultFormalParameter? _defaultParameter(ParameterElement element) {
     var node = _linker.getLinkingNode(element);
     if (node is DefaultFormalParameter && node.defaultValue != null) {
       return node;
@@ -79,32 +49,21 @@ class DefaultValueResolver {
     }
   }
 
-  void _extension(ExtensionElement extensionElement) {
-    for (var element in extensionElement.methods) {
-      _setScopeFromElement(element);
-      _method(element as MethodElementImpl);
-    }
+  void _executable(_Context context, ExecutableElement element) {
+    _ExecutableContext(
+      enclosingContext: context,
+      executableElement: element,
+      scope: _scopeFromElement(element),
+    ).forEach(element.parameters, _parameter);
   }
 
-  void _function(FunctionElement element) {
-    _executableElement = element;
-    _setScopeFromElement(element);
-
-    _parameters(element.parameters);
+  void _extension(_UnitContext context, ExtensionElement element) {
+    context.forEach(element.methods, _executable);
   }
 
-  void _method(MethodElementImpl element) {
-    _executableElement = element;
-    _setScopeFromElement(element);
-
-    _parameters(element.parameters);
-  }
-
-  void _parameter(ParameterElementImpl parameter) {
+  void _parameter(_ExecutableContext context, ParameterElement parameter) {
     // If a function typed parameter, process nested parameters.
-    for (var localParameter in parameter.parameters) {
-      _parameter(localParameter as ParameterElementImpl);
-    }
+    context.forEach(parameter.parameters, _parameter);
 
     var node = _defaultParameter(parameter);
     if (node == null) return;
@@ -112,21 +71,82 @@ class DefaultValueResolver {
     var contextType = _typeSystem.eliminateTypeVariables(parameter.type);
 
     var astResolver = AstResolver(
-        _linker, _unitElement, _scope, node.defaultValue!,
-        enclosingClassElement: _classElement,
-        enclosingExecutableElement: _executableElement);
+      _linker,
+      context.unitElement,
+      context.scope,
+      enclosingClassElement: context.classElement,
+      enclosingExecutableElement: context.executableElement,
+    );
     astResolver.resolveExpression(() => node.defaultValue!,
         contextType: contextType);
   }
 
-  void _parameters(List<ParameterElement> parameters) {
-    for (var parameter in parameters) {
-      _parameter(parameter as ParameterElementImpl);
-    }
-  }
-
-  void _setScopeFromElement(Element element) {
+  Scope _scopeFromElement(Element element) {
     var node = _linker.getLinkingNode(element)!;
-    _scope = LinkingNodeContext.get(node).scope;
+    return LinkingNodeContext.get(node).scope;
+  }
+}
+
+class _ClassContext extends _Context {
+  final _UnitContext unitContext;
+
+  @override
+  final ClassElement classElement;
+
+  _ClassContext(this.unitContext, this.classElement);
+
+  @override
+  CompilationUnitElementImpl get unitElement {
+    return unitContext.unitElement;
+  }
+}
+
+abstract class _Context {
+  ClassElement? get classElement => null;
+
+  CompilationUnitElementImpl get unitElement;
+}
+
+class _ExecutableContext extends _Context {
+  final _Context enclosingContext;
+  final ExecutableElement executableElement;
+  final Scope scope;
+
+  _ExecutableContext({
+    required this.enclosingContext,
+    required this.executableElement,
+    required this.scope,
+  });
+
+  @override
+  ClassElement? get classElement => enclosingContext.classElement;
+
+  @override
+  CompilationUnitElementImpl get unitElement {
+    return enclosingContext.unitElement;
+  }
+}
+
+class _UnitContext extends _Context {
+  @override
+  final CompilationUnitElementImpl unitElement;
+
+  _UnitContext(this.unitElement);
+}
+
+extension on List<CompilationUnitElement> {
+  List<CompilationUnitElementImpl> get impl {
+    return cast();
+  }
+}
+
+extension _ContextExtension<C extends _Context> on C {
+  void forEach<T>(
+    List<T> elements,
+    void Function(C context, T element) f,
+  ) {
+    for (var element in elements) {
+      f(this, element);
+    }
   }
 }

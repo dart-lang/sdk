@@ -8,7 +8,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     ;
   static get s() → core::String?;
-  static set s(core::String? #t1) → void;
+  static set s(core::String? s#param) → void;
 }
 static field core::bool _called;
 static method init(core::String val) → core::String

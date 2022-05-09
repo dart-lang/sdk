@@ -9,6 +9,7 @@ import 'add_not_null_assert_test.dart' as add_not_null_assert;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
+import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_class_to_mixin_test.dart' as convert_class_to_mixin;
 import 'convert_documentation_into_block_test.dart'
     as convert_documentation_into_block;
@@ -41,6 +42,7 @@ import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'encapsulate_field_test.dart' as encapsulate_field;
 import 'exchange_operands_test.dart' as exchange_operands;
 import 'flutter_convert_to_children_test.dart' as flutter_convert_to_children;
@@ -95,6 +97,7 @@ void main() {
     add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();
+    convert_class_to_enum.main();
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
     convert_documentation_into_line.main();
@@ -122,6 +125,7 @@ void main() {
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
+    convert_to_super_parameters.main();
     encapsulate_field.main();
     exchange_operands.main();
     flutter_convert_to_children.main();

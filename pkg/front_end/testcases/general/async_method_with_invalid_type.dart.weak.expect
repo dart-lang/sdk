@@ -1,14 +1,14 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/async_method_with_invalid_type.dart:8:3: Error: 'Bar' isn't a type.
+// pkg/front_end/testcases/general/async_method_with_invalid_type.dart:6:3: Error: 'Bar' isn't a type.
 //   Bar x;
 //   ^^^
 //
 import self as self;
 
-static method foo() → dynamic async {
+static method foo() → dynamic async /* futureValueType= dynamic */ {
   invalid-type x;
   for (dynamic y in x{<invalid>}.z) {
   }

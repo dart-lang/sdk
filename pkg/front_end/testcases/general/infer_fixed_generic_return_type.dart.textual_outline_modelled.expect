@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class Base {}
 
 abstract class Class extends Base with MixinA {

@@ -9,16 +9,84 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonBoolConditionTest);
+    defineReflectiveTests(NonBoolConditionWithoutNullSafetyTest);
     defineReflectiveTests(
         NonBoolConditionWithoutNullSafetyAndNoImplicitCastsTest);
-    defineReflectiveTests(NonBoolConditionWithNullSafetyTest);
+    defineReflectiveTests(NonBoolConditionTest);
     defineReflectiveTests(NonBoolConditionWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class NonBoolConditionTest extends PubPackageResolutionTest
+class NonBoolConditionTest extends PubPackageResolutionTest {
+  test_if_null() async {
+    await assertErrorsInCode(r'''
+void f(Null a) {
+  if (a) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1),
+    ]);
+  }
+
+  test_ternary_condition_null() async {
+    await assertErrorsInCode(r'''
+void f(Null a) {
+  a ? 0 : 1;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 19, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolConditionWithoutNullSafetyAndNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_map_ifElement_condition_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(dynamic c) {
+  <int, int>{if (c) 0: 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 37, 1),
+    ]);
+  }
+
+  test_map_ifElement_condition_object() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Object c) {
+  <int, int>{if (c) 0: 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 36, 1),
+    ]);
+  }
+
+  test_set_ifElement_condition_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(dynamic c) {
+  <int>{if (c) 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 1),
+    ]);
+  }
+
+  test_set_ifElement_condition_object() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Object c) {
+  <int>{if (c) 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolConditionWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_conditional() async {
     await assertErrorsInCode('''
@@ -212,74 +280,6 @@ f(Object o) {
   while (o) {}
 }
 ''');
-  }
-}
-
-@reflectiveTest
-class NonBoolConditionWithNullSafetyTest extends PubPackageResolutionTest {
-  test_if_null() async {
-    await assertErrorsInCode(r'''
-void f(Null a) {
-  if (a) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1),
-    ]);
-  }
-
-  test_ternary_condition_null() async {
-    await assertErrorsInCode(r'''
-void f(Null a) {
-  a ? 0 : 1;
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 19, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonBoolConditionWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_map_ifElement_condition_dynamic() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic c) {
-  <int, int>{if (c) 0: 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 37, 1),
-    ]);
-  }
-
-  test_map_ifElement_condition_object() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(Object c) {
-  <int, int>{if (c) 0: 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 36, 1),
-    ]);
-  }
-
-  test_set_ifElement_condition_dynamic() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic c) {
-  <int>{if (c) 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 1),
-    ]);
-  }
-
-  test_set_ifElement_condition_object() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(Object c) {
-  <int>{if (c) 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
-    ]);
   }
 }
 

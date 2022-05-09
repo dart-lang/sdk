@@ -1,0 +1,7 @@
+class A {
+  A(String x);
+}
+class B extends A {
+  B(var super.x);
+}
+main() {}

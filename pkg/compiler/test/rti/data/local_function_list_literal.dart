@@ -4,22 +4,22 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
 /*prod.class: global#JSArray:deps=[List],needsArgs*/
 
 @pragma('dart2js:noInline')
-/*spec.member: method:implicit=[method.T],indirect,needsArgs*/
+/*spec.member: method:implicit=[method.T],needsArgs,test*/
 /*prod.member: method:needsArgs*/
 method<T>() {
-  return () => <T>[];
+  return /*spec.*/ () => <T>[];
 }
 
 @pragma('dart2js:noInline')
 test(o) => o is List<int>;
 
 main() {
-  Expect.isTrue(test(method<int>().call()));
-  Expect.isFalse(test(method<String>().call()));
+  makeLive(test(method<int>().call()));
+  makeLive(test(method<String>().call()));
 }

@@ -352,24 +352,6 @@ enum E2 { three, four }''');
           plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
     }
     {
-      var engineElement = findElement.field('index', of: 'E2');
-      // create notification Element
-      var element = converter.convertElement(engineElement);
-      expect(element.kind, plugin.ElementKind.FIELD);
-      expect(element.name, 'index');
-      {
-        var location = element.location!;
-        expect(location.file, testFile);
-        expect(location.offset, -1);
-        expect(location.length, 'index'.length);
-        expect(location.startLine, 1);
-        expect(location.startColumn, 0);
-      }
-      expect(element.parameters, isNull);
-      expect(element.returnType, 'int');
-      expect(element.flags, plugin.Element.FLAG_FINAL);
-    }
-    {
       var engineElement = findElement.field('values', of: 'E2');
 
       // create notification Element
@@ -671,7 +653,7 @@ class _AnalyzerConverterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    source = newFile('/foo/bar.dart').createSource();
+    source = newFile2('/foo/bar.dart', '').createSource();
     testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 }

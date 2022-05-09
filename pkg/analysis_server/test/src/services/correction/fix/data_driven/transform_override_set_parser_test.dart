@@ -56,8 +56,11 @@ abstract class AbstractTransformOverrideSetParserTest {
 
   void parse(String content) {
     errorListener = GatheringErrorListener();
-    var errorReporter =
-        ErrorReporter(errorListener, MockSource(fullName: 'data.yaml'));
+    var errorReporter = ErrorReporter(
+      errorListener,
+      MockSource(fullName: 'data.yaml'),
+      isNonNullableByDefault: false,
+    );
     var parser = TransformOverrideSetParser(errorReporter);
     result = parser.parse(content);
   }

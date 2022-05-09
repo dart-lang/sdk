@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -81,11 +82,11 @@ abstract class ContextManager {
 
   /// Rebuild the set of contexts from scratch based on the data last sent to
   /// [setRoots].
-  void refresh();
+  Future<void> refresh();
 
   /// Change the set of paths which should be used as starting points to
   /// determine the context directories.
-  void setRoots(List<String> includedPaths, List<String> excludedPaths);
+  Future<void> setRoots(List<String> includedPaths, List<String> excludedPaths);
 }
 
 /// Callback interface used by [ContextManager] to (a) request that contexts be
@@ -182,10 +183,6 @@ class ContextManagerImpl implements ContextManager {
   final Map<Folder, AnalysisDriver> driverMap =
       HashMap<Folder, AnalysisDriver>();
 
-  /// The timer that is started after creating analysis contexts, to check
-  /// for in-between changes to configuration files.
-  Timer? _collectionConsistencyCheckTimer;
-
   /// Stream subscription we are using to watch each analysis root directory for
   /// changes.
   final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
@@ -210,6 +207,12 @@ class ContextManagerImpl implements ContextManager {
   /// For each [Folder] store which files are being watched. This allows us to
   /// clean up when we destroy a context.
   final bazelWatchedPathsPerFolder = <Folder, _BazelWatchedFiles>{};
+
+  /// Information about the current/last queued context rebuild.
+  ///
+  /// This is used when a new build is requested to cancel any in-progress
+  /// rebuild and wait for it to terminate before starting the next.
+  final _CancellingTaskQueue currentContextRebuild = _CancellingTaskQueue();
 
   ContextManagerImpl(
       this.resourceProvider,
@@ -255,13 +258,18 @@ class ContextManagerImpl implements ContextManager {
     );
   }
 
+  /// Starts (an asynchronous) rebuild of analysis contexts.
   @override
-  void refresh() {
-    _createAnalysisContexts();
+  Future<void> refresh() async {
+    await _createAnalysisContexts();
   }
 
+  /// Updates the analysis roots and waits for the contexts to rebuild.
+  ///
+  /// If the roots have not changed, exits early without performing any work.
   @override
-  void setRoots(List<String> includedPaths, List<String> excludedPaths) {
+  Future<void> setRoots(
+      List<String> includedPaths, List<String> excludedPaths) async {
     if (_rootsAreUnchanged(includedPaths, excludedPaths)) {
       return;
     }
@@ -269,7 +277,7 @@ class ContextManagerImpl implements ContextManager {
     this.includedPaths = includedPaths;
     this.excludedPaths = excludedPaths;
 
-    _createAnalysisContexts();
+    await _createAnalysisContexts();
   }
 
   /// Use the given analysis [driver] to analyze the content of the analysis
@@ -322,10 +330,14 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
-      var packageName = file.parent2.parent2.shortName;
+      var packageName = file.parent.parent.shortName;
       var content = _readFile(path);
       var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(errorListener, file.createSource());
+      var errorReporter = ErrorReporter(
+        errorListener,
+        file.createSource(),
+        isNonNullableByDefault: false,
+      );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
@@ -412,65 +424,158 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  void _createAnalysisContexts() {
-    _destroyAnalysisContexts();
-    _fileContentCache.invalidateAll();
+  /// Recreates all analysis contexts.
+  ///
+  /// If an existing rebuild is in progress, it will be cancelled and this
+  /// rebuild will occur only once it has exited.
+  ///
+  /// Returns a [Future] that completes once the requested rebuild completes.
+  Future<void> _createAnalysisContexts() async {
+    /// A helper that performs a context rebuild while monitoring the included
+    /// paths for changes until the contexts file watchers are ready.
+    ///
+    /// If changes are detected during the rebuild, the rebuild will be
+    /// restarted.
+    Future<void> performContextRebuildGuarded(
+      CancellationToken cancellationToken,
+    ) async {
+      /// A helper that performs the context rebuild and waits for all watchers
+      /// to be fully initialized.
+      Future<void> performContextRebuild() async {
+        _destroyAnalysisContexts();
+        _fileContentCache.invalidateAll();
 
-    var collection = _collection = AnalysisContextCollectionImpl(
-      includedPaths: includedPaths,
-      excludedPaths: excludedPaths,
-      byteStore: _byteStore,
-      drainStreams: false,
-      enableIndex: true,
-      performanceLog: _performanceLog,
-      resourceProvider: resourceProvider,
-      scheduler: _scheduler,
-      sdkPath: sdkManager.defaultSdkDirectory,
-      packagesFile: packagesFile,
-      fileContentCache: _fileContentCache,
-    );
+        var watchers = <ResourceWatcher>[];
+        var collection = _collection = AnalysisContextCollectionImpl(
+          includedPaths: includedPaths,
+          excludedPaths: excludedPaths,
+          byteStore: _byteStore,
+          drainStreams: false,
+          enableIndex: true,
+          performanceLog: _performanceLog,
+          resourceProvider: resourceProvider,
+          scheduler: _scheduler,
+          sdkPath: sdkManager.defaultSdkDirectory,
+          packagesFile: packagesFile,
+          fileContentCache: _fileContentCache,
+        );
 
-    for (var analysisContext in collection.contexts) {
-      var driver = analysisContext.driver;
+        for (var analysisContext in collection.contexts) {
+          var driver = analysisContext.driver;
 
-      callbacks.listenAnalysisDriver(driver);
+          callbacks.listenAnalysisDriver(driver);
 
-      var rootFolder = analysisContext.contextRoot.root;
-      driverMap[rootFolder] = driver;
+          var rootFolder = analysisContext.contextRoot.root;
+          driverMap[rootFolder] = driver;
 
-      changeSubscriptions[rootFolder] = rootFolder.changes
-          .listen(_handleWatchEvent, onError: _handleWatchInterruption);
+          var watcher = rootFolder.watch();
+          watchers.add(watcher);
+          changeSubscriptions[rootFolder] = watcher.changes
+              .listen(_handleWatchEvent, onError: _handleWatchInterruption);
 
-      _watchBazelFilesIfNeeded(rootFolder, driver);
+          _watchBazelFilesIfNeeded(rootFolder, driver);
 
-      for (var file in analysisContext.contextRoot.analyzedFiles()) {
-        if (file_paths.isAndroidManifestXml(pathContext, file)) {
-          _analyzeAndroidManifestXml(driver, file);
-        } else if (file_paths.isDart(pathContext, file)) {
-          driver.addFile(file);
+          for (var file in analysisContext.contextRoot.analyzedFiles()) {
+            if (file_paths.isAndroidManifestXml(pathContext, file)) {
+              _analyzeAndroidManifestXml(driver, file);
+            } else if (file_paths.isDart(pathContext, file)) {
+              driver.addFile(file);
+            }
+          }
+
+          var optionsFile = analysisContext.contextRoot.optionsFile;
+
+          if (optionsFile != null &&
+              analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
+            _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
+          }
+
+          var fixDataYamlFile = rootFolder
+              .getChildAssumingFolder('lib')
+              .getChildAssumingFile(file_paths.fixDataYaml);
+          if (fixDataYamlFile.exists) {
+            _analyzeFixDataYaml(driver, fixDataYamlFile.path);
+          }
+
+          var pubspecFile =
+              rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
+          if (pubspecFile.exists &&
+              analysisContext.contextRoot.isAnalyzed(pubspecFile.path)) {
+            _analyzePubspecYaml(driver, pubspecFile.path);
+          }
         }
+
+        // Finally, wait for the new contexts watchers to all become ready so we
+        // can ensure they will not lose any future events before we continue.
+        await Future.wait(watchers.map((watcher) => watcher.ready));
       }
 
-      var optionsFile = analysisContext.contextRoot.optionsFile;
-      if (optionsFile != null) {
-        _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
+      /// A helper that returns whether a change to the file at [path] should
+      /// restart any in-progress rebuild.
+      bool shouldRestartBuild(String path) {
+        return file_paths.isDart(pathContext, path) ||
+            file_paths.isAnalysisOptionsYaml(pathContext, path) ||
+            file_paths.isPubspecYaml(pathContext, path) ||
+            file_paths.isPackageConfigJson(pathContext, path);
       }
 
-      var fixDataYamlFile = rootFolder
-          .getChildAssumingFolder('lib')
-          .getChildAssumingFile(file_paths.fixDataYaml);
-      if (fixDataYamlFile.exists) {
-        _analyzeFixDataYaml(driver, fixDataYamlFile.path);
+      if (cancellationToken.isCancellationRequested) {
+        return;
       }
 
-      var pubspecFile = rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
-      if (pubspecFile.exists) {
-        _analyzePubspecYaml(driver, pubspecFile.path);
+      // Create temporary watchers before we start the context build so we can
+      // tell if any files were modified while waiting for the "real" watchers to
+      // become ready and start the process again.
+      final temporaryWatchers = includedPaths
+          .map((path) => resourceProvider.getResource(path))
+          .map((resource) => resource.watch())
+          .toList();
+
+      // If any watcher picks up an important change while we're running the
+      // rest of this method, we will need to start again.
+      var needsBuild = true;
+      final temporaryWatcherSubscriptions = temporaryWatchers
+          .map((watcher) => watcher.changes.listen((event) {
+                if (shouldRestartBuild(event.path)) {
+                  needsBuild = true;
+                }
+              }))
+          .toList();
+
+      try {
+        // Ensure all watchers are ready before we begin any rebuild.
+        await Future.wait(temporaryWatchers.map((watcher) => watcher.ready));
+
+        // Max number of attempts to rebuild if changes.
+        var remainingBuilds = 5;
+        while (needsBuild && remainingBuilds-- > 0) {
+          // Reset the flag, as we'll only need to rebuild if a temporary
+          // watcher fires after this point.
+          needsBuild = false;
+
+          if (cancellationToken.isCancellationRequested) {
+            return;
+          }
+
+          // Attempt a context rebuild. This call will wait for all required
+          // watchers to be ready before returning.
+          await performContextRebuild();
+        }
+      } finally {
+        // Cancel the temporary watcher subscriptions.
+        await Future.wait(
+          temporaryWatcherSubscriptions.map((sub) => sub.cancel()),
+        );
       }
+
+      if (cancellationToken.isCancellationRequested) {
+        return;
+      }
+
+      callbacks.afterContextsCreated();
     }
 
-    callbacks.afterContextsCreated();
-    _scheduleCollectionConsistencyCheck(collection);
+    return currentContextRebuild.queue(performContextRebuildGuarded);
   }
 
   /// Clean up and destroy the context associated with the given folder.
@@ -492,7 +597,6 @@ class ContextManagerImpl implements ContextManager {
   void _destroyAnalysisContexts() {
     var collection = _collection;
     if (collection != null) {
-      _collectionConsistencyCheckTimer?.cancel();
       for (var analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }
@@ -573,19 +677,19 @@ class ContextManagerImpl implements ContextManager {
     final isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBazelBuild(pathContext, path) ||
-        file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
         isPubspec ||
         false) {
-      _createAnalysisContexts();
-
-      if (isPubspec) {
-        if (type == ChangeType.REMOVE) {
-          callbacks.pubspecRemoved(path);
-        } else {
-          callbacks.pubspecChanged(path);
+      _createAnalysisContexts().then((_) {
+        if (isPubspec) {
+          if (type == ChangeType.REMOVE) {
+            callbacks.pubspecRemoved(path);
+          } else {
+            callbacks.pubspecChanged(path);
+          }
         }
-      }
+      });
+
       return;
     }
 
@@ -650,28 +754,6 @@ class ContextManagerImpl implements ContextManager {
 
     return existingIncludedSet.containsAll(includedPaths) &&
         existingExcludedSet.containsAll(excludedPaths);
-  }
-
-  /// We create analysis contexts, and then start watching the file system
-  /// for modifications to Dart files, and to configuration files, e.g.
-  /// `pubspec.yaml` file Pub workspaces.
-  ///
-  /// So, it is possible that one of these files will be changed between the
-  /// moment when we read it, and the moment when we started watching for
-  /// changes. Using `package:watcher` before creating analysis contexts
-  /// was still not reliable enough.
-  ///
-  /// To work around this we check after a short timeout, and hope that
-  /// any subsequent changes will be noticed by `package:watcher`.
-  void _scheduleCollectionConsistencyCheck(
-    AnalysisContextCollectionImpl collection,
-  ) {
-    _collectionConsistencyCheckTimer = Timer(Duration(seconds: 1), () {
-      _collectionConsistencyCheckTimer = null;
-      if (!collection.areWorkspacesConsistent) {
-        _createAnalysisContexts();
-      }
-    });
   }
 
   /// Starts watching for the `bazel-bin` and `blaze-bin` symlinks.
@@ -754,4 +836,51 @@ class _BazelWatchedFiles {
   final String workspace;
   final paths = <String>{};
   _BazelWatchedFiles(this.workspace);
+}
+
+/// Handles a task queue of tasks that cannot run concurrently.
+///
+/// Queueing a new task will signal for any in-progress task to cancel and
+/// wait for it to complete before starting the new task.
+class _CancellingTaskQueue {
+  /// A cancellation token for current/last queued task.
+  ///
+  /// This token is replaced atomically with [_complete] and
+  /// together they allow cancelling a task and chaining a new task on
+  /// to the end.
+  CancelableToken? _cancellationToken;
+
+  /// A [Future] that completes when the current/last queued task finishes.
+  ///
+  /// This future is replaced atomically with [_cancellationToken] and together
+  /// they allow cancelling a task and chaining a new task on to the end.
+  Future<void> _complete = Future.value();
+
+  /// Requests that [performTask] is called after first cancelling any
+  /// in-progress task and waiting for it to complete.
+  ///
+  /// Returns a future that completes once the new task has completed.
+  Future<void> queue(
+    Future<void> Function(CancellationToken cancellationToken) performTask,
+  ) {
+    // Signal for any in-progress task to cancel.
+    _cancellationToken?.cancel();
+
+    // Chain the new task onto the end of any existing one, so the new
+    // task never starts until the previous (cancelled) one finishes (which
+    // may be by aborting early because of the cancellation signal).
+    final token = _cancellationToken = CancelableToken();
+    _complete = _complete
+        .then((_) => performTask(token))
+        .then((_) => _clearTokenIfCurrent(token));
+
+    return _complete;
+  }
+
+  /// Clears the current cancellation token if it is [token].
+  void _clearTokenIfCurrent(CancelableToken token) {
+    if (token == _cancellationToken) {
+      _cancellationToken = null;
+    }
+  }
 }

@@ -109,7 +109,7 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
     }
     // All GC tasks finished without allocating successfully. Collect both
     // generations.
-    CollectMostGarbage();
+    CollectMostGarbage(GCReason::kOldSpace, /*compact=*/ false);
     addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
@@ -126,7 +126,7 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
       return addr;
     }
     // Before throwing an out-of-memory error try a synchronous GC.
-    CollectAllGarbage(GCReason::kLowMemory);
+    CollectAllGarbage(GCReason::kOldSpace, /*compact=*/ true);
     WaitForSweeperTasks(thread);
   }
   uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
@@ -149,30 +149,18 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
 }
 
 void Heap::AllocatedExternal(intptr_t size, Space space) {
-  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
-    Isolate::Current()->AssertCurrentThreadIsMutator();
     new_space_.AllocatedExternal(size);
-    if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
-      return;
-    }
-    // Attempt to free some external allocation by a scavenge. (If the total
-    // remains above the limit, next external alloc will trigger another.)
-    CollectGarbage(GCType::kScavenge, GCReason::kExternal);
-    // Promotion may have pushed old space over its limit. Fall through for old
-    // space GC check.
   } else {
     ASSERT(space == kOld);
     old_space_.AllocatedExternal(size);
   }
 
-  if (old_space_.ReachedHardThreshold()) {
-    if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(Thread::Current(), GCReason::kFull);
-    }
-    CollectGarbage(GCType::kMarkSweep, GCReason::kExternal);
+  Thread* thread = Thread::Current();
+  if (thread->no_callback_scope_depth() == 0) {
+    CheckExternalGC(thread);
   } else {
-    CheckStartConcurrentMarking(Thread::Current(), GCReason::kExternal);
+    // Check delayed until Dart_TypedDataRelease.
   }
 }
 
@@ -188,6 +176,27 @@ void Heap::FreedExternal(intptr_t size, Space space) {
 void Heap::PromotedExternal(intptr_t size) {
   new_space_.FreedExternal(size);
   old_space_.AllocatedExternal(size);
+}
+
+void Heap::CheckExternalGC(Thread* thread) {
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
+  ASSERT(thread->no_callback_scope_depth() == 0);
+  if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
+    // Attempt to free some external allocation by a scavenge. (If the total
+    // remains above the limit, next external alloc will trigger another.)
+    CollectGarbage(GCType::kScavenge, GCReason::kExternal);
+    // Promotion may have pushed old space over its limit. Fall through for old
+    // space GC check.
+  }
+
+  if (old_space_.ReachedHardThreshold()) {
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(thread, GCReason::kFull);
+    }
+    CollectGarbage(GCType::kMarkSweep, GCReason::kExternal);
+  } else {
+    CheckStartConcurrentMarking(thread, GCReason::kExternal);
+  }
 }
 
 bool Heap::Contains(uword addr) const {
@@ -243,6 +252,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
 #endif
     while ((old_space_->tasks() > 0) ||
            (old_space_->phase() != PageSpace::kDone)) {
+      old_space_->AssistTasks(&ml);
       if (old_space_->phase() == PageSpace::kAwaitingFinalization) {
         ml.Exit();
         heap_->CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
@@ -356,10 +366,6 @@ ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
   return raw_obj;
 }
 
-void Heap::HintFreed(intptr_t size) {
-  old_space_.HintFreed(size);
-}
-
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
   TIMELINE_FUNCTION_GC_DURATION(thread, "NotifyIdle");
@@ -412,18 +418,14 @@ void Heap::NotifyIdle(int64_t deadline) {
     }
   }
 
+  old_space_.NotifyIdle(deadline);
+
   if (OS::GetCurrentMonotonicMicros() < deadline) {
-    SemiSpace::DrainCache();
+    SemiSpace::ClearCache();
   }
 }
 
-void Heap::NotifyLowMemory() {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "NotifyLowMemory");
-  CollectMostGarbage(GCReason::kLowMemory);
-}
-
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
-  ASSERT(reason != GCReason::kOldSpace);
   ASSERT(reason != GCReason::kPromotion);
   ASSERT(reason != GCReason::kFinalize);
   if (thread->isolate_group() == Dart::vm_isolate_group()) {
@@ -452,7 +454,6 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   NoActiveIsolateScope no_active_isolate_scope;
-  ASSERT(reason != GCReason::kOldSpace);
   ASSERT(reason != GCReason::kPromotion);
   ASSERT(reason != GCReason::kFinalize);
   if (thread->isolate_group() == Dart::vm_isolate_group()) {
@@ -565,16 +566,14 @@ void Heap::CollectGarbage(Space space) {
   }
 }
 
-void Heap::CollectMostGarbage(GCReason reason) {
+void Heap::CollectMostGarbage(GCReason reason, bool compact) {
   Thread* thread = Thread::Current();
   CollectNewSpaceGarbage(thread, reason);
-  CollectOldSpaceGarbage(thread,
-                         reason == GCReason::kLowMemory ? GCType::kMarkCompact
-                                                        : GCType::kMarkSweep,
-                         reason);
+  CollectOldSpaceGarbage(
+      thread, compact ? GCType::kMarkCompact : GCType::kMarkSweep, reason);
 }
 
-void Heap::CollectAllGarbage(GCReason reason) {
+void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   Thread* thread = Thread::Current();
 
   // New space is evacuated so this GC will collect all dead objects
@@ -586,10 +585,8 @@ void Heap::CollectAllGarbage(GCReason reason) {
     // retained by the incremental barrier.
     CollectOldSpaceGarbage(thread, GCType::kMarkSweep, reason);
   }
-  CollectOldSpaceGarbage(thread,
-                         reason == GCReason::kLowMemory ? GCType::kMarkCompact
-                                                        : GCType::kMarkSweep,
-                         reason);
+  CollectOldSpaceGarbage(
+      thread, compact ? GCType::kMarkCompact : GCType::kMarkSweep, reason);
   WaitForSweeperTasks(thread);
 }
 
@@ -890,12 +887,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "external";
     case GCReason::kIdle:
       return "idle";
-    case GCReason::kLowMemory:
-      return "low memory";
     case GCReason::kDebugging:
       return "debugging";
-    case GCReason::kSendAndExit:
-      return "send_and_exit";
     default:
       UNREACHABLE();
       return "";

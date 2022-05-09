@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_return_type.dar
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_block.dart';
@@ -38,6 +39,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
@@ -90,6 +92,7 @@ class AssistProcessor extends BaseProcessor {
     AddTypeAnnotation.newInstanceBulkFixable,
     AssignToLocalVariable.newInstance,
     ConvertAddAllToSpread.newInstance,
+    ConvertClassToEnum.newInstance,
     ConvertClassToMixin.newInstance,
     ConvertConditionalExpressionToIfElement.newInstance,
     ConvertDocumentationIntoBlock.newInstance,
@@ -104,19 +107,20 @@ class AssistProcessor extends BaseProcessor {
     ConvertMapFromIterableToForLiteral.newInstance,
     ConvertPartOfToUri.newInstance,
     ConvertToDoubleQuotes.newInstance,
-    ConvertToFieldParameter.newInstance,
-    ConvertToMultilineString.newInstance,
-    ConvertToNormalParameter.newInstance,
-    ConvertToSingleQuotes.newInstance,
     ConvertToExpressionFunctionBody.newInstance,
+    ConvertToFieldParameter.newInstance,
     ConvertToGenericFunctionSyntax.newInstance,
     ConvertToIntLiteral.newInstance,
     ConvertToListLiteral.newInstance,
     ConvertToMapLiteral.newInstance,
+    ConvertToMultilineString.newInstance,
+    ConvertToNormalParameter.newInstance,
     ConvertToNullAware.newInstance,
     ConvertToPackageImport.newInstance,
     ConvertToRelativeImport.newInstance,
     ConvertToSetLiteral.newInstance,
+    ConvertToSingleQuotes.newInstance,
+    ConvertToSuperParameters.newInstance,
     EncapsulateField.newInstance,
     ExchangeOperands.newInstance,
     FlutterConvertToChildren.newInstance,

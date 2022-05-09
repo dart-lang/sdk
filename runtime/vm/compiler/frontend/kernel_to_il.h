@@ -243,7 +243,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment CheckAssignable(
       const AbstractType& dst_type,
       const String& dst_name,
-      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown,
+      TokenPosition token_pos = TokenPosition::kNoSource);
 
   Fragment AssertAssignableLoadTypeArguments(
       TokenPosition position,
@@ -274,6 +275,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.
   Fragment UnboxTruncate(Representation to);
+
+  // Loads the (untagged) thread address.
+  Fragment LoadThread();
+
+  // Loads the (untagged) isolate address.
+  Fragment LoadIsolate();
 
   // Converts a true to 1 and false to 0.
   Fragment BoolToInt();
@@ -380,7 +387,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Leaves a `LocalHandle` on the stack.
   Fragment AllocateHandle(LocalVariable* api_local_scope);
 
-  // Populates the base + offset with a tagged value.
+  // Loads a tagged value from an untagged base + offset from outside the heap.
+  Fragment RawLoadField(int32_t offset);
+
+  // Populates the untagged base + offset outside the heap with a tagged value.
+  //
+  // The store must be outside of the heap, does not emit a store barrier.
   Fragment RawStoreField(int32_t offset);
 
   // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.

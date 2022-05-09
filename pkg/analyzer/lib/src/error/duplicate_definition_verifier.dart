@@ -8,21 +8,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class DuplicateDefinitionVerifier {
-  static final Set<String> _enumInstanceMembers = {
-    'hashCode',
-    'index',
-    FunctionElement.NO_SUCH_METHOD_METHOD_NAME,
-    'runtimeType',
-    'toString',
-  };
-
+  final InheritanceManager3 _inheritanceManager;
   final LibraryElement _currentLibrary;
   final ErrorReporter _errorReporter;
 
-  DuplicateDefinitionVerifier(this._currentLibrary, this._errorReporter);
+  DuplicateDefinitionVerifier(
+    this._inheritanceManager,
+    this._currentLibrary,
+    this._errorReporter,
+  );
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
@@ -45,31 +44,134 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    ClassElement element = node.declaredElement!;
+    var enumElement = node.declaredElement as EnumElementImpl;
+    var enumName = enumElement.name;
 
-    Map<String, Element> staticGetters = {
-      'values': element.getGetter('values')!
-    };
+    var constructorNames = <String>{};
+    var instanceGetters = <String, Element>{};
+    var instanceSetters = <String, Element>{};
+    var staticGetters = <String, Element>{};
+    var staticSetters = <String, Element>{};
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
+      _checkValuesDeclarationInEnum(constant.name);
     }
 
-    String enumName = element.name;
-    for (EnumConstantDeclaration constant in node.constants) {
-      SimpleIdentifier identifier = constant.name;
-      String name = identifier.name;
-      if (name == enumName) {
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration) {
+        if (member.returnType.name == enumElement.name) {
+          var name = member.declaredElement!.name;
+          if (!constructorNames.add(name)) {
+            if (name.isEmpty) {
+              _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+                member,
+              );
+            } else {
+              _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+                member,
+                arguments: [name],
+              );
+            }
+          }
+        }
+      } else if (member is FieldDeclaration) {
+        for (var field in member.fields.variables) {
+          var identifier = field.name;
+          _checkDuplicateIdentifier(
+            member.isStatic ? staticGetters : instanceGetters,
+            identifier,
+            setterScope: member.isStatic ? staticSetters : instanceSetters,
+          );
+          _checkValuesDeclarationInEnum(identifier);
+        }
+      } else if (member is MethodDeclaration) {
+        _checkDuplicateIdentifier(
+          member.isStatic ? staticGetters : instanceGetters,
+          member.name,
+          setterScope: member.isStatic ? staticSetters : instanceSetters,
+        );
+        if (!(member.isStatic && member.isSetter)) {
+          _checkValuesDeclarationInEnum(member.name);
+        }
+      }
+    }
+
+    if (enumName == 'values') {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
+        node.name,
+      );
+    }
+
+    for (var constant in node.constants) {
+      if (constant.name.name == enumName) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
-          identifier,
+          constant.name,
         );
-      } else if (_enumInstanceMembers.contains(name)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-          identifier,
-          [enumName, name, enumName],
-        );
+      }
+    }
+
+    _checkConflictingConstructorAndStatic(
+      classElement: enumElement,
+      staticGetters: staticGetters,
+      staticSetters: staticSetters,
+    );
+
+    for (var accessor in enumElement.accessors) {
+      var baseName = accessor.displayName;
+      if (accessor.isStatic) {
+        var instance = _getInterfaceMember(enumElement, baseName);
+        if (instance != null && baseName != 'values') {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            accessor,
+            [enumName, baseName, enumName],
+          );
+        }
+      } else {
+        var inherited = _getInheritedMember(enumElement, baseName);
+        if (inherited is MethodElement) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+            accessor,
+            [
+              enumElement.displayName,
+              baseName,
+              inherited.enclosingElement.displayName,
+            ],
+          );
+        }
+      }
+    }
+
+    for (var method in enumElement.methods) {
+      var baseName = method.displayName;
+      if (method.isStatic) {
+        var instance = _getInterfaceMember(enumElement, baseName);
+        if (instance != null) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            method,
+            [enumName, baseName, enumName],
+          );
+        }
+      } else {
+        var inherited = _getInheritedMember(enumElement, baseName);
+        if (inherited is PropertyAccessorElement) {
+          _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+            method,
+            [
+              enumElement.displayName,
+              baseName,
+              inherited.enclosingElement.displayName,
+            ],
+          );
+        }
       }
     }
   }
@@ -208,7 +310,7 @@ class DuplicateDefinitionVerifier {
       for (TopLevelVariableElement variable in element.topLevelVariables) {
         definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
-          definedGetters[variable.name + '='] = variable;
+          definedGetters['${variable.name}='] = variable;
         }
       }
       for (TypeAliasElement alias in element.typeAliases) {
@@ -297,37 +399,17 @@ class DuplicateDefinitionVerifier {
       }
     }
 
+    _checkConflictingConstructorAndStatic(
+      classElement: element,
+      staticGetters: staticGetters,
+      staticSetters: staticSetters,
+    );
+
     // Check for local static members conflicting with local instance members.
+    // TODO(scheglov) This code is duplicated for enums. But for classes it is
+    // separated also into ErrorVerifier - where we check inherited.
     for (ClassMember member in members) {
-      if (member is ConstructorDeclaration) {
-        var nameNode = member.name;
-        if (nameNode != null) {
-          String name = nameNode.name;
-          var staticMember = staticGetters[name] ?? staticSetters[name];
-          if (staticMember != null) {
-            if (staticMember is PropertyAccessorElement) {
-              CompileTimeErrorCode errorCode;
-              if (staticMember.isSynthetic) {
-                errorCode = CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
-              } else if (staticMember.isGetter) {
-                errorCode = CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
-              } else {
-                errorCode = CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
-              }
-              _errorReporter.reportErrorForNode(errorCode, nameNode, [name]);
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
-                nameNode,
-                [name],
-              );
-            }
-          }
-        }
-      } else if (member is FieldDeclaration) {
+      if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
             SimpleIdentifier identifier = field.name;
@@ -355,6 +437,37 @@ class DuplicateDefinitionVerifier {
                 [className, name, className]);
           }
         }
+      }
+    }
+  }
+
+  void _checkConflictingConstructorAndStatic({
+    required ClassElement classElement,
+    required Map<String, Element> staticGetters,
+    required Map<String, Element> staticSetters,
+  }) {
+    for (var constructor in classElement.constructors) {
+      var name = constructor.name;
+      var staticMember = staticGetters[name] ?? staticSetters[name];
+      if (staticMember is PropertyAccessorElement) {
+        CompileTimeErrorCode errorCode;
+        if (staticMember.isSynthetic) {
+          errorCode =
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
+        } else if (staticMember.isGetter) {
+          errorCode =
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
+        } else {
+          errorCode =
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
+        }
+        _errorReporter.reportErrorForElement(errorCode, constructor, [name]);
+      } else if (staticMember is MethodElement) {
+        _errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          constructor,
+          [name],
+        );
       }
     }
   }
@@ -423,6 +536,43 @@ class DuplicateDefinitionVerifier {
         }
       }
     }
+  }
+
+  void _checkValuesDeclarationInEnum(SimpleIdentifier name) {
+    if (name.name == 'values') {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
+        name,
+      );
+    }
+  }
+
+  ExecutableElement? _getInheritedMember(
+      ClassElement element, String baseName) {
+    var libraryUri = _currentLibrary.source.uri;
+
+    var getterName = Name(libraryUri, baseName);
+    var getter = _inheritanceManager.getInherited2(element, getterName);
+    if (getter != null) {
+      return getter;
+    }
+
+    var setterName = Name(libraryUri, '$baseName=');
+    return _inheritanceManager.getInherited2(element, setterName);
+  }
+
+  ExecutableElement? _getInterfaceMember(
+      ClassElement element, String baseName) {
+    var libraryUri = _currentLibrary.source.uri;
+
+    var getterName = Name(libraryUri, baseName);
+    var getter = _inheritanceManager.getMember2(element, getterName);
+    if (getter != null) {
+      return getter;
+    }
+
+    var setterName = Name(libraryUri, '$baseName=');
+    return _inheritanceManager.getMember2(element, setterName);
   }
 
   static bool _isGetterSetterPair(Element a, Element b) {

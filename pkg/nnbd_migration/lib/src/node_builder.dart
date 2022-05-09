@@ -42,8 +42,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   final Source? source;
 
-  final LineInfo Function(String) _getLineInfo;
-
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType]s of the function's named parameters that have been seen so
   /// far.  Otherwise `null`.
@@ -72,7 +70,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   bool _visitingExternalDeclaration = false;
 
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
-      this._typeProvider, this._getLineInfo,
+      this._typeProvider,
       {this.instrumentation});
 
   NullabilityNodeTarget get safeTarget {
@@ -95,7 +93,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var exceptionElement = node.exceptionParameter?.staticElement;
     var target = exceptionElement == null
         ? NullabilityNodeTarget.text('exception type')
-        : NullabilityNodeTarget.element(exceptionElement, _getLineInfo);
+        : NullabilityNodeTarget.element(exceptionElement);
     DecoratedType? exceptionType = _pushNullabilityNodeTarget(
         target, () => node.exceptionType?.accept(this));
     if (node.exceptionParameter != null) {
@@ -135,7 +133,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.nativeClause?.accept(this);
     node.members.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass2,
+    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
         node.withClause, node.implementsClause, null);
     var constructors = classElement.constructors;
     if (constructors.length == 1) {
@@ -161,14 +159,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.name.accept(this);
     node.typeParameters?.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.superclass2,
+    _handleSupertypeClauses(node, classElement, node.superclass,
         node.withClause, node.implementsClause, null);
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
       var decoratedReturnType =
           _createDecoratedTypeForClass(classElement, node);
-      var target =
-          NullabilityNodeTarget.element(constructorElement, _getLineInfo);
+      var target = NullabilityNodeTarget.element(constructorElement);
       var functionType = DecoratedType.forImplicitFunction(
           _typeProvider, constructorElement.type, _graph.never, _graph, target,
           returnType: decoratedReturnType);
@@ -208,7 +205,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitConstructorName(ConstructorName node) {
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('constructed type'),
-        () => node.type2.accept(this));
+        () => node.type.accept(this));
     node.name?.accept(this);
     return null;
   }
@@ -217,7 +214,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.metadata.accept(this);
     var declaredElement = node.declaredElement!;
-    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+    var target = NullabilityNodeTarget.element(declaredElement);
     DecoratedType? type =
         _pushNullabilityNodeTarget(target, () => node.type?.accept(this));
     if (type == null) {
@@ -267,13 +264,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     for (var item in node.constants) {
       var declaredElement = item.declaredElement!;
-      var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+      var target = NullabilityNodeTarget.element(declaredElement);
       _variables!.recordDecoratedElementType(declaredElement,
           DecoratedType(classElement.thisType, makeNonNullNode(target, item)));
     }
     final valuesGetter = classElement.getGetter('values')!;
-    var valuesTarget =
-        NullabilityNodeTarget.element(valuesGetter, _getLineInfo);
+    var valuesTarget = NullabilityNodeTarget.element(valuesGetter);
     _variables!.recordDecoratedElementType(
         valuesGetter,
         DecoratedType(valuesGetter.type, makeNonNullNode(valuesTarget),
@@ -283,20 +279,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   DecoratedType(classElement.thisType,
                       makeNonNullNode(valuesTarget.typeArgument(0)))
                 ])));
-    final indexGetter = classElement.getGetter('index')!;
-    var indexTarget = NullabilityNodeTarget.element(indexGetter, _getLineInfo);
-    _variables!.recordDecoratedElementType(
-        indexGetter,
-        DecoratedType(indexGetter.type, makeNonNullNode(indexTarget),
-            returnType: DecoratedType(indexGetter.returnType,
-                makeNonNullNode(indexTarget.returnType()))));
-    final toString = classElement.getMethod('toString')!;
-    var toStringTarget = NullabilityNodeTarget.element(toString, _getLineInfo);
-    _variables!.recordDecoratedElementType(
-        toString,
-        DecoratedType(toString.type, makeNonNullNode(toStringTarget),
-            returnType: DecoratedType(toString.returnType,
-                makeNonNullNode(toStringTarget.returnType()))));
     return null;
   }
 
@@ -377,7 +359,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var functionType = functionElement.type;
     var returnType = node.returnType;
     DecoratedType? decoratedReturnType;
-    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+    var target = NullabilityNodeTarget.element(declaredElement);
     if (returnType != null) {
       _pushNullabilityNodeTarget(target.returnType(), () {
         decoratedReturnType = returnType.accept(this);
@@ -424,8 +406,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     DecoratedType? decoratedFunctionType;
     node.typeParameters?.accept(this);
-    var target =
-        NullabilityNodeTarget.element(node.declaredElement!, _getLineInfo);
+    var target = NullabilityNodeTarget.element(node.declaredElement!);
     _pushNullabilityNodeTarget(target, () {
       decoratedFunctionType = node.functionType!.accept(this);
     });
@@ -476,7 +457,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var type = decoratedType.positionalParameters![0];
         _variables!.recordDecoratedElementType(declaredElement.variable, type,
             soft: true);
-        if (_hasAngularChildAnnotation(node.metadata)) {
+        if (_getAngularAnnotation(node.metadata) == _AngularAnnotation.child) {
           _graph.makeNullable(
               type!.node!, AngularAnnotationOrigin(source, node));
         }
@@ -661,8 +642,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var declaredType = _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(
-            node.variables.first.declaredElement!, _getLineInfo),
+        NullabilityNodeTarget.element(node.variables.first.declaredElement!),
         () => typeAnnotation?.accept(this));
     var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (hint != null && hint.kind == HintCommentKind.late_) {
@@ -677,8 +657,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var declaredElement = variable.declaredElement;
       var type = declaredType;
       if (type == null) {
-        var target =
-            NullabilityNodeTarget.element(declaredElement!, _getLineInfo);
+        var target = NullabilityNodeTarget.element(declaredElement!);
         type = DecoratedType.forImplicitType(
             _typeProvider, declaredElement.type, _graph, target);
         instrumentation?.implicitType(source, node, type);
@@ -686,9 +665,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _variables!.recordDecoratedElementType(declaredElement, type);
       variable.initializer?.accept(this);
       if (parent is FieldDeclaration) {
-        if (_hasAngularChildAnnotation(parent.metadata)) {
-          _graph.makeNullable(
-              type.node!, AngularAnnotationOrigin(source, node));
+        var angularAnnotation = _getAngularAnnotation(parent.metadata);
+        if (angularAnnotation != null) {
+          switch (angularAnnotation) {
+            case _AngularAnnotation.child:
+              _graph.makeNullable(
+                  type.node!, AngularAnnotationOrigin(source, node));
+              break;
+            case _AngularAnnotation.children:
+              _graph.preventLate(
+                  type.node!, AngularAnnotationOrigin(source, node));
+              break;
+          }
         }
       }
     }
@@ -712,6 +700,26 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     );
   }
 
+  /// Determines if the given [metadata] contains a reference to one of the
+  /// Angular annotations that we have special behaviors for.  If it does,
+  /// returns an enumerated value describing the type of annotation.
+  _AngularAnnotation? _getAngularAnnotation(NodeList<Annotation> metadata) {
+    for (var annotation in metadata) {
+      var element = annotation.element;
+      if (element is ConstructorElement) {
+        var name = element.enclosingElement.name;
+        if (_isAngularUri(element.librarySource.uri)) {
+          if (name == 'ViewChild' || name == 'ContentChild') {
+            return _AngularAnnotation.child;
+          } else if (name == 'ViewChildren' || name == 'ContentChildren') {
+            return _AngularAnnotation.children;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /// Common handling of function and method declarations.
   DecoratedType _handleExecutableDeclaration(
       AstNode node,
@@ -732,7 +740,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       var functionType = declaredElement.type;
       DecoratedType? decoratedReturnType;
-      var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+      var target = NullabilityNodeTarget.element(declaredElement);
       if (returnType != null) {
         _pushNullabilityNodeTarget(target.returnType(), () {
           decoratedReturnType = returnType.accept(this);
@@ -906,18 +914,17 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var supertypes = <NamedType?>[];
     supertypes.add(superclass);
     if (withClause != null) {
-      supertypes.addAll(withClause.mixinTypes2);
+      supertypes.addAll(withClause.mixinTypes);
     }
     if (implementsClause != null) {
-      supertypes.addAll(implementsClause.interfaces2);
+      supertypes.addAll(implementsClause.interfaces);
     }
     if (onClause != null) {
-      supertypes.addAll(onClause.superclassConstraints2);
+      supertypes.addAll(onClause.superclassConstraints);
     }
     var decoratedSupertypes = <ClassElement, DecoratedType?>{};
     _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(declaredElement, _getLineInfo).supertype,
-        () {
+        NullabilityNodeTarget.element(declaredElement).supertype, () {
       for (var supertype in supertypes) {
         DecoratedType? decoratedSupertype;
         if (supertype == null) {
@@ -938,26 +945,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         .recordDecoratedDirectSupertypes(declaredElement, decoratedSupertypes);
   }
 
-  /// Determines if the given [metadata] contains a reference to one of the
-  /// Angular annotations `ViewChild` or `ContentChild`, either of which implies
-  /// nullability of the underlying property.
-  bool _hasAngularChildAnnotation(NodeList<Annotation> metadata) {
-    for (var annotation in metadata) {
-      var element = annotation.element;
-      if (element is ConstructorElement) {
-        var name = element.enclosingElement.name;
-        if ((name == 'ViewChild' || name == 'ContentChild') &&
-            _isAngularUri(element.librarySource.uri)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   /// Determines whether the given [uri] comes from the Angular package.
   bool _isAngularUri(Uri uri) {
-    if (uri.scheme != 'package') return false;
+    if (!uri.isScheme('package')) return false;
     var packageName = uri.pathSegments[0];
     if (packageName == 'angular') return true;
     if (packageName == 'third_party.dart_src.angular.angular') {
@@ -986,10 +976,22 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     buffer.write(' in "');
     buffer.write(node.toSource());
     buffer.write('" on line ');
-    buffer.write(unit.lineInfo!.getLocation(node.offset).lineNumber);
+    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
     buffer.write(' of "');
     buffer.write(unit.declaredElement!.source.fullName);
     buffer.write('"');
     throw UnimplementedError(buffer.toString());
   }
+}
+
+/// Enum describing the kinds of annotations supplied by the angular package for
+/// which we have special migration behaviors.
+enum _AngularAnnotation {
+  /// Either the `@ViewChild` or `@ContentChild` annotation.  Fields with these
+  /// annotations should always be nullable and should never be late.
+  child,
+
+  /// Either the `@ViewChildren` or `@ContentChildren` annotation.  Fields with
+  /// these annotations should never be late.
+  children,
 }

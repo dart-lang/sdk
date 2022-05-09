@@ -15,7 +15,38 @@ main() {
 
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends PubPackageResolutionTest {
-  test_inInterface() async {
+  test_class() async {
+    await assertErrorsInCode(r'''
+class A {
+  @override
+  int? foo;
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
+    ]);
+  }
+
+  test_class_extends() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get a => 0;
+  void set b(_) {}
+  int c = 0;
+}
+class B extends A {
+  @override
+  final int a = 1;
+  @override
+  int b = 0;
+  @override
+  int c = 0;
+}''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 131, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
+    ]);
+  }
+
+  test_class_implements() async {
     await assertErrorsInCode(r'''
 class A {
   int get a => 0;
@@ -30,38 +61,56 @@ class B implements A {
   @override
   int c = 0;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 134, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 134, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
     ]);
   }
 
-  test_inSuperclass() async {
+  test_enum() async {
     await assertErrorsInCode(r'''
+enum E {
+  v;
+  @override
+  final int foo = 0;
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
+    ]);
+  }
+
+  test_enum_implements() async {
+    await assertNoErrorsInCode(r'''
 class A {
   int get a => 0;
-  void set b(_) {}
-  int c = 0;
+  void set b(int _) {}
 }
-class B extends A {
+
+enum E implements A {
+  v;
   @override
-  final int a = 1;
+  int get a => 0;
+
   @override
-  int b = 0;
-  @override
-  int c = 0;
-}''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 131, 1),
-    ]);
+  void set b(int _) {}
+}
+''');
   }
 
-  test_invalid() async {
-    await assertErrorsInCode(r'''
-class A {
+  test_enum_with() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get a => 0;
+  void set b(int _) {}
 }
-class B extends A {
+
+enum E with M {
+  v;
   @override
-  final int m = 1;
-}''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 56, 1),
-    ]);
+  int get a => 0;
+
+  @override
+  void set b(int _) {}
+}
+''');
   }
 }

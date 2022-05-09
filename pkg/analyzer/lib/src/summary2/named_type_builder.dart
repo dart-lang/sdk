@@ -103,7 +103,7 @@ class NamedTypeBuilder extends TypeBuilder {
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = typeSystem.toLegacyType(type) as InterfaceType;
+      type = typeSystem.toLegacyTypeIfOptOut(type) as InterfaceType;
       _type = type;
     } else if (element is TypeAliasElementImpl) {
       var aliasedType = _getAliasedType(element);
@@ -114,7 +114,7 @@ class NamedTypeBuilder extends TypeBuilder {
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = typeSystem.toLegacyType(type);
+      type = typeSystem.toLegacyTypeIfOptOut(type);
       _type = type;
     } else if (element is NeverElementImpl) {
       if (typeSystem.isNonNullableByDefault) {

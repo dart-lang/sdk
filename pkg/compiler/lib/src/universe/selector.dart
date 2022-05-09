@@ -148,7 +148,7 @@ class Selector {
     } else if (element.isConstructor) {
       return Selector.callConstructor(name);
     } else {
-      throw failedAt(element, "Can't get selector from $element");
+      throw failedAt(element, "Cannot get selector from $element");
     }
   }
 
@@ -199,7 +199,7 @@ class Selector {
       CallStructure(0, null, typeArguments));
 
   /// Deserializes a [Selector] object from [source].
-  factory Selector.readFromDataSource(DataSource source) {
+  factory Selector.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     SelectorKind kind = source.readEnum(SelectorKind.values);
     bool isSetter = source.readBool();
@@ -212,7 +212,7 @@ class Selector {
   }
 
   /// Serializes this [Selector] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
     sink.writeBool(memberName.isSetter);

@@ -11,22 +11,24 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 class SimpleIdentifierResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper? _flowAnalysis;
 
-  SimpleIdentifierResolver(this._resolver, this._flowAnalysis);
+  final InvocationInferenceHelper _inferenceHelper;
+
+  SimpleIdentifierResolver(this._resolver)
+      : _inferenceHelper = _resolver.inferenceHelper;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(SimpleIdentifierImpl node) {
+  void resolve(SimpleIdentifierImpl node, {required DartType? contextType}) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -36,7 +38,7 @@ class SimpleIdentifierResolver {
     _resolver.checkReadOfNotAssignedLocalVariable(node, node.staticElement);
 
     _resolve1(node);
-    _resolve2(node);
+    _resolve2(node, contextType: contextType);
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.
@@ -101,24 +103,6 @@ class SimpleIdentifierResolver {
     return false;
   }
 
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _recordStaticType(ExpressionImpl expression, DartType type) {
-    var hooks = _resolver.migrationResolutionHooks;
-    if (hooks != null) {
-      type = hooks.modifyExpressionType(expression, type);
-    }
-
-    expression.staticType = type;
-    if (_resolver.typeSystem.isBottom(type)) {
-      _flowAnalysis?.flow?.handleExit();
-    }
-  }
-
   void _resolve1(SimpleIdentifierImpl node) {
     //
     // Synthetic identifiers have been already reported during parsing.
@@ -180,21 +164,15 @@ class SimpleIdentifierResolver {
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
-    } else if ((element is PrefixElement?) &&
-        (element == null || !_isValidAsPrefix(node))) {
+    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+        node,
+        [element.name],
+      );
+    } else if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
-      if (_isConstructorReturnType(node)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
-      } else if (parent is Annotation) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_ANNOTATION, parent, [node.name]);
-      } else if (element != null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-            node,
-            [element.name]);
-      } else if (node.name == "await" && _resolver.enclosingFunction != null) {
+      if (node.name == "await" && _resolver.enclosingFunction != null) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
           node,
@@ -211,7 +189,7 @@ class SimpleIdentifierResolver {
     node.staticElement = element;
   }
 
-  void _resolve2(SimpleIdentifierImpl node) {
+  void _resolve2(SimpleIdentifierImpl node, {required DartType? contextType}) {
     var element = node.staticElement;
 
     if (element is ExtensionElement) {
@@ -264,10 +242,11 @@ class SimpleIdentifierResolver {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      staticType =
-          _resolver.inferenceHelper.inferTearOff(node, node, staticType);
+      staticType = _resolver.inferenceHelper
+          .inferTearOff(node, node, staticType, contextType: contextType);
     }
-    _recordStaticType(node, staticType);
+    _inferenceHelper.recordStaticType(node, staticType,
+        contextType: contextType);
   }
 
   /// TODO(scheglov) this is duplicate

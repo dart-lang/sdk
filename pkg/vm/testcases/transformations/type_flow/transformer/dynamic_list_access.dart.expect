@@ -4,5 +4,5 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   dynamic x = [@vm.inferred-type.metadata=dart.core::_List<dart.core::int?>] core::_List::•<core::int?>(10);
-  [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.direct-call.metadata=dart.core::_List.[]] [@vm.inferred-type.metadata=int? (receiver not int)] x{dynamic}.[](0){dynamic}.+(10);
+  [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.direct-call.metadata=dart.core::_Array.[]] [@vm.inferred-type.metadata=int? (receiver not int)] x{dynamic}.[](0){dynamic}.+(10);
 }

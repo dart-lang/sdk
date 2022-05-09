@@ -6,7 +6,7 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
 //
-// Current version: 2.16.0
+// Current version: 2.17.0
 
 #include "vm/experimental_features.h"
 
@@ -18,6 +18,9 @@ namespace dart {
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
   constexpr bool kFeatureValues[] = {
+    true,
+    true,
+    true,
     true,
     true,
     true,
@@ -45,6 +48,9 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
     "spread-collections",
     "triple-shift",
     "constructor-tearoffs",
+    "enhanced-enums",
+    "named-arguments-anywhere",
+    "super-parameters",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];

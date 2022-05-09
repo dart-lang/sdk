@@ -1026,6 +1026,42 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
+  Future<void> test_enumDeclaration_afterSemicolon() async {
+    addTestSource('''
+enum E {
+  v;
+  ^
+}
+''');
+    await assertOpType(
+      completionLocation: 'EnumDeclaration_member',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_enumDeclaration_afterSemicolon_beforeMethod() async {
+    addTestSource('''
+enum E {
+  v;
+  ^foo() {}
+}
+''');
+    await assertOpType(
+      completionLocation: 'EnumDeclaration_member',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_enumDeclaration_noSemicolon() async {
+    addTestSource('''
+enum E {
+  v
+  ^
+}
+''');
+    await assertOpType();
+  }
+
   Future<void> test_expressionFunctionBody_beginning() async {
     // SimpleIdentifier  ExpressionFunctionBody  FunctionExpression
     addTestSource('m(){[1].forEach((x)=>^x);}');

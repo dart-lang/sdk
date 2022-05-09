@@ -451,6 +451,15 @@ interface AudioContext {
 };
 
 [DartSupplemental]
+interface AudioNode : EventTarget {
+    [DartSuppress] AudioNode connect(AudioNode destination, optional unsigned long output = 0, optional unsigned long input = 0);
+    [DartSuppress] void connect(AudioParam destination, optional unsigned long output = 0);
+    AudioNode? connect(AudioNode destination, optional unsigned long output = 0, optional unsigned long input = 0);
+    // Scripts don't unify return types, so this is changed from void to do so.
+    AudioNode? connect(AudioParam destination, optional unsigned long output = 0);
+};
+
+[DartSupplemental]
 interface HTMLInputElement {
     [DartSuppress] attribute boolean webkitSpeech;
     [DartSuppress] attribute boolean webkitGrammar;
@@ -523,8 +532,10 @@ interface AudioScheduledSourceNode {
 
 [DartSupplemental]
 interface Element : Node {
-    // Remove operation requestFullscreen only use webKitRequestFullscreen.
+    // Use template implementation that looks for both the non-prefixed and
+    // prefixed `requestFullscreen` instead.
     [DartSuppress] void requestFullscreen();
+    [DartSuppress] void webkitRequestFullscreen();
     // setAttribute and setAttributeNS can take in non-string values that are
     // then converted to strings.
     [DartSuppress] void setAttribute(DOMString name, DOMString value);
@@ -589,6 +600,16 @@ interface Performance {
     // Marked as nullable to address browser compatibility. See 41905.
     [DartSuppress, Measure] readonly attribute MemoryInfo memory;
     [Measure] readonly attribute MemoryInfo? memory;
+    [DartSuppress] void mark(DOMString markName);
+    PerformanceEntry? mark(DOMString markName, optional Dictionary markOptions);
+    [DartSuppress] void measure(DOMString measureName, optional DOMString startMark = null, optional DOMString endMark = null);
+    // Note that `startMark` and `endMark` can't be null (but they can be
+    // undefined) in Firefox. Firefox also seems to disallow `measureOptions`.
+    // Safari also requires that `endMark` be non-null if `startMark` is
+    // non-null. In order to unify different browser behavior, we allow all
+    // possible syntaxes.
+    PerformanceMeasure? measure(DOMString measureName, optional DOMString? startMark, optional DOMString? endMark);
+    PerformanceMeasure? measure(DOMString measureName, Dictionary measureOptions);
 };
 
 [DartSupplemental]

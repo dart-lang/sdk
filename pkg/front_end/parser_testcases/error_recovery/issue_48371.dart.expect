@@ -1,0 +1,512 @@
+Problems reported:
+
+parser/error_recovery/issue_48371:1:8: Unexpected token 'w'.
+enum E w /*cursor, about to type 'with'*/ {
+       ^
+
+parser/error_recovery/issue_48371:5:8: Unexpected token 'w'.
+enum E w /*cursor, about to type 'with'*/ implements Foo {
+       ^
+
+parser/error_recovery/issue_48371:9:23: The 'with' clause must come before the 'implements' clause.
+enum E implements Foo with Bar {
+                      ^^^^
+
+parser/error_recovery/issue_48371:13:23: Each 'enum' definition can have at most one 'implements' clause.
+enum E implements Foo implements Bar implements Bar2 {
+                      ^^^^^^^^^^
+
+parser/error_recovery/issue_48371:13:38: Each 'enum' definition can have at most one 'implements' clause.
+enum E implements Foo implements Bar implements Bar2 {
+                                     ^^^^^^^^^^
+
+parser/error_recovery/issue_48371:17:8: Unexpected tokens.
+enum E w /*cursor, about to type 'with' instead of implements*/ Foo {
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+parser/error_recovery/issue_48371:21:8: Unexpected token 'implemen'.
+enum E implemen /*cursor, about to type 'implements'*/ {
+       ^^^^^^^^
+
+parser/error_recovery/issue_48371:25:23: Unexpected token 'w'.
+enum E implements Foo w/*about to write 'with'*/ {
+                      ^
+
+parser/error_recovery/issue_48371:29:26: Expected a type, but got '{'.
+enum E with /* cursor */ {
+                         ^
+
+parser/error_recovery/issue_48371:33:8: Unexpected token 'impl'.
+enum E impl implements Foo {
+       ^^^^
+
+parser/error_recovery/issue_48371:43:23: The 'with' clause must come before the 'implements' clause.
+enum E implements Bar with Foo {
+                      ^^^^
+
+parser/error_recovery/issue_48371:48:8: Unexpected token 'gunk1'.
+enum E gunk1 with Foo gunk2 implements Bar {
+       ^^^^^
+
+parser/error_recovery/issue_48371:48:23: Unexpected token 'gunk2'.
+enum E gunk1 with Foo gunk2 implements Bar {
+                      ^^^^^
+
+parser/error_recovery/issue_48371:53:8: Unexpected token 'gunk1'.
+enum E gunk1 implements Bar gunk2 with Foo {
+       ^^^^^
+
+parser/error_recovery/issue_48371:53:29: Unexpected token 'gunk2'.
+enum E gunk1 implements Bar gunk2 with Foo {
+                            ^^^^^
+
+parser/error_recovery/issue_48371:53:35: The 'with' clause must come before the 'implements' clause.
+enum E gunk1 implements Bar gunk2 with Foo {
+                                  ^^^^
+
+parser/error_recovery/issue_48371:58:17: Each 'enum' definition can have at most one 'with' clause.
+enum E with Foo with Foo2 implements Bar implements Bar2 with Foo3 implements Bar3 {
+                ^^^^
+
+parser/error_recovery/issue_48371:58:42: Each 'enum' definition can have at most one 'implements' clause.
+enum E with Foo with Foo2 implements Bar implements Bar2 with Foo3 implements Bar3 {
+                                         ^^^^^^^^^^
+
+parser/error_recovery/issue_48371:58:58: Each 'enum' definition can have at most one 'with' clause.
+enum E with Foo with Foo2 implements Bar implements Bar2 with Foo3 implements Bar3 {
+                                                         ^^^^
+
+parser/error_recovery/issue_48371:58:68: Each 'enum' definition can have at most one 'implements' clause.
+enum E with Foo with Foo2 implements Bar implements Bar2 with Foo3 implements Bar3 {
+                                                                   ^^^^^^^^^^
+
+parser/error_recovery/issue_48371:63:23: Each 'enum' definition can have at most one 'implements' clause.
+enum E implements Bar implements Bar2 with Foo with Foo2 implements Bar3 with Foo3 {
+                      ^^^^^^^^^^
+
+parser/error_recovery/issue_48371:63:39: The 'with' clause must come before the 'implements' clause.
+enum E implements Bar implements Bar2 with Foo with Foo2 implements Bar3 with Foo3 {
+                                      ^^^^
+
+parser/error_recovery/issue_48371:63:48: Each 'enum' definition can have at most one 'with' clause.
+enum E implements Bar implements Bar2 with Foo with Foo2 implements Bar3 with Foo3 {
+                                               ^^^^
+
+parser/error_recovery/issue_48371:63:58: Each 'enum' definition can have at most one 'implements' clause.
+enum E implements Bar implements Bar2 with Foo with Foo2 implements Bar3 with Foo3 {
+                                                         ^^^^^^^^^^
+
+parser/error_recovery/issue_48371:63:74: Each 'enum' definition can have at most one 'with' clause.
+enum E implements Bar implements Bar2 with Foo with Foo2 implements Bar3 with Foo3 {
+                                                                         ^^^^
+
+beginCompilationUnit(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(w)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'w'., null, {lexeme: w}], w, w)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(w)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'w'., null, {lexeme: w}], w, w)
+      handleEnumNoWithClause()
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments({)
+      handleType(Foo, null)
+      handleImplements(implements, 1)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(implements)
+      handleEnumNoWithClause()
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[OutOfOrderClauses, The 'with' clause must come before the 'implements' clause., Try moving the 'with' clause before the 'implements' clause., {string: with, string2: implements}], with, with)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(implements)
+      handleEnumNoWithClause()
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(implements)
+      handleType(Foo, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'implements' clause., Try combining all of the 'implements' clauses into a single clause., {string: enum, string2: implements}], implements, implements)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'implements' clause., Try combining all of the 'implements' clauses into a single clause., {string: enum, string2: implements}], implements, implements)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(w)
+      handleRecoverableError(UnexpectedTokens, w, Foo)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(implemen)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'implemen'., null, {lexeme: implemen}], implemen, implemen)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(implements)
+      handleEnumNoWithClause()
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(w)
+      handleType(Foo, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'w'., null, {lexeme: w}], w, w)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(with)
+      beginTypeList({)
+        handleRecoverableError(Message[ExpectedType, Expected a type, but got '{'., null, {lexeme: {}], {, {)
+        handleIdentifier(, typeReference)
+        handleNoTypeArguments({)
+        handleType(, null)
+      endTypeList(1)
+      handleEnumWithClause(with)
+      handleImplements(null, 0)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(impl)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'impl'., null, {lexeme: impl}], impl, impl)
+      handleEnumNoWithClause()
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments({)
+      handleType(Foo, null)
+      handleImplements(implements, 1)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(with)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleEnumWithClause(with)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments({)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(implements)
+      handleEnumNoWithClause()
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[OutOfOrderClauses, The 'with' clause must come before the 'implements' clause., Try moving the 'with' clause before the 'implements' clause., {string: with, string2: implements}], with, with)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(gunk1)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'gunk1'., null, {lexeme: gunk1}], gunk1, gunk1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(gunk2)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleEnumWithClause(with)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'gunk2'., null, {lexeme: gunk2}], gunk2, gunk2)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments({)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(gunk1)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'gunk1'., null, {lexeme: gunk1}], gunk1, gunk1)
+      handleEnumNoWithClause()
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(gunk2)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[UnexpectedToken, Unexpected token 'gunk2'., null, {lexeme: gunk2}], gunk2, gunk2)
+      handleRecoverableError(Message[OutOfOrderClauses, The 'with' clause must come before the 'implements' clause., Try moving the 'with' clause before the 'implements' clause., {string: with, string2: implements}], with, with)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(with)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(with)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleEnumWithClause(with)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'with' clause., Try combining all of the 'with' clauses into a single clause., {string: enum, string2: with}], with, with)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(implements)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'implements' clause., Try combining all of the 'implements' clauses into a single clause., {string: enum, string2: implements}], implements, implements)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'with' clause., Try combining all of the 'with' clauses into a single clause., {string: enum, string2: with}], with, with)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'implements' clause., Try combining all of the 'implements' clauses into a single clause., {string: enum, string2: implements}], implements, implements)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(enum)
+    handleIdentifier(E, enumDeclaration)
+    beginEnum(enum)
+      handleNoTypeVariables(implements)
+      handleEnumNoWithClause()
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(implements)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'implements' clause., Try combining all of the 'implements' clauses into a single clause., {string: enum, string2: implements}], implements, implements)
+      handleRecoverableError(Message[OutOfOrderClauses, The 'with' clause must come before the 'implements' clause., Try moving the 'with' clause before the 'implements' clause., {string: with, string2: implements}], with, with)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'with' clause., Try combining all of the 'with' clauses into a single clause., {string: enum, string2: with}], with, with)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'implements' clause., Try combining all of the 'implements' clauses into a single clause., {string: enum, string2: implements}], implements, implements)
+      handleRecoverableError(Message[MultipleClauses, Each 'enum' definition can have at most one 'with' clause., Try combining all of the 'with' clauses into a single clause., {string: enum, string2: with}], with, with)
+      handleEnumHeader(enum, {)
+      beginMetadataStar(v)
+      endMetadataStar(0)
+      handleIdentifier(v, enumValueDeclaration)
+      handleNoTypeNameInConstructorReference(})
+      beginConstructorReference(v)
+        handleNoTypeArguments(})
+        handleNoConstructorReferenceContinuationAfterTypeArguments(})
+      endConstructorReference(v, null, }, ConstructorReferenceContext.Const)
+      handleNoArguments(v)
+      handleEnumElement({)
+      handleEnumElements(}, 1)
+    endEnum(enum, {, 0)
+  endTopLevelDeclaration()
+endCompilationUnit(15, )

@@ -275,20 +275,19 @@ import 'entity_data.dart';
 import 'import_set.dart';
 import 'output_unit.dart';
 
-import '../../compiler_new.dart' show OutputType;
+import '../../compiler.dart' show OutputType;
+import '../common.dart';
+import '../common/elements.dart' show KElementEnvironment;
 import '../common/metrics.dart'
     show Metric, Metrics, CountMetric, DurationMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../common.dart';
-import '../common_elements.dart' show KElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue;
 import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
-import '../universe/world_impact.dart' show ImpactUseCase;
+import '../kernel/kernel_world.dart';
 import '../util/util.dart' show makeUnique;
-import '../world.dart' show KClosedWorld;
 
 class _DeferredLoadTaskMetrics implements Metrics {
   @override
@@ -324,8 +323,6 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
-
-  static const ImpactUseCase IMPACT_USE = ImpactUseCase('Deferred load');
 
   /// A cache of the result of calling `computeImportDeferName` on the keys of
   /// this map.
@@ -445,10 +442,6 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
-
-    // Notify that we no longer need impacts for deferred load, so they can be
-    // discarded at this time.
-    compiler.impactStrategy.onImpactUsed(DeferredLoadTask.IMPACT_USE);
     return _buildResult();
   }
 

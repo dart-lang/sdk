@@ -342,11 +342,15 @@ f() {
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
     ]);
-    var access = findNode.propertyAccess('0.a');
-    assertElementNull(access);
-    if (hasAssignmentLeftResolution) {
-      assertTypeDynamic(access);
-    }
+    assertAssignment(
+      findNode.assignment('= 3'),
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_unnamed_extensions() async {

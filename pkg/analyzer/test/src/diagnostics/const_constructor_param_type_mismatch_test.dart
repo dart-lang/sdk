@@ -104,8 +104,34 @@ var v = const A(null);
     ]);
   }
 
+  test_enum_int_null() async {
+    await assertErrorsInCode(r'''
+const dynamic a = null;
+
+enum E {
+  v(a);
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 38, 1),
+    ]);
+  }
+
+  test_enum_int_String() async {
+    await assertErrorsInCode(r'''
+const dynamic a = '0';
+
+enum E {
+  v(a);
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 37, 1),
+    ]);
+  }
+
   test_int_to_double_reference_from_other_library_other_file_after() async {
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 import 'test.dart';
 class D {
   final C c;
@@ -133,7 +159,7 @@ class C {
 }
 const C constant = const C(0);
 ''');
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 import 'test.dart';
 class D {
   final C c;
@@ -157,7 +183,7 @@ const C constant = const C(0);
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 class C {
   final double x;
   const C([this.x = 0]);
@@ -173,7 +199,7 @@ const c = C();
   }
 
   test_int_to_double_via_default_value_other_file_before() async {
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 class C {
   final double x;
   const C([this.x = 0]);
@@ -287,6 +313,34 @@ var v = const A('foo');
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 46, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
     ]);
+  }
+
+  test_superFormalParameter_explicit() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A({int a = 0});
+}
+
+class B extends A {
+  static const f = B();
+
+  const B({super.a = 2});
+}
+''');
+  }
+
+  test_superFormalParameter_inherited() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A({int a = 0});
+}
+
+class B extends A {
+  static const f = B();
+
+  const B({super.a});
+}
+''');
   }
 
   test_unknown_conditionalExpression_unknownCondition() async {

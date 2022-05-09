@@ -49,7 +49,7 @@ enum Register {
   R15 = 15,  // SP in Dart code.
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
-  R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia.
+  R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia, TEB on Windows.
   R19 = 19,
   R20 = 20,
   R21 = 21,  // DISPATCH_TABLE_REG
@@ -81,7 +81,9 @@ enum Register {
 };
 
 enum VRegister {
+  // v0 Volatile; Parameter/scratch register, result register.
   V0 = 0,
+  // v1-v7 Volatile; Parameter/scratch register.
   V1 = 1,
   V2 = 2,
   V3 = 3,
@@ -89,6 +91,8 @@ enum VRegister {
   V5 = 5,
   V6 = 6,
   V7 = 7,
+  // v8-v15 Non-volatile; Scratch registers
+  // Only the bottom 64 bits are non-volatile! [ARM IHI 0055B, 5.1.2]
   V8 = 8,
   V9 = 9,
   V10 = 10,
@@ -97,6 +101,7 @@ enum VRegister {
   V13 = 13,
   V14 = 14,
   V15 = 15,
+  // v16-v31 Volatile; Scratch registers.
   V16 = 16,
   V17 = 17,
   V18 = 18,
@@ -104,7 +109,7 @@ enum VRegister {
   V20 = 20,
   V21 = 21,
   V22 = 22,
-  V23 = 24,
+  V23 = 23,
   V24 = 24,
   V25 = 25,
   V26 = 26,
@@ -123,10 +128,13 @@ const VRegister VTMP = V31;
 // Architecture independent aliases.
 typedef VRegister FpuRegister;
 const FpuRegister FpuTMP = VTMP;
+const int kFpuRegisterSize = 16;
+typedef simd128_value_t fpu_register_t;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
 
 // Register aliases.
@@ -307,6 +315,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = R0;
   static const Register kTypeArgumentsReg = R1;
+  static const Register kTagsReg = R2;
 };
 
 // ABI for AllocateClosureStub.
@@ -376,11 +385,12 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 
 // See "Procedure Call Standard for the ARM 64-bit Architecture", document
 // number "ARM IHI 0055B", May 22 2013.
 
-#define R(REG) (1 << REG)
+#define R(reg) (static_cast<RegList>(1) << (reg))
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
@@ -425,15 +435,10 @@ const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
-// Two callee save scratch registers used by leaf runtime call sequence.
-const Register kCallLeafRuntimeCalleeSaveScratch1 = R20;
-const Register kCallLeafRuntimeCalleeSaveScratch2 = R25;
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch1) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
-static_assert((R(kCallLeafRuntimeCalleeSaveScratch2) & kAbiPreservedCpuRegs) !=
-                  0,
-              "Need callee save scratch register for leaf runtime calls.");
+const RegList kAbiVolatileFpuRegs =
+    R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7) | R(V16) |
+    R(V17) | R(V18) | R(V19) | R(V20) | R(V21) | R(V22) | R(V23) | R(V24) |
+    R(V25) | R(V26) | R(V27) | R(V28) | R(V29) | R(V30) | R(V31);
 
 constexpr int kStoreBufferWrapperSize = 32;
 
@@ -715,6 +720,8 @@ enum LoadStoreRegPairOp {
   LoadStoreRegPairFixed = LoadStoreFixed | B29,
   STP = LoadStoreRegPairFixed,
   LDP = LoadStoreRegPairFixed | B22,
+  FSTP = STP | B26,
+  FLDP = LDP | B26,
 };
 
 // C3.4.1
@@ -1057,6 +1064,8 @@ enum InstructionFields {
   kVmBits = 5,
   kVtShift = 0,
   kVtBits = 5,
+  kVt2Shift = 10,
+  kVt2Bits = 5,
 
   // Immediates.
   kImm3Shift = 10,
@@ -1286,6 +1295,9 @@ class Instr {
   }
   inline VRegister VtField() const {
     return static_cast<VRegister>(Bits(kVtShift, kVtBits));
+  }
+  inline VRegister Vt2Field() const {
+    return static_cast<VRegister>(Bits(kVt2Shift, kVt2Bits));
   }
 
   // Immediates

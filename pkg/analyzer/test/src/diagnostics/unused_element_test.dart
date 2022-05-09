@@ -11,12 +11,946 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
-    defineReflectiveTests(UnusedElementWithNullSafetyTest);
+    defineReflectiveTests(UnusedElementWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UnusedElementTest extends PubPackageResolutionTest
+class UnusedElementTest extends PubPackageResolutionTest {
+  test_class_isUsed_isExpression_expression() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f(Object p) {
+  if (_A() is int) {
+  }
+}
+''');
+  }
+
+  test_class_notUsed_isExpression_typeArgument() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is List<_A>) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_isExpression_typeInFunctionType() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is void Function(_A)) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_isExpression_typeInTypeParameter() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is void Function<T extends _A>()) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_variableDeclaration() async {
+    await assertErrorsInCode('''
+class _A {}
+void f() {
+  _A? v;
+  print(v);
+}
+print(x) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_variableDeclaration_typeArgument() async {
+    await assertErrorsInCode('''
+class _A {}
+main() {
+  List<_A>? v;
+  print(v);
+}
+print(x) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_enum_constructor_parameter_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(a: 0);
+  const E({int? a});
+}
+''');
+  }
+
+  test_enum_constructor_parameter_optionalNamed_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1, v2();
+  const E({int? a});
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
+    ]);
+  }
+
+  test_enum_constructor_parameter_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(0);
+  const E([int? a]);
+}
+''');
+  }
+
+  test_enum_constructor_parameter_optionalPositional_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1, v2();
+  const E([int? a]);
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
+    ]);
+  }
+
+  test_optionalParameter_isUsed_genericConstructor() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C._([int? x]);
+}
+void foo() {
+  C._(7);
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_genericFunction() async {
+    await assertNoErrorsInCode('''
+void _f<T>([int? x]) {}
+void foo() {
+  _f(7);
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_genericMethod() async {
+    await assertNoErrorsInCode('''
+class C {
+  void _m<T>([int? x]) {}
+}
+void foo() {
+  C()._m(7);
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_overrideRequiredNamed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m({required int a}) {}
+}
+class B implements A {
+  void _m({int a = 0}) {}
+}
+f() => A()._m(a: 0);
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_optionalParameter_notUsed_genericConstructor() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+class C<T> {
+  C._([int? x]);
+}
+void foo() {
+  C._();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_optionalParameter_notUsed_genericFunction() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+void _f<T>([int? x]) {}
+void foo() {
+  _f();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_optionalParameter_notUsed_genericMethod() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+class C {
+  void _m<T>([int? x]) {}
+}
+void foo() {
+  C()._m();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  test_parameter_optionalNamed_fieldFormal_isUsed_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_isUsed_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named({int? f}) = _A;
+}
+f() => _A.named(f: 0);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalNamed_fieldFormal_notUsed_factoryRedirect() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalNamed_isUsed_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+
+class B extends _A {
+  B({super.a});
+}
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int a]) = _A;
+}
+f() => _A.named(0);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalPositional_fieldFormal_notUsed_factoryRedirect() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalPositional_isUsed_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class B extends _A {
+  B([super.a]);
+}
+''');
+  }
+
+  test_privateEnum_privateConstructor_isUsed_redirect() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v._foo();
+  const _E._foo() : this._bar();
+  const _E._bar();
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_privateConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v._foo();
+  const _E._foo();
+  const _E._bar();
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 52, 4),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  int get _foo => 0;
+}
+
+void f() {
+  _E.v._foo;
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  int get _foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 4),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo() {}
+}
+
+void f() {
+  _E.v._foo();
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 22, 4),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalNamedParameter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo({int? a}) {}
+}
+
+void f() {
+  _E.v._foo(a: 0);
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalNamedParameter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo({int? a}) {}
+}
+
+void f() {
+  _E.v._foo();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalPositionalParameter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo([int? a]) {}
+}
+
+void f() {
+  _E.v._foo(0);
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceMethod_optionalPositionalParameter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  void _foo([int? a]) {}
+}
+
+void f() {
+  _E.v._foo();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+    ]);
+  }
+
+  test_privateEnum_privateInstanceSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  set _foo(int _) {}
+}
+
+void f() {
+  _E.v._foo = 0;
+}
+''');
+  }
+
+  test_privateEnum_privateInstanceSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  set _foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 21, 4),
+    ]);
+  }
+
+  test_privateEnum_privateStaticGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static int get _foo => 0;
+}
+
+void f() {
+  _E.v;
+  _E._foo;
+}
+''');
+  }
+
+  test_privateEnum_privateStaticGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static int get _foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 32, 4),
+    ]);
+  }
+
+  test_privateEnum_privateStaticMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static void _foo() {}
+}
+
+void f() {
+  _E.v;
+  _E._foo();
+}
+''');
+  }
+
+  test_privateEnum_privateStaticMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static void _foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 29, 4),
+    ]);
+  }
+
+  test_privateEnum_privateStaticSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static set _foo(int _) {}
+}
+
+void f() {
+  _E.v;
+  _E._foo = 0;
+}
+''');
+  }
+
+  test_privateEnum_privateStaticSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static set _foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 28, 4),
+    ]);
+  }
+
+  test_privateEnum_publicConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v.foo();
+  const _E.foo();
+  const _E.bar();
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 50, 3),
+    ]);
+  }
+
+  test_privateEnum_publicInstanceGetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  int get foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceMethod_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceMethod_optionalNamedParameter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void foo({int? a}) {}
+}
+
+void f() {
+  _E.v.foo();
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceMethod_optionalPositionalParameter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  void foo([int? a]) {}
+}
+
+void f() {
+  _E.v.foo();
+}
+''');
+  }
+
+  test_privateEnum_publicInstanceSetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  set foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static int get foo => 0;
+}
+
+void f() {
+  _E.v;
+  _E.foo;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static int get foo => 0;
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 32, 3),
+    ]);
+  }
+
+  test_privateEnum_publicStaticMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static void foo() {}
+}
+
+void f() {
+  _E.v;
+  _E.foo();
+}
+''');
+  }
+
+  test_privateEnum_publicStaticMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static void foo() {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 29, 3),
+    ]);
+  }
+
+  test_privateEnum_publicStaticSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  v;
+  static set foo(int _) {}
+}
+
+void f() {
+  _E.v;
+  _E.foo = 0;
+}
+''');
+  }
+
+  test_privateEnum_publicStaticSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum _E {
+  v;
+  static set foo(int _) {}
+}
+
+void f() {
+  _E.v;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 28, 3),
+    ]);
+  }
+
+  test_publicEnum_privateConstructor_isUsed_redirect() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v._foo();
+  const E._foo() : this._bar();
+  const E._bar();
+}
+''');
+  }
+
+  test_publicEnum_privateConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v._foo();
+  const E._foo();
+  const E._bar();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 49, 4),
+    ]);
+  }
+
+  test_publicEnum_privateStaticGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static int get _foo => 0;
+}
+
+void f() {
+  E._foo;
+}
+''');
+  }
+
+  test_publicEnum_privateStaticGetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int get _foo => 0;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 31, 4),
+    ]);
+  }
+
+  test_publicEnum_privateStaticMethod_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static void _foo() {}
+}
+
+void f() {
+  E._foo();
+}
+''');
+  }
+
+  test_publicEnum_privateStaticMethod_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void _foo() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 28, 4),
+    ]);
+  }
+
+  test_publicEnum_privateStaticSetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static set _foo(int _) {}
+}
+
+void f() {
+  E._foo = 0;
+}
+''');
+  }
+
+  test_publicEnum_privateStaticSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static set _foo(int _) {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 27, 4),
+    ]);
+  }
+
+  test_publicEnum_publicConstructor_isUsed_generic() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v1<int>.named(),
+  v2<int>.renamed();
+
+  const E.named();
+  const E.renamed() : this.named();
+}
+''');
+  }
+
+  test_publicEnum_publicConstructor_isUsed_redirect() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo() : this.bar();
+  const E.bar();
+}
+''');
+  }
+
+  test_publicEnum_publicConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v.foo();
+  const E.foo();
+  const E.bar();
+  factory E.baz() => throw 0;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 47, 3),
+    ]);
+  }
+
+  test_publicEnum_publicStaticGetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static int get foo => 0;
+}
+''');
+  }
+
+  test_publicEnum_publicStaticMethod_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+}
+''');
+  }
+
+  test_publicEnum_publicStaticSetter_notUsed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static set foo(int _) {}
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f(a) {
+  a is _A;
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_parameter() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f(_A a) {}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f() {
+  Map<_A, int>();
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_notUsed() async {
+    await assertErrorsInCode(r'''
+typedef _A = List<int>;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 2),
+    ]);
+  }
+}
+
+@reflectiveTest
+class UnusedElementWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_class_isUsed_extends() async {
     await assertNoErrorsInCode(r'''
@@ -1692,131 +2626,6 @@ class A {
 typedef _F = void Function();
 main() {
 }
-''', [
-      error(HintCode.UNUSED_ELEMENT, 8, 2),
-    ]);
-  }
-}
-
-@reflectiveTest
-class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest {
-  test_optionalParameter_isUsed_genericConstructor() async {
-    await assertNoErrorsInCode('''
-class C<T> {
-  C._([int? x]);
-}
-void foo() {
-  C._(7);
-}
-''');
-  }
-
-  test_optionalParameter_isUsed_genericFunction() async {
-    await assertNoErrorsInCode('''
-void _f<T>([int? x]) {}
-void foo() {
-  _f(7);
-}
-''');
-  }
-
-  test_optionalParameter_isUsed_genericMethod() async {
-    await assertNoErrorsInCode('''
-class C {
-  void _m<T>([int? x]) {}
-}
-void foo() {
-  C()._m(7);
-}
-''');
-  }
-
-  test_optionalParameter_isUsed_overrideRequiredNamed() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  void _m({required int a}) {}
-}
-class B implements A {
-  void _m({int a = 0}) {}
-}
-f() => A()._m(a: 0);
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericConstructor() async {
-    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
-    addTestFile('''
-class C<T> {
-  C._([int? x]);
-}
-void foo() {
-  C._();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericFunction() async {
-    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
-    addTestFile('''
-void _f<T>([int? x]) {}
-void foo() {
-  _f();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericMethod() async {
-    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
-    addTestFile('''
-class C {
-  void _m<T>([int? x]) {}
-}
-void foo() {
-  C()._m();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-  }
-
-  test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
-    await assertNoErrorsInCode(r'''
-typedef _A = List<int>;
-
-void f(a) {
-  a is _A;
-}
-''');
-  }
-
-  test_typeAlias_interfaceType_isUsed_typeName_parameter() async {
-    await assertNoErrorsInCode(r'''
-typedef _A = List<int>;
-
-void f(_A a) {}
-''');
-  }
-
-  test_typeAlias_interfaceType_isUsed_typeName_typeArgument() async {
-    await assertNoErrorsInCode(r'''
-typedef _A = List<int>;
-
-void f() {
-  Map<_A, int>();
-}
-''');
-  }
-
-  test_typeAlias_interfaceType_notUsed() async {
-    await assertErrorsInCode(r'''
-typedef _A = List<int>;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 8, 2),
     ]);

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -18,14 +18,14 @@ static method errors() → dynamic {
   ^^^";
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-static set foo(core::int* value) → void {}
+static set foo(core::int value) → void {}
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self3;
 import "dart:core" as core;
 
-static set foo(core::int* value) → void {}
+static set foo(core::int value) → void {}

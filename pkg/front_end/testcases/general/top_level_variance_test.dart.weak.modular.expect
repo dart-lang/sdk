@@ -119,7 +119,4 @@ static method testNested() → void {
   <Y extends self::B<((dynamic) →* dynamic) →* (dynamic) →* dynamic>* = dynamic>() →* void fsource12 = self::toF<self::B<((dynamic) →* dynamic) →* (dynamic) →* dynamic>*>(source12);
   <Y extends self::B<((dynamic) →* dynamic) →* (dynamic) →* dynamic>* = dynamic>() →* void target12 = fsource12;
 }
-static method main() → dynamic {
-  self::testTopLevel();
-  self::testNested();
-}
+static method main() → dynamic {}

@@ -1,0 +1,570 @@
+Problems reported:
+
+parser/augmentation/top_level_errors:1:9: The modifier 'augment' was already specified.
+augment augment method() {}
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:2:9: Members can't be declared to be both 'external' and 'augment'.
+augment external method();
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:3:10: Members can't be declared to be both 'augment' and 'external'.
+external augment method();
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:5:9: The modifier 'augment' was already specified.
+augment augment void method() {}
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:6:9: Members can't be declared to be both 'external' and 'augment'.
+augment external void method();
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:7:10: Members can't be declared to be both 'augment' and 'external'.
+external augment void method();
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:9:9: The modifier 'augment' was already specified.
+augment augment get getter => null;
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:10:9: Members can't be declared to be both 'external' and 'augment'.
+augment external get getter;
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:11:10: Members can't be declared to be both 'augment' and 'external'.
+external augment get getter;
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:13:9: The modifier 'augment' was already specified.
+augment augment int get getter => 0;
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:14:9: Members can't be declared to be both 'external' and 'augment'.
+augment external int get getter;
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:15:10: Members can't be declared to be both 'augment' and 'external'.
+external augment int get getter;
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:17:9: The modifier 'augment' was already specified.
+augment augment set setter(value) {}
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:18:9: Members can't be declared to be both 'external' and 'augment'.
+augment external set setter(value);
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:19:10: Members can't be declared to be both 'augment' and 'external'.
+external augment set setter(value);
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:21:9: The modifier 'augment' was already specified.
+augment augment void set setter(value) {}
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:22:9: Members can't be declared to be both 'external' and 'augment'.
+augment external void set setter(value);
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:23:10: Members can't be declared to be both 'augment' and 'external'.
+external augment void set setter(value);
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:25:9: The modifier 'augment' was already specified.
+augment augment var field;
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:26:9: Members can't be declared to be both 'external' and 'augment'.
+augment external var field;
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:27:10: Members can't be declared to be both 'augment' and 'external'.
+external augment var field;
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:29:9: The modifier 'augment' was already specified.
+augment augment int field = 0;
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:30:9: Members can't be declared to be both 'external' and 'augment'.
+augment external int field;
+        ^^^^^^^^
+
+parser/augmentation/top_level_errors:31:10: Members can't be declared to be both 'augment' and 'external'.
+external augment int field;
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:33:9: The modifier 'augment' was already specified.
+augment augment class Class {}
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:34:10: The modifier 'augment' should be before the modifier 'abstract'.
+abstract augment class Class {}
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:36:9: The modifier 'augment' was already specified.
+augment augment class Class = Object with Mixin;
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:37:10: The modifier 'augment' should be before the modifier 'abstract'.
+abstract augment class Class = Object with Mixin;
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:39:9: The modifier 'augment' was already specified.
+augment augment mixin Mixin {}
+        ^^^^^^^
+
+beginCompilationUnit(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginTopLevelMethod(, augment, null)
+      handleNoType(augment)
+      handleIdentifier(method, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(augment, null, })
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginTopLevelMethod(}, augment, external)
+      handleNoType(external)
+      handleIdentifier(method, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(augment, null, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginTopLevelMethod(;, augment, external)
+      handleNoType(augment)
+      handleIdentifier(method, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(external, null, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginTopLevelMethod(;, augment, null)
+      handleVoidKeyword(void)
+      handleIdentifier(method, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(augment, null, })
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginTopLevelMethod(}, augment, external)
+      handleVoidKeyword(void)
+      handleIdentifier(method, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(augment, null, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginTopLevelMethod(;, augment, external)
+      handleVoidKeyword(void)
+      handleIdentifier(method, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(external, null, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginTopLevelMethod(;, augment, null)
+      handleNoType(augment)
+      handleIdentifier(getter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(=>)
+      handleNoFormalParameters(=>, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleLiteralNull(null)
+      handleExpressionFunctionBody(=>, ;)
+    endTopLevelMethod(augment, get, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginTopLevelMethod(;, augment, external)
+      handleNoType(external)
+      handleIdentifier(getter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(;)
+      handleNoFormalParameters(;, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(augment, get, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginTopLevelMethod(;, augment, external)
+      handleNoType(augment)
+      handleIdentifier(getter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(;)
+      handleNoFormalParameters(;, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(external, get, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginTopLevelMethod(;, augment, null)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(get)
+      handleType(int, null)
+      handleIdentifier(getter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(=>)
+      handleNoFormalParameters(=>, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleLiteralInt(0)
+      handleExpressionFunctionBody(=>, ;)
+    endTopLevelMethod(augment, get, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginTopLevelMethod(;, augment, external)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(get)
+      handleType(int, null)
+      handleIdentifier(getter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(;)
+      handleNoFormalParameters(;, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(augment, get, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginTopLevelMethod(;, augment, external)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(get)
+      handleType(int, null)
+      handleIdentifier(getter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(;)
+      handleNoFormalParameters(;, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(external, get, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginTopLevelMethod(;, augment, null)
+      handleNoType(augment)
+      handleIdentifier(setter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(value)
+        endMetadataStar(0)
+        beginFormalParameter(value, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(augment, set, })
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginTopLevelMethod(}, augment, external)
+      handleNoType(external)
+      handleIdentifier(setter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(value)
+        endMetadataStar(0)
+        beginFormalParameter(value, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(augment, set, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginTopLevelMethod(;, augment, external)
+      handleNoType(augment)
+      handleIdentifier(setter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(value)
+        endMetadataStar(0)
+        beginFormalParameter(value, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(external, set, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginTopLevelMethod(;, augment, null)
+      handleVoidKeyword(void)
+      handleIdentifier(setter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(value)
+        endMetadataStar(0)
+        beginFormalParameter(value, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(augment, set, })
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginTopLevelMethod(}, augment, external)
+      handleVoidKeyword(void)
+      handleIdentifier(setter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(value)
+        endMetadataStar(0)
+        beginFormalParameter(value, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(augment, set, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginTopLevelMethod(;, augment, external)
+      handleVoidKeyword(void)
+      handleIdentifier(setter, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(value)
+        endMetadataStar(0)
+        beginFormalParameter(value, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleEmptyFunctionBody(;)
+    endTopLevelMethod(external, set, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginFields(DeclarationKind.TopLevel, null, augment, null, null, null, null, var, ;)
+      handleNoType(var)
+      handleIdentifier(field, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(null, null, null, null, var, 1, augment, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginFields(DeclarationKind.TopLevel, null, augment, external, null, null, null, var, ;)
+      handleNoType(var)
+      handleIdentifier(field, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(external, null, null, null, var, 1, augment, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginFields(DeclarationKind.TopLevel, null, augment, external, null, null, null, var, ;)
+      handleNoType(var)
+      handleIdentifier(field, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(external, null, null, null, var, 1, external, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+    beginFields(DeclarationKind.TopLevel, null, augment, null, null, null, null, null, ;)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(field)
+      handleType(int, null)
+      handleIdentifier(field, topLevelVariableDeclaration)
+      beginFieldInitializer(=)
+        handleLiteralInt(0)
+      endFieldInitializer(=, ;)
+    endTopLevelFields(null, null, null, null, null, 1, augment, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+    beginFields(DeclarationKind.TopLevel, null, augment, external, null, null, null, null, ;)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(field)
+      handleType(int, null)
+      handleIdentifier(field, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(external, null, null, null, null, 1, augment, ;)
+  endTopLevelDeclaration(external)
+  beginMetadataStar(external)
+  endMetadataStar(0)
+  beginTopLevelMember(external)
+    handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+    beginFields(DeclarationKind.TopLevel, null, augment, external, null, null, null, null, ;)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(field)
+      handleType(int, null)
+      handleIdentifier(field, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(external, null, null, null, null, 1, external, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, augment, Class)
+      handleNoType(Class)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(abstract)
+  beginMetadataStar(abstract)
+  endMetadataStar(0)
+  handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'abstract'., Try re-ordering the modifiers., {string: augment, string2: abstract}], augment, augment)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(abstract)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(abstract, abstract, null, augment, Class)
+      handleNoType(Class)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(abstract, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(abstract, })
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables(=)
+    beginNamedMixinApplication(class, null, null, augment, Class)
+      handleIdentifier(Object, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Object, null)
+      beginTypeList(Mixin)
+        handleIdentifier(Mixin, typeReference)
+        handleNoTypeArguments(;)
+        handleType(Mixin, null)
+      endTypeList(1)
+      handleNamedMixinApplicationWithClause(with)
+    endNamedMixinApplication(class, class, =, null, ;)
+  endTopLevelDeclaration(abstract)
+  beginMetadataStar(abstract)
+  endMetadataStar(0)
+  handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'abstract'., Try re-ordering the modifiers., {string: augment, string2: abstract}], augment, augment)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(abstract)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables(=)
+    beginNamedMixinApplication(abstract, abstract, null, augment, Class)
+      handleIdentifier(Object, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Object, null)
+      beginTypeList(Mixin)
+        handleIdentifier(Mixin, typeReference)
+        handleNoTypeArguments(;)
+        handleType(Mixin, null)
+      endTypeList(1)
+      handleNamedMixinApplicationWithClause(with)
+    endNamedMixinApplication(abstract, class, =, null, ;)
+  endTopLevelDeclaration(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(mixin)
+    handleIdentifier(Mixin, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginMixinDeclaration(augment, mixin, Mixin)
+      handleMixinOn(null, 0)
+      handleImplements(null, 0)
+      handleMixinHeader(mixin)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Mixin, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Mixin, 0, {, })
+    endMixinDeclaration(mixin, })
+  endTopLevelDeclaration()
+endCompilationUnit(29, )

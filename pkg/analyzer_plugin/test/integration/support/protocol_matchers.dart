@@ -138,6 +138,8 @@ final Matcher isChangeContentOverlay = LazyMatcher(() => MatchesJsonObject(
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
+///   "libraryUri": optional String
+///   "isNotImported": optional bool
 /// }
 final Matcher isCompletionSuggestion =
     LazyMatcher(() => MatchesJsonObject('CompletionSuggestion', {
@@ -165,7 +167,8 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
-          'libraryUriToImportIndex': isInt
+          'libraryUri': isString,
+          'isNotImported': isBool
         }));
 
 /// CompletionSuggestionKind
@@ -378,6 +381,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -459,6 +463,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'DYNAMIC_PARAMETER_REFERENCE',
   'ENUM',
   'ENUM_CONSTANT',
+  'EXTENSION',
   'FIELD',
   'FIELD_STATIC',
   'FUNCTION',

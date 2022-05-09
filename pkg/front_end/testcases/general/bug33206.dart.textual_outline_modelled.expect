@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'dart:async';
 
 Future<List<Object>> f1() async {}

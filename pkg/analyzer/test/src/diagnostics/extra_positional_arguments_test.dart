@@ -60,6 +60,36 @@ main() {
     ]);
   }
 
+  test_context() async {
+    // No context type should be supplied when type inferring an extra
+    // positional argument, even if there is an unmatched name parameter.
+    await assertErrorsInCode(r'''
+T f<T>() => throw '$T';
+g({int? named}) {}
+main() {
+  g(f());
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 56,
+          3),
+    ]);
+    assertType(
+        findNode.methodInvocation('f()').typeArgumentTypes!.single, 'dynamic');
+  }
+
+  test_enumConstant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(0);
+  const E({int? a});
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 13,
+          1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+    ]);
+  }
+
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {
@@ -123,6 +153,16 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 1),
+    ]);
+  }
+
+  test_enumConstant() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v(0)
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 13, 1),
     ]);
   }
 

@@ -43,7 +43,7 @@ class IncrementalSerializer {
         Uri uri = lib.importUri;
         // Uris need to be unique.
         if (!uris.add(lib.fileUri)) return false;
-        if (uri.scheme == "package") {
+        if (uri.isScheme("package")) {
           String thisPackageName = uri.pathSegments.first;
           if (packageName == null) {
             packageName = thisPackageName;
@@ -117,7 +117,7 @@ class IncrementalSerializer {
     List<Library> nonPackageLibraries = <Library>[];
     for (Library lib in component.libraries) {
       Uri uri = lib.importUri;
-      if (uri.scheme == "package") {
+      if (uri.isScheme("package")) {
         packageLibraries.add(lib);
       } else {
         nonPackageLibraries.add(lib);
@@ -175,11 +175,11 @@ class IncrementalSerializer {
   }
 
   bool isSelfContained(Component component) {
-    Set<Library> got = new Set<Library>.from(component.libraries);
+    Set<Library> got = new Set<Library>.of(component.libraries);
     for (Library lib in component.libraries) {
       for (LibraryDependency dependency in lib.dependencies) {
         if (!got.contains(dependency.targetLibrary)) {
-          if (dependency.targetLibrary.importUri.scheme == "dart") {
+          if (dependency.targetLibrary.importUri.isScheme("dart")) {
             continue;
           }
           return false;
@@ -241,7 +241,7 @@ class IncrementalSerializer {
     for (Library lib in libraries) {
       for (LibraryDependency dep in lib.dependencies) {
         Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
-        if (dependencyLibrary.importUri.scheme != "package") continue;
+        if (!dependencyLibrary.importUri.isScheme("package")) continue;
         Uri dependencyLibraryUri =
             dep.importedLibraryReference.asLibrary.fileUri;
         SerializationGroup? depGroup = uriToGroup[dependencyLibraryUri];

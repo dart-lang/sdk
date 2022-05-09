@@ -4,11 +4,12 @@
 
 library front_end.compiler_options;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Version;
+import 'package:kernel/ast.dart' show Component, Version;
 
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
@@ -17,19 +18,17 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../base/nnbd_mode.dart';
 
+import '../macro_serializer.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
-        defaultExperimentalFlags,
         ExperimentalFlag,
-        expiredExperimentalFlags,
+        GlobalFeatures,
         parseExperimentalFlag;
 
 import 'experimental_flags.dart' as flags
     show
         getExperimentEnabledVersionInLibrary,
-        isExperimentEnabled,
-        isExperimentEnabledInLibrary,
         isExperimentEnabledInLibraryByVersion;
 
 import 'file_system.dart' show FileSystem;
@@ -108,6 +107,34 @@ class CompilerOptions {
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
+
+  /// Function that creates a [MacroExecutor] if supported.
+  ///
+  /// This is part of the experimental macro feature.
+  Future<MacroExecutor> Function() macroExecutorProvider =
+      () async => throw 'Macro execution is not supported.';
+
+  /// Map from library import [Uri]s of libraries that declare macros to
+  /// the [Uri] for the precompiled dill that contains the macro code.
+  ///
+  /// This is part of the experimental macro feature.
+  Map<Uri, Uri>? precompiledMacroUris;
+
+  /// The [Target] used for compiling macros.
+  ///
+  /// If `null`, macro declarations will not be precompiled, even when other
+  /// libraries depend on them.
+  /// This is part of the experimental macro feature.
+  Target? macroTarget;
+
+  /// Function that can create a [Uri] for the serialized result of a
+  /// [Component].
+  ///
+  /// This is used to turn a precompiled macro into a [Uri] that can be loaded
+  /// by the macro executor provided by [macroExecutorProvider].
+  ///
+  /// This is part of the experimental macro feature.
+  MacroSerializer? macroSerializer;
 
   /// Whether to generate code for the SDK.
   ///
@@ -245,29 +272,14 @@ class CompilerOptions {
   /// Verbosity level used for filtering emitted messages.
   Verbosity verbosity = Verbosity.all;
 
-  /// Returns `true` if the experiment with the given [flag] is enabled, either
-  /// explicitly or implicitly.
-  ///
-  /// Note that libraries can still opt out of the experiment by having a lower
-  /// language version than required for the experiment.
-  bool isExperimentEnabled(ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
-  }
+  GlobalFeatures? _globalFeatures;
 
-  /// Returns `true` if the experiment with the given [flag] is enabled either
-  /// explicitly or implicitly for the library with the given [importUri].
-  ///
-  /// Note that the library can still opt out of the experiment by having a
-  /// lower language version than required for the experiment. See
-  /// [getExperimentEnabledVersionInLibrary].
-  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
-    return flags.isExperimentEnabledInLibrary(flag, importUri,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
-  }
+  GlobalFeatures get globalFeatures => _globalFeatures ??= new GlobalFeatures(
+      explicitExperimentalFlags,
+      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
+      allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
 
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt in to the experiment with the given [flag].
@@ -413,8 +425,8 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
               "Experiment specified with conflicting values: " + experiment);
         }
       } else {
-        if (expiredExperimentalFlags[flag]!) {
-          if (value != defaultExperimentalFlags[flag]) {
+        if (flag.isExpired) {
+          if (value != flag.isEnabledByDefault) {
             /// Produce an error when the value is not the default value.
             if (value) {
               onError("Enabling experiment " +
@@ -425,7 +437,7 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
                   experiment +
                   " is no longer supported.");
             }
-            value = defaultExperimentalFlags[flag]!;
+            value = flag.isEnabledByDefault;
           } else if (onWarning != null) {
             /// Produce a warning when the value is the default value.
             if (value) {

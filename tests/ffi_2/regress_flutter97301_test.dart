@@ -20,4 +20,6 @@ main() {
   for (var i = 0; i < 2; i++) {
     print(offsetsPtr.asTypedList(1));
   }
+
+  calloc.free(offsetsPtr);
 }

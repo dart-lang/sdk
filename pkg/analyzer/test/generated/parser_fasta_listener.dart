@@ -86,9 +86,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token beginToken, Token? abstractToken, Token? macroToken, Token name) {
-    super.beginClassDeclaration(beginToken, abstractToken, macroToken, name);
+  void beginClassDeclaration(Token beginToken, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
+    super.beginClassDeclaration(
+        beginToken, abstractToken, macroToken, augmentToken, name);
     begin('ClassDeclaration');
   }
 
@@ -367,20 +368,22 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    super.beginMethod(declarationKind, externalToken, staticToken,
+    super.beginMethod(declarationKind, augmentToken, externalToken, staticToken,
         covariantToken, varFinalOrConst, getOrSet, name);
     begin('Method');
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
-    super.beginMixinDeclaration(mixinKeyword, name);
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(augmentToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -391,10 +394,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginNamedMixinApplication(
-      Token beginToken, Token? abstractToken, Token? macroToken, Token name) {
+  void beginNamedMixinApplication(Token beginToken, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {
     super.beginNamedMixinApplication(
-        beginToken, abstractToken, macroToken, name);
+        beginToken, abstractToken, macroToken, augmentToken, name);
     begin('NamedMixinApplication');
   }
 
@@ -477,8 +480,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
-    super.beginTopLevelMethod(lastConsumed, externalToken);
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    super.beginTopLevelMethod(lastConsumed, augmentToken, externalToken);
     begin('TopLevelMethod');
   }
 
@@ -630,6 +634,7 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -642,6 +647,7 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endClassFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -756,6 +762,7 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -767,6 +774,7 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endEnumFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -817,6 +825,7 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -829,6 +838,7 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endExtensionFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -966,9 +976,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     end('Import');
-    super.endImport(importKeyword, semicolon);
+    super.endImport(importKeyword, augmentToken, semicolon);
   }
 
   @override
@@ -1076,6 +1086,7 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1088,6 +1099,7 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endMixinFields(
         abstractToken,
+        augmentToken,
         externalToken,
         staticToken,
         covariantToken,

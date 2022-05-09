@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class GM<T extends core::Object? = dynamic> extends core::Enum /*isMixinDeclaration*/  {
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+}
+abstract class GI<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GI<self::GI::T%>
+    ;
+}
+abstract class _E&_Enum&GM<S extends core::num, T extends core::num> = core::_Enum with self::GM<self::_E&_Enum&GM::T> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&GM<self::_E&_Enum&GM::S, self::_E&_Enum&GM::T>
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E&_Enum&GM&M<S extends core::num, T extends core::num> = self::_E&_Enum&GM<self::_E&_Enum&GM&M::S, self::_E&_Enum&GM&M::T> with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&GM&M<self::_E&_Enum&GM&M::S, self::_E&_Enum&GM&M::T>
+    : super self::_E&_Enum&GM::•(index, _name)
+    ;
+}
+class E<S extends core::num, T extends core::num> extends self::_E&_Enum&GM&M<self::E::S, self::E::T> implements self::I, self::GI<self::E::S> /*isEnum*/  {
+  static const field core::List<self::E<core::num, core::num>> values = const <self::E<dynamic, dynamic>>[self::E::element];
+  static const field self::E<core::num, core::num> element = const self::E::•<core::num, core::num>(0, "element");
+  const constructor •(core::int index, core::String name) → self::E<self::E::S, self::E::T>
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:16:6 -> ListConstant(const <E<dynamic, dynamic>*>[const E<num*, num*>{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:18:27 -> InstanceConstant(const E<num*, num*>{})
+Extra constant evaluation: evaluated: 9, effectively constant: 2

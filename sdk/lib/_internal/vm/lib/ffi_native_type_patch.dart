@@ -4,9 +4,9 @@
 
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
-import "dart:_internal" show patch;
-import 'dart:typed_data';
+import 'dart:_internal';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 // NativeType is not private, because it is used in type arguments.
 // NativeType is abstract because it not used with const constructors in
@@ -54,11 +54,6 @@ class Uint32 extends _NativeInteger {}
 @patch
 @pragma("vm:entry-point")
 class Uint64 extends _NativeInteger {}
-
-// TODO(http://dartbug.com/47938): Implement as AbiSpecificInteger.
-@patch
-@pragma("vm:entry-point")
-class IntPtr extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")

@@ -126,8 +126,8 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {}
+  void beginClassDeclaration(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -186,7 +186,8 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(
+      Token? augmentToken, Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -436,6 +437,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by [beginFields].
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -456,6 +458,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by [beginFields].
   void endMixinFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -465,8 +468,17 @@ class Listener implements UnescapeErrorListener {
       Token beginToken,
       Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   /// Handle the end of a extension field declaration.  Substructures:
@@ -478,6 +490,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by [beginFields].
   void endExtensionFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -487,8 +500,17 @@ class Listener implements UnescapeErrorListener {
       Token beginToken,
       Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   /// Handle the end of an enum field declaration.  Substructures:
@@ -500,6 +522,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by [beginFields].
   void endEnumFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -508,8 +531,17 @@ class Listener implements UnescapeErrorListener {
       int count,
       Token beginToken,
       Token endToken) {
-    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    endClassFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   /// Handle the end of an enum method declaration.  Substructures:
@@ -720,8 +752,8 @@ class Listener implements UnescapeErrorListener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {}
+  void beginNamedMixinApplication(Token begin, Token? abstractToken,
+      Token? macroToken, Token? augmentToken, Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").
   /// Substructures:
@@ -801,7 +833,7 @@ class Listener implements UnescapeErrorListener {
   /// - conditional uris
   /// - prefix identifier
   /// - combinators
-  void endImport(Token importKeyword, Token? semicolon) {
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     logEvent("Import");
   }
 
@@ -977,6 +1009,7 @@ class Listener implements UnescapeErrorListener {
   /// [endMixinMethod].
   void beginMethod(
       DeclarationKind declarationKind,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1249,6 +1282,7 @@ class Listener implements UnescapeErrorListener {
   void beginFields(
       DeclarationKind declarationKind,
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1276,7 +1310,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("TopLevelFields");
   }
 
-  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {}
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata

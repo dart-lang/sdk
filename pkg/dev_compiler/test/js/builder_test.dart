@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 import 'package:dev_compiler/src/js_ast/js_ast.dart';
 import 'package:test/test.dart';
 

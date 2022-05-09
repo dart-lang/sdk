@@ -32,16 +32,6 @@ class InstructionPattern : public AllStatic {
   // Decodes a load sequence ending at 'end' (the last instruction of the
   // load sequence is the instruction before the one at end).  Returns the
   // address of the first instruction in the sequence.  Returns the register
-  // being loaded and the loaded object in the output parameters 'reg' and
-  // 'obj' respectively.
-  static uword DecodeLoadObject(uword end,
-                                const ObjectPool& object_pool,
-                                Register* reg,
-                                Object* obj);
-
-  // Decodes a load sequence ending at 'end' (the last instruction of the
-  // load sequence is the instruction before the one at end).  Returns the
-  // address of the first instruction in the sequence.  Returns the register
   // being loaded and the loaded immediate value in the output parameters
   // 'reg' and 'value' respectively.
   static uword DecodeLoadWordImmediate(uword end,

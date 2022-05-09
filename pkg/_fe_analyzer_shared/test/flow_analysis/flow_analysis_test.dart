@@ -34,6 +34,7 @@ main() {
       var h = Harness();
       var x = Var('x', 'int?');
       h.run([
+        declare(x, initialized: true),
         assert_(x.expr.eq(nullLiteral),
             checkPromoted(x, 'int').thenExpr(expr('String'))),
       ]);
@@ -45,6 +46,9 @@ main() {
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
       h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
         x.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
         assert_(block([
@@ -1008,9 +1012,10 @@ main() {
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
+        declare(x, initialized: true),
         declare(y, initialized: true),
         y.expr.as_('int').stmt,
-        getSsaNodes((nodes) => expect(nodes[x], null)),
+        getSsaNodes((nodes) => expect(nodes[x], isNotNull)),
         localFunction([
           getSsaNodes((nodes) => expect(nodes[x], isNot(nodes[y]))),
           x.expr.as_('int').stmt,
@@ -1019,7 +1024,6 @@ main() {
           checkNotPromoted(x),
         ]),
         localFunction([
-          declare(x, initialized: true),
           x.write(expr('Null')).stmt,
         ]),
       ]);
@@ -1384,6 +1388,7 @@ main() {
       var y = Var('y', 'int?');
       late ExpressionInfo<Var, Type> writtenValueInfo;
       h.run([
+        declare(y, initialized: true),
         declareInitialized(
             x,
             y.expr.eq(nullLiteral).getExpressionInfo((info) {
@@ -1401,6 +1406,7 @@ main() {
       var x = Var('x', 'Object', isLate: true);
       var y = Var('y', 'int?');
       h.run([
+        declare(y, initialized: true),
         declareInitialized(x, y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNull);
@@ -1415,6 +1421,7 @@ main() {
       var x = Var('x', 'Object', isImplicitlyTyped: true);
       var y = Var('y', 'int?');
       h.run([
+        declare(y, initialized: true),
         declareInitialized(x, y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNull);
@@ -1429,6 +1436,7 @@ main() {
       var x = Var('x', 'Object', isImplicitlyTyped: true);
       var y = Var('y', 'int?');
       h.run([
+        declare(y, initialized: true),
         declareInitialized(x, y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNotNull);
@@ -1443,6 +1451,7 @@ main() {
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       h.run([
+        declare(y, initialized: true),
         declareInitialized(x, y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNotNull);
@@ -1853,6 +1862,7 @@ main() {
       var h = Harness();
       var x = Var('x', 'int?');
       h.run([
+        declare(x, initialized: true),
         if_(
             x.expr.parenthesized.notEq(nullLiteral.parenthesized).parenthesized,
             [
@@ -3039,6 +3049,7 @@ main() {
       late ExpressionInfo<Var, Type> writtenValueInfo;
       h.run([
         declare(x, initialized: true),
+        declare(y, initialized: true),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
         x
             .write(y.expr.eq(nullLiteral).getExpressionInfo((info) {
@@ -3184,6 +3195,25 @@ main() {
         checkNotPromoted(x),
         // And further attempts to promote should fail due to the write capture.
         x.expr.as_('int').stmt, checkNotPromoted(x),
+      ]);
+    });
+
+    test('issue 47991', () {
+      var h = Harness();
+      var b = Var('b', 'bool');
+      var i = Var('i', 'int', isFinal: true);
+      h.run([
+        localFunction([
+          declareInitialized(b, expr('bool').or(expr('bool'))),
+          declare(i, initialized: false),
+          if_(b.expr, [
+            checkUnassigned(i, true),
+            i.write(expr('int')).stmt,
+          ], [
+            checkUnassigned(i, true),
+            i.write(expr('int')).stmt,
+          ]),
+        ]),
       ]);
     });
   });
@@ -5871,17 +5901,17 @@ class _MockNonPromotionReason extends NonPromotionReason {
 }
 
 extension on FlowModel<Var, Type> {
+  ExpressionInfo<Var, Type> _tryMarkNonNullable(Harness h, Var variable) =>
+      tryMarkNonNullable(h, _varRefWithType(variable));
+
+  ExpressionInfo<Var, Type> _tryPromoteForTypeCheck(
+          Harness h, Var variable, String type) =>
+      tryPromoteForTypeCheck(h, _varRefWithType(variable), Type(type));
+
   Reference<Var, Type> _varRef(Var variable) =>
       new VariableReference<Var, Type>(variable);
 
   ReferenceWithType<Var, Type> _varRefWithType(Var variable) =>
       new ReferenceWithType<Var, Type>(_varRef(variable),
           variableInfo[variable]?.promotedTypes?.last ?? variable.type);
-
-  ExpressionInfo<Var, Type> _tryPromoteForTypeCheck(
-          Harness h, Var variable, String type) =>
-      tryPromoteForTypeCheck(h, _varRefWithType(variable), Type(type));
-
-  ExpressionInfo<Var, Type> _tryMarkNonNullable(Harness h, Var variable) =>
-      tryMarkNonNullable(h, _varRefWithType(variable));
 }

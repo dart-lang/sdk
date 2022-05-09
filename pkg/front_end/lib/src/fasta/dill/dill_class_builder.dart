@@ -47,17 +47,27 @@ class DillClassBuilder extends ClassBuilderImpl {
             cls.fileOffset);
 
   @override
-  DillLibraryBuilder get library => super.library as DillLibraryBuilder;
+  bool get isEnum => cls.isEnum;
+
+  @override
+  DillClassBuilder get origin => this;
+
+  @override
+  DillLibraryBuilder get libraryBuilder =>
+      super.libraryBuilder as DillLibraryBuilder;
 
   @override
   bool get isMacro => cls.isMacro;
+
+  @override
+  bool get isAugmentation => false;
 
   @override
   List<TypeVariableBuilder>? get typeVariables {
     List<TypeVariableBuilder>? typeVariables = super.typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
       typeVariables = super.typeVariables =
-          computeTypeVariableBuilders(library, cls.typeParameters);
+          computeTypeVariableBuilders(libraryBuilder, cls.typeParameters);
     }
     return typeVariables;
   }
@@ -72,30 +82,27 @@ class DillClassBuilder extends ClassBuilderImpl {
       Supertype? targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
       super.supertypeBuilder =
-          supertype = computeTypeBuilder(library, targetSupertype);
+          supertype = computeTypeBuilder(libraryBuilder, targetSupertype);
     }
     return supertype;
   }
 
-  @override
-  Class get actualCls => cls;
-
   void addField(Field field) {
     DillFieldBuilder builder = new DillFieldBuilder(field, this);
     String name = field.name.text;
-    scopeBuilder.addMember(name, builder);
+    scope.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
     DillConstructorBuilder builder =
         new DillConstructorBuilder(constructor, constructorTearOff, this);
     String name = constructor.name.text;
-    constructorScopeBuilder.addMember(name, builder);
+    constructorScope.addLocalMember(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    constructorScopeBuilder.addMember(
+    constructorScope.addLocalMember(
         name, new DillFactoryBuilder(factory, factoryTearOff, this));
   }
 
@@ -105,16 +112,20 @@ class DillClassBuilder extends ClassBuilderImpl {
       case ProcedureKind.Factory:
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        scopeBuilder.addSetter(name, new DillSetterBuilder(procedure, this));
+        scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+            setter: true);
         break;
       case ProcedureKind.Getter:
-        scopeBuilder.addMember(name, new DillGetterBuilder(procedure, this));
+        scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+            setter: false);
         break;
       case ProcedureKind.Operator:
-        scopeBuilder.addMember(name, new DillOperatorBuilder(procedure, this));
+        scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+            setter: false);
         break;
       case ProcedureKind.Method:
-        scopeBuilder.addMember(name, new DillMethodBuilder(procedure, this));
+        scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+            setter: false);
         break;
     }
   }
@@ -150,7 +161,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   TypeBuilder? get mixedInTypeBuilder {
-    return computeTypeBuilder(library, cls.mixedInType);
+    return computeTypeBuilder(libraryBuilder, cls.mixedInType);
   }
 
   @override
@@ -164,11 +175,18 @@ class DillClassBuilder extends ClassBuilderImpl {
     if (super.interfaceBuilders == null) {
       List<TypeBuilder> result = new List<TypeBuilder>.generate(
           cls.implementedTypes.length,
-          (int i) => computeTypeBuilder(library, cls.implementedTypes[i])!,
+          (int i) =>
+              computeTypeBuilder(libraryBuilder, cls.implementedTypes[i])!,
           growable: false);
       super.interfaceBuilders = result;
     }
     return super.interfaceBuilders;
+  }
+
+  @override
+  void forEachConstructor(void Function(String, MemberBuilder) f,
+      {bool includeInjectedConstructors: false}) {
+    constructorScope.forEach(f);
   }
 
   void clearCachedValues() {

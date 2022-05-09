@@ -30,6 +30,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
@@ -204,12 +205,13 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     // emit the data as a table
     buf.writeln('<table>');
     buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
+        '<tr><th>Time</th><th>Computed Results</th><th>Transmitted Results</th><th>Source</th><th>Snippet</th></tr>');
     for (var completion in completions) {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCountStr}</td>'
+          '<td class="right">${completion.computedSuggestionCountStr}</td>'
+          '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');
@@ -501,8 +503,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('<p>');
     buf.writeln(
         writeOption('Has .packages file', folder.getChild('.packages').exists));
-    buf.writeln(writeOption(
-        'Has pubspec.yaml file', folder.getChild('pubspec.yaml').exists));
+    buf.writeln(writeOption('Has pubspec.yaml file',
+        folder.getChild(file_paths.pubspecYaml).exists));
     buf.writeln('</p>');
 
     buf.writeln('</div>');

@@ -16,7 +16,7 @@ class StaticTypeCache {
       [this._expressionTypes = const {}, this._forInIteratorTypes]);
 
   factory StaticTypeCache.readFromDataSource(
-      DataSource source, ir.Member context) {
+      DataSourceReader source, ir.Member context) {
     return source.inMemberContext(context, () {
       source.begin(tag);
       Map<ir.Expression, ir.DartType> expressionTypes =
@@ -28,7 +28,7 @@ class StaticTypeCache {
     });
   }
 
-  void writeToDataSink(DataSink sink, ir.Member context) {
+  void writeToDataSink(DataSinkWriter sink, ir.Member context) {
     sink.inMemberContext(context, () {
       sink.begin(tag);
       sink.writeTreeNodeMapInContext(_expressionTypes, sink.writeDartTypeNode);

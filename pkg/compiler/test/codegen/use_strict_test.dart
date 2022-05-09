@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 

@@ -246,13 +246,23 @@ class B extends A {
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 70, 5),
     ]);
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('super.m()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('super.m()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_staticVariableInitializer() async {

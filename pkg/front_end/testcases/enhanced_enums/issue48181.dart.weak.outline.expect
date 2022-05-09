@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+//   f3.foo();
+//     ^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+//   f1,
+//     ^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
+//   f2(42),
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::e1, self::E::e2];
+  static const field self::E e1 = const self::E::•(0, "e1");
+  static const field self::E e2 = const self::E::•(1, "e2");
+  const constructor •(core::int index, core::String name) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  static factory f(core::int i) → self::E
+    ;
+}
+class F extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::F> values = const <self::F>[self::F::f1, self::F::f2, self::F::f3];
+  static const field self::F f1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+  f1,
+    ^";
+  static const field self::F f2 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
+  f2(42),
+    ^";
+  static const field self::F f3 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+  f3.foo();
+    ^^^";
+  method toString() → core::String
+    return "F.${this.{core::_Enum::_name}{core::String}}";
+  static factory •(core::int i) → self::F
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48181.dart:5:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "e1"}, const E{_Enum.index: 1, _Enum._name: "e2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48181.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48181.dart:7:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "e2"})
+Extra constant evaluation: evaluated: 15, effectively constant: 3

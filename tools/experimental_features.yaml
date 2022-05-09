@@ -103,7 +103,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.16.0'
+current-version: '2.17.0'
 
 features:
   variance:
@@ -122,17 +122,11 @@ features:
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
-  enhanced-enums:
-    help: "Enhanced Enums"
-
-  named-arguments-anywhere:
-    help: "Named Arguments Anywhere"
-
-  super-parameters:
-    help: "Super-Initializer Parameters"
-
   macros:
     help: "Static meta-programming"
+
+  inference-update-1:
+    help: "Enhanced type inference"
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -223,4 +217,47 @@ features:
       void main() {
         var c = A.new;
         c();
+      }
+    expired: true
+
+  enhanced-enums:
+    help: "Enhanced Enums"
+    enabledIn: '2.17.0'
+    validation: |
+      enum T {
+        t();
+        void test() {
+          print('feature enabled');
+        }
+      }
+      void main() {
+        T.t.test();
+      }
+
+  named-arguments-anywhere:
+    help: "Named Arguments Anywhere"
+    enabledIn: '2.17.0'
+    validation: |
+      void test(String msg, {bool enabled : false}) {
+        if (enabled) {
+          print(msg);
+        }
+      }
+      void main() {
+        test(enabled : true, 'feature enabled');
+      }
+
+  super-parameters:
+    help: "Super-Initializer Parameters"
+    enabledIn: '2.17.0'
+    validation: |
+      class B {
+        final String foo;
+         B(this.foo);
+      }
+      class C extends B {
+        C(super.foo);
+      }
+      void main(){
+        print(C('feature enabled').foo);
       }

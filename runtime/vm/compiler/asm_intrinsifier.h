@@ -31,10 +31,6 @@ class AsmIntrinsifier : public AllStatic {
  private:
   friend class Intrinsifier;
 
-  // The "_A" value used in the intrinsification of
-  // `runtime/lib/math_patch.dart:_Random._nextState()`
-  static const int64_t kRandomAValue = 0xffffda61;
-
 #define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \
   static void enum_name(Assembler* assembler, Label* normal_ir_body);
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)

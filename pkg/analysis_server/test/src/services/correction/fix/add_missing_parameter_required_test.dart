@@ -161,12 +161,12 @@ class AddMissingParameterRequiredTest_Workspace
   ChangeWorkspace? _workspace;
 
   @override
-  ChangeWorkspace get workspace {
-    return _workspace ?? super.workspace;
+  Future<ChangeWorkspace> get workspace async {
+    return _workspace ?? await super.workspace;
   }
 
   Future<void> test_function_inPackage_inWorkspace() async {
-    newFile('/home/aaa/lib/a.dart', content: 'void test() {}');
+    newFile2('/home/aaa/lib/a.dart', 'void test() {}');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -174,8 +174,8 @@ class AddMissingParameterRequiredTest_Workspace
     );
 
     _workspace = DartChangeWorkspace([
-      session,
-      getContext('/home/aaa').currentSession,
+      await session,
+      await sessionFor('/home/aaa'),
     ]);
 
     await resolveTestCode('''
@@ -193,7 +193,7 @@ main() {
   }
 
   Future<void> test_function_inPackage_outsideWorkspace() async {
-    newFile('/home/bbb/lib/b.dart', content: 'void test() {}');
+    newFile2('/home/bbb/lib/b.dart', 'void test() {}');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()

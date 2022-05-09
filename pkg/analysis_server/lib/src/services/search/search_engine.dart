@@ -23,6 +23,11 @@ class MatchKind {
   /// A reference to an element in which it is being invoked.
   static const MatchKind INVOCATION = MatchKind('INVOCATION');
 
+  /// An invocation of an enum constructor from an enum constant without
+  /// arguments.
+  static const MatchKind INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS =
+      MatchKind('INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS');
+
   /// A reference to an element in which it is referenced.
   static const MatchKind REFERENCE = MatchKind('REFERENCE');
 

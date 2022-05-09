@@ -172,11 +172,9 @@ void defineAnalysisError() {
 }
 
 void defineAnalyze() {
-  TestProject p;
+  late TestProject p;
 
-  setUp(() => p = null);
-
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -199,9 +197,9 @@ void defineAnalyze() {
   });
 
   group('multiple items', () {
-    TestProject secondProject;
+    late TestProject secondProject;
 
-    tearDown(() async => await secondProject?.dispose());
+    tearDown(() async => await secondProject.dispose());
 
     test('folder and file', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
@@ -340,7 +338,7 @@ void defineAnalyze() {
   });
 
   test('info implicit no --fatal-infos', () async {
-    p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
+    p = project(mainSrc: '${dartVersionFilePrefix2_9}String foo() {}');
     var result = await p.run(['analyze', p.dirPath]);
 
     expect(result.exitCode, 0);
@@ -349,7 +347,7 @@ void defineAnalyze() {
   });
 
   test('info --fatal-infos', () async {
-    p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
+    p = project(mainSrc: '${dartVersionFilePrefix2_9}String foo() {}');
     var result = await p.run(['analyze', '--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
@@ -401,7 +399,7 @@ void f() {
 ''');
       var result = await p.run([
         'analyze',
-        '--packages=${p.findFile('my_packages.json').path}',
+        '--packages=${p.findFile('my_packages.json')!.path}',
         p.dirPath,
       ]);
 

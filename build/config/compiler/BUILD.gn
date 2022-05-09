@@ -258,6 +258,12 @@ config("compiler") {
       } else if (current_cpu == "arm64") {
         cflags += [ "--target=aarch64-linux-gnu" ]
         ldflags += [ "--target=aarch64-linux-gnu" ]
+      } else if (current_cpu == "riscv32") {
+        cflags += [ "--target=riscv32-linux-gnu" ]
+        ldflags += [ "--target=riscv32-linux-gnu" ]
+      } else if (current_cpu == "riscv64") {
+        cflags += [ "--target=riscv64-linux-gnu" ]
+        ldflags += [ "--target=riscv64-linux-gnu" ]
       } else if (current_cpu == "x86") {
         cflags += [ "--target=i386-linux-gnu" ]
         ldflags += [ "--target=i386-linux-gnu" ]
@@ -353,7 +359,10 @@ config("compiler") {
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
-    if (is_linux) {
+    if (is_linux && host_cpu == "arm64") {
+      toolchain_stamp_file =
+          "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
+    } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
     } else {
@@ -554,7 +563,7 @@ if (is_win) {
   if (is_clang) {
     default_warning_flags += [
       "-Wno-tautological-constant-compare",
-      "-Wno-unused-but-set-variable", # icu
+      "-Wno-unused-but-set-variable",  # icu
     ]
   } else {
     default_warning_flags +=
@@ -700,6 +709,7 @@ if (is_win) {
   common_optimize_on_ldflags = [
     # Linker GC.
     "/OPT:REF",
+
     # Identical code folding to reduce size.
     # Warning: This changes C/C++ semantics of function pointer comparison.
     "/OPT:ICF",
@@ -770,10 +780,17 @@ config("no_optimize") {
   if (is_win) {
     # The only difference on windows is that the inlining is less aggressive.
     # (We accept the default level). Otherwise it is very slow.
-    cflags = [
-      "/O${debug_optimization_level}",  # Do some optimizations.
-      "/Oy-",  # Disable omitting frame pointers, must be after /O2.
-    ]
+    if (is_clang && debug_optimization_level != "2") {
+      cflags = [
+        "-d${debug_optimization_level}",  # Do some optimizations.
+        "/Oy-",  # Disable omitting frame pointers, must be after /O2.
+      ]
+    } else {
+      cflags = [
+        "/O${debug_optimization_level}",  # Do some optimizations.
+        "/Oy-",  # Disable omitting frame pointers, must be after /O2.
+      ]
+    }
   } else if (is_android) {
     # On Android we kind of optimize some things that don't affect debugging
     # much even when optimization is disabled to get the binary size down.

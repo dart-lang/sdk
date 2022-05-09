@@ -1175,7 +1175,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('A.n');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type2, isNotNull);
+    expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1184,7 +1184,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('p.A.n');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type2, isNotNull);
+    expect(name.type, isNotNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
   }
@@ -1193,7 +1193,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('A');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type2, isNotNull);
+    expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1202,7 +1202,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('p.A');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type2, isNotNull);
+    expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1250,8 +1250,8 @@ abstract class Foo {}
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.extendsKeyword, isNotNull);
-    expect(clause.superclass2, isNotNull);
-    expect(clause.superclass2, isNamedType);
+    expect(clause.superclass, isNotNull);
+    expect(clause.superclass, isNamedType);
   }
 
   void test_parseFunctionBody_block() {
@@ -1385,7 +1385,7 @@ abstract class Foo {}
     ImplementsClause clause = parseImplementsClause('implements A, B, C');
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
-    expect(clause.interfaces2, hasLength(3));
+    expect(clause.interfaces, hasLength(3));
     expect(clause.implementsKeyword, isNotNull);
   }
 
@@ -1393,7 +1393,7 @@ abstract class Foo {}
     ImplementsClause clause = parseImplementsClause('implements A');
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
-    expect(clause.interfaces2, hasLength(1));
+    expect(clause.interfaces, hasLength(1));
     expect(clause.implementsKeyword, isNotNull);
   }
 
@@ -1436,7 +1436,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var creation = body.expression as InstanceCreationExpressionImpl;
     expect(creation.keyword, isNull);
     ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type2.toSource(), 'C<E>');
+    expect(constructorName.type.toSource(), 'C<E>');
     expect(constructorName.period, isNotNull);
     expect(constructorName.name, isNotNull);
     expect(creation.argumentList, isNotNull);
@@ -1471,7 +1471,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var creation = body.expression as InstanceCreationExpression;
     expect(creation.keyword, isNull);
     ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type2.toSource(), 'p.C<E>');
+    expect(constructorName.type.toSource(), 'p.C<E>');
     expect(constructorName.period, isNotNull);
     expect(constructorName.name, isNotNull);
     expect(creation.argumentList, isNotNull);
@@ -1990,8 +1990,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_final_late() {
-    var statement = parseStatement('final late a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('final late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
         errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
@@ -2001,8 +2001,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late() {
-    var statement = parseStatement('late a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement = parseStatement('late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(errors: [
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
@@ -2013,8 +2012,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_final() {
-    var statement = parseStatement('late final a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late final a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.keyword!.lexeme, 'final');
@@ -2023,8 +2022,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_init() {
-    var statement = parseStatement('late a = 0;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late a = 0;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(errors: [
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
@@ -2035,8 +2034,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_type() {
-    var statement = parseStatement('late A a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement = parseStatement('late A a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.lateKeyword, isNotNull);
@@ -2046,8 +2044,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_var() {
-    var statement = parseStatement('late var a;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late var a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.lateKeyword, isNotNull);
@@ -2057,8 +2055,8 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseVariableDeclaration_late_var_init() {
-    var statement = parseStatement('late var a = 0;', featureSet: nonNullable)
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('late var a = 0;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();
     expect(declarationList.lateKeyword, isNotNull);
@@ -2081,7 +2079,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes2, hasLength(3));
+    expect(clause.mixinTypes, hasLength(3));
   }
 
   void test_parseWithClause_single() {
@@ -2089,7 +2087,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes2, hasLength(1));
+    expect(clause.mixinTypes, hasLength(1));
   }
 
   void test_typeAlias_37733() {

@@ -11,12 +11,13 @@ import '../resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsTest);
+    defineReflectiveTests(ExtensionMethodsWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ExtensionMethodsTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ExtensionMethodsTestCases {}
+    with ExtensionMethodsTestCases {}
 
 mixin ExtensionMethodsTestCases on ResolutionTest {
   test_implicit_getter() async {
@@ -75,16 +76,49 @@ extension E<T> on List<T> {
   List<T> bar(List<T> other) => other.foo();
 }
 ''');
-    assertMethodInvocation2(
-      findNode.methodInvocation('other.foo()'),
-      element: elementMatcher(
-        findElement.method('foo'),
-        substitution: {'T': 'T'},
-      ),
-      typeArgumentTypes: [],
-      invokeType: 'List<T> Function()',
-      type: 'List<T>',
-    );
+
+    var node = findNode.methodInvocation('other.foo()');
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: other
+    staticElement: other@75
+    staticType: List<T>
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: T}
+    staticType: List<T> Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: List<T> Function()
+  staticType: List<T>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: other
+    staticElement: other@75
+    staticType: List<T*>*
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: T*}
+    staticType: List<T*>* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: List<T*>* Function()*
+  staticType: List<T*>*
+''');
+    }
   }
 
   test_implicit_method_onTypeParameter() async {
@@ -146,8 +180,6 @@ void f(A<int> a) {
   a.foo = 0;
 }
 ''');
-    var propertyAccess = findNode.prefixed('.foo =');
-
     assertAssignment(
       findNode.assignment('foo ='),
       readElement: null,
@@ -160,14 +192,6 @@ void f(A<int> a) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertMember(
-        propertyAccess,
-        findElement.setter('foo', of: 'E'),
-        {'T': 'int'},
-      );
-    }
   }
 
   test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
@@ -181,28 +205,47 @@ void f<S extends num>(S x) {
 }
 ''');
 
+    var node = findNode.methodInvocation('test();');
     if (result.libraryElement.isNonNullableByDefault) {
-      assertMethodInvocation2(
-        findNode.methodInvocation('test();'),
-        element: elementMatcher(
-          findElement.method('test'),
-          substitution: {'T': 'S'},
-        ),
-        typeArgumentTypes: [],
-        invokeType: 'S Function(S) Function()',
-        type: 'S Function(S)',
-      );
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@87
+    staticType: S
+  operator: .
+  methodName: SimpleIdentifier
+    token: test
+    staticElement: MethodMember
+      base: self::@extension::Test::@method::test
+      substitution: {T: S}
+    staticType: S Function(S) Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: S Function(S) Function()
+  staticType: S Function(S)
+''');
     } else {
-      assertMethodInvocation2(
-        findNode.methodInvocation('test();'),
-        element: elementMatcher(
-          findElement.method('test'),
-          substitution: {'T': 'num'},
-        ),
-        typeArgumentTypes: [],
-        invokeType: 'num Function(num) Function()',
-        type: 'num Function(num)',
-      );
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: x@87
+    staticType: S*
+  operator: .
+  methodName: SimpleIdentifier
+    token: test
+    staticElement: MethodMember
+      base: self::@extension::Test::@method::test
+      substitution: {T: num*}
+    staticType: num* Function(num*)* Function()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*)* Function()*
+  staticType: num* Function(num*)*
+''');
     }
   }
 
@@ -265,17 +308,6 @@ void f<S extends num>(S x) {
         type: 'S',
       );
 
-      if (hasAssignmentLeftResolution) {
-        assertPropertyAccess2(
-          findNode.propertyAccess('.test'),
-          element: elementMatcher(
-            findElement.setter('test'),
-            substitution: {'T': 'S'},
-          ),
-          type: 'S',
-        );
-      }
-
       assertTypeArgumentTypes(
         findNode.methodInvocation('g()'),
         ['S'],
@@ -293,17 +325,6 @@ void f<S extends num>(S x) {
         operatorElement: null,
         type: 'num',
       );
-
-      if (hasAssignmentLeftResolution) {
-        assertPropertyAccess2(
-          findNode.propertyAccess('.test'),
-          element: elementMatcher(
-            findElement.setter('test'),
-            substitution: {'T': 'num'},
-          ),
-          type: 'num',
-        );
-      }
 
       assertTypeArgumentTypes(
         findNode.methodInvocation('g()'),
@@ -465,15 +486,6 @@ void f(A<int> a) {
       operatorElement: null,
       type: 'double',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var propertyAccess = findNode.propertyAccess('.foo =');
-      assertMember(
-        propertyAccess,
-        findElement.setter('foo', of: 'E'),
-        {'T': 'num'},
-      );
-    }
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
@@ -606,14 +618,9 @@ void f(A<int> a) {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      var propertyAccess = findNode.propertyAccess('.foo =');
-      assertMember(
-        propertyAccess,
-        findElement.setter('foo', of: 'E'),
-        {'T': 'int'},
-      );
-    }
   }
 }
+
+@reflectiveTest
+class ExtensionMethodsWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, ExtensionMethodsTestCases {}

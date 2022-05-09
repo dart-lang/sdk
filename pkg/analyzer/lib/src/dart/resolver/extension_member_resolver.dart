@@ -42,6 +42,41 @@ class ExtensionMemberResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
+  /// Set the type context for the receiver of the override.
+  ///
+  /// The context of the invocation that is made through the override does
+  /// not affect the type inference of the override and the receiver.
+  DartType? computeOverrideReceiverContextType(ExtensionOverride node) {
+    var element = node.staticElement!;
+    var typeParameters = element.typeParameters;
+
+    var arguments = node.argumentList.arguments;
+    if (arguments.length != 1) {
+      return null;
+    }
+
+    List<DartType> typeArgumentTypes;
+    var typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      var arguments = typeArguments.arguments;
+      if (arguments.length == typeParameters.length) {
+        typeArgumentTypes = arguments.map((a) => a.typeOrThrow).toList();
+      } else {
+        typeArgumentTypes = _listOfDynamic(typeParameters);
+      }
+    } else {
+      typeArgumentTypes = List.filled(
+        typeParameters.length,
+        UnknownInferredType.instance,
+      );
+    }
+
+    return Substitution.fromPairs(
+      typeParameters,
+      typeArgumentTypes,
+    ).substituteType(element.extendedType);
+  }
+
   /// Return the most specific extension in the current scope for this [type],
   /// that defines the member with the given [name].
   ///
@@ -203,44 +238,6 @@ class ExtensionMemberResolver {
     }
   }
 
-  /// Set the type context for the receiver of the override.
-  ///
-  /// The context of the invocation that is made through the override does
-  /// not affect the type inference of the override and the receiver.
-  void setOverrideReceiverContextType(ExtensionOverride node) {
-    var element = node.staticElement!;
-    var typeParameters = element.typeParameters;
-
-    var arguments = node.argumentList.arguments;
-    if (arguments.length != 1) {
-      return;
-    }
-
-    List<DartType> typeArgumentTypes;
-    var typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      var arguments = typeArguments.arguments;
-      if (arguments.length == typeParameters.length) {
-        typeArgumentTypes = arguments.map((a) => a.typeOrThrow).toList();
-      } else {
-        typeArgumentTypes = _listOfDynamic(typeParameters);
-      }
-    } else {
-      typeArgumentTypes = List.filled(
-        typeParameters.length,
-        UnknownInferredType.instance,
-      );
-    }
-
-    var extendedForDownward = Substitution.fromPairs(
-      typeParameters,
-      typeArgumentTypes,
-    ).substituteType(element.extendedType);
-
-    var receiver = arguments[0];
-    InferenceContext.setType(receiver, extendedForDownward);
-  }
-
   void _checkTypeArgumentsMatchingBounds(
     List<TypeParameterElement> typeParameters,
     TypeArgumentList? typeArgumentList,
@@ -254,6 +251,7 @@ class ExtensionMemberResolver {
         var parameterBound = parameter.bound;
         if (parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
+          parameterBound = _typeSystem.toLegacyTypeIfOptOut(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
@@ -345,18 +343,16 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(_typeSystem, typeParameters);
+      var inferrer = GenericInferrer(_typeSystem, typeParameters,
+          errorReporter: _errorReporter,
+          errorNode: node.extensionName,
+          genericMetadataIsEnabled: _genericMetadataIsEnabled);
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
         'extendedType',
       );
-      return inferrer.infer(
-        typeParameters,
-        errorReporter: _errorReporter,
-        errorNode: node.extensionName,
-        genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      );
+      return inferrer.upwardsInfer();
     }
   }
 

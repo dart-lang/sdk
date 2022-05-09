@@ -1149,6 +1149,37 @@ a:focus, a:hover {
           The type of the options parameter being suggested. This field is
           omitted if the parameterName field is omitted.
         </p>
+      </dd><dt class="field"><b>libraryUri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          This field  is omitted if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
+        <p>
+          This field  is omitted if this suggestion corresponds to a locally
+          declared element.
+        </p>
+        <p>
+          If this suggestion corresponds to an already imported element,
+          then this field is the URI of a library that provides this element,
+          not the URI of the library where the element is declared.
+        </p>
+        <p>
+          If this suggestion corresponds to an element from a not yet
+          imported library, this field is the URI of a library that could be
+          imported to make this suggestion  accessible in the file where
+          completion was requested, such as <tt>package:foo/bar.dart</tt> or
+          <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+        </p>
+      </dd><dt class="field"><b>isNotImported: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          True if the suggestion is for an element from a not yet imported
+          library. This field is omitted if the element is declared locally,
+          or is from library is already imported, so that the suggestion can
+          be inserted as is, or if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestionKind">CompletionSuggestionKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of elements that can be included in a
@@ -1388,7 +1419,7 @@ a:focus, a:hover {
   <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_TEAR_OFF</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
-      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
+      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FIELD_STATIC</dt><dd>
@@ -1507,11 +1538,19 @@ a:focus, a:hover {
       the user edit the variable name after the operation, all occurrences of
       the name could be edited simultaneously.
     </p>
+    <p>
+      Edit groups may have a length of 0 and function as tabstops where there
+      is no default text, for example, an edit that inserts an <tt>if</tt>
+      statement might provide an empty group between parens where a condition
+      should be typed. For this reason, it's also valid for a group to contain
+      only a single position that is not linked to others.
+    </p>
     
   <dl><dt class="field"><b>positions: List&lt;<a href="#type_Position">Position</a>&gt;</b></dt><dd>
         
         <p>
-          The positions of the regions that should be edited simultaneously.
+          The positions of the regions (after applying the relevant edits) that
+          should be edited simultaneously.
         </p>
       </dd><dt class="field"><b>length: int</b></dt><dd>
         

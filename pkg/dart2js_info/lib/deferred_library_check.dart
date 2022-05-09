@@ -133,7 +133,7 @@ LibraryInfo _getLibraryOf(Info info) {
   return current;
 }
 
-bool _isPackageUri(Uri uri) => uri.scheme == 'package';
+bool _isPackageUri(Uri uri) => uri.isScheme('package');
 
 String _getPackageName(Uri uri) {
   assert(_isPackageUri(uri));

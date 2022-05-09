@@ -25,13 +25,14 @@ import 'compiler_options.dart' show CompilerOptions;
 export '../fasta/incremental_serializer.dart' show IncrementalSerializer;
 
 abstract class IncrementalKernelGenerator {
-  factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
+  factory IncrementalKernelGenerator(
+      CompilerOptions options, List<Uri> entryPoints,
       [Uri? initializeFromDillUri,
       bool? outlineOnly,
       IncrementalSerializer? incrementalSerializer]) {
     return new IncrementalCompiler(
         new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
+            new ProcessedOptions(options: options, inputs: entryPoints)),
         initializeFromDillUri,
         outlineOnly,
         incrementalSerializer);
@@ -42,11 +43,11 @@ abstract class IncrementalKernelGenerator {
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
-      CompilerOptions options, Uri entryPoint, Component? component,
+      CompilerOptions options, List<Uri> entryPoints, Component? component,
       [bool? outlineOnly, IncrementalSerializer? incrementalSerializer]) {
     return new IncrementalCompiler.fromComponent(
         new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
+            new ProcessedOptions(options: options, inputs: entryPoints)),
         component,
         outlineOnly,
         incrementalSerializer);
@@ -63,10 +64,10 @@ abstract class IncrementalKernelGenerator {
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
   factory IncrementalKernelGenerator.forExpressionCompilationOnly(
-      CompilerOptions options, Uri entryPoint, Component component) {
+      CompilerOptions options, List<Uri> entryPoints, Component component) {
     return new IncrementalCompiler.forExpressionCompilationOnly(
         new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
+            new ProcessedOptions(options: options, inputs: entryPoints)),
         component);
   }
 

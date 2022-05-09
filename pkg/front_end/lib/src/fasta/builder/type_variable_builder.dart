@@ -6,7 +6,7 @@ library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart'
     show
@@ -28,6 +28,25 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
+enum TypeVariableKind {
+  /// A type variable declared on a function, method, local function or
+  /// function type.
+  function,
+
+  /// A type variable declared on a class, mixin or enum.
+  classMixinOrEnum,
+
+  /// A type variable declared on an extension.
+  extension,
+
+  /// A type variable on an extension instance member synthesized from an
+  /// extension type variable.
+  extensionSynthesized,
+
+  /// A type variable builder created from a kernel node.
+  fromKernel,
+}
+
 class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
@@ -41,7 +60,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   TypeVariableBuilder? actualOrigin;
 
-  final bool isExtensionTypeParameter;
+  final TypeVariableKind kind;
 
   @override
   final Uri? fileUri;
@@ -49,7 +68,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   TypeVariableBuilder(
       String name, Builder? compilationUnit, int charOffset, this.fileUri,
       {this.bound,
-      this.isExtensionTypeParameter: false,
+      required this.kind,
       int? variableVariance,
       List<MetadataBuilder>? metadata})
       : actualParameter =
@@ -63,7 +82,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
-        this.isExtensionTypeParameter = false,
+        kind = TypeVariableKind.fromKernel,
         fileUri = compilationUnit.fileUri,
         super(null, 0, parameter.name ?? '', compilationUnit,
             parameter.fileOffset);
@@ -194,14 +213,15 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // is declared on.
     return new TypeVariableBuilder(name, parent!, charOffset, fileUri,
         bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
-        variableVariance: variance);
+        variableVariance: variance,
+        kind: kind);
   }
 
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? classOrExtensionBuilder,
       MemberBuilder? memberBuilder,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       Scope scope) {
     MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,

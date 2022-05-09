@@ -145,7 +145,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   var byteStore = MemoryByteStore();
   var analysisOptions = AnalysisOptionsImpl()
     ..contextFeatures = config.featureSet;
-  var driver = AnalysisDriver.tmp1(
+  var driver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
@@ -196,7 +196,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         });
       } else {
         String _formatError(AnalysisError e) {
-          var locationInfo = result.unit.lineInfo!.getLocation(e.offset);
+          var locationInfo = result.unit.lineInfo.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
 

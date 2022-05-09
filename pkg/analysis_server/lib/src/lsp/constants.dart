@@ -67,6 +67,7 @@ abstract class Commands {
   static const fixAll = 'edit.fixAll';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
+  static const validateRefactor = 'refactor.validate';
 }
 
 abstract class CustomMethods {
@@ -134,6 +135,10 @@ abstract class CustomSemanticTokenModifiers {
   /// of the expression would show through the simple-colorings "string" colors.
   static const interpolation = SemanticTokenModifiers('interpolation');
 
+  /// A modifier applied to instance field/getter/setter/method references and
+  /// declarations to distinguish them from top-levels.
+  static const instance = SemanticTokenModifiers('instance');
+
   /// A modifier applied to the void keyword to allow users to color it
   /// differently (for example as a type).
   static const void_ = SemanticTokenModifiers('void');
@@ -147,6 +152,7 @@ abstract class CustomSemanticTokenModifiers {
     annotation,
     control,
     importPrefix,
+    instance,
     label,
     constructor,
     escape,
@@ -203,12 +209,17 @@ abstract class ServerErrorCodes {
   static const InvalidFileLineCol = ErrorCodes(-32004);
   static const UnknownCommand = ErrorCodes(-32005);
   static const InvalidCommandArguments = ErrorCodes(-32006);
+
+  /// A file that is not part of the analyzed set.
   static const FileNotAnalyzed = ErrorCodes(-32007);
   static const FileHasErrors = ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = ErrorCodes(-32009);
   static const RenameNotValid = ErrorCodes(-32010);
   static const RefactorFailed = ErrorCodes(-32011);
   static const FeatureDisabled = ErrorCodes(-32012);
+
+  /// A file that is expected to be analyzed, but failed.
+  static const FileAnalysisFailed = ErrorCodes(-32013);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

@@ -12,77 +12,100 @@ import 'package:path/path.dart' as path;
 import '../core.dart';
 import '../sdk.dart';
 
-/// A command to create a new project from a set of templates.
+/// A command to generate documentation for a project.
 class DocCommand extends DartdevCommand {
   static const String cmdName = 'doc';
 
-  DocCommand({bool verbose = false})
-      : super(
-          cmdName,
-          'Generate HTML API documentation from Dart documentation comments.',
-          verbose,
-        ) {
+  static const String cmdDescription = '''
+Generate API documentation for Dart projects.
+
+For additional documentation generation options, see the 'dartdoc_options.yaml' file documentation at https://dart.dev/go/dartdoc-options-file.''';
+
+  DocCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addOption(
-      'output-dir',
+      'output',
       abbr: 'o',
-      defaultsTo: path.join('.', 'doc', 'api'),
-      help: 'Output directory',
+      valueHelp: 'directory',
+      defaultsTo: path.join('doc', 'api'),
+      aliases: [
+        // The CLI option that shipped with Dart 2.16.
+        'output-dir',
+      ],
+      help: 'Configure the output directory.',
     );
     argParser.addFlag(
       'validate-links',
-      negatable: true,
-      help: 'Display context aware warnings for broken links (slow)',
+      negatable: false,
+      help: 'Display warnings for broken links.',
+    );
+    argParser.addFlag(
+      'sdk-docs',
+      hide: true,
+      negatable: false,
+      help: 'Generate API docs for the Dart SDK.',
+    );
+    argParser.addFlag(
+      'dry-run',
+      negatable: false,
+      help: 'Try to generate the docs without saving them.',
     );
   }
 
   @override
-  String get invocation => '${super.invocation} <input directory>';
+  String get invocation => '${super.invocation} [<directory>]';
 
   @override
   FutureOr<int> run() async {
-    // At least one argument, the input directory, is required.
-    if (argResults.rest.isEmpty) {
-      usageException("Error: Input directory not specified");
-    }
+    final options = <String>[];
+    final args = argResults!;
 
-    // Determine input directory.
-    final dir = io.Directory(argResults.rest[0]);
-    if (!dir.existsSync()) {
-      usageException("Error: Input directory doesn't exist: ${dir.path}");
-    }
-
-    // Parse options.
-    final options = [
-      '--input=${dir.path}',
-      '--output=${argResults['output-dir']}',
-    ];
-    if (argResults['validate-links']) {
-      options.add('--validate-links');
+    if (args['sdk-docs']) {
+      options.add('--sdk-docs');
     } else {
-      options.add('--no-validate-links');
+      if (args.rest.length > 1) {
+        usageException("'dart doc' only supports one input directory.'");
+      }
+
+      // Determine input directory; default to the cwd if no explicit input dir
+      // is passed in.
+      final directory = args.rest.isEmpty
+          ? io.Directory.current
+          : io.Directory(args.rest.first);
+      if (!directory.existsSync()) {
+        usageException('Input directory doesn\'t exist: ${directory.path}');
+      }
+      options.add('--input=${directory.path}');
     }
 
     // Specify where dartdoc resources are located.
     final resourcesPath =
         path.absolute(sdk.sdkPath, 'bin', 'resources', 'dartdoc', 'resources');
-    options.add('--resources-dir=$resourcesPath');
 
-    final config = await parseOptions(pubPackageMetaProvider, options);
+    // Build remaining options.
+    options.addAll([
+      '--output=${args['output']}',
+      '--resources-dir=$resourcesPath',
+      args['validate-links'] ? '--validate-links' : '--no-validate-links',
+      if (args['dry-run']) '--no-generate-docs',
+      if (verbose) ...['--verbose-warnings', '--show-stats'],
+    ]);
+
+    final config = parseOptions(pubPackageMetaProvider, options);
     if (config == null) {
       // There was an error while parsing options.
       return 2;
     }
 
-    // Call dartdoc.
+    // Call into package:dartdoc.
     if (verbose) {
-      log.stdout('Calling dartdoc with the following options: $options');
+      log.stdout('Using the following options: $options');
     }
     final packageConfigProvider = PhysicalPackageConfigProvider();
     final packageBuilder = PubPackageBuilder(
         config, pubPackageMetaProvider, packageConfigProvider);
     final dartdoc = config.generateDocs
         ? await Dartdoc.fromContext(config, packageBuilder)
-        : await Dartdoc.withEmptyGenerator(config, packageBuilder);
+        : Dartdoc.withEmptyGenerator(config, packageBuilder);
     dartdoc.executeGuarded();
     return 0;
   }

@@ -71,13 +71,17 @@ var tests = <IsolateTest>[
     expect(futureBpt1.resolved, isTrue);
     expect(script.getLineNumberFromTokenPos(futureBpt1.location!.tokenPos!),
         LINE_A);
+    expect(futureBpt1.location!.line, LINE_A);
     expect(
         script.getColumnNumberFromTokenPos(futureBpt1.location!.tokenPos!), 12);
+    expect(futureBpt1.location!.column, 12);
     expect(futureBpt2.resolved, isTrue);
     expect(script.getLineNumberFromTokenPos(futureBpt2.location!.tokenPos!),
         LINE_A);
+    expect(futureBpt2.location!.line, LINE_A);
     expect(
         script.getColumnNumberFromTokenPos(futureBpt2.location!.tokenPos!), 3);
+    expect(futureBpt2.location!.column, 3);
 
     // The first breakpoint hits before value is modified.
     InstanceRef result =
@@ -121,13 +125,19 @@ var tests = <IsolateTest>[
       print('$LINE_A:${col} -> ${resolvedLine}:${resolvedCol}');
       if (col <= 12) {
         expect(resolvedLine, LINE_A);
+        expect(bpt.location!.line, LINE_A);
         expect(resolvedCol, 3);
+        expect(bpt.location!.column, 3);
       } else if (col <= 36) {
         expect(resolvedLine, LINE_A);
+        expect(bpt.location!.line, LINE_A);
         expect(resolvedCol, 12);
+        expect(bpt.location!.column, 12);
       } else {
         expect(resolvedLine, LINE_B);
+        expect(bpt.location!.line, LINE_B);
         expect(resolvedCol, 12);
+        expect(bpt.location!.column, 12);
       }
       expect(
           (await service.removeBreakpoint(isolateId, bpt.id!)).type, 'Success');

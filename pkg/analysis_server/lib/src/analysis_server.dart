@@ -44,9 +44,11 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
@@ -122,6 +124,34 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
       StreamController.broadcast(sync: true);
+
+  /// Key: a file path for which removing of the overlay was requested.
+  /// Value: a timer that will remove the overlay, or cancelled.
+  ///
+  /// This helps for analysis server running remotely, with slow remote file
+  /// systems, in the following scenario:
+  /// 1. User edits file, IDE sends "add overlay".
+  /// 2. User saves file, IDE saves file locally, sends "remove overlay".
+  /// 3. The remove server reads the file on "remove overlay". But the content
+  ///    of the file on the remove machine is not the same as it is locally,
+  ///    and not what the user looks in the IDE. So, analysis results, such
+  ///    as semantic highlighting, are inconsistent with the local file content.
+  /// 4. (after a few seconds) The file is synced to the remove machine,
+  ///    the watch event happens, server reads the file, sends analysis
+  ///    results that are consistent with the local file content.
+  ///
+  /// We try to prevent the inconsistency between moments (3) and (4).
+  /// It is not wrong, we are still in the eventual consistency, but we
+  /// want to keep the inconsistency time shorter.
+  ///
+  /// To do this we keep the last overlay content on "remove overlay",
+  /// and wait for the next watch event in (4). But there might be race
+  /// condition, and when it happens, we still want to get to the eventual
+  /// consistency, so on timer we remove the overlay anyway.
+  final Map<String, Timer> _pendingFilesToRemoveOverlay = {};
+
+  @visibleForTesting
+  Duration pendingFilesRemoveOverlayDelay = const Duration(seconds: 10);
 
   final DetachableFileSystemManager? detachableFileSystemManager;
 
@@ -231,6 +261,12 @@ class AnalysisServer extends AbstractAnalysisServer {
     cancellationTokens[id]?.cancel();
   }
 
+  Future<void> dispose() async {
+    for (var timer in _pendingFilesToRemoveOverlay.values) {
+      timer.cancel();
+    }
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
 
@@ -266,6 +302,9 @@ class AnalysisServer extends AbstractAnalysisServer {
             sendResponse(response);
             return;
           }
+        } on InconsistentAnalysisException {
+          sendResponse(Response.contentModified(request));
+          return;
         } on RequestFailure catch (exception) {
           sendResponse(exception.response);
           return;
@@ -410,11 +449,11 @@ class AnalysisServer extends AbstractAnalysisServer {
   ///
   /// So, we can start working in parallel on adding services and improving
   /// projects/contexts support.
-  void setAnalysisRoots(String requestId, List<String> includedPaths,
-      List<String> excludedPaths) {
+  Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
+      List<String> excludedPaths) async {
     notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     try {
-      contextManager.setRoots(includedPaths, excludedPaths);
+      await contextManager.setRoots(includedPaths, excludedPaths);
     } on UnimplementedError catch (e) {
       throw RequestFailure(Response.unsupportedFeature(
           requestId, e.message ?? 'Unsupported feature.'));
@@ -511,7 +550,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       } catch (_) {}
 
       // Prepare the new contents.
-      String? newContents;
+      String newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
       } else if (change is ChangeContentOverlay) {
@@ -530,25 +569,29 @@ class AnalysisServer extends AbstractAnalysisServer {
                   'Invalid overlay change')));
         }
       } else if (change is RemoveContentOverlay) {
-        newContents = null;
+        _pendingFilesToRemoveOverlay.remove(file)?.cancel();
+        _pendingFilesToRemoveOverlay[file] = Timer(
+          pendingFilesRemoveOverlayDelay,
+          () {
+            _pendingFilesToRemoveOverlay.remove(file);
+            resourceProvider.removeOverlay(file);
+            _changeFileInDrivers(file);
+          },
+        );
+        return;
       } else {
         // Protocol parsing should have ensured that we never get here.
         throw AnalysisException('Illegal change type');
       }
 
-      if (newContents != null) {
-        resourceProvider.setOverlay(
-          file,
-          content: newContents,
-          modificationStamp: overlayModificationStamp++,
-        );
-      } else {
-        resourceProvider.removeOverlay(file);
-      }
+      _pendingFilesToRemoveOverlay.remove(file)?.cancel();
+      resourceProvider.setOverlay(
+        file,
+        content: newContents,
+        modificationStamp: overlayModificationStamp++,
+      );
 
-      driverMap.values.forEach((driver) {
-        driver.changeFile(file);
-      });
+      _changeFileInDrivers(file);
 
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
@@ -584,6 +627,12 @@ class AnalysisServer extends AbstractAnalysisServer {
 //    optionUpdaters.forEach((OptionUpdater optionUpdater) {
 //      optionUpdater(defaultContextOptions);
 //    });
+  }
+
+  void _changeFileInDrivers(String path) {
+    for (var driver in driverMap.values) {
+      driver.changeFile(path);
+    }
   }
 
   /// Returns `true` if there is a subscription for the given [service] and
@@ -671,7 +720,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisServer analysisServer;
 
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
-  final ResourceProvider resourceProvider;
+  final OverlayResourceProvider resourceProvider;
 
   /// The set of files for which notifications were sent.
   final Set<String> filesToFlush = {};
@@ -698,13 +747,23 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void afterWatchEvent(WatchEvent event) {
+    var path = event.path;
+
+    var pendingTimer = analysisServer._pendingFilesToRemoveOverlay.remove(path);
+    if (pendingTimer != null) {
+      pendingTimer.cancel();
+      resourceProvider.removeOverlay(path);
+      analysisServer._changeFileInDrivers(path);
+    }
+
     analysisServer._onAnalysisSetChangedController.add(null);
   }
 
   @override
   void applyFileRemoved(String file) {
-    sendAnalysisNotificationFlushResults(analysisServer, [file]);
-    filesToFlush.remove(file);
+    if (filesToFlush.remove(file)) {
+      sendAnalysisNotificationFlushResults(analysisServer, [file]);
+    }
   }
 
   @override

@@ -53,6 +53,15 @@ class ParsedFunction;
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
+  V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
+  V(FinalizerBase, UntaggedFinalizerBase, all_entries, LinkedHashSet, VAR)     \
+  V(FinalizerBase, UntaggedFinalizerBase, detachments, Dynamic, VAR)           \
+  V(FinalizerBase, UntaggedFinalizer, entries_collected, FinalizerEntry, VAR)  \
+  V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, VAR)               \
+  V(FinalizerEntry, UntaggedFinalizerEntry, detach, Dynamic, VAR)              \
+  V(FinalizerEntry, UntaggedFinalizerEntry, token, Dynamic, VAR)               \
+  V(FinalizerEntry, UntaggedFinalizerEntry, finalizer, FinalizerBase, VAR)     \
+  V(FinalizerEntry, UntaggedFinalizerEntry, next, FinalizerEntry, VAR)         \
   V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
   V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
@@ -69,7 +78,9 @@ class ParsedFunction;
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
   V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
-  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
+  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)                   \
+  V(WeakReference, UntaggedWeakReference, target, Dynamic, VAR)                \
+  V(WeakReference, UntaggedWeakReference, type_arguments, TypeArguments, FINAL)
 
 // The list of slots that correspond to non-nullable boxed fields of native
 // objects in the following format:
@@ -89,6 +100,8 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
+  V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
+  V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
   V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
@@ -96,7 +109,7 @@ class ParsedFunction;
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
   V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
   V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
-  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
+  V(TypedDataView, UntaggedTypedDataView, typed_data, Dynamic, FINAL)          \
   V(String, UntaggedString, length, Smi, FINAL)                                \
   V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
   V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
@@ -109,12 +122,22 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
-  V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
+
+// Don't use Object or Instance, use Dynamic instead. The cid here should
+// correspond to an exact type or Dynamic, not a static type.
+// If we ever get a field of which the exact type is Instance (not a subtype),
+// update the check below.
+#define FOR_EACH_NATIVE_SLOT(_, __, ___, field_type, ____)                     \
+  static_assert(k##field_type##Cid != kObjectCid);                             \
+  static_assert(k##field_type##Cid != kInstanceCid);
+NULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
+NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
+#undef FOR_EACH_NATIVE_SLOT
 
 // Only define AOT-only unboxed native slots when in the precompiler. See
 // UNBOXED_NATIVE_SLOTS_LIST for the format.
@@ -147,6 +170,8 @@ class ParsedFunction;
   AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
   V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
     FINAL)                                                                     \
+  V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
+  V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
@@ -154,8 +179,7 @@ class ParsedFunction;
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
     FINAL)                                                                     \
-  V(Pointer, UntaggedPointer, data_field, FfiIntPtr, FINAL)                    \
-  V(TypedDataBase, UntaggedTypedDataBase, data_field, IntPtr, VAR)             \
+  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)                       \
   V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
@@ -332,8 +356,6 @@ class Slot : public ZoneAllocated {
   Representation UnboxedRepresentation() const;
 
  private:
-  friend class FlowGraphDeserializer;  // For GetNativeSlot.
-
   Slot(Kind kind,
        int8_t bits,
        ClassIdTagType cid,

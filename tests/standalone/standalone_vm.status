@@ -61,7 +61,7 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 [ $mode == release && $runtime == vm && $system == windows ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 
-[ $runtime == dart_precompiled && $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == x64) ]
+[ $runtime == dart_precompiled && $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $arch == x64) ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
@@ -71,7 +71,7 @@ io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
 io/process_sync_test: Timeout, Pass
 
-[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass

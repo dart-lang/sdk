@@ -14,10 +14,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
-        messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
+        messageJsInteropOperatorsNotSupported,
         templateJsInteropDartClassExtendsJSClass,
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
@@ -220,10 +220,9 @@ class JsInteropChecks extends RecursiveVisitor {
       _checkDisallowedExternal(procedure);
     } else {
       // Check JS interop indexing.
-      if (!procedure.isStatic &&
-          (procedure.name.text == '[]=' || procedure.name.text == '[]')) {
+      if (!procedure.isStatic && procedure.kind == ProcedureKind.Operator) {
         _diagnosticsReporter.report(
-            messageJsInteropIndexNotSupported,
+            messageJsInteropOperatorsNotSupported,
             procedure.fileOffset,
             procedure.name.text.length,
             procedure.fileUri);
@@ -362,7 +361,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// or a from environment constructor.
   bool _isAllowedExternalUsage(Member member) {
     Uri uri = member.enclosingLibrary.importUri;
-    return uri.scheme == 'dart' &&
+    return uri.isScheme('dart') &&
             _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
         _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
   }

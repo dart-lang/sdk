@@ -124,6 +124,24 @@ Future<void> main(List<String> args) async {
     }
   }
 
+  {
+    // Expression suite with fuzzing.
+    Uri expressionSuite =
+        Platform.script.resolve("fasta/expression_suite.dart");
+    if (!new File.fromUri(expressionSuite).existsSync()) {
+      exitCode = 1;
+      print("Couldn't find $expressionSuite");
+    } else {
+      startedProcesses.add(await run(
+        [
+          expressionSuite.toString(),
+          "-Dfuzz=true",
+        ],
+        "expression suite",
+      ));
+    }
+  }
+
   // Wait for everything to finish.
   List<int> exitCodes =
       await Future.wait(startedProcesses.map((e) => e.process.exitCode));
@@ -151,7 +169,7 @@ Future<WrappedProcess> run(List<String> args, String id) async {
       .transform(new LineSplitter())
       .listen((line) {
     print("$id stderr> $line");
-    if (line.contains("Observatory listening on")) {
+    if (line.contains("The Dart VM service is listening on")) {
       observatoryLines.add(line);
     }
   });
@@ -160,7 +178,7 @@ Future<WrappedProcess> run(List<String> args, String id) async {
       .transform(new LineSplitter())
       .listen((line) {
     print("$id stdout> $line");
-    if (line.contains("Observatory listening on")) {
+    if (line.contains("The Dart VM service is listening on")) {
       observatoryLines.add(line);
     }
   });

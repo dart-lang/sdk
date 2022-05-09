@@ -74,12 +74,13 @@ class RuntimeCompletionComputer {
       offset: targetOffset,
     );
 
-    var suggestions = await DartCompletionManager(
+    var serverSuggestions = await DartCompletionManager(
       budget: CompletionBudget(CompletionBudget.defaultDuration),
     ).computeSuggestions(
       dartRequest,
       OperationPerformanceImpl('<root>'),
     );
+    var suggestions = serverSuggestions.map((e) => e.build()).toList();
 
     // Remove completions with synthetic import prefixes.
     suggestions.removeWhere((s) => s.completion.startsWith('__prefix'));

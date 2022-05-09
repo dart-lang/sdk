@@ -67,7 +67,18 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// Called by [disconnectRequest] to request that we forcefully shut down the
   /// app being run (or in the case of an attach, disconnect).
   Future<void> disconnectImpl() async {
+    if (isAttach) {
+      await preventBreakingAndResume();
+    }
     terminatePids(ProcessSignal.sigkill);
+  }
+
+  /// Checks whether [flag] is in [args], allowing for both underscore and
+  /// dash format.
+  bool _containsVmFlag(List<String> args, String flag) {
+    final flagUnderscores = flag.replaceAll('-', '_');
+    final flagDashes = flag.replaceAll('_', '-');
+    return args.contains(flagUnderscores) || args.contains(flagDashes);
   }
 
   /// Called by [launchRequest] to request that we actually start the app to be
@@ -83,7 +94,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     if (debug) {
       vmServiceInfoFile = generateVmServiceInfoFile();
       unawaited(waitForVmServiceInfoFile(logger, vmServiceInfoFile)
-          .then((uri) => connectDebugger(uri, resumeIfStarting: true)));
+          .then((uri) => connectDebugger(uri)));
     }
 
     final vmArgs = <String>[
@@ -98,10 +109,18 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         '-DSILENT_OBSERVATORY=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'
       ],
-      // Default to asserts on, this seems like the most useful behaviour for
-      // editor-spawned debug sessions.
-      if (args.enableAsserts ?? true) '--enable-asserts',
     ];
+
+    final toolArgs = args.toolArgs ?? [];
+    if (debug) {
+      // If the user has explicitly set pause-isolates-on-exit we need to
+      // not add it ourselves, and disable auto-resuming.
+      if (_containsVmFlag(toolArgs, '--pause_isolates_on_exit')) {
+        resumeIsolatesAfterPauseExit = false;
+      } else {
+        vmArgs.add('--pause_isolates_on_exit');
+      }
+    }
 
     // Handle customTool and deletion of any arguments for it.
     final executable = args.customTool ?? Platform.resolvedExecutable;
@@ -112,7 +131,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final processArgs = [
       ...vmArgs,
-      ...?args.toolArgs,
+      ...toolArgs,
       args.program,
       ...?args.args,
     ];
@@ -150,11 +169,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         env: args.env,
       );
     }
-
-    // Delay responding until the debugger is connected.
-    if (debug) {
-      await debuggerInitialized;
-    }
   }
 
   /// Called by [attachRequest] to request that we actually connect to the app
@@ -177,7 +191,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         ? Uri.parse(vmServiceUri)
         : await waitForVmServiceInfoFile(logger, File(vmServiceInfoFile!));
 
-    unawaited(connectDebugger(uri, resumeIfStarting: false));
+    unawaited(connectDebugger(uri));
   }
 
   /// Calls the client (via a `runInTerminal` request) to spawn the process so
@@ -256,6 +270,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
   Future<void> terminateImpl() async {
+    if (isAttach) {
+      await preventBreakingAndResume();
+    }
     terminatePids(ProcessSignal.sigterm);
     await _process?.exitCode;
   }

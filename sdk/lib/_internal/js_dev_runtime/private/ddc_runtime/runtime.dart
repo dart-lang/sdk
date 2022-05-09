@@ -183,7 +183,7 @@ final List<Object> _cacheMaps = JS('!', '[]');
 /// This is populated by [defineLazyField] and only contains fields that have
 /// been initialized.
 @notNull
-final List<void Function()> _resetFields = JS('', '[]');
+final List<void Function()> resetFields = JS('', '[]');
 
 /// A counter to track each time [hotRestart] is invoked. This is used to ensure
 /// that pending callbacks that were created on a previous iteration (e.g. a
@@ -199,8 +199,8 @@ int hotRestartIteration = 0;
 void hotRestart() {
   // TODO(sigmund): prevent DOM callbacks from firing.
   hotRestartIteration++;
-  for (var f in _resetFields) f();
-  _resetFields.clear();
+  for (var f in resetFields) f();
+  resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);

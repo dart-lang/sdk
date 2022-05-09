@@ -1551,6 +1551,40 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the member
+  NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
+    problemMessage: Generative enum constructors must be 'const'.
+    correctionMessage: Try adding the keyword 'const'.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when an enum declaration contains a
+      generative constructor that isn't marked as `const`.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the constructor in `E`
+      isn't marked as being `const`:
+      
+      ```dart
+      enum E {
+        e;
+      
+        [!E!]();
+      }
+      ```
+      
+      #### Common fixes
+      
+      Add the `const` keyword before the constructor:
+      
+      ```dart
+      enum E {
+        e;
+      
+        const E();
+      }
+      ```
   NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as keys in a 'const' map literal."
@@ -1632,6 +1666,57 @@ CompileTimeErrorCode:
     correctionMessage: "Try removing the keyword 'const' from the map literal or removing the keyword 'deferred' from the import."
     hasPublishedDocs: true
     comment: No parameters.
+  CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
+    problemMessage: "Concrete classes can't have 'Enum' as a superinterface."
+    correctionMessage: Try specifying a different interface, or remove it from the list.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when a concrete class indirectly has
+      the class `Enum` as a superinterface.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the concrete class `B`
+      has `Enum` as a superinterface as a result of implementing `A`:
+      
+      ```dart
+      abstract class A implements Enum {}
+      
+      class [!B!] implements A {}
+      ```
+      
+      #### Common fixes
+      
+      If the implemented class isn't the class you intend to implement, then
+      change it:
+      
+      ```dart
+      abstract class A implements Enum {}
+      
+      class B implements C {}
+      
+      class C {}
+      ```
+      
+      If the implemented class can be changed to not implement `Enum`, then do
+      so:
+      
+      ```dart
+      abstract class A {}
+      
+      class B implements A {}
+      ```
+      
+      If the implemented class can't be changed to not implement `Enum`, then
+      remove it from the `implements` clause:
+      
+      ```dart
+      abstract class A implements Enum {}
+      
+      class B {}
+      ```
   CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' isn't abstract."
     correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'."
@@ -1849,6 +1934,14 @@ CompileTimeErrorCode:
       ```dart
       class C<T> {}
       ```
+  CONFLICTING_TYPE_VARIABLE_AND_ENUM:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
+    problemMessage: "'{0}' can't be used to name both a type variable and the enum in which the type variable is defined."
+    correctionMessage: Try renaming either the type variable or the enum.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type variable and the extension in which the type variable is defined."
@@ -1903,6 +1996,14 @@ CompileTimeErrorCode:
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
     problemMessage: "'{0}' can't be used to name both a type variable and a member in this mixin."
+    correctionMessage: Try renaming either the type variable or the member.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
+  CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+    problemMessage: "'{0}' can't be used to name both a type variable and a member in this enum."
     correctionMessage: Try renaming either the type variable or the member.
     hasPublishedDocs: true
     comment: |-
@@ -2758,7 +2859,32 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the type
   CONTINUE_LABEL_ON_SWITCH:
-    problemMessage: A continue label resolves to switch, must be loop or switch member
+    problemMessage: A `continue` label resolves to a `switch` statement, but the label must be on a loop or a switch member.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the label in a `continue`
+      statement resolves to a label on a `switch` statement.
+
+      #### Example
+
+      The following code produces this diagnostic because the label `l`, used to
+      label a `switch` statement, is used in the `continue` statement:
+
+      ```dart
+      void f(int i) {
+        l: switch (i) {
+          case 0:
+            continue [!l!];
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Find a different way to achieve the control flow you need; for example, by
+      introducing a loop that re-executes the `switch` statement.
   COULD_NOT_INFER:
     problemMessage: "Couldn't infer type parameter '{0}'.{1}"
     comment: |-
@@ -3073,9 +3199,45 @@ CompileTimeErrorCode:
       }
       ```
   DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
-    problemMessage: Only a generic type, generic function, generic instance method, or generic constructor can be type instantiated.
-    correctionMessage: Try instantiating the type(s) of a generic type, generic function, generic instance method, or generic constructor.
+    problemMessage: Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+    correctionMessage: Try removing the type arguments, or instantiating the type(s) of a generic type, generic function, generic instance method, or generic constructor.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an expression with a value that
+      is anything other than one of the allowed kinds of values is followed by
+      type arguments. The allowed kinds of values are:
+      - generic types,
+      - generic constructors, and
+      - generic functions, including top-level functions, static and instance
+        members, and local functions.
+
+      #### Example
+
+      The following code produces this diagnostic because `i` is a top-level
+      variable, which isn't one of the allowed cases:
+
+      ```dart
+      int i = 1;
+
+      void f() {
+        print([!i!]<int>);
+      }
+      ```
+
+      #### Common fixes
+
+      If the referenced value is correct, then remove the type arguments:
+
+      ```dart
+      int i = 1;
+
+      void f() {
+        print(i);
+      }
+      ```
   DUPLICATE_CONSTRUCTOR_NAME:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: "The constructor with name '{0}' is already defined."
@@ -3203,9 +3365,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when there's more than one field
-      formal parameter for the same field in a constructor's parameter list. It
-      isn't useful to assign a value that will immediately be overwritten.
+      The analyzer produces this diagnostic when there's more than one
+      initializing formal parameter for the same field in a constructor's
+      parameter list. It isn't useful to assign a value that will immediately be
+      overwritten.
 
       #### Example
 
@@ -3222,7 +3385,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Remove one of the field formal parameters:
+      Remove one of the initializing formal parameters:
 
       ```dart
       class C {
@@ -3331,6 +3494,194 @@ CompileTimeErrorCode:
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an enum constant has the same
+      name as the enum in which it's declared.
+
+      #### Example
+
+      The following code produces this diagnostic because the enum constant `E`
+      has the same name as the enclosing enum `E`:
+
+      ```dart
+      enum E {
+        [!E!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the name of the enum is correct, then rename the constant:
+
+      ```dart
+      enum E {
+        e
+      }
+      ```
+
+      If the name of the constant is correct, then rename the enum:
+
+      ```dart
+      enum F {
+        E
+      }
+      ```
+  ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+    problemMessage: The invoked constructor isn't a 'const' constructor.
+    correctionMessage: Try invoking a 'const' generative constructor.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when an enum constant is being
+      created using either a factory constructor or a generative constructor
+      that isn't marked as being `const`.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the enum constant `e`
+      is being initialized by a factory constructor:
+      
+      ```dart
+      enum E {
+        [!e!]();
+      
+        factory E() => e;
+      }
+      ```
+      
+      #### Common fixes
+      
+      Use a generative constructor marked as `const`:
+      
+      ```dart
+      enum E {
+        e._();
+      
+        factory E() => e;
+      
+        const E._();
+      }
+      ```
+  ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
+    problemMessage: The result of instantiating the enum to bounds is not well-bounded.
+    correctionMessage: Try using different bounds for type parameters.
+  ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
+    problemMessage: Mixins applied to enums can't have instance variables.
+    correctionMessage: Try replacing the instance variables with getters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when a mixin that's applied to an
+      enum declares one or more instance variables. This isn't allowed because
+      the enum constants are constant, and there isn't any way for the
+      constructor in the enum to initialize any of the mixin's fields.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the mixin `M` defines
+      the instance field `x`:
+      
+      ```dart
+      mixin M {
+        int x = 0;
+      }
+      
+      enum E with [!M!] {
+        a
+      }
+      ```
+      
+      #### Common fixes
+      
+      If you need to apply the mixin, then change all instance fields into
+      getter and setter pairs and implement them in the enum if necessary:
+      
+      ```dart
+      mixin M {
+        int get x => 0;
+      }
+      
+      enum E with M {
+        a
+      }
+      ```
+      
+      If you don't need to apply the mixin, then remove it:
+      
+      ```dart
+      enum E {
+        a
+      }
+      ```
+  ENUM_WITH_ABSTRACT_MEMBER:
+    problemMessage: "'{0}' must have a method body because '{1}' is an enum."
+    correctionMessage: "Try adding a body to '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the abstract method
+      1: the name of the enclosing enum
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when a member of an enum is found
+      that doesn't have a concrete implementation. Enums aren't allowed to
+      contain abstract members.
+      
+      #### Example
+      
+      The following code produces this diagnostic because `m` is an abstract
+      method and `E` is an enum:
+      
+      ```dart
+      enum E {
+        e;
+      
+        [!void m();!]
+      }
+      ```
+      
+      #### Common fixes
+      
+      Provide an implementation for the member:
+      
+      ```dart
+      enum E {
+        e;
+      
+        void m() {}
+      }
+      ```
+  ENUM_WITH_NAME_VALUES:
+    problemMessage: The name 'values' is not a valid name for an enum.
+    correctionMessage: Try using a different name.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when an enum is declared to have the
+      name `values`. This isn't allowed because the enum has an implicit static
+      field named `values`, and the two would collide.
+      
+      #### Example
+      
+      The following code produces this diagnostic because there's an enum
+      declaration that has the name `values`:
+      
+      ```dart
+      enum [!values!] {
+        c
+      }
+      ```
+      
+      #### Common fixes
+      
+      Rename the enum to something other than `values`.
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
     correctionMessage: Change or remove the duplicate element.
@@ -3971,14 +4322,64 @@ CompileTimeErrorCode:
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field or variable marked with
+      the keyword `external` has an initializer, or when an external field is
+      initialized in a constructor.
+
+      #### Examples
+
+      The following code produces this diagnostic because the external field `x`
+      is assigned a value in an initializer:
+
+      ```dart
+      class C {
+        external int x;
+        C() : [!x!] = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because the external field `x`
+      has an initializer:
+
+      ```dart
+      class C {
+        external final int [!x!] = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because the external top level
+      variable `x` has an initializer:
+
+      ```dart
+      external final int [!x!] = 0;
+      ```
+
+      #### Common fixes
+
+      Remove the initializer:
+
+      ```dart
+      class C {
+        external final int x;
+      }
+      ```
   EXTERNAL_FIELD_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
+    hasPublishedDocs: true
   EXTERNAL_VARIABLE_INITIALIZER:
-    problemMessage: External variables cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External variables can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
+    hasPublishedDocs: true
   EXTRA_POSITIONAL_ARGUMENTS:
     problemMessage: "Too many positional arguments: {0} expected, but {1} found."
     correctionMessage: Try removing the extra arguments.
@@ -4166,7 +4567,8 @@ CompileTimeErrorCode:
       #### Example
 
       The following code produces this diagnostic because the field `f` is
-      initialized both by a field formal parameter and in the initializer list:
+      initialized both by an initializing formal parameter and in the
+      initializer list:
 
       ```dart
       class C {
@@ -4218,14 +4620,14 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a factory constructor has a
-      field formal parameter. Factory constructors can't assign values to fields
-      because no instance is created; hence, there is no field to assign.
+      The analyzer produces this diagnostic when a factory constructor has an
+      initializing formal parameter. Factory constructors can't assign values to
+      fields because no instance is created; hence, there is no field to assign.
 
       #### Example
 
       The following code produces this diagnostic because the factory constructor
-      uses a field formal parameter:
+      uses an initializing formal parameter:
 
       ```dart
       class C {
@@ -4237,7 +4639,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Replace the field formal parameter with a normal parameter:
+      Replace the initializing formal parameter with a normal parameter:
 
       ```dart
       class C {
@@ -4309,9 +4711,42 @@ CompileTimeErrorCode:
     problemMessage: Initializing formal parameters can only be used in constructors.
     correctionMessage: Try using a normal parameter.
     comment: |-
-      7.6.1 Generative Constructors: It is a compile-time error if an
-      initializing formal is used by a function other than a non-redirecting
-      generative constructor.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an initializing formal
+      parameter is used in the parameter list for anything other than a
+      constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the initializing
+      formal parameter `this.x` is being used in the method `m`:
+
+      ```dart
+      class A {
+        int x = 0;
+
+        m([[!this.x!] = 0]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Replace the initializing formal parameter with a normal parameter and
+      assign the field within the body of the method:
+
+      ```dart
+      class A {
+        int x = 0;
+
+        m([int x = 0]) {
+          this.x = x;
+        }
+      }
+      ```
   FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
     problemMessage: "The redirecting constructor can't have a field initializer."
     correctionMessage: Try initializing the field in the constructor being redirected to.
@@ -4328,8 +4763,8 @@ CompileTimeErrorCode:
       #### Examples
 
       The following code produces this diagnostic because the constructor
-      `C.zero`, which redirects to the constructor `C`, has a field formal
-      parameter that initializes the field `f`:
+      `C.zero`, which redirects to the constructor `C`, has an initializing
+      formal parameter that initializes the field `f`:
 
       ```dart
       class C {
@@ -4357,8 +4792,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the initialization is done by a field formal parameter, then use a
-      normal parameter:
+      If the initialization is done by an initializing formal parameter, then
+      use a normal parameter:
 
       ```dart
       class C {
@@ -4393,14 +4828,16 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the type of a field formal
-      parameter isn't assignable to the type of the field being initialized.
+      The analyzer produces this diagnostic when the type of an initializing
+      formal parameter isn't assignable to the type of the field being
+      initialized.
 
       #### Example
 
-      The following code produces this diagnostic because the field formal
-      parameter has the type `String`, but the type of the field is `int`. The
-      parameter must have a type that is a subtype of the field's type.
+      The following code produces this diagnostic because the initializing
+      formal parameter has the type `String`, but the type of the field is
+      `int`. The parameter must have a type that is a subtype of the field's
+      type.
 
       ```dart
       class C {
@@ -4436,8 +4873,8 @@ CompileTimeErrorCode:
       ```
 
       If the types of both the field and the parameter are correct, then use an
-      initializer rather than a field formal parameter to convert the parameter
-      value into a value of the correct type:
+      initializer rather than an initializing formal parameter to convert the
+      parameter value into a value of the correct type:
 
       ```dart
       class C {
@@ -4527,7 +4964,7 @@ CompileTimeErrorCode:
 
       For instance fields, you can add an initializer as shown in the previous
       example, or you can initialize the field in every constructor. You can
-      initialize the field by using a field formal parameter:
+      initialize the field by using an initializing formal parameter:
 
       ```dart
       class C {
@@ -4576,8 +5013,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the value should be passed in to the constructor directly, then use a
-      field formal parameter to initialize the field `value`:
+      If the value should be passed in to the constructor directly, then use an
+      initializing formal parameter to initialize the field `value`:
 
       ```dart
       class C {
@@ -4982,6 +5419,139 @@ CompileTimeErrorCode:
       ```dart
       int f() => 0;
       ```
+  ILLEGAL_ENUM_VALUES_DECLARATION:
+    sharedName: ILLEGAL_ENUM_VALUES
+    problemMessage: An instance member named 'values' can't be declared in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when either a class that implements
+      `Enum` or a mixin with a superclass constraint of `Enum` has an instance
+      member named `values`.
+      
+      #### Examples
+      
+      The following code produces this diagnostic because the class `C`, which
+      implements `Enum`, declares an instance field named `values`:
+      
+      ```dart
+      abstract class C implements Enum {
+        int get [!values!] => 0;
+      }
+      ```
+      
+      The following code produces this diagnostic because the class `B`, which
+      implements `Enum`, inherits an instance method named `values` from `A`:
+      
+      ```dart
+      abstract class A {
+        int values() => 0;
+      }
+      
+      abstract class [!B!] extends A implements Enum {}
+      ```
+      
+      #### Common fixes
+      
+      Change the name of the conflicting member:
+      
+      ```dart
+      abstract class C implements Enum {
+        int get value => 0;
+      }
+      ```
+  ILLEGAL_ENUM_VALUES_INHERITANCE:
+    sharedName: ILLEGAL_ENUM_VALUES
+    problemMessage: An instance member named 'values' can't be inherited from '{0}' in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class that declares 'values'
+  ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
+    problemMessage: The language version must be {0}.
+    correctionMessage: Try removing the language version override and migrating the code.
+  ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION:
+    sharedName: ILLEGAL_CONCRETE_ENUM_MEMBER
+    problemMessage: A concrete instance member named '{0}' can't be declared in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of member that cannot be declared
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when either an enum declaration, a
+      class that implements `Enum`, or a mixin with a superclass constraint of
+      `Enum`, declares or inherits a concrete instance member named either
+      `index`, `hashCode`, or `==`.
+      
+      #### Examples
+      
+      The following code produces this diagnostic because the enum `E` declares
+      an instance getter named `index`:
+      
+      ```dart
+      enum E {
+        v;
+      
+        int get [!index!] => 0;
+      }
+      ```
+      
+      The following code produces this diagnostic because the class `C`, which
+      implements `Enum`, declares an instance field named `hashCode`:
+      
+      ```dart
+      abstract class C implements Enum {
+        int [!hashCode!] = 0;
+      }
+      ```
+      
+      The following code produces this diagnostic because the class `C`, which
+      indirectly implements `Enum` through the class `A`, declares an instance
+      getter named `hashCode`:
+      
+      ```dart
+      abstract class A implements Enum {}
+      
+      abstract class C implements A {
+        int get [!hashCode!] => 0;
+      }
+      ```
+      
+      The following code produces this diagnostic because the mixin `M`, which
+      has `Enum` in the `on` clause, declares an explicit operator named `==`:
+      
+      ```dart
+      mixin M on Enum {
+        bool operator [!==!](Object? other) => false;
+      }
+      ```
+      
+      #### Common fixes
+      
+      Rename the conflicting member:
+      
+      ```dart
+      enum E {
+        v;
+      
+        int get getIndex => 0;
+      }
+      ```
+  ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE:
+    sharedName: ILLEGAL_CONCRETE_ENUM_MEMBER
+    problemMessage: A concrete instance member named '{0}' can't be inherited from '{1}' in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of member that cannot be inherited
+      1: the name of the class that declares the member
   ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
     problemMessage: "Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'sync*' from the function body."
@@ -5185,6 +5755,93 @@ CompileTimeErrorCode:
         int get defaultX => 0;
       }
       ```
+  IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
+    problemMessage: The implicitly invoked unnamed constructor from '{0}' has required parameters.
+    correctionMessage: Try adding an explicit super parameter with the required arguments.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the superclass
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when a constructor implicitly
+      invokes the unnamed constructor from the superclass, the unnamed
+      constructor of the superclass has a required parameter, and there's no
+      super parameter corresponding to the required parameter.
+      
+      #### Examples
+      
+      The following code produces this diagnostic because the unnamed
+      constructor in the class `B` implicitly invokes the unnamed constructor in
+      the class `A`, but the constructor in `A` has a required positional
+      parameter named `x`:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class B extends A {
+        [!B!]();
+      }
+      ```
+      
+      The following code produces this diagnostic because the unnamed
+      constructor in the class `B` implicitly invokes the unnamed constructor in
+      the class `A`, but the constructor in `A` has a required named parameter
+      named `x`:
+      
+      ```dart
+      class A {
+        A({required int x});
+      }
+      
+      class B extends A {
+        [!B!]();
+      }
+      ```
+      
+      #### Common fixes
+      
+      If you can add a parameter to the constructor in the subclass, then add a
+      super parameter corresponding to the required parameter in the superclass'
+      constructor. The new parameter can either be required:
+      
+      ```dart
+      class A {
+        A({required int x});
+      }
+      
+      class B extends A {
+        B({required super.x});
+      }
+      ```
+      
+      or it can be optional:
+      
+      ```dart
+      class A {
+        A({required int x});
+      }
+      
+      class B extends A {
+        B({super.x = 0});
+      }
+      ```
+      
+      If you can't add a parameter to the constructor in the subclass, then add
+      an explicit super constructor invocation with the required argument:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class B extends A {
+        B() : super(0);
+      }
+      ```
   IMPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be imported."
     hasPublishedDocs: true
@@ -5213,11 +5870,41 @@ CompileTimeErrorCode:
     problemMessage: "The imported library '{0}' can't have a part-of directive."
     correctionMessage: Try importing the library that the part is a part of.
     comment: |-
-      14.1 Imports: It is a compile-time error if the specified URI of an
-      immediate import does not refer to a library declaration.
-
       Parameters:
       0: the uri pointing to a non-library declaration
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [part file][] is imported
+      into a library.
+
+      #### Example
+
+      Given a [part file][] named `part.dart` containing the following:
+
+      ```dart
+      %uri="lib/part.dart"
+      part of lib;
+
+      class C{}
+      ```
+
+      The following code produces this diagnostic because imported files can't
+      have a part-of directive:
+
+      ```dart
+      library lib;
+
+      import [!'part.dart'!];
+
+      C c = C();
+      ```
+
+      #### Common fixes
+
+      Import the library that contains the [part file][] rather than the
+      [part file][] itself.
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
     comment: |-
@@ -5299,12 +5986,46 @@ CompileTimeErrorCode:
   INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
     problemMessage: Parts must have exactly the same language version override as the library.
     comment: |-
-      It is a compile-time error if a part file has a different language version
-      override than its library.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
 
-      https://github.com/dart-lang/language/blob/master/accepted/
-      future-releases/language-versioning/feature-specification.md
-      #individual-library-language-version-override
+      The analyzer produces this diagnostic when a [part file][] has a language
+      version override comment that specifies a different language version than
+      the one being used for the library to which the part belongs.
+
+      #### Example
+
+      Given a [part file][] named `part.dart` that contains the following:
+
+      ```dart
+      %uri="lib/part.dart"
+      // @dart = 2.6
+      part of 'test.dart';
+      ```
+
+      The following code produces this diagnostic because the parts of a library
+      must have the same language version as the defining compilation unit:
+
+      ```dart
+      // @dart = 2.5
+      part [!'part.dart'!];
+      ```
+
+      #### Common fixes
+
+      Remove the language version override from the [part file][], so that it
+      implicitly uses the same version as the defining compilation unit:
+
+      ```dart
+      part of 'test.dart';
+      ```
+
+      If necessary, either adjust the language version override in the defining
+      compilation unit to be appropriate for the code in the part, or migrate
+      the code in the [part file][] to be consistent with the new language
+      version.
   INITIALIZER_FOR_NON_EXISTENT_FIELD:
     problemMessage: "'{0}' isn't a field in the enclosing class."
     correctionMessage: "Try correcting the name to match an existing field, or defining a field named '{0}'."
@@ -5371,14 +6092,14 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a static field is initialized in
-      a constructor using either a field formal parameter or an assignment in the
-      initializer list.
+      The analyzer produces this diagnostic when a static field is initialized
+      in a constructor using either an initializing formal parameter or an
+      assignment in the initializer list.
 
       #### Example
 
-      The following code produces this diagnostic because the static field `a` is
-      being initialized by the field formal parameter `this.a`:
+      The following code produces this diagnostic because the static field `a`
+      is being initialized by the initializing formal parameter `this.a`:
 
       ```dart
       class C {
@@ -5431,10 +6152,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a field formal parameter is
-      found in a constructor in a class that doesn't declare the field being
-      initialized. Constructors can't initialize fields that aren't declared and
-      fields that are inherited from superclasses.
+      The analyzer produces this diagnostic when an initializing formal
+      parameter is found in a constructor in a class that doesn't declare the
+      field being initialized. Constructors can't initialize fields that aren't
+      declared and fields that are inherited from superclasses.
 
       #### Example
 
@@ -5697,6 +6418,7 @@ CompileTimeErrorCode:
       instantiated:
 
       ```dart
+      // @dart = 2.16
       enum E {a}
 
       var e = [!E!]();
@@ -5708,6 +6430,7 @@ CompileTimeErrorCode:
       constants defined in the enum:
 
       ```dart
+      // @dart = 2.16
       enum E {a}
 
       var e = E.a;
@@ -6067,7 +6790,7 @@ CompileTimeErrorCode:
       0: the type of the list literal
       1: the expected type
   INVALID_CAST_LITERAL_MAP:
-    problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The maps's type can be changed with an explicit generic type arguments or by changing the key and value types."
+    problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     comment: |-
       Parameters:
       0: the type of the map literal
@@ -6098,11 +6821,6 @@ CompileTimeErrorCode:
       for more informative errors.
 
       See TODOs in ConstantVisitor
-  INVALID_CONSTRUCTOR_NAME:
-    problemMessage: Invalid constructor name.
-    comment: |-
-      7.6 Constructors: It is a compile-time error if the name of a constructor
-      is not a constructor name.
   INVALID_EXTENSION_ARGUMENT_COUNT:
     problemMessage: "Extension overrides must have exactly one argument: the value of 'this' in the extension method."
     correctionMessage: Try specifying exactly one argument.
@@ -6493,6 +7211,62 @@ CompileTimeErrorCode:
         void m2(String s) {}
       }
       ```
+  INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
+    problemMessage: Generative enum constructors can only be used as targets of redirection.
+    correctionMessage: Try using an enum constant, or a factory constructor.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when a generative constructor
+      defined on an enum is used anywhere other than to create one of the enum
+      constants or as the target of a redirection from another constructor in
+      the same enum.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the constructor for
+      `E` is being used to create an instance in the function `f`:
+      
+      ```dart
+      enum E {
+        a(0);
+      
+        const E(int x);
+      }
+      
+      E f() => const [!E!](2); 
+      ```
+      
+      #### Common fixes
+      
+      If there's an enum constant with the same value, or if you add such a
+      constant, then reference the constant directly:
+      
+      ```dart
+      enum E {
+        a(0), b(2);
+      
+        const E(int x);
+      }
+      
+      E f() => E.b; 
+      ```
+      
+      If you need to use a constructor invocation, then use a factory
+      constructor:
+      
+      ```dart
+      enum E {
+        a(0);
+      
+        const E(int x);
+      
+        factory E.c(int x) => a;
+      }
+      
+      E f() => E.c(2);
+      ```
   INVALID_REFERENCE_TO_THIS:
     problemMessage: "Invalid reference to 'this' expression."
     hasPublishedDocs: true
@@ -6525,6 +7299,93 @@ CompileTimeErrorCode:
       C f(C c) => c;
 
       class C {}
+      ```
+  INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
+    problemMessage: Super parameters can only be used in non-redirecting generative constructors.
+    correctionMessage: Try removing the 'super' modifier, or changing the constructor to be non-redirecting and generative.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the super modifier
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when a super parameter is used
+      anywhere other than a non-redirecting generative constructor.
+      
+      #### Examples
+      
+      The following code produces this diagnostic because the super parameter
+      `x` is in a redirecting generative constructor:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class B extends A {
+        B.b([!super!].x) : this._();
+        B._() : super(0);
+      }
+      ```
+      
+      The following code produces this diagnostic because the super parameter
+      `x` isn't in a generative constructor:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class C extends A {
+        factory C.c([!super!].x) => C._();
+        C._() : super(0);
+      }
+      ```
+      
+      The following code produces this diagnostic because the super parameter
+      `x` is in a method:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class D extends A {
+        D() : super(0);
+      
+        void m([!super!].x) {}
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the function containing the super parameter can be changed to be a
+      non-redirecting generative constructor, then do so:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class B extends A {
+        B.b(super.x);
+      }
+      ```
+      
+      If the function containing the super parameter can't be changed to be a
+      non-redirecting generative constructor, then remove the `super`:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class D extends A {
+        D() : super(0);
+      
+        void m(int x) {}
+      }
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
@@ -7290,17 +8151,26 @@ CompileTimeErrorCode:
       var m = <String, int>{'a' : 2};
       ```
   MISSING_CONST_IN_LIST_LITERAL:
-    problemMessage: "List literals must be prefixed with 'const' when used as a constant expression."
-    correctionMessage: "Try adding the keyword 'const' before the literal."
-    comment: "12.1 Constants: A constant expression is ... a constant list literal."
+    problemMessage: Seeing this message constitutes a bug. Please report it.
+    comment: |-
+      12.1 Constants: A constant expression is ... a constant list literal.
+      
+      Note: This diagnostic is never displayed to the user, so it doesn't need
+      to be documented.
   MISSING_CONST_IN_MAP_LITERAL:
-    problemMessage: "Map literals must be prefixed with 'const' when used as a constant expression."
-    correctionMessage: "Try adding the keyword 'const' before the literal."
-    comment: "12.1 Constants: A constant expression is ... a constant map literal."
+    problemMessage: Seeing this message constitutes a bug. Please report it.
+    comment: |-
+      12.1 Constants: A constant expression is ... a constant map literal.
+
+      Note: This diagnostic is never displayed to the user, so it doesn't need
+      to be documented.
   MISSING_CONST_IN_SET_LITERAL:
-    problemMessage: "Set literals must be prefixed with 'const' when used as a constant expression."
-    correctionMessage: "Try adding the keyword 'const' before the literal."
-    comment: "12.1 Constants: A constant expression is ... a constant set literal."
+    problemMessage: Seeing this message constitutes a bug. Please report it.
+    comment: |-
+      12.1 Constants: A constant expression is ... a constant set literal.
+
+      Note: This diagnostic is never displayed to the user, so it doesn't need
+      to be documented.
   MISSING_DART_LIBRARY:
     problemMessage: "Required library '{0}' is missing."
     correctionMessage: Re-install the Dart or Flutter SDK.
@@ -7369,6 +8239,12 @@ CompileTimeErrorCode:
       void f(int x) {}
       void g({required int x}) {}
       ```
+  MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+    sharedName: MISSING_DEFAULT_VALUE_FOR_PARAMETER
+    problemMessage: "With null safety, use the 'required' keyword, not the '@required' annotation."
+    correctionMessage: "Try removing the '@'."
+    hasPublishedDocs: true
+    comment: No parameters.
   MISSING_REQUIRED_ARGUMENT:
     problemMessage: "The named parameter '{0}' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.
@@ -7689,17 +8565,6 @@ CompileTimeErrorCode:
 
       class B extends A {}
       ```
-  MIXIN_DECLARES_CONSTRUCTOR:
-    problemMessage: "Mixins can't declare constructors."
-    comment: |-
-      The <i>mixinMember</i> production allows the same instance or static
-      members that a class would allow, but no constructors (for now).
-  MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class implements the mixin's supertype constraint '{1}' in multiple conflicting ways"
-  MIXIN_INFERENCE_NO_MATCHING_CLASS:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class doesn't implement the mixin's supertype constraint '{1}'"
-  MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because no type parameter substitution could be found matching the mixin's supertype constraints"
   MIXIN_INHERITS_FROM_NOT_OBJECT:
     problemMessage: "The class '{0}' can't be used as a mixin because it extends a class other than 'Object'."
     hasPublishedDocs: true
@@ -7853,11 +8718,41 @@ CompileTimeErrorCode:
       9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
       denote a class available in the immediately enclosing scope.
   MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
-    problemMessage: "Constructors can have at most one 'this' redirection."
+    problemMessage: Constructors can have only one 'this' redirection, at most.
     correctionMessage: Try removing all but one of the redirections.
     comment: |-
-      7.6.1 Generative Constructors: A generative constructor may be redirecting,
-      in which case its only action is to invoke another generative constructor.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor redirects to more
+      than one other constructor in the same class (using `this`).
+
+      #### Example
+
+      The following code produces this diagnostic because the unnamed
+      constructor in `C` is redirecting to both `this.a` and `this.b`:
+
+      ```dart
+      class C {
+        C() : this.a(), [!this.b()!];
+        C.a();
+        C.b();
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the redirections:
+
+      ```dart
+      class C {
+        C() : this.a();
+        C.a();
+        C.b();
+      }
+      ```
   MULTIPLE_SUPER_INITIALIZERS:
     problemMessage: "A constructor can have at most one 'super' initializer."
     correctionMessage: "Try removing all but one of the 'super' initializers."
@@ -8607,7 +9502,7 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic beause `a` isn't a constant:
+      The following code produces this diagnostic because `a` isn't a constant:
 
       ```dart
       var a = 'a';
@@ -8710,6 +9605,50 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+  NON_FINAL_FIELD_IN_ENUM:
+    problemMessage: Enums can only declare final fields.
+    correctionMessage: Try making the field final.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when an instance field in an enum
+      isn't marked as `final`.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the field `f` isn't a
+      final field:
+      
+      ```dart
+      enum E {
+        c;
+      
+        int [!f!] = 0;
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the field must be defined for the enum, then mark the field as being
+      `final`:
+      
+      ```dart
+      enum E {
+        c;
+      
+        final int f = 0;
+      }
+      ```
+      
+      If the field can be removed, then remove it:
+      
+      ```dart
+      enum E {
+        c
+      }
+      ```
   NON_GENERATIVE_CONSTRUCTOR:
     problemMessage: "The generative constructor '{0}' is expected, but a factory was found."
     correctionMessage: Try calling a different constructor of the superclass, or making the called constructor not be a factory constructor.
@@ -8762,14 +9701,76 @@ CompileTimeErrorCode:
     problemMessage: "The unnamed constructor of superclass '{0}' (called by the default constructor of '{1}') must be a generative constructor, but factory found."
     correctionMessage: "Try adding an explicit constructor that has a different superinitializer or changing the superclass constructor '{2}' to not be a factory constructor."
     comment: |-
-      An error code for when a class has no explicit constructor, and therefore
-      a constructor is implicitly defined which uses a factory as a
-      superinitializer. See [NON_GENERATIVE_CONSTRUCTOR].
-
       Parameters:
       0: the name of the superclass
       1: the name of the current class
       2: the implicitly called factory constructor of the superclass
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class has an implicit
+      generative constructor and the superclass has an explicit unnamed factory
+      constructor. The implicit constructor in the subclass implicitly invokes
+      the unnamed constructor in the superclass, but generative constructors can
+      only invoke another generative constructor, not a factory constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the implicit
+      constructor in `B` invokes the unnamed constructor in `A`, but the
+      constructor in `A` is a factory constructor, when a generative constructor
+      is required:
+
+      ```dart
+      class A {
+        factory A() => throw 0;
+        A.named();
+      }
+
+      class [!B!] extends A {}
+      ```
+
+      #### Common fixes
+
+      If the unnamed constructor in the superclass can be a generative
+      constructor, then change it to be a generative constructor:
+
+      ```dart
+      class A {
+        A();
+        A.named();
+      }
+
+      class B extends A { }
+      ```
+
+      If the unnamed constructor can't be a generative constructor and there are
+      other generative constructors in the superclass, then explicitly invoke
+      one of them:
+
+      ```dart
+      class A {
+        factory A() => throw 0;
+        A.named();
+      }
+
+      class B extends A {
+        B() : super.named();
+      }
+      ```
+
+      If there are no generative constructors that can be used and none can be
+      added, then implement the superclass rather than extending it:
+
+      ```dart
+      class A {
+        factory A() => throw 0;
+        A.named();
+      }
+
+      class B implements A {}
+      ```
   NON_SYNC_FACTORY:
     problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
     hasPublishedDocs: true
@@ -9491,16 +10492,73 @@ CompileTimeErrorCode:
          constructor
       1: the name of the subclass that does not contain any explicit constructors
   NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
-    problemMessage: "The class '{0}' cannot extend '{1}' because '{1}' only has factory constructors (no generative constructors), and '{0}' has at least one generative constructor."
-    correctionMessage: "Try implementing the class instead, adding a generative (not factory) constructor to the superclass {0}, or a factory constructor to the subclass."
+    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' only has factory constructors (no generative constructors), and '{0}' has at least one generative constructor."
+    correctionMessage: "Try implementing the class instead, adding a generative (not factory) constructor to the superclass '{1}', or a factory constructor to the subclass."
     comment: |-
-      User friendly specialized error for [NON_GENERATIVE_CONSTRUCTOR]. This
-      handles the case of `class E extends Exception` which will never work
-      because [Exception] has no generative constructors.
-
       Parameters:
       0: the name of the subclass
       1: the name of the superclass
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that has at least one
+      generative constructor (whether explicit or implicit) has a superclass
+      that doesn't have any generative constructors. Every generative
+      constructor, except the one defined in `Object`, invokes, either
+      explicitly or implicitly, one of the generative constructors from its
+      superclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` has an
+      implicit generative constructor that can't invoke a generative constructor
+      from `A` because `A` doesn't have any generative constructors:
+
+      ```dart
+      class A {
+        factory A.none() => throw '';
+      }
+
+      class B extends [!A!] {}
+      ```
+
+      #### Common fixes
+
+      If the superclass should have a generative constructor, then add one:
+
+      ```dart
+      class A {
+        A();
+        factory A.none() => throw '';
+      }
+
+      class B extends A {}
+      ```
+
+      If the subclass shouldn't have a generative constructor, then remove it by
+      adding a factory constructor:
+
+      ```dart
+      class A {
+        factory A.none() => throw '';
+      }
+
+      class B extends A {
+        factory B.none() => throw '';
+      }
+      ```
+
+      If the subclass must have a generative constructor but the superclass
+      can't have one, then implement the superclass instead:
+
+      ```dart
+      class A {
+        factory A.none() => throw '';
+      }
+
+      class B implements A {}
+      ```
   NULLABLE_TYPE_IN_EXTENDS_CLAUSE:
     problemMessage: "A class can't extend a nullable type."
     correctionMessage: Try removing the question mark.
@@ -9770,8 +10828,8 @@ CompileTimeErrorCode:
       If the library should be using a different file as a part, then change the
       URI in the part directive to be the URI of the other file.
 
-      If the part file should be a part of this library, then update the URI (or
-      library name) in the part-of directive to be the URI (or name) of the
+      If the [part file][] should be a part of this library, then update the URI
+      (or library name) in the part-of directive to be the URI (or name) of the
       correct library.
   PART_OF_NON_PART:
     problemMessage: "The included part '{0}' must have a part-of directive."
@@ -9831,13 +10889,14 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when a library that doesn't have a
-      `library` directive (and hence has no name) contains a `part` directive and
-      the `part of` directive in the part file uses a name to specify the library
-      that it's a part of.
+      `library` directive (and hence has no name) contains a `part` directive
+      and the `part of` directive in the [part file][] uses a name to specify
+      the library that it's a part of.
 
       #### Example
 
-      Given a part file named `part_file.dart` containing the following code:
+      Given a [part file][] named `part_file.dart` containing the following
+      code:
 
       ```dart
       %uri="lib/part_file.dart"
@@ -9845,8 +10904,8 @@ CompileTimeErrorCode:
       ```
 
       The following code produces this diagnostic because the library including
-      the part file doesn't have a name even though the part file uses a name to
-      specify which library it's a part of:
+      the [part file][] doesn't have a name even though the [part file][] uses a
+      name to specify which library it's a part of:
 
       ```dart
       part [!'part_file.dart'!];
@@ -9854,11 +10913,75 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Change the `part of` directive in the part file to specify its library by
-      URI:
+      Change the `part of` directive in the [part file][] to specify its library
+      by URI:
 
       ```dart
       part of 'test.dart';
+      ```
+  POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
+    problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
+    correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when some, but not all, of the
+      positional parameters provided to the constructor of the superclass are
+      using a super parameter.
+      
+      Positional super parameters are associated with positional parameters in
+      the super constructor by their index. That is, the first super parameter
+      is associated with the first positional parameter in the super
+      constructor, the second with the second, and so on. The same is true for
+      positional arguments. Having both positional super parameters and
+      positional arguments means that there are two values associated with the
+      same parameter in the superclass's constructor, and hence isn't allowed.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the constructor
+      `B.new` is using a super parameter to pass one of the required positional
+      parameters to the super constructor in `A`, but is explicitly passing the
+      other in the super constructor invocation:
+      
+      ```dart
+      class A {
+        A(int x, int y);
+      }
+      
+      class B extends A {
+        B(int x, super.[!y!]) : super(x);
+      }
+      ```
+      
+      #### Common fixes
+      
+      If all the positional parameters can be super parameters, then convert the
+      normal positional parameters to be super parameters:
+      
+      ```dart
+      class A {
+        A(int x, int y);
+      }
+      
+      class B extends A {
+        B(super.x, super.y);
+      }
+      ```
+      
+      If some positional parameters can't be super parameters, then convert the
+      super parameters to be normal parameters:
+      
+      ```dart
+      class A {
+        A(int x, int y);
+      }
+      
+      class B extends A {
+        B(int x, int y) : super(x, y);
+      }
       ```
   PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
     problemMessage: "The name '{0}' is already used as an import prefix and can't be used to name a top-level element."
@@ -9946,17 +11069,57 @@ CompileTimeErrorCode:
 
       If the name is wrong, then correct the name.
   PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
-    problemMessage: "The prefix '{0}' can't be used here because it is shadowed by a local declaration."
+    problemMessage: "The prefix '{0}' can't be used here because it's shadowed by a local declaration."
     correctionMessage: Try renaming either the prefix or the local declaration.
     comment: |-
-      From the `Static Types` section of the spec:
+      Parameters:
+      0: the prefix being shadowed
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
 
-          A type T is malformed if:
-          - T has the form id or the form prefix.id, and in the enclosing lexical
-            scope, the name id (respectively prefix.id) does not denote a type.
+      The analyzer produces this diagnostic when an import prefix is used in a
+      context where it isn't visible because it was shadowed by a local
+      declaration.
 
-      In particular, this means that if an import prefix is shadowed by a local
-      declaration, it is an error to try to use it as a prefix for a type name.
+      #### Example
+
+      The following code produces this diagnostic because the prefix `a` is
+      being used to access the class `Future`, but isn't visible because it's
+      shadowed by the parameter `a`:
+
+      ```dart
+      import 'dart:async' as a;
+
+      a.Future? f(int a) {
+        [!a!].Future? x;
+        return x;
+      }
+      ```
+
+      #### Common fixes
+
+      Rename either the prefix:
+
+      ```dart
+      import 'dart:async' as p;
+
+      p.Future? f(int a) {
+        p.Future? x;
+        return x;
+      }
+      ```
+
+      Or rename the local variable:
+
+      ```dart
+      import 'dart:async' as a;
+
+      a.Future? f(int p) {
+        a.Future? x;
+        return x;
+      }
+      ```
   PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
     problemMessage: "The private name '{0}', defined by '{1}', conflicts with the same name defined by '{2}'."
     correctionMessage: "Try removing '{1}' from the 'with' clause."
@@ -10041,11 +11204,90 @@ CompileTimeErrorCode:
       }
       ```
   PRIVATE_SETTER:
-    problemMessage: "The setter '{0}' is private and can't be accessed outside of the library that declares it."
+    problemMessage: "The setter '{0}' is private and can't be accessed outside the library that declares it."
     correctionMessage: Try making it public.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a private setter is used in a
+      library where it isn't visible.
+
+      #### Example
+
+      Given a file named `a.dart` that contains the following:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {
+        static int _f = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because it references the
+      private setter `_f` even though the setter isn't visible:
+
+      ```dart
+      import 'a.dart';
+
+      void f() {
+        A.[!_f!] = 0;
+      }
+      ```
+
+      #### Common fixes
+
+      If you're able to make the setter public, then do so:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {
+        static int f = 0;
+      }
+      ```
+
+      If you aren't able to make the setter public, then find a different way to
+      implement the code.
   READ_POTENTIALLY_UNASSIGNED_FINAL:
-    problemMessage: "The final variable '{0}' can't be read because it is potentially unassigned at this point."
+    problemMessage: "The final variable '{0}' can't be read because it's potentially unassigned at this point."
     correctionMessage: Ensure that it is assigned on necessary execution paths.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a final local variable that
+      isn't initialized at the declaration site is read at a point where the
+      compiler can't prove that the variable is always initialized before it's
+      referenced.
+
+      #### Example
+
+      The following code produces this diagnostic because the final local
+      variable `x` is read (on line 3) when it's possible that it hasn't yet
+      been initialized:
+
+      ```dart
+      int f() {
+        final int x;
+        return [!x!];
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the variable has been initialized before it's read:
+
+      ```dart
+      int f(bool b) {
+        final int x;
+        if (b) {
+          x = 0;
+        } else {
+          x = 1;
+        }
+        return x;
+      }
+      ```
   RECURSIVE_COMPILE_TIME_CONSTANT:
     problemMessage: The compile-time constant expression depends on itself.
     hasPublishedDocs: true
@@ -10349,8 +11591,45 @@ CompileTimeErrorCode:
     problemMessage: "The redirecting constructor '{0}' can't redirect to a constructor of the abstract class '{1}'."
     correctionMessage: Try redirecting to a constructor of a different class.
     comment: |-
-      A factory constructor can't redirect to a non-generative constructor of an
-      abstract class.
+      Parameters:
+      0: the name of the redirecting constructor
+      1: the name of the abstract class defining the constructor being redirected to
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor redirects to a
+      constructor in an abstract class.
+
+      #### Example
+
+      The following code produces this diagnostic because the factory
+      constructor in `A` redirects to a constructor in `B`, but `B` is an
+      abstract class:
+
+      ```dart
+      class A {
+        factory A() = [!B!];
+      }
+
+      abstract class B implements A {}
+      ```
+
+      #### Common fixes
+
+      If the code redirects to the correct constructor, then change the class so
+      that it isn't abstract:
+
+      ```dart
+      class A {
+        factory A() = B;
+      }
+
+      class B implements A {}
+      ```
+
+      Otherwise, change the factory constructor so that it either redirects to a
+      constructor in a concrete class, or has a concrete implementation.
   REDIRECT_TO_INVALID_FUNCTION_TYPE:
     problemMessage: "The redirected constructor '{0}' has incompatible parameters with '{1}'."
     correctionMessage: Try redirecting to a different constructor.
@@ -10489,8 +11768,58 @@ CompileTimeErrorCode:
     problemMessage: "The constructor '{0}' couldn't be found in '{1}'."
     correctionMessage: "Try redirecting to a different constructor, or define the constructor named '{0}'."
     comment: |-
-      7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
-      the const modifier but <i>k'</i> is not a constant constructor.
+      Parameters:
+      0: the name of the constructor
+      1: the name of the class containing the constructor
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor redirects to a
+      constructor that doesn't exist.
+
+      #### Example
+
+      The following code produces this diagnostic because the factory
+      constructor in `A` redirects to a constructor in `B` that doesn't exist:
+
+      ```dart
+      class A {
+        factory A() = [!B.name!];
+      }
+
+      class B implements A {
+        B();
+      }
+      ```
+
+      #### Common fixes
+
+      If the constructor being redirected to is correct, then define the
+      constructor:
+
+      ```dart
+      class A {
+        factory A() = B.name;
+      }
+
+      class B implements A {
+        B();
+        B.name();
+      }
+      ```
+
+      If a different constructor should be invoked, then update the redirect:
+
+      ```dart
+      class A {
+        factory A() = B;
+      }
+
+      class B implements A {
+        B();
+      }
+      ```
   REDIRECT_TO_NON_CLASS:
     problemMessage: "The name '{0}' isn't a type and can't be used in a redirected constructor."
     correctionMessage: Try redirecting to a different constructor.
@@ -11092,6 +12421,225 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+    problemMessage: The type '{0}' of this parameter isn't a subtype of the type '{1}' of the associated super constructor parameter.
+    correctionMessage: Try removing the explicit type annotation from the parameter.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the type of super-parameter
+      1: the type of associated super-constructor parameter
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when the type of a super parameter
+      isn't a subtype of the corresponding parameter from the super constructor.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the type of the super
+      parameter `x` in the constructor for `B` isn't a subtype of the parameter
+      `x` in the constructor for `A`:
+      
+      ```dart
+      class A {
+        A(num x);
+      }
+      
+      class B extends A {
+        B(String super.[!x!]);
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the type of the super parameter can be the same as the parameter from
+      the super constructor, then remove the type annotation from the super
+      parameter (if the type is implicit, it is inferred from the type in the
+      super constructor):
+      
+      ```dart
+      class A {
+        A(num x);
+      }
+      
+      class B extends A {
+        B(super.x);
+      }
+      ```
+      
+      If the type of the super parameter can be a subtype of the corresponding
+      parameter's type, then change the type of the super parameter:
+      
+      ```dart
+      class A {
+        A(num x);
+      }
+      
+      class B extends A {
+        B(int super.x);
+      }
+      ```
+      
+      If the type of the super parameter can't be changed, then use a normal
+      parameter instead of a super parameter:
+      
+      ```dart
+      class A {
+        A(num x);
+      }
+      
+      class B extends A {
+        B(String x) : super(x.length);
+      }
+      ```
+  SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
+    problemMessage: No associated named super constructor parameter.
+    correctionMessage: Try changing the name to the name of an existing named super constructor parameter, or creating such named parameter.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when there's a named super parameter
+      in a constructor and the implicitly or explicitly invoked super
+      constructor doesn't have a named parameter with the same name.
+      
+      Named super parameters are associated by name with named parameters in the
+      super constructor.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the constructor in `A`
+      doesn't have a parameter named `y`:
+      
+      ```dart
+      class A {
+        A({int? x});
+      }
+      
+      class B extends A {
+        B({super.[!y!]});
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the super parameter should be associated with an existing parameter
+      from the super constructor, then change the name to match the name of the
+      corresponding parameter:
+      
+      ```dart
+      class A {
+        A({int? x});
+      }
+      
+      class B extends A {
+        B({super.x});
+      }
+      ```
+      
+      If the super parameter should be associated with a parameter that hasn't
+      yet been added to the super constructor, then add it:
+      
+      ```dart
+      class A {
+        A({int? x, int? y});
+      }
+      
+      class B extends A {
+        B({super.y});
+      }
+      ```
+      
+      If the super parameter doesn't correspond to a named parameter from the
+      super constructor, then change it to be a normal parameter:
+      
+      ```dart
+      class A {
+        A({int? x});
+      }
+      
+      class B extends A {
+        B({int? y});
+      }
+      ```
+  SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
+    problemMessage: No associated positional super constructor parameter.
+    correctionMessage: Try using a normal parameter, or adding more positional parameters to the super constructor.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when there's a positional super
+      parameter in a constructor and the implicitly or explicitly invoked super
+      constructor doesn't have a positional parameter at the corresponding
+      index.
+      
+      Positional super parameters are associated with positional parameters in
+      the super constructor by their index. That is, the first super parameter
+      is associated with the first positional parameter in the super
+      constructor, the second with the second, and so on.
+      
+      #### Examples
+      
+      The following code produces this diagnostic because the constructor in `B`
+      has a positional super parameter, but there's no positional parameter in
+      the super constructor in `A`:
+      
+      ```dart
+      class A {
+        A({int? x});
+      }
+      
+      class B extends A {
+        B(super.[!x!]);
+      }
+      ```
+      
+      The following code produces this diagnostic because the constructor in `B`
+      has two positional super parameters, but there's only one positional
+      parameter in the super constructor in `A`, which means that there's no
+      corresponding parameter for `y`:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class B extends A {
+        B(super.x, super.[!y!]);
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the super constructor should have a positional parameter corresponding
+      to the super parameter, then update the super constructor appropriately:
+      
+      ```dart
+      class A {
+        A(int x, int y);
+      }
+      
+      class B extends A {
+        B(super.x, super.y);
+      }
+      ```
+      
+      If the super constructor is correct, or can't be changed, then convert the
+      super parameter into a normal parameter:
+      
+      ```dart
+      class A {
+        A(int x);
+      }
+      
+      class B extends A {
+        B(super.x, int y);
+      }
+      ```
   IMPLEMENTS_DEFERRED_CLASS:
     sharedName: SUBTYPE_OF_DEFERRED_CLASS
     problemMessage: "Classes and mixins can't implement deferred classes."
@@ -11334,6 +12882,41 @@ CompileTimeErrorCode:
         B(int x) : assert(x >= 0), super(x);
       }
       ```
+  SUPER_IN_ENUM_CONSTRUCTOR:
+    problemMessage: The enum constructor can't have a 'super' initializer.
+    correctionMessage: Try removing the 'super' invocation.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when the initializer list in a
+      constructor in an enum contains an invocation of a super constructor.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the constructor in
+      the enum `E` has a super constructor invocation in the initializer list:
+      
+      ```dart
+      enum E {
+        e;
+      
+        const E() : [!super!]();
+      }
+      ```
+      
+      #### Common fixes
+      
+      Remove the super constructor invocation:
+      
+      ```dart
+      enum E {
+        e;
+      
+        const E();
+      }
+      ```
   SUPER_IN_EXTENSION:
     problemMessage: "The 'super' keyword can't be used in an extension because an extension doesn't have a superclass."
     hasPublishedDocs: true
@@ -11424,14 +13007,44 @@ CompileTimeErrorCode:
       }
       ```
   SWITCH_CASE_COMPLETES_NORMALLY:
-    problemMessage: "The 'case' should not complete normally."
-    correctionMessage: "Try adding 'break', or 'return', etc."
+    problemMessage: "The 'case' shouldn't complete normally."
+    correctionMessage: "Try adding 'break', 'return', or 'throw'."
     comment: |-
-      It is an error if any case of a switch statement except the last case (the
-      default case if present) may complete normally. The previous syntactic
-      restriction requiring the last statement of each case to be one of an
-      enumerated list of statements (break, continue, return, throw, or rethrow)
-      is removed.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the statements following a
+      `case` label in a `switch` statement could fall through to the next `case`
+      or `default` label.
+
+      #### Example
+
+      The following code produces this diagnostic because the `case` label with
+       a value of zero (`0`) falls through to the `default` statements:
+
+      ```dart
+      void f(int a) {
+        switch (a) {
+          [!case!] 0:
+            print(0);
+          default:
+            return;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Change the flow of control so that the `case` won't fall through. There
+      are several ways that this can be done, including adding one of the
+      following at the end of the current list of statements:
+      - a `return` statement,
+      - a `throw` expression,
+      - a `break` statement,
+      - a `continue`, or
+      - an invocation of a function or method whose return type is `Never`.
   SWITCH_EXPRESSION_NOT_ASSIGNABLE:
     problemMessage: "Type '{0}' of the switch expression isn't assignable to the type '{1}' of case expressions."
     hasPublishedDocs: true
@@ -12159,8 +13772,8 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the enumeration constant that is not defined
-      1: the name of the enumeration used to access the constant
+      0: the name of the enum constant that is not defined
+      1: the name of the enum used to access the constant
     documentation: |-
       #### Description
 
@@ -12198,6 +13811,102 @@ CompileTimeErrorCode:
 
       var e = E.b;
       ```
+  UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
+    sharedName: UNDEFINED_ENUM_CONSTRUCTOR
+    problemMessage: The enum doesn't have a constructor named '{0}'.
+    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '{0}'.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the constructor that is undefined
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when the constructor invoked to
+      initialize an enum constant doesn't exist.
+      
+      #### Examples
+      
+      The following code produces this diagnostic because the enum constant `c`
+      is being initialized by the unnamed constructor, but there's no unnamed
+      constructor defined in `E`:
+      
+      ```dart
+      enum E {
+        [!c!]();
+      
+        const E.x();
+      }
+      ```
+      
+      The following code produces this diagnostic because the enum constant `c`
+      is being initialized by the constructor named `x`, but there's no
+      constructor named `x` defined in `E`:
+      
+      ```dart
+      enum E {
+        c.[!x!]();
+      
+        const E.y();
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the enum constant is being initialized by the unnamed constructor and
+      one of the named constructors should have been used, then add the name of
+      the constructor:
+      
+      ```dart
+      enum E {
+        c.x();
+      
+        const E.x();
+      }
+      ```
+      
+      If the enum constant is being initialized by the unnamed constructor and
+      none of the named constructors are appropriate, then define the unnamed
+      constructor:
+      
+      ```dart
+      enum E {
+        c();
+      
+        const E();
+      }
+      ```
+      
+      If the enum constant is being initialized by a named constructor and one
+      of the existing constructors should have been used, then change the name
+      of the constructor being invoked (or remove it if the unnamed constructor
+      should be used):
+      
+      ```dart
+      enum E {
+        c.y();
+      
+        const E();
+        const E.y();
+      }
+      ```
+      
+      If the enum constant is being initialized by a named constructor and none
+      of the existing constructors should have been used, then define a
+      constructor with the name that was used:
+      
+      ```dart
+      enum E {
+        c.x();
+      
+        const E.x();
+      }
+      ```
+  UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
+    sharedName: UNDEFINED_ENUM_CONSTRUCTOR
+    problemMessage: The enum doesn't have an unnamed constructor.
+    correctionMessage: Try adding the name of an existing constructor, or defining an unnamed constructor.
+    hasPublishedDocs: true
   UNDEFINED_EXTENSION_GETTER:
     problemMessage: "The getter '{0}' isn't defined for the extension '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '{0}'."
@@ -13271,6 +14980,43 @@ CompileTimeErrorCode:
 
       Either rewrite the code so that the expression has a value or rewrite the
       code so that it doesn't depend on the value.
+  VALUES_DECLARATION_IN_ENUM:
+    problemMessage: A member named 'values' can't be declared in an enum.
+    correctionMessage: Try using a different name.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when an enum declaration defines a
+      member named `values`, whether the member is an enum constant, an instance
+      member, or a static member.
+      
+      Any such member conflicts with the implicit declaration of the static
+      getter named `values` that returns a list containing all the enum
+      constants.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the enum `E` defines
+      an instance member named `values`:
+      
+      ```dart
+      enum E {
+        v;
+        void [!values!]() {}
+      }
+      ```
+      
+      #### Common fixes
+      
+      Change the name of the conflicting member:
+      
+      ```dart
+      enum E {
+        v;
+        void getValues() {}
+      }
+      ```
   VARIABLE_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a const variable of type '{1}'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
@@ -13525,6 +15271,53 @@ CompileTimeErrorCode:
         C.named();
       }
       C f() => C.named();
+      ```
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
+    problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
+    correctionMessage: Try adjusting the number of type arguments.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the number of type parameters that were declared
+      1: the number of type arguments provided
+    documentation: |-
+      #### Description
+      
+      The analyzer produces this diagnostic when an enum constant in an enum
+      that has type parameters is instantiated and type arguments are provided,
+      but the number of type arguments isn't the same as the number of type
+      parameters.
+      
+      #### Example
+      
+      The following code produces this diagnostic because the enum constant `c`
+      provides one type argument even though the enum `E` is declared to have
+      two type parameters:
+      
+      ```dart
+      enum E<T, U> {
+        c[!<int>!]()
+      }
+      ```
+      
+      #### Common fixes
+      
+      If the number of type parameters is correct, then change the number of
+      type arguments to match the number of type parameters:
+      
+      ```dart
+      enum E<T, U> {
+        c<int, String>()
+      }
+      ```
+      
+      If the number of type arguments is correct, then change the number of type
+      parameters to match the number of type arguments:
+      
+      ```dart
+      enum E<T> {
+        c<int>()
+      }
       ```
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
     problemMessage: "The extension '{0}' is declared with {1} type parameters, but {2} type arguments were given."
@@ -13794,34 +15587,331 @@ FfiCode:
     correctionMessage: Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.
     comment: No parameters.
   ANNOTATION_ON_POINTER_FIELD:
-    problemMessage: "Fields in a struct class whose type is 'Pointer' should not have any annotations."
+    problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field that's declared in a
+      subclass of `Struct` and has the type `Pointer` also has an annotation
+      associated with it.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `p`, which
+      has the type `Pointer` and is declared in a subclass of `Struct`, has the
+      annotation `@Double()`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        [!@Double()!]
+        external Pointer<Int8> p;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the annotations from the field:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        external Pointer<Int8> p;
+      }
+      ```
   ARGUMENT_MUST_BE_A_CONSTANT:
     problemMessage: "Argument '{0}' must be a constant."
     correctionMessage: Try replacing the value with a literal or const.
     comment: |-
       Parameters:
       0: the name of the argument
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of either
+      `Pointer.asFunction` or `DynamicLibrary.lookupFunction` has an `isLeaf`
+      argument whose value isn't a constant expression.
+
+      The analyzer also produces this diagnostic when the value of the
+      `exceptionalReturn` argument of `Pointer.fromFunction`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the value of the
+      `isLeaf` argument is a parameter, and hence isn't a constant:
+
+      ```dart
+      import 'dart:ffi';
+
+      int Function(int) fromPointer(
+          Pointer<NativeFunction<Int8 Function(Int8)>> p, bool isLeaf) {
+        return p.asFunction(isLeaf: [!isLeaf!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If there's a suitable constant that can be used, then replace the argument
+      with a constant:
+
+      ```dart
+      import 'dart:ffi';
+
+      const isLeaf = false;
+
+      int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
+        return p.asFunction(isLeaf: isLeaf);
+      }
+      ```
+
+      If there isn't a suitable constant, then replace the argument with a
+      boolean literal:
+
+      ```dart
+      import 'dart:ffi';
+
+      int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
+        return p.asFunction(isLeaf: true);
+      }
+      ```
+  COMPOUND_IMPLEMENTS_FINALIZABLE:
+    problemMessage: "The class '{0}' can't implement Finalizable."
+    correctionMessage: "Try removing the implements clause from '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the struct or union class
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of either `Struct`
+      or `Union` implements `Finalizable`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `S`
+      implements `Finalizable`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class [!S!] extends Struct implements Finalizable {
+        external Pointer notEmpty;
+      }
+      ```
+
+      #### Common fixes
+
+      Try removing the implements clause from the class:
+
+      ```dart
+      import 'dart:ffi';
+
+      class S extends Struct {
+        external Pointer notEmpty;
+      }
+      ```
   CREATION_OF_STRUCT_OR_UNION:
     problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor."
     correctionMessage: "Try allocating it via allocation, or load from a 'Pointer'."
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of either `Struct`
+      or `Union` is instantiated using a generative constructor.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C` is being
+      instantiated using a generative constructor:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        external int a;
+      }
+
+      void f() {
+        [!C!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If you need to allocate the structure described by the class, then use the
+      `ffi` package to do so:
+
+      ```dart
+      import 'dart:ffi';
+      import 'package:ffi/ffi.dart';
+
+      class C extends Struct {
+        @Int32()
+        external int a;
+      }
+
+      void f() {
+        final pointer = calloc.allocate<C>(4);
+        final c = pointer.ref;
+        print(c);
+        calloc.free(pointer);
+      }
+      ```
   EMPTY_STRUCT:
-    problemMessage: "The class '{0}' can’t be empty because it's a subclass of '{1}'."
+    problemMessage: "The class '{0}' can't be empty because it's a subclass of '{1}'."
     correctionMessage: "Try adding a field to '{0}' or use a different superclass."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the superclass
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of `Struct` or
+      `Union` doesn't have any fields. Having an empty `Struct` or `Union`
+      isn't supported.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C`, which
+      extends `Struct`, doesn't declare any fields:
+
+      ```dart
+      import 'dart:ffi';
+
+      class [!C!] extends Struct {}
+      ```
+
+      #### Common fixes
+
+      If the class is intended to be a struct, then declare one or more fields:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        external int x;
+      }
+      ```
+
+      If the class is intended to be used as a type argument to `Pointer`, then
+      make it a subclass of `Opaque`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Opaque {}
+      ```
+
+      If the class isn't intended to be a struct, then remove or change the
+      extends clause:
+
+      ```dart
+      class C {}
+      ```
   EXTRA_ANNOTATION_ON_STRUCT_FIELD:
     problemMessage: Fields in a struct class must have exactly one annotation indicating the native type.
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of
+      `Struct` has more than one annotation describing the native type of the
+      field.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `x` has two
+      annotations describing the native type of the field:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        [!@Int16()!]
+        external int x;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the annotations:
+
+      ```dart
+      import 'dart:ffi';
+      class C extends Struct {
+        @Int32()
+        external int x;
+      }
+      ```
   EXTRA_SIZE_ANNOTATION_CARRAY:
     problemMessage: "'Array's must have exactly one 'Array' annotation."
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of
+      `Struct` has more than one annotation describing the size of the native
+      array.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `a0` has two
+      annotations that specify the size of the native array:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(4)
+        [!@Array(8)!]
+        external Array<Uint8> a0;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the annotations:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(8)
+        external Array<Uint8> a0;
+      }
+      ```
   FFI_NATIVE_MUST_BE_EXTERNAL:
     problemMessage: FfiNative functions must be declared external.
     correctionMessage: Add the `external` keyword to the function.
@@ -13848,60 +15938,589 @@ FfiCode:
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor in a subclass of
+      either `Struct` or `Union` has one or more field initializers.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C` has a
+      constructor with an initializer for the field `f`:
+
+      ```dart
+      // @dart = 2.9
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        int f;
+
+        C() : [!f = 0!];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the field initializer:
+
+      ```dart
+      // @dart = 2.9
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        int f;
+
+        C();
+      }
+      ```
   FIELD_IN_STRUCT_WITH_INITIALIZER:
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of
+      `Struct` has an initializer.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `p` has an
+      initializer:
+
+      ```dart
+      // @dart = 2.9
+      import 'dart:ffi';
+
+      class C extends Struct {
+        Pointer [!p!] = nullptr;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the initializer:
+
+      ```dart
+      // @dart = 2.9
+      import 'dart:ffi';
+
+      class C extends Struct {
+        Pointer p;
+      }
+      ```
   FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
     problemMessage: "Fields of 'Struct' and 'Union' subclasses must be marked external."
     correctionMessage: "Try adding the 'external' modifier."
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of either
+      `Struct` or `Union` isn't marked as being `external`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `a` isn't
+      marked as being `external`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int16()
+        int [!a!];
+      }
+      ```
+
+      #### Common fixes
+
+      Add the required `external` modifier:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int16()
+        external int a;
+      }
+      ```
   GENERIC_STRUCT_SUBCLASS:
-    problemMessage: "The class '{0}' can't extend 'Struct' or 'Union' because it is generic."
+    problemMessage: "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is generic."
     correctionMessage: "Try removing the type parameters from '{0}'."
     comment: |-
       Parameters:
       0: the name of the struct class
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of either `Struct`
+      or `Union` has a type parameter.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `S` defines
+      the type parameter `T`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class [!S!]<T> extends Struct {
+        external Pointer notEmpty;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the type parameters from the class:
+
+      ```dart
+      import 'dart:ffi';
+
+      class S extends Struct {
+        external Pointer notEmpty;
+      }
+      ```
   INVALID_EXCEPTION_VALUE:
-    problemMessage: "The method 'Pointer.fromFunction' must not have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
+    problemMessage: "The method 'Pointer.fromFunction' can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
     correctionMessage: Try removing the exceptional return value.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of the method
+      `Pointer.fromFunction` has a second argument (the exceptional return
+      value) and the type to be returned from the invocation is either `void`,
+      `Handle` or `Pointer`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because a second argument is
+      provided when the return type of `f` is `void`:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef T = Void Function(Int8);
+
+      void f(int i) {}
+
+      void g() {
+        Pointer.fromFunction<T>(f, [!42!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the exception value:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef T = Void Function(Int8);
+
+      void f(int i) {}
+
+      void g() {
+        Pointer.fromFunction<T>(f);
+      }
+      ```
   INVALID_FIELD_TYPE_IN_STRUCT:
     problemMessage: "Fields in struct classes can't have the type '{0}'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
     correctionMessage: "Try using 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
     comment: |-
       Parameters:
       0: the type of the field
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of
+      `Struct` has a type other than `int`, `double`, `Array`, `Pointer`, or
+      subtype of `Struct` or `Union`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `str` has
+      the type `String`, which isn't one of the allowed types for fields in a
+      subclass of `Struct`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        external [!String!] s;
+
+        @Int32()
+        external int i;
+      }
+      ```
+
+      #### Common fixes
+
+      Use one of the allowed types for the field:
+
+      ```dart
+      import 'dart:ffi';
+      import 'package:ffi/ffi.dart';
+
+      class C extends Struct {
+        external Pointer<Utf8> s;
+
+        @Int32()
+        external int i;
+      }
+      ```
   LEAF_CALL_MUST_NOT_RETURN_HANDLE:
-    problemMessage: FFI leaf call must not return a Handle.
+    problemMessage: "FFI leaf call can't return a 'Handle'."
     correctionMessage: Try changing the return type to primitive or struct.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of the `isLeaf`
+      argument in an invocation of either `Pointer.asFunction` or
+      `DynamicLibrary.lookupFunction` is `true` and the function that would be
+      returned would have a return type of `Handle`.
+
+      The analyzer also produces this diagnostic when the value of the `isLeaf`
+      argument in an `FfiNative` annotation is `true` and the type argument on
+      the annotation is a function type whose return type is `Handle`.
+
+      In all of these cases, leaf calls are only supported for the types `bool`,
+      `int`, `float`, `double`, and, as a return type `void`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the function `p`
+      returns a `Handle`, but the `isLeaf` argument is `true`:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Handle Function()>> p) {
+        [!p.asFunction<Object Function()>(isLeaf: true)!];
+      }
+      ```
+
+      #### Common fixes
+
+      If the function returns a handle, then remove the `isLeaf` argument:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Handle Function()>> p) {
+        p.asFunction<Object Function()>();
+      }
+      ```
+
+      If the function returns one of the supported types, then correct the type
+      information:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Int32 Function()>> p) {
+        p.asFunction<int Function()>(isLeaf: true);
+      }
+      ```
   LEAF_CALL_MUST_NOT_TAKE_HANDLE:
-    problemMessage: FFI leaf call must not take arguments of type Handle.
+    problemMessage: "FFI leaf call can't take arguments of type 'Handle'."
     correctionMessage: Try changing the argument type to primitive or struct.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of the `isLeaf`
+      argument in an invocation of either `Pointer.asFunction` or
+      `DynamicLibrary.lookupFunction` is `true` and the function that would be
+      returned would have a parameter of type `Handle`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the function `p` has a
+      parameter of type `Handle`, but the `isLeaf` argument is `true`:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Void Function(Handle)>> p) {
+        [!p.asFunction<void Function(Object)>(isLeaf: true)!];
+      }
+      ```
+
+      #### Common fixes
+
+      If the function has at least one parameter of type `Handle`, then remove
+      the `isLeaf` argument:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Void Function(Handle)>> p) {
+        p.asFunction<void Function(Object)>();
+      }
+      ```
+
+      If none of the function's parameters are `Handle`s, then correct the type
+      information:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Void Function(Int8)>> p) {
+        p.asFunction<void Function(int)>(isLeaf: true);
+      }
+      ```
   MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
-    problemMessage: The annotation does not match the declared type of the field.
+    problemMessage: "The annotation doesn't match the declared type of the field."
     correctionMessage: Try using a different annotation or changing the declared type to match.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the annotation on a field in a
+      subclass of `Struct` or `Union` doesn't match the Dart type of the field.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation
+      `Double` doesn't match the Dart type `int`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        [!@Double()!]
+        external int x;
+      }
+      ```
+
+      #### Common fixes
+
+      If the type of the field is correct, then change the annotation to match:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        external int x;
+      }
+      ```
+
+      If the annotation is correct, then change the type of the field to match:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Double()
+        external double x;
+      }
+      ```
   MISSING_ANNOTATION_ON_STRUCT_FIELD:
     problemMessage: "Fields in a struct class must either have the type 'Pointer' or an annotation indicating the native type."
     correctionMessage: Try adding an annotation.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of
+      `Struct` or `Union` whose type requires an annotation doesn't have one.
+      The Dart types `int`, `double`, and `Array` are used to represent multiple
+      C types, and the annotation specifies which of the compatible C types the
+      field represents.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `x` doesn't
+      have an annotation indicating the underlying width of the integer value:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        external [!int!] x;
+      }
+      ```
+
+      #### Common fixes
+
+      Add an appropriate annotation to the field:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int64()
+        external int x;
+      }
+      ```
   MISSING_EXCEPTION_VALUE:
-    problemMessage: "The method 'Pointer.fromFunction' must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle' or 'Pointer'."
+    problemMessage: "The method 'Pointer.fromFunction' must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
     correctionMessage: Try adding an exceptional return value.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of the method
+      `Pointer.fromFunction` doesn't have a second argument (the exceptional
+      return value) when the type to be returned from the invocation is neither
+      `void`, `Handle`, nor `Pointer`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the type returned by
+      `f` is expected to be an 8-bit integer but the call to `fromFunction`
+      doesn't include an exceptional return argument:
+
+      ```dart
+      import 'dart:ffi';
+
+      int f(int i) => i * 2;
+
+      void g() {
+        Pointer.[!fromFunction!]<Int8 Function(Int8)>(f);
+      }
+      ```
+
+      #### Common fixes
+
+      Add an exceptional return type:
+
+      ```dart
+      import 'dart:ffi';
+
+      int f(int i) => i * 2;
+
+      void g() {
+        Pointer.fromFunction<Int8 Function(Int8)>(f, 0);
+      }
+      ```
   MISSING_FIELD_TYPE_IN_STRUCT:
     problemMessage: "Fields in struct classes must have an explicitly declared type of 'int', 'double' or 'Pointer'."
     correctionMessage: "Try using 'int', 'double' or 'Pointer'."
     comment: |-
       Parameters:
       0: the type of the field
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of
+      `Struct` or `Union` doesn't have a type annotation. Every field must have
+      an explicit type, and the type must either be `int`, `double`, `Pointer`,
+      or a subclass of either `Struct` or `Union`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `str`
+      doesn't have a type annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        external var [!str!];
+
+        @Int32()
+        external int i;
+      }
+      ```
+
+      #### Common fixes
+
+      Explicitly specify the type of the field:
+
+      ```dart
+      import 'dart:ffi';
+      import 'package:ffi/ffi.dart';
+
+      class C extends Struct {
+        external Pointer<Utf8> str;
+
+        @Int32()
+        external int i;
+      }
+      ```
   MISSING_SIZE_ANNOTATION_CARRAY:
-    problemMessage: "'Array's must have exactly one 'Array' annotation."
-    correctionMessage: "Try adding a 'Array' annotation."
+    problemMessage: "Fields of type 'Array' must have exactly one 'Array' annotation."
+    correctionMessage: "Try adding an 'Array' annotation, or removing all but one of the annotations."
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field in a subclass of either
+      `Struct` or `Union` has a type of `Array` but doesn't have a single
+      `Array` annotation indicating the dimensions of the array.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `a0` doesn't
+      have an `Array` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        external [!Array<Uint8>!] a0;
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that there's exactly one `Array` annotation on the field:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(8)
+        external Array<Uint8> a0;
+      }
+      ```
   MUST_BE_A_NATIVE_FUNCTION_TYPE:
     problemMessage: "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function type."
     correctionMessage: "Try changing the type to only use members for 'dart:ffi'."
@@ -13909,6 +16528,49 @@ FfiCode:
       Parameters:
       0: the type that should be a valid dart:ffi native type.
       1: the name of the function whose invocation depends on this relationship
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of either
+      `Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
+      argument(whether explicit or inferred) that isn't a native function type.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the type `T` can be
+      any subclass of `Function` but the type argument for `fromFunction` is
+      required to be a native function type:
+
+      ```dart
+      import 'dart:ffi';
+
+      int f(int i) => i * 2;
+
+      class C<T extends Function> {
+        void g() {
+          Pointer.fromFunction<[!T!]>(f, 0);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Use a native function type as the type argument to the invocation:
+
+      ```dart
+      import 'dart:ffi';
+
+      int f(int i) => i * 2;
+
+      class C<T extends Function> {
+        void g() {
+          Pointer.fromFunction<Int32 Function(Int32)>(f, 0);
+        }
+      }
+      ```
   MUST_BE_A_SUBTYPE:
     problemMessage: "The type '{0}' must be a subtype of '{1}' for '{2}'."
     correctionMessage: Try changing one or both of the type arguments.
@@ -13917,47 +16579,464 @@ FfiCode:
       0: the type that should be a subtype
       1: the supertype that the subtype is compared to
       2: the name of the function whose invocation depends on this relationship
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic in two cases:
+      - In an invocation of `Pointer.fromFunction` where the type argument
+        (whether explicit or inferred) isn't a supertype of the type of the
+        function passed as the first argument to the method.
+      - In an invocation of `DynamicLibrary.lookupFunction` where the first type
+        argument isn't a supertype of the second type argument.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the type of the
+      function `f` (`String Function(int)`) isn't a subtype of the type
+      argument `T` (`Int8 Function(Int8)`):
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef T = Int8 Function(Int8);
+
+      double f(double i) => i;
+
+      void g() {
+        Pointer.fromFunction<T>([!f!], 5.0);
+      }
+      ```
+
+      #### Common fixes
+
+      If the function is correct, then change the type argument to match:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef T = Float Function(Float);
+
+      double f(double i) => i;
+
+      void g() {
+        Pointer.fromFunction<T>(f, 5.0);
+      }
+      ```
+
+      If the type argument is correct, then change the function to match:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef T = Int8 Function(Int8);
+
+      int f(int i) => i;
+
+      void g() {
+        Pointer.fromFunction<T>(f, 5);
+      }
+      ```
   NON_CONSTANT_TYPE_ARGUMENT:
-    problemMessage: "The type arguments to '{0}' must be compile time constants but type parameters are not constants."
+    problemMessage: "The type arguments to '{0}' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
     comment: |-
       Parameters:
       0: the name of the function, method, or constructor having type arguments
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type arguments to a method
+      are required to be known at compile time, but a type parameter, whose
+      value can't be known at compile time, is used as a type argument.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the type argument to
+      `Pointer.asFunction` must be known at compile time, but the type parameter
+      `R`, which isn't known at compile time, is being used as the type
+      argument:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef T = int Function(int);
+
+      class C<R extends T> {
+        void m(Pointer<NativeFunction<T>> p) {
+          p.asFunction<[!R!]>();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove any uses of type parameters:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        void m(Pointer<NativeFunction<Int64 Function(Int64)>> p) {
+          p.asFunction<int Function(int)>();
+        }
+      }
+      ```
   NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
-    problemMessage: "The type argument for the pointer '{0}' must be a valid 'NativeFunction' in order to use 'asFunction'."
+    problemMessage: "Can't invoke 'asFunction' because the function signature '{0}' for the pointer isn't a valid C function signature."
     correctionMessage: "Try changing the function argument in 'NativeFunction' to only use NativeTypes."
     comment: |-
       Parameters:
       0: the type that should be a valid dart:ffi native type.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the method `asFunction` is
+      invoked on a pointer to a native function, but the signature of the native
+      function isn't a valid C function signature.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because function signature
+      associated with the pointer `p` (`FNative`) isn't a valid C function
+      signature:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef FNative = int Function(int);
+      typedef F = int Function(int);
+
+      class C {
+        void f(Pointer<NativeFunction<FNative>> p) {
+          p.asFunction<[!F!]>();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Make the `NativeFunction` signature a valid C signature:
+
+      ```dart
+      import 'dart:ffi';
+
+      typedef FNative = Int8 Function(Int8);
+      typedef F = int Function(int);
+
+      class C {
+        void f(Pointer<NativeFunction<FNative>> p) {
+          p.asFunction<F>();
+        }
+      }
+      ```
   NON_POSITIVE_ARRAY_DIMENSION:
     problemMessage: Array dimensions must be positive numbers.
     correctionMessage: Try changing the input to a positive number.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dimension given in an `Array`
+      annotation is less than or equal to zero (`0`).
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because an array dimension of
+      `-1` was provided:
+
+      ```dart
+      import 'dart:ffi';
+
+      class MyStruct extends Struct {
+        @Array([!-8!])
+        external Array<Uint8> a0;
+      }
+      ```
+
+      #### Common fixes
+
+      Change the dimension to be a positive integer:
+
+      ```dart
+      import 'dart:ffi';
+
+      class MyStruct extends Struct {
+        @Array(8)
+        external Array<Uint8> a0;
+      }
+      ```
   NON_SIZED_TYPE_ARGUMENT:
-    problemMessage: "Type arguments to '{0}' can't have the type '{1}'. They can only be declared as native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    problemMessage: "The type '{1}' isn't a valid type argument for '{0}'. The type argument must be a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     comment: |-
       Parameters:
       0: the type of the field
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type argument for the class
+      `Array` isn't one of the valid types: either a native integer, `Float`,
+      `Double`, `Pointer`, or subtype of `Struct`, `Union`, or
+      `AbiSpecificInteger`.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the type argument to
+      `Array` is `Void`, and `Void` isn't one of the valid types:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(8)
+        external Array<[!Void!]> a0;
+      }
+      ```
+
+      #### Common fixes
+
+      Change the type argument to one of the valid types:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(8)
+        external Array<Uint8> a0;
+      }
+      ```
   PACKED_ANNOTATION:
     problemMessage: "Structs must have at most one 'Packed' annotation."
     correctionMessage: "Try removing extra 'Packed' annotations."
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of `Struct` has more
+      than one `Packed` annotation.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C`, which
+      is a subclass of `Struct`, has two `Packed` annotations:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed(1)
+      [!@Packed(1)!]
+      class C extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the annotations:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed(1)
+      class C extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+      ```
   PACKED_ANNOTATION_ALIGNMENT:
     problemMessage: Only packing to 1, 2, 4, 8, and 16 bytes is supported.
     correctionMessage: "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16."
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the argument to the `Packed`
+      annotation isn't one of the allowed values: 1, 2, 4, 8, or 16.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the argument to the
+      `Packed` annotation (`3`) isn't one of the allowed values:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed([!3!])
+      class C extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+      ```
+
+      #### Common fixes
+
+      Change the alignment to be one of the allowed values:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed(4)
+      class C extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+      ```
   PACKED_NESTING_NON_PACKED:
-    problemMessage: "Nesting the non-packed or less tightly packed struct '{0}' in a packed struct '{1}' is not supported."
+    problemMessage: "Nesting the non-packed or less tightly packed struct '{0}' in a packed struct '{1}' isn't supported."
     correctionMessage: Try packing the nested struct or packing the nested struct more tightly.
     comment: |-
       Parameters:
       0: the name of the outer struct
       1: the name of the struct being nested
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a subclass of `Struct` that is
+      annotated as being `Packed` declares a field whose type is also a subclass
+      of `Struct` and the field's type is either not packed or is packed less
+      tightly.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `Outer`,
+      which is a subclass of `Struct` and is packed on 1-byte boundaries,
+      declared a field whose type (`Inner`) is packed on 8-byte boundaries:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed(8)
+      class Inner extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+
+      @Packed(1)
+      class Outer extends Struct {
+        external Pointer<Uint8> notEmpty;
+
+        external [!Inner!] nestedLooselyPacked;
+      }
+      ```
+
+      #### Common fixes
+
+      If the inner struct should be packed more tightly, then change the
+      argument to the inner struct's `Packed` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed(1)
+      class Inner extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+
+      @Packed(1)
+      class Outer extends Struct {
+        external Pointer<Uint8> notEmpty;
+
+        external Inner nestedLooselyPacked;
+      }
+      ```
+
+      If the outer struct should be packed less tightly, then change the
+      argument to the outer struct's `Packed` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Packed(8)
+      class Inner extends Struct {
+        external Pointer<Uint8> notEmpty;
+      }
+
+      @Packed(8)
+      class Outer extends Struct {
+        external Pointer<Uint8> notEmpty;
+
+        external Inner nestedLooselyPacked;
+      }
+      ```
+
+      If the inner struct doesn't have an annotation and should be packed, then
+      add an annotation.
+
+      If the inner struct doesn't have an annotation and the outer struct
+      shouldn't be packed, then remove its annotation.
   SIZE_ANNOTATION_DIMENSIONS:
     problemMessage: "'Array's must have an 'Array' annotation that matches the dimensions."
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the number of dimensions
+      specified in an `Array` annotation doesn't match the number of nested
+      arrays specified by the type of a field.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `a0` has a
+      type with three nested arrays, but only two dimensions are given in the
+      `Array` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        [!@Array(8, 8)!]
+        external Array<Array<Array<Uint8>>> a0;
+      }
+      ```
+
+      #### Common fixes
+
+      If the type of the field is correct, then fix the annotation to have the
+      required number of dimensions:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(8, 8, 4)
+        external Array<Array<Array<Uint8>>> a0;
+      }
+      ```
+
+      If the type of the field is wrong, then fix the type of the field:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Array(8, 8)
+        external Array<Array<Uint8>> a0;
+      }
+      ```
   SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't extend '{1}'."
@@ -13966,14 +17045,57 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class extends any FFI class
+      other than `Struct` or `Union`, or implements or mixes in any FFI class.
+      `Struct` and `Union` are the only FFI classes that can be subtyped, and
+      then only by extending them.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C` extends
+      `Double`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends [!Double!] {}
+      ```
+
+      #### Common fixes
+
+      If the class should extend either `Struct` or `Union`, then change the
+      declaration of the class:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int32()
+        external int i;
+      }
+      ```
+
+      If the class shouldn't extend either `Struct` or `Union`, then remove any
+      references to FFI classes:
+
+      ```dart
+      class C {}
+      ```
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
-    correctionMessage: "Try extending 'Struct' or 'Union'."
+    correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
   SUBTYPE_OF_FFI_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}'."
@@ -13982,6 +17104,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
   SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -13990,6 +17113,52 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class extends, implements, or
+      mixes in a class that extends either `Struct` or `Union`. Classes can only
+      extend either `Struct` or `Union` directly.
+
+      For more information about FFI, see [C interop using dart:ffi][].
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C` extends
+      `S`, and `S` extends `Struct`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class S extends Struct {
+        external Pointer f;
+      }
+
+      class C extends [!S!] {
+        external Pointer g;
+      }
+      ```
+
+      #### Common fixes
+
+      If you're trying to define a struct or union that shares some fields
+      declared by a different struct or union, then extend `Struct` or `Union`
+      directly and copy the shared fields:
+
+      ```dart
+      import 'dart:ffi';
+
+      class S extends Struct {
+        external Pointer f;
+      }
+
+      class C extends Struct {
+        external Pointer f;
+
+        external Pointer g;
+      }
+      ```
   SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -13998,6 +17167,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
   SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -14006,6 +17176,7 @@ FfiCode:
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
+    hasPublishedDocs: true
 HintCode:
   ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
@@ -14071,6 +17242,33 @@ HintCode:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
     comment: Users should not assign values marked `@doNotStore`.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of a function
+      (including methods and getters) that is explicitly or implicitly marked by
+      the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
+      or top-level variable.
+
+      #### Example
+
+      The following code produces this diagnostic because the value of the
+      function `f` is being stored in the top-level variable `x`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 1;
+
+      var x = [!f()!];
+      ```
+
+      #### Common fixes
+
+      Replace references to the field or variable with invocations of the
+      function producing the value.
   BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
     problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
     correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
@@ -14078,6 +17276,40 @@ HintCode:
     comment: |-
       Parameters:
       0: the name of the declared return type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method or function can
+      implicitly return `null` by falling off the end. While this is valid Dart
+      code, it's better for the return of `null` to be explicit.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      implicitly returns `null`:
+
+      ```dart
+      String? [!f!]() {}
+      ```
+
+      #### Common fixes
+
+      If the return of `null` is intentional, then make it explicit:
+
+      ```dart
+      String? f() {
+        return null;
+      }
+      ```
+
+      If the function should return a non-null value along that path, then add
+      the missing return statement:
+
+      ```dart
+      String? f() {
+        return '';
+      }
+      ```
   CAN_BE_NULL_AFTER_NULL_AWARE:
     problemMessage: "The receiver uses '?.', so its value can be null."
     correctionMessage: "Replace the '.' with a '?.' in the invocation."
@@ -14335,6 +17567,56 @@ HintCode:
     problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
     correctionMessage: Try referring to a constructor by its name.
     comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a comment reference (the name
+      of a declaration enclosed in square brackets in a documentation comment)
+      uses the keyword `new` to refer to a constructor. This form is deprecated.
+
+      #### Examples
+
+      The following code produces this diagnostic because the unnamed
+      constructor is being referenced using `new C`:
+
+      ```dart
+      /// See [[!new!] C].
+      class C {
+        C();
+      }
+      ```
+
+      The following code produces this diagnostic because the constructor named
+      `c` is being referenced using `new C.c`:
+
+      ```dart
+      /// See [[!new!] C.c].
+      class C {
+        C.c();
+      }
+      ```
+
+      #### Common fixes
+
+      If you're referencing a named constructor, then remove the keyword `new`:
+
+      ```dart
+      /// See [C.c].
+      class C {
+        C.c();
+      }
+      ```
+
+      If you're referencing the unnamed constructor, then remove the keyword
+      `new` and append `.new` after the class name:
+
+      ```dart
+      /// See [C.new].
+      class C {
+        C.c();
+      }
+      ```
   DEPRECATED_MIXIN_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Mixing in 'Function' is deprecated."
@@ -14733,11 +18015,50 @@ HintCode:
       ```
 
       If type arguments shouldn't be required for the class, then mark the class
-      with the `@optionalTypeArgs` annotation (from `package:meta`):
+      with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
+      `package:meta`):
   IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
-    problemMessage: "The library '{0}' is legacy, and should not be imported into a null safe library."
+    problemMessage: "The library '{0}' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.
-    comment: "https://github.com/dart-lang/sdk/issues/44063"
+    comment: |-
+      No parameters.
+
+      https://github.com/dart-lang/sdk/issues/44063
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library that is null safe
+      imports a library that isn't null safe.
+
+      #### Example
+
+      Given a file named `a.dart` that contains the following:
+
+      ```dart
+      %uri="lib/a.dart"
+      // @dart = 2.9
+
+      class A {}
+      ```
+
+      The following code produces this diagnostic because a library that null
+      safe is importing a library that isn't null safe:
+
+      ```dart
+      import [!'a.dart'!];
+
+      A? f() => null;
+      ```
+
+      #### Common fixes
+
+      If you can migrate the imported library to be null safe, then migrate it
+      and update or remove the migrated library's language version.
+
+      If you can't migrate the imported library, then the importing library
+      needs to have a language version that is before 2.12, when null safety was
+      enabled by default.
   INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
     problemMessage: "The type argument(s) of '{0}' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '{0}'."
@@ -14785,29 +18106,121 @@ HintCode:
       When "strict-inference" in enabled, function parameters must be
       declared with a specific type, or inherit a type.
   INVALID_ANNOTATION_TARGET:
-    problemMessage: "The annotation '{0}' can only be used on {1}"
+    problemMessage: "The annotation '{0}' can only be used on {1}."
     comment: |-
       Parameters:
       0: the name of the annotation
       1: the list of valid targets
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an annotation is applied to a
+      kind of declaration that it doesn't support.
+
+      #### Example
+
+      The following code produces this diagnostic because the `optionalTypeArgs`
+      annotation isn't defined to be valid for top-level variables:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @[!optionalTypeArgs!]
+      int x = 0;
+      ```
+
+      #### Common fixes
+
+      Remove the annotation from the declaration.
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."
     comment: |-
-      This hint is generated anywhere where an element annotated with `@internal`
-      is exported as a part of a package's public API.
-
       Parameters:
       0: the name of the element
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [public library][] exports a
+      declaration that is marked with the `[internal][meta-internal]`
+      annotation.
+
+      #### Example
+
+      Given a file named `a.dart` in the `src` directory that contains:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      import 'package:meta/meta.dart';
+
+      @internal class One {}
+      ```
+
+      The following code, when found in a [public library][] produces this
+      diagnostic because the `export` directive is exporting a name that is only
+      intended to be used internally:
+
+      ```dart
+      [!export 'src/a.dart';!]
+      ```
+
+      #### Common fixes
+
+      If the export is needed, then add a `hide` clause to hide the internal
+      names:
+
+      ```dart
+      export 'src/a.dart' hide One;
+      ```
+
+      If the export isn't needed, then remove it.
   INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'."
     correctionMessage: "Try using a hide clause to hide '{0}'."
     comment: |-
-      This hint is generated anywhere where an element annotated with `@internal`
-      is exported indirectly as a part of a package's public API.
-
       Parameters:
       0: the name of the element
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a [public library][] exports a
+      top-level function  with a return type or at least one parameter type that
+      is marked with the `[internal][meta-internal]` annotation.
+
+      #### Example
+
+      Given a file named `a.dart` in the `src` directory that contains the
+      following:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      import 'package:meta/meta.dart';
+
+      @internal
+      typedef IntFunction = int Function();
+
+      int f(IntFunction g) => g();
+      ```
+
+      The following code produces this diagnostic because the function `f` has a
+      parameter of type `IntFunction`, and `IntFunction` is only intended to be
+      used internally:
+
+      ```dart
+      [!export 'src/a.dart' show f;!]
+      ```
+
+      #### Common fixes
+
+      If the function must be public, then make all the types in the function's
+      signature public types.
+
+      If the function doesn't need to be exported, then stop exporting it,
+      either by removing it from the `show` clause, adding it to the `hide`
+      clause, or by removing the export.
   INVALID_FACTORY_ANNOTATION:
     problemMessage: Only methods can be annotated as factories.
     comment: |-
@@ -14816,17 +18229,91 @@ HintCode:
   INVALID_FACTORY_METHOD_DECL:
     problemMessage: "Factory method '{0}' must have a return type."
     comment: |-
-      This hint is generated anywhere a @factory annotation is associated with
-      a method that does not declare a return type.
+      Parameters:
+      0: The name of the method
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that is annotated with
+      the `[factory][meta-factory]` annotation has a return type of `void`.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `createC`
+      is annotated with the `[factory][meta-factory]` annotation but doesn't
+      return any value:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        void [!createC!]() {}
+      }
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Change the return type to something other than `void`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        C createC() => C();
+      }
+
+      class C {}
+      ```
   INVALID_FACTORY_METHOD_IMPL:
     problemMessage: "Factory method '{0}' doesn't return a newly allocated object."
     comment: |-
-      This hint is generated anywhere a @factory annotation is associated with
-      a non-abstract method that can return anything other than a newly allocated
-      object.
-
       Parameters:
       0: the name of the method
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method that is annotated with
+      the `[factory][meta-factory]` annotation doesn't return a newly allocated
+      object.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `createC`
+      returns the value of a field rather than a newly created instance of `C`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        C c = C();
+
+        @factory
+        C [!createC!]() => c;
+      }
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Change the method to return a newly created instance of the return type:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class Factory {
+        @factory
+        C createC() => C();
+      }
+
+      class C {}
+      ```
   INVALID_IMMUTABLE_ANNOTATION:
     problemMessage: Only classes can be annotated as being immutable.
     comment: |-
@@ -14835,121 +18322,145 @@ HintCode:
   INVALID_INTERNAL_ANNOTATION:
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     comment: |-
-      This hint is generated anywhere a @internal annotation is associated with
-      an element found in a package's public API.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a declaration is annotated with
+      the `[internal][meta-internal]` annotation and that declaration is either
+      in a [public library][] or has a private name.
+
+      #### Example
+
+      The following code, when in a [public library][], produces this diagnostic
+      because the `[internal][meta-internal]` annotation can't be applied to
+      declarations in a [public library][]:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@internal!]
+      class C {}
+      ```
+
+      The following code, whether in a public or internal library, produces this
+      diagnostic because the `[internal][meta-internal]` annotation can't be
+      applied to declarations with private names:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@internal!]
+      class _C {}
+      
+      void f(_C c) {}
+      ```
+
+      #### Common fixes
+
+      If the declaration has a private name, then remove the annotation:
+
+      ```dart
+      class _C {}
+
+      void f(_C c) {}
+      ```
+
+      If the declaration has a public name and is intended to be internal to the
+      package, then move the annotated declaration into an internal library (in
+      other words, a library inside the `src` directory).
+
+      Otherwise, remove the use of the annotation:
+
+      ```dart
+      class C {}
+      ```
   INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}"
+    problemMessage: "The language version override can't specify a version greater than the latest known language version: {0}.{1}."
     correctionMessage: Try removing the language version override.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override number must begin with '@dart'"
+    problemMessage: "The Dart language version override number must begin with '@dart'."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
 
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      The analyzer produces this diagnostic when a comment that appears to be an
+      attempt to specify a language version override doesn't conform to the
+      requirements for such a comment. For more information, see
+      [Per-library language version selection](https://dart.dev/guides/language/evolution#per-library-language-version-selection).
+
+      #### Example
+
+      The following code produces this diagnostic because the word `dart` must
+      be lowercase in such a comment and because there's no equal sign between
+      the word `dart` and the version number:
+
+      ```dart
+      [!// @Dart 2.9!]
+      ```
+
+      #### Common fixes
+
+      If the comment is intended to be a language version override, then change
+      the comment to follow the correct format:
+
+      ```dart
+      // @dart = 2.9
+      ```
   INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: The language version override must be before any declaration or directive.
+    problemMessage: The language version override must be specified before any declaration or directive.
     correctionMessage: Try moving the language version override to the top of the file.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case"
+    problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
-
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
-
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override number can't be prefixed with a letter"
+    problemMessage: "The Dart language version override number can't be prefixed with a letter."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
-
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters"
+    problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
-
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: The Dart language version override comment must be specified with exactly two slashes.
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
-
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      No parameters.
+    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
-    problemMessage: "The Dart language version override comment must be specified with an '=' character"
+    problemMessage: "The Dart language version override comment must be specified with an '=' character."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
     comment: |-
-      Invalid Dart language version comments don't follow the specification [1].
-      If a comment begins with "@dart" or "dart" (letters in any case),
-      followed by optional whitespace, followed by optional non-alphanumeric,
-      non-whitespace characters, followed by optional whitespace, followed by
-      an optional alphabetical character, followed by a digit, then the
-      comment is considered to be an attempt at a language version override
-      comment. If this attempted language version override comment is not a
-      valid language version override comment, it is reported.
-
-      [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+      No parameters.
+    hasPublishedDocs: true
   INVALID_LITERAL_ANNOTATION:
     problemMessage: Only const constructors can have the `@literal` annotation.
     hasPublishedDocs: true
@@ -14957,8 +18468,8 @@ HintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the `@literal` annotation is
-      applied to anything other than a const constructor.
+      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+      annotation is applied to anything other than a const constructor.
 
       #### Examples
 
@@ -15128,11 +18639,41 @@ HintCode:
   INVALID_USE_OF_INTERNAL_MEMBER:
     problemMessage: "The member '{0}' can only be used within its package."
     comment: |-
-      This hint is generated anywhere where a member annotated with `@internal`
-      is used outside of the package in which it is declared.
-
       Parameters:
       0: the name of the member
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a reference to a declaration
+      that is annotated with the `[internal][meta-internal]` annotation is found
+      outside the package containing the declaration.
+
+      #### Example
+
+      Given a package `p` that defines a library containing a declaration marked
+      with the `[internal][meta-internal]` annotation:
+
+      ```dart
+      %uri="package:p/src/p.dart"
+      import 'package:meta/meta.dart';
+
+      @internal
+      class C {}
+      ```
+
+      The following code produces this diagnostic because it's referencing the
+      class `C`, which isn't intended to be used outside the package `p`:
+
+      ```dart
+      import 'package:p/src/p.dart';
+
+      void f([!C!] c) {}
+      ```
+
+      #### Common fixes
+
+      Remove the reference to the internal declaration.
   INVALID_USE_OF_PROTECTED_MEMBER:
     problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
     comment: |-
@@ -15152,8 +18693,9 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when an instance member that is
-      annotated with `visibleForOverriding` is referenced outside the library in
-      which it's declared for any reason other than to override it.
+      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+      referenced outside the library in which it's declared for any reason other
+      than to override it.
 
       #### Example
 
@@ -15217,8 +18759,9 @@ HintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when either the `@visibleForTemplate`
-      or `@visibleForTesting` annotation is applied to a non-public declaration.
+      The analyzer produces this diagnostic when either the `visibleForTemplate`
+      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+      a non-public declaration.
 
       #### Example
 
@@ -15262,9 +18805,10 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when anything other than a public
-      instance member of a class is annotated with `visibleForOverriding`.
-      Because only public instance members can be overridden outside the defining
-      library, there's no value to annotating any other declarations.
+      instance member of a class is annotated with
+      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+      instance members can be overridden outside the defining library, there's
+      no value to annotating any other declarations.
 
       #### Example
 
@@ -15388,9 +18932,9 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when the superclass constraint of a
-      mixin is a class from a different package that was marked as `@sealed`.
-      Classes that are sealed can't be extended, implemented, mixed in, or used
-      as a superclass constraint.
+      mixin is a class from a different package that was marked as
+      `[sealed][meta-sealed]`. Classes that are sealed can't be extended,
+      implemented, mixed in, or used as a superclass constraint.
 
       #### Example
 
@@ -15429,8 +18973,8 @@ HintCode:
 
       The analyzer produces this diagnostic when an immutable class defines one
       or more instance fields that aren't final. A class is immutable if it's
-      marked as being immutable using the annotation `@immutable` or if it's a
-      subclass of an immutable class.
+      marked as being immutable using the annotation
+      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
 
       #### Example
 
@@ -15485,8 +19029,8 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that overrides a method
-      that is annotated as `@mustCallSuper` doesn't invoke the overridden method
-      as required.
+      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+      the overridden method as required.
 
       #### Example
 
@@ -15551,10 +19095,10 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when a constructor that has the
-      `@literal` annotation is invoked without using the `const` keyword, but all
-      of the arguments to the constructor are constants. The annotation indicates
-      that the constructor should be used to create a constant value whenever
-      possible.
+      `[literal][meta-literal]` annotation is invoked without using the `const`
+      keyword, but all of the arguments to the constructor are constants. The
+      annotation indicates that the constructor should be used to create a
+      constant value whenever possible.
 
       #### Example
 
@@ -15681,8 +19225,43 @@ HintCode:
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-
-      This hint indicates that a null literal is null-checked with `!`, but null
-      is never not null.
+      No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the null check operator (`!`)
+      is used on an expression whose value can only be `null`. In such a case
+      the operator always throws an exception, which likely isn't the intended
+      behavior.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `g` will
+      always return `null`, which means that the null check in `f` will always
+      throw:
+
+      ```dart
+      void f() {
+        [!g()!!];
+      }
+
+      Null g() => null;
+      ```
+
+      #### Common fixes
+
+      If you intend to always throw an exception, then replace the null check
+      with an explicit `throw` expression to make the intent more clear:
+
+      ```dart
+      void f() {
+        g();
+        throw TypeError();
+      }
+
+      Null g() => null;
+      ```
   OVERRIDE_ON_NON_OVERRIDING_FIELD:
     sharedName: OVERRIDE_ON_NON_OVERRIDING_MEMBER
     problemMessage: "The field doesn't override an inherited getter or setter."
@@ -15781,8 +19360,57 @@ HintCode:
     problemMessage: "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated."
     correctionMessage: "Annotate '{1}' with 'doNotStore'."
     comment: |-
-      Users should not return values marked `@doNotStore` from functions,
-      methods or getters not marked `@doNotStore`.
+      Parameters:
+      0: the name of the annotated function being invoked
+      1: the name of the function containing the return
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value that is annotated with
+      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+      getter, or function that doesn't have the same annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of invoking
+      `f` shouldn't be stored, but the function `g` isn't annotated to preserve
+      that semantic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      int g() => [!f()!];
+      ```
+
+      #### Common fixes
+
+      If the value that shouldn't be stored is the correct value to return, then
+      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      @doNotStore
+      int g() => f();
+      ```
+
+      Otherwise, return a different value from the function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @doNotStore
+      int f() => 0;
+
+      int g() => 0;
+      ```
   SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
     problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
     correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."
@@ -16441,10 +20069,10 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when a sealed class (one that either
-      has the `@sealed` annotation or inherits or mixes in a sealed class) is
-      referenced in either the `extends`, `implements`, or `with` clause of a
-      class or mixin declaration if the declaration isn't in the same package as
-      the sealed class.
+      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+      sealed class) is referenced in either the `extends`, `implements`, or
+      `with` clause of a class or mixin declaration if the declaration isn't in
+      the same package as the sealed class.
 
       #### Example
 
@@ -16487,7 +20115,7 @@ HintCode:
   TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unicode sequence of the code point.
@@ -16527,7 +20155,7 @@ HintCode:
   TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unicode sequence of the code point.
@@ -16668,8 +20296,8 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when an annotation of the form
-      `@UnusedResult.unless(parameterDefined: parameterName)` specifies a
-      parameter name that isn't defined by the annotated function.
+      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+      specifies a parameter name that isn't defined by the annotated function.
 
       #### Example
 
@@ -17313,16 +20941,16 @@ HintCode:
       #### Description
 
       The analyzer produces this diagnostic when a function annotated with
-      `useResult` is invoked, and the value returned by that function isn't used.
-      The value is considered to be used if a member of the value is invoked, if
-      the value is passed to another function, or if the value is assigned to a
-      variable or field.
+      `[useResult][meta-useResult]` is invoked, and the value returned by that
+      function isn't used. The value is considered to be used if a member of the
+      value is invoked, if the value is passed to another function, or if the
+      value is assigned to a variable or field.
 
       #### Example
 
       The following code produces this diagnostic because the invocation of
       `c.a()` isn't used, even though the method `a` is annotated with
-      `useResult`:
+      `[useResult][meta-useResult]`:
 
       ```dart
       import 'package:meta/meta.dart';
@@ -18255,7 +21883,7 @@ PubspecWarningCode:
       name: local_package
       ```
 
-      If the path is wrong, then replace it with a the correct path.
+      If the path is wrong, then replace it with the correct path.
   UNNECESSARY_DEV_DEPENDENCY:
     problemMessage: "The dev dependency on {0} is unnecessary because there is also a normal dependency on that package."
     correctionMessage: Try removing the dev dependency.
@@ -18491,7 +22119,7 @@ StaticWarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a `switch` statement for an enum
-      doesn't include an option for one of the values in the enumeration.
+      doesn't include an option for one of the values in the enum.
 
       Note that `null` is always a possible value for an enum and therefore also
       must be handled.

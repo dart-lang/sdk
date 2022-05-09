@@ -16,11 +16,11 @@ import 'serialization/serialization.dart';
 abstract class ClosureData {
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureData.readFromDataSource(
-          JsToElementMap elementMap, DataSource source) =
+          JsToElementMap elementMap, DataSourceReader source) =
       ClosureDataImpl.readFromDataSource;
 
   /// Serializes this [ClosureData] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// Look up information about the variables that have been mutated and are
   /// used inside the scope of [node].
@@ -66,7 +66,7 @@ class ScopeInfo {
   const ScopeInfo();
 
   /// Deserializes a [ScopeInfo] object from [source].
-  factory ScopeInfo.readFromDataSource(DataSource source) {
+  factory ScopeInfo.readFromDataSource(DataSourceReader source) {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
@@ -82,7 +82,7 @@ class ScopeInfo {
   }
 
   /// Serializes this [ScopeInfo] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     throw UnsupportedError('${runtimeType}.writeToDataSink');
   }
 
@@ -126,7 +126,7 @@ class CapturedScope extends ScopeInfo {
   const CapturedScope();
 
   /// Deserializes a [CapturedScope] object from [source].
-  factory CapturedScope.readFromDataSource(DataSource source) {
+  factory CapturedScope.readFromDataSource(DataSourceReader source) {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
@@ -173,7 +173,7 @@ class CapturedLoopScope extends CapturedScope {
   const CapturedLoopScope();
 
   /// Deserializes a [CapturedLoopScope] object from [source].
-  factory CapturedLoopScope.readFromDataSource(DataSource source) {
+  factory CapturedLoopScope.readFromDataSource(DataSourceReader source) {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
@@ -241,7 +241,8 @@ class ClosureRepresentationInfo extends ScopeInfo {
   const ClosureRepresentationInfo();
 
   /// Deserializes a [ClosureRepresentationInfo] object from [source].
-  factory ClosureRepresentationInfo.readFromDataSource(DataSource source) {
+  factory ClosureRepresentationInfo.readFromDataSource(
+      DataSourceReader source) {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:

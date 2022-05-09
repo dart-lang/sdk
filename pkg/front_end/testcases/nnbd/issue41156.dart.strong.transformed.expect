@@ -55,7 +55,7 @@ static method main() → void {
   (core::int) → core::String x6 = (core::int v) → Never {
     return self::throwing();
   };
-  (core::int) → asy::Future<core::String> y1 = (core::int v) → asy::Future<Never> /* originally async */ {
+  (core::int) → asy::Future<core::String> y1 = (core::int v) → asy::Future<Never> /* futureValueType= Never */ /* originally async */ {
     final asy::_Future<Never> :async_future = new asy::_Future::•<Never>();
     core::bool* :is_sync = false;
     FutureOr<Never>? :return_value;
@@ -63,7 +63,7 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try {
         #L1:
         {
@@ -78,25 +78,25 @@ static method main() → void {
       }
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_op(){() → dynamic};
+    :async_op(null, null){() → dynamic};
     :is_sync = true;
     return :async_future;
   };
-  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<Never> /* originally async */ {
+  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<Never> /* futureValueType= Never */ /* originally async */ {
     final asy::_Future<Never> :async_future = new asy::_Future::•<Never>();
     core::bool* :is_sync = false;
-    FutureOr<Never>? :return_value;
+    Never? :return_value;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try {
         #L2:
         {
           throw v;
         }
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
@@ -104,11 +104,11 @@ static method main() → void {
       }
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_op(){() → dynamic};
+    :async_op(null, null){() → dynamic};
     :is_sync = true;
     return :async_future;
   };
-  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<Never> /* originally async */ {
+  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<Never> /* futureValueType= Never */ /* originally async */ {
     final asy::_Future<Never> :async_future = new asy::_Future::•<Never>();
     core::bool* :is_sync = false;
     FutureOr<Never>? :return_value;
@@ -116,7 +116,7 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try {
         #L3:
         {
@@ -131,11 +131,11 @@ static method main() → void {
       }
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_op(){() → dynamic};
+    :async_op(null, null){() → dynamic};
     :is_sync = true;
     return :async_future;
   };
-  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> /* originally async */ {
+  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> /* futureValueType= Never */ /* originally async */ {
     final asy::_Future<Never> :async_future = new asy::_Future::•<Never>();
     core::bool* :is_sync = false;
     FutureOr<Never>? :return_value;
@@ -143,7 +143,7 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try {
         #L4:
         {
@@ -158,25 +158,25 @@ static method main() → void {
       }
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_op(){() → dynamic};
+    :async_op(null, null){() → dynamic};
     :is_sync = true;
     return :async_future;
   };
-  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<Never> /* originally async */ {
+  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<Never> /* futureValueType= Never */ /* originally async */ {
     final asy::_Future<Never> :async_future = new asy::_Future::•<Never>();
     core::bool* :is_sync = false;
-    FutureOr<Never>? :return_value;
+    Never? :return_value;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try {
         #L5:
         {
           self::throwing();
         }
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
@@ -184,11 +184,11 @@ static method main() → void {
       }
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_op(){() → dynamic};
+    :async_op(null, null){() → dynamic};
     :is_sync = true;
     return :async_future;
   };
-  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<Never> /* originally async */ {
+  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<Never> /* futureValueType= Never */ /* originally async */ {
     final asy::_Future<Never> :async_future = new asy::_Future::•<Never>();
     core::bool* :is_sync = false;
     FutureOr<Never>? :return_value;
@@ -196,7 +196,7 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
       try {
         #L6:
         {
@@ -211,20 +211,20 @@ static method main() → void {
       }
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_op(){() → dynamic};
+    :async_op(null, null){() → dynamic};
     :is_sync = true;
     return :async_future;
   };
 }
-static method errors() → void /* originally async */ {
+static method errors() → void /* futureValueType= void */ /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
-  FutureOr<dynamic>? :return_value;
+  dynamic :return_value;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
     try {
       #L7:
       {
@@ -268,7 +268,7 @@ static method errors() → void /* originally async */ {
   String Function(int) x6 = (int v) /* error */ {
                             ^" in null;
         };
-        (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<core::String> /* originally async */ {
+        (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<core::String> /* futureValueType= core::String */ /* originally async */ {
           final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
           core::bool* :is_sync = false;
           FutureOr<core::String>? :return_value;
@@ -276,7 +276,7 @@ static method errors() → void /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
-          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+          function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
             try {
               #L8:
               {
@@ -298,11 +298,11 @@ static method errors() → void /* originally async */ {
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :async_op(){() → dynamic};
+          :async_op(null, null){() → dynamic};
           :is_sync = true;
           return :async_future;
         };
-        (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<core::String> /* originally async */ {
+        (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<core::String> /* futureValueType= core::String */ /* originally async */ {
           final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
           core::bool* :is_sync = false;
           FutureOr<core::String>? :return_value;
@@ -310,7 +310,7 @@ static method errors() → void /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
-          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+          function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
             try {
               #L9:
               {
@@ -333,11 +333,11 @@ static method errors() → void /* originally async */ {
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :async_op(){() → dynamic};
+          :async_op(null, null){() → dynamic};
           :is_sync = true;
           return :async_future;
         };
-        (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<core::String> /* originally async */ {
+        (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<core::String> /* futureValueType= core::String */ /* originally async */ {
           final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
           core::bool* :is_sync = false;
           FutureOr<core::String>? :return_value;
@@ -345,7 +345,7 @@ static method errors() → void /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
-          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+          function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
             try {
               #L10:
               {
@@ -367,11 +367,11 @@ static method errors() → void /* originally async */ {
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :async_op(){() → dynamic};
+          :async_op(null, null){() → dynamic};
           :is_sync = true;
           return :async_future;
         };
-        (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<core::String> /* originally async */ {
+        (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<core::String> /* futureValueType= core::String */ /* originally async */ {
           final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
           core::bool* :is_sync = false;
           FutureOr<core::String>? :return_value;
@@ -379,7 +379,7 @@ static method errors() → void /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
-          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+          function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
             try {
               #L11:
               {
@@ -402,12 +402,12 @@ static method errors() → void /* originally async */ {
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :async_op(){() → dynamic};
+          :async_op(null, null){() → dynamic};
           :is_sync = true;
           return :async_future;
         };
       }
-      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
@@ -415,7 +415,7 @@ static method errors() → void /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(){() → dynamic};
+  :async_op(null, null){() → dynamic};
   :is_sync = true;
   return :async_future;
 }

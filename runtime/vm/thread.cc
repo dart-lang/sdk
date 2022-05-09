@@ -118,8 +118,7 @@ Thread::Thread(bool is_vm_isolate)
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] = 0;
   }
@@ -194,8 +193,7 @@ void Thread::InitVMConstants() {
   CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] =
         StubCode::WriteBarrierWrappers().EntryPoint() +
@@ -376,8 +374,10 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 
 void Thread::ReleaseStoreBuffer() {
   ASSERT(IsAtSafepoint());
+  if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
+    return;  // Nothing to release.
+  }
   // Prevent scheduling another GC by ignoring the threshold.
-  ASSERT(store_buffer_block_ != NULL);
   StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
@@ -659,10 +659,15 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // Stores into new-space objects don't need a write barrier.
       if (obj->IsSmiOrNewObject()) continue;
 
-      // To avoid adding too much work into the remembered set, skip
+      // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier
       // if we can trigger GC between array allocation and store.
-      if (obj->GetClassId() == kArrayCid) continue;
+      if (obj->GetClassId() == kArrayCid) {
+        const auto length = Smi::Value(Array::RawCast(obj)->untag()->length());
+        if (length > Array::kMaxLengthForWriteBarrierElimination) {
+          continue;
+        }
+      }
 
       // Dart code won't store into VM-internal objects except Contexts and
       // UnhandledExceptions. This assumption is checked by an assertion in

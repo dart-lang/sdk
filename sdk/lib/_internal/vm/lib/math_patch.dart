@@ -164,43 +164,33 @@ double log(num x) => _log(x.toDouble());
 
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_atan2")
 external double _atan2(double a, double b);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_sin")
 external double _sin(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_cos")
 external double _cos(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_tan")
 external double _tan(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_acos")
 external double _acos(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_asin")
 external double _asin(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_atan")
 external double _atan(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_sqrt")
 external double _sqrt(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_exp")
 external double _exp(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_log")
 external double _log(double x);
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
@@ -224,30 +214,19 @@ class Random {
 }
 
 class _Random implements Random {
-  // Internal state of the random number generator.
-  @pragma("vm:entry-point")
-  final Uint32List _state;
-  static const _kSTATE_LO = 0;
-  static const _kSTATE_HI = 1; // Unused in Dart code.
+  int _state;
 
   _Random._withState(this._state);
 
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
-
-  // Implements:
-  //   const _A = 0xffffda61;
-  //   var state =
-  //       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & ((1 << 64) - 1);
-  //   _state[_kSTATE_LO] = state & ((1 << 32) - 1);
-  //   _state[_kSTATE_HI] = state >> 32;
-  // This is a native to prevent 64-bit operations in Dart, which
-  // fail with --throw_on_javascript_int_overflow.
-  // TODO(regis): Implement in Dart and remove Random_nextState in math.cc.
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:external-name", "Random_nextState")
-  external void _nextState();
+  void _nextState() {
+    const A = 0xffffda61;
+    final state_lo = _state & 0xFFFFFFFF;
+    final state_hi = _state >>> 32;
+    _state = (A * state_lo) + state_hi;
+  }
 
   int nextInt(int max) {
     const limit = 0x3FFFFFFF;
@@ -258,14 +237,14 @@ class _Random implements Random {
     if ((max & -max) == max) {
       // Fast case for powers of two.
       _nextState();
-      return _state[_kSTATE_LO] & (max - 1);
+      return _state & 0xFFFFFFFF & (max - 1);
     }
 
     var rnd32;
     var result;
     do {
       _nextState();
-      rnd32 = _state[_kSTATE_LO];
+      rnd32 = _state & 0xFFFFFFFF;
       result = rnd32 % max;
     } while ((rnd32 - result + max) > _POW2_32);
     return result;
@@ -287,19 +266,31 @@ class _Random implements Random {
   // Use a singleton Random object to get a new seed if no seed was passed.
   static final _prng = new _Random._withState(_initialSeed());
 
-  // This is a native to prevent 64-bit operations in Dart, which
-  // fail with --throw_on_javascript_int_overflow.
-  // TODO(regis): Implement here in Dart and remove native in math.cc.
-  @pragma("vm:external-name", "Random_setupSeed")
-  external static Uint32List _setupSeed(int seed);
+  // Thomas Wang 64-bit mix.
+  // http://www.concentric.net/~Ttwang/tech/inthash.htm
+  // via. http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+  static int _setupSeed(int n) {
+    n = (~n) + (n << 21); // n = (n << 21) - n - 1;
+    n = n ^ (n >>> 24);
+    n = n * 265; // n = (n + (n << 3)) + (n << 8);
+    n = n ^ (n >>> 14);
+    n = n * 21; // n = (n + (n << 2)) + (n << 4);
+    n = n ^ (n >>> 28);
+    n = n + (n << 31);
+    if (n == 0) {
+      n = 0x5a17;
+    }
+    return n;
+  }
+
   // Get a seed from the VM's random number provider.
   @pragma("vm:external-name", "Random_initialSeed")
-  external static Uint32List _initialSeed();
+  external static int _initialSeed();
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
     _prng._nextState();
-    return _prng._state[_kSTATE_LO];
+    return _prng._state & 0xFFFFFFFF;
   }
 }
 

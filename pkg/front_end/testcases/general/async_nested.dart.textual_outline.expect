@@ -1,10 +1,9 @@
-// @dart = 2.9
 import 'dart:async';
 
 void main() async {}
 
 class Node {
-  final List<Node> nested;
+  final List<Node>? nested;
   final String name;
   Node(this.name, [this.nested]) {}
   String toString() => '<$name:[${nested?.join(', ')}]>';

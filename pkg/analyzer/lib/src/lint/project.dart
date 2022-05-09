@@ -129,8 +129,8 @@ class _ApiModel {
       return;
     }
 
-    String libDir = root.path + '/lib';
-    String libSrcDir = libDir + '/src';
+    String libDir = '${root.path}/lib';
+    String libSrcDir = '$libDir/src';
 
     for (var file in files) {
       if (file.startsWith(libDir) && !file.startsWith(libSrcDir)) {

@@ -91,19 +91,19 @@ static method returnMixed(core::bool b) → core::String {
 String returnMixed(bool b) /*error*/ {
        ^" in null;
 }
-static method returnAsync1() → asy::Future<dynamic> async {}
-static method returnAsync2() → FutureOr<dynamic> async {}
-static method returnAsync3() → FutureOr<core::int> async {
+static method returnAsync1() → asy::Future<dynamic> async /* futureValueType= dynamic */ {}
+static method returnAsync2() → FutureOr<dynamic> async /* futureValueType= dynamic */ {}
+static method returnAsync3() → FutureOr<core::int> async /* futureValueType= core::int */ {
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:27:15: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 FutureOr<int> returnAsync3() async {} // error
               ^" in null;
 }
-static method returnAsync4() → FutureOr<core::int?> async {}
-static method returnAsync5() → dynamic async {}
-static method returnAsync6() → asy::Future<core::int?> async {
+static method returnAsync4() → FutureOr<core::int?> async /* futureValueType= core::int? */ {}
+static method returnAsync5() → dynamic async /* futureValueType= dynamic */ {}
+static method returnAsync6() → asy::Future<core::int?> async /* futureValueType= core::int? */ {
   return null;
 }
-static method returnAsync7() → asy::Future<core::int?> async {}
+static method returnAsync7() → asy::Future<core::int?> async /* futureValueType= core::int? */ {}
 static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
@@ -160,19 +160,19 @@ static method localFunctions() → dynamic {
   String returnMixed(bool b) /* error */ {
   ^" in null;
   }
-  function returnAsync1() → asy::Future<dynamic> async {}
-  function returnAsync2() → FutureOr<dynamic> async {}
-  function returnAsync3() → FutureOr<core::int> async {
+  function returnAsync1() → asy::Future<dynamic> async /* futureValueType= dynamic */ {}
+  function returnAsync2() → FutureOr<dynamic> async /* futureValueType= dynamic */ {}
+  function returnAsync3() → FutureOr<core::int> async /* futureValueType= core::int */ {
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   FutureOr<int> returnAsync3() async {} // error
   ^" in null;
   }
-  function returnAsync4() → FutureOr<core::int?> async {}
-  function returnAsync5() → asy::Future<Null> async {}
-  function returnAsync6() → asy::Future<core::int?> async {
+  function returnAsync4() → FutureOr<core::int?> async /* futureValueType= core::int? */ {}
+  function returnAsync5() → asy::Future<Null> async /* futureValueType= Null */ {}
+  function returnAsync6() → asy::Future<core::int?> async /* futureValueType= core::int? */ {
     return null;
   }
-  function returnAsync7() → asy::Future<core::int?> async {}
+  function returnAsync7() → asy::Future<core::int?> async /* futureValueType= core::int? */ {}
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
@@ -233,5 +233,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///return_null.dart:
 - Enum. (from org-dartlang-testcase:///return_null.dart:43:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

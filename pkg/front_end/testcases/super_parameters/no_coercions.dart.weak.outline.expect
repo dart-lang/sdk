@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  constructor •(core::int x) → self::A1
+    ;
+}
+class B1 extends self::A1 {
+  constructor one(dynamic x) → self::B1
+    ;
+  constructor two(dynamic x) → self::B1
+    ;
+}
+class A2 extends core::Object {
+  constructor •({required core::String x}) → self::A2
+    ;
+}
+class B2 extends self::A2 {
+  constructor one({required dynamic x}) → self::B2
+    ;
+  constructor two({required dynamic x}) → self::B2
+    ;
+}
+class A3 extends core::Object {
+  constructor •((core::double) → core::num f) → self::A3
+    ;
+}
+class B3 extends self::A3 {
+  constructor one(<X extends core::Object? = dynamic>(core::double) → X% f) → self::B3
+    ;
+  constructor two(<X extends core::Object? = dynamic>(core::double) → X% f) → self::B3
+    ;
+}
+class A4 extends core::Object {
+  constructor •({required (core::double) → core::num f}) → self::A4
+    ;
+}
+class B4 extends self::A4 {
+  constructor one({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
+    ;
+  constructor two({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
+    ;
+}
+abstract class C5 extends core::Object {
+  synthetic constructor •() → self::C5
+    ;
+  abstract method call(core::int x, core::num y) → core::String;
+}
+class A5 extends core::Object {
+  constructor •((core::int, core::num) → core::String f) → self::A5
+    ;
+}
+class B5 extends self::A5 {
+  constructor one(self::C5 f) → self::B5
+    ;
+  constructor two(self::C5 f) → self::B5
+    ;
+}
+class A6 extends core::Object {
+  constructor •({required (core::int, core::num) → core::String f}) → self::A6
+    ;
+}
+class B6 extends self::A6 {
+  constructor one({required self::C5 f}) → self::B6
+    ;
+  constructor two({required self::C5 f}) → self::B6
+    ;
+}
+class A7 extends core::Object {
+  constructor •({required core::int x1, required core::int x2, required (core::Object) → core::bool f1, required (core::Object) → core::bool f2, required (dynamic) → void g1, required (dynamic) → void g2}) → self::A7
+    ;
+}
+class B7 extends self::A7 {
+  constructor •({required dynamic x1, required dynamic x2, required <X extends core::Object? = dynamic>(core::Object) → X% f1, required <X extends core::Object? = dynamic>(core::Object) → X% f2, required <X extends core::Object? = dynamic>(X%) → void g1, required <X extends core::Object? = dynamic>(X%) → void g2}) → self::B7
+    ;
+}
+static method main() → dynamic
+  ;

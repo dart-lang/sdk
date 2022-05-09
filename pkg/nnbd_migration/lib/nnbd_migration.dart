@@ -189,12 +189,15 @@ class NullabilityFixDescription {
 
   /// A formal parameter needs to have a required keyword added.
   factory NullabilityFixDescription.addRequired(
-          String? className, String? functionName, String paramName) =>
-      NullabilityFixDescription._(
-        appliedMessage: "Add 'required' keyword to parameter '$paramName' in " +
-            (className == null ? functionName! : "'$className.$functionName'"),
-        kind: NullabilityFixKind.addRequired,
-      );
+      String? className, String? functionName, String paramName) {
+    var paramContainerName =
+        className == null ? functionName! : "'$className.$functionName'";
+    return NullabilityFixDescription._(
+      appliedMessage: "Add 'required' keyword to parameter '$paramName' in "
+          '$paramContainerName',
+      kind: NullabilityFixKind.addRequired,
+    );
+  }
 
   /// An explicit type needs to be added.
   factory NullabilityFixDescription.addType(String typeText) =>
@@ -321,7 +324,6 @@ abstract class NullabilityMigration {
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
   factory NullabilityMigration(NullabilityMigrationListener? listener,
-      LineInfo Function(String) getLineInfo,
       {bool? permissive,
       NullabilityMigrationInstrumentation? instrumentation,
       bool? removeViaComments,

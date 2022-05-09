@@ -880,9 +880,7 @@ class C {
   }
 
   void test_incompleteForEach2() {
-    var statement =
-        parseStatement('for (String item i) {}', featureSet: controlFlow)
-            as ForStatement;
+    var statement = parseStatement('for (String item i) {}') as ForStatement;
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -42,7 +41,7 @@ class ConstantFinderTest {
   /// represents a reference to a compile-time constant variable).
   void test_visitAnnotation_constantVariable() {
     var compilationUnitElement =
-        ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
+        ElementFactory.compilationUnit(source: _source);
     ElementFactory.library(_AnalysisContextMock(), 'L')
         .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
@@ -53,20 +52,11 @@ class ConstantFinderTest {
     expect(_findAnnotations(), contains(_node));
   }
 
-  void test_visitAnnotation_enumConstant() {
-    // Analyzer ignores annotations on enum constant declarations.
-    Annotation annotation = AstTestFactory.annotation2(
-        AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList());
-    _node = astFactory.enumConstantDeclaration(
-        null, <Annotation>[annotation], AstTestFactory.identifier3('C'));
-    expect(_findConstants(), isEmpty);
-  }
-
   /// Test an annotation that represents the invocation of a constant
   /// constructor.
   void test_visitAnnotation_invocation() {
     var compilationUnitElement =
-        ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
+        ElementFactory.compilationUnit(source: _source);
     ElementFactory.library(_AnalysisContextMock(), 'L')
         .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =

@@ -54,6 +54,6 @@ Future<List<Uri>> getDependencies(Uri script,
     kernelTarget.setEntryPoints(<Uri>[script]);
     dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
-    return new List<Uri>.from(c.dependencies);
+    return new List<Uri>.of(c.dependencies);
   });
 }

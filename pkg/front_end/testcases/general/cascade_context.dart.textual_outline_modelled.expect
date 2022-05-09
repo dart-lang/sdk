@@ -1,4 +1,3 @@
-// @dart = 2.9
-T f<T>() => null;
+T f<T>() => throw '';
 main() {}
 test() {}

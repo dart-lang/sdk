@@ -13,7 +13,7 @@ import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/hint_action.dart';
-import 'package:path/path.dart' as _p;
+import 'package:path/path.dart' as p;
 
 import 'highlight_js.dart';
 
@@ -57,7 +57,7 @@ void main() {
     final rerunMigrationButton = document.querySelector('.rerun-migration')!;
     rerunMigrationButton.onClick.listen((event) async {
       try {
-        document.body!.classes..add('rerunning');
+        document.body!.classes.add('rerunning');
         var response = await doPost('/rerun-migration');
         if (response!['success'] as bool) {
           window.location.reload();
@@ -165,27 +165,27 @@ void addClickHandlers(String selector, bool clearEditDetails) {
 
   // Add navigation handlers for navigation links in the source code.
   List<Element> navLinks = parentElement.querySelectorAll('.nav-link');
-  navLinks.forEach((link) {
+  for (var link in navLinks) {
     link.onClick.listen((event) => handleNavLinkClick(event, clearEditDetails));
-  });
+  }
 
   List<Element> regions = parentElement.querySelectorAll('.region');
   if (regions.isNotEmpty) {
     var table = parentElement.querySelector('table[data-path]')!;
     var path = table.dataset['path'];
-    regions.forEach((Element anchor) {
+    for (var anchor in regions) {
       anchor.onClick.listen((event) {
         var offset = int.parse(anchor.dataset['offset']!);
         var line = int.parse(anchor.dataset['line']!);
         loadAndPopulateEditDetails(path!, offset, line);
       });
-    });
+    }
   }
 
   List<Element> addHintLinks = parentElement.querySelectorAll('.add-hint-link');
-  addHintLinks.forEach((link) {
+  for (var link in addHintLinks) {
     link.onClick.listen(handleAddHintLinkClick);
-  });
+  }
 }
 
 /// Creates an icon using a `<span>` element and the Material Icons font.
@@ -254,7 +254,7 @@ you invoked `dart migrate` to verify that the preview server is still running.
         'statusText=${jsonEncode(xhr.statusText)}',
       ]
           .map((detail) =>
-              detail.length > 40 ? detail.substring(0, 40) + '...' : detail)
+              detail.length > 40 ? '${detail.substring(0, 40)}...' : detail)
           .join(', ');
       throw AsyncError('Error reaching migration preview server: $details', st);
     }
@@ -389,7 +389,7 @@ void handleError(String header, Object exception, Object? stackTrace) {
   bottom
     ..href = getGitHubErrorUri(header, subheader, stackTrace).toString()
     ..style.display = 'initial';
-  popupPane..style.display = 'initial';
+  popupPane.style.display = 'initial';
   logError('$header: $exception', stackTrace);
 }
 
@@ -621,11 +621,11 @@ void populateEditDetails([EditDetails? response]) {
   }
 
   var fileDisplayPath = response.displayPath!;
-  var parentDirectory = _p.dirname(fileDisplayPath);
+  var parentDirectory = p.dirname(fileDisplayPath);
 
   // 'Changed ... at foo.dart:12.'
   var explanationMessage = response.explanation;
-  var relPath = _p.relative(fileDisplayPath, from: rootPath);
+  var relPath = p.relative(fileDisplayPath, from: rootPath);
   var line = response.line;
   Element explanation = document.createElement('p');
   editPanel!.append(explanation);
@@ -709,7 +709,7 @@ void pushState(String? path, int? offset, int? line) {
 /// If [path] lies within [root], return the relative path of [path] from [root].
 /// Otherwise, return [path].
 String relativePath(String path) {
-  var root = querySelector('.root')!.text! + '/';
+  var root = '${querySelector('.root')!.text!}/';
   if (path.startsWith(root)) {
     return path.substring(root.length);
   } else {

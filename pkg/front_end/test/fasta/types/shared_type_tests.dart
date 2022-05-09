@@ -426,6 +426,10 @@ abstract class SubtypeTest<T, E> {
         typeParameters: 'T extends Object');
     isObliviousSubtype('T & Future<int?>', 'FutureOr<num>?',
         typeParameters: 'T extends Object');
+    isNotSubtype('FutureOr<T?>?', 'FutureOr<Never?>?',
+        typeParameters: 'T extends FutureOr<T?>?');
+    isSubtype('FutureOr<Never?>?', 'FutureOr<T?>?',
+        typeParameters: 'T extends FutureOr<T?>?');
 
     if (!skipFutureOrPromotion) {
       isSubtype('T & FutureOr<int*>*', 'FutureOr<num*>*', typeParameters: 'T');

@@ -29,7 +29,7 @@ runTestCase(
   final coreTypes = new CoreTypes(component);
 
   component = transformComponent(target, coreTypes, component,
-      matcher: new ConstantPragmaAnnotationParser(coreTypes),
+      matcher: new ConstantPragmaAnnotationParser(coreTypes, target),
       treeShakeProtobufs: true);
 
   String actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
@@ -56,7 +56,7 @@ runTestCase(
   if (dependencies.isNotEmpty) {
     for (var lib in dependencies) {
       lib.name ??= lib.importUri.pathSegments.last;
-      actual += kernelLibraryToString(lib);
+      actual += kernelLibraryToString(lib, removeSelectorIds: true);
     }
     // Remove library paths.
     actual = actual.replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');

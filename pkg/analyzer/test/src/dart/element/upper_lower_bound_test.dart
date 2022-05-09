@@ -39,7 +39,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsBottomOrNull(T);
     _assertIsBottomOrNull(S);
 
-    var str = _typeString(T) + ' vs ' + _typeString(S);
+    var str = '${_typeString(T)} vs ${_typeString(S)}';
     _checkUniqueTypeStr(_isMoreBottomChecked, str);
 
     expect(typeSystem.isMoreBottom(T, S), isTrue, reason: str);
@@ -49,7 +49,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsTopOrObject(T);
     _assertIsTopOrObject(S);
 
-    var str = _typeString(T) + ' vs ' + _typeString(S);
+    var str = '${_typeString(T)} vs ${_typeString(S)}';
     _checkUniqueTypeStr(_isMoreTopChecked, str);
 
     expect(typeSystem.isMoreTop(T, S), isTrue, reason: str);
@@ -63,7 +63,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsBottomOrNull(T);
     _assertIsBottomOrNull(S);
 
-    var str = _typeString(T) + ' vs ' + _typeString(S);
+    var str = '${_typeString(T)} vs ${_typeString(S)}';
     _checkUniqueTypeStr(_isMoreBottomChecked, str);
 
     expect(typeSystem.isMoreBottom(T, S), isFalse, reason: str);
@@ -73,7 +73,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsTopOrObject(T);
     _assertIsTopOrObject(S);
 
-    var str = _typeString(T) + ' vs ' + _typeString(S);
+    var str = '${_typeString(T)} vs ${_typeString(S)}';
     _checkUniqueTypeStr(_isMoreTopChecked, str);
 
     expect(typeSystem.isMoreTop(T, S), isFalse, reason: str);
@@ -3342,25 +3342,25 @@ class UpperBoundTest extends _BoundsTestBase {
 class _BoundsTestBase extends AbstractTypeSystemTest {
   void _assertBottom(DartType type) {
     if (!typeSystem.isBottom(type)) {
-      fail('isBottom must be true: ' + _typeString(type));
+      fail('isBottom must be true: ${_typeString(type)}');
     }
   }
 
   void _assertNotBottom(DartType type) {
     if (typeSystem.isBottom(type)) {
-      fail('isBottom must be false: ' + _typeString(type));
+      fail('isBottom must be false: ${_typeString(type)}');
     }
   }
 
   void _assertNotNull(DartType type) {
     if (typeSystem.isNull(type)) {
-      fail('isNull must be false: ' + _typeString(type));
+      fail('isNull must be false: ${_typeString(type)}');
     }
   }
 
   void _assertNotObject(DartType type) {
     if (typeSystem.isObject(type)) {
-      fail('isObject must be false: ' + _typeString(type));
+      fail('isObject must be false: ${_typeString(type)}');
     }
   }
 
@@ -3373,19 +3373,19 @@ class _BoundsTestBase extends AbstractTypeSystemTest {
 
   void _assertNotTop(DartType type) {
     if (typeSystem.isTop(type)) {
-      fail('isTop must be false: ' + _typeString(type));
+      fail('isTop must be false: ${_typeString(type)}');
     }
   }
 
   void _assertNull(DartType type) {
     if (!typeSystem.isNull(type)) {
-      fail('isNull must be true: ' + _typeString(type));
+      fail('isNull must be true: ${_typeString(type)}');
     }
   }
 
   void _assertNullability(DartType type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
-      fail('Expected $expected in ' + _typeString(type));
+      fail('Expected $expected in ${_typeString(type)}');
     }
   }
 
@@ -3403,13 +3403,13 @@ class _BoundsTestBase extends AbstractTypeSystemTest {
 
   void _assertObject(DartType type) {
     if (!typeSystem.isObject(type)) {
-      fail('isObject must be true: ' + _typeString(type));
+      fail('isObject must be true: ${_typeString(type)}');
     }
   }
 
   void _assertTop(DartType type) {
     if (!typeSystem.isTop(type)) {
-      fail('isTop must be true: ' + _typeString(type));
+      fail('isTop must be true: ${_typeString(type)}');
     }
   }
 
@@ -3504,7 +3504,7 @@ class _TypeParameterCollector
 
       if (bound != null) {
         var boundStr = bound.getDisplayString(withNullability: true);
-        str += '${type.element.name} extends ' + boundStr;
+        str += '${type.element.name} extends $boundStr';
       }
 
       if (promotedBound != null) {
@@ -3514,7 +3514,7 @@ class _TypeParameterCollector
         if (str.isNotEmpty) {
           str += ', ';
         }
-        str += '${type.element.name} & ' + promotedBoundStr;
+        str += '${type.element.name} & $promotedBoundStr';
       }
 
       typeParameters.add(str);

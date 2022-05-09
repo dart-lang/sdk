@@ -86,7 +86,7 @@ Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     {List<String> additionalDills: const []}) async {
-  MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
+  MemoryFileSystem fs = createMemoryFileSystem();
   sources.forEach((name, data) {
     MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
     if (data is String) {
@@ -114,9 +114,15 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
   }
 }
 
+MemoryFileSystem createMemoryFileSystem() => new MemoryFileSystem(_defaultDir);
+
+const String _testUriScheme = 'org-dartlang-test';
+
+bool isTestUri(Uri uri) => uri.isScheme(_testUriScheme);
+
 /// A fake absolute directory used as the root of a memory-file system in the
 /// helpers above.
-Uri _defaultDir = Uri.parse('org-dartlang-test:///a/b/c/');
+Uri _defaultDir = Uri.parse('${_testUriScheme}:///a/b/c/');
 
 /// Convert relative file paths into an absolute Uri as expected by the test
 /// helpers above.
@@ -140,7 +146,7 @@ String _invalidLibrariesSpec = '''
 ''';
 
 bool isDartCoreLibrary(Library lib) => isDartCore(lib.importUri);
-bool isDartCore(Uri uri) => uri.scheme == 'dart' && uri.path == 'core';
+bool isDartCore(Uri uri) => uri.isScheme('dart') && uri.path == 'core';
 
 /// Find a library in [component] whose Uri ends with the given [suffix]
 Library findLibrary(Component component, String suffix) {

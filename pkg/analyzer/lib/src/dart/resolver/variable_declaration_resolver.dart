@@ -43,14 +43,13 @@ class VariableDeclarationResolver {
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
-    InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
       _resolver.flowAnalysis.topLevelDeclaration_enter(node, null);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
-    initializer.accept(_resolver);
+    _resolver.analyzeExpression(initializer, element.type);
     initializer = node.initializer!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
@@ -64,8 +63,6 @@ class VariableDeclarationResolver {
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_end();
     }
-
-    initializer = _resolver.insertImplicitCallReference(initializer);
 
     // Initializers of top-level variables and fields are already included
     // into elements during linking.

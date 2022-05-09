@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::C> values = #C20;
+  final field core::String log;
+  static const field self::C a = #C4;
+  static const field self::C b = #C7;
+  static const field self::C c = #C10;
+  static const field self::C d = #C13;
+  static const field self::C e = #C16;
+  static const field self::C f = #C19;
+  const constructor •(core::int index, core::String name, core::int x, core::int y, {core::int z = #C21}) → self::C
+    : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(index, name)
+    ;
+  const constructor named1(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
+    : this self::C::•(index, name, x, y, z: z)
+    ;
+  const constructor named2(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t1 = index, final core::String #t2 = name, final core::int #t3 = x, final core::int #t4 = z, this self::C::•(#t1, #t2, #t3, y, z: #t4)
+    ;
+  const constructor named3(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t5 = index, final core::String #t6 = name, final core::int #t7 = z, this self::C::•(#t5, #t6, x, y, z: #t7)
+    ;
+  method toString() → core::String
+    return "C.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {
+  self::expect("x=1, y=2, z=3", #C4.{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", #C7.{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", #C10.{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", #C13.{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", #C16.{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", #C19.{self::C::log}{core::String});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = "x=1, y=2, z=3"
+  #C2 = 0
+  #C3 = "a"
+  #C4 = self::C {log:#C1, index:#C2, _name:#C3}
+  #C5 = 1
+  #C6 = "b"
+  #C7 = self::C {log:#C1, index:#C5, _name:#C6}
+  #C8 = 2
+  #C9 = "c"
+  #C10 = self::C {log:#C1, index:#C8, _name:#C9}
+  #C11 = 3
+  #C12 = "d"
+  #C13 = self::C {log:#C1, index:#C11, _name:#C12}
+  #C14 = 4
+  #C15 = "e"
+  #C16 = self::C {log:#C1, index:#C14, _name:#C15}
+  #C17 = 5
+  #C18 = "f"
+  #C19 = self::C {log:#C1, index:#C17, _name:#C18}
+  #C20 = <self::C>[#C4, #C7, #C10, #C13, #C16, #C19]
+  #C21 = 42
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///redirecting_constructor.dart:
+- C. (from org-dartlang-testcase:///redirecting_constructor.dart:16:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- C.named1 (from org-dartlang-testcase:///redirecting_constructor.dart:19:9)
+- C.named2 (from org-dartlang-testcase:///redirecting_constructor.dart:20:9)
+- C.named3 (from org-dartlang-testcase:///redirecting_constructor.dart:21:9)

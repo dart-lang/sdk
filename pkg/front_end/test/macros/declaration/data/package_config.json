@@ -1,0 +1,17 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "macro",
+      "rootUri": "pkgs/macro/lib/"
+    },
+    {
+      "name": "precompiled_macro",
+      "rootUri": "pkgs/precompiled_macro/lib/"
+    },
+    {
+      "name": "_fe_analyzer_shared",
+      "rootUri": "../../../../../_fe_analyzer_shared/lib/"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+@#C6
+class Coordinate extends ffi::Struct {
+  synthetic constructor •() → self::Coordinate
+    : super ffi::Struct::•()
+    ;
+  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::Coordinate
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+  @#C7
+  get x() → core::int
+    return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  @#C7
+  set x(core::int #externalFieldValue) → void
+    return ffi::_storeInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+  @#C7
+  get y() → core::int
+    return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  @#C7
+  set y(core::int #externalFieldValue) → void
+    return ffi::_storeInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+  method copyInto(ffi::Pointer<self::Coordinate> ptr) → void {
+    ffi::_memCopy(ptr, #C8, this.{ffi::_Compound::_typedDataBase}{core::Object}, #C8, self::Coordinate::#sizeOf);
+  }
+  @#C13
+  static get #sizeOf() → core::int*
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+}
+@#C19
+class SomeUnion extends ffi::Union {
+  synthetic constructor •() → self::SomeUnion
+    : super ffi::Union::•()
+    ;
+  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::SomeUnion
+    : super ffi::Union::_fromTypedDataBase(#typedDataBase)
+    ;
+  get coordinate() → self::Coordinate
+    return new self::Coordinate::#fromTypedDataBase( block {
+      core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
+      core::int #offset = #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::Coordinate>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List});
+  set coordinate(self::Coordinate #externalFieldValue) → void
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #C8, #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  @#C7
+  get id() → core::int
+    return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  @#C7
+  set id(core::int #externalFieldValue) → void
+    return ffi::_storeInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+  method copyIntoAtIndex(ffi::Pointer<self::SomeUnion> ptr, core::int index) → void {
+    ffi::_memCopy(ptr, index.{core::num::*}(self::SomeUnion::#sizeOf){(core::num) → core::num}, this.{ffi::_Compound::_typedDataBase}{core::Object}, #C8, self::SomeUnion::#sizeOf);
+  }
+  @#C13
+  static get #sizeOf() → core::int*
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+}
+static method main() → void {}
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Int64)
+  #C3 = <core::Type>[#C2, #C2]
+  #C4 = null
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = ffi::Int64 {}
+  #C8 = 0
+  #C9 = <core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
+  #C10 = 8
+  #C11 = <core::int*>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
+  #C12 = "vm:prefer-inline"
+  #C13 = core::pragma {name:#C12, options:#C4}
+  #C14 = 16
+  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C16 = TypeLiteralConstant(self::Coordinate)
+  #C17 = <core::Type>[#C16, #C2]
+  #C18 = ffi::_FfiStructLayout {fieldTypes:#C17, packing:#C4}
+  #C19 = core::pragma {name:#C1, options:#C18}
+}

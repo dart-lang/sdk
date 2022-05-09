@@ -412,10 +412,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::~IsolateGroup() {
-  // Finalize any weak persistent handles with a non-null referent.
-  FinalizeWeakPersistentHandlesVisitor visitor(this);
-  api_state()->VisitWeakHandlesUnlocked(&visitor);
-
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
@@ -1016,7 +1012,7 @@ void IsolateGroup::ValidateConstants() {
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
   NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
-  heap()->CollectAllGarbage();
+  heap()->CollectAllGarbage(GCReason::kDebugging);
   Thread* thread = Thread::Current();
   SafepointMutexLocker ml(
       thread->isolate_group()->constant_canonicalization_mutex());
@@ -1207,10 +1203,6 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
 #endif
       break;
     }
-    case Isolate::kLowMemoryMsg: {
-      I->group()->heap()->NotifyLowMemory();
-      break;
-    }
     case Isolate::kDrainServiceExtensionsMsg: {
 #ifndef PRODUCT
       Object& obj = Object::Handle(zone, message.At(2));
@@ -1395,6 +1387,15 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
           }
         }
       }
+    }
+  } else if (message->IsFinalizerInvocationRequest()) {
+    const Object& msg_handler = Object::Handle(
+        zone,
+        DartLibraryCalls::HandleFinalizerMessage(FinalizerBase::Cast(msg)));
+    if (msg_handler.IsError()) {
+      status = ProcessUnhandledException(Error::Cast(msg_handler));
+    } else {
+      // The handler closure which was used to successfully handle the message.
     }
   } else if (message->dest_port() == Message::kIllegalPort) {
     // Check whether this is a delayed OOB message which needed handling as
@@ -1656,11 +1657,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
-
-void BaseIsolate::AssertCurrentThreadIsMutator() const {
-  ASSERT(Isolate::Current() == this);
-  ASSERT(Thread::Current()->IsMutatorThread());
-}
 #endif  // defined(DEBUG)
 
 #if defined(DEBUG)
@@ -1699,6 +1695,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
+      finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1785,6 +1782,8 @@ void Isolate::InitVM() {
   shutdown_callback_ = nullptr;
   cleanup_callback_ = nullptr;
   cleanup_group_callback_ = nullptr;
+  register_kernel_blob_callback_ = nullptr;
+  unregister_kernel_blob_callback_ = nullptr;
   if (isolate_creation_monitor_ == nullptr) {
     isolate_creation_monitor_ = new Monitor();
   }
@@ -1954,6 +1953,10 @@ void Isolate::set_origin_id(Dart_Port id) {
   MutexLocker ml(&origin_id_mutex_);
   ASSERT((id == main_port_ && origin_id_ == 0) || (origin_id_ == main_port_));
   origin_id_ = id;
+}
+
+void Isolate::set_finalizers(const GrowableObjectArray& value) {
+  finalizers_ = value.ptr();
 }
 
 bool Isolate::IsPaused() const {
@@ -2433,15 +2436,15 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
     head = next;
   } while (head != nullptr);
   head = reversed_head;
-
   if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
-    SampleBlockListProcessor buffer(head);
     StackZone zone(thread);
-    HandleScope handle_scope(thread);
-    StreamableSampleFilter filter(main_port());
-    Profile profile;
-    profile.Build(thread, &filter, &buffer);
-    if (profile.sample_count() > 0) {
+    SampleBlockListProcessor buffer(head);
+    if (buffer.HasStreamableSamples(thread)) {
+      HandleScope handle_scope(thread);
+      StreamableSampleFilter filter(main_port());
+      Profile profile;
+      profile.Build(thread, &filter, &buffer);
+      ASSERT(profile.sample_count() > 0);
       ServiceEvent event(this, ServiceEvent::kCpuSamples);
       event.set_cpu_profile(&profile);
       Service::HandleEvent(&event);
@@ -2459,22 +2462,6 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
 }
 #endif  // !defined(PRODUCT)
 
-// static
-void Isolate::NotifyLowMemory() {
-  IsolateGroup::ForEach([](IsolateGroup* group) { group->NotifyLowMemory(); });
-}
-
-void IsolateGroup::NotifyLowMemory() {
-  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  MonitorLocker ml2(Isolate::isolate_creation_monitor_);
-  for (Isolate* isolate : isolates_) {
-    if (isolate->AcceptsMessagesLocked()) {
-      isolate->KillLocked(Isolate::kLowMemoryMsg);
-      return;  // Only wake up one member of the group.
-    }
-  }
-}
-
 void Isolate::LowLevelShutdown() {
   // Ensure we have a zone and handle scope so that we can call VM functions,
   // but we no longer allocate new heap objects.
@@ -2489,6 +2476,45 @@ void Isolate::LowLevelShutdown() {
     if (error.IsNull() || !error.IsUnwindError() ||
         UnwindError::Cast(error).is_user_initiated()) {
       NotifyExitListeners();
+    }
+  }
+
+  // Set live finalizers isolate to null, before deleting the message handler.
+  const auto& finalizers =
+      GrowableObjectArray::Handle(stack_zone.GetZone(), finalizers_);
+  if (!finalizers.IsNull()) {
+    const intptr_t num_finalizers = finalizers.Length();
+    auto& weak_reference = WeakReference::Handle(stack_zone.GetZone());
+    auto& finalizer = FinalizerBase::Handle(stack_zone.GetZone());
+    auto& current_entry = FinalizerEntry::Handle(stack_zone.GetZone());
+    auto& all_entries = LinkedHashSet::Handle(stack_zone.GetZone());
+    for (int i = 0; i < num_finalizers; i++) {
+      weak_reference ^= finalizers.At(i);
+      finalizer ^= weak_reference.target();
+      if (!finalizer.IsNull()) {
+        if (finalizer.isolate() == this) {
+          if (FLAG_trace_finalizers) {
+            THR_Print("Isolate %p Setting finalizer %p isolate to null\n", this,
+                      finalizer.ptr()->untag());
+          }
+          // Finalizer was not sent to another isolate with send and exit.
+          finalizer.set_isolate(nullptr);
+        } else {
+          // TODO(http://dartbug.com/47777): Send and exit support.
+          UNREACHABLE();
+        }
+
+        if (finalizer.IsNativeFinalizer()) {
+          // Immediately call native callback.
+          const auto& native_finalizer = NativeFinalizer::Cast(finalizer);
+          all_entries = finalizer.all_entries();
+          LinkedHashSet::Iterator iterator(all_entries);
+          while (iterator.MoveNext()) {
+            current_entry ^= iterator.CurrentKey();
+            native_finalizer.RunCallback(current_entry, "Isolate shutdown");
+          }
+        }
+      }
     }
   }
 
@@ -2598,7 +2624,6 @@ void Isolate::Shutdown() {
           "--check-reloaded is enabled.\n");
     }
   }
-
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
@@ -2661,14 +2686,20 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
     if (!is_vm_isolate) {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
                                         /*bypass_safepoint=*/false);
+#if !defined(DART_PRECOMPILED_RUNTIME)
       BackgroundCompiler::Stop(isolate_group);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+      // Finalize any weak persistent handles with a non-null referent with
+      // isolate group still being available.
+      FinalizeWeakPersistentHandlesVisitor visitor(isolate_group);
+      isolate_group->api_state()->VisitWeakHandlesUnlocked(&visitor);
+
       Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
     // The "vm-isolate" does not have a thread pool.
     ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));
@@ -2707,6 +2738,10 @@ Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
+Dart_RegisterKernelBlobCallback Isolate::register_kernel_blob_callback_ =
+    nullptr;
+Dart_UnregisterKernelBlobCallback Isolate::unregister_kernel_blob_callback_ =
+    nullptr;
 
 Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;
@@ -2738,6 +2773,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&finalizers_));
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&pending_service_extension_calls_));

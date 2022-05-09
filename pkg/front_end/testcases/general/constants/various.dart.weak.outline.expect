@@ -2,83 +2,83 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/various.dart:162:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/general/constants/various.dart:164:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const ClassWithNonEmptyConstConstructor() {
 //   ^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:78:14: Error: Not a constant expression.
 // const x1 = --x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:79:14: Error: Not a constant expression.
 // const x2 = ++x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:80:12: Error: Not a constant expression.
 // const x3 = x--;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:81:12: Error: Not a constant expression.
 // const x4 = x++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:84:14: Error: Setter not found: 'y'.
 // const y1 = --y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:85:14: Error: Setter not found: 'y'.
 // const y2 = ++y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:86:12: Error: Setter not found: 'y'.
 // const y3 = y--;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:87:12: Error: Setter not found: 'y'.
 // const y4 = y++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:142:24: Error: Not a constant expression.
 // const function_const = () {};
 //                        ^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Can't access 'this' in a field initializer to read 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:182:14: Error: Can't access 'this' in a field initializer to read 'y'.
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:101:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
 //   @AbstractClass()
 //    ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:101:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   @AbstractClass()
 //    ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:104:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:104:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 //   @AbstractClassWithConstructor()
 //    ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:120:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
 //                                       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/general/constants/various.dart:123:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 //   const ExtendsFoo2();
 //         ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:182:14: Error: Not a constant expression.
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:181:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:183:14: Error: Not a constant expression.
 //   final z2 = x;
 //              ^
 //
@@ -117,12 +117,12 @@ abstract class AbstractClassWithConstructor extends core::Object /*hasConstConst
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class NotAbstractClass extends core::Object {
-  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:101:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   @AbstractClass()
    ^"
   field core::Object* foo;
-  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:104:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   @AbstractClassWithConstructor()
    ^"
@@ -163,7 +163,7 @@ class ExtendsFoo1 extends self::Foo {
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2*
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:123:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
   const ExtendsFoo2();
         ^^^^^^^^^^^"
     ;
@@ -301,20 +301,20 @@ static const field core::int* x2 = self::x = self::x.{core::num::+}(1){(core::nu
 static const field core::int* x3 = let final core::int* #t4 = self::x in let final core::int* #t5 = self::x = #t4.{core::num::-}(1){(core::num*) →* core::int*} in #t4;
 static const field core::int* x4 = let final core::int* #t6 = self::x in let final core::int* #t7 = self::x = #t6.{core::num::+}(1){(core::num*) →* core::int*} in #t6;
 static const field core::int* y = 1;
-static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:14: Error: Setter not found: 'y'.
 const y1 = --y;
              ^";
-static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:14: Error: Setter not found: 'y'.
 const y2 = ++y;
              ^";
-static const field core::int* y3 = let final core::int* #t8 = self::y in let final invalid-type #t9 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+static const field core::int* y3 = let final core::int* #t8 = self::y in let final invalid-type #t9 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:86:12: Error: Setter not found: 'y'.
 const y3 = y--;
            ^" in #t8;
-static const field core::int* y4 = let final core::int* #t10 = self::y in let final invalid-type #t11 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+static const field core::int* y4 = let final core::int* #t10 = self::y in let final invalid-type #t11 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:87:12: Error: Setter not found: 'y'.
 const y4 = y++;
            ^" in #t10;
 static field self::AbstractClassWithConstructor* abstractClassWithConstructor;
-static const field self::ExtendsFoo1* extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtendsFoo1* extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:120:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
                                       ^^^^^^^^^^^";
@@ -331,7 +331,7 @@ static const field core::int* circularity1 = self::circularity2;
 static const field core::int* circularity2 = self::circularity3;
 static const field core::int* circularity3 = self::circularity4;
 static const field core::int* circularity4 = self::circularity1;
-static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:142:24: Error: Not a constant expression.
 const function_const = () {};
                        ^^";
 static field () →* Null function_var;
@@ -369,88 +369,88 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:6:31 -> BoolConstant(false)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:7:30 -> BoolConstant(false)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:9:11 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:10:35 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:11:32 -> NullConstant(null)
-Evaluated: Let @ org-dartlang-testcase:///various.dart:12:51 -> BoolConstant(true)
-Evaluated: Let @ org-dartlang-testcase:///various.dart:13:52 -> BoolConstant(false)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:14:46 -> BoolConstant(false)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:15:46 -> BoolConstant(false)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:16:24 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:17:33 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:18:23 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:19:24 -> NullConstant(null)
-Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:20:29 -> BoolConstant(true)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:21:33 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:23:39 -> StringConstant("")
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:25:11 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:27:11 -> StringConstant("hello")
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:29:34 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:31:35 -> BoolConstant(false)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:33:11 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:35:11 -> BoolConstant(true)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:36:57 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:38:33 -> IntConstant(0)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:40:11 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:42:11 -> IntConstant(42)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:43:54 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:46:31 -> BoolConstant(false)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:47:30 -> BoolConstant(true)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:48:35 -> IntConstant(42)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:49:41 -> StringConstant("42")
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:53:35 -> BoolConstant(true)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:54:36 -> BoolConstant(false)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:58:41 -> BoolConstant(true)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:59:45 -> BoolConstant(false)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:60:39 -> BoolConstant(true)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:61:41 -> BoolConstant(true)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:63:64 -> DoubleConstant(42.42)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:64:24 -> DoubleConstant(42.42)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:65:61 -> IntConstant(42)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:34 -> IntConstant(42)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:47 -> DoubleConstant(42.42)
-Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:67:43 -> DoubleConstant(84.42)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:68:31 -> IntConstant(42)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:70:39 -> StringConstant("hello")
-Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:71:49 -> StringConstant("hello world")
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:31 -> StringConstant("hello")
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:46 -> IntConstant(42)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:73:37 -> StringConstant("hello")
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:126:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:127:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:128:28 -> BoolConstant(true)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:129:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:129:32 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:130:29 -> SymbolConstant(#Foo)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:131:34 -> SymbolConstant(#Foo=)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:132:40 -> SymbolConstant(#>>>)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:133:37 -> SymbolConstant(#I.Have.Dots)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:155:11 -> InstanceConstant(const ClassWithTypeArguments<int*, int*, int*>{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:157:11 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:159:5 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:187:32 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:188:38 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:189:38 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:190:22 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:192:32 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:193:38 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:194:36 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:195:24 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:200:66 -> NullConstant(null)
-Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:203:39 -> NullConstant(null)
-Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:39 -> InstantiationConstant(id1<int*>)
-Evaluated: Not @ org-dartlang-testcase:///various.dart:208:20 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:210:46 -> BoolConstant(true)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:211:38 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:212:25 -> BoolConstant(true)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:213:40 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:214:25 -> NullConstant(null)
+Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:113:26 -> IntConstant(5)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:8:31 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:9:30 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:11:11 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:12:35 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:13:32 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///various.dart:14:51 -> BoolConstant(true)
+Evaluated: Let @ org-dartlang-testcase:///various.dart:15:52 -> BoolConstant(false)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:16:46 -> BoolConstant(false)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:17:46 -> BoolConstant(false)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:18:24 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:19:33 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:20:23 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:21:24 -> NullConstant(null)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:22:29 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:23:33 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:25:39 -> StringConstant("")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:27:11 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:29:11 -> StringConstant("hello")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:31:34 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:33:35 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:35:11 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:37:11 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:38:57 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:40:33 -> IntConstant(0)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:42:11 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:44:11 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:45:54 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:48:31 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:49:30 -> BoolConstant(true)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:50:35 -> IntConstant(42)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:51:41 -> StringConstant("42")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:55:35 -> BoolConstant(true)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:56:36 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:60:41 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:61:45 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:62:39 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:63:41 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:65:64 -> DoubleConstant(42.42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:24 -> DoubleConstant(42.42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:67:61 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:68:34 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:68:47 -> DoubleConstant(42.42)
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:69:43 -> DoubleConstant(84.42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:70:31 -> IntConstant(42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:72:39 -> StringConstant("hello")
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:73:49 -> StringConstant("hello world")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:74:31 -> StringConstant("hello")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:74:46 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:75:37 -> StringConstant("hello")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:86:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:86:12 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:87:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:87:12 -> IntConstant(1)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:128:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:129:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:130:28 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:131:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:131:32 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:132:29 -> SymbolConstant(#Foo)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:133:34 -> SymbolConstant(#Foo=)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:134:40 -> SymbolConstant(#>>>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:135:37 -> SymbolConstant(#I.Have.Dots)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:157:11 -> InstanceConstant(const ClassWithTypeArguments<int*, int*, int*>{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:159:11 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:161:5 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:189:32 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:190:38 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:191:38 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:192:22 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:194:32 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:195:38 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:196:36 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:197:24 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:202:66 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:39 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:207:39 -> InstantiationConstant(id1<int*>)
+Evaluated: Not @ org-dartlang-testcase:///various.dart:210:20 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:212:46 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:213:38 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:214:25 -> BoolConstant(true)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:215:40 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:216:25 -> NullConstant(null)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:217:40 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 135, effectively constant: 84

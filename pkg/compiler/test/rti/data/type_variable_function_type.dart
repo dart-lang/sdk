@@ -4,13 +4,13 @@
 
 // @dart = 2.7
 
-// Based on tests\language_2\type_variable_function_type_test.dart
+import 'package:compiler/src/util/testing.dart';
 
-import 'package:expect/expect.dart';
+// Based on tests\language_2\type_variable_function_type_test.dart
 
 typedef T Func<T>();
 
-/*class: Foo:direct,explicit=[Foo.S* Function()*],needsArgs*/
+/*class: Foo:explicit=[Foo.S* Function()*],needsArgs,test*/
 class Foo<S> {
   m(x) => x is Func<S>;
 }
@@ -26,6 +26,6 @@ class Bar<T> {
 void main() {
   dynamic x = new Foo<List<String>>();
   if (new DateTime.now().millisecondsSinceEpoch == 42) x = new Foo<int>();
-  Expect.isFalse(x.m(new Bar<String>().f()));
-  Expect.isTrue(x.m(new Bar<List<String>>().f()));
+  makeLive(x.m(new Bar<String>().f()));
+  makeLive(x.m(new Bar<List<String>>().f()));
 }

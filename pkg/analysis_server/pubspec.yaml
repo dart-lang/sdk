@@ -13,7 +13,6 @@ dependencies:
   analyzer_plugin:
     path: ../analyzer_plugin
   args: any
-  cli_util: any
   collection: any
   convert: any
   crypto: any

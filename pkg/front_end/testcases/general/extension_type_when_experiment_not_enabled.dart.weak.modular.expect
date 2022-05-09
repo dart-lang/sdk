@@ -2,12 +2,8 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/extension_type_when_experiment_not_enabled.dart:11:6: Error: This requires the 'extension-types' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.16 or higher, and running 'pub get'.
-// test(E e) {} // Error.
-//      ^
-//
-// pkg/front_end/testcases/general/extension_type_when_experiment_not_enabled.dart:11:6: Error: 'E' isn't a type.
+// pkg/front_end/testcases/general/extension_type_when_experiment_not_enabled.dart:11:6: Error: This requires the experimental 'extension-types' language feature to be enabled.
+// Try passing the '--enable-experiment=extension-types' command line option.
 // test(E e) {} // Error.
 //      ^
 //

@@ -467,20 +467,20 @@ class Builder {
     _currentVTable!.addField(field, _tail);
   }
 
-  static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
-    _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
+  static void _setFloat64AtTail(ByteData buf, int tail, double x) {
+    buf.setFloat64(buf.lengthInBytes - tail, x, Endian.little);
   }
 
-  static void _setInt32AtTail(ByteData _buf, int tail, int x) {
-    _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
+  static void _setInt32AtTail(ByteData buf, int tail, int x) {
+    buf.setInt32(buf.lengthInBytes - tail, x, Endian.little);
   }
 
-  static void _setUint32AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
+  static void _setUint32AtTail(ByteData buf, int tail, int x) {
+    buf.setUint32(buf.lengthInBytes - tail, x, Endian.little);
   }
 
-  static void _setUint8AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint8(_buf.lengthInBytes - tail, x);
+  static void _setUint8AtTail(ByteData buf, int tail, int x) {
+    buf.setUint8(buf.lengthInBytes - tail, x);
   }
 }
 
@@ -627,9 +627,9 @@ abstract class TableReader<T> extends Reader<T> {
   T createObject(BufferContext bc, int offset);
 
   @override
-  T read(BufferContext bp, int offset) {
-    int objectOffset = bp.derefObject(offset);
-    return createObject(bp, objectOffset);
+  T read(BufferContext bc, int offset) {
+    int objectOffset = bc.derefObject(offset);
+    return createObject(bc, objectOffset);
   }
 }
 

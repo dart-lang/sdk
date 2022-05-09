@@ -1,0 +1,22 @@
+r0 int32[float]
+r1 int32[float]
+r2 int32[float]
+r3 int32[float]
+S+0 float
+S+4 float
+S+8 float
+S+12 float
+S+16 float
+S+20 float
+S+24 float
+S+28 float
+S+32 float
+S+36 float
+S+40 float
+S+44 float
+S+48 float
+S+52 float
+S+56 float
+S+60 float
+=>
+r0 int32[float]

@@ -5,7 +5,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    warnings: true
+    warnings: false
     checkEntries: false
     sources:
       .packages: |
@@ -21,7 +21,7 @@ worlds:
     expectedLibraryCount: 1
 
   - entry: main.dart
-    warnings: true
+    warnings: false
     checkEntries: false
     worldType: updated
     expectInitializeFromDill: false
@@ -30,7 +30,7 @@ worlds:
     expectedLibraryCount: 1
 
   - entry: main.dart
-    warnings: true
+    warnings: false
     checkEntries: false
     worldType: updated
     expectInitializeFromDill: false

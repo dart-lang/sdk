@@ -10,13 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainIsNotFunctionTest);
-    defineReflectiveTests(MainIsNotFunctionWithNullSafetyTest);
+    defineReflectiveTests(MainIsNotFunctionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MainIsNotFunctionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MainIsNotFunctionTestCases {}
+    with MainIsNotFunctionTestCases {}
 
 mixin MainIsNotFunctionTestCases on PubPackageResolutionTest {
   test_class() async {
@@ -36,6 +36,17 @@ class main = A with M;
 ''');
     assertErrorsInResult(expectedErrorsByNullability(nullable: [
       error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 28, 4),
+    ], legacy: []));
+  }
+
+  test_enum() async {
+    await resolveTestCode('''
+enum main {
+  v
+}
+''');
+    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 5, 4),
     ], legacy: []));
   }
 
@@ -93,5 +104,5 @@ var main = 0;
 }
 
 @reflectiveTest
-class MainIsNotFunctionWithNullSafetyTest extends PubPackageResolutionTest
-    with MainIsNotFunctionTestCases {}
+class MainIsNotFunctionWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MainIsNotFunctionTestCases {}

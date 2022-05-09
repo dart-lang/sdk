@@ -23,7 +23,9 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
       List<ElementKind>? expectedKinds,
       List<String>? expectedUris}) {
     var node = findNode.any(search);
-    var matcher = ElementMatcher.forNode(node)!;
+    var matchers = ElementMatcher.matchersForNode(node);
+    expect(matchers, hasLength(1));
+    var matcher = matchers[0];
     if (expectedUris != null) {
       expect(matcher.importedUris,
           unorderedEquals(expectedUris.map((uri) => Uri.parse(uri))));
@@ -52,8 +54,10 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   /// The kinds that are expected where an invocation is allowed.
   static List<ElementKind> invocationKinds = [
     ElementKind.classKind,
+    ElementKind.constructorKind,
     ElementKind.extensionKind,
     ElementKind.functionKind,
+    ElementKind.getterKind,
     ElementKind.methodKind,
   ];
 
@@ -107,7 +111,7 @@ class C {
   }
 }
 ''');
-    _assertMatcher('g;', expectedComponents: ['g', 'C']);
+    _assertMatcher('g;', expectedComponents: ['g']);
   }
 
   Future<void> test_getter_withoutTarget_unresolved() async {
@@ -147,17 +151,7 @@ void f() {
   s.length;
 }
 ''');
-    // TODO(brianwilkerson) Several of these kinds don't seem to be appropriate,
-    //  so we might want to narrow down the list.
-    _assertMatcher('s', expectedComponents: [
-      's'
-    ], expectedKinds: [
-      ElementKind.classKind,
-      ElementKind.enumKind,
-      ElementKind.extensionKind,
-      ElementKind.mixinKind,
-      ElementKind.typedefKind,
-    ]);
+    _assertMatcher('s', expectedComponents: ['s'], expectedKinds: []);
   }
 
   Future<void> test_method_withoutTarget_resolved() async {
@@ -215,7 +209,7 @@ class C {
   }
 }
 ''');
-    _assertMatcher('s =', expectedComponents: ['s', 'C']);
+    _assertMatcher('s =', expectedComponents: ['s']);
   }
 
   Future<void> test_setter_withoutTarget_unresolved() async {
@@ -372,7 +366,7 @@ String s = '';
 
   Future<void> test_imports_package() async {
     var packageRootPath = '$workspaceRootPath/other';
-    newFile('$packageRootPath/lib/other.dart', content: '');
+    newFile2('$packageRootPath/lib/other.dart', '');
     writeTestPackageConfig(
         config: PackageConfigFileBuilder()
           ..add(name: 'other', rootPath: packageRootPath));

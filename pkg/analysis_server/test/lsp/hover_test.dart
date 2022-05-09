@@ -68,6 +68,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 ```dart
 String abc
 ```
+Type: `String`
 *package:test/main.dart*
 
 ---
@@ -159,6 +160,32 @@ print();
     expect(markup.value, contains('This is a string.'));
   }
 
+  Future<void> test_promotedTypes() async {
+    final content = '''
+void f(aaa) {
+  if (aaa is String) {
+    print([[aa^a]]);
+  }
+}
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+dynamic aaa
+```
+Type: `String`
+    '''
+        .trim();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    expect(_getStringContents(hover), equals(expectedHoverContent));
+  }
+
   Future<void> test_range_multiLineConstructorCall() async {
     final content = '''
     final a = new [[Str^ing.fromCharCodes]]([
@@ -229,6 +256,7 @@ print();
 ```dart
 String abc
 ```
+Type: `String`
 *package:test/main.dart*
     '''
         .trim();
@@ -288,7 +316,7 @@ String abc
     String [[a^bc]];
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
@@ -327,6 +355,7 @@ class HoverWithNullSafetyTest extends HoverTest {
 ```dart
 String? abc
 ```
+Type: `String?`
 *package:test/main.dart*
     '''
         .trim();

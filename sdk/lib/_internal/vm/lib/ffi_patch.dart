@@ -4,9 +4,9 @@
 
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
-import "dart:_internal" show patch, has63BitSmis;
-import 'dart:typed_data';
+import 'dart:_internal';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 const Map<Type, int> _knownSizes = {
   Int8: 1,
@@ -37,6 +37,8 @@ int get _intPtrSize => (const [
       8, // linuxArm64,
       4, // linuxIA32,
       8, // linuxX64,
+      4, // linuxRiscv32,
+      8, // linuxRiscv64,
       8, // macosArm64,
       8, // macosX64,
       8, // windowsArm64,
@@ -203,15 +205,22 @@ class Array<T extends NativeType> {
   @pragma("vm:entry-point")
   final List<int> _nestedDimensions;
 
+  int? _nestedDimensionsFlattenedCache;
+  int? _nestedDimensionsFirstCache;
+  List<int>? _nestedDimensionsRestCache;
+
   @pragma("vm:entry-point")
   Array._(this._typedDataBase, this._size, this._nestedDimensions);
 
-  late final int _nestedDimensionsFlattened = _nestedDimensions.fold(
-      1, (accumulator, element) => accumulator * element);
+  int get _nestedDimensionsFlattened =>
+      _nestedDimensionsFlattenedCache ??= _nestedDimensions.fold<int>(
+          1, (accumulator, element) => accumulator * element);
 
-  late final int _nestedDimensionsFirst = _nestedDimensions.first;
+  int get _nestedDimensionsFirst =>
+      _nestedDimensionsFirstCache ??= _nestedDimensions.first;
 
-  late final List<int> _nestedDimensionsRest = _nestedDimensions.sublist(1);
+  List<int> get _nestedDimensionsRest =>
+      _nestedDimensionsRestCache ??= _nestedDimensions.sublist(1);
 
   _checkIndex(int index) {
     if (index < 0 || index >= _size) {
@@ -224,8 +233,6 @@ class Array<T extends NativeType> {
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name",
-    "Recognized method: IR graph is built in the flow graph builder.")
 external int _abi();
 
 @patch
@@ -334,10 +341,6 @@ external int _loadUint32(Object typedDataBase, int offsetInBytes);
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadIntPtr")
-external int _loadIntPtr(Object typedDataBase, int offsetInBytes);
-
-@pragma("vm:recognized", "other")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes);
 
@@ -407,10 +410,6 @@ external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeIntPtr")
-external void _storeIntPtr(Object typedDataBase, int offsetInBytes, int value);
-
-@pragma("vm:recognized", "other")
 external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes, int value);
 
@@ -475,9 +474,6 @@ Pointer<Uint32> _elementAtUint32(Pointer<Uint32> pointer, int index) =>
 
 Pointer<Uint64> _elementAtUint64(Pointer<Uint64> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<IntPtr> _elementAtIntPtr(Pointer<IntPtr> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + _intPtrSize * index);
 
 Pointer<Float> _elementAtFloat(Pointer<Float> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 4 * index);
@@ -696,21 +692,6 @@ extension Uint64Pointer on Pointer<Uint64> {
   }
 }
 
-extension IntPtrPointer on Pointer<IntPtr> {
-  @patch
-  int get value => _loadIntPtr(this, 0);
-
-  @patch
-  set value(int value) => _storeIntPtr(this, 0, value);
-
-  @patch
-  int operator [](int index) => _loadIntPtr(this, _intPtrSize * index);
-
-  @patch
-  operator []=(int index, int value) =>
-      _storeIntPtr(this, _intPtrSize * index, value);
-}
-
 extension FloatPointer on Pointer<Float> {
   @patch
   double get value => _loadFloat(this, 0);
@@ -883,20 +864,6 @@ extension Uint64Array on Array<Uint64> {
   }
 }
 
-extension IntPtrArray on Array<IntPtr> {
-  @patch
-  int operator [](int index) {
-    _checkIndex(index);
-    return _loadIntPtr(_typedDataBase, _intPtrSize * index);
-  }
-
-  @patch
-  operator []=(int index, int value) {
-    _checkIndex(index);
-    return _storeIntPtr(_typedDataBase, _intPtrSize * index, value);
-  }
-}
-
 extension FloatArray on Array<Float> {
   @patch
   double operator [](int index) {
@@ -964,7 +931,15 @@ extension StructPointer<T extends Struct> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
+  set ref(T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE";
+
+  @patch
   T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, T value) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
@@ -974,7 +949,15 @@ extension UnionPointer<T extends Union> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
+  set ref(T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE";
+
+  @patch
   T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, T value) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 

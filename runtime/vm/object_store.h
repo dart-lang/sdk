@@ -43,15 +43,20 @@ class ObjectPointerVisitor;
 // LAZY_ISOLATE - needs lazy init getter for a "dart:isolate" member
 // LAZY_INTERNAL - needs lazy init getter for a "dart:_internal" member
 #define OBJECT_STORE_FIELD_LIST(R_, RW, ARW_RELAXED, ARW_AR, LAZY_CORE,        \
-                                LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL)       \
+                                LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL,       \
+                                LAZY_FFI)                                      \
   LAZY_CORE(Class, list_class)                                                 \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
+  LAZY_CORE(Field, enum_index_field)                                           \
+  LAZY_CORE(Field, enum_name_field)                                            \
   LAZY_CORE(Function, _object_equals_function)                                 \
   LAZY_CORE(Function, _object_hash_code_function)                              \
   LAZY_CORE(Function, _object_to_string_function)                              \
   LAZY_INTERNAL(Class, symbol_class)                                           \
   LAZY_INTERNAL(Field, symbol_name_field)                                      \
+  LAZY_FFI(Function, handle_finalizer_message_function)                        \
+  LAZY_FFI(Function, handle_native_finalizer_message_function)                 \
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
@@ -122,6 +127,10 @@ class ObjectPointerVisitor;
   RW(Class, error_class)                                                       \
   RW(Class, expando_class)                                                     \
   RW(Class, weak_property_class)                                               \
+  RW(Class, weak_reference_class)                                              \
+  RW(Class, finalizer_class)                                                   \
+  RW(Class, finalizer_entry_class)                                             \
+  RW(Class, native_finalizer_class)                                            \
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
@@ -157,6 +166,7 @@ class ObjectPointerVisitor;
   RW(Function, simple_instance_of_false_function)                              \
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
+  RW(Function, complete_with_no_future_on_async_return)                        \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
   ARW_RELAXED(Smi, future_timeout_future_index)                                \
@@ -204,6 +214,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_float64x2_array_stub)                                      \
   RW(Code, allocate_closure_stub)                                              \
   RW(Code, allocate_context_stub)                                              \
+  RW(Code, allocate_growable_array_stub)                                       \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
   RW(Code, allocate_unhandled_exception_stub)                                  \
@@ -234,7 +245,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
-  RW(Object, ffi_as_function_internal)                                         \
   // Please remember the last entry must be referred in the 'to' function below.
 
 #define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
@@ -280,6 +290,7 @@ class ObjectPointerVisitor;
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
   DO(allocate_closure_stub, AllocateClosure)                                   \
   DO(allocate_context_stub, AllocateContext)                                   \
+  DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
@@ -308,8 +319,9 @@ class ObjectPointerVisitor;
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
-  RW(Array, dart_args_1)                                                       \
-  RW(Array, dart_args_2)                                                       \
+  RW(UnwindError, preallocated_unwind_error)                                   \
+  R_(Array, dart_args_1)                                                       \
+  R_(Array, dart_args_2)                                                       \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)
@@ -419,6 +431,8 @@ class ObjectStore {
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitIsolateMembers)
 #define DECLARE_LAZY_INIT_INTERNAL_GETTER(Type, name)                          \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitInternalMembers)
+#define DECLARE_LAZY_INIT_FFI_GETTER(Type, name)                               \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFfiMembers)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
                           DECLARE_RELAXED_ATOMIC_GETTER_AND_SETTER,
@@ -426,7 +440,8 @@ class ObjectStore {
                           DECLARE_LAZY_INIT_CORE_GETTER,
                           DECLARE_LAZY_INIT_ASYNC_GETTER,
                           DECLARE_LAZY_INIT_ISOLATE_GETTER,
-                          DECLARE_LAZY_INIT_INTERNAL_GETTER)
+                          DECLARE_LAZY_INIT_INTERNAL_GETTER,
+                          DECLARE_LAZY_INIT_FFI_GETTER)
 #undef DECLARE_OFFSET
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
@@ -486,6 +501,7 @@ class ObjectStore {
  private:
   void LazyInitCoreMembers();
   void LazyInitAsyncMembers();
+  void LazyInitFfiMembers();
   void LazyInitIsolateMembers();
   void LazyInitInternalMembers();
 
@@ -505,12 +521,13 @@ class ObjectStore {
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
+                          DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
 #undef DECLARE_ATOMIC_OBJECT_STORE_FIELD
 #undef DECLARE_LAZY_OBJECT_STORE_FIELD
   ObjectPtr* to() {
-    return reinterpret_cast<ObjectPtr*>(&ffi_as_function_internal_);
+    return reinterpret_cast<ObjectPtr*>(&ffi_native_type_class_);
   }
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {

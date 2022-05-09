@@ -21,39 +21,22 @@ const int compileErrorExitCode = 64;
 class Option {
   final String flag;
   final String help;
-  final String abbr;
-  final String defaultsTo;
-  final List<String> allowed;
-  final Map<String, String> allowedHelp;
+  final String? abbr;
+  final String? defaultsTo;
+  final String? valueHelp;
+  final List<String>? allowed;
+  final Map<String, String>? allowedHelp;
 
-  Option(
-      {this.flag,
-      this.help,
-      this.abbr,
-      this.defaultsTo,
-      this.allowed,
-      this.allowedHelp});
+  const Option({
+    required this.flag,
+    required this.help,
+    this.abbr,
+    this.defaultsTo,
+    this.valueHelp,
+    this.allowed,
+    this.allowedHelp,
+  });
 }
-
-final Map<String, Option> commonOptions = {
-  'outputFile': Option(
-    flag: 'output',
-    abbr: 'o',
-    help: '''
-Write the output to <file name>.
-This can be an absolute or relative path.
-''',
-  ),
-  'verbosity': Option(
-    flag: 'verbosity',
-    help: '''
-Sets the verbosity level of the compilation.
-''',
-    defaultsTo: Verbosity.defaultValue,
-    allowed: Verbosity.allowedValues,
-    allowedHelp: Verbosity.allowedValuesHelp,
-  ),
-};
 
 bool checkFile(String sourcePath) {
   if (!FileSystemEntity.isFileSync(sourcePath)) {
@@ -71,7 +54,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
   @override
   final ArgParser argParser = ArgParser.allowAnything();
 
-  CompileJSCommand({bool verbose})
+  CompileJSCommand({bool verbose = false})
       : super(cmdName, 'Compile Dart to JavaScript.', verbose);
 
   @override
@@ -90,7 +73,8 @@ class CompileJSCommand extends CompileSubcommandCommand {
         [
           '--libraries-spec=$librariesPath',
           '--cfe-invocation-modes=compile',
-          ...argResults.arguments,
+          '--invoker=dart_cli',
+          ...argResults!.arguments,
         ],
         packageConfigOverride: null);
 
@@ -108,27 +92,38 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   final String formatName;
 
   CompileSnapshotCommand({
-    this.commandName,
-    this.help,
-    this.fileExt,
-    this.formatName,
-    bool verbose,
+    required this.commandName,
+    required this.help,
+    required this.fileExt,
+    required this.formatName,
+    bool verbose = false,
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
-        commonOptions['outputFile'].flag,
-        help: commonOptions['outputFile'].help,
-        abbr: commonOptions['outputFile'].abbr,
+        outputFileOption.flag,
+        help: outputFileOption.help,
+        abbr: outputFileOption.abbr,
       )
       ..addOption(
-        commonOptions['verbosity'].flag,
-        help: commonOptions['verbosity'].help,
-        abbr: commonOptions['verbosity'].abbr,
-        defaultsTo: commonOptions['verbosity'].defaultsTo,
-        allowed: commonOptions['verbosity'].allowed,
-        allowedHelp: commonOptions['verbosity'].allowedHelp,
+        verbosityOption.flag,
+        help: verbosityOption.help,
+        abbr: verbosityOption.abbr,
+        defaultsTo: verbosityOption.defaultsTo,
+        allowed: verbosityOption.allowed,
+        allowedHelp: verbosityOption.allowedHelp,
+      )
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
+      )
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
       );
-
     addExperimentalFlags(argParser, verbose);
   }
 
@@ -145,20 +140,21 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (argResults.rest.isEmpty) {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
       // This throws.
       usageException('Missing Dart entry point.');
-    } else if (!isJitSnapshot && argResults.rest.length > 1) {
+    } else if (!isJitSnapshot && args.rest.length > 1) {
       usageException('Unexpected arguments after Dart entry point.');
     }
 
-    final String sourcePath = argResults.rest[0];
+    final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
     }
 
     // Determine output file name.
-    String outputFile = argResults[commonOptions['outputFile'].flag];
+    String? outputFile = args[outputFileOption.flag];
     if (outputFile == null) {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
@@ -166,31 +162,41 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       outputFile = '$inputWithoutDart.$fileExt';
     }
 
-    final enabledExperiments = argResults.enabledExperiments;
-    // Build arguments.
-    List<String> args = [];
-    args.add('--snapshot-kind=$formatName');
-    args.add('--snapshot=${path.canonicalize(outputFile)}');
+    final enabledExperiments = args.enabledExperiments;
+    final environmentVars = args['define'] ?? <String, String>{};
 
-    String verbosity = argResults[commonOptions['verbosity'].flag];
-    args.add('--verbosity=$verbosity');
+    // Build arguments.
+    final buildArgs = <String>[];
+    buildArgs.add('--snapshot-kind=$formatName');
+    buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
+
+    final String? packages = args[packagesOption.flag];
+    if (packages != null) {
+      buildArgs.add('--packages=$packages');
+    }
+
+    final String? verbosity = args[verbosityOption.flag];
+    buildArgs.add('--verbosity=$verbosity');
 
     if (enabledExperiments.isNotEmpty) {
-      args.add("--enable-experiment=${enabledExperiments.join(',')}");
+      buildArgs.add("--enable-experiment=${enabledExperiments.join(',')}");
     }
     if (verbose) {
-      args.add('-v');
+      buildArgs.add('-v');
     }
-    args.add(path.canonicalize(sourcePath));
+    if (environmentVars.isNotEmpty) {
+      buildArgs.addAll(environmentVars.map<String>((e) => '--define=$e'));
+    }
+    buildArgs.add(path.canonicalize(sourcePath));
 
     // Add the training arguments.
-    if (argResults.rest.length > 1) {
-      args.addAll(argResults.rest.sublist(1));
+    if (args.rest.length > 1) {
+      buildArgs.addAll(args.rest.sublist(1));
     }
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
-    final process = await startDartProcess(sdk, args);
+    final process = await startDartProcess(sdk, buildArgs);
     routeToStdout(process);
     return process.exitCode;
   }
@@ -205,37 +211,39 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   final String help;
 
   CompileNativeCommand({
-    this.commandName,
-    this.format,
-    this.help,
-    bool verbose,
+    required this.commandName,
+    required this.format,
+    required this.help,
+    bool verbose = false,
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
-        commonOptions['outputFile'].flag,
-        help: commonOptions['outputFile'].help,
-        abbr: commonOptions['outputFile'].abbr,
+        outputFileOption.flag,
+        help: outputFileOption.help,
+        abbr: outputFileOption.abbr,
       )
       ..addOption(
-        commonOptions['verbosity'].flag,
-        help: commonOptions['verbosity'].help,
-        abbr: commonOptions['verbosity'].abbr,
-        defaultsTo: commonOptions['verbosity'].defaultsTo,
-        allowed: commonOptions['verbosity'].allowed,
-        allowedHelp: commonOptions['verbosity'].allowedHelp,
+        verbosityOption.flag,
+        help: verbosityOption.help,
+        abbr: verbosityOption.abbr,
+        defaultsTo: verbosityOption.defaultsTo,
+        allowed: verbosityOption.allowed,
+        allowedHelp: verbosityOption.allowedHelp,
       )
-      ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
-Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
-For example: dart compile $commandName -Da=1,b=2 main.dart''')
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
+      )
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
-      ..addOption('packages',
-          abbr: 'p',
-          valueHelp: 'path',
-          help:
-              '''Get package locations from the specified file instead of .packages.
-<path> can be relative or absolute.
-For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
+      )
       ..addFlag('sound-null-safety',
           help: 'Respect the nullability of types at runtime.',
           defaultsTo: null)
@@ -268,13 +276,14 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $format' is not supported on x86 architectures");
       return 64;
     }
+    final args = argResults!;
+
     // We expect a single rest argument; the dart entry point.
-    if (argResults.rest.length != 1) {
+    if (args.rest.length != 1) {
       // This throws.
       usageException('Missing Dart entry point.');
     }
-
-    final String sourcePath = argResults.rest[0];
+    final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
     }
@@ -283,16 +292,16 @@ Remove debugging information from the output and save it separately to the speci
       await generateNative(
         kind: format,
         sourceFile: sourcePath,
-        outputFile: argResults['output'],
-        defines: argResults['define'],
-        packages: argResults['packages'],
-        enableAsserts: argResults['enable-asserts'],
-        enableExperiment: argResults.enabledExperiments.join(','),
-        soundNullSafety: argResults['sound-null-safety'],
-        debugFile: argResults['save-debugging-info'],
+        outputFile: args['output'],
+        defines: args['define'],
+        packages: args['packages'],
+        enableAsserts: args['enable-asserts'],
+        enableExperiment: args.enabledExperiments.join(','),
+        soundNullSafety: args['sound-null-safety'],
+        debugFile: args['save-debugging-info'],
         verbose: verbose,
-        verbosity: argResults['verbosity'],
-        extraOptions: argResults['extra-gen-snapshot-options'],
+        verbosity: args['verbosity'],
+        extraOptions: args['extra-gen-snapshot-options'],
       );
       return 0;
     } catch (e) {
@@ -304,9 +313,46 @@ Remove debugging information from the output and save it separately to the speci
 }
 
 abstract class CompileSubcommandCommand extends DartdevCommand {
+  final outputFileOption = Option(
+    flag: 'output',
+    abbr: 'o',
+    help: '''
+Write the output to <file name>.
+This can be an absolute or relative path.
+''',
+  );
+  final verbosityOption = Option(
+    flag: 'verbosity',
+    help: '''
+Sets the verbosity level of the compilation.
+''',
+    defaultsTo: Verbosity.defaultValue,
+    allowed: Verbosity.allowedValues,
+    allowedHelp: Verbosity.allowedValuesHelp,
+  );
+
+  late final Option defineOption;
+  late final Option packagesOption;
+
   CompileSubcommandCommand(String name, String description, bool verbose,
       {bool hidden = false})
-      : super(name, description, verbose, hidden: hidden);
+      : defineOption = Option(
+          flag: 'define',
+          abbr: 'D',
+          valueHelp: 'key=value',
+          help: '''
+Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
+For example: dart compile $name -Da=1,b=2 main.dart''',
+        ),
+        packagesOption = Option(
+            flag: 'packages',
+            abbr: 'p',
+            valueHelp: 'path',
+            help:
+                '''Get package locations from the specified file instead of .packages.
+<path> can be relative or absolute.
+For example: dart compile $name --packages=/tmp/pkgs main.dart'''),
+        super(name, description, verbose, hidden: hidden);
 }
 
 class CompileCommand extends DartdevCommand {

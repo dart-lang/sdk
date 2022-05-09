@@ -140,6 +140,24 @@ int f(Foo foo) {
       error(HintCode.DEAD_CODE, 111, 10),
     ]);
   }
+
+  test_try_finally() async {
+    await assertErrorsInCode('''
+main() {
+  try {
+    foo();
+    print('dead');
+  } finally {
+    print('alive');
+  }
+  print('dead');
+}
+Never foo() => throw 'exception';
+''', [
+      error(HintCode.DEAD_CODE, 32, 14),
+      error(HintCode.DEAD_CODE, 87, 14),
+    ]);
+  }
 }
 
 mixin DeadCodeTestCases on PubPackageResolutionTest {
@@ -297,7 +315,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 class A {
   static const bool DEBUG = false;
 }''');
@@ -309,7 +327,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
+    newFile2('$testPackageLibPath/lib2.dart', r'''
 class A {
   static const bool DEBUG = false;
 }''');

@@ -27,7 +27,7 @@ import 'dart:_js_embedded_names'
 
 import 'dart:collection';
 
-import 'dart:async' show Completer, DeferredLoadException, Future;
+import 'dart:async' show Completer, DeferredLoadException, Future, Zone;
 
 import 'dart:_foreign_helper'
     show
@@ -276,19 +276,6 @@ class Primitives {
   }
 
   static Object _computeIdentityHashCodeProperty() =>
-      JS_GET_FLAG('LEGACY_JAVASCRIPT')
-          ? _computeIdentityHashCodePropertyLegacy()
-          : _computeIdentityHashCodePropertyModern();
-
-  static Object _computeIdentityHashCodePropertyLegacy() {
-    if (JS<bool>('bool', 'typeof Symbol == "function"') ||
-        JS<bool>('bool', 'typeof Symbol() == "symbol"')) {
-      return _computeIdentityHashCodePropertyModern();
-    }
-    return r'$identityHashCode';
-  }
-
-  static Object _computeIdentityHashCodePropertyModern() =>
       JS('', 'Symbol("identityHashCode")');
 
   static int? parseInt(String source, int? radix) {
@@ -397,7 +384,7 @@ class Primitives {
   /// In minified mode, uses the unminified names if available, otherwise tags
   /// them with 'minified:'.
   @pragma('dart2js:noInline')
-  static String objectTypeName(Object object) {
+  static String objectTypeName(Object? object) {
     return _objectTypeNameNewRti(object);
   }
 
@@ -406,7 +393,7 @@ class Primitives {
   ///
   /// In minified mode, uses the unminified names if available, otherwise tags
   /// them with 'minified:'.
-  static String _objectTypeNameNewRti(Object object) {
+  static String _objectTypeNameNewRti(Object? object) {
     var dartObjectConstructor = JS_BUILTIN(
         'depends:none;effects:none;', JsBuiltin.dartObjectConstructor);
     if (JS('bool', '# instanceof #', object, dartObjectConstructor)) {
@@ -452,7 +439,7 @@ class Primitives {
       name != null && name != 'Object' && name != '';
 
   /// In minified mode, uses the unminified names if available.
-  static String objectToHumanReadableString(Object object) {
+  static String objectToHumanReadableString(Object? object) {
     String name = objectTypeName(object);
     return "Instance of '$name'";
   }
@@ -2666,12 +2653,6 @@ String getIsolateAffinityTag(String name) {
   return JS('String', '#(#)', isolateTagGetter, name);
 }
 
-typedef Future<Null> LoadLibraryFunctionType();
-
-LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
-  return () => loadDeferredLibrary(loadId);
-}
-
 final Map<String, Future<Null>?> _loadingLibraries = <String, Future<Null>?>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
@@ -2791,8 +2772,64 @@ bool _isWorker() {
   return JS('', '!self.window && !!self.postMessage');
 }
 
-/// The src url for the script tag that loaded this code.
-String? thisScript = _computeThisScript();
+/// The src URL for the script tag that loaded this code.
+final String? thisScript = _computeThisScript();
+
+/// Base URL of `thisScript`.
+final String _thisScriptBaseUrl = _computeBaseUrl();
+
+String _computeBaseUrl() {
+  String script = thisScript!;
+  return JS('', '#.substring(0, #.lastIndexOf("/"))', script, script);
+}
+
+/// Trusted Type policy [1] for generating validated URLs for scripts for
+/// deferred loading. Only the `createScriptURL` member of this policy is used.
+///
+/// [1]: https://w3c.github.io/webappsec-trusted-types/dist/spec/#trusted-type-policy
+final Object _deferredLoadingTrustedTypesPolicy = _computePolicy();
+
+const _deferredLoadingTrustedTypesPolicyName = 'dart:deferred-loading';
+
+Object _computePolicy() {
+  // There is no actual validation, since the URLs for deferred loading are safe
+  // by construction (see [_getBasedScriptUrl].  If the URL was validated, the
+  // validation would ensure it is based off the main script.
+  final Object policyOptions = JS('=Object', '{createScriptURL: (url) => url}');
+
+  // For our purposes, the policyOptions duck-types to an object with a single
+  // method of the policy, so we use the options as a policy polyfill.
+  final fallbackPolicy = policyOptions;
+
+  final Object? policyFactory = JS('', 'self.trustedTypes');
+  if (policyFactory == null) return fallbackPolicy;
+  final Object? newPolicy = JS('', '#.createPolicy(#, #)', policyFactory,
+      _deferredLoadingTrustedTypesPolicyName, policyOptions);
+  return newPolicy ?? fallbackPolicy;
+}
+
+/// A TrustedScriptURL for the component that is alongside the main script of
+/// this program. On browsers or environments that do not support
+/// TrustedScriptURL, a String is returned instead.
+///
+/// Changes to this method require a careful review to ensure that the URLs
+/// remain safe by construction.
+///
+/// The component is encoded to prevent any directory 'navigation'. If deferred
+/// loading is changed to use a more structured layout with subdirectories, this
+/// method will need to be updated to make the URL still clearly safe by
+/// construction.
+Object _getBasedScriptUrl(String component) {
+  final base = _thisScriptBaseUrl;
+  final encodedComponent = _encodeURIComponent(component);
+  final url = '$base/$encodedComponent';
+  final policy = _deferredLoadingTrustedTypesPolicy;
+  return JS('', '#.createScriptURL(#)', policy, url);
+}
+
+String _encodeURIComponent(String component) {
+  return JS('', 'self.encodeURIComponent(#)', component);
+}
 
 /// The src url for the script tag that loaded this function.
 ///
@@ -2851,14 +2888,16 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     return future.then((Null _) => null);
   }
 
-  String uri = thisScript!;
+  Object trustedScriptUri = _getBasedScriptUrl(hunkName);
+  // [trustedScriptUri] is either a String, in which case `toString()` is an
+  // identity function, or it is a TrustedScriptURL and `toString()` returns the
+  // sanitized URL.
+  String uriAsString = JS('', '#.toString()', trustedScriptUri);
 
-  int index = uri.lastIndexOf('/');
-  uri = '${uri.substring(0, index + 1)}$hunkName';
-  _eventLog.add(' - download: $hunkName from $uri');
+  _eventLog.add(' - download: $hunkName from $uriAsString');
 
   var deferredLibraryLoader = JS('', 'self.dartDeferredLibraryLoader');
-  Completer<Null> completer = new Completer<Null>();
+  Completer<Null> completer = Completer();
 
   void success() {
     _eventLog.add(' - download success: $hunkName');
@@ -2870,7 +2909,7 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     _loadingLibraries[hunkName] = null;
     stackTrace ??= StackTrace.current;
     completer.completeError(
-        new DeferredLoadException('Loading $uri failed: $error\n'
+        DeferredLoadException('Loading $uriAsString failed: $error\n'
             'event log:\n${_eventLog.join("\n")}\n'),
         stackTrace);
   }
@@ -2885,17 +2924,15 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     try {
       // Share the loadId that hunk belongs to, this will allow for any
       // additional loadId based bundling optimizations.
-      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uri, jsSuccess,
+      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uriAsString, jsSuccess,
           jsFailure, loadId);
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
   } else if (_isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
-    int index = uri.lastIndexOf('/');
-    uri = '${uri.substring(0, index + 1)}$hunkName';
     var xhr = JS('var', 'new XMLHttpRequest()');
-    JS('void', '#.open("GET", #)', xhr, uri);
+    JS('void', '#.open("GET", #)', xhr, uriAsString);
     JS(
         'void',
         '#.addEventListener("load", #, false)',
@@ -2928,7 +2965,7 @@ Future<Null> _loadHunk(String hunkName, String loadId) {
     // Inject a script tag.
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
-    JS('', '#.src = #', script, uri);
+    JS('', '#.src = #', script, trustedScriptUri);
     if (_cspNonce != null && _cspNonce != '') {
       JS('', '#.nonce = #', script, _cspNonce);
       JS('', '#.setAttribute("nonce", #)', script, _cspNonce);
@@ -3034,4 +3071,12 @@ void assertInteropArgs(List<Object?> args) {
 
 Object? rawStartupMetrics() {
   return JS('JSArray', '#.a', JS_EMBEDDED_GLOBAL('', STARTUP_METRICS));
+}
+
+/// Wraps the given [callback] within the current Zone.
+void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
+  if (Zone.current == Zone.root) return callback;
+  if (callback == null) return null;
+  return Zone.current.bindUnaryCallbackGuarded(callback);
 }

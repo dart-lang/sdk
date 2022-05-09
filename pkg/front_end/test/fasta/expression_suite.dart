@@ -4,15 +4,21 @@
 
 library fasta.test.expression_test;
 
-import "dart:convert" show JsonEncoder;
-
 import "dart:io" show File, IOSink;
+
+import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+
+import 'package:front_end/src/api_prototype/expression_compilation_tools.dart'
+    show createDefinitionsWithTypes, createTypeParametersWithBounds;
+
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -31,8 +37,22 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show serializeComponent, serializeProcedure;
+import 'package:front_end/src/testing/compiler_common.dart';
+
 import "package:kernel/ast.dart"
-    show Procedure, Component, DynamicType, DartType, TypeParameter;
+    show
+        Class,
+        Component,
+        Constructor,
+        DartType,
+        DynamicType,
+        Field,
+        Library,
+        Member,
+        Procedure,
+        TypeParameter;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -47,21 +67,24 @@ import 'package:vm/target/vm.dart' show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
-import '../../lib/src/fasta/kernel/utils.dart'
-    show writeComponentToFile, serializeProcedure;
+import '../testing_utils.dart' show checkEnvironment;
 
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 
-const JsonEncoder json = const JsonEncoder.withIndent("  ");
-
 class Context extends ChainContext {
   final CompilerContext compilerContext;
+  final CompilerContext compilerContextNoNNBD;
   final List<DiagnosticMessage> errors;
 
   @override
   final List<Step> steps;
 
-  Context(this.compilerContext, this.errors, bool updateExpectations)
+  final bool fuzz;
+  final Set<Uri> fuzzedLibraries = {};
+  int fuzzCompiles = 0;
+
+  Context(this.compilerContext, this.compilerContextNoNNBD, this.errors,
+      bool updateExpectations, this.fuzz)
       : steps = <Step>[
           const ReadTest(),
           const CompileExpression(),
@@ -96,7 +119,7 @@ class CompilationResult {
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
     buffer.write("Errors: {\n");
-    for (var error in errors) {
+    for (DiagnosticMessage error in errors) {
       for (String message in error.plainTextFormatted) {
         for (String line in splitLines(message)) {
           buffer.write("  ");
@@ -124,32 +147,41 @@ class CompilationResult {
 class TestCase {
   final TestDescription description;
 
-  final Uri? entryPoint;
+  final Map<String, String> sources;
 
-  final Uri? import;
+  final Uri entryPoint;
 
   final List<String> definitions;
 
+  final List<String> definitionTypes;
+
   final List<String> typeDefinitions;
+
+  final List<String> typeBounds;
+
+  final List<String> typeDefaults;
 
   final bool isStaticMethod;
 
-  final Uri? library;
+  final Uri library;
 
   final String? className;
 
   final String? methodName;
 
-  String? expression;
+  String expression;
 
   List<CompilationResult> results = [];
 
   TestCase(
       this.description,
+      this.sources,
       this.entryPoint,
-      this.import,
       this.definitions,
+      this.definitionTypes,
       this.typeDefinitions,
+      this.typeBounds,
+      this.typeDefaults,
       this.isStaticMethod,
       this.library,
       this.className,
@@ -159,30 +191,16 @@ class TestCase {
   @override
   String toString() {
     return "TestCase("
+        "$sources, "
         "$entryPoint, "
-        "$import, "
         "$definitions, "
+        "$definitionTypes, "
         "$typeDefinitions,"
+        "$typeBounds,"
+        "$typeDefaults,"
         "$library, "
         "$className, "
         "static = $isStaticMethod)";
-  }
-
-  String? validate() {
-    print(this);
-    if (entryPoint == null) {
-      return "No entryPoint.";
-    }
-    if (!(new File.fromUri(entryPoint!)).existsSync()) {
-      return "Entry point $entryPoint doesn't exist.";
-    }
-    if (library == null) {
-      return "No enclosing node.";
-    }
-    if (expression == null) {
-      return "No expression to compile.";
-    }
-    return null;
   }
 }
 
@@ -199,11 +217,12 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
   @override
   Future<Result<Null>> run(List<TestCase> tests, Context context) async {
     String actual = "";
-    for (var test in tests) {
-      var primary = test.results.first.printResult(test.entryPoint!, context);
+    for (TestCase test in tests) {
+      String primary = test.results.first.printResult(test.entryPoint, context);
       actual += primary;
       for (int i = 1; i < test.results.length; ++i) {
-        var secondary = test.results[i].printResult(test.entryPoint!, context);
+        String secondary =
+            test.results[i].printResult(test.entryPoint, context);
         if (primary != secondary) {
           return fail(
               null,
@@ -213,7 +232,7 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
         }
       }
     }
-    var test = tests.first;
+    TestCase test = tests.first;
     Uri testUri = test.description.uri;
     File expectedFile = new File("${testUri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
@@ -254,10 +273,12 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     Uri uri = description.uri;
     String contents = await new File.fromUri(uri).readAsString();
 
-    Uri? entryPoint;
-    Uri? import;
+    Uri entryPoint = toTestUri('main.dart');
     List<String> definitions = <String>[];
+    List<String> definitionTypes = <String>[];
     List<String> typeDefinitions = <String>[];
+    List<String> typeBounds = <String>[];
+    List<String> typeDefaults = <String>[];
     bool isStaticMethod = false;
     Uri? library;
     String? className;
@@ -268,17 +289,22 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     if (maps is YamlMap) maps = [maps];
 
     final List<TestCase> tests = [];
+    Map<String, String> sources = {};
     for (YamlMap map in maps) {
-      for (var _key in map.keys) {
-        String key = _key;
-        var value = map[key];
-
-        if (key == "entry_point") {
-          entryPoint = description.uri.resolveUri(Uri.parse(value as String));
-        } else if (key == "import") {
-          import = description.uri.resolveUri(Uri.parse(value as String));
+      for (String key in map.keys) {
+        dynamic value = map[key];
+        if (key == "sources") {
+          if (value is String) {
+            sources['main.dart'] = value;
+          } else if (value is YamlMap) {
+            value.forEach((key, value) {
+              sources[key as String] = value as String;
+            });
+          }
+        } else if (key == "entry_point") {
+          entryPoint = toTestUri(value as String);
         } else if (key == "position") {
-          Uri uri = description.uri.resolveUri(Uri.parse(value as String));
+          Uri uri = entryPoint.resolveUri(Uri.parse(value as String));
           library = uri.removeFragment();
           if (uri.fragment != '') {
             className = uri.fragment;
@@ -287,30 +313,43 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           methodName = value as String;
         } else if (key == "definitions") {
           definitions = (value as YamlList).map((x) => x as String).toList();
+        } else if (key == "definition_types") {
+          definitionTypes =
+              (value as YamlList).map((x) => x as String).toList();
         } else if (key == "type_definitions") {
           typeDefinitions =
               (value as YamlList).map((x) => x as String).toList();
+        } else if (key == "type_bounds") {
+          typeBounds = (value as YamlList).map((x) => x as String).toList();
+        } else if (key == "type_defaults") {
+          typeDefaults = (value as YamlList).map((x) => x as String).toList();
         } else if (key == "static") {
           isStaticMethod = value;
         } else if (key == "expression") {
           expression = value;
+        } else {
+          throw new UnsupportedError("Unknown key: ${key}");
         }
       }
-      var test = new TestCase(
+      library ??= entryPoint;
+      if (expression == null) {
+        return new Result.fail(tests, "No expression to compile.");
+      }
+
+      TestCase test = new TestCase(
           description,
+          sources,
           entryPoint,
-          import,
           definitions,
+          definitionTypes,
           typeDefinitions,
+          typeBounds,
+          typeDefaults,
           isStaticMethod,
           library,
           className,
           methodName,
           expression);
-      var result = test.validate();
-      if (result != null) {
-        return new Result.fail(tests, result);
-      }
       tests.add(test);
     }
     return new Result.pass(tests);
@@ -325,24 +364,42 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
   // Compile [test.expression], update [test.errors] with results.
   // As a side effect - verify that generated procedure can be serialized.
-  Future<void> compileExpression(TestCase test, IncrementalCompiler compiler,
-      Component component, Context context) async {
-    Map<String, DartType> definitions = {};
-    for (String name in test.definitions) {
-      definitions[name] = new DynamicType();
+  Future<void> compileExpression(
+      TestCase test,
+      IncrementalCompiler compiler,
+      IncrementalCompiler? compilerNoNNBD,
+      IncrementalCompilerResult compilerResult,
+      Context context) async {
+    Map<String, DartType>? definitions = createDefinitionsWithTypes(
+        compilerResult.classHierarchy?.knownLibraries,
+        test.definitionTypes,
+        test.definitions);
+
+    if (definitions == null) {
+      definitions = {};
+      for (String name in test.definitions) {
+        definitions[name] = new DynamicType();
+      }
     }
-    List<TypeParameter> typeParams = [];
-    for (String name in test.typeDefinitions) {
-      typeParams
-          .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
+    List<TypeParameter>? typeParams = createTypeParametersWithBounds(
+        compilerResult.classHierarchy?.knownLibraries,
+        test.typeBounds,
+        test.typeDefaults,
+        test.typeDefinitions);
+    if (typeParams == null) {
+      typeParams = [];
+      for (String name in test.typeDefinitions) {
+        typeParams
+            .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
+      }
     }
 
     Procedure? compiledProcedure = await compiler.compileExpression(
-      test.expression!,
+      test.expression,
       definitions,
       typeParams,
       "debugExpr",
-      test.library!,
+      test.library,
       className: test.className,
       methodName: test.methodName,
       isStatic: test.isStaticMethod,
@@ -351,56 +408,243 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     test.results.add(new CompilationResult(compiledProcedure, errors));
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
-      component.computeCanonicalNames();
+      compilerResult.component.computeCanonicalNames();
       List<int> list = serializeProcedure(compiledProcedure);
       assert(list.length > 0);
+    }
+
+    if (context.fuzz) {
+      await fuzz(compiler, compilerNoNNBD!, compilerResult, context);
+    }
+  }
+
+  Future<void> fuzz(
+      IncrementalCompiler compiler,
+      IncrementalCompiler compilerNoNNBD,
+      IncrementalCompilerResult compilerResult,
+      Context context) async {
+    for (Library lib in compilerResult.classHierarchy!.knownLibraries) {
+      if (!context.fuzzedLibraries.add(lib.importUri)) continue;
+
+      for (Member m in lib.members) {
+        await fuzzMember(m, compiler, compilerNoNNBD, lib.importUri, context);
+      }
+
+      for (Class c in lib.classes) {
+        for (Member m in c.members) {
+          await fuzzMember(m, compiler, compilerNoNNBD, lib.importUri, context);
+        }
+      }
+    }
+  }
+
+  Future<void> fuzzMember(
+      Member m,
+      IncrementalCompiler compiler,
+      IncrementalCompiler compilerNoNNBD,
+      Uri libraryUri,
+      Context context) async {
+    String expression = m.name.text;
+    if (m is Field || (m is Procedure && m.isGetter)) {
+      // fields and getters are fine as-is
+    } else if (m is Procedure && !m.isGetter) {
+      expression = "$expression()";
+    } else if (m is Constructor) {
+      if (m.parent is! Class) {
+        return;
+      }
+      Class parent = m.parent as Class;
+      if (m.name.text != "") {
+        expression = "${parent.name}.${m.name.text}()";
+      } else {
+        expression = "${parent.name}()";
+      }
+    } else {
+      throw "Didn't know ${m.runtimeType}";
+    }
+
+    String? className;
+    if (m.parent is Class && m is! Constructor) {
+      Class parent = m.parent as Class;
+      className = parent.name;
+    }
+
+    await fuzzTryCompile(compiler, compilerNoNNBD, "$expression", libraryUri,
+        className, !m.isInstanceMember, context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(compiler, compilerNoNNBD, "$className.$expression",
+          libraryUri, null, !m.isInstanceMember, context);
+    }
+    await fuzzTryCompile(compiler, compilerNoNNBD, "$expression.toString()",
+        libraryUri, className, !m.isInstanceMember, context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+          compiler,
+          compilerNoNNBD,
+          "$className.$expression.toString()",
+          libraryUri,
+          null,
+          !m.isInstanceMember,
+          context);
+    }
+    await fuzzTryCompile(
+        compiler,
+        compilerNoNNBD,
+        "$expression.toString() == '42'",
+        libraryUri,
+        className,
+        !m.isInstanceMember,
+        context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+          compiler,
+          compilerNoNNBD,
+          "$className.$expression.toString() == '42'",
+          libraryUri,
+          null,
+          !m.isInstanceMember,
+          context);
+    }
+    await fuzzTryCompile(
+        compiler,
+        compilerNoNNBD,
+        "() { var x = $expression.toString(); x == '42'; }()",
+        libraryUri,
+        className,
+        !m.isInstanceMember,
+        context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+          compiler,
+          compilerNoNNBD,
+          "() { var x = $className.$expression.toString(); x == '42'; }()",
+          libraryUri,
+          null,
+          !m.isInstanceMember,
+          context);
+    }
+  }
+
+  Future<void> fuzzTryCompile(
+      IncrementalCompiler compiler,
+      IncrementalCompiler compilerNoNNBD,
+      String expression,
+      Uri libraryUri,
+      String? className,
+      bool isStatic,
+      Context context) async {
+    context.fuzzCompiles++;
+    print("Fuzz compile #${context.fuzzCompiles} "
+        "('$expression' in $libraryUri $className)");
+    {
+      Procedure? compiledProcedure = await compiler.compileExpression(
+        expression,
+        {},
+        [],
+        "debugExpr",
+        libraryUri,
+        className: className,
+        isStatic: isStatic,
+      );
+      context.takeErrors();
+      if (compiledProcedure != null) {
+        // Confirm we can serialize generated procedure.
+        List<int> list = serializeProcedure(compiledProcedure);
+        assert(list.length > 0);
+      }
+    }
+    {
+      Procedure? compiledProcedure = await compilerNoNNBD.compileExpression(
+        expression,
+        {},
+        [],
+        "debugExpr",
+        libraryUri,
+        className: className,
+        isStatic: isStatic,
+      );
+      context.takeErrors();
+      if (compiledProcedure != null) {
+        // Confirm we can serialize generated procedure.
+        List<int> list = serializeProcedure(compiledProcedure);
+        assert(list.length > 0);
+      }
     }
   }
 
   @override
   Future<Result<List<TestCase>>> run(
       List<TestCase> tests, Context context) async {
-    for (var test in tests) {
-      context.fileSystem.entityForUri(test.entryPoint!).writeAsBytesSync(
-          await new File.fromUri(test.entryPoint!).readAsBytes());
+    for (TestCase test in tests) {
+      test.sources.forEach((String fileName, String source) {
+        context.fileSystem
+            .entityForUri(toTestUri(fileName))
+            .writeAsStringSync(source);
+      });
 
-      if (test.import != null) {
-        context.fileSystem.entityForUri(test.import!).writeAsBytesSync(
-            await new File.fromUri(test.import!).readAsBytes());
-      }
-
-      var sourceCompiler = new IncrementalCompiler(context.compilerContext);
-      var sourceCompilerResult =
-          await sourceCompiler.computeDelta(entryPoints: [test.entryPoint!]);
+      IncrementalCompiler sourceCompiler =
+          new IncrementalCompiler(context.compilerContext);
+      IncrementalCompilerResult sourceCompilerResult =
+          await sourceCompiler.computeDelta(entryPoints: [test.entryPoint]);
       Component component = sourceCompilerResult.component;
-      var errors = context.takeErrors();
+      List<DiagnosticMessage> errors = context.takeErrors();
       if (!errors.isEmpty) {
-        return fail(tests, "Couldn't compile entry-point: $errors");
+        return fail(
+            tests,
+            "Couldn't compile entry-point: "
+            "${errors.map((e) => e.plainTextFormatted.first).toList()}");
       }
-      Uri dillFileUri = new Uri(
-          scheme: test.entryPoint!.scheme,
-          path: test.entryPoint!.path + ".dill");
-      File dillFile = new File.fromUri(dillFileUri);
-      if (!await dillFile.exists()) {
-        await writeComponentToFile(component, dillFileUri);
-        context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(
-            await new File.fromUri(dillFileUri).readAsBytes());
+      Uri dillFileUri = toTestUri("${test.description.shortName}.dill");
+      Uri dillFileNoNNBDUri =
+          toTestUri("${test.description.shortName}.no.nnbd.dill");
+      Uint8List dillData = await serializeComponent(component);
+      context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(dillData);
+      Set<Uri> beforeFuzzedLibraries = context.fuzzedLibraries.toSet();
+      IncrementalCompiler? sourceCompilerNoNNBD;
+      if (context.fuzz) {
+        sourceCompilerNoNNBD =
+            new IncrementalCompiler(context.compilerContextNoNNBD);
+        IncrementalCompilerResult sourceCompilerNoNNBDResult =
+            await sourceCompilerNoNNBD
+                .computeDelta(entryPoints: [test.entryPoint]);
+        Component componentNoNNBD = sourceCompilerNoNNBDResult.component;
+        Uint8List dillDataNoNNBD = await serializeComponent(componentNoNNBD);
+        context.fileSystem
+            .entityForUri(dillFileNoNNBDUri)
+            .writeAsBytesSync(dillDataNoNNBD);
+        context.takeErrors();
       }
-      await compileExpression(test, sourceCompiler, component, context);
+      await compileExpression(test, sourceCompiler, sourceCompilerNoNNBD,
+          sourceCompilerResult, context);
 
-      var dillCompiler =
+      IncrementalCompiler dillCompiler =
           new IncrementalCompiler(context.compilerContext, dillFileUri);
-      var dillCompilerResult =
-          await dillCompiler.computeDelta(entryPoints: [test.entryPoint!]);
+      IncrementalCompilerResult dillCompilerResult =
+          await dillCompiler.computeDelta(entryPoints: [test.entryPoint]);
       component = dillCompilerResult.component;
       component.computeCanonicalNames();
-      await dillFile.delete();
 
       errors = context.takeErrors();
       // Since it compiled successfully from source, the bootstrap-from-Dill
       // should also succeed without errors.
       assert(errors.isEmpty);
-      await compileExpression(test, dillCompiler, component, context);
+
+      IncrementalCompiler? dillCompilerNoNNBD;
+      if (context.fuzz) {
+        dillCompilerNoNNBD = new IncrementalCompiler(
+            context.compilerContextNoNNBD, dillFileNoNNBDUri);
+        IncrementalCompilerResult dillCompilerNoNNBDResult =
+            await dillCompilerNoNNBD
+                .computeDelta(entryPoints: [test.entryPoint]);
+        Component componentNoNNBD = dillCompilerNoNNBDResult.component;
+        componentNoNNBD.computeCanonicalNames();
+        context.takeErrors();
+      }
+
+      context.fuzzedLibraries.clear();
+      context.fuzzedLibraries.addAll(beforeFuzzedLibraries);
+      await compileExpression(
+          test, dillCompiler, dillCompilerNoNNBD, dillCompilerResult, context);
     }
     return new Result.pass(tests);
   }
@@ -408,6 +652,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "fuzz",
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
   final Uri base = Uri.parse("org-dartlang-test:///");
 
   /// Unused because we supply entry points to [computeDelta] directly above.
@@ -440,21 +690,43 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
-    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
+    ..explicitExperimentalFlags = {}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);
 
+  final CompilerOptions optionBuilderNoNNBD = new CompilerOptions()
+    ..target = new VmTarget(new TargetFlags())
+    ..verbose = true
+    ..omitPlatform = true
+    ..fileSystem = fs
+    ..sdkSummary = sdkSummary
+    ..onDiagnostic = (DiagnosticMessage message) {
+      printDiagnosticMessage(message, print);
+      errors.add(message);
+    }
+    ..environmentDefines = const {}
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
+    ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
+
+  final ProcessedOptions optionsNoNNBD =
+      new ProcessedOptions(options: optionBuilderNoNNBD, inputs: [entryPoint]);
+
   final bool updateExpectations = environment["updateExpectations"] == "true";
 
+  final bool fuzz = environment["fuzz"] == "true";
+
   final CompilerContext compilerContext = new CompilerContext(options);
+  final CompilerContext compilerContextNoNNBD =
+      new CompilerContext(optionsNoNNBD);
 
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
 
-  return new Context(compilerContext, errors, updateExpectations);
+  return new Context(
+      compilerContext, compilerContextNoNNBD, errors, updateExpectations, fuzz);
 }
 
 void main([List<String> arguments = const []]) =>

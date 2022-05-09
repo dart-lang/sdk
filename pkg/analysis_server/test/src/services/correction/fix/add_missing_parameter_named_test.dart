@@ -29,11 +29,9 @@ main() {
   new A(1, b: 2, named: 3.0);
 }
 ''');
-    // TODO(brianwilkerson) The fix should make added named parameters be
-    //  `required`. I'm leaving it as is to match the current behavior.
     await assertHasFix('''
 class A {
-  A(int a, {int b = 0, double named}) {}
+  A(int a, {int b = 0, required double named}) {}
 }
 
 main() {
@@ -54,7 +52,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  A(int a, {double named}) {}
+  A(int a, {required double named}) {}
 }
 
 main() {
@@ -75,7 +73,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  A({int named}) {}
+  A({required int named}) {}
 }
 
 main() {
@@ -96,7 +94,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  A.aaa({int named}) {}
+  A.aaa({required int named}) {}
 }
 
 main() {
@@ -114,7 +112,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-test(int a, {int b: 0, double named}) {}
+test(int a, {int b: 0, required double named}) {}
 
 main() {
   test(1, b: 2, named: 3.0);
@@ -131,7 +129,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-test(int a, {double named}) {}
+test(int a, {required double named}) {}
 
 main() {
   test(1, named: 2.0);
@@ -148,7 +146,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-test({int named}) {}
+test({required int named}) {}
 
 main() {
   test(named: 42);
@@ -168,7 +166,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  test(int a, {int b: 0, double named}) {}
+  test(int a, {int b: 0, required double named}) {}
 
   main() {
     test(1, b: 2, named: 3.0);
@@ -202,7 +200,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  test(int a, {double named}) {}
+  test(int a, {required double named}) {}
 
   main() {
     test(1, named: 2.0);
@@ -223,7 +221,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  test({int named}) {}
+  test({required int named}) {}
 
   main() {
     test(named: 42);

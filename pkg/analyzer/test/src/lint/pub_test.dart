@@ -35,7 +35,6 @@ dependencies:
     hosted: http://your-package-server.com
     version: '>=0.4.0 <1.0.0'
   analyzer: '0.24.0-dev.1'
-  cli_util: '>=0.0.1 <0.1.0'
   semver: '>=0.2.0 <0.3.0'
   yaml: '>=2.1.2 <3.0.0'
   kittens:
@@ -204,13 +203,13 @@ PSDependency findDependency(PSDependencyList? deps, {String? name}) =>
 testDepListContains(
     String label, PSDependencyList? list, List<Map<String, String>> exp) {
   test(label, () {
-    exp.forEach((Map<String, String> entry) {
+    for (var entry in exp) {
       entry.forEach((k, v) {
         PSDependency dep = findDependency(list, name: k);
         expect(dep, isNotNull);
         expect(dep.version!.value.text, equals(v));
       });
-    });
+    }
   });
 }
 

@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   A operator +(A a) => a;
   B operator -() => new B();

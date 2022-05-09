@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:isolate";
+
+static method main() → void
+  ;
+static method test() → void
+  ;

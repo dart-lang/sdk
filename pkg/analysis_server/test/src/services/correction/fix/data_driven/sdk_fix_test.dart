@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -16,11 +15,6 @@ void main() {
 }
 
 class AbstractSdkFixTest extends DataDrivenFixProcessorTest {
-  void addSdkDataFile(String content) {
-    newFile('${sdkRoot.path}/lib/_internal/${TransformSetManager.dataFileName}',
-        content: content);
-  }
-
   @override
   void setUp() {
     addSdkDataFile('''

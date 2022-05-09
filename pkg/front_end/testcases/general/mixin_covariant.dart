@@ -1,36 +1,36 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 // Derived from language_2/covariant_override/tear_off_type_test
 
 // If a parameter is directly or indirectly a covariant override, its type in
-// the method tear-off should become Object.
+// the method tear-off should become Object?.
 
-typedef void TakeInts(int a, int b, int c, int d, int e);
-typedef void TakeObjectsAndInts(Object a, int b, Object c, int d, int e);
-typedef void TakeObjects(Object a, Object b, Object c, Object d, Object e);
+typedef void TakeInts(int? a, int? b, int? c, int? d, int? e);
+typedef void TakeObjectsAndInts(Object? a, int? b, Object? c, int? d, int? e);
+typedef void TakeObjects(Object? a, Object? b, Object? c, Object? d, Object? e);
 
-typedef void TakeOptionalInts([int a, int b, int c, int d]);
-typedef void TakeOptionalObjectsAndInts([Object a, int b, Object c, int d]);
+typedef void TakeOptionalInts([int? a, int? b, int? c, int? d]);
+typedef void TakeOptionalObjectsAndInts([Object? a, int? b, Object? c, int? d]);
 
-typedef void TakeNamedInts({int a, int b, int c, int d});
-typedef void TakeNamedObjectsAndInts({Object a, int b, Object c, int d});
+typedef void TakeNamedInts({int? a, int? b, int? c, int? d});
+typedef void TakeNamedObjectsAndInts({Object? a, int? b, Object? c, int? d});
 
 class M1 {
-  method(covariant int a, int b) {}
+  method(covariant int? a, int? b) {}
 }
 
 class M2 {
-  method(int a, covariant int b) {}
+  method(int? a, covariant int? b) {}
 }
 
 class C extends Object with M1, M2 {}
 
 class Direct {
-  void positional(covariant int a, int b, covariant int c, int d, int e) {}
-  void optional([covariant int a, int b, covariant int c, int d]) {}
-  void named({covariant int a, int b, covariant int c, int d}) {}
+  void positional(covariant int? a, int? b, covariant int? c, int? d, int? e) {}
+  void optional([covariant int? a, int? b, covariant int? c, int? d]) {}
+  void named({covariant int? a, int? b, covariant int? c, int? d}) {}
 }
 
 class Inherited extends Direct {}
@@ -38,59 +38,59 @@ class Inherited extends Direct {}
 // ---
 
 class Override1 {
-  void method(covariant int a, int b, int c, int d, int e) {}
+  void method(covariant int? a, int? b, int? c, int? d, int? e) {}
 }
 
 class Override2 extends Override1 {
-  void method(int a, int b, covariant int c, int d, int e) {}
+  void method(int? a, int? b, covariant int? c, int? d, int? e) {}
 }
 
 class Override3 extends Override2 {
-  void method(int a, int b, int c, int d, int e) {}
+  void method(int? a, int? b, int? c, int? d, int? e) {}
 }
 
 // ---
 
 abstract class Implement1 {
-  void method(covariant int a, int b, int c, int d, int e) {}
+  void method(covariant int? a, int? b, int? c, int? d, int? e) {}
 }
 
 class Implement2 {
-  void method(int a, covariant int b, int c, int d, int e) {}
+  void method(int? a, covariant int? b, int? c, int? d, int? e) {}
 }
 
 class Implement3 {
-  void method(int a, int b, covariant int c, int d, int e) {}
+  void method(int? a, int? b, covariant int? c, int? d, int? e) {}
 }
 
 class Implement4 implements Implement3 {
-  void method(int a, int b, int c, covariant int d, int e) {}
+  void method(int? a, int? b, int? c, covariant int? d, int? e) {}
 }
 
 class Implement5 implements Implement1, Implement2, Implement4 {
-  void method(int a, int b, int c, int d, covariant int e) {}
+  void method(int? a, int? b, int? c, int? d, covariant int? e) {}
 }
 
 // ---
 
 class Interface1 {
-  void method(covariant int a, int b, int c, int d, int e) {}
+  void method(covariant int? a, int? b, int? c, int? d, int? e) {}
 }
 
 class Interface2 {
-  void method(int a, covariant int b, int c, int d, int e) {}
+  void method(int? a, covariant int? b, int? c, int? d, int? e) {}
 }
 
 class Mixin1 {
-  void method(int a, int b, covariant int c, int d, int e) {}
+  void method(int? a, int? b, covariant int? c, int? d, int? e) {}
 }
 
 class Mixin2 {
-  void method(int a, int b, int c, covariant int d, int e) {}
+  void method(int? a, int? b, int? c, covariant int? d, int? e) {}
 }
 
 class Superclass {
-  void method(int a, int b, int c, int d, covariant int e) {}
+  void method(int? a, int? b, int? c, int? d, covariant int? e) {}
 }
 
 class Mixed extends Superclass

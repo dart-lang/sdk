@@ -73,7 +73,7 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
   List<int> serializeGlobalTypeInferenceResults(
       DataSourceIndices indices, GlobalTypeInferenceResults results) {
     ByteSink byteSink = ByteSink();
-    DataSink sink = BinarySink(byteSink,
+    DataSinkWriter sink = DataSinkWriter(BinaryDataSink(byteSink),
         useDataKinds: useDataKinds, importedIndices: indices);
     serializeGlobalTypeInferenceResultsToSink(results, sink);
     return byteSink.builder.takeBytes();
@@ -89,8 +89,8 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
       JsClosedWorld closedWorld,
       DataSourceIndices indices,
       List<int> globalTypeInferenceResultsData) {
-    DataSource globalTypeInferenceResultsSource = BinarySourceImpl(
-        globalTypeInferenceResultsData,
+    DataSourceReader globalTypeInferenceResultsSource = DataSourceReader(
+        BinaryDataSource(globalTypeInferenceResultsData),
         useDataKinds: useDataKinds,
         importedIndices: indices);
     return deserializeGlobalTypeInferenceResultsFromSource(
@@ -106,7 +106,8 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
   @override
   List<int> serializeClosedWorld(JsClosedWorld closedWorld) {
     ByteSink byteSink = ByteSink();
-    DataSink sink = BinarySink(byteSink, useDataKinds: useDataKinds);
+    DataSinkWriter sink =
+        DataSinkWriter(BinaryDataSink(byteSink), useDataKinds: useDataKinds);
     serializeClosedWorldToSink(closedWorld, sink);
     return byteSink.builder.takeBytes();
   }
@@ -119,7 +120,8 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<int> data) {
-    DataSource source = BinarySourceImpl(data, useDataKinds: useDataKinds);
+    DataSourceReader source =
+        DataSourceReader(BinaryDataSource(data), useDataKinds: useDataKinds);
     var closedWorld = deserializeClosedWorldFromSource(options, reporter,
         environment, abstractValueStrategy, component, source);
     return ClosedWorldAndIndices(closedWorld, source.exportIndices());
@@ -135,8 +137,9 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
   List<int> serializeGlobalTypeInferenceResults(
       DataSourceIndices indices, GlobalTypeInferenceResults results) {
     Uri uri = Uri.base.resolve('world.data');
-    DataSink sink = BinarySink(
-        BinaryOutputSinkAdapter(RandomAccessBinaryOutputSink(uri)),
+    DataSinkWriter sink = DataSinkWriter(
+        BinaryDataSink(
+            BinaryOutputSinkAdapter(RandomAccessBinaryOutputSink(uri))),
         useDataKinds: useDataKinds,
         importedIndices: indices);
     serializeGlobalTypeInferenceResultsToSink(results, sink);
@@ -153,8 +156,8 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
       JsClosedWorld closedWorld,
       DataSourceIndices indices,
       List<int> globalTypeInferenceResultsData) {
-    DataSource globalTypeInferenceResultsSource = BinarySourceImpl(
-        globalTypeInferenceResultsData,
+    DataSourceReader globalTypeInferenceResultsSource = DataSourceReader(
+        BinaryDataSource(globalTypeInferenceResultsData),
         useDataKinds: useDataKinds,
         importedIndices: indices);
     return deserializeGlobalTypeInferenceResultsFromSource(
@@ -170,8 +173,9 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
   @override
   List<int> serializeClosedWorld(JsClosedWorld closedWorld) {
     Uri uri = Uri.base.resolve('closed_world.data');
-    DataSink sink = BinarySink(
-        BinaryOutputSinkAdapter(RandomAccessBinaryOutputSink(uri)),
+    DataSinkWriter sink = DataSinkWriter(
+        BinaryDataSink(
+            BinaryOutputSinkAdapter(RandomAccessBinaryOutputSink(uri))),
         useDataKinds: useDataKinds);
     serializeClosedWorldToSink(closedWorld, sink);
     return File.fromUri(uri).readAsBytesSync();
@@ -185,7 +189,8 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<int> data) {
-    DataSource source = BinarySourceImpl(data, useDataKinds: useDataKinds);
+    DataSourceReader source =
+        DataSourceReader(BinaryDataSource(data), useDataKinds: useDataKinds);
     var closedWorld = deserializeClosedWorldFromSource(options, reporter,
         environment, abstractValueStrategy, component, source);
     return ClosedWorldAndIndices(closedWorld, source.exportIndices());
@@ -202,8 +207,8 @@ class ObjectsInMemorySerializationStrategy
   List<Object> serializeGlobalTypeInferenceResults(
       DataSourceIndices indices, GlobalTypeInferenceResults results) {
     List<Object> data = [];
-    DataSink sink =
-        ObjectSink(data, useDataKinds: useDataKinds, importedIndices: indices);
+    DataSinkWriter sink = DataSinkWriter(ObjectDataSink(data),
+        useDataKinds: useDataKinds, importedIndices: indices);
     serializeGlobalTypeInferenceResultsToSink(results, sink);
     return data;
   }
@@ -218,10 +223,8 @@ class ObjectsInMemorySerializationStrategy
       JsClosedWorld closedWorld,
       DataSourceIndices indices,
       List<Object> globalTypeInferenceResultsData) {
-    DataSource globalTypeInferenceResultsSource = ObjectSource(
-        globalTypeInferenceResultsData,
-        useDataKinds: useDataKinds,
-        importedIndices: indices);
+    DataSourceReader globalTypeInferenceResultsSource =
+        DataSourceReader(ObjectDataSource(globalTypeInferenceResultsData));
     return deserializeGlobalTypeInferenceResultsFromSource(
         options,
         reporter,
@@ -235,7 +238,8 @@ class ObjectsInMemorySerializationStrategy
   @override
   List<Object> serializeClosedWorld(JsClosedWorld closedWorld) {
     List<Object> data = [];
-    DataSink sink = ObjectSink(data, useDataKinds: useDataKinds);
+    DataSinkWriter sink =
+        DataSinkWriter(ObjectDataSink(data), useDataKinds: useDataKinds);
     serializeClosedWorldToSink(closedWorld, sink);
     return data;
   }
@@ -248,7 +252,8 @@ class ObjectsInMemorySerializationStrategy
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<Object> data) {
-    DataSource source = ObjectSource(data, useDataKinds: useDataKinds);
+    DataSourceReader source =
+        DataSourceReader(ObjectDataSource(data), useDataKinds: useDataKinds);
     var closedWorld = deserializeClosedWorldFromSource(options, reporter,
         environment, abstractValueStrategy, component, source);
     return ClosedWorldAndIndices(closedWorld, source.exportIndices());

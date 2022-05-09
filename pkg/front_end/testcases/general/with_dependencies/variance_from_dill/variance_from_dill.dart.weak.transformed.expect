@@ -9,11 +9,11 @@ static method main() → dynamic {
   core::print(#C1);
 }
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-typedef F<unrelated T extends core::Object* = dynamic> = () →* dynamic;
+typedef F<unrelated T extends core::Object? = dynamic> = () → dynamic;
 
 constants  {
   #C1 = TypeLiteralConstant((() →* dynamic) →* dynamic)

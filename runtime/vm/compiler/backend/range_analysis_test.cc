@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -639,5 +640,54 @@ TEST_CASE(RangeJoinMinMax) {
       RangeBoundary::JoinMax(p_infinity, RangeBoundary::FromConstant(1), size)
           .IsMaximumOrAbove(size));
 }
+
+#if defined(DART_PRECOMPILER) && defined(TARGET_ARCH_IS_64_BIT)
+
+// Regression test for https://github.com/dart-lang/sdk/issues/48153.
+ISOLATE_UNIT_TEST_CASE(RangeAnalysis_ShiftUint32Op) {
+  const char* kScript = R"(
+    @pragma('vm:never-inline')
+    int foo(int hash) {
+      return 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    }
+    void main() {
+      foo(42);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+
+  Invoke(root_library, "main");
+
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  ShiftUint32OpInstr* shift = nullptr;
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveBinaryUint32Op,
+      kMoveGlob,
+      {kMatchAndMoveShiftUint32Op, &shift},
+      kMoveGlob,
+      kMatchAndMoveBinaryUint32Op,
+      kMoveGlob,
+      kMatchAndMoveBinaryUint32Op,
+      kMoveGlob,
+      kMatchReturn,
+  }));
+
+  EXPECT(shift->shift_range() != nullptr);
+  EXPECT(shift->shift_range()->min().ConstantValue() == 10);
+  EXPECT(shift->shift_range()->max().ConstantValue() == 10);
+}
+
+#endif  // defined(DART_PRECOMPILER) && defined(TARGET_ARCH_IS_64_BIT)
 
 }  // namespace dart

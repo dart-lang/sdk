@@ -1084,8 +1084,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    newFile('$workspaceRootPath/myBar/bar.dart',
-        content: 'class Foo2 { Foo2() { } }');
+    newFile2('$workspaceRootPath/myBar/bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
     addTestSource('class C {foo(){F^}}');
@@ -1681,6 +1680,8 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
+  /// TODO(scheglov) move this test into contributor independent suite
+  @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index() async {
     addTestSource('enum E { one, two } main() {E.one.^}');
     await computeSuggestions();
@@ -1691,6 +1692,8 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
+  /// TODO(scheglov) move this test into contributor independent suite
+  @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index2() async {
     addTestSource('enum E { one, two } main() {E.one.i^}');
     await computeSuggestions();
@@ -1701,6 +1704,8 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
+  /// TODO(scheglov) move this test into contributor independent suite
+  @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index3() async {
     addTestSource('enum E { one, two } main() {E.one.^ int g;}');
     await computeSuggestions();

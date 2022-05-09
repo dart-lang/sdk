@@ -15,49 +15,16 @@ namespace dart {
 namespace compiler {
 
 // When entering intrinsics code:
+// PP: Caller's ObjectPool in JIT / global ObjectPool in AOT
+// CODE_REG: Callee's Code in JIT / not passed in AOT
 // R4: Arguments descriptor
 // LR: Return address
-// The R4 register can be destroyed only if there is no slow-path, i.e.
-// if the intrinsified method always executes a return.
+// The R4 and CODE_REG registers can be destroyed only if there is no slow-path,
+// i.e. if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
 // The PP and THR registers (see constants_arm.h) must be preserved.
 
 #define __ assembler->
-
-// Allocate a GrowableObjectArray:: using the backing array specified.
-// On stack: type argument (+1), data (+0).
-void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  // The newly allocated object is returned in R0.
-  const intptr_t kTypeArgumentsOffset = 1 * target::kWordSize;
-  const intptr_t kArrayOffset = 0 * target::kWordSize;
-
-  // Try allocating in new space.
-  const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, R0, R1);
-
-  // Store backing array object in growable array object.
-  __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
-  // R0 is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::GrowableObjectArray::data_offset()), R1);
-
-  // R0: new growable array object start as a tagged pointer.
-  // Store the type argument field in the growable array object.
-  __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreIntoObjectNoBarrier(
-      R0,
-      FieldAddress(R0, target::GrowableObjectArray::type_arguments_offset()),
-      R1);
-
-  // Set the length field in the growable array object to 0.
-  __ LoadImmediate(R1, 0);
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), R1);
-  __ Ret();  // Returns the newly allocated object in R0.
-
-  __ Bind(normal_ir_body);
-}
 
 // Loads args from stack into R0 and R1
 // Tests if they are smis, jumps to label not_smi if not.
@@ -300,10 +267,10 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   // R4 = n ~/ _DIGIT_BITS
   __ Asr(R4, R3, Operand(5));
   // R8 = &x_digits[0]
-  __ add(R8, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R8, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
   // R6 = &r_digits[1]
   __ add(R6, R2,
-         Operand(target::TypedData::data_offset() - kHeapObjectTag +
+         Operand(target::TypedData::payload_offset() - kHeapObjectTag +
                  kBytesPerBigIntDigit));
   // R2 = &x_digits[x_used]
   __ add(R2, R8, Operand(R0, LSL, 1));
@@ -340,9 +307,9 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   // R4 = n ~/ _DIGIT_BITS
   __ Asr(R4, R3, Operand(5));
   // R6 = &r_digits[0]
-  __ add(R6, R2, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R6, R2, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
   // R2 = &x_digits[n ~/ _DIGIT_BITS]
-  __ add(R2, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R2, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
   __ add(R2, R2, Operand(R4, LSL, 2));
   // R8 = &r_digits[x_used - n ~/ _DIGIT_BITS - 1]
   __ add(R4, R4, Operand(1));
@@ -380,17 +347,17 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   // R0 = used, R1 = digits
   __ ldrd(R0, R1, SP, 3 * target::kWordSize);
   // R1 = &digits[0]
-  __ add(R1, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R1, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R2 = a_used, R3 = a_digits
   __ ldrd(R2, R3, SP, 1 * target::kWordSize);
   // R3 = &a_digits[0]
-  __ add(R3, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R3, R3, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R8 = r_digits
   __ ldr(R8, Address(SP, 0 * target::kWordSize));
   // R8 = &r_digits[0]
-  __ add(R8, R8, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R8, R8, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R2 = &digits[a_used >> 1], a_used is Smi.
   __ add(R2, R1, Operand(R2, LSL, 1));
@@ -440,17 +407,17 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   // R0 = used, R1 = digits
   __ ldrd(R0, R1, SP, 3 * target::kWordSize);
   // R1 = &digits[0]
-  __ add(R1, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R1, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R2 = a_used, R3 = a_digits
   __ ldrd(R2, R3, SP, 1 * target::kWordSize);
   // R3 = &a_digits[0]
-  __ add(R3, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R3, R3, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R8 = r_digits
   __ ldr(R8, Address(SP, 0 * target::kWordSize));
   // R8 = &r_digits[0]
-  __ add(R8, R8, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R8, R8, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R2 = &digits[a_used >> 1], a_used is Smi.
   __ add(R2, R1, Operand(R2, LSL, 1));
@@ -520,7 +487,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R3 = x, no_op if x == 0
   __ ldrd(R0, R1, SP, 5 * target::kWordSize);  // R0 = xi as Smi, R1 = x_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ ldr(R3, FieldAddress(R1, target::TypedData::data_offset()));
+  __ ldr(R3, FieldAddress(R1, target::TypedData::payload_offset()));
   __ tst(R3, Operand(R3));
   __ b(&done, EQ);
 
@@ -532,12 +499,12 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R4 = mip = &m_digits[i >> 1]
   __ ldrd(R0, R1, SP, 3 * target::kWordSize);  // R0 = i as Smi, R1 = m_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ add(R4, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R4, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R9 = ajp = &a_digits[j >> 1]
   __ ldrd(R0, R1, SP, 1 * target::kWordSize);  // R0 = j as Smi, R1 = a_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ add(R9, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R9, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R1 = c = 0
   __ mov(R1, Operand(0));
@@ -622,7 +589,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // R4 = xip = &x_digits[i >> 1]
   __ ldrd(R2, R3, SP, 2 * target::kWordSize);  // R2 = i as Smi, R3 = x_digits
   __ add(R3, R3, Operand(R2, LSL, 1));
-  __ add(R4, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R4, R3, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R3 = x = *xip++, return if x == 0
   Label x_zero;
@@ -633,7 +600,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // R6 = ajp = &a_digits[i]
   __ ldr(R1, Address(SP, 1 * target::kWordSize));  // a_digits
   __ add(R1, R1, Operand(R2, LSL, 2));             // j == 2*i, i is Smi.
-  __ add(R6, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ add(R6, R1, Operand(target::TypedData::payload_offset() - kHeapObjectTag));
 
   // R8:R0 = t = x*x + *ajp
   __ ldr(R0, Address(R6, 0));
@@ -725,19 +692,19 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   __ ldr(R4, Address(SP, 2 * target::kWordSize));  // args
 
   // R3 = rho = args[2]
-  __ ldr(R3, FieldAddress(R4, target::TypedData::data_offset() +
+  __ ldr(R3, FieldAddress(R4, target::TypedData::payload_offset() +
                                   2 * kBytesPerBigIntDigit));
 
   // R2 = digits[i >> 1]
   __ ldrd(R0, R1, SP, 0 * target::kWordSize);  // R0 = i as Smi, R1 = digits
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ ldr(R2, FieldAddress(R1, target::TypedData::data_offset()));
+  __ ldr(R2, FieldAddress(R1, target::TypedData::payload_offset()));
 
   // R1:R0 = t = rho*d
   __ umull(R0, R1, R2, R3);
 
   // args[4] = t mod DIGIT_BASE = low32(t)
-  __ str(R0, FieldAddress(R4, target::TypedData::data_offset() +
+  __ str(R0, FieldAddress(R4, target::TypedData::payload_offset() +
                                   4 * kBytesPerBigIntDigit));
 
   __ mov(R0, Operand(target::ToRawSmi(1)));  // One digit processed.
@@ -1020,42 +987,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
 
   // Fall into the native C++ implementation.
   __ Bind(normal_ir_body);
-}
-
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  const Field& state_field = LookupMathRandomStateFieldOffset();
-  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
-
-  // 'a_int_value' is a mask.
-  ASSERT(Utils::IsUint(32, a_int_value));
-  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-
-  // Receiver.
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  // Field '_state'.
-  __ ldr(R1, FieldAddress(R0, target::Field::OffsetOf(state_field)));
-  // Addresses of _state[0] and _state[1].
-
-  const int64_t disp_0 =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-  const int64_t disp_1 =
-      disp_0 + target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
-
-  __ LoadImmediate(R0, a_int32_value);
-  __ LoadFieldFromOffset(R2, R1, disp_0);
-  __ LoadFieldFromOffset(R3, R1, disp_1);
-  __ mov(R8, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
-  // Unsigned 32-bit multiply and 64-bit accumulate into R8:R3.
-  __ umlal(R3, R8, R0, R2);  // R8:R3 <- R8:R3 + R0 * R2.
-  __ StoreFieldToOffset(R3, R1, disp_0);
-  __ StoreFieldToOffset(R8, R1, disp_1);
-  ASSERT(target::ToRawSmi(0) == 0);
-  __ eor(R0, R0, Operand(R0));
-  __ Ret();
 }
 
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,

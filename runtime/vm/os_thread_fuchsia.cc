@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA) && !defined(DART_USE_ABSL)
 
 #include "vm/os.h"
 #include "vm/os_thread.h"
@@ -170,7 +170,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return pthread_self();
 }
-#endif  // PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
@@ -492,4 +492,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_FUCHSIA) && !defined(DART_USE_ABSL)

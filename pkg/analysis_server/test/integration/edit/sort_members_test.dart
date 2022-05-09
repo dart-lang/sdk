@@ -23,6 +23,7 @@ int bar;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendEditSortMembers(pathname);
     var edit = result.edit;
@@ -38,6 +39,7 @@ int foo;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendEditSortMembers(pathname);
     var edit = result.edit;
@@ -52,6 +54,7 @@ int bar;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     try {
       await sendEditSortMembers(pathname);

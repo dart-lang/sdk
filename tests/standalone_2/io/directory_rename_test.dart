@@ -143,7 +143,10 @@ testRenameButActuallyFile() async {
     } on FileSystemException catch (e) {
       Expect.isTrue(
           e.message.contains('Rename failed'), 'Unexpected error: $e');
-      if (Platform.isLinux || Platform.isMacOS) {
+      if (Platform.isWindows) {
+        Expect.isTrue(e.osError.message.contains('cannot find the file'),
+            'Unexpected error: $e');
+      } else if (Platform.isLinux || Platform.isMacOS) {
         Expect.isTrue(e.osError.message.contains('Not a directory'),
             'Unexpected error: $e');
       }

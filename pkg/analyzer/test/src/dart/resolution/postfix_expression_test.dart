@@ -30,15 +30,27 @@ void f(A? a) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('foo++'),
-      readElement: findElement.getter('foo'),
-      readType: 'int',
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      element: numElement.getMethod('+'),
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.postfix('foo++'), r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@38
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::foo
+  readType: int
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int?
+''');
   }
 
   test_inc_simpleIdentifier_parameter_depromote() async {
@@ -55,19 +67,20 @@ void f(Object x) {
 }
 ''');
 
-    if (hasAssignmentLeftResolution) {
-      assertType(findNode.simple('x++;'), 'A');
-    }
-
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'A',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Object',
-      element: findElement.method('+'),
-      type: 'A',
-    );
+    assertResolvedNodeText(findNode.postfix('x++'), r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@63
+    staticType: null
+  operator: ++
+  readElement: x@63
+  readType: A
+  writeElement: x@63
+  writeType: Object
+  staticElement: self::@class::A::@method::+
+  staticType: A
+''');
 
     assertType(findNode.simple('x; // ref'), 'Object');
   }
@@ -79,15 +92,16 @@ void f(int? x) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x!'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.postfix('x!'), r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@12
+    staticType: int?
+  operator: !
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_nullCheck_functionExpressionInvocation_rewrite() async {
@@ -106,25 +120,41 @@ void f(Map<String, int> a) {
 }
 ''');
 
-    assertIndexExpression(
-      findNode.index('a['),
-      readElement: elementMatcher(
-        mapElement.getMethod('[]'),
-        substitution: {'K': 'String', 'V': 'int'},
-      ),
-      writeElement: null,
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.index('a['), r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: a@24
+    staticType: Map<String, int>
+  leftBracket: [
+  index: SimpleStringLiteral
+    literal: 'foo'
+  rightBracket: ]
+  staticElement: MethodMember
+    base: dart:core::@class::Map::@method::[]
+    substitution: {K: String, V: int}
+  staticType: int?
+''');
 
-    assertPostfixExpression(
-      findNode.postfix(']!'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.postfix(']!'), r'''
+PostfixExpression
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@24
+      staticType: Map<String, int>
+    leftBracket: [
+    index: SimpleStringLiteral
+      literal: 'foo'
+    rightBracket: ]
+    staticElement: MethodMember
+      base: dart:core::@class::Map::@method::[]
+      substitution: {K: String, V: int}
+    staticType: int?
+  operator: !
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_nullCheck_null() async {
@@ -146,23 +176,29 @@ T f<T>(T t) => t;
 int g() => f(null)!;
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['int?'],
-      invokeType: 'int? Function(int?)',
-      type: 'int?',
-    );
-
-    assertPostfixExpression(
-      findNode.postfix('f(null)!'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'int',
-    );
+    var node = findNode.postfix('f(null)!');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      staticElement: self::@function::f
+      staticType: T Function<T>(T)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NullLiteral
+          literal: null
+          staticType: Null
+      rightParenthesis: )
+    staticInvokeType: int? Function(int?)
+    staticType: int?
+    typeArgumentTypes
+      int?
+  operator: !
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   /// See https://github.com/dart-lang/language/issues/1163
@@ -241,25 +277,27 @@ class B extends A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 6),
     ]);
 
-    assertTypeDynamic(findNode.super_('super!'));
-
-    assertPostfixExpression(
-      findNode.postfix('super!'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'dynamic',
-    );
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo();'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'dynamic',
-    );
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: PostfixExpression
+    operand: SuperExpression
+      superKeyword: super
+      staticType: dynamic
+    operator: !
+    staticElement: <null>
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
   }
 
   test_nullCheck_typeParameter() async {
@@ -270,15 +308,16 @@ void f<T>(T? x) {
 ''');
 
     var postfixExpression = findNode.postfix('x!');
-    assertPostfixExpression(
-      postfixExpression,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'T & Object',
-    );
+    assertResolvedNodeText(postfixExpression, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: T?
+  operator: !
+  staticElement: <null>
+  staticType: T & Object
+''');
   }
 
   test_nullCheck_typeParameter_already_promoted() async {
@@ -291,15 +330,16 @@ void f<T>(T? x) {
 ''');
 
     var postfixExpression = findNode.postfix('x!');
-    assertPostfixExpression(
-      postfixExpression,
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: null,
-      type: 'T & num',
-    );
+    assertResolvedNodeText(postfixExpression, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@13
+    staticType: T? & num?
+  operator: !
+  staticElement: <null>
+  staticType: T & num
+''');
   }
 }
 
@@ -311,18 +351,40 @@ void f(int x) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x--'),
-      readElement: findElement.parameter('x'),
-      readType: 'int',
-      writeElement: findElement.parameter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('-'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x--');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: --
+  readElement: x@11
+  readType: int
+  writeElement: x@11
+  writeType: int
+  staticElement: dart:core::@class::num::@method::-
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: --
+  readElement: x@11
+  readType: int*
+  writeElement: x@11
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::-
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_indexExpression_instance() async {
@@ -337,18 +399,56 @@ void f(A a) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('a[0]++'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('a[0]++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@91
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: a@91
+      staticType: A*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@method::[]
+  readType: int*
+  writeElement: self::@class::A::@method::[]=
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_indexExpression_super() async {
@@ -365,18 +465,54 @@ class B extends A {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('[0]++'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('[0]++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@method::[]
+  readType: int*
+  writeElement: self::@class::A::@method::[]=
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_indexExpression_this() async {
@@ -391,18 +527,54 @@ class A {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('[0]++'),
-      readElement: findElement.method('[]'),
-      readType: 'int',
-      writeElement: findElement.method('[]='),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('[0]++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@method::[]
+  readType: int
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A*
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@method::[]
+  readType: int*
+  writeElement: self::@class::A::@method::[]=
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_notLValue_parenthesized() async {
@@ -414,15 +586,44 @@ void f() {
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 16, 2),
     ]);
 
-    assertPostfixExpression(
-      findNode.postfix('(0)++'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
-    );
+    var node = findNode.postfix('(0)++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int*
+    rightParenthesis: )
+    staticType: int*
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    }
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral() async {
@@ -434,15 +635,38 @@ void f() {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
     ]);
 
-    assertPostfixExpression(
-      findNode.postfix('int++'),
-      readElement: intElement,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
-    );
+    var node = findNode.postfix('int++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: int
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: dart:core::@class::int
+  readType: dynamic
+  writeElement: dart:core::@class::int
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: int
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: dart:core::@class::int
+  readType: dynamic
+  writeElement: dart:core::@class::int
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    }
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral_typeParameter() async {
@@ -454,19 +678,41 @@ void f<T>() {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 16, 1),
     ]);
 
-    var postfix = findNode.postfix('T++');
-    assertPostfixExpression(
-      postfix,
-      readElement: findElement.typeParameter('T'),
-      readType: 'dynamic',
-      writeElement: findElement.typeParameter('T'),
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
-    );
+    var node = findNode.postfix('T++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: T
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: T@7
+  readType: dynamic
+  writeElement: T@7
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: T
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: T@7
+  readType: dynamic
+  writeElement: T@7
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      postfix.operand,
+      node.operand,
     );
   }
 
@@ -481,22 +727,60 @@ void f(A a) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@35
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: a@35
+      staticType: A*
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_prefixedIdentifier_topLevel() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -509,21 +793,58 @@ void f() {
 
     var importFind = findElement.importFind('package:test/a.dart');
 
-    var postfix = findNode.postfix('x++');
-    assertPostfixExpression(
-      postfix,
-      readElement: importFind.topGet('x'),
-      readType: 'int',
-      writeElement: importFind.topSet('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: package:test/a.dart::@getter::x
+  readType: int
+  writeElement: package:test/a.dart::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      staticElement: self::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: package:test/a.dart::@getter::x
+  readType: int*
+  writeElement: package:test/a.dart::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
-    var prefixed = postfix.operand as PrefixedIdentifier;
+    var prefixed = node.operand as PrefixedIdentifier;
     assertImportPrefix(prefixed.prefix, importFind.prefix);
   }
 
@@ -538,18 +859,72 @@ void f() {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: self::@class::A
+            staticType: null
+          type: A
+        staticElement: self::@class::A::@constructor::•
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: SimpleIdentifier
+            token: A
+            staticElement: self::@class::A
+            staticType: null
+          type: A*
+        staticElement: self::@class::A::@constructor::•
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_propertyAccess_super() async {
@@ -569,18 +944,52 @@ class B extends A {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.getter('x', of: 'A'),
-      readType: 'int',
-      writeElement: findElement.setter('x', of: 'A'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_propertyAccess_this() async {
@@ -595,18 +1004,52 @@ class A {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A*
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: self::@class::A::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_simpleIdentifier_parameter_double() async {
@@ -616,18 +1059,40 @@ void f(double x) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'double',
-      writeElement: findElement.parameter('x'),
-      writeType: 'double',
-      element: elementMatcher(
-        doubleElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  operator: ++
+  readElement: x@14
+  readType: double
+  writeElement: x@14
+  writeType: double
+  staticElement: dart:core::@class::double::@method::+
+  staticType: double
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@14
+    staticType: null
+  operator: ++
+  readElement: x@14
+  readType: double*
+  writeElement: x@14
+  writeType: double*
+  staticElement: MethodMember
+    base: dart:core::@class::double::@method::+
+    isLegacy: true
+  staticType: double*
+''');
+    }
   }
 
   test_inc_simpleIdentifier_parameter_int() async {
@@ -637,18 +1102,40 @@ void f(int x) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'int',
-      writeElement: findElement.parameter('x'),
-      writeType: 'int',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: ++
+  readElement: x@11
+  readType: int
+  writeElement: x@11
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: ++
+  readElement: x@11
+  readType: int*
+  writeElement: x@11
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_inc_simpleIdentifier_parameter_num() async {
@@ -658,18 +1145,40 @@ void f(num x) {
 }
 ''');
 
-    assertPostfixExpression(
-      findNode.postfix('x++'),
-      readElement: findElement.parameter('x'),
-      readType: 'num',
-      writeElement: findElement.parameter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'num',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: ++
+  readElement: x@11
+  readType: num
+  writeElement: x@11
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: x@11
+    staticType: null
+  operator: ++
+  readElement: x@11
+  readType: num*
+  writeElement: x@11
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: num*
+''');
+    }
   }
 
   test_inc_simpleIdentifier_thisGetter_superSetter() async {
@@ -686,22 +1195,43 @@ class B extends A {
 }
 ''');
 
-    var postfix = findNode.postfix('x++');
-    assertPostfixExpression(
-      postfix,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::B::@getter::x
+  readType: int
+  writeElement: self::@class::A::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@class::B::@getter::x
+  readType: int*
+  writeElement: self::@class::A::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      postfix.operand,
+      node.operand,
     );
   }
 
@@ -716,22 +1246,43 @@ void f() {
 }
 ''');
 
-    var postfix = findNode.postfix('x++');
-    assertPostfixExpression(
-      postfix,
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@getter::x
+  readType: int*
+  writeElement: self::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      postfix.operand,
+      node.operand,
     );
   }
 
@@ -748,22 +1299,43 @@ class A {
 }
 ''');
 
-    var postfix = findNode.postfix('x++');
-    assertPostfixExpression(
-      postfix,
-      readElement: findElement.topGet('x'),
-      readType: 'int',
-      writeElement: findElement.topSet('x'),
-      writeType: 'num',
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    var node = findNode.postfix('x++');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@getter::x
+  readType: int
+  writeElement: self::@setter::x
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@getter::x
+  readType: int*
+  writeElement: self::@setter::x
+  writeType: num*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
 
     assertSimpleIdentifierAssignmentTarget(
-      postfix.operand,
+      node.operand,
     );
   }
 }

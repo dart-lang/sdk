@@ -104,7 +104,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _validateConstructorInitializers(node);
       if (node.factoryKeyword == null) {
         _validateFieldInitializers(
-            node.parent as ClassOrMixinDeclaration, constKeyword);
+          node.parent.classMembers,
+          constKeyword,
+          isEnumDeclaration: node.parent is EnumDeclaration,
+        );
       }
     }
     _validateDefaultValues(node.parameters);
@@ -115,8 +118,24 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorReference(ConstructorReference node) {
     super.visitConstructorReference(node);
     if (node.inConstantContext || node.inConstantExpression) {
-      _checkForConstWithTypeParameters(node.constructorName.type2,
+      _checkForConstWithTypeParameters(node.constructorName.type,
           CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF);
+    }
+  }
+
+  @override
+  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    super.visitEnumConstantDeclaration(node);
+
+    var argumentList = node.arguments?.argumentList;
+    if (argumentList != null) {
+      _validateConstantArguments(argumentList);
+    }
+
+    var element = node.declaredElement as ConstFieldElementImpl;
+    var result = element.evaluationResult;
+    if (result != null) {
+      _reportErrors(result.errors, null);
     }
   }
 
@@ -156,7 +175,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      NamedType namedType = node.constructorName.type2;
+      NamedType namedType = node.constructorName.type;
       _checkForConstWithTypeParameters(
           namedType, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
 
@@ -545,16 +564,21 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the expressions of any field initializers in
-  /// [classDeclaration] are all compile-time constants. Since this is only
+  /// [members] are all compile-time constants. Since this is only
   /// required if the class has a constant constructor, the error is reported at
   /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
-      ClassOrMixinDeclaration classDeclaration, Token constKeyword) {
-    NodeList<ClassMember> members = classDeclaration.members;
+    List<ClassMember> members,
+    Token constKeyword, {
+    required bool isEnumDeclaration,
+  }) {
     for (ClassMember member in members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
+          if (isEnumDeclaration && variableDeclaration.name.name == 'values') {
+            continue;
+          }
           var initializer = variableDeclaration.initializer;
           if (initializer != null) {
             // Ignore any errors produced during validation--if the constant
@@ -605,7 +629,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
         );
 
-        var expressionValueType = _typeSystem.toLegacyType(
+        var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
           expressionValue.type,
         );
 

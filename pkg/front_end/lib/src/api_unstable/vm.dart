@@ -18,6 +18,9 @@ export '../api_prototype/compiler_options.dart'
 export '../api_prototype/experimental_flags.dart'
     show defaultExperimentalFlags, ExperimentalFlag;
 
+export '../api_prototype/expression_compilation_tools.dart'
+    show createDefinitionsWithTypes, createTypeParametersWithBounds;
+
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
@@ -65,6 +68,9 @@ export '../fasta/fasta_codes.dart'
         messageFfiPackedAnnotationAlignment,
         messageNonPositiveArrayDimensions,
         noLength,
+        templateCantHaveNamedParameters,
+        templateCantHaveOptionalParameters,
+        templateFfiCompoundImplementsFinalizable,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
         templateFfiExpectedConstantArg,

@@ -39,8 +39,8 @@ import 'constant_int_folder.dart';
 part 'constant_collection_builders.dart';
 
 Component transformComponent(
+    Target target,
     Component component,
-    ConstantsBackend backend,
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
@@ -70,7 +70,7 @@ Component transformComponent(
   final TypeEnvironment typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy);
 
-  transformLibraries(component.libraries, backend, environmentDefines,
+  transformLibraries(component, component.libraries, target, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
       enableTripleShift: enableTripleShift,
       enableConstFunctions: enableConstFunctions,
@@ -81,8 +81,9 @@ Component transformComponent(
 }
 
 ConstantEvaluationData transformLibraries(
+    Component component,
     List<Library> libraries,
-    ConstantsBackend backend,
+    Target target,
     Map<String, String>? environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
@@ -103,13 +104,14 @@ ConstantEvaluationData transformLibraries(
   // ignore: unnecessary_null_comparison
   assert(enableConstructorTearOff != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
-      backend,
+      target,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
       enableConstFunctions,
       enableConstructorTearOff,
       errorOnUnevaluatedConstant,
+      component,
       typeEnvironment,
       errorReporter,
       evaluationMode);
@@ -124,7 +126,8 @@ ConstantEvaluationData transformLibraries(
 
 void transformProcedure(
     Procedure procedure,
-    ConstantsBackend backend,
+    Target target,
+    Component component,
     Map<String, String>? environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
@@ -145,13 +148,14 @@ void transformProcedure(
   // ignore: unnecessary_null_comparison
   assert(enableConstructorTearOff != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
-      backend,
+      target,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
       enableConstFunctions,
       enableConstructorTearOff,
       errorOnUnevaluatedConstant,
+      component,
       typeEnvironment,
       errorReporter,
       evaluationMode);
@@ -282,7 +286,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
       Reference reference = entry.key;
       Constant? value = visitConstant(entry.value);
       if (value != null) {
-        fieldValues ??= new Map<Reference, Constant>.from(node.fieldValues);
+        fieldValues ??= new Map<Reference, Constant>.of(node.fieldValues);
         fieldValues[reference] = value;
       }
     }
@@ -341,18 +345,25 @@ class ConstantsTransformer extends RemovingTransformer {
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
-      this.backend,
+      Target target,
       Map<String, String>? environmentDefines,
       this.evaluateAnnotations,
       this.enableTripleShift,
       this.enableConstFunctions,
       this.enableConstructorTearOff,
       this.errorOnUnevaluatedConstant,
+      Component component,
       this.typeEnvironment,
       ErrorReporter errorReporter,
       EvaluationMode evaluationMode)
-      : constantEvaluator = new ConstantEvaluator(
-            backend, environmentDefines, typeEnvironment, errorReporter,
+      : this.backend = target.constantsBackend,
+        constantEvaluator = new ConstantEvaluator(
+            target.dartLibrarySupport,
+            target.constantsBackend,
+            component,
+            environmentDefines,
+            typeEnvironment,
+            errorReporter,
             enableTripleShift: enableTripleShift,
             enableConstFunctions: enableConstFunctions,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
@@ -468,9 +479,6 @@ class ConstantsTransformer extends RemovingTransformer {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformTypeParameterList(node.typeParameters, node);
-      transformTypeParameterList(node.typeParametersOfFunctionType, node);
-      transformVariableDeclarationList(node.positionalParameters, node);
-      transformVariableDeclarationList(node.namedParameters, node);
     });
     return node;
   }
@@ -717,7 +725,7 @@ class ConstantsTransformer extends RemovingTransformer {
     TreeNode result = super.visitSwitchStatement(node, removalSentinel);
     Library library = constantEvaluator.libraryOf(node);
     // ignore: unnecessary_null_comparison
-    if (library != null && library.isNonNullableByDefault) {
+    if (library != null) {
       for (SwitchCase switchCase in node.cases) {
         for (Expression caseExpression in switchCase.expressions) {
           if (caseExpression is ConstantExpression) {
@@ -871,11 +879,13 @@ class ConstantsTransformer extends RemovingTransformer {
 }
 
 class ConstantEvaluator implements ExpressionVisitor<Constant> {
+  final DartLibrarySupport dartLibrarySupport;
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   late ConstantIntFolder intFolder;
-  Map<String, String>? environmentDefines;
+  Map<String, String>? _environmentDefines;
   final bool errorOnUnevaluatedConstant;
+  final Component component;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
   StaticTypeContext? _staticTypeContext;
@@ -914,8 +924,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   late ConstantWeakener _weakener;
 
-  ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
-      this.errorReporter,
+  ConstantEvaluator(this.dartLibrarySupport, this.backend, this.component,
+      this._environmentDefines, this.typeEnvironment, this.errorReporter,
       {this.enableTripleShift = false,
       this.enableConstFunctions = false,
       this.errorOnUnevaluatedConstant = false,
@@ -925,7 +935,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant?>{},
         env = new EvaluationEnvironment() {
-    if (environmentDefines == null && !backend.supportsUnevaluatedConstants) {
+    if (_environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "
           "ConstantsBackend does not support unevaluated constants.");
@@ -946,6 +956,43 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     };
     _weakener = new ConstantWeakener(this);
   }
+
+  Map<String, String>? _supportedLibrariesCache;
+
+  Map<String, String> _computeSupportedLibraries() {
+    Map<String, String> map = {};
+    for (Library library in component.libraries) {
+      if (library.importUri.isScheme('dart')) {
+        map[library.importUri.path] =
+            DartLibrarySupport.getDartLibrarySupportValue(
+                library.importUri.path,
+                libraryExists: true,
+                isSynthetic: library.isSynthetic,
+                isUnsupported: library.isUnsupported,
+                dartLibrarySupport: dartLibrarySupport);
+      }
+    }
+    return map;
+  }
+
+  String? lookupEnvironment(String key) {
+    if (DartLibrarySupport.isDartLibraryQualifier(key)) {
+      String libraryName = DartLibrarySupport.getDartLibraryName(key);
+      String? value = (_supportedLibrariesCache ??=
+          _computeSupportedLibraries())[libraryName];
+      return value ?? "";
+    }
+    return _environmentDefines![key];
+  }
+
+  bool hasEnvironmentKey(String key) {
+    if (key.startsWith(DartLibrarySupport.dartLibraryPrefix)) {
+      return true;
+    }
+    return _environmentDefines!.containsKey(key);
+  }
+
+  bool get hasEnvironment => _environmentDefines != null;
 
   DartType convertType(DartType type) {
     switch (evaluationMode) {
@@ -1375,7 +1422,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     Constant constant = node.constant;
     Constant result = constant;
     if (constant is UnevaluatedConstant) {
-      if (environmentDefines != null) {
+      if (hasEnvironment) {
         result = _evaluateSubexpression(constant.expression);
         if (result is AbortConstant) return result;
       } else {
@@ -1999,14 +2046,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               statement.condition,
               templateConstEvalFailedAssertionWithMessage
                   .withArguments(message.value));
-        } else {
+        } else if (message is NullConstant) {
           return createEvaluationErrorConstant(
-              statement.message!,
-              templateConstEvalInvalidType.withArguments(
-                  message,
-                  typeEnvironment.coreTypes.stringLegacyRawType,
-                  message.getType(_staticTypeContext!),
-                  isNonNullableByDefault));
+              statement.condition, messageConstEvalFailedAssertion);
+        } else {
+          return createEvaluationErrorConstant(statement.message!,
+              messageConstEvalFailedAssertionWithNonStringMessage);
         }
       }
     } else {
@@ -2762,7 +2807,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               templateConstEvalGetterNotFound
                   .withArguments(variable.name ?? ''));
     } else {
-      if (variable.parent is Let || _isFormalParameter(variable)) {
+      if (variable.parent is Let ||
+          variable.parent is LocalInitializer ||
+          _isFormalParameter(variable)) {
         return env.lookupVariable(node.variable) ??
             createEvaluationErrorConstant(
                 node,
@@ -2904,7 +2951,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   Constant _handleFromEnvironment(
       Procedure target, StringConstant name, Map<String, Constant> named) {
-    String? value = environmentDefines![name.value];
+    String? value = lookupEnvironment(name.value);
     Constant? defaultValue = named["defaultValue"];
     if (target.enclosingClass == coreTypes.boolClass) {
       Constant boolConstant;
@@ -2963,9 +3010,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant _handleHasEnvironment(StringConstant name) {
-    return environmentDefines!.containsKey(name.value)
-        ? trueConstant
-        : falseConstant;
+    return hasEnvironmentKey(name.value) ? trueConstant : falseConstant;
   }
 
   @override
@@ -3017,7 +3062,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             positionals.length == 1 &&
             (target.name.text == "fromEnvironment" ||
                 target.name.text == "hasEnvironment")) {
-          if (environmentDefines != null) {
+          if (hasEnvironment) {
             // Evaluate environment constant.
             Constant name = positionals.single;
             if (name is StringConstant) {
@@ -4071,6 +4116,7 @@ class EvaluationEnvironment {
   final EvaluationEnvironment? _parent;
 
   EvaluationEnvironment() : _parent = null;
+
   EvaluationEnvironment.withParent(this._parent);
 
   /// Whether the current environment is empty.
@@ -4168,18 +4214,21 @@ class ProceedStatus extends ExecutionStatus {
 /// Status that the statement returned a valid [Constant] value.
 class ReturnStatus extends ExecutionStatus {
   final Constant? value;
+
   ReturnStatus(this.value);
 }
 
 /// Status with an exception or error that the statement has thrown.
 class AbortStatus extends ExecutionStatus {
   final AbortConstant error;
+
   AbortStatus(this.error);
 }
 
 /// Status that the statement breaks out of an enclosing [LabeledStatement].
 class BreakStatus extends ExecutionStatus {
   final LabeledStatement target;
+
   BreakStatus(this.target);
 }
 

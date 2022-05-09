@@ -28,7 +28,7 @@ main() async {
   final Uri packagesFile = sdkRootFile('.packages');
   final Uri librariesFile = sdkRootFile('sdk/lib/libraries.json');
 
-  final vmTarget = VmTarget(TargetFlags());
+  final vmTarget = VmTarget(TargetFlags(supportMirrors: false));
 
   await withTempDirectory((Uri uri) async {
     final mixinFilename = uri.resolve('mixin.dart');

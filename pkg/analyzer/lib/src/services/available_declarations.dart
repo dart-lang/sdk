@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+    show DependencyWalker, Node;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -22,8 +24,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
-import 'package:analyzer/src/summary/link.dart' as graph
-    show DependencyWalker, Node;
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
@@ -344,7 +344,7 @@ class DeclarationsContext {
     for (var path in _analysisContext.contextRoot.analyzedFiles()) {
       if (file_paths.isBazelBuild(pathContext, path)) {
         var file = _tracker._resourceProvider.getFile(path);
-        var packageFolder = file.parent2;
+        var packageFolder = file.parent;
         _packages.add(_Package(packageFolder));
       } else if (file_paths.isPubspecYaml(pathContext, path)) {
         var file = _tracker._resourceProvider.getFile(path);
@@ -352,7 +352,7 @@ class DeclarationsContext {
         var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
-        var packageFolder = file.parent2;
+        var packageFolder = file.parent;
         var packagePath = packageFolder.path;
         pubPathPrefixToPathList[packagePath] = [
           ...libPaths,
@@ -1233,7 +1233,7 @@ class _File {
       pathKeyBuilder.addInt(DATA_VERSION);
       pathKeyBuilder.addString(path);
       pathKeyBuilder.addInt(modificationStamp);
-      pathKey = pathKeyBuilder.toHex() + '.declarations_content';
+      pathKey = '${pathKeyBuilder.toHex()}.declarations_content';
     }
 
     // With Bazel multiple workspaces might be copies of the same workspace,
@@ -1254,7 +1254,7 @@ class _File {
         tracker._byteStore.put(pathKey, contentHashBytes);
       }
 
-      contentKey = hex.encode(contentHashBytes) + '.declarations';
+      contentKey = '${hex.encode(contentHashBytes)}.declarations';
     }
 
     var bytes = tracker._byteStore.get(contentKey);
@@ -1317,7 +1317,7 @@ class _File {
   }
 
   void _buildFileDeclarations(CompilationUnit unit) {
-    lineInfo = unit.lineInfo!;
+    lineInfo = unit.lineInfo;
     lineStarts = lineInfo.lineStarts;
 
     isLibrary = true;

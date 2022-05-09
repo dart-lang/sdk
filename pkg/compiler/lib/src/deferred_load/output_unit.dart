@@ -156,7 +156,7 @@ class OutputUnitData {
   }
 
   /// Deserializes an [OutputUnitData] object from [source].
-  factory OutputUnitData.readFromDataSource(DataSource source) {
+  factory OutputUnitData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     bool isProgramSplit = source.readBool();
     List<OutputUnit> outputUnits = source.readList(() {
@@ -205,7 +205,7 @@ class OutputUnitData {
   }
 
   /// Serializes this [OutputUnitData] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeBool(isProgramSplit);
     Map<OutputUnit, int> outputUnitIndices = {};

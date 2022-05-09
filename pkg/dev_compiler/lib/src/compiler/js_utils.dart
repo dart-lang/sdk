@@ -33,7 +33,7 @@ Set<String> findMutatedVariables(Node scope) {
   return v.mutated;
 }
 
-class MutationVisitor extends BaseVisitor<void> {
+class MutationVisitor extends BaseVisitorVoid {
   /// Using Identifier names instead of a more precise key may result in
   /// mutations being imprecisely reported when variables shadow each other.
   final mutated = <String>{};
@@ -46,7 +46,7 @@ class MutationVisitor extends BaseVisitor<void> {
 }
 
 /// Recursively clears all source information from all visited nodes.
-class SourceInformationClearer extends BaseVisitor<void> {
+class SourceInformationClearer extends BaseVisitorVoid {
   @override
   void visitNode(Node node) {
     node.visitChildren(this);

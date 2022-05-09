@@ -108,7 +108,7 @@ class Runtime {
   /// The SDK's release channel (`be`, `dev`, `beta`, `stable`).
   ///
   /// May be null if [Platform.version] does not have the expected format.
-  final String /*?*/ channel;
+  final String? channel;
 
   Runtime._(this.version, this.channel);
 
@@ -116,7 +116,7 @@ class Runtime {
     var versionString = Platform.version;
     // Exepcted format: "version (channel) ..."
     var version = versionString;
-    String /*?*/ channel;
+    String? channel;
     var versionEnd = versionString.indexOf(' ');
     if (versionEnd > 0) {
       version = versionString.substring(0, versionEnd);

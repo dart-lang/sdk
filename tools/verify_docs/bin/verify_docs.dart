@@ -270,8 +270,8 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         template = 'none';
       } else if (hasTopDeclaration) {
         template = 'top';
-      } else if (lines.length == 1 && !lines.first.trim().endsWith(';')) {
-        // If single line with no trailing `;`, assume expression.
+      } else if (lines.length == 1 && !lines.first.contains(';')) {
+        // If single line with no `;`, assume expression.
         template = 'expression';
       } else {
         // Otherwise default to `main`.
@@ -297,7 +297,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         ..writeAllLines(lines)
         ..writeln('}');
     } else if (template == 'expression') {
-      assert(lines.length >= 1);
+      assert(lines.isNotEmpty);
       buffer
         ..writeln('void main() async =>')
         ..writeAllLines(lines.take(lines.length - 1))
@@ -375,7 +375,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         print('');
       }
     } else {
-      throw 'unexpected result type: ${result}';
+      throw 'unexpected result type: $result';
     }
 
     return;
@@ -520,7 +520,7 @@ extension on StringBuffer {
   /// Write every line, right-trimmed, of [lines] with a newline after.
   void writeAllLines(Iterable<String> lines) {
     for (var line in lines) {
-      this.writeln(line.trimRight());
+      writeln(line.trimRight());
     }
   }
 }

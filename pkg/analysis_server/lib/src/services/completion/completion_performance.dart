@@ -38,7 +38,8 @@ class CompletionPerformance {
   final OperationPerformance operation;
   final String path;
   final String snippet;
-  int suggestionCount = -1;
+  int computedSuggestionCount = -1;
+  int transmittedSuggestionCount = -1;
 
   CompletionPerformance({
     required this.operation,
@@ -47,12 +48,17 @@ class CompletionPerformance {
     required int offset,
   }) : snippet = _computeCompletionSnippet(content, offset);
 
+  String get computedSuggestionCountStr {
+    if (computedSuggestionCount < 1) return '';
+    return '$computedSuggestionCount';
+  }
+
   int get elapsedInMilliseconds {
     return operation.elapsed.inMilliseconds;
   }
 
-  String get suggestionCountStr {
-    if (suggestionCount < 1) return '';
-    return '$suggestionCount';
+  String get transmittedSuggestionCountStr {
+    if (transmittedSuggestionCount < 1) return '';
+    return '$transmittedSuggestionCount';
   }
 }

@@ -51,7 +51,7 @@ class ClosureDataImpl implements ClosureData {
 
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureDataImpl.readFromDataSource(
-      JsToElementMap elementMap, DataSource source) {
+      JsToElementMap elementMap, DataSourceReader source) {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
     Map<MemberEntity, ScopeInfo> scopeMap = source.readMemberMap(
@@ -78,7 +78,7 @@ class ClosureDataImpl implements ClosureData {
 
   /// Serializes this [ClosureData] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMemberMap(_scopeMap,
         (MemberEntity member, ScopeInfo info) => info.writeToDataSink(sink));
@@ -170,6 +170,7 @@ class ClosureDataImpl implements ClosureData {
 /// http://matt.might.net/articles/closure-conversion/.
 
 class ClosureDataBuilder {
+  final DiagnosticReporter _reporter;
   final JsToElementMap _elementMap;
   final AnnotationsData _annotationsData;
 
@@ -185,7 +186,7 @@ class ClosureDataBuilder {
 
   final Map<MemberEntity, MemberEntity> _enclosingMembers = {};
 
-  ClosureDataBuilder(this._elementMap, this._annotationsData);
+  ClosureDataBuilder(this._reporter, this._elementMap, this._annotationsData);
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
@@ -323,7 +324,7 @@ class ClosureDataBuilder {
       Map<MemberEntity, ClosureScopeModel> closureModels,
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
-    closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
+    void processModel(MemberEntity member, ClosureScopeModel model) {
       Map<ir.VariableDeclaration, JRecordField> allBoxedVariables =
           _elementMap.makeRecordContainer(model.scopeInfo, member);
       _scopeMap[member] = JsScopeInfo.from(
@@ -381,6 +382,12 @@ class ClosureDataBuilder {
         }
         callMethods.add(closureClassInfo.callMethod);
       }
+    }
+
+    closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
+      _reporter.withCurrentElement(member, () {
+        processModel(member, model);
+      });
     });
     return ClosureDataImpl(
         _elementMap,
@@ -500,7 +507,7 @@ class JsScopeInfo extends ScopeInfo {
     return _boxedVariablesCache.containsKey(variable);
   }
 
-  factory JsScopeInfo.readFromDataSource(DataSource source) {
+  factory JsScopeInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
@@ -515,7 +522,7 @@ class JsScopeInfo extends ScopeInfo {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(ScopeInfoKind.scopeInfo);
     sink.begin(tag);
     sink.writeTreeNodes(_localsUsedInTryOrSync);
@@ -549,7 +556,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
   @override
   bool get requiresContextBox => _boxedVariables.isNotEmpty;
 
-  factory JsCapturedScope.readFromDataSource(DataSource source) {
+  factory JsCapturedScope.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
@@ -564,7 +571,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(ScopeInfoKind.capturedScope);
     sink.begin(tag);
     sink.writeTreeNodes(_localsUsedInTryOrSync);
@@ -601,7 +608,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   @override
   bool get hasBoxedLoopVariables => _boxedLoopVariables.isNotEmpty;
 
-  factory JsCapturedLoopScope.readFromDataSource(DataSource source) {
+  factory JsCapturedLoopScope.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
@@ -618,7 +625,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(ScopeInfoKind.capturedLoopScope);
     sink.begin(tag);
     sink.writeTreeNodes(_localsUsedInTryOrSync);
@@ -698,7 +705,7 @@ class JsClosureClassInfo extends JsScopeInfo
         _localToFieldMap = {},
         super.from(boxedVariables, info, enclosingClass);
 
-  factory JsClosureClassInfo.readFromDataSource(DataSource source) {
+  factory JsClosureClassInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
         source.readTreeNodes<ir.VariableDeclaration>();
@@ -736,7 +743,7 @@ class JsClosureClassInfo extends JsScopeInfo
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(ScopeInfoKind.closureRepresentationInfo);
     sink.begin(tag);
     sink.writeTreeNodes(_localsUsedInTryOrSync);
@@ -848,7 +855,7 @@ class JClosureClass extends JClass {
   JClosureClass(JLibrary library, String name)
       : super(library, name, isAbstract: false);
 
-  factory JClosureClass.readFromDataSource(DataSource source) {
+  factory JClosureClass.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JLibrary library = source.readLibrary();
     String name = source.readString();
@@ -857,7 +864,7 @@ class JClosureClass extends JClass {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassKind.closure);
     sink.begin(tag);
     sink.writeLibrary(library);
@@ -919,7 +926,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
       : super(library, enclosingClass, memberName,
             isAssignable: isAssignable, isConst: isConst, isStatic: false);
 
-  factory JClosureField.readFromDataSource(DataSource source) {
+  factory JClosureField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JClass cls = source.readClass();
     String name = source.readString();
@@ -933,7 +940,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.closureField);
     sink.begin(tag);
     sink.writeClass(enclosingClass);
@@ -968,7 +975,7 @@ class RecordClassData implements JClassData {
   RecordClassData(
       this.definition, this.thisType, this.supertype, this.orderedTypeSet);
 
-  factory RecordClassData.readFromDataSource(DataSource source) {
+  factory RecordClassData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClassDefinition definition = ClassDefinition.readFromDataSource(source);
     InterfaceType thisType = source.readDartType();
@@ -979,7 +986,7 @@ class RecordClassData implements JClassData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassDataKind.record);
     sink.begin(tag);
     definition.writeToDataSink(sink);
@@ -1029,7 +1036,7 @@ class JRecord extends JClass {
   JRecord(LibraryEntity library, String name)
       : super(library, name, isAbstract: false);
 
-  factory JRecord.readFromDataSource(DataSource source) {
+  factory JRecord.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JLibrary library = source.readLibrary();
     String name = source.readString();
@@ -1038,7 +1045,7 @@ class JRecord extends JClass {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassKind.record);
     sink.begin(tag);
     sink.writeLibrary(library);
@@ -1068,7 +1075,7 @@ class JRecordField extends JField {
             Name(name, box.container.library),
             isStatic: false, isAssignable: true, isConst: isConst);
 
-  factory JRecordField.readFromDataSource(DataSource source) {
+  factory JRecordField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     String name = source.readString();
     JClass enclosingClass = source.readClass();
@@ -1078,7 +1085,7 @@ class JRecordField extends JField {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.recordField);
     sink.begin(tag);
     sink.writeString(name);
@@ -1111,7 +1118,7 @@ class ClosureClassData extends RecordClassData {
       InterfaceType supertype, OrderedTypeSet orderedTypeSet)
       : super(definition, thisType, supertype, orderedTypeSet);
 
-  factory ClosureClassData.readFromDataSource(DataSource source) {
+  factory ClosureClassData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClassDefinition definition = ClassDefinition.readFromDataSource(source);
     InterfaceType thisType = source.readDartType();
@@ -1124,7 +1131,7 @@ class ClosureClassData extends RecordClassData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassDataKind.closure);
     sink.begin(tag);
     definition.writeToDataSink(sink);
@@ -1146,7 +1153,7 @@ class ClosureClassDefinition implements ClassDefinition {
 
   ClosureClassDefinition(this.location);
 
-  factory ClosureClassDefinition.readFromDataSource(DataSource source) {
+  factory ClosureClassDefinition.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     source.end(tag);
@@ -1154,7 +1161,7 @@ class ClosureClassDefinition implements ClassDefinition {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(ClassKind.closure);
     sink.begin(tag);
     sink.writeSourceSpan(location);
@@ -1214,7 +1221,7 @@ class ClosureFunctionData extends ClosureMemberData
       this.classTypeVariableAccess)
       : super(definition, memberThisType);
 
-  factory ClosureFunctionData.readFromDataSource(DataSource source) {
+  factory ClosureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClosureMemberDefinition definition =
         MemberDefinition.readFromDataSource(source);
@@ -1229,7 +1236,7 @@ class ClosureFunctionData extends ClosureMemberData
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.closureFunction);
     sink.begin(tag);
     definition.writeToDataSink(sink);
@@ -1268,7 +1275,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
       : super(definition, memberThisType);
 
-  factory ClosureFieldData.readFromDataSource(DataSource source) {
+  factory ClosureFieldData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
     InterfaceType memberThisType = source.readDartType(allowNull: true);
@@ -1277,7 +1284,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberDataKind.closureField);
     sink.begin(tag);
     definition.writeToDataSink(sink);
@@ -1334,7 +1341,7 @@ class ClosureMemberDefinition implements MemberDefinition {
             kind == MemberKind.closureCall || kind == MemberKind.closureField);
 
   factory ClosureMemberDefinition.readFromDataSource(
-      DataSource source, MemberKind kind) {
+      DataSourceReader source, MemberKind kind) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     ir.TreeNode node = source.readTreeNode();
@@ -1343,7 +1350,7 @@ class ClosureMemberDefinition implements MemberDefinition {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(kind);
     sink.begin(tag);
     sink.writeSourceSpan(location);
@@ -1365,7 +1372,8 @@ class RecordContainerDefinition implements ClassDefinition {
 
   RecordContainerDefinition(this.location);
 
-  factory RecordContainerDefinition.readFromDataSource(DataSource source) {
+  factory RecordContainerDefinition.readFromDataSource(
+      DataSourceReader source) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     source.end(tag);
@@ -1373,7 +1381,7 @@ class RecordContainerDefinition implements ClassDefinition {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(ClassKind.record);
     sink.begin(tag);
     sink.writeSourceSpan(location);

@@ -389,23 +389,23 @@ class Process {
 @patch
 class InternetAddress {
   @patch
-  static InternetAddress get LOOPBACK_IP_V4 {
-    throw UnsupportedError("InternetAddress.LOOPBACK_IP_V4");
+  static InternetAddress get loopbackIPv4 {
+    throw UnsupportedError("InternetAddress.loopbackIPv4");
   }
 
   @patch
-  static InternetAddress get LOOPBACK_IP_V6 {
-    throw UnsupportedError("InternetAddress.LOOPBACK_IP_V6");
+  static InternetAddress get loopbackIPv6 {
+    throw UnsupportedError("InternetAddress.loopbackIPv6");
   }
 
   @patch
-  static InternetAddress get ANY_IP_V4 {
-    throw UnsupportedError("InternetAddress.ANY_IP_V4");
+  static InternetAddress get anyIPv4 {
+    throw UnsupportedError("InternetAddress.anyIPv4");
   }
 
   @patch
-  static InternetAddress get ANY_IP_V6 {
-    throw UnsupportedError("InternetAddress.ANY_IP_V6");
+  static InternetAddress get anyIPv6 {
+    throw UnsupportedError("InternetAddress.anyIPv6");
   }
 
   @patch

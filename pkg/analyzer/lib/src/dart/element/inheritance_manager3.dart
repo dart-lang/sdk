@@ -863,6 +863,7 @@ class InheritanceManager3 {
       result.parameters = resultType.parameters;
 
       var field = FieldElementImpl(variableName, -1);
+      field.enclosingElement = targetClass;
       if (firstAccessor.isGetter) {
         field.getter = result;
         field.type = result.returnType;
@@ -1022,13 +1023,9 @@ class _ParameterDesc {
         : _ParameterDesc.index(index);
   }
 
-  _ParameterDesc.index(int index)
-      : index = index,
-        name = null;
+  _ParameterDesc.index(this.index) : name = null;
 
-  _ParameterDesc.name(String name)
-      : index = null,
-        name = name;
+  _ParameterDesc.name(this.name) : index = null;
 
   @override
   int get hashCode {

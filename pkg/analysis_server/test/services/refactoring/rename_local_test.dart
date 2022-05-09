@@ -475,12 +475,12 @@ void f() {
     var a = convertPath('$testPackageLibPath/a.dart');
     var b = convertPath('$testPackageLibPath/b.dart');
 
-    newFile(a, content: r'''
+    newFile2(a, r'''
 class A {
   A({test});
 }
 ''');
-    newFile(b, content: r'''
+    newFile2(b, r'''
 import 'a.dart';
 
 void f() {
@@ -561,6 +561,31 @@ class A<T> {
 
 void f(A<int> a) {
   a.foo(newName: 0);
+}
+''');
+  }
+
+  Future<void> test_createChange_parameter_named_super() async {
+    await indexTestUnit('''
+class A {
+  A({required int test}); // 0
+}
+class B extends A {
+  B({required super.test});
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}); // 0');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {
+  A({required int newName}); // 0
+}
+class B extends A {
+  B({required super.newName});
 }
 ''');
   }
@@ -650,6 +675,33 @@ myFunction([int? newName]) {
 }
 void f() {
   myFunction(2);
+}
+''');
+  }
+
+  Future<void> test_createChange_parameter_positional_super() async {
+    await indexTestUnit('''
+class A {
+  A(int test); // 0
+}
+class B extends A {
+  B(super.test);
+}
+''');
+
+    createRenameRefactoringAtString('test); // 0');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+
+    // The name of the super-formal parameter does not have to be the same.
+    // So, we don't rename it.
+    return assertSuccessfulRefactoring('''
+class A {
+  A(int newName); // 0
+}
+class B extends A {
+  B(super.test);
 }
 ''');
   }

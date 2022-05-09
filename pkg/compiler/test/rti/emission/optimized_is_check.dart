@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 // It is sometimes possible to compile is-checks to 'instanceof', when the class
 // is not in an 'implements' clause or used as a mixin.
 
@@ -51,19 +53,19 @@ void main() {
   var removed = Removed(); // This is optimized out.
 
   // Tests that can be compiled to instanceof:
-  if (things[0] is Instantiated) print('expected');
-  if (things[1] is Instantiated) print('unexpected');
-  if (things[1] is Removed) print('unexpected');
-  if (things[1] is DeferredAndRemoved) print('unexpected');
-  if (things[1] is Deferred) print('unexpected');
+  makeLive(things[0] is Instantiated);
+  makeLive(things[1] is Instantiated);
+  makeLive(things[1] is Removed);
+  makeLive(things[1] is DeferredAndRemoved);
+  makeLive(things[1] is Deferred);
   // Tests that might be optimized to false since there are no allocations:
-  if (things[1] is Unused) print('unexpected');
-  if (things[1] is UsedAsTypeParameter) print('unexpected');
+  makeLive(things[1] is Unused);
+  makeLive(things[1] is UsedAsTypeParameter);
 
-  if (checkX.check(things[0])) print('expected');
-  if (checkX.check(things[1])) print('unexpected');
-  if (checkU1.check(things[1])) print('unexpected');
-  if (checkU2.check(things[1])) print('unexpected');
+  makeLive(checkX.check(things[0]));
+  makeLive(checkX.check(things[1]));
+  makeLive(checkU1.check(things[1]));
+  makeLive(checkU2.check(things[1]));
 
   // ignore: UNUSED_LOCAL_VARIABLE
   var removed2 = DeferredAndRemoved(); // This is optimized out.
@@ -72,13 +74,13 @@ void main() {
   things.setRange(0, 3, [Instantiated(), 1, Deferred()]);
 
   // Tests that can be compiled to instanceof:
-  if (things[0] is Instantiated) print('expected');
-  if (things[1] is Instantiated) print('unexpected');
-  if (things[1] is Removed) print('unexpected');
-  if (things[1] is DeferredAndRemoved) print('unexpected');
-  if (things[1] is Deferred) print('unexpected');
-  if (things[2] is Deferred) print('expected');
+  makeLive(things[0] is Instantiated);
+  makeLive(things[1] is Instantiated);
+  makeLive(things[1] is Removed);
+  makeLive(things[1] is DeferredAndRemoved);
+  makeLive(things[1] is Deferred);
+  makeLive(things[2] is Deferred);
   // Tests that might be optimized to false since there are no allocations:
-  if (things[1] is Unused) print('unexpected');
-  if (things[1] is UsedAsTypeParameter) print('unexpected');
+  makeLive(things[1] is Unused);
+  makeLive(things[1] is UsedAsTypeParameter);
 }

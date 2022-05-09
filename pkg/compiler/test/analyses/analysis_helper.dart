@@ -4,6 +4,7 @@
 
 // @dart = 2.7
 
+import 'dart:collection' show SplayTreeMap;
 import 'dart:convert' as json;
 import 'dart:io';
 
@@ -15,11 +16,11 @@ import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
-import 'package:compiler/src/kernel/loader.dart';
+import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactory, isRedirectingFactoryField, relativizeUri;
+    show isRedirectingFactoryField, relativizeUri;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -40,7 +41,7 @@ main(List<String> args) {
   Uri packageConfig = getPackages(argResults);
   List<String> options = getOptions(argResults);
   run(entryPoint, null,
-      analyzedUrisFilter: (Uri uri) => uri.scheme != 'dart',
+      analyzedUrisFilter: (Uri uri) => !uri.isScheme('dart'),
       librariesSpecificationUri: librariesSpecificationUri,
       packageConfig: packageConfig,
       options: options);
@@ -61,8 +62,15 @@ run(Uri entryPoint, String allowedListPath,
         packageConfig: packageConfig,
         entryPoint: entryPoint,
         options: options);
-    KernelResult result = await compiler.kernelLoader.load();
-    new DynamicVisitor(compiler.reporter, result.component, allowedListPath,
+    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+        compiler.options,
+        compiler.provider,
+        compiler.reporter,
+        compiler.initializedCompilerState,
+        false));
+    compiler.frontendStrategy
+        .registerLoadedLibraries(result.component, result.libraries);
+    DynamicVisitor(compiler.reporter, result.component, allowedListPath,
             analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
   });
@@ -86,7 +94,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
             classHierarchy,
             new StaticTypeCacheImpl()) {
     _constantEvaluator = new Dart2jsConstantEvaluator(
-        typeEnvironment, const ir.SimpleErrorReporter().report,
+        component, typeEnvironment, const ir.SimpleErrorReporter().report,
         evaluationMode: evaluationMode);
   }
 
@@ -98,7 +106,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
 
   @override
   Null visitProcedure(ir.Procedure node) {
-    if (node.kind == ir.ProcedureKind.Factory && isRedirectingFactory(node)) {
+    if (node.kind == ir.ProcedureKind.Factory && node.isRedirectingFactory) {
       // Don't visit redirecting factories.
       return;
     }
@@ -163,10 +171,10 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
     component.accept(this);
     if (generate && _allowedListPath != null) {
-      Map<String, Map<String, int>> actualJson = {};
+      Map<String, Map<String, int>> actualJson = SplayTreeMap();
       _actualMessages.forEach(
           (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
-        Map<String, int> map = {};
+        Map<String, int> map = SplayTreeMap();
         actualMessagesMap
             .forEach((String message, List<DiagnosticMessage> actualMessages) {
           map[message] = actualMessages.length;
@@ -174,8 +182,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         actualJson[uri] = map;
       });
 
-      new File(_allowedListPath).writeAsStringSync(
-          new json.JsonEncoder.withIndent('  ').convert(actualJson));
+      File(_allowedListPath).writeAsStringSync(
+          json.JsonEncoder.withIndent('  ').convert(actualJson));
       return;
     }
 
@@ -362,7 +370,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   String reportAssertionFailure(ir.Node node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
-    if (uri.scheme == 'org-dartlang-sdk') {
+    if (uri.isScheme('org-dartlang-sdk')) {
       span = new SourceSpan(
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
@@ -378,7 +386,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     String uriString = relativizeUri(Uri.base, uri, Platform.isWindows);
     Map<String, List<DiagnosticMessage>> actualMap = _actualMessages
         .putIfAbsent(uriString, () => <String, List<DiagnosticMessage>>{});
-    if (uri.scheme == 'org-dartlang-sdk') {
+    if (uri.isScheme('org-dartlang-sdk')) {
       span = new SourceSpan(
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }

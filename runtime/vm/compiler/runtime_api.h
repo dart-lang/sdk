@@ -181,6 +181,9 @@ inline const Object& ToObject(const Function& handle) {
 // or canonical hash.
 intptr_t ObjectHash(const Object& obj);
 
+// Prints the given object into a C string.
+const char* ObjectToCString(const Object& obj);
+
 // If the given object represents a Dart integer returns true and sets [value]
 // to the value of the integer.
 bool HasIntegerValue(const dart::Object& obj, int64_t* value);
@@ -208,10 +211,6 @@ word LookupFieldOffsetInBytes(const Field& field);
 uword SymbolsPredefinedAddress();
 #endif
 
-typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
-                                         Assembler*,
-                                         intptr_t);
-
 const Code& StubCodeAllocateArray();
 const Code& StubCodeSubtype3TestCache();
 const Code& StubCodeSubtype7TestCache();
@@ -220,43 +219,17 @@ class RuntimeEntry : public ValueObject {
  public:
   virtual ~RuntimeEntry() {}
 
-  void Call(Assembler* assembler, intptr_t argument_count) const {
-    ASSERT(call_ != NULL);
-    ASSERT(runtime_entry_ != NULL);
-
-    // We call a manually set function pointer which points to the
-    // implementation of call for the subclass. We do this instead of just
-    // defining Call in this class as a pure virtual method and providing an
-    // implementation in the subclass as RuntimeEntry objects are declared as
-    // globals which causes problems on Windows.
-    //
-    // When exit() is called on Windows, global objects start to be destroyed.
-    // As part of an object's destruction, the vtable is reset to that of the
-    // base class. Since some threads may still be running and accessing these
-    // now destroyed globals, an invocation to dart::RuntimeEntry::Call would
-    // instead invoke dart::compiler::RuntimeEntry::Call. If
-    // dart::compiler::RuntimeEntry::Call were a pure virtual method, _purecall
-    // would be invoked to handle the invalid call and attempt to call exit(),
-    // causing the process to hang on a lock.
-    //
-    // By removing the need to rely on a potentially invalid vtable at exit,
-    // we should be able to avoid hanging or crashing the process at shutdown,
-    // even as global objects start to be destroyed. See issue #35855.
-    call_(runtime_entry_, assembler, argument_count);
-  }
-
   word OffsetFromThread() const;
 
   bool is_leaf() const;
+  intptr_t argument_count() const;
 
  protected:
-  RuntimeEntry(const dart::RuntimeEntry* runtime_entry,
-               RuntimeEntryCallInternal call)
-      : runtime_entry_(runtime_entry), call_(call) {}
+  explicit RuntimeEntry(const dart::RuntimeEntry* runtime_entry)
+      : runtime_entry_(runtime_entry) {}
 
  private:
   const dart::RuntimeEntry* runtime_entry_;
-  RuntimeEntryCallInternal call_;
 };
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
@@ -444,6 +417,7 @@ class UntaggedObject : public AllStatic {
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
+  static const word kGenerationalBarrierMask;
 
   static bool IsTypedDataClassId(intptr_t cid);
 };
@@ -611,10 +585,10 @@ class GrowableObjectArray : public AllStatic {
 
 class PointerBase : public AllStatic {
  public:
-  static word data_field_offset();
+  static word data_offset();
 };
 
-class TypedDataBase : public PointerBase {
+class TypedDataBase : public AllStatic {
  public:
   static word length_offset();
   static word InstanceSize();
@@ -623,7 +597,7 @@ class TypedDataBase : public PointerBase {
 
 class TypedData : public AllStatic {
  public:
-  static word data_offset();
+  static word payload_offset();
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word lengthInBytes);
@@ -632,7 +606,6 @@ class TypedData : public AllStatic {
 
 class ExternalTypedData : public AllStatic {
  public:
-  static word data_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -640,7 +613,7 @@ class ExternalTypedData : public AllStatic {
 class TypedDataView : public AllStatic {
  public:
   static word offset_in_bytes_offset();
-  static word data_offset();
+  static word typed_data_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -696,7 +669,7 @@ class LocalHandle : public AllStatic {
   static word ptr_offset();
 };
 
-class Pointer : public PointerBase {
+class Pointer : public AllStatic {
  public:
   static word type_arguments_offset();
   static word InstanceSize();
@@ -1034,6 +1007,50 @@ class WeakProperty : public AllStatic {
   FINAL_CLASS();
 };
 
+class WeakReference : public AllStatic {
+ public:
+  static word target_offset();
+  static word type_arguments_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
+class FinalizerBase : public AllStatic {
+ public:
+  static word all_entries_offset();
+  static word detachments_offset();
+  static word entries_collected_offset();
+  static word isolate_offset();
+  FINAL_CLASS();
+};
+
+class Finalizer : public AllStatic {
+ public:
+  static word callback_offset();
+  static word type_arguments_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
+class NativeFinalizer : public AllStatic {
+ public:
+  static word callback_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
+class FinalizerEntry : public AllStatic {
+ public:
+  static word detach_offset();
+  static word external_size_offset();
+  static word finalizer_offset();
+  static word next_offset();
+  static word token_offset();
+  static word value_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class MirrorReference : public AllStatic {
  public:
   static word InstanceSize();
@@ -1176,6 +1193,7 @@ class Thread : public AllStatic {
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
+  static word exit_safepoint_ignore_unwind_in_progress_stub_offset();
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
 
@@ -1230,6 +1248,7 @@ class Isolate : public AllStatic {
   static word current_tag_offset();
   static word user_tag_offset();
   static word ic_miss_code_offset();
+  static word finalizers_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
 #endif  // !defined(PRODUCT)

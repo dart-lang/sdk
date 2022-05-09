@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/il_test_helper.h"
 
 #include "vm/compiler/aot/aot_call_specializer.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -16,6 +17,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/dart_api_impl.h"
+#include "vm/flags.h"
 #include "vm/parser.h"
 #include "vm/unit_test.h"
 
@@ -92,12 +94,27 @@ ObjectPtr Invoke(const Library& lib, const char* name) {
   return Api::UnwrapHandle(result);
 }
 
+InstructionsPtr BuildInstructions(
+    std::function<void(compiler::Assembler* assembler)> fun) {
+  auto thread = Thread::Current();
+  compiler::Assembler assembler(nullptr);
+
+  fun(&assembler);
+
+  auto& code = Code::Handle();
+  auto install_code_fun = [&] {
+    code = Code::FinalizeCode(nullptr, &assembler,
+                              Code::PoolAttachment::kNotAttachPool,
+                              /*optimized=*/false, /*stats=*/nullptr);
+  };
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
+                                                  /*use_force_growth=*/true);
+  return code.instructions();
+}
+
 FlowGraph* TestPipeline::RunPasses(
     std::initializer_list<CompilerPass::Id> passes) {
-  // The table dispatch transformation needs a precompiler, which is not
-  // available in the test pipeline.
-  SetFlagScope<bool> sfs(&FLAG_use_table_dispatch, false);
-
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const bool optimized = true;
@@ -148,9 +165,53 @@ FlowGraph* TestPipeline::RunPasses(
     } else {
       flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_);
     }
+    pass_state_->call_specializer = nullptr;
   }
 
   return flow_graph_;
+}
+
+void TestPipeline::RunAdditionalPasses(
+    std::initializer_list<CompilerPass::Id> passes) {
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
+
+  JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
+  AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr, flow_graph_,
+                                          &speculative_policy);
+  if (mode_ == CompilerPass::kAOT) {
+    pass_state_->call_specializer = &aot_call_specializer;
+  } else {
+    pass_state_->call_specializer = &jit_call_specializer;
+  }
+
+  flow_graph_ = CompilerPass::RunPipelineWithPasses(pass_state_, passes);
+  pass_state_->call_specializer = nullptr;
+}
+
+// Keep in sync with CompilerPass::RunForceOptimizedPipeline.
+void TestPipeline::RunForcedOptimizedAfterSSAPasses() {
+  RunAdditionalPasses({
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kBranchSimplify,
+      CompilerPass::kIfConvert,
+      CompilerPass::kConstantPropagation,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations_Final,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kTryCatchOptimization,
+      CompilerPass::kEliminateEnvironments,
+      CompilerPass::kEliminateDeadPhis,
+      CompilerPass::kDCE,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kDelayAllocations,
+      CompilerPass::kEliminateWriteBarriers,
+      CompilerPass::kFinalizeGraph,
+      CompilerPass::kAllocateRegisters,
+      CompilerPass::kReorderBlocks,
+  });
 }
 
 void TestPipeline::CompileGraphAndAttachFunction() {
@@ -160,15 +221,15 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  const bool use_far_branches = false;
+  const intptr_t far_branch_level = 0;
 #else
-  const bool use_far_branches = true;
+  const intptr_t far_branch_level = 1;
 #endif
 
   ASSERT(pass_state_->inline_id_to_function.length() ==
          pass_state_->caller_inline_id.length());
   compiler::ObjectPoolBuilder object_pool_builder;
-  compiler::Assembler assembler(&object_pool_builder, use_far_branches);
+  compiler::Assembler assembler(&object_pool_builder, far_branch_level);
   FlowGraphCompiler graph_compiler(
       &assembler, flow_graph_, *parsed_function_, optimized,
       &speculative_policy, pass_state_->inline_id_to_function,
@@ -215,6 +276,12 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   if (mode_ == CompilerPass::kAOT) {
     EXPECT(deopt_info_array.IsNull() || deopt_info_array.Length() == 0);
   }
+
+#if !defined(PRODUCT)
+  if (FLAG_disassemble_optimized) {
+    Disassembler::DisassembleCode(function_, code, optimized);
+  }
+#endif
 }
 
 bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes,

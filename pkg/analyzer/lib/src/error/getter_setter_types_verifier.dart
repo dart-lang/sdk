@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -32,39 +31,11 @@ class GetterSetterTypesVerifier {
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
 
-  void checkExtension(ExtensionDeclaration node) {
-    for (var getterNode in node.members) {
-      if (getterNode is MethodDeclaration && getterNode.isGetter) {
-        checkGetter(getterNode.name,
-            getterNode.declaredElement as PropertyAccessorElement);
+  void checkExtension(ExtensionElement element) {
+    for (var getter in element.accessors) {
+      if (getter.isGetter) {
+        _checkLocalGetter(getter);
       }
-    }
-  }
-
-  void checkGetter(
-    SimpleIdentifier nameNode,
-    PropertyAccessorElement getter,
-  ) {
-    assert(getter.isGetter);
-
-    var setter = getter.correspondingSetter;
-    if (setter == null) {
-      return;
-    }
-
-    var getterType = _getGetterType(getter);
-    var setterType = _getSetterType(setter);
-    if (setterType == null) {
-      return;
-    }
-
-    if (!_match(getterType, setterType)) {
-      var name = nameNode.name;
-      _errorReporter.reportErrorForNode(
-        _errorCode,
-        nameNode,
-        [name, getterType, setterType, name],
-      );
     }
   }
 
@@ -108,6 +79,33 @@ class GetterSetterTypesVerifier {
               [getterName, getterType, setterType, setterName],
             );
           }
+        }
+      }
+    }
+  }
+
+  void checkStaticAccessors(List<PropertyAccessorElement> accessors) {
+    for (var getter in accessors) {
+      if (getter.isStatic && getter.isGetter) {
+        _checkLocalGetter(getter);
+      }
+    }
+  }
+
+  void _checkLocalGetter(PropertyAccessorElement getter) {
+    assert(getter.isGetter);
+    var setter = getter.correspondingSetter;
+    if (setter != null) {
+      var getterType = _getGetterType(getter);
+      var setterType = _getSetterType(setter);
+      if (setterType != null) {
+        if (!_match(getterType, setterType)) {
+          var name = getter.name;
+          _errorReporter.reportErrorForElement(
+            _errorCode,
+            getter,
+            [name, getterType, setterType, name],
+          );
         }
       }
     }

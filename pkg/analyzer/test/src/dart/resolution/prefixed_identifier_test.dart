@@ -19,7 +19,7 @@ main() {
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -43,6 +43,73 @@ main() {
         isLegacy: true,
       ),
       type: 'Future<dynamic>* Function()*',
+    );
+  }
+
+  test_enum_read() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v;
+  int get foo => 0;
+}
+
+void f(E e) {
+  e.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('e.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.parameter('e'),
+      type: 'E',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_enum_write() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v;
+  set foo(int _) {}
+}
+
+void f(E e) {
+  e.foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.parameter('e'),
+      type: 'E',
+    );
+
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
     );
   }
 
@@ -78,7 +145,7 @@ void f() {
   }
 
   test_implicitCall_tearOff_nullable() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int call() => 0;
 }
@@ -104,7 +171,7 @@ int Function() foo() {
   }
 
   test_read_typedef_interfaceType() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 typedef A = List<int>;
 ''');
 
@@ -137,6 +204,202 @@ void f() {
 }
 
 mixin PrefixedIdentifierResolutionTestCases on PubPackageResolutionTest {
+  test_class_read() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('a.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.parameter('a'),
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_class_read_staticMethod_generic() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo<U>(int a, U u) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function<U>(int, U)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.class_('A'),
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: findElement.method('foo'),
+      type: 'void Function<U>(int, U)',
+    );
+  }
+
+  test_class_read_staticMethod_ofGenericClass() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo(int a) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function(int)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.class_('A'),
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: findElement.method('foo'),
+      type: 'void Function(int)',
+    );
+  }
+
+  test_class_read_typedef_functionType() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+typedef A = void Function();
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.A;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+    var A = importFind.typeAlias('A');
+
+    var prefixed = findNode.prefixed('p.A');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: A,
+      type: 'Type',
+    );
+
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: A,
+      type: 'Type',
+    );
+  }
+
+  test_class_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.parameter('a'),
+      type: 'A',
+    );
+
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+  }
+
+  test_class_write() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.parameter('a'),
+      type: 'A',
+    );
+
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+  }
+
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;
@@ -168,7 +431,7 @@ void f(int Function(String) a) {
   }
 
   test_implicitCall_tearOff() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int call() => 0;
 }
@@ -189,218 +452,6 @@ int Function() foo() {
       findElement.importFind('package:test/a.dart').topGet('a'),
     );
     assertType(identifier, 'A');
-  }
-
-  test_read() async {
-    await assertNoErrorsInCode('''
-class A {
-  int foo = 0;
-}
-
-void f(A a) {
-  a.foo;
-}
-''');
-
-    var prefixed = findNode.prefixed('a.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-  }
-
-  test_read_staticMethod_generic() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  static void foo<U>(int a, U u) {}
-}
-
-void f() {
-  A.foo;
-}
-''');
-
-    var prefixed = findNode.prefixed('A.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.method('foo'),
-      type: 'void Function<U>(int, U)',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.class_('A'),
-      type: null,
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.method('foo'),
-      type: 'void Function<U>(int, U)',
-    );
-  }
-
-  test_read_staticMethod_ofGenericClass() async {
-    await assertNoErrorsInCode('''
-class A<T> {
-  static void foo(int a) {}
-}
-
-void f() {
-  A.foo;
-}
-''');
-
-    var prefixed = findNode.prefixed('A.foo');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.method('foo'),
-      type: 'void Function(int)',
-    );
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.class_('A'),
-      type: null,
-    );
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: findElement.method('foo'),
-      type: 'void Function(int)',
-    );
-  }
-
-  test_read_typedef_functionType() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-typedef A = void Function();
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as p;
-
-void f() {
-  p.A;
-}
-''');
-
-    var importFind = findElement.importFind('package:test/a.dart');
-    var A = importFind.typeAlias('A');
-
-    var prefixed = findNode.prefixed('p.A');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: A,
-      type: 'Type',
-    );
-
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: A,
-      type: 'Type',
-    );
-  }
-
-  test_readWrite_assignment() async {
-    await assertNoErrorsInCode('''
-class A {
-  int foo = 0;
-}
-
-void f(A a) {
-  a.foo += 1;
-}
-''');
-
-    var assignment = findNode.assignment('foo += 1');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('foo'),
-      readType: 'int',
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
-
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertPrefixedIdentifier(
-        prefixed,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-  }
-
-  test_write() async {
-    await assertNoErrorsInCode('''
-class A {
-  int foo = 0;
-}
-
-void f(A a) {
-  a.foo = 1;
-}
-''');
-
-    var assignment = findNode.assignment('foo = 1');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
-
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    if (hasAssignmentLeftResolution) {
-      assertPrefixedIdentifier(
-        prefixed,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
   }
 }
 

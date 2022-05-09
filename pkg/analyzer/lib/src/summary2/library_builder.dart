@@ -20,12 +20,26 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 
+class ImplicitEnumNodes {
+  final EnumElementImpl element;
+  final ast.NamedTypeImpl valuesTypeNode;
+  final ConstFieldElementImpl valuesField;
+
+  ImplicitEnumNodes({
+    required this.element,
+    required this.valuesTypeNode,
+    required this.valuesField,
+  });
+}
+
 class LibraryBuilder {
   final Linker linker;
   final Uri uri;
   final Reference reference;
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
+
+  final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
   /// Local declarations.
   final Scope localScope = Scope.top();
@@ -114,7 +128,19 @@ class LibraryBuilder {
   }
 
   void buildEnumChildren() {
-    ElementBuilder.buildEnumChildren(linker, element);
+    var typeProvider = element.typeProvider;
+    for (var enum_ in implicitEnumNodes) {
+      enum_.element.supertype =
+          typeProvider.enumType ?? typeProvider.objectType;
+      var valuesType = typeProvider.listType(
+        element.typeSystem.instantiateToBounds2(
+          classElement: enum_.element,
+          nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
+        ),
+      );
+      enum_.valuesTypeNode.type = valuesType;
+      enum_.valuesField.type = valuesType;
+    }
   }
 
   void buildInitialExportScope() {
@@ -239,11 +265,12 @@ class LibraryBuilder {
     for (var inputUnit in inputLibrary.units) {
       var unitNode = inputUnit.unit as ast.CompilationUnitImpl;
 
-      var unitElement = CompilationUnitElementImpl();
+      var unitElement = CompilationUnitElementImpl(
+        source: inputUnit.source,
+        librarySource: inputLibrary.source,
+        lineInfo: unitNode.lineInfo,
+      );
       unitElement.isSynthetic = inputUnit.isSynthetic;
-      unitElement.librarySource = inputLibrary.source;
-      unitElement.lineInfo = unitNode.lineInfo;
-      unitElement.source = inputUnit.source;
       unitElement.uri = inputUnit.partUriStr;
       unitElement.setCodeRange(0, unitNode.length);
 

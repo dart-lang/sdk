@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
 import 'test_support.dart';
 
@@ -30,10 +29,7 @@ class GenericMetadataDisabledParserTest extends FastaParserTestCase
     return parseCompilationUnit(
       content,
       errors: combinedErrors,
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: Version.parse('2.12.0'),
-        flags: [],
-      ),
+      featureSet: FeatureSets.language_2_12,
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
-import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
@@ -188,7 +187,7 @@ class AnalyzerConverter {
           analyzer.ErrorSeverity severity) =>
       plugin.AnalysisErrorSeverity(severity.name);
 
-  ///Convert the error [type] from the 'analyzer' package to an analysis error
+  /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
       plugin.AnalysisErrorType(type.name);
@@ -386,27 +385,18 @@ class AnalyzerConverter {
   plugin.Location? _locationForArgs(
       analyzer.CompilationUnitElement? unitElement,
       analyzer.SourceRange range) {
-    var startLine = 0;
-    var startColumn = 0;
-    var endLine = 0;
-    var endColumn = 0;
-
     if (unitElement == null) {
       return null;
     }
-    try {
-      var lineInfo = unitElement.lineInfo;
-      if (lineInfo != null) {
-        var offsetLocation = lineInfo.getLocation(range.offset);
-        startLine = offsetLocation.lineNumber;
-        startColumn = offsetLocation.columnNumber;
-        var endLocation = lineInfo.getLocation(range.offset + range.length);
-        endLine = endLocation.lineNumber;
-        endColumn = endLocation.columnNumber;
-      }
-    } on analyzer.AnalysisException {
-      // Ignore exceptions
-    }
+
+    var lineInfo = unitElement.lineInfo;
+    var offsetLocation = lineInfo.getLocation(range.offset);
+    var endLocation = lineInfo.getLocation(range.offset + range.length);
+    var startLine = offsetLocation.lineNumber;
+    var startColumn = offsetLocation.columnNumber;
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+
     return plugin.Location(unitElement.source.fullName, range.offset,
         range.length, startLine, startColumn,
         endLine: endLine, endColumn: endColumn);

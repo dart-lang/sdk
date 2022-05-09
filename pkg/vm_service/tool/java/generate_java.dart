@@ -101,10 +101,13 @@ class Api extends Member with ApiParseUtil {
   List<Enum?> enums = [];
   List<Type?> types = [];
   Map<String, List<String>> streamIdMap = {};
+  final String scriptLocation;
 
   String? get docs => null;
 
   String get name => 'api';
+
+  Api(this.scriptLocation);
 
   void addProperty(String typeName, String propertyName, {String? javadoc}) {
     var t = types.firstWhere((t) => t!.name == typeName)!;
@@ -148,7 +151,8 @@ class Api extends Member with ApiParseUtil {
       }
     }
 
-    gen.writeType('$servicePackage.VmService', (TypeWriter writer) {
+    gen.writeType('$servicePackage.VmService', scriptLocation,
+        (TypeWriter writer) {
       writer.addImport('com.google.gson.JsonArray');
       writer.addImport('com.google.gson.JsonObject');
       writer.addImport('com.google.gson.JsonPrimitive');
@@ -259,11 +263,14 @@ class Api extends Member with ApiParseUtil {
 
     String? h3Name;
 
+    // TODO(helin24): This code does not capture documentation with more than
+    //  one paragraph or lists. It may help to check generate_dart to fix this.
     for (int i = 0; i < nodes.length; i++) {
       Node node = nodes[i];
 
       if (isPre(node) && h3Name != null) {
-        String definition = textForCode(node);
+        String definition = textForCode(node)
+            .replaceAll('(string|Null)', 'string'); // this is terrible.
         String? docs;
 
         if (i + 1 < nodes.length && isPara(nodes[i + 1])) {
@@ -308,11 +315,11 @@ class Api extends Member with ApiParseUtil {
     if (docs != null) docs = docs.trim();
 
     if (definition.startsWith('class ')) {
-      types.add(Type(this, name, definition, docs));
+      types.add(Type(this, scriptLocation, name, definition, docs));
     } else if (name.substring(0, 1).toLowerCase() == name.substring(0, 1)) {
-      methods.add(Method(name, definition, docs));
+      methods.add(Method(name, scriptLocation, definition, docs));
     } else if (definition.startsWith('enum ')) {
-      enums.add(Enum(name, definition, docs));
+      enums.add(Enum(name, scriptLocation, definition, docs));
     } else {
       throw 'unexpected entity: ${name}, ${definition}';
     }
@@ -362,18 +369,19 @@ class Api extends Member with ApiParseUtil {
 
 class Enum extends Member {
   final String name;
+  final String scriptLocation;
   final String? docs;
 
   List<EnumValue> enums = [];
 
-  Enum(this.name, String definition, [this.docs]) {
+  Enum(this.name, this.scriptLocation, String definition, [this.docs]) {
     _parse(Tokenizer(definition).tokenize());
   }
 
   String get elementTypeName => '$servicePackage.element.$name';
 
   void generateEnum(JavaGenerator gen) {
-    gen.writeType(elementTypeName, (TypeWriter writer) {
+    gen.writeType(elementTypeName, scriptLocation, (TypeWriter writer) {
       writer.javadoc = convertDocLinks(docs);
       writer.isEnum = true;
       enums.sort((v1, v2) => v1.name!.compareTo(v2.name!));
@@ -493,13 +501,14 @@ class MemberType extends Member {
 
 class Method extends Member {
   final String name;
+  final String scriptLocation;
   final String? docs;
 
   MemberType returnType = MemberType();
   bool deprecated = false;
   List<MethodArg> args = [];
 
-  Method(this.name, String definition, [this.docs]) {
+  Method(this.name, this.scriptLocation, String definition, [this.docs]) {
     _parse(Tokenizer(definition).tokenize());
   }
 
@@ -518,7 +527,7 @@ class Method extends Member {
   bool get hasOptionalArgs => args.any((MethodArg arg) => arg.optional);
 
   void generateConsumerInterface(JavaGenerator gen) {
-    gen.writeType(consumerTypeName, (TypeWriter writer) {
+    gen.writeType(consumerTypeName, scriptLocation, (TypeWriter writer) {
       writer.javadoc = convertDocLinks(returnType.docs);
       writer.interfaceNames.add('$servicePackage.consumer.Consumer');
       writer.isInterface = true;
@@ -638,7 +647,8 @@ class MethodArg extends Member {
   }
 
   /// TODO: Hacked enum arg type determination
-  bool get isEnumType => name == 'step' || name == 'mode';
+  bool get isEnumType =>
+      name == 'step' || name == 'mode' || name == 'exceptionPauseMode';
 }
 
 class MethodParser extends Parser {
@@ -748,13 +758,15 @@ class TextOutputVisitor implements NodeVisitor {
 
 class Type extends Member {
   final Api parent;
+  final String scriptLocation;
   String? rawName;
   String? name;
   String? superName;
   final String? docs;
   List<TypeField> fields = [];
 
-  Type(this.parent, String categoryName, String definition, [this.docs]) {
+  Type(this.parent, this.scriptLocation, String categoryName, String definition,
+      [this.docs]) {
     _parse(Tokenizer(definition).tokenize());
   }
 
@@ -783,7 +795,8 @@ class Type extends Member {
       api.types.toList()..retainWhere((t) => t!.superName == name);
 
   void generateElement(JavaGenerator gen) {
-    gen.writeType('$servicePackage.element.$name', (TypeWriter writer) {
+    gen.writeType('$servicePackage.element.$name', scriptLocation,
+        (TypeWriter writer) {
       if (fields.any((f) => f.type.types.any((t) => t.isArray))) {
         writer.addImport('com.google.gson.JsonObject');
       }

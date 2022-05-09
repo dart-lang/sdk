@@ -491,6 +491,25 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return result;
   }
 
+  List<Class> getAllSupertypeClassesForTesting(Class class_) {
+    List<Class?> allClassesByIndex =
+        new List<Class?>.filled(_infoMap.length, null);
+    for (MapEntry<Class, _ClassInfo> c in _infoMap.entries) {
+      allClassesByIndex[c.value.topologicalIndex] = c.key;
+    }
+
+    List<Class> result = [];
+    Uint32List list = _infoMap[class_]!.supertypeIntervalList;
+    for (int i = 0; i < list.length; i += 2) {
+      int from = list[i];
+      int to = list[i + 1];
+      for (int j = from; j < to; j++) {
+        result.add(allClassesByIndex[j]!);
+      }
+    }
+    return result;
+  }
+
   _ClassInfo infoFor(Class cls) {
     _ClassInfo? info = _infoMap[cls];
     if (info == null) {
@@ -929,7 +948,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (_recordedAmbiguousSupertypes.isNotEmpty &&
         reissueAmbiguousSupertypesFor != null) {
       Set<Library> libs =
-          new Set<Library>.from(reissueAmbiguousSupertypesFor.libraries);
+          new Set<Library>.of(reissueAmbiguousSupertypesFor.libraries);
       for (Class class_ in _recordedAmbiguousSupertypes.keys) {
         if (!libs.contains(class_.enclosingLibrary)) continue;
         List<Supertype> recorded = _recordedAmbiguousSupertypes[class_]!;
@@ -1714,7 +1733,7 @@ class ClassSet extends IterableBase<Class> {
   }
 
   ClassSet union(ClassSet other) {
-    Set<Class> result = new Set<Class>.from(_classes);
+    Set<Class> result = new Set<Class>.of(_classes);
     result.addAll(other._classes);
     return new ClassSet(result);
   }

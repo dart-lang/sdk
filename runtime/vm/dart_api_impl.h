@@ -129,7 +129,7 @@ const char* CanonicalFunction(const char* func);
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   do {                                                                         \
   } while (false)
-#endif  // !PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 class Api : AllStatic {
  public:
@@ -180,12 +180,6 @@ class Api : AllStatic {
 
   // Gets the handle used to designate successful return.
   static Dart_Handle Success() { return Api::True(); }
-
-  // Gets the handle which holds the pre-created acquired error object.
-  static Dart_Handle AcquiredError(IsolateGroup* isolate_group);
-
-  // Gets the handle for unwind-is-in-progress error.
-  static Dart_Handle UnwindInProgressError();
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
@@ -240,6 +234,22 @@ class Api : AllStatic {
 
   // Gets a handle to EmptyString.
   static Dart_Handle EmptyString() { return empty_string_handle_; }
+
+  // Gets the handle which holds the pre-created acquired error object.
+  static Dart_Handle NoCallbacksError() { return no_callbacks_error_handle_; }
+
+  // Gets the handle for unwind-is-in-progress error.
+  static Dart_Handle UnwindInProgressError() {
+    return unwind_in_progress_error_handle_;
+  }
+
+  static bool IsProtectedHandle(Dart_Handle object) {
+    if (object == NULL) return false;
+    return (object == true_handle_) || (object == false_handle_) ||
+           (object == null_handle_) || (object == empty_string_handle_) ||
+           (object == no_callbacks_error_handle_) ||
+           (object == unwind_in_progress_error_handle_);
+  }
 
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Thread* thread);
@@ -314,6 +324,8 @@ class Api : AllStatic {
   static Dart_Handle false_handle_;
   static Dart_Handle null_handle_;
   static Dart_Handle empty_string_handle_;
+  static Dart_Handle no_callbacks_error_handle_;
+  static Dart_Handle unwind_in_progress_error_handle_;
 
   friend class ApiNativeScope;
 };
@@ -322,12 +334,17 @@ class Api : AllStatic {
 #define START_NO_CALLBACK_SCOPE(thread) thread->IncrementNoCallbackScopeDepth()
 
 // End a no Dart API call backs Scope.
-#define END_NO_CALLBACK_SCOPE(thread) thread->DecrementNoCallbackScopeDepth()
+#define END_NO_CALLBACK_SCOPE(thread)                                          \
+  do {                                                                         \
+    thread->DecrementNoCallbackScopeDepth();                                   \
+    if (thread->no_callback_scope_depth() == 0) {                              \
+      thread->heap()->CheckExternalGC(thread);                                 \
+    }                                                                          \
+  } while (false)
 
 #define CHECK_CALLBACK_STATE(thread)                                           \
   if (thread->no_callback_scope_depth() != 0) {                                \
-    return reinterpret_cast<Dart_Handle>(                                      \
-        Api::AcquiredError(thread->isolate_group()));                          \
+    return reinterpret_cast<Dart_Handle>(Api::NoCallbacksError());             \
   }                                                                            \
   if (thread->is_unwind_in_progress()) {                                       \
     return reinterpret_cast<Dart_Handle>(Api::UnwindInProgressError());        \

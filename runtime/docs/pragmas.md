@@ -11,6 +11,7 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:prefer-inline` | [Inline a function or method when possible](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-be-inlined) |
 | `vm:notify-debugger-on-exception` | Marks a function that catches exceptions, making the VM treat any caught exception as if they were uncaught. This can be used to notify an attached debugger during debugging, without pausing the app during regular execution. |
 | `vm:external-name` | Allows to specify an external (native) name for an `external` function. This name is used to lookup native implementation via native resolver associated with the current library through embedding APIs. This is a replacement for legacy VM specific `native "name"` syntax. |
+| `vm:invisible` | Allows to mark a function as invisible so it will not appear on stack traces. |
 
 ## Unsafe pragmas for general use
 
@@ -41,3 +42,14 @@ Additionally, they are categorized into "safe" and "unsafe" forms: "safe" pragma
 | Pragma | Meaning |
 | --- | --- |
 | `vm:testing.unsafe.trace-entrypoints-fn` | [Observing which flow-graph-level entry-point was used when a function was called](compiler/frontend/testing_trace_entrypoints_pragma.md) |
+
+## Flutter toString transformer pragmas
+
+These pragmas are useful to exclude certain toString methods from toString transformation,
+which is enabled with `--delete-tostring-package-uri` option in kernel compilers and
+used by Flutter to remove certain toString methods in release mode to reduce size.
+
+| Pragma | Meaning |
+| --- | --- |
+| `flutter:keep-to-string` | Avoid transforming the annotated toString method. |
+| `flutter:keep-to-string-in-subtypes` | Avoid transforming toString methods in all subtypes of the annotated class. |

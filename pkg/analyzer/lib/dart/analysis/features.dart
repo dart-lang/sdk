@@ -34,6 +34,9 @@ abstract class Feature {
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
+  /// Feature information for inference-update-1.
+  static final inference_update_1 = ExperimentalFeatures.inference_update_1;
+
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 

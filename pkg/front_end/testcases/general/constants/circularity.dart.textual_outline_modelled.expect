@@ -1,19 +1,18 @@
-// @dart = 2.9
 class Class1 {
-  const Class1({Class1 c = const Class1(c: null)});
+  const Class1({Class1? c = const Class1(c: null)});
 }
 
 class Class2 {
   const Class2(int value) : field = value == 0 ? null : const Class2(0);
-  final Class2 field;
+  final Class2? field;
 }
 
 class Class3 {
-  const Class3([Class3 c = c3_1]);
+  const Class3([Class3? c = c3_1]);
 }
 
 class Class4 {
-  const Class4({Class4 c = const Class4()});
+  const Class4({Class4? c = const Class4()});
 }
 
 const Class1 c1_0 = const Class1();

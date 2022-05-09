@@ -69,7 +69,7 @@ class ImportOrganizer {
 
   /// Organize all [Directive]s.
   void _organizeDirectives() {
-    var lineInfo = unit.lineInfo ?? LineInfo.fromContent(code);
+    var lineInfo = unit.lineInfo;
     var hasLibraryDirective = false;
     var directives = <_DirectiveInfo>[];
     // Track the end offset of any library-level comment/annotations that should

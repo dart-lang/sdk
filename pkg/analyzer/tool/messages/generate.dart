@@ -63,7 +63,7 @@ class _AnalyzerErrorGenerator {
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 ''');
 
   _AnalyzerErrorGenerator(this.errorClasses);

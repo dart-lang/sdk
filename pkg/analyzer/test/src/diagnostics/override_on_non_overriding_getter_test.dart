@@ -15,42 +15,84 @@ main() {
 
 @reflectiveTest
 class OverrideOnNonOverridingGetterTest extends PubPackageResolutionTest {
-  test_inInterface() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get m => 0;
-}
-class B implements A {
-  @override
-  int get m => 1;
-}''');
-  }
-
-  test_inSupertype() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get m => 0;
-}
-class B extends A {
-  @override
-  int get m => 1;
-}''');
-  }
-
-  test_invalid_class() async {
+  test_class() async {
     await assertErrorsInCode(r'''
-class A {}
-
-class B extends A {
+class A {
   @override
-  int get foo => 1;
+  int get foo => 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 54, 3),
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
     ]);
   }
 
-  test_invalid_extension() async {
+  test_class_extends() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  @override
+  int get foo => 0;
+}
+''');
+  }
+
+  test_class_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+class B implements A {
+  @override
+  int get foo => 0;
+}
+''');
+  }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  @override
+  int get foo => 0;
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 36, 3),
+    ]);
+  }
+
+  test_enum_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+enum E implements A {
+  v;
+  @override
+  int get foo => 0;
+}
+''');
+  }
+
+  test_enum_with() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get foo => 0;
+}
+
+enum E with M {
+  v;
+  @override
+  int get foo => 0;
+}
+''');
+  }
+
+  test_extension() async {
     await assertErrorsInCode(r'''
 extension E on int {
   @override
@@ -61,16 +103,14 @@ extension E on int {
     ]);
   }
 
-  test_invalid_mixin() async {
+  test_mixin() async {
     await assertErrorsInCode(r'''
-class A {}
-
-mixin M on A {
+mixin M {
   @override
-  int get foo => 1;
+  int get foo => 0;
 }
 ''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 49, 3),
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
     ]);
   }
 }

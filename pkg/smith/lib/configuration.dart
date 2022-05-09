@@ -577,13 +577,15 @@ class Architecture extends NamedEnum {
   static const x64c = Architecture._('x64c');
   static const arm = Architecture._('arm');
   static const arm_x64 = Architecture._('arm_x64');
-  static const armv6 = Architecture._('armv6');
   static const arm64 = Architecture._('arm64');
   static const arm64c = Architecture._('arm64c');
   static const simarm = Architecture._('simarm');
-  static const simarmv6 = Architecture._('simarmv6');
   static const simarm64 = Architecture._('simarm64');
   static const simarm64c = Architecture._('simarm64c');
+  static const riscv32 = Architecture._('riscv32');
+  static const riscv64 = Architecture._('riscv64');
+  static const simriscv32 = Architecture._('simriscv32');
+  static const simriscv64 = Architecture._('simriscv64');
 
   static final List<String> names = _all.keys.toList();
 
@@ -592,14 +594,16 @@ class Architecture extends NamedEnum {
     x64,
     x64c,
     arm,
-    armv6,
     arm_x64,
     arm64,
     arm64c,
     simarm,
-    simarmv6,
     simarm64,
     simarm64c,
+    riscv32,
+    riscv64,
+    simriscv32,
+    simriscv64,
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {
@@ -616,6 +620,7 @@ class Compiler extends NamedEnum {
   static const none = Compiler._('none');
   static const dart2js = Compiler._('dart2js');
   static const dart2analyzer = Compiler._('dart2analyzer');
+  static const dart2wasm = Compiler._('dart2wasm');
   static const compareAnalyzerCfe = Compiler._('compare_analyzer_cfe');
   static const dartdevc = Compiler._('dartdevc');
   static const dartdevk = Compiler._('dartdevk');
@@ -631,6 +636,7 @@ class Compiler extends NamedEnum {
     none,
     dart2js,
     dart2analyzer,
+    dart2wasm,
     compareAnalyzerCfe,
     dartdevc,
     dartdevk,
@@ -683,6 +689,12 @@ class Compiler extends NamedEnum {
           Runtime.safari,
         ];
 
+      case Compiler.dart2wasm:
+        return const [
+          Runtime.none,
+          Runtime.d8,
+          Runtime.chrome,
+        ];
       case Compiler.dart2analyzer:
       case Compiler.compareAnalyzerCfe:
         return const [Runtime.none];
@@ -707,6 +719,8 @@ class Compiler extends NamedEnum {
   Runtime get defaultRuntime {
     switch (this) {
       case Compiler.dart2js:
+        return Runtime.d8;
+      case Compiler.dart2wasm:
         return Runtime.d8;
       case Compiler.dartdevc:
       case Compiler.dartdevk:
@@ -734,6 +748,7 @@ class Compiler extends NamedEnum {
       case Compiler.dart2analyzer:
       case Compiler.compareAnalyzerCfe:
       case Compiler.dart2js:
+      case Compiler.dart2wasm:
       case Compiler.dartdevc:
       case Compiler.dartdevk:
       case Compiler.fasta:

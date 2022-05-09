@@ -6,7 +6,7 @@
 /// compiled to JavaScript.
 library dart2js.constant_system;
 
-import '../common_elements.dart' show CommonElements;
+import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
@@ -27,6 +27,7 @@ const greaterEqual = GreaterEqualOperation();
 const greater = GreaterOperation();
 const identity = IdentityOperation();
 const ifNull = IfNullOperation();
+const index = _IndexOperation();
 const lessEqual = LessEqualOperation();
 const less = LessOperation();
 const modulo = ModuloOperation();
@@ -988,6 +989,38 @@ class ToIntOperation implements UnaryOperation {
     // operations that truncate.
     return null;
   }
+}
+
+class _IndexOperation implements BinaryOperation {
+  @override
+  final String name = '[]';
+
+  const _IndexOperation();
+
+  @override
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    if (left is ListConstantValue) {
+      if (right is IntConstantValue) {
+        List<ConstantValue> entries = left.entries;
+        if (right.isUInt32()) {
+          int index = right.intValue.toInt();
+          if (index >= 0 && index < entries.length) {
+            return entries[index];
+          }
+        }
+      }
+    }
+    if (left is MapConstantValue) {
+      ConstantValue value = left.lookup(right);
+      if (value != null) return value;
+      return const NullConstantValue();
+    }
+
+    return null;
+  }
+
+  @override
+  apply(left, right) => throw UnsupportedError('punned indexing');
 }
 
 class UnfoldedUnaryOperation implements UnaryOperation {

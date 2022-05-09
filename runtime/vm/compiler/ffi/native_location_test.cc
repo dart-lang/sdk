@@ -35,6 +35,51 @@ UNIT_TEST_CASE_WITH_ZONE(NativeStackLocation_Split) {
   EXPECT_EQ(4, half_1.offset_in_bytes());
 }
 
+// Regression test for NativeFpuRegistersLocation::Equals not considering kind
+// when comparing.
+UNIT_TEST_CASE_WITH_ZONE(NativeStackLocation_Equals) {
+  const auto& native_type = *new (Z) NativePrimitiveType(kInt8);
+
+  // Two FPU registers of the same kind and number are equal.
+  {
+    const auto& native_location1 = *new (Z) NativeFpuRegistersLocation(
+        native_type, native_type, kQuadFpuReg,
+        /*fpu_register=*/0);
+
+    const auto& native_location2 = *new (Z) NativeFpuRegistersLocation(
+        native_type, native_type, kQuadFpuReg,
+        /*fpu_register=*/0);
+
+    EXPECT(native_location1.Equals(native_location2));
+  }
+
+  // Two FPU registers with different numbers are NOT equal.
+  {
+    const auto& native_location1 = *new (Z) NativeFpuRegistersLocation(
+        native_type, native_type, kQuadFpuReg,
+        /*fpu_register=*/2);
+
+    const auto& native_location2 = *new (Z) NativeFpuRegistersLocation(
+        native_type, native_type, kQuadFpuReg,
+        /*fpu_register=*/4);
+
+    EXPECT(!native_location1.Equals(native_location2));
+  }
+
+  // Two FPU registers with different kinds are NOT equal.
+  {
+    const auto& native_location1 = *new (Z) NativeFpuRegistersLocation(
+        native_type, native_type, kQuadFpuReg,
+        /*fpu_register=*/3);
+
+    const auto& native_location2 = *new (Z) NativeFpuRegistersLocation(
+        native_type, native_type, kDoubleFpuReg,
+        /*fpu_register=*/3);
+
+    EXPECT(!native_location1.Equals(native_location2));
+  }
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

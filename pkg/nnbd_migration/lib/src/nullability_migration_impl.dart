@@ -49,8 +49,6 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
-  final LineInfo Function(String) _getLineInfo;
-
   /// Map from [Source] object to a boolean indicating whether the source is
   /// opted in to null safety.
   final Map<Source, bool> _libraryOptInStatus = {};
@@ -77,28 +75,27 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
   NullabilityMigrationImpl(NullabilityMigrationListener? listener,
-      LineInfo Function(String) getLineInfo,
       {bool? permissive = false,
       NullabilityMigrationInstrumentation? instrumentation,
       bool? removeViaComments = false,
       bool? warnOnWeakCode = true})
       : this._(
-            listener,
-            NullabilityGraph(instrumentation: instrumentation),
-            permissive,
-            instrumentation,
-            removeViaComments,
-            warnOnWeakCode,
-            getLineInfo);
+          listener,
+          NullabilityGraph(instrumentation: instrumentation),
+          permissive,
+          instrumentation,
+          removeViaComments,
+          warnOnWeakCode,
+        );
 
   NullabilityMigrationImpl._(
-      this.listener,
-      this._graph,
-      this._permissive,
-      this._instrumentation,
-      this.removeViaComments,
-      this.warnOnWeakCode,
-      this._getLineInfo) {
+    this.listener,
+    this._graph,
+    this._permissive,
+    this._instrumentation,
+    this.removeViaComments,
+    this.warnOnWeakCode,
+  ) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
   }
 
@@ -199,20 +196,15 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     _recordTransitiveImportExportOptInStatus(
         result.libraryElement.exportedLibraries);
     if (_variables == null) {
-      _variables = Variables(_graph, result.typeProvider, _getLineInfo,
+      _variables = Variables(_graph, result.typeProvider,
           instrumentation: _instrumentation);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
     var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
-      unit.accept(NodeBuilder(
-          _variables,
-          unit.declaredElement!.source,
-          _permissive! ? listener : null,
-          _graph,
-          result.typeProvider,
-          _getLineInfo,
+      unit.accept(NodeBuilder(_variables, unit.declaredElement!.source,
+          _permissive! ? listener : null, _graph, result.typeProvider,
           instrumentation: _instrumentation));
     } finally {
       DecoratedTypeParameterBounds.current = null;

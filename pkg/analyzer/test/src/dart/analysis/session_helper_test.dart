@@ -28,7 +28,7 @@ class AnalysisSessionHelperTest extends PubPackageResolutionTest {
   }
 
   test_getClass_defined() async {
-    var file = newFile('$testPackageLibPath/c.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/c.dart', r'''
 class C {}
 int v = 0;
 ''');
@@ -39,7 +39,7 @@ int v = 0;
   }
 
   test_getClass_defined_notClass() async {
-    var file = newFile('$testPackageLibPath/c.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/c.dart', r'''
 int v = 0;
 ''');
     String uri = file.toUri().toString();
@@ -49,10 +49,10 @@ int v = 0;
   }
 
   test_getClass_exported() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
-    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
+    var bFile = newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -62,10 +62,10 @@ export 'a.dart';
   }
 
   test_getClass_imported() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
-    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
+    var bFile = newFile2('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -95,7 +95,7 @@ class B {}
   }
 
   test_getTopLevelPropertyAccessor_defined_getter() async {
-    var file = newFile('$testPackageLibPath/test.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/test.dart', r'''
 int get a => 0;
 ''');
     String uri = file.toUri().toString();
@@ -106,7 +106,7 @@ int get a => 0;
   }
 
   test_getTopLevelPropertyAccessor_defined_setter() async {
-    var file = newFile('$testPackageLibPath/test.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/test.dart', r'''
 set a(_) {}
 ''');
     String uri = file.toUri().toString();
@@ -117,7 +117,7 @@ set a(_) {}
   }
 
   test_getTopLevelPropertyAccessor_defined_variable() async {
-    var file = newFile('$testPackageLibPath/test.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/test.dart', r'''
 int a;
 ''');
     String uri = file.toUri().toString();
@@ -128,10 +128,10 @@ int a;
   }
 
   test_getTopLevelPropertyAccessor_exported() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int a;
 ''');
-    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
+    var bFile = newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -142,10 +142,10 @@ export 'a.dart';
   }
 
   test_getTopLevelPropertyAccessor_imported() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int a;
 ''');
-    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
+    var bFile = newFile2('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -155,7 +155,7 @@ import 'a.dart';
   }
 
   test_getTopLevelPropertyAccessor_notDefined() async {
-    var file = newFile('$testPackageLibPath/test.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/test.dart', r'''
 int a;
 ''');
     String uri = file.toUri().toString();
@@ -165,7 +165,7 @@ int a;
   }
 
   test_getTopLevelPropertyAccessor_notPropertyAccessor() async {
-    var file = newFile('$testPackageLibPath/test.dart', content: r'''
+    var file = newFile2('$testPackageLibPath/test.dart', r'''
 int a() {}
 ''');
     String uri = file.toUri().toString();

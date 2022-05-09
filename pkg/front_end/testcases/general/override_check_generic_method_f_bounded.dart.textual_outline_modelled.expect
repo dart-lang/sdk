@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class Bar {
   void fisk<S extends Foo<S>>();
 }

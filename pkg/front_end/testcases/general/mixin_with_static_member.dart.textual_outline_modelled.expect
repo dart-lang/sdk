@@ -1,12 +1,11 @@
-// @dart = 2.9
 class A extends B with M {}
 
 class B {
-  final Object m = null;
+  final Object m = new Object();
 }
 
 class M {
-  static Object m() => null;
+  static Object m() => new Object();
 }
 
 main() {}

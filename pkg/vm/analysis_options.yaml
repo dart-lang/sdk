@@ -4,5 +4,4 @@
 
 analyzer:
   exclude:
-    - testcases/**
     - tool/**

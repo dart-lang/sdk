@@ -72,7 +72,7 @@ static method test6() → asy::Stream<core::bool>
 static method test7() → asy::Stream<core::bool> async* {
   yield* self::getStreamBool();
 }
-static method test() → dynamic async {
+static method test() → dynamic async /* futureValueType= dynamic */ {
   function test1() → asy::Stream<core::bool> async* {
     yield self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
   }

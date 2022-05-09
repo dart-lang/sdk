@@ -317,6 +317,13 @@ void ThreadPool::Worker::StartThread() {
 }
 
 void ThreadPool::Worker::Main(uword args) {
+  // Call the thread start hook here to notify the embedder that the
+  // thread pool thread has started.
+  Dart_ThreadStartCallback start_cb = Dart::thread_start_callback();
+  if (start_cb != nullptr) {
+    start_cb();
+  }
+
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
 
@@ -343,8 +350,9 @@ void ThreadPool::Worker::Main(uword args) {
 
   // Call the thread exit hook here to notify the embedder that the
   // thread pool thread is exiting.
-  if (Dart::thread_exit_callback() != NULL) {
-    (*Dart::thread_exit_callback())();
+  Dart_ThreadExitCallback exit_cb = Dart::thread_exit_callback();
+  if (exit_cb != nullptr) {
+    exit_cb();
   }
 }
 

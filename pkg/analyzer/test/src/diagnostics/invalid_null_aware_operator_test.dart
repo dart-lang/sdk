@@ -195,7 +195,7 @@ f() {
   }
 
   test_getter_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -249,7 +249,7 @@ f(int? x) {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_getter_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''
@@ -264,7 +264,7 @@ f() {
   }
 
   test_index_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = [0];
 ''');
@@ -327,7 +327,7 @@ f() {
   }
 
   test_method_legacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -386,7 +386,7 @@ f(List<int> x) {
   }
 
   test_nullableSpread_legacyType() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = <int>[];
 ''');
@@ -460,7 +460,7 @@ f() {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_setter_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''

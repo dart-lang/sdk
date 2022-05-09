@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/issue48714.dart:13:18: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+//   Extended.three(const super.value); // Error.
+//                  ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::Object {
+  field core::int value;
+  constructor •(core::int value) → self::Base
+    ;
+}
+class Extended extends self::Base {
+  constructor one(final core::int value) → self::Extended
+    ;
+  constructor two(core::int value) → self::Extended
+    ;
+  constructor three(core::int value) → self::Extended
+    ;
+}
+static method main() → dynamic
+  ;

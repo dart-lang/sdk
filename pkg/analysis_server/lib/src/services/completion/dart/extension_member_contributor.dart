@@ -37,29 +37,23 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         return;
       }
 
-      var classOrMixin = request.target.containingNode
-          .thisOrAncestorOfType<ClassOrMixinDeclaration>();
-      if (classOrMixin != null) {
-        var type = classOrMixin.declaredElement?.thisType;
-        if (type != null) {
-          _addExtensionMembers(extensions, defaultKind, type);
-        }
+      var thisClassType = request.target.enclosingClassElement?.thisType;
+      if (thisClassType != null) {
+        _addExtensionMembers(extensions, defaultKind, thisClassType);
       } else {
-        var extension = request.target.containingNode
-            .thisOrAncestorOfType<ExtensionDeclaration>();
-        if (extension != null) {
-          var extendedType = extension.extendedType.type;
-          if (extendedType is InterfaceType) {
-            var types = [extendedType, ...extendedType.allSupertypes];
-            for (var type in types) {
-              var inheritanceDistance = memberBuilder.request.featureComputer
-                  .inheritanceDistanceFeature(
-                      extendedType.element, type.element);
-              _addTypeMembers(type, defaultKind, inheritanceDistance);
-            }
-            _addExtensionMembers(extensions, defaultKind, extendedType);
+        var thisExtendedType =
+            request.target.enclosingExtensionElement?.extendedType;
+        if (thisExtendedType is InterfaceType) {
+          var types = [thisExtendedType, ...thisExtendedType.allSupertypes];
+          for (var type in types) {
+            var inheritanceDistance = memberBuilder.request.featureComputer
+                .inheritanceDistanceFeature(
+                    thisExtendedType.element, type.element);
+            _addTypeMembers(type, defaultKind, inheritanceDistance);
           }
+          _addExtensionMembers(extensions, defaultKind, thisExtendedType);
         }
+        // TODO(scheglov) It seems that we don't support non-interface types.
       }
       return;
     }
@@ -114,7 +108,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   }
 
   void _addExtensionMembers(List<ExtensionElement> extensions,
-      CompletionSuggestionKind? kind, DartType type) {
+      CompletionSuggestionKind kind, DartType type) {
     var applicableExtensions = extensions.applicableTo(
       targetLibrary: request.libraryElement,
       targetType: type,
@@ -134,7 +128,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   }
 
   void _addInstanceMembers(ExtensionElement extension,
-      CompletionSuggestionKind? kind, double inheritanceDistance) {
+      CompletionSuggestionKind kind, double inheritanceDistance) {
     for (var method in extension.methods) {
       if (!method.isStatic) {
         memberBuilder.addSuggestionForMethod(
@@ -151,7 +145,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     }
   }
 
-  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind? kind,
+  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind kind,
       double inheritanceDistance) {
     for (var method in type.methods) {
       memberBuilder.addSuggestionForMethod(

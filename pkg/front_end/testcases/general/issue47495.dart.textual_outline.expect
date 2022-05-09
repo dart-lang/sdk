@@ -1,6 +1,8 @@
-// @dart = 2.9
+// @dart = 2.13
 class S {}
+
 class M {}
+
 typedef SAlias = S;
 typedef MAlias = M;
 class C = SAlias with MAlias;

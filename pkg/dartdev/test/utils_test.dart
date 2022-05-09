@@ -37,10 +37,6 @@ void main() {
   });
 
   group('trimEnd', () {
-    test('null string', () {
-      expect(trimEnd(null, 'suffix'), null);
-    });
-
     test('null suffix', () {
       expect(trimEnd('string', null), 'string');
     });
@@ -61,10 +57,11 @@ void main() {
   group('castStringKeyedMap', () {
     test('fails', () {
       dynamic contents = json.decode(_packageData);
-      List<dynamic> _packages = contents['packages'];
+      List<dynamic> packages = contents['packages'];
       try {
         // ignore: unused_local_variable
-        List<Map<String, dynamic>> packages = _packages;
+        List<Map<String, dynamic>> mappedPackages =
+            packages as List<Map<String, dynamic>>;
         fail('expected implicit cast to fail');
       } on TypeError {
         // TypeError is expected
@@ -73,10 +70,10 @@ void main() {
 
     test('succeeds', () {
       dynamic contents = json.decode(_packageData);
-      List<dynamic> _packages = contents['packages'];
-      List<Map<String, dynamic>> packages =
-          _packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
-      expect(packages, isList);
+      List<dynamic> packages = contents['packages'];
+      List<Map<String, dynamic>> mappedPackages =
+          packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
+      expect(mappedPackages, isList);
     });
   });
 

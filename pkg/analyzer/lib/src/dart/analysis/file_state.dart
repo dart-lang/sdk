@@ -40,6 +40,7 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as package_path;
 import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
@@ -550,11 +551,11 @@ class FileState {
       source,
       errorListener,
       featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
     unit.languageVersion = LibraryLanguageVersion(
       package: packageLanguageVersion,
       override: scanner.overrideVersion,
@@ -599,6 +600,7 @@ class FileState {
     var exports = <UnlinkedNamespaceDirective>[];
     var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
+    var macroClasses = <MacroClass>[];
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
@@ -621,6 +623,25 @@ class FileState {
         hasPartOfDirective = true;
       }
     }
+    for (var declaration in unit.declarations) {
+      if (declaration is ClassDeclarationImpl) {
+        if (declaration.macroKeyword != null) {
+          var constructors = declaration.members
+              .whereType<ConstructorDeclaration>()
+              .map((e) => e.name?.name ?? '')
+              .where((e) => !e.startsWith('_'))
+              .toList();
+          if (constructors.isNotEmpty) {
+            macroClasses.add(
+              MacroClass(
+                name: declaration.name.name,
+                constructors: constructors,
+              ),
+            );
+          }
+        }
+      }
+    }
     if (!hasDartCoreImport) {
       imports.add(
         UnlinkedNamespaceDirective(
@@ -636,7 +657,8 @@ class FileState {
       hasPartOfDirective: hasPartOfDirective,
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
-      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
+      lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
+      macroClasses: macroClasses,
       partOfName: null,
       partOfUri: null,
       parts: parts,
@@ -763,6 +785,8 @@ class FileSystemState {
   }) : _fileContentCache = fileContentCache {
     _testView = FileSystemStateTestView(this);
   }
+
+  package_path.Context get pathContext => _resourceProvider.pathContext;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -977,14 +1001,18 @@ class FileSystemStateTestView {
 /// expensive to work with, if we do this thousand times.
 class FileUriProperties {
   static const int _isDart = 1 << 0;
-  static const int _isSrc = 1 << 1;
+  static const int _isDartInternal = 1 << 1;
+  static const int _isSrc = 1 << 2;
 
   final int _flags;
   final String? packageName;
 
   factory FileUriProperties(Uri uri) {
     if (uri.isScheme('dart')) {
-      return const FileUriProperties._dart();
+      var dartName = uri.pathSegments.firstOrNull;
+      return FileUriProperties._dart(
+        isInternal: dartName != null && dartName.startsWith('_'),
+      );
     } else if (uri.isScheme('package')) {
       var segments = uri.pathSegments;
       if (segments.length >= 2) {
@@ -997,21 +1025,23 @@ class FileUriProperties {
     return const FileUriProperties._unknown();
   }
 
-  const FileUriProperties._dart()
-      : _flags = _isDart,
+  const FileUriProperties._dart({
+    required bool isInternal,
+  })  : _flags = _isDart | (isInternal ? _isDartInternal : 0),
         packageName = null;
 
   FileUriProperties._package({
-    required String packageName,
+    required this.packageName,
     required bool isSrc,
-  })  : _flags = isSrc ? _isSrc : 0,
-        packageName = packageName;
+  }) : _flags = isSrc ? _isSrc : 0;
 
   const FileUriProperties._unknown()
       : _flags = 0,
         packageName = null;
 
   bool get isDart => (_flags & _isDart) != 0;
+
+  bool get isDartInternal => (_flags & _isDartInternal) != 0;
 
   bool get isSrc => (_flags & _isSrc) != 0;
 }

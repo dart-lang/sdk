@@ -1479,6 +1479,41 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  test_functionType_74() {
+    var T1 = typeParameter('T');
+    var R1 = typeParameter(
+      'R',
+      bound: typeParameterType(
+        T1,
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
+
+    var T2 = typeParameter('T');
+    var R2 = typeParameter(
+      'R',
+      bound: typeParameterType(
+        T2,
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+    );
+
+    // Note, the order `R extends T`, then `T` is important.
+    // We test that all type parameters replaced at once, not as we go.
+    isSubtype(
+      functionTypeNone(
+        typeFormals: [R1, T1],
+        returnType: voidNone,
+      ),
+      functionTypeNone(
+        typeFormals: [R2, T2],
+        returnType: voidNone,
+      ),
+      strT0: 'void Function<R extends T, T>()',
+      strT1: 'void Function<R extends T, T>()',
+    );
+  }
+
   test_functionType_generic_nested() {
     var E0 = typeParameter('E0');
     var F0 = typeParameter('F0');
@@ -6026,7 +6061,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
       var str = '';
 
       var boundStr = bound.getDisplayString(withNullability: true);
-      str += '${type.element.name} extends ' + boundStr;
+      str += '${type.element.name} extends $boundStr';
 
       typeParameters.add(str);
     }

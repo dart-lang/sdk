@@ -9,23 +9,21 @@ main() {
   // static error updater tool, so if you need to tweak the static error
   // expectations in this test, you may need to do so manually.
   print('Hello, World!\
+  //   ^
+  // [cfe] Can't find ')' to match '('.
+  //    ^
+  // [cfe] String starting with ' must end with '.
+  //                  ^
+  // [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE_STARTED
+  // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
+  // [cfe] The string '\' can't stand alone.
 ');
-// [error line 11, column 8, length 1]
-// [cfe] Can't find ')' to match '('.
-// [error line 11, column 9, length 1]
-// [cfe] String starting with ' must end with '.
-// [error line 11, column 23, length 1]
-// [analyzer] SYNTACTIC_ERROR.INVALID_UNICODE_ESCAPE
-// [cfe] An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.
-// [error line 11, column 23, length 1]
-// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
-// [error line 12, column 1, length 3]
+// [error column 1, length 3]
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
-// [error line 12, column 1]
 // [cfe] String starting with ' must end with '.
-// [error line 12, column 3, length 1]
+//^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 }
-// [error line 29, column 1, length 1]
+// [error column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Fisk {
   Fisk(int x) {}
   Fisk.named(int x) {}

@@ -71,7 +71,7 @@ Future<void> shakeAndRun(Uri source) async {
 }
 
 Future<void> compileAOT(Uri source) async {
-  final target = TestingVmTarget(TargetFlags());
+  final target = TestingVmTarget(TargetFlags(supportMirrors: false));
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 

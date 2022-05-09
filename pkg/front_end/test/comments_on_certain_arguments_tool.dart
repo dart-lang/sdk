@@ -88,7 +88,7 @@ Future<void> main(List<String> args) async {
   component = incrementalCompilerResult.component;
 
   for (Library library in component.libraries) {
-    if (library.importUri.scheme == "dart") continue;
+    if (library.importUri.isScheme("dart")) continue;
     // This isn't perfect because of parts, but (for now) it'll do.
     for (Uri uri in libUris) {
       if (library.fileUri.toString().startsWith(uri.toString())) {

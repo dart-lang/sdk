@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:macro/macro.dart" as mac;
+import "dart:core" as core;
+
+import "package:macro/macro.dart";
+
+@#C1
+class A extends core::Object {
+  field dynamic a = null;
+  field dynamic b = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ toString() → core::String {
+    return "A(a=${this.{self::A::a}{dynamic}},b=${this.{self::A::b}{dynamic}})";
+  }
+}
+@#C1
+class B extends core::Object {
+  field dynamic c = null;
+  field dynamic d = null;
+  field dynamic e = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ toString() → core::String {
+    return "B(c=${this.{self::B::c}{dynamic}},d=${this.{self::B::d}{dynamic}},e=${this.{self::B::e}{dynamic}})";
+  }
+}
+@#C1
+class C extends core::Object {
+  field dynamic f = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  @#C2
+  method toString() → core::String
+    return "C()";
+}
+class D extends core::Object {
+  field dynamic g = null;
+  field dynamic h = null;
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = mac::ToStringMacro {}
+  #C2 = core::_Override {}
+}

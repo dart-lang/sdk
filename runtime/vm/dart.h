@@ -29,24 +29,7 @@ class Dart : public AllStatic {
  public:
   // Returns null if initialization succeeds, otherwise returns an error message
   // (caller owns error message and has to free it).
-  static char* Init(const uint8_t* vm_snapshot_data,
-                    const uint8_t* vm_snapshot_instructions,
-                    Dart_IsolateGroupCreateCallback create_group,
-                    Dart_InitializeIsolateCallback initialize_isolate,
-                    Dart_IsolateShutdownCallback shutdown,
-                    Dart_IsolateCleanupCallback cleanup,
-                    Dart_IsolateGroupCleanupCallback cleanup_group,
-                    Dart_ThreadExitCallback thread_exit,
-                    Dart_FileOpenCallback file_open,
-                    Dart_FileReadCallback file_read,
-                    Dart_FileWriteCallback file_write,
-                    Dart_FileCloseCallback file_close,
-                    Dart_EntropySource entropy_source,
-                    Dart_GetVMServiceAssetsArchive get_service_assets,
-                    bool start_kernel_isolate,
-                    Dart_CodeObserver* observer,
-                    Dart_PostTaskCallback post_task,
-                    void* post_task_data);
+  static char* Init(const Dart_InitializeParams* params);
 
   // Returns null if cleanup succeeds, otherwise returns an error message
   // (caller owns error message and has to free it).
@@ -119,6 +102,12 @@ class Dart : public AllStatic {
                               Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
+  static Dart_ThreadStartCallback thread_start_callback() {
+    return thread_start_callback_;
+  }
+  static void set_thread_start_callback(Dart_ThreadStartCallback cback) {
+    thread_start_callback_ = cback;
+  }
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
   }
@@ -169,24 +158,7 @@ class Dart : public AllStatic {
   static Dart_GCEventCallback gc_event_callback() { return gc_event_callback_; }
 
  private:
-  static char* DartInit(const uint8_t* vm_snapshot_data,
-                        const uint8_t* vm_snapshot_instructions,
-                        Dart_IsolateGroupCreateCallback create_group,
-                        Dart_InitializeIsolateCallback initialize_isolate,
-                        Dart_IsolateShutdownCallback shutdown,
-                        Dart_IsolateCleanupCallback cleanup,
-                        Dart_IsolateGroupCleanupCallback cleanup_group,
-                        Dart_ThreadExitCallback thread_exit,
-                        Dart_FileOpenCallback file_open,
-                        Dart_FileReadCallback file_read,
-                        Dart_FileWriteCallback file_write,
-                        Dart_FileCloseCallback file_close,
-                        Dart_EntropySource entropy_source,
-                        Dart_GetVMServiceAssetsArchive get_service_assets,
-                        bool start_kernel_isolate,
-                        Dart_CodeObserver* observer,
-                        Dart_PostTaskCallback post_task,
-                        void* post_task_data);
+  static char* DartInit(const Dart_InitializeParams* params);
 
   static constexpr const char* kVmIsolateName = "vm-isolate";
 
@@ -199,6 +171,7 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
+  static Dart_ThreadStartCallback thread_start_callback_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;

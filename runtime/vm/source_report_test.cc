@@ -541,7 +541,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
       "\"_intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}]}],"
+      "\"tokenPos\":0,\"endTokenPos\":11,\"line\":1,\"column\":1}},\"count\":1}"
+      "]}]}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -602,7 +603,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27,\"line\":1,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
@@ -614,7 +616,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27,\"line\":1,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
       "},\"_kind\":\"RegularFunction\","
@@ -624,7 +627,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"location\":{\"type\":\"SourceLocation\","
       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25}},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25,\"line\":2,"
+      "\"column\":3}},"
 
       "\"count\":2},"
 
@@ -635,7 +639,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58,\"line\":4,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
@@ -647,7 +652,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58,\"line\":4,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
       "},\"_kind\":\"RegularFunction\","
@@ -657,7 +663,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"location\":{\"type\":\"SourceLocation\","
       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56}},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56,\"line\":5,"
+      "\"column\":3}},"
 
       "\"count\":1}]}]}],"
 
@@ -713,7 +720,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
       "intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}],\"coverage\":{"
+      "\"tokenPos\":0,\"endTokenPos\":11,\"line\":1,\"column\":1}},\"count\":1}"
+      "]}],\"coverage\":{"
       "\"hits\":[26,37],\"misses\":[]}}],"
 
       // One script in the script table.
@@ -1112,6 +1120,251 @@ main() {
       // main
       "{\"scriptIndex\":0,\"startPos\":114,\"endPos\":136,\"compiled\":true,"
       "\"coverage\":{\"hits\":[114,127],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_if) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+int ifTest(int x) {
+  if (x > 0) {
+    if (x > 10) {
+      return 10;
+    } else {
+      return 1;
+    }
+  } else {
+    return 0;
+  }
+}
+
+main() {
+  ifTest(1);
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kBranchCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // In ifTest, the outer true case is hit, the inner true case is missed,
+      // the inner false case is hit, and the outer false case is missed.
+      "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":135,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[1,34,82],\"misses\":[52,115]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":138,\"endPos\":160,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[138],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_loops) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+int loopTest() {
+  var x = 0;
+
+  while (x < 10) {
+    ++x;
+  }
+
+  do {
+    ++x;
+  } while (false);
+
+  for (int i = 0; i < 10; ++i) {
+    ++x;
+  }
+
+  for (final i in [1, 2, 3]) {
+    ++x;
+  }
+
+  return x;
+}
+
+main() {
+  loopTest();
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kBranchCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // In loopTest, the while loop, do-while loop, for loop, and for-in loop
+      // are all hit.
+      "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":205,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[1,49,70,132,177],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":208,\"endPos\":231,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[208],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_switch) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+int switchTest(int x) {
+  switch (x) {
+    case 0:
+      return 10;
+    case 1:
+      return 20;
+    default:
+      return 30;
+  }
+}
+
+main() {
+  switchTest(1);
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kBranchCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // In switchTest, the 1 case is hit and the others are missed.
+      "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":132,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[1,73],\"misses\":[44,102]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":135,\"endPos\":161,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[135],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_try) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+void tryTestInner() {
+  try {
+    throw "abc";
+  } catch (e) {
+  } finally {
+  }
+
+  try {
+    throw "def";
+  } finally {
+  }
+}
+
+void tryTestOuter() {
+  try {
+    tryTestInner();
+  } catch (e) {
+  }
+}
+
+main() {
+  tryTestOuter();
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kBranchCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // In tryTestInner, the try/catch/finally and the try/finally are all hit,
+      // and the try/finally rethrows its exception.
+      "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":126,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[1,29,62,76,89,120],\"misses\":[]}},"
+
+      // In tryTestOuter, the exception thrown by tryTestInner causes both the
+      // try and the catch to be hit.
+      "{\"scriptIndex\":0,\"startPos\":129,\"endPos\":199,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[129,157,193],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":202,\"endPos\":229,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[202],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","

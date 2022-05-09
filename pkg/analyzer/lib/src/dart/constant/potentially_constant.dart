@@ -188,7 +188,7 @@ class _Collector {
     }
 
     if (node is ConstructorReference) {
-      _typeArgumentList(node.constructorName.type2.typeArguments);
+      _typeArgumentList(node.constructorName.type.typeArguments);
       return;
     }
 
@@ -269,9 +269,9 @@ class _Collector {
 
   void _methodInvocation(MethodInvocation node) {
     var arguments = node.argumentList.arguments;
-    if (arguments.length == 2 && node.methodName.name == 'identical') {
-      var library = node.methodName.staticElement?.library;
-      if (library?.isDartCore == true) {
+    if (arguments.length == 2) {
+      var element = node.methodName.staticElement;
+      if (element is FunctionElement && element.isDartCoreIdentical) {
         collect(arguments[0]);
         collect(arguments[1]);
         return;

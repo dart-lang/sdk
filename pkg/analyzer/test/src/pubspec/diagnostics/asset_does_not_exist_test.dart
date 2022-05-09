@@ -25,7 +25,7 @@ flutter:
   }
 
   test_assetDoesNotExist_path_inRoot_noError() {
-    newFile('/sample/assets/my_icon.png');
+    newFile2('/sample/assets/my_icon.png', '');
     assertNoErrors('''
 name: sample
 flutter:
@@ -35,7 +35,7 @@ flutter:
   }
 
   test_assetDoesNotExist_path_inSubdir_noError() {
-    newFile('/sample/assets/images/2.0x/my_icon.png');
+    newFile2('/sample/assets/images/2.0x/my_icon.png', '');
     assertNoErrors('''
 name: sample
 flutter:

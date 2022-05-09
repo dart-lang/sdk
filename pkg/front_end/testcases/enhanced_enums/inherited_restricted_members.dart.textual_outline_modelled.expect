@@ -1,0 +1,60 @@
+abstract class A9 {
+  bool operator ==(Object other);
+  int get hashCode;
+  int get index;
+}
+
+class A1 {
+  int get hashCode => 42;
+}
+
+class A2 {
+  int get values => 42;
+}
+
+class A3 {
+  int get index => 42;
+}
+
+class A4 {
+  bool operator ==(Object other) => true;
+}
+
+enum E1 with A1 { element }
+
+enum E10 with M10 { element }
+
+enum E2 with A2 { element }
+
+enum E3 with A3 { element }
+
+enum E4 with A4 { element }
+
+enum E5 with M5 { element }
+
+enum E6 with M6 { element }
+
+enum E7 with M7 { element }
+
+enum E8 with M8 { element }
+
+enum E9 with A9 { element }
+
+main() {}
+mixin M10 {
+  bool operator ==(Object other);
+  int get hashCode;
+  int get index;
+}
+mixin M5 {
+  int get hashCode => 42;
+}
+mixin M6 {
+  int get values => 42;
+}
+mixin M7 {
+  int get index => 42;
+}
+mixin M8 {
+  bool operator ==(Object other) => true;
+}

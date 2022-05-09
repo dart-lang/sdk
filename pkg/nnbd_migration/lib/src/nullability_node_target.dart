@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 
 String _computeElementName(Element? element) {
@@ -29,8 +28,7 @@ String _computeElementName(Element? element) {
 /// code is referenced by a given nullability node.
 abstract class NullabilityNodeTarget {
   /// Creates a [NullabilityNodeTarget] referring to a particular element.
-  factory NullabilityNodeTarget.element(
-          Element element, LineInfo Function(String) getLineInfo) =
+  factory NullabilityNodeTarget.element(Element element) =
       _NullabilityNodeTarget_Element;
 
   /// Creates a [NullabilityNodeTarget] with a simple text description.
@@ -111,10 +109,9 @@ class _NullabilityNodeTarget_Element extends NullabilityNodeTarget {
 
   final CodeReference codeReference;
 
-  _NullabilityNodeTarget_Element(
-      Element element, LineInfo Function(String) getLineInfo)
+  _NullabilityNodeTarget_Element(Element element)
       : name = _computeElementName(element),
-        codeReference = CodeReference.fromElement(element, getLineInfo),
+        codeReference = CodeReference.fromElement(element),
         super._();
 
   @override

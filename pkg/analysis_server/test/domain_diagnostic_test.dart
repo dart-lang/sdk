@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,14 +26,14 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_getDiagnostics() async {
     newPubspecYamlFile('/project', 'name: project');
-    newFile('/project/bin/test.dart', content: 'main() {}');
+    newFile2('/project/bin/test.dart', 'main() {}');
 
-    server.setAnalysisRoots('0', [convertPath('/project')], []);
+    await server.setAnalysisRoots('0', [convertPath('/project')], []);
 
     await server.onAnalysisComplete;
 
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = handler.handleRequest(request, NotCancelableToken())!;
+    var response = await waitResponse(request);
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
     expect(result.contexts, hasLength(1));
@@ -50,7 +49,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_getDiagnostics_noRoot() async {
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = handler.handleRequest(request, NotCancelableToken())!;
+    var response = await waitResponse(request);
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }

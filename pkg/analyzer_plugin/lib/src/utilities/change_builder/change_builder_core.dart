@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -350,6 +349,12 @@ class EditBuilderImpl implements EditBuilder {
   /// The buffer in which the content of the edit is being composed.
   final StringBuffer _buffer = StringBuffer();
 
+  /// Whether the builder is currently writing an edit group.
+  ///
+  /// This flag is set internally when writing an edit group to prevent
+  /// nested/overlapping edit groups from being produced.
+  bool _isWritingEditGroup = false;
+
   /// Initialize a newly created builder to build a source edit.
   EditBuilderImpl(this.fileEditBuilder, this.offset, this.length) {
     _eol = fileEditBuilder.changeBuilder.eol;
@@ -364,9 +369,16 @@ class EditBuilderImpl implements EditBuilder {
       void Function(LinkedEditBuilder builder) buildLinkedEdit) {
     var builder = createLinkedEditBuilder();
     var start = offset + _buffer.length;
+    // If we're already writing an edit group we must not produce others nested
+    // inside, so just call the callback without capturing the group.
+    if (_isWritingEditGroup) {
+      return buildLinkedEdit(builder);
+    }
     try {
+      _isWritingEditGroup = true;
       buildLinkedEdit(builder);
     } finally {
+      _isWritingEditGroup = false;
       var end = offset + _buffer.length;
       var length = end - start;
       if (length != 0) {
@@ -459,12 +471,13 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit) {
+  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit,
+      {bool insertBeforeExisting = false}) {
     var builder = createEditBuilder(offset, 0);
     try {
       buildEdit(builder);
     } finally {
-      _addEditBuilder(builder);
+      _addEditBuilder(builder, insertBeforeExisting: insertBeforeExisting);
     }
   }
 
@@ -541,21 +554,25 @@ class FileEditBuilderImpl implements FileEditBuilder {
     _addEdit(edit);
   }
 
-  /// Add the edit from the given [edit] to the edits associates with the
+  /// Add the edit from the given [edit] to the edits associated with the
   /// current file.
-  void _addEdit(SourceEdit edit) {
-    fileEdit.add(edit);
+  void _addEdit(SourceEdit edit, {bool insertBeforeExisting = false}) {
+    fileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
     var delta = _editDelta(edit);
-    changeBuilder._updatePositions(
-        edit.offset + math.max<int>(0, delta), delta);
+    changeBuilder._updatePositions(edit.offset, delta);
     changeBuilder._lockedPositions.clear();
   }
 
-  /// Add the edit from the given [builder] to the edits associates with the
+  /// Add the edit from the given [builder] to the edits associated with the
   /// current file.
-  void _addEditBuilder(EditBuilderImpl builder) {
+  ///
+  /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
+  /// other edits will be inserted such that they appear before them in the
+  /// resulting document.
+  void _addEditBuilder(EditBuilderImpl builder,
+      {bool insertBeforeExisting = false}) {
     var edit = builder.sourceEdit;
-    _addEdit(edit);
+    _addEdit(edit, insertBeforeExisting: insertBeforeExisting);
     _captureSelection(builder, edit);
   }
 

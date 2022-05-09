@@ -26,10 +26,6 @@ class C {
   C({String this.s});
 }
 ''');
-    // TODO(srawlins): Remove the type if the quick fix as is would use the same
-    //  type as the field's type. (brianwilkerson) I would argue that removing
-    //  the type should be a separate fix/assist. There was a reason why the
-    //  user used an explicit type, and we shouldn't remove it when it's valid.
     await assertHasFix('''
 class C {
   String? s;
@@ -206,6 +202,44 @@ void f<T>({T s}) {}
 ''');
     await assertHasFix('''
 void f<T>({T? s}) {}
+''');
+  }
+
+  Future<void> test_superParameter() async {
+    await resolveTestCode('''
+class C {
+  C({String? s});
+}
+class D extends C {
+  D({String super.s});
+}
+''');
+    await assertHasFix('''
+class C {
+  C({String? s});
+}
+class D extends C {
+  D({String? super.s});
+}
+''');
+  }
+
+  Future<void> test_superParameter_functionTyped() async {
+    await resolveTestCode('''
+class C {
+  C({void s()?});
+}
+class D extends C {
+  D({void super.s()});
+}
+''');
+    await assertHasFix('''
+class C {
+  C({void s()?});
+}
+class D extends C {
+  D({void super.s()?});
+}
 ''');
   }
 }

@@ -1,0 +1,17 @@
+bar(E<int> ei, E<String> es) {}
+baz(E<Object> ei, E<Object> es) {}
+boz(E<Never> ei, E<Never> es) {}
+checkIsNotType<T>(x) {}
+checkIsType<T>(x) {}
+
+enum E<X> {
+  one(1),
+  two("2");
+
+  final X field;
+  const E(this.field);
+}
+
+foo(E<int> ei, E<String> es) {}
+main() {}
+test() {}

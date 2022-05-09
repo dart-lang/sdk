@@ -1,6 +1,7 @@
-// @dart = 2.9
 class Class<X5 extends X4, X4 extends X3, X3 extends X2, X2 extends X1,
     X1 extends X0, X0 extends int> {
+  Class(this.field0, this.field1, this.field2, this.field3, this.field4,
+      this.field5);
   X0 field0;
   X1 field1;
   X2 field2;

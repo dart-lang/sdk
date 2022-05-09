@@ -15,6 +15,71 @@ main() {
 
 @reflectiveTest
 class ExtendsNonClassTest extends PubPackageResolutionTest {
+  test_class_dynamic() async {
+    await assertErrorsInCode(r'''
+class A extends dynamic {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 7),
+    ]);
+
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+  }
+
+  test_class_enum() async {
+    await assertErrorsInCode(r'''
+enum E { ONE }
+class A extends E {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 31, 1),
+    ]);
+
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+
+    var eRef = findNode.namedType('E {}');
+    assertNamedType(eRef, findElement.enum_('E'), 'E');
+  }
+
+  test_class_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+class A extends M {} // ref
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
+    ]);
+
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+
+    var mRef = findNode.namedType('M {} // ref');
+    assertNamedType(mRef, findElement.mixin('M'), 'M');
+  }
+
+  test_class_variable() async {
+    await assertErrorsInCode(r'''
+int v = 0;
+class A extends v {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
+    ]);
+
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+  }
+
+  test_class_variable_generic() async {
+    await assertErrorsInCode(r'''
+int v = 0;
+class A extends v<int> {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
+    ]);
+
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+  }
+
   test_Never() async {
     await assertErrorsInCode('''
 class A extends Never {}
@@ -63,7 +128,7 @@ class C extends A {}
   }
 
   test_undefined_ignore_part_exists_uriGenerated_nameIgnorable() async {
-    newFile('$testPackageLibPath/a.g.dart', content: r'''
+    newFile2('$testPackageLibPath/a.g.dart', r'''
 part of 'test.dart';
 ''');
 

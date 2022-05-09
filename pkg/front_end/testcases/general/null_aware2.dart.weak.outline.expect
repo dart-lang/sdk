@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/null_aware2.dart:7:14: Error: Field 'staticField' should be initialized because its type 'int' doesn't allow null.
+//   static int staticField;
+//              ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int field;
+  static field core::int staticField;
+  synthetic constructor •() → self::Foo
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

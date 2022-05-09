@@ -9,7 +9,7 @@ library foo;
 
 /*class: global#LegacyJavaScriptObject:*/
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 import 'package:js/js.dart';
 
 @JS()
@@ -44,13 +44,11 @@ main() {
 }
 
 test1(o) {
-  Expect.isTrue(o is List<A<int>>, "Expected $o to be List<A<int>>");
-  Expect.isTrue(o is List<A<String>>, "Expected $o to be List<A<String>>");
+  makeLive(o is List<A<int>>);
+  makeLive(o is List<A<String>>);
 }
 
 test2(o) {
-  Expect.isTrue(o is List<A<int> Function()>,
-      "Expected $o to be List<A<int> Function()>");
-  Expect.isTrue(o is List<A<String> Function()>,
-      "Expected $o to be List<A<String> Function()>");
+  makeLive(o is List<A<int> Function()>);
+  makeLive(o is List<A<String> Function()>);
 }

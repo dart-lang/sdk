@@ -350,7 +350,7 @@ class ParameterStructure {
   }
 
   /// Deserializes a [ParameterStructure] object from [source].
-  factory ParameterStructure.readFromDataSource(DataSource source) {
+  factory ParameterStructure.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();
     int positionalParameters = source.readInt();
@@ -368,7 +368,7 @@ class ParameterStructure {
   }
 
   /// Serializes this [ParameterStructure] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(requiredPositionalParameters);
     sink.writeInt(positionalParameters);

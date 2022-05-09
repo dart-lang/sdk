@@ -63,7 +63,7 @@ main(List<String> args) async {
       result['changed'] = true;
     }
   }
-  final sink = new File(newResultsPath).openWrite();
+  final sink = File(newResultsPath).openWrite();
   final sorted = results.keys.toList()..sort();
   for (final key in sorted) {
     sink.writeln(jsonEncode(results[key]));

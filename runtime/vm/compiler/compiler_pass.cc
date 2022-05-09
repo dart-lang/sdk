@@ -297,6 +297,7 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
+// Keep in sync with TestPipeline::RunForcedOptimizedAfterSSAPasses.
 FlowGraph* CompilerPass::RunForceOptimizedPipeline(
     PipelineMode mode,
     CompilerPassState* pass_state) {
@@ -309,7 +310,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(ConstantPropagation);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(WidenSmiToInt32);
-  INVOKE_PASS(SelectRepresentations);
+  INVOKE_PASS(SelectRepresentations_Final);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
@@ -380,7 +381,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(EliminateDeadPhis);
   INVOKE_PASS(DCE);
   INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(SelectRepresentations);
+  INVOKE_PASS(SelectRepresentations_Final);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
@@ -469,10 +470,15 @@ COMPILER_PASS(SelectRepresentations, {
   flow_graph->SelectRepresentations();
 });
 
+COMPILER_PASS(SelectRepresentations_Final, {
+  // Final selection of representations. After this pass
+  // representations of inputs/outputs should match.
+  flow_graph->SelectRepresentations();
+  flow_graph->disallow_unmatched_representations();
+});
+
 COMPILER_PASS(UseTableDispatch, {
-  if (FLAG_use_table_dispatch) {
-    state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
-  }
+  state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
 });
 
 COMPILER_PASS_REPEAT(CSE, { return DominatorBasedCSE::Optimize(flow_graph); });

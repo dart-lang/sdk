@@ -65,6 +65,28 @@ class A {
     ]);
   }
 
+  test_staticField_noInitializer_constructor() async {
+    await assertErrorsInCode('''
+class A {
+  static int x = 0, y, z = 2;
+  A();
+}
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 30, 1),
+    ]);
+  }
+
+  test_staticField_noInitializer_final_constructor() async {
+    await assertErrorsInCode('''
+class A {
+  static final int x = 0, y, z = 2;
+  A();
+}
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 36, 1),
+    ]);
+  }
+
   test_staticField_nullable() async {
     await assertNoErrorsInCode('''
 class A {

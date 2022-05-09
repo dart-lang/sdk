@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'dart:async';
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: global#Future:typeArgument*/
 
@@ -22,8 +22,8 @@ class C {}
 test(o) => o is A<FutureOr<B>>;
 
 main() {
-  Expect.isTrue(test(new A<B>()));
-  Expect.isTrue(test(new A<Future<B>>()));
-  Expect.isFalse(test(new A<C>()));
-  Expect.isFalse(test(new A<Future<C>>()));
+  makeLive(test(new A<B>()));
+  makeLive(test(new A<Future<B>>()));
+  makeLive(test(new A<C>()));
+  makeLive(test(new A<Future<C>>()));
 }

@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.55.0';
+const String vmServiceVersion = '3.56.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2776,6 +2776,9 @@ class SourceReportKind {
 
   /// Used to request a list of token positions of possible breakpoints.
   static const String kPossibleBreakpoints = 'PossibleBreakpoints';
+
+  /// Used to request branch coverage information.
+  static const String kBranchCoverage = 'BranchCoverage';
 }
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
@@ -3417,7 +3420,7 @@ class CodeRef extends ObjRef {
 }
 
 /// A `Code` object represents compiled code in the Dart VM.
-class Code extends ObjRef implements CodeRef {
+class Code extends Obj implements CodeRef {
   static Code? parse(Map<String, dynamic>? json) =>
       json == null ? null : Code._fromJson(json);
 
@@ -7417,10 +7420,22 @@ class SourceLocation extends Response {
   @optional
   int? endTokenPos;
 
+  /// The line associated with this location. Only provided for non-synthetic
+  /// token positions.
+  @optional
+  int? line;
+
+  /// The column associated with this location. Only provided for non-synthetic
+  /// token positions.
+  @optional
+  int? column;
+
   SourceLocation({
     required this.script,
     required this.tokenPos,
     this.endTokenPos,
+    this.line,
+    this.column,
   });
 
   SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7428,6 +7443,8 @@ class SourceLocation extends Response {
         createServiceObject(json['script'], const ['ScriptRef']) as ScriptRef?;
     tokenPos = json['tokenPos'] ?? -1;
     endTokenPos = json['endTokenPos'];
+    line = json['line'];
+    column = json['column'];
   }
 
   @override
@@ -7442,6 +7459,8 @@ class SourceLocation extends Response {
       'tokenPos': tokenPos,
     });
     _setIfNotNull(json, 'endTokenPos', endTokenPos);
+    _setIfNotNull(json, 'line', line);
+    _setIfNotNull(json, 'column', column);
     return json;
   }
 
@@ -7578,6 +7597,11 @@ class SourceReportRange {
   @optional
   List<int>? possibleBreakpoints;
 
+  /// Branch coverage information for this range.  Provided only when the
+  /// BranchCoverage report has been requested and the range has been compiled.
+  @optional
+  SourceReportCoverage? branchCoverage;
+
   SourceReportRange({
     required this.scriptIndex,
     required this.startPos,
@@ -7586,6 +7610,7 @@ class SourceReportRange {
     this.error,
     this.coverage,
     this.possibleBreakpoints,
+    this.branchCoverage,
   });
 
   SourceReportRange._fromJson(Map<String, dynamic> json) {
@@ -7599,6 +7624,9 @@ class SourceReportRange {
     possibleBreakpoints = json['possibleBreakpoints'] == null
         ? null
         : List<int>.from(json['possibleBreakpoints']);
+    branchCoverage = createServiceObject(
+            json['branchCoverage'], const ['SourceReportCoverage'])
+        as SourceReportCoverage?;
   }
 
   Map<String, dynamic> toJson() {
@@ -7613,6 +7641,7 @@ class SourceReportRange {
     _setIfNotNull(json, 'coverage', coverage?.toJson());
     _setIfNotNull(json, 'possibleBreakpoints',
         possibleBreakpoints?.map((f) => f).toList());
+    _setIfNotNull(json, 'branchCoverage', branchCoverage?.toJson());
     return json;
   }
 
@@ -8090,15 +8119,14 @@ class UriList extends Response {
       json == null ? null : UriList._fromJson(json);
 
   /// A list of URIs.
-  List<dynamic>? uris;
+  List<String?>? uris;
 
   UriList({
     required this.uris,
   });
 
   UriList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uris = List<dynamic>.from(
-        createServiceObject(json['uris'], const ['dynamic']) as List? ?? []);
+    uris = List<String?>.from(json['uris']);
   }
 
   @override
@@ -8109,7 +8137,7 @@ class UriList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'uris': uris?.map((f) => f.toJson()).toList(),
+      'uris': uris?.map((f) => f).toList(),
     });
     return json;
   }

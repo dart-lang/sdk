@@ -20,13 +20,14 @@ class FormatOnTypeHandler
   LspJsonHandler<DocumentOnTypeFormattingParams> get jsonHandler =>
       DocumentOnTypeFormattingParams.jsonHandler;
 
-  ErrorOr<List<TextEdit>?> formatFile(String path) {
+  Future<ErrorOr<List<TextEdit>?>> formatFile(String path) async {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
-      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+      return error(
+          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
     }
 
-    final result = server.getParsedUnit(path);
+    final result = await server.getParsedUnit(path);
     if (result == null || result.errors.isNotEmpty) {
       return success(null);
     }

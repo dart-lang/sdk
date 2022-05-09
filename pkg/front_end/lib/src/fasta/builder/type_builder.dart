@@ -4,9 +4,8 @@
 
 library fasta.type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
+import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../scope.dart';
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
@@ -26,14 +25,6 @@ abstract class TypeBuilder {
   /// Returns the character offset with [fileUri] at which this type annotation
   /// occurred, or `null` if the type was synthesized.
   int? get charOffset;
-
-  void resolveIn(
-      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
-
-  /// See `UnresolvedType.checkType`.
-  void check(LibraryBuilder library, int charOffset, Uri fileUri) {}
-
-  void bind(TypeDeclarationBuilder builder) {}
 
   /// May return null, for example, for mixin applications.
   Object? get name;
@@ -69,17 +60,11 @@ abstract class TypeBuilder {
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
-  DartType build(LibraryBuilder library, {TypedefType? origin});
+  DartType build(LibraryBuilder library);
 
-  DartType buildTypeLiteralType(LibraryBuilder library, {TypedefType? origin}) {
-    return build(library, origin: origin);
-  }
+  Supertype? buildSupertype(LibraryBuilder library);
 
-  Supertype? buildSupertype(
-      LibraryBuilder library, int charOffset, Uri fileUri);
-
-  Supertype? buildMixedInType(
-      LibraryBuilder library, int charOffset, Uri fileUri);
+  Supertype? buildMixedInType(LibraryBuilder library);
 
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);
 

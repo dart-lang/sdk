@@ -112,7 +112,7 @@ test7() {
 /*member: A8.:[exact=A8]*/
 class A8 {
   /*member: A8.x8:[empty]*/
-  x8(/*Union([exact=JSString], [subclass=JsLinkedHashMap])*/ p) =>
+  x8(/*Union([exact=JSString], [exact=JsLinkedHashMap])*/ p) =>
       /*invoke: [exact=A8]*/ x8("x");
 }
 
@@ -126,7 +126,7 @@ class A9 {
   /*member: A9.x9:[empty]*/ x9(
           /*[exact=JSUInt31]*/ p1,
           /*Union([exact=JSString], [exact=JSUInt31])*/ p2,
-          /*Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/ p3) =>
+          /*Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/ p3) =>
       /*invoke: [exact=A9]*/ x9(p1, "x", {});
 }
 

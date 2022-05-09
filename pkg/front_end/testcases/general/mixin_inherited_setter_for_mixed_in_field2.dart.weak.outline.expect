@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class C<T extends self::A> extends core::Object {
+  late covariant-by-class field self::C::T _field;
+  synthetic constructor •() → self::C<self::C::T>
+    ;
+  method foo(covariant-by-class self::C::T x) → dynamic
+    ;
+}
+class D extends self::C<self::B> {
+  synthetic constructor •() → self::D
+    ;
+}
+abstract class _Foo&Object&C = core::Object with self::C<self::B> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Foo&Object&C
+    : super core::Object::•()
+    ;
+  mixin-super-stub get _field() → self::B
+    return super.{self::C::_field};
+  mixin-super-stub set _field(covariant-by-class self::B value) → void
+    return super.{self::C::_field} = value;
+  mixin-super-stub method foo(covariant-by-class self::B x) → dynamic
+    return super.{self::C::foo}(x);
+}
+class Foo extends self::_Foo&Object&C {
+  synthetic constructor •() → self::Foo
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+static method main() → dynamic
+  ;

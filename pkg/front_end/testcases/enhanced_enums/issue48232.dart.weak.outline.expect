@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::v];
+  static const field self::E v = const self::E::•(0, "v", const <dynamic>[]);
+  const constructor •(core::int index, core::String name, dynamic _) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48232.dart:5:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "v"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48232.dart:6:5 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "v"})
+Extra constant evaluation: evaluated: 7, effectively constant: 2

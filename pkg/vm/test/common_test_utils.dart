@@ -89,14 +89,25 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
   }
 }
 
-String kernelLibraryToString(Library library) {
+/// Returns a human-readable string representation of [library].
+///
+/// If [removeSelectorIds] is provided, selector ids above 99 are removed.
+/// Extra libraries apart from the main library are passed to the front-end as
+/// additional dills, which places them last in the library list, causing them
+/// to have very high (and often changing) selector IDs.
+String kernelLibraryToString(Library library, {bool removeSelectorIds: false}) {
   final StringBuffer buffer = new StringBuffer();
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
   printer.writeConstantTable(library.enclosingComponent!);
-  return buffer
-      .toString()
-      .replaceAll(library.importUri.toString(), library.name!);
+  String result =
+      buffer.toString().replaceAll(library.importUri.toString(), library.name!);
+  if (removeSelectorIds) {
+    result = result
+        .replaceAll(RegExp(r',methodOrSetterSelectorId:\d{3,}'), '')
+        .replaceAll(RegExp(r',getterSelectorId:\d{3,}'), '');
+  }
+  return result;
 }
 
 String kernelComponentToString(Component component) {

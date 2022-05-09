@@ -8,6 +8,8 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
         LibrariesSpecification,
@@ -362,35 +364,8 @@ class ProcessedOptions {
   Target get target =>
       _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
-  /// Returns `true` if the [flag] is enabled globally by default.
-  bool isExperimentEnabledByDefault(flags.ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        defaultExperimentFlagsForTesting:
-            _raw.defaultExperimentFlagsForTesting);
-  }
-
-  /// Returns `true` if the [flag] is enabled globally.
-  ///
-  /// This is `true` either if the [flag] is passed through an explicit
-  /// `--enable-experiment` option or if the [flag] is expired and on by
-  /// default.
-  bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        explicitExperimentalFlags: _raw.explicitExperimentalFlags,
-        defaultExperimentFlagsForTesting:
-            _raw.defaultExperimentFlagsForTesting);
-  }
-
-  /// Returns `true` if the experiment with the given [flag] is enabled either
-  /// explicitly or implicitly for the library with the given [importUri].
-  ///
-  /// Note that the library can still opt out of the experiment by having a
-  /// lower language version than required for the experiment. See
-  /// [getExperimentEnabledVersionInLibrary].
-  bool isExperimentEnabledInLibrary(
-      flags.ExperimentalFlag flag, Uri importUri) {
-    return _raw.isExperimentEnabledInLibrary(flag, importUri);
-  }
+  /// Returns the global state of the experimental features.
+  flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
 
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt in to the experiment with the given [flag].
@@ -531,12 +506,10 @@ class ProcessedOptions {
       return new TargetLibrariesSpecification(name);
     }
 
-    String json = await fileSystem
-        .entityForUri(librariesSpecificationUri!)
-        .readAsString();
     try {
-      LibrariesSpecification spec =
-          await LibrariesSpecification.parse(librariesSpecificationUri!, json);
+      LibrariesSpecification spec = await LibrariesSpecification.load(
+          librariesSpecificationUri!,
+          (Uri uri) => fileSystem.entityForUri(uri).readAsString());
       return spec.specificationFor(name);
     } on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(
@@ -562,7 +535,7 @@ class ProcessedOptions {
     }
 
     // When compiling the SDK the input files are normally `dart:` URIs.
-    if (inputs.every((uri) => uri.scheme == 'dart')) {
+    if (inputs.every((uri) => uri.isScheme('dart'))) {
       return _packages = PackageConfig.empty;
     }
 
@@ -576,7 +549,7 @@ class ProcessedOptions {
 
     Uri input = inputs.first;
 
-    if (input.scheme == 'packages') {
+    if (input.isScheme('package')) {
       report(
           messageCantInferPackagesFromPackageUri.withLocation(
               input, -1, noLength),
@@ -853,6 +826,12 @@ class ProcessedOptions {
       return null;
     }
   }
+
+  Future<MacroExecutor> Function() get macroExecutorProvider =>
+      _raw.macroExecutorProvider;
+
+  Map<Uri, Uri> get precompiledMacroUris =>
+      _raw.precompiledMacroUris ?? const {};
 
   CompilerOptions get rawOptionsForTesting => _raw;
 }

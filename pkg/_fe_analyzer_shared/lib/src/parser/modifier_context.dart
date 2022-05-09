@@ -34,9 +34,10 @@ bool isModifier(Token token) {
 
 /// This class is used to parse modifiers in most locations where modifiers
 /// can occur, but does not call handleModifier or handleModifiers.
-class ModifierRecoveryContext {
+class ModifierContext {
   final Parser parser;
   Token? abstractToken;
+  Token? augmentToken;
   Token? constToken;
   Token? covariantToken;
   Token? externalToken;
@@ -47,12 +48,9 @@ class ModifierRecoveryContext {
   Token? varToken;
 
   // Set `true` when parsing modifiers after the `factory` token.
-  bool afterFactory = false;
+  bool _afterFactory = false;
 
-  // TODO(danrubel): Replace [ModifierRecoveryContext] and [ModifierContext]
-  // with this class.
-
-  ModifierRecoveryContext(this.parser);
+  ModifierContext(this.parser);
 
   set staticOrCovariant(Token? staticOrCovariant) {
     if (staticOrCovariant == null) {
@@ -94,9 +92,76 @@ class ModifierRecoveryContext {
     }
   }
 
+  /// Parse modifiers for class declarations.
+  Token parseClassModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    if (constToken != null) {
+      reportTopLevelModifierError(constToken!, keyword);
+    }
+    if (externalToken != null) {
+      reportTopLevelModifierError(externalToken!, keyword);
+    }
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for enum declarations.
+  Token parseEnumModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    // TODO(johnniwinther): Should we support 'augment' on enums.
+    reportExtraneousModifier(augmentToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for mixin declarations.
+  Token parseMixinModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for library, import, export, part (of) directives and
+  /// typedef and extension declarations.
+  Token parseTopLevelKeywordModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(augmentToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
   /// Parse modifiers for class methods and fields.
   Token parseClassMemberModifiers(Token token) {
-    token = parseModifiers(token);
+    token = _parseModifiers(token);
     reportExtraneousModifier(requiredToken);
     return token;
   }
@@ -104,7 +169,7 @@ class ModifierRecoveryContext {
   /// Parse modifiers for formal parameters.
   Token parseFormalParameterModifiers(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
-    token = parseModifiers(token);
+    token = _parseModifiers(token);
 
     if (parameterKind != FormalParameterKind.optionalNamed) {
       reportExtraneousModifier(requiredToken);
@@ -133,8 +198,8 @@ class ModifierRecoveryContext {
 
   /// Parse modifiers after the `factory` token.
   Token parseModifiersAfterFactory(Token token) {
-    afterFactory = true;
-    token = parseModifiers(token);
+    _afterFactory = true;
+    token = _parseModifiers(token);
     if (abstractToken != null) {
       parser.reportRecoverableError(
           abstractToken!, codes.messageAbstractClassMember);
@@ -145,8 +210,8 @@ class ModifierRecoveryContext {
   }
 
   /// Parse modifiers for top level functions and fields.
-  Token parseTopLevelModifiers(Token token) {
-    token = parseModifiers(token);
+  Token parseTopLevelMemberModifiers(Token token) {
+    token = _parseModifiers(token);
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(requiredToken);
@@ -156,7 +221,7 @@ class ModifierRecoveryContext {
 
   /// Parse modifiers for variable declarations.
   Token parseVariableDeclarationModifiers(Token token) {
-    token = parseModifiers(token);
+    token = _parseModifiers(token);
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(externalToken);
@@ -176,34 +241,36 @@ class ModifierRecoveryContext {
   /// `static` or `covariant`. The first non-null parameter of
   /// [staticOrCovariant], [staticToken], or [covariantToken] will be used,
   /// in that order, and the others ignored.
-  Token parseModifiers(Token token) {
+  Token _parseModifiers(Token token) {
     // Process invalid and out-of-order modifiers
     Token next = token.next!;
     while (true) {
       final String? value = next.stringValue;
       if (isModifier(next)) {
         if (identical('abstract', value)) {
-          token = parseAbstract(token);
+          token = _parseAbstract(token);
+        } else if (identical('augment', value)) {
+          token = _parseAugment(token);
         } else if (identical('const', value)) {
-          token = parseConst(token);
+          token = _parseConst(token);
         } else if (identical('covariant', value)) {
-          token = parseCovariant(token);
+          token = _parseCovariant(token);
         } else if (identical('external', value)) {
-          token = parseExternal(token);
+          token = _parseExternal(token);
         } else if (identical('final', value)) {
-          token = parseFinal(token);
+          token = _parseFinal(token);
         } else if (identical('late', value)) {
-          token = parseLate(token);
+          token = _parseLate(token);
         } else if (identical('required', value)) {
-          token = parseRequired(token);
+          token = _parseRequired(token);
         } else if (identical('static', value)) {
-          token = parseStatic(token);
+          token = _parseStatic(token);
         } else if (identical('var', value)) {
-          token = parseVar(token);
+          token = _parseVar(token);
         } else {
           throw 'Internal Error: Unhandled modifier: $value';
         }
-      } else if (afterFactory && identical('factory', value)) {
+      } else if (_afterFactory && identical('factory', value)) {
         parser.reportRecoverableErrorWithToken(
             next, codes.templateDuplicatedModifier);
         token = next;
@@ -215,7 +282,7 @@ class ModifierRecoveryContext {
     return token;
   }
 
-  Token parseAbstract(Token token) {
+  Token _parseAbstract(Token token) {
     Token next = token.next!;
     assert(optional('abstract', next));
     if (abstractToken == null) {
@@ -235,13 +302,45 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseConst(Token token) {
+  Token _parseAugment(Token token) {
+    Token next = token.next!;
+    assert(optional('augment', next));
+    if (augmentToken == null) {
+      augmentToken = next;
+
+      if (varFinalOrConst != null) {
+        reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
+      } else if (abstractToken != null) {
+        reportModifierOutOfOrder(next, abstractToken!.lexeme);
+      } else if (constToken != null) {
+        reportModifierOutOfOrder(next, constToken!.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(next, covariantToken!.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
+      } else if (staticToken != null) {
+        reportModifierOutOfOrder(next, staticToken!.lexeme);
+      } else if (externalToken != null) {
+        reportConflictingModifiers(next, externalToken!);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(
+        next, codes.templateDuplicatedModifier);
+    return next;
+  }
+
+  Token _parseConst(Token token) {
     Token next = token.next!;
     assert(optional('const', next));
     if (varFinalOrConst == null && covariantToken == null) {
       constToken = next;
 
-      if (afterFactory) {
+      if (_afterFactory) {
         reportModifierOutOfOrder(next, 'factory');
       } else if (lateToken != null) {
         reportConflictingModifiers(next, lateToken!);
@@ -265,13 +364,13 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseCovariant(Token token) {
+  Token _parseCovariant(Token token) {
     Token next = token.next!;
     assert(optional('covariant', next));
     if (constToken == null &&
         covariantToken == null &&
         staticToken == null &&
-        !afterFactory) {
+        !_afterFactory) {
       covariantToken = next;
 
       if (varToken != null) {
@@ -288,7 +387,7 @@ class ModifierRecoveryContext {
     if (covariantToken != null) {
       parser.reportRecoverableErrorWithToken(
           next, codes.templateDuplicatedModifier);
-    } else if (afterFactory) {
+    } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
       reportConflictingModifiers(next, constToken!);
@@ -300,13 +399,13 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseExternal(Token token) {
+  Token _parseExternal(Token token) {
     Token next = token.next!;
     assert(optional('external', next));
     if (externalToken == null) {
       externalToken = next;
 
-      if (afterFactory) {
+      if (_afterFactory) {
         reportModifierOutOfOrder(next, 'factory');
       } else if (constToken != null) {
         reportModifierOutOfOrder(next, constToken!.lexeme);
@@ -318,6 +417,8 @@ class ModifierRecoveryContext {
         reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
       } else if (covariantToken != null) {
         reportModifierOutOfOrder(next, covariantToken!.lexeme);
+      } else if (augmentToken != null) {
+        reportConflictingModifiers(next, augmentToken!);
       }
       return next;
     }
@@ -328,10 +429,10 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseFinal(Token token) {
+  Token _parseFinal(Token token) {
     Token next = token.next!;
     assert(optional('final', next));
-    if (varFinalOrConst == null && !afterFactory) {
+    if (varFinalOrConst == null && !_afterFactory) {
       finalToken = next;
       return next;
     }
@@ -340,7 +441,7 @@ class ModifierRecoveryContext {
     if (finalToken != null) {
       parser.reportRecoverableErrorWithToken(
           next, codes.templateDuplicatedModifier);
-    } else if (afterFactory) {
+    } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
       parser.reportRecoverableError(next, codes.messageConstAndFinal);
@@ -354,7 +455,7 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseLate(Token token) {
+  Token _parseLate(Token token) {
     Token next = token.next!;
     assert(optional('late', next));
     if (lateToken == null) {
@@ -376,7 +477,7 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseRequired(Token token) {
+  Token _parseRequired(Token token) {
     Token next = token.next!;
     assert(optional('required', next));
     if (requiredToken == null) {
@@ -400,10 +501,10 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseStatic(Token token) {
+  Token _parseStatic(Token token) {
     Token next = token.next!;
     assert(optional('static', next));
-    if (covariantToken == null && staticToken == null && !afterFactory) {
+    if (covariantToken == null && staticToken == null && !_afterFactory) {
       staticToken = next;
 
       if (constToken != null) {
@@ -424,7 +525,7 @@ class ModifierRecoveryContext {
     } else if (staticToken != null) {
       parser.reportRecoverableErrorWithToken(
           next, codes.templateDuplicatedModifier);
-    } else if (afterFactory) {
+    } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else {
       throw 'Internal Error: Unhandled recovery: $next';
@@ -432,10 +533,10 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  Token parseVar(Token token) {
+  Token _parseVar(Token token) {
     Token next = token.next!;
     assert(optional('var', next));
-    if (varFinalOrConst == null && !afterFactory) {
+    if (varFinalOrConst == null && !_afterFactory) {
       varToken = next;
       return next;
     }
@@ -444,7 +545,7 @@ class ModifierRecoveryContext {
     if (varToken != null) {
       parser.reportRecoverableErrorWithToken(
           next, codes.templateDuplicatedModifier);
-    } else if (afterFactory) {
+    } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
       reportConflictingModifiers(next, constToken!);
@@ -467,6 +568,30 @@ class ModifierRecoveryContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
           modifier, codes.templateExtraneousModifier);
+    }
+  }
+
+  // Report an error for the given modifier preceding a top level keyword
+  // such as `import` or `class`.
+  void reportTopLevelModifierError(Token? modifier, Token afterModifiers) {
+    if (modifier != null) {
+      if (optional('const', modifier) && optional('class', afterModifiers)) {
+        parser.reportRecoverableError(modifier, codes.messageConstClass);
+      } else if (optional('external', modifier)) {
+        if (optional('class', afterModifiers)) {
+          parser.reportRecoverableError(modifier, codes.messageExternalClass);
+        } else if (optional('enum', afterModifiers)) {
+          parser.reportRecoverableError(modifier, codes.messageExternalEnum);
+        } else if (optional('typedef', afterModifiers)) {
+          parser.reportRecoverableError(modifier, codes.messageExternalTypedef);
+        } else {
+          parser.reportRecoverableErrorWithToken(
+              modifier, codes.templateExtraneousModifier);
+        }
+      } else {
+        parser.reportRecoverableErrorWithToken(
+            modifier, codes.templateExtraneousModifier);
+      }
     }
   }
 

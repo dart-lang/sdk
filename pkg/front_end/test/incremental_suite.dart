@@ -23,7 +23,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, experimentEnabledVersion;
+    show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -349,7 +349,6 @@ Future<Map<String, List<int>>> createModules(
     options.sdkSummary = sdkSummaryUri;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (getMessageCodeObject(message)?.name == "InferredPackageUri") return;
       throw message.ansiFormatted;
     };
     if (packagesUri != null) {
@@ -357,10 +356,11 @@ Future<Map<String, List<int>>> createModules(
     }
     TestIncrementalCompiler compiler = new TestIncrementalCompiler(
         options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
-    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+    IncrementalCompilerResult? compilerResult = await compiler.computeDelta(
         entryPoints: moduleSources,
         trackNeededDillLibraries: trackNeededDillLibraries);
     Component c = compilerResult.component;
+    compilerResult = null;
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
     for (Library lib in c.libraries) {
@@ -392,7 +392,7 @@ class NewWorldTest {
 
   String doStringReplacements(String input) {
     Version enableNonNullableVersion =
-        experimentEnabledVersion[ExperimentalFlag.nonNullable]!;
+        ExperimentalFlag.nonNullable.experimentEnabledVersion;
     String output = input.replaceAll("%NNBD_VERSION_MARKER%",
         "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
     return output;
@@ -669,13 +669,15 @@ class NewWorldTest {
       }
 
       Stopwatch stopwatch = new Stopwatch()..start();
-      IncrementalCompilerResult compilerResult = await compiler!.computeDelta(
+      IncrementalCompilerResult? compilerResult = await compiler!.computeDelta(
           entryPoints: entries,
           fullComponent:
               brandNewWorld ? false : (noFullComponent ? false : true),
           trackNeededDillLibraries: modulesToUse != null,
           simulateTransformer: world["simulateTransformer"]);
       component = compilerResult.component;
+      // compilerResult is null'ed out at the end to avoid any
+      // "artificial memory leak" on that account.
       if (outlineOnly && !skipOutlineBodyCheck) {
         for (Library lib in component!.libraries) {
           for (Class c in lib.classes) {
@@ -787,7 +789,7 @@ class NewWorldTest {
           // null is always there, so allow it implicitly.
           // Dart scheme uris too.
           // ignore: unnecessary_null_comparison
-          if (uri == null || uri.scheme == "org-dartlang-sdk") continue;
+          if (uri == null || uri.isScheme("org-dartlang-sdk")) continue;
           if (!allowed.contains(uri)) {
             return new Result<TestData>(
                 data,
@@ -942,11 +944,13 @@ class NewWorldTest {
 
       if (!noFullComponent) {
         clearPrevErrorsEtc();
-        IncrementalCompilerResult compilerResult2 = await compiler.computeDelta(
-            entryPoints: entries,
-            fullComponent: true,
-            simulateTransformer: world["simulateTransformer"]);
+        IncrementalCompilerResult? compilerResult2 =
+            await compiler.computeDelta(
+                entryPoints: entries,
+                fullComponent: true,
+                simulateTransformer: world["simulateTransformer"]);
         component2 = compilerResult2.component;
+        compilerResult2 = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
         if (result != null) return result;
@@ -1055,12 +1059,13 @@ class NewWorldTest {
         }
 
         Stopwatch stopwatch = new Stopwatch()..start();
-        IncrementalCompilerResult compilerResult3 =
+        IncrementalCompilerResult? compilerResult3 =
             await compilerFromScratch.computeDelta(
                 entryPoints: entries,
                 trackNeededDillLibraries: modulesToUse != null,
                 simulateTransformer: world["simulateTransformer"]);
         component3 = compilerResult3.component;
+        compilerResult3 = null;
         compilerFromScratch = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
@@ -1112,6 +1117,7 @@ class NewWorldTest {
       }
 
       component = null;
+      compilerResult = null;
       component2 = null;
       component3 = null;
       // Dummy tree nodes can (currently) leak though the parent pointer.
@@ -1220,7 +1226,7 @@ Result<TestData>? checkClassHierarchy(IncrementalCompilerResult compilerResult,
   Component component = compilerResult.component;
   StringBuffer sb = new StringBuffer();
   for (Library library in component.libraries) {
-    if (library.importUri.scheme == "dart") continue;
+    if (library.importUri.isScheme("dart")) continue;
     sb.writeln("Library ${library.importUri}");
     for (Class c in library.classes) {
       sb.writeln("  - Class ${c.name}");
@@ -1527,7 +1533,7 @@ void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
   while (workList.isNotEmpty) {
     Library library = workList.removeLast();
     for (LibraryDependency dependency in library.dependencies) {
-      if (dependency.targetLibrary.importUri.scheme == "dart") continue;
+      if (dependency.targetLibrary.importUri.isScheme("dart")) continue;
       if (libraries.add(dependency.targetLibrary)) {
         workList.add(dependency.targetLibrary);
         allLibraries.add(dependency.targetLibrary);
@@ -1601,7 +1607,7 @@ Result<TestData>? checkNeededDillLibraries(
   if (world["neededDillLibraries"] != null) {
     List<Uri> actualContent = <Uri>[];
     for (Library lib in neededDillLibraries!) {
-      if (lib.importUri.scheme == "dart") continue;
+      if (lib.importUri.isScheme("dart")) continue;
       actualContent.add(lib.importUri);
     }
 
@@ -1646,7 +1652,7 @@ String componentToStringSdkFiltered(Component component) {
   Component c = new Component();
   List<Uri> dartUris = <Uri>[];
   for (Library lib in component.libraries) {
-    if (lib.importUri.scheme == "dart") {
+    if (lib.importUri.isScheme("dart")) {
       dartUris.add(lib.importUri);
     } else {
       c.libraries.add(lib);
@@ -1680,7 +1686,7 @@ int countNonSyntheticLibraries(Component c) {
 int countNonSyntheticPlatformLibraries(Component c) {
   int result = 0;
   for (Library lib in c.libraries) {
-    if (!lib.isSynthetic && lib.importUri.scheme == "dart") result++;
+    if (!lib.isSynthetic && lib.importUri.isScheme("dart")) result++;
   }
   return result;
 }

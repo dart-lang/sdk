@@ -1,4 +1,5 @@
 enum Enum { e1, e2 }
+
 int method1(Enum? e) {}
 int method2(Enum? e) {}
 int method3(Enum? e) {}

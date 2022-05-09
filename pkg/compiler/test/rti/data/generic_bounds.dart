@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: Class1a:explicit=[Class1a*]*/
 class Class1a {}
@@ -41,15 +41,15 @@ class Class4 {}
 method10<T extends Class4>() => null;
 
 main() {
-  /*needsArgs,needsSignature,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*spec.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*prod.*/
   method7<T extends Class1a>() => null;
 
-  /*needsArgs,needsSignature,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*spec.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*prod.*/
   method8<T extends Class2a<num>>() => null;
 
-  /*needsArgs,needsSignature,selectors=[Selector(call, call, arity=0, types=1)]*/ method9<
-          T>() =>
-      null;
+  /**/ method9<T>() => null;
 
   dynamic f1 = method1;
   dynamic f2 = method2;
@@ -69,21 +69,13 @@ main() {
   f8<Class2b<int>>();
   f9<int>();
 
-  if (typeAssertionsEnabled) {
-    Expect.throws(/*needsSignature*/ () => f1<Class2a<num>>());
-    Expect.throws(/*needsSignature*/ () => f2<Class2b<String>>());
-    Expect.throws(/*needsSignature*/ () => c3.method4<Class2a<num>>());
-    Expect.throws(/*needsSignature*/ () => c3.method5<Class2b<String>>());
-    Expect.throws(/*needsSignature*/ () => f7<Class2a<num>>());
-    Expect.throws(/*needsSignature*/ () => f8<Class2b<String>>());
-  } else {
-    f1<Class2a<num>>();
-    f2<Class2b<String>>();
-    c3.method4<Class2a<num>>();
-    c3.method5<Class2b<String>>();
-    f7<Class2a<num>>();
-    f8<Class2b<String>>();
-  }
+  makeLive(/**/ () => f1<Class2a<num>>());
+  makeLive(/**/ () => f2<Class2b<String>>());
+  makeLive(/**/ () => c3.method4<Class2a<num>>());
+  makeLive(
+      /**/ () => c3.method5<Class2b<String>>());
+  makeLive(/**/ () => f7<Class2a<num>>());
+  makeLive(/**/ () => f8<Class2b<String>>());
 
   method10();
 }

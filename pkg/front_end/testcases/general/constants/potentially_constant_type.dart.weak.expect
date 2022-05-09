@@ -53,14 +53,14 @@ library;
 //         field11 = o as Class<T>,
 //                              ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:26: Error: Type variables can't be used as constants.
-//         field15 = <Class<T>>[];
-//                          ^
-//
 // pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:29: Error: Constant expression expected.
 // Try inserting 'const'.
 //         field15 = <Class<T>>[];
 //                             ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:26: Error: Type variables can't be used as constants.
+//         field15 = <Class<T>>[];
+//                          ^
 //
 // pkg/front_end/testcases/general/constants/potentially_constant_type.dart:40:20: Error: Type variables can't be used as constants.
 //     const local1 = T;
@@ -236,14 +236,14 @@ library /*isNonNullableByDefault*/;
 //         field7 = <T, T>{},
 //                      ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:31:26: Error: Type variables can't be used as constants.
-//         field15 = <Class<T>>[];
-//                          ^
-//
 // pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:31:29: Error: Constant expression expected.
 // Try inserting 'const'.
 //         field15 = <Class<T>>[];
 //                             ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:31:26: Error: Type variables can't be used as constants.
+//         field15 = <Class<T>>[];
+//                          ^
 //
 // pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:37:20: Error: Type variables can't be used as constants.
 //     const local1 = T;

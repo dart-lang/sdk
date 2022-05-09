@@ -114,7 +114,7 @@ class TypeArgumentAccessor extends Accessor {
     if (node is ExtensionOverride) {
       return node.typeArguments;
     } else if (node is InstanceCreationExpression) {
-      return node.constructorName.type2.typeArguments;
+      return node.constructorName.type.typeArguments;
     } else if (node is InvocationExpression) {
       return node.typeArguments;
     } else if (node is NamedType) {

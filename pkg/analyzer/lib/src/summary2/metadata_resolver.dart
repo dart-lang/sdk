@@ -28,7 +28,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var astResolver = AstResolver(_linker, _unitElement, _scope, node);
+      var astResolver = AstResolver(_linker, _unitElement, _scope);
       astResolver.resolveAnnotation(node);
       annotationElement.element = node.element;
     }
@@ -78,7 +78,15 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
-    node.constants.accept(this);
+    node.typeParameters?.accept(this);
+
+    _scope = LinkingNodeContext.get(node).scope;
+    try {
+      node.constants.accept(this);
+      node.members.accept(this);
+    } finally {
+      _scope = _libraryScope;
+    }
   }
 
   @override

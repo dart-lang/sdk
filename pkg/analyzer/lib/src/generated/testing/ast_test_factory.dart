@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -125,11 +126,6 @@ class AstTestFactory {
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "await"),
           expression);
 
-  static BinaryExpressionImpl binaryExpression(Expression leftOperand,
-          TokenType operator, Expression rightOperand) =>
-      astFactory.binaryExpression(
-          leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
-
   static BlockImpl block([List<Statement> statements = const []]) =>
       astFactory.block(
           TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
@@ -241,7 +237,8 @@ class AstTestFactory {
           WithClause? withClause,
           ImplementsClause? implementsClause,
           {List<ClassMember> members = const [],
-          bool isMacro = false}) =>
+          bool isMacro = false,
+          bool isAugmentation = false}) =>
       astFactory.classDeclaration(
           null,
           null,
@@ -249,6 +246,7 @@ class AstTestFactory {
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
           isMacro ? TokenFactory.tokenFromString('macro') : null,
+          isAugmentation ? TokenFactory.tokenFromString('augment') : null,
           TokenFactory.tokenFromKeyword(Keyword.CLASS),
           identifier3(name),
           typeParameters,
@@ -266,7 +264,8 @@ class AstTestFactory {
           NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause,
-          {bool isMacro = false}) =>
+          {bool isMacro = false,
+          bool isAugmentation = false}) =>
       astFactory.classTypeAlias(
           null,
           null,
@@ -278,6 +277,7 @@ class AstTestFactory {
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
           isMacro ? TokenFactory.tokenFromString('macro') : null,
+          isAugmentation ? TokenFactory.tokenFromString('augment') : null,
           superclass,
           withClause,
           implementsClause,
@@ -319,7 +319,8 @@ class AstTestFactory {
           directives: directives,
           declarations: declarations,
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          featureSet: FeatureSet.latestLanguageVersion());
+          featureSet: FeatureSet.latestLanguageVersion(),
+          lineInfo: LineInfo.fromContent(''));
 
   static CompilationUnitImpl compilationUnit9(
           {String? scriptTag,
@@ -333,7 +334,8 @@ class AstTestFactory {
           directives: directives,
           declarations: declarations,
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          featureSet: featureSet);
+          featureSet: featureSet,
+          lineInfo: LineInfo.fromContent(''));
 
   static ConditionalExpressionImpl conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>
@@ -636,6 +638,7 @@ class AstTestFactory {
           String name,
           FunctionExpression functionExpression) =>
       astFactory.functionDeclaration(
+          null,
           null,
           null,
           null,

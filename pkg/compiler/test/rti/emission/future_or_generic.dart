@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'dart:async';
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: global#Future:checkedInstance*/
 
@@ -48,8 +48,8 @@ class FutureMock<T> implements Future<T> {
 }
 
 main() {
-  Expect.isTrue(new A<B>().m(new B()));
-  Expect.isTrue(new A<B>().m(new FutureMock<B>(new B())));
-  Expect.isFalse(new A<C>().m(new B()));
-  Expect.isFalse(new A<C>().m(new FutureMock<B>(new B())));
+  makeLive(new A<B>().m(new B()));
+  makeLive(new A<B>().m(new FutureMock<B>(new B())));
+  makeLive(new A<C>().m(new B()));
+  makeLive(new A<C>().m(new FutureMock<B>(new B())));
 }

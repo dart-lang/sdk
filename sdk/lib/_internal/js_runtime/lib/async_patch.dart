@@ -481,7 +481,7 @@ class _AsyncStarStreamController<T> {
 
   add(event) => controller.add(event);
 
-  addStream(Stream<T> stream) {
+  Future addStream(Stream<T> stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 

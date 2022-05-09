@@ -38,15 +38,15 @@ class FileResolver_changeFile_Test extends FileResolutionTest {
   }
 
   test_changeFile_refreshedFiles() async {
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 class B {}
 ''');
 
-    newFile(cPath, content: r'''
+    newFile2(cPath, r'''
 import 'a.dart';
 import 'b.dart';
 ''');
@@ -70,22 +70,21 @@ import 'b.dart';
   }
 
   test_changeFile_resolution() async {
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
-A a;
-B b;
+void f(A a, B b) {}
 ''');
 
     result = await resolveFile(bPath);
     assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 1),
     ]);
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 class B {}
 ''');
@@ -96,13 +95,13 @@ class B {}
   }
 
   test_changeFile_resolution_flushInheritanceManager() async {
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   final int foo = 0;
 }
 ''');
 
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 void f(A a) {
@@ -115,7 +114,7 @@ void f(A a) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 3),
     ]);
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   int foo = 0;
 }
@@ -127,7 +126,7 @@ class A {
   }
 
   test_changeFile_resolution_missingChangeFileForPart() async {
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 part 'b.dart';
 
 var b = B(0);
@@ -141,7 +140,7 @@ var b = B(0);
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 part 'b.dart';
 
 var b = B(1);
@@ -150,7 +149,7 @@ var b = B(1);
 
     // Update b.dart, but do not notify the resolver.
     // If we try to read it now, it will throw.
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 part of 'a.dart';
 
 class B {
@@ -169,19 +168,19 @@ class B {
   }
 
   test_changePartFile_refreshedFiles() async {
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 part 'b.dart';
 
 class A {}
 ''');
 
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 part of 'a.dart';
 
 class B extends A {}
 ''');
 
-    newFile(cPath, content: r'''
+    newFile2(cPath, r'''
 import 'a.dart';
 ''');
 
@@ -222,10 +221,10 @@ import 'a.dart';
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
   @override
-  bool typeToStringWithNullability = false;
+  bool get isNullSafetyEnabled => true;
 
   test_analysisOptions_default_fromPackageUri() async {
-    newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
+    newFile2('/workspace/dart/analysis_options/lib/default.yaml', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
@@ -240,7 +239,7 @@ int b = a;
   }
 
   test_analysisOptions_file_inPackage() async {
-    newAnalysisOptionsYamlFile('/workspace/dart/test', content: r'''
+    newAnalysisOptionsYamlFile2('/workspace/dart/test', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
@@ -255,14 +254,13 @@ int b = a;
   }
 
   test_analysisOptions_file_inThirdParty() async {
-    newFile('/workspace/dart/analysis_options/lib/third_party.yaml',
-        content: r'''
+    newFile2('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
-    newAnalysisOptionsYamlFile('/workspace/third_party/dart/aaa', content: r'''
+    newAnalysisOptionsYamlFile2('/workspace/third_party/dart/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -278,15 +276,13 @@ int b = a;
   }
 
   test_analysisOptions_file_inThirdPartyDartLang() async {
-    newFile('/workspace/dart/analysis_options/lib/third_party.yaml',
-        content: r'''
+    newFile2('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
-    newAnalysisOptionsYamlFile('/workspace/third_party/dart_lang/aaa',
-        content: r'''
+    newAnalysisOptionsYamlFile2('/workspace/third_party/dart_lang/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -302,7 +298,7 @@ int b = a;
   }
 
   test_analysisOptions_lints() async {
-    newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
+    newFile2('/workspace/dart/analysis_options/lib/default.yaml', r'''
 linter:
   rules:
     - omit_local_variable_types
@@ -320,13 +316,6 @@ main() {
     ]);
   }
 
-  test_analysisOptions_no() async {
-    await assertNoErrorsInCode(r'''
-num a = 0;
-int b = a;
-''');
-  }
-
   test_basic() async {
     await assertNoErrorsInCode(r'''
 int a = 0;
@@ -341,7 +330,7 @@ var b = 1 + 2;
   test_collectSharedDataIdentifiers() async {
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
@@ -353,7 +342,7 @@ class A {}
 
   test_elements_export_dartCoreDynamic() async {
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 export 'dart:core' show dynamic;
 ''');
 
@@ -374,16 +363,27 @@ p.dynamic f() {}
 ''');
   }
 
+  test_errors_hasNullSuffix() {
+    assertErrorsInCode(r'''
+String f(Map<int, String> a) {
+  return a[0];
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 4,
+          messageContains: ["'String'", 'String?']),
+    ]);
+  }
+
   test_findReferences_class() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   int foo;
 }
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 void func() {
@@ -393,7 +393,8 @@ void func() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(6, aPath));
+    var element = await _findElement(6, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(4, 11)]),
       CiderSearchMatch(aPath, [CharacterLocation(1, 7)])
@@ -403,7 +404,7 @@ void func() {
 
   test_findReferences_field() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   int foo = 0;
 
@@ -414,7 +415,8 @@ class A {
 ''');
 
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(16, aPath));
+    var element = await _findElement(16, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(2, 7), CharacterLocation(5, 5)])
@@ -424,7 +426,7 @@ class A {
 
   test_findReferences_function() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 main() {
   foo('Hello');
 }
@@ -433,7 +435,8 @@ foo(String str) {}
 ''');
 
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(11, aPath));
+    var element = await _findElement(11, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(2, 3), CharacterLocation(5, 1)])
@@ -443,13 +446,13 @@ foo(String str) {}
 
   test_findReferences_getter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   int get foo => 6;
 }
 ''');
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -459,7 +462,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(20, aPath));
+    var element = await _findElement(20, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(5, 15)]),
       CiderSearchMatch(aPath, [CharacterLocation(2, 11)])
@@ -469,7 +473,7 @@ main() {
 
   test_findReferences_local_variable() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   void func(int n) {
     var foo = bar+1;
@@ -478,7 +482,8 @@ class A {
 }
 ''');
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(39, aPath));
+    var element = await _findElement(39, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(3, 9), CharacterLocation(4, 11)])
@@ -488,7 +493,7 @@ class A {
 
   test_findReferences_method() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   void func() {
    print('hello');
@@ -501,7 +506,7 @@ class A {
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -511,7 +516,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(17, aPath));
+    var element = await _findElement(17, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
       CiderSearchMatch(
@@ -522,13 +528,13 @@ main() {
 
   test_findReferences_setter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {
   void set value(int m){ };
 }
 ''');
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -538,7 +544,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(21, aPath));
+    var element = await _findElement(21, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
       CiderSearchMatch(aPath, [CharacterLocation(2, 12)])
@@ -549,14 +556,14 @@ main() {
   test_findReferences_top_level_getter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 int _foo;
 
 int get foo => _foo;
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -565,7 +572,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(19, aPath));
+    var element = await _findElement(19, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(4, 13)]),
       CiderSearchMatch(aPath, [CharacterLocation(3, 9)])
@@ -576,14 +584,14 @@ main() {
   test_findReferences_top_level_setter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 int _foo;
 
 void set foo(int bar) { _foo = bar; }
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -592,7 +600,8 @@ main() {
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(20, aPath));
+    var element = await _findElement(20, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(4, 3)]),
       CiderSearchMatch(aPath, [CharacterLocation(3, 10)])
@@ -603,7 +612,7 @@ main() {
   test_findReferences_top_level_variable() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 const int C = 42;
 
 void func() {
@@ -612,7 +621,8 @@ void func() {
 ''');
 
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(10, aPath));
+    var element = await _findElement(10, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
           aPath, [CharacterLocation(1, 11), CharacterLocation(4, 11)])
@@ -622,7 +632,7 @@ void func() {
 
   test_findReferences_type_parameter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class Foo<T> {
   List<T> l;
 
@@ -630,7 +640,8 @@ class Foo<T> {
 }
 ''');
     await resolveFile(aPath);
-    var result = fileResolver.findReferences(_findElement(10, aPath));
+    var element = await _findElement(10, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(aPath, [
         CharacterLocation(1, 11),
@@ -646,19 +657,20 @@ class Foo<T> {
 
   test_findReferences_typedef() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 typedef func = int Function(int);
 
 ''');
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 
 void f(func o) {}
 ''');
 
     await resolveFile(bPath);
-    var result = fileResolver.findReferences(_findElement(8, aPath));
+    var element = await _findElement(8, aPath);
+    var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(bPath, [CharacterLocation(3, 8)]),
       CiderSearchMatch(aPath, [CharacterLocation(1, 9)])
@@ -666,13 +678,13 @@ void f(func o) {}
     expect(result, unorderedEquals(expected));
   }
 
-  test_getErrors() {
+  test_getErrors() async {
     addTestFile(r'''
 var a = b;
 var foo = 0;
 ''');
 
-    var result = getTestErrors();
+    var result = await getTestErrors();
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
@@ -681,7 +693,7 @@ var foo = 0;
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
-  test_getErrors_reuse() {
+  test_getErrors_reuse() async {
     addTestFile('var a = b;');
 
     var path = convertPath('/workspace/dart/test/lib/test.dart');
@@ -690,35 +702,35 @@ var foo = 0;
     expect(fileResolver.testView!.resolvedLibraries, isEmpty);
 
     // No cached, will resolve once.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Has cached, will be not resolved again.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
 
     // Change the file, new resolver.
     // With changed file the previously cached result cannot be used.
     addTestFile('var a = c;');
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
   }
 
-  test_getErrors_reuse_changeDependency() {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+  test_getErrors_reuse_changeDependency() async {
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
 
@@ -733,27 +745,27 @@ var b = a.foo;
     expect(fileResolver.testView!.resolvedLibraries, isEmpty);
 
     // No cached, will resolve once.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Has cached, will be not resolved again.
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Change the dependency, new resolver.
     // The signature of the result is different.
     // The previously cached result cannot be used.
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 var a = 4.2;
 ''');
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
-    expect(getTestErrors().errors, hasLength(1));
+    expect((await getTestErrors()).errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
   }
 
@@ -782,39 +794,41 @@ var b = 1 + 2;
     assertHasOneVariable();
   }
 
-  test_getLibraryByUri() {
-    newFile('/workspace/dart/my/lib/a.dart', content: r'''
+  test_getLibraryByUri() async {
+    newFile2('/workspace/dart/my/lib/a.dart', r'''
 class A {}
 ''');
 
-    var element = fileResolver.getLibraryByUri(
+    var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
     expect(element.definingCompilationUnit.classes, hasLength(1));
   }
 
-  test_getLibraryByUri_notExistingFile() {
-    var element = fileResolver.getLibraryByUri(
+  test_getLibraryByUri_notExistingFile() async {
+    var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
     expect(element.definingCompilationUnit.classes, isEmpty);
   }
 
-  test_getLibraryByUri_partOf() {
-    newFile('/workspace/dart/my/lib/a.dart', content: r'''
+  test_getLibraryByUri_partOf() async {
+    newFile2('/workspace/dart/my/lib/a.dart', r'''
 part of 'b.dart';
 ''');
 
-    expect(() {
-      fileResolver.getLibraryByUri(
+    expect(() async {
+      await fileResolver.getLibraryByUri2(
         uriStr: 'package:dart.my/a.dart',
       );
     }, throwsArgumentError);
   }
 
-  test_getLibraryByUri_unresolvedUri() {
-    expect(() {
-      fileResolver.getLibraryByUri(uriStr: 'my:unresolved');
+  test_getLibraryByUri_unresolvedUri() async {
+    expect(() async {
+      await fileResolver.getLibraryByUri2(
+        uriStr: 'my:unresolved',
+      );
     }, throwsArgumentError);
   }
 
@@ -828,23 +842,23 @@ import 'dart:math';
 
   test_hint_in_third_party() async {
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 import 'dart:math';
 ''');
     await resolveFile(aPath);
     assertNoErrorsInResult();
   }
 
-  test_linkLibraries_getErrors() {
+  test_linkLibraries_getErrors() async {
     addTestFile(r'''
 var a = b;
 var foo = 0;
 ''');
 
     var path = convertPath('/workspace/dart/test/lib/test.dart');
-    fileResolver.linkLibraries(path: path);
+    await fileResolver.linkLibraries2(path: path);
 
-    var result = getTestErrors();
+    var result = await getTestErrors();
     expect(result.path, path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
@@ -854,7 +868,7 @@ var foo = 0;
   }
 
   test_nameOffset_class_method_fromBytes() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 class A {
   void foo() {}
 }
@@ -885,7 +899,7 @@ void f(A a) {
   }
 
   test_nameOffset_unit_variable_fromBytes() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
 
@@ -911,14 +925,6 @@ var b = a;
   }
 
   test_nullSafety_enabled() async {
-    typeToStringWithNullability = true;
-
-    newFile('/workspace/dart/test/BUILD', content: r'''
-dart_package(
-  null_safety = True,
-)
-''');
-
     await assertNoErrorsInCode(r'''
 void f(int? a) {
   if (a != null) {
@@ -934,7 +940,7 @@ void f(int? a) {
   }
 
   test_nullSafety_notEnabled() async {
-    typeToStringWithNullability = true;
+    newFile2('/workspace/dart/test/BUILD', '');
 
     await assertErrorsInCode(r'''
 void f(int? a) {}
@@ -960,15 +966,15 @@ part of 'a.dart';
     var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
     var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 import 'a.dart';
 ''');
 
-    newFile(cPath, content: r'''
+    newFile2(cPath, r'''
 import 'a.dart';
 ''');
 
@@ -984,28 +990,28 @@ import 'a.dart';
     var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
     var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
 
-    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
-    newFile(bPath, content: r'''
+    newFile2(bPath, r'''
 class B {}
 ''');
 
-    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
+    newFile2('/workspace/dart/aaa/lib/c.dart', r'''
 class C {}
 ''');
 
-    newFile(dPath, content: r'''
+    newFile2(dPath, r'''
 import 'a.dart';
 ''');
 
-    newFile(ePath, content: r'''
+    newFile2(ePath, r'''
 import 'a.dart';
 import 'b.dart';
 ''');
 
-    newFile(fPath, content: r'''
+    newFile2(fPath, r'''
 import 'c.dart';
  ''');
 
@@ -1020,7 +1026,7 @@ import 'c.dart';
     var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
     var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
 
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 class A {}
 ''');
 
@@ -1032,7 +1038,7 @@ class A {}
 
   test_resolve_libraryWithPart_noLibraryDiscovery() async {
     var partPath = '/workspace/dart/test/lib/a.dart';
-    newFile(partPath, content: r'''
+    newFile2(partPath, r'''
 part of 'test.dart';
 
 class A {}
@@ -1050,7 +1056,7 @@ void f(A a) {}
   }
 
   test_resolve_part_of_name() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 library my.lib;
 
 part 'test.dart';
@@ -1073,7 +1079,7 @@ void func() {
   }
 
   test_resolve_part_of_uri() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/a.dart', r'''
 part 'test.dart';
 
 class A {
@@ -1095,7 +1101,7 @@ void func() {
 
   test_resolveFile_cache() async {
     var path = convertPath('/workspace/dart/test/lib/test.dart');
-    newFile(path, content: 'var a = 0;');
+    newFile2(path, 'var a = 0;');
 
     // No resolved files yet.
     var testView = fileResolver.testView!;
@@ -1131,12 +1137,12 @@ void func() {
 
   test_resolveFile_dontCache_whenForCompletion() async {
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(a_path, content: r'''
+    newFile2(a_path, r'''
 part 'b.dart';
 ''');
 
     var b_path = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(b_path, content: r'''
+    newFile2(b_path, r'''
 part of 'a.dart';
 ''');
 
@@ -1144,7 +1150,7 @@ part of 'a.dart';
     var testView = fileResolver.testView!;
     expect(testView.resolvedLibraries, isEmpty);
 
-    fileResolver.resolve(
+    await fileResolver.resolve2(
       path: b_path,
       completionLine: 0,
       completionColumn: 0,
@@ -1160,7 +1166,7 @@ part of 'a.dart';
 
   test_resolveLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(aPath, content: r'''
+    newFile2(aPath, r'''
 part 'test.dart';
 
 class A {
@@ -1168,7 +1174,7 @@ class A {
 }
 ''');
 
-    newFile('/workspace/dart/test/lib/test.dart', content: r'''
+    newFile2('/workspace/dart/test/lib/test.dart', r'''
 part of 'a.dart';
 
 void func() {
@@ -1177,15 +1183,15 @@ void func() {
 }
 ''');
 
-    var result = fileResolver.resolveLibrary(path: aPath);
+    var result = await fileResolver.resolveLibrary2(path: aPath);
     expect(result.units.length, 2);
     expect(result.units[0].path, aPath);
     expect(result.units[0].uri, Uri.parse('package:dart.test/a.dart'));
   }
 
   test_reuse_compatibleOptions() async {
-    newFile('/workspace/dart/aaa/BUILD', content: '');
-    newFile('/workspace/dart/bbb/BUILD', content: '');
+    newFile2('/workspace/dart/aaa/BUILD', '');
+    newFile2('/workspace/dart/bbb/BUILD', '');
 
     var aPath = '/workspace/dart/aaa/lib/a.dart';
     var aResult = await assertErrorsInFile(aPath, r'''
@@ -1208,15 +1214,15 @@ int b = a;
   }
 
   test_reuse_incompatibleOptions_implicitCasts() async {
-    newFile('/workspace/dart/aaa/BUILD', content: '');
-    newAnalysisOptionsYamlFile('/workspace/dart/aaa', content: r'''
+    newFile2('/workspace/dart/aaa/BUILD', '');
+    newAnalysisOptionsYamlFile2('/workspace/dart/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
-    newFile('/workspace/dart/bbb/BUILD', content: '');
-    newAnalysisOptionsYamlFile('/workspace/dart/bbb', content: r'''
+    newFile2('/workspace/dart/bbb/BUILD', '');
+    newAnalysisOptionsYamlFile2('/workspace/dart/bbb', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -1278,8 +1284,8 @@ import 'foo:bar';
     expect(fileResolver.fsState!.testView.removedPaths, matcher);
   }
 
-  Element _findElement(int offset, String filePath) {
-    var resolvedUnit = fileResolver.resolve(path: filePath);
+  Future<Element> _findElement(int offset, String filePath) async {
+    var resolvedUnit = await fileResolver.resolve2(path: filePath);
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
     var element = getElementOfNode(node);
     return element!;

@@ -26,7 +26,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method test() → dynamic async {
+static method test() → dynamic async /* futureValueType= dynamic */ {
   core::String* s;
   for (final dynamic #t1 in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.

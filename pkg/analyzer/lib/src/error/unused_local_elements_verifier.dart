@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -24,6 +25,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   final LibraryElement _enclosingLibrary;
   ClassElement? _enclosingClass;
   ExecutableElement? _enclosingExec;
+
+  /// Non-null when the visitor is inside an [IsExpression]'s type.
+  IsExpression? _enclosingIsExpression;
+
+  /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
+  VariableDeclarationList? _enclosingVariableDeclaration;
 
   GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
@@ -73,6 +80,49 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var element = node.declaredElement!;
+    var redirectedConstructor = node.redirectedConstructor;
+    if (redirectedConstructor != null) {
+      var redirectedElement = redirectedConstructor.staticElement;
+      if (redirectedElement != null) {
+        // TODO(scheglov) Only if not _isPubliclyAccessible
+        _matchParameters(
+          element.parameters,
+          redirectedElement.parameters,
+          (first, second) {
+            usedElements.addElement(second);
+          },
+        );
+      }
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is SuperFormalParameterElement) {
+      usedElements.addElement(element.superConstructorParameter);
+    }
+
+    super.visitDefaultFormalParameter(node);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    usedElements.addElement(node.constructorElement?.declaration);
+
+    var argumentList = node.arguments?.argumentList;
+    if (argumentList != null) {
+      _addParametersForArguments(argumentList);
+    }
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
@@ -106,11 +156,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    for (var argument in node.argumentList.arguments) {
-      var parameter = argument.staticParameterElement;
-      usedElements.addElement(parameter);
-    }
+    _addParametersForArguments(node.argumentList);
     super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    var enclosingIsExpressionOld = _enclosingIsExpression;
+    node.expression.accept(this);
+    try {
+      _enclosingIsExpression = node;
+      node.type.accept(this);
+    } finally {
+      _enclosingIsExpression = enclosingIsExpressionOld;
+    }
   }
 
   @override
@@ -128,10 +187,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var function = node.methodName.staticElement;
     if (function is FunctionElement || function is MethodElement) {
-      for (var argument in node.argumentList.arguments) {
-        var parameter = argument.staticParameterElement;
-        usedElements.addElement(parameter);
-      }
+      _addParametersForArguments(node.argumentList);
     }
     super.visitMethodInvocation(node);
   }
@@ -178,21 +234,22 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         usedElements.addElement(element);
       }
     } else {
-      _useIdentifierElement(node, node.readElement);
-      _useIdentifierElement(node, node.writeElement);
-      _useIdentifierElement(node, node.staticElement);
       var parent = node.parent!;
-      // If [node] is a method tear-off, assume all parameters are used.
+      _useIdentifierElement(node, node.readElement, parent: parent);
+      _useIdentifierElement(node, node.writeElement, parent: parent);
+      _useIdentifierElement(node, node.staticElement, parent: parent);
+      var grandparent = parent.parent;
+      // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
           (element is ExecutableElement && parent is MethodInvocation) ||
               // named constructor
               (element is ConstructorElement &&
                   parent is ConstructorName &&
-                  parent.parent is InstanceCreationExpression) ||
+                  grandparent is InstanceCreationExpression) ||
               // unnamed constructor
               (element is ClassElement &&
-                  parent.parent is ConstructorName &&
-                  parent.parent!.parent is InstanceCreationExpression);
+                  grandparent is ConstructorName &&
+                  grandparent.parent is InstanceCreationExpression);
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {
@@ -210,8 +267,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           element.name == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
-        for (var value in enclosingElement.fields) {
-          usedElements.readMembers.add(value.getter!);
+        for (var field in enclosingElement.fields) {
+          if (field.isEnumConstant) {
+            usedElements.readMembers.add(field.getter!);
+          }
         }
       } else if ((enclosingElement is ClassElement ||
               enclosingElement is ExtensionElement) &&
@@ -222,6 +281,19 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    node.metadata.accept(this);
+    var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
+    try {
+      _enclosingVariableDeclaration = node;
+      node.type?.accept(this);
+    } finally {
+      _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
+    }
+    node.variables.accept(this);
   }
 
   /// Add [element] as a used member and, if [element] is a setter, add its
@@ -235,8 +307,19 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _addParametersForArguments(ArgumentList argumentList) {
+    for (var argument in argumentList.arguments) {
+      var parameter = argument.staticParameterElement;
+      usedElements.addElement(parameter);
+    }
+  }
+
   /// Marks the [element] of [node] as used in the library.
-  void _useIdentifierElement(Identifier node, Element? element) {
+  void _useIdentifierElement(
+    Identifier node,
+    Element? element, {
+    required AstNode parent,
+  }) {
     if (element == null) {
       return;
     }
@@ -252,17 +335,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    if (node.parent is NamedType) {
+    if (parent is NamedType) {
       if (element is ClassElement) {
-        AstNode parent2 = node.parent!.parent!;
-        if (parent2 is IsExpression) {
-          return;
-        }
-        if (parent2 is VariableDeclarationList) {
+        var enclosingVariableDeclaration = _enclosingVariableDeclaration;
+        if (enclosingVariableDeclaration != null) {
           // If it's a field's type, it still counts as used.
-          if (parent2.parent is! FieldDeclaration) {
+          if (enclosingVariableDeclaration.parent is! FieldDeclaration) {
             return;
           }
+        } else if (_enclosingIsExpression != null) {
+          // An interface type found in an `is` expression is not used.
+          return;
         }
       }
     }
@@ -304,6 +387,51 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
     // OK
     return true;
+  }
+
+  /// Invokes [f] for corresponding positional and named parameters.
+  /// Ignores parameters that don't have a corresponding pair.
+  /// TODO(scheglov) There might be a better place for this function.
+  static void _matchParameters(
+    List<ParameterElement> firstList,
+    List<ParameterElement> secondList,
+    void Function(ParameterElement first, ParameterElement second) f,
+  ) {
+    Map<String, ParameterElement>? firstNamed;
+    Map<String, ParameterElement>? secondNamed;
+    var firstPositional = <ParameterElement>[];
+    var secondPositional = <ParameterElement>[];
+    for (var element in firstList) {
+      if (element.isNamed) {
+        (firstNamed ??= {})[element.name] = element;
+      } else {
+        firstPositional.add(element);
+      }
+    }
+    for (var element in secondList) {
+      if (element.isNamed) {
+        (secondNamed ??= {})[element.name] = element;
+      } else {
+        secondPositional.add(element);
+      }
+    }
+
+    var positionalLength = math.min(
+      firstPositional.length,
+      secondPositional.length,
+    );
+    for (var i = 0; i < positionalLength; i++) {
+      f(firstPositional[i], secondPositional[i]);
+    }
+
+    if (firstNamed != null && secondNamed != null) {
+      for (var firstEntry in firstNamed.entries) {
+        var second = secondNamed[firstEntry.key];
+        if (second != null) {
+          f(firstEntry.value, second);
+        }
+      }
+    }
   }
 }
 
@@ -389,14 +517,24 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     var enclosingElement = element.enclosingElement;
-    if (enclosingElement is ClassElement &&
-        enclosingElement.isPrivate &&
-        (element.isStatic || element is ConstructorElement)) {
-      return false;
-    } else if (enclosingElement is ExtensionElement &&
-        enclosingElement.isPrivate) {
-      return false;
+
+    if (enclosingElement is ClassElement) {
+      if (enclosingElement.isEnum) {
+        if (element is ConstructorElement && element.isGenerative) {
+          return false;
+        }
+      }
+      if (enclosingElement.isPrivate) {
+        if (element.isStatic || element is ConstructorElement) {
+          return false;
+        }
+      }
     }
+
+    if (enclosingElement is ExtensionElement) {
+      return enclosingElement.isPublic;
+    }
+
     return true;
   }
 

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.9
 import 'package:kernel/ast.dart';
 import 'package:kernel/util/graph.dart';
 
@@ -103,7 +104,7 @@ class _LibraryGraph implements Graph<Library> {
     return <Library>[
       for (LibraryDependency dependency in vertex.dependencies)
         if (!loadedLibraries.contains(dependency.targetLibrary) &&
-            dependency.targetLibrary.importUri.scheme != 'dart')
+            !dependency.targetLibrary.importUri.isScheme('dart'))
           dependency.targetLibrary
     ];
   }

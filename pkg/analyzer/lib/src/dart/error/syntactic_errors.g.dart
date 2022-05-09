@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 import "package:analyzer/error/error.dart";
 
@@ -52,7 +52,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
   ParserErrorCode.MISSING_INITIALIZER,
   ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
-  ParserErrorCode.INVALID_UNICODE_ESCAPE,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED,
   ParserErrorCode.INVALID_OPERATOR,
   ParserErrorCode.INVALID_HEX_ESCAPE,
   ParserErrorCode.EXPECTED_INSTEAD,
@@ -135,6 +135,12 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
   ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR,
+  ParserErrorCode.MULTIPLE_CLAUSES,
+  ParserErrorCode.OUT_OF_ORDER_CLAUSES,
+  ParserErrorCode.UNEXPECTED_TOKENS,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET,
+  ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -781,6 +787,7 @@ class ParserErrorCode extends ErrorCode {
     'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
     "Field formal parameters can only be used in a constructor.",
     correctionMessage: "Try removing 'this.'.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode FINAL_AND_COVARIANT = ParserErrorCode(
@@ -1014,8 +1021,29 @@ class ParserErrorCode extends ErrorCode {
         "'this.namedConstructor())",
   );
 
-  static const ParserErrorCode INVALID_UNICODE_ESCAPE = ParserErrorCode(
-    'INVALID_UNICODE_ESCAPE',
+  static const ParserErrorCode INVALID_UNICODE_ESCAPE_STARTED = ParserErrorCode(
+    'INVALID_UNICODE_ESCAPE_STARTED',
+    "The string '\\' can't stand alone.",
+    correctionMessage: "Try adding another backslash (\\) to escape the '\\'.",
+  );
+
+  static const ParserErrorCode INVALID_UNICODE_ESCAPE_U_BRACKET =
+      ParserErrorCode(
+    'INVALID_UNICODE_ESCAPE_U_BRACKET',
+    "An escape sequence starting with '\\u{' must be followed by 1 to 6 "
+        "hexadecimal digits followed by a '}'.",
+  );
+
+  static const ParserErrorCode INVALID_UNICODE_ESCAPE_U_NO_BRACKET =
+      ParserErrorCode(
+    'INVALID_UNICODE_ESCAPE_U_NO_BRACKET',
+    "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
+        "digits.",
+  );
+
+  static const ParserErrorCode INVALID_UNICODE_ESCAPE_U_STARTED =
+      ParserErrorCode(
+    'INVALID_UNICODE_ESCAPE_U_STARTED',
     "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
         "digits or from 1 to 6 digits between '{' and '}'.",
   );
@@ -1287,6 +1315,13 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try re-ordering the modifiers.",
   );
 
+  static const ParserErrorCode MULTIPLE_CLAUSES = ParserErrorCode(
+    'MULTIPLE_CLAUSES',
+    "Each '{0}' definition can have at most one '{1}' clause.",
+    correctionMessage:
+        "Try combining all of the '{1}' clauses into a single clause.",
+  );
+
   static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = ParserErrorCode(
     'MULTIPLE_EXTENDS_CLAUSES',
     "Each class definition can have at most one extends clause.",
@@ -1461,6 +1496,12 @@ class ParserErrorCode extends ErrorCode {
         "sequence.",
   );
 
+  static const ParserErrorCode OUT_OF_ORDER_CLAUSES = ParserErrorCode(
+    'OUT_OF_ORDER_CLAUSES',
+    "The '{0}' clause must come before the '{1}' clause.",
+    correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
+  );
+
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       ParserErrorCode(
     'POSITIONAL_AFTER_NAMED_ARGUMENT',
@@ -1627,6 +1668,11 @@ class ParserErrorCode extends ErrorCode {
     'UNEXPECTED_TOKEN',
     "Unexpected text '{0}'.",
     correctionMessage: "Try removing the text.",
+  );
+
+  static const ParserErrorCode UNEXPECTED_TOKENS = ParserErrorCode(
+    'UNEXPECTED_TOKENS',
+    "Unexpected tokens.",
   );
 
   static const ParserErrorCode VAR_AND_TYPE = ParserErrorCode(

@@ -372,7 +372,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     var exp = stmt.expression as InstanceCreationExpression;
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
-    expect(exp.constructorName.type2.typeOrThrow.element, elementB);
+    expect(exp.constructorName.type.typeOrThrow.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
           .instantiate(nullabilitySuffix: NullabilitySuffix.star))
@@ -2372,7 +2372,7 @@ class B<T2, U2> {
     var bConstructor = b.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
-    var typeName = redirected.type2;
+    var typeName = redirected.type;
     assertType(typeName.type, 'A<T2, U2>');
     assertType(typeName.type, 'A<T2, U2>');
 
@@ -2408,7 +2408,7 @@ class B<T2, U2> {
     var bConstructor = b.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
-    var typeName = redirected.type2;
+    var typeName = redirected.type;
     assertType(typeName.type, 'A<T2, U2>');
     assertType(typeName.type, 'A<T2, U2>');
 
@@ -3269,7 +3269,8 @@ class C {
 class D extends C {
   T f<T extends B>(T x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
 
@@ -3283,7 +3284,8 @@ class C {
 class D extends C {
   T f<T extends A>(T x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
 
@@ -3295,7 +3297,8 @@ class C {
 class D extends C {
   String f<S>(S x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 24, 1)]),
     ]);
   }
 
@@ -3307,7 +3310,8 @@ class C {
 class D extends C {
   S f<T, S>(T x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 59, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 59, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 14, 1)]),
     ]);
   }
 
@@ -4083,11 +4087,15 @@ main() {
   v = 3;
   v; // marker
 }''');
-    if (hasAssignmentLeftResolution) {
-      assertTypeDynamic(findNode.simple('v ='));
-    } else {
-      assertTypeNull(findNode.simple('v ='));
-    }
+    assertAssignment(
+      findNode.assignment('= 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.localVar('v'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(DART_HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_USE_ABSL)
 
 #include "vm/os_thread.h"
 
@@ -194,7 +194,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
 }
-#endif  // PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);

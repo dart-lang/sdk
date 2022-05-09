@@ -26,6 +26,7 @@ declare_args() {
   dart_stripped_binary = "dart"
   dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
+  analyze_snapshot_binary = "analyze_snapshot_product"
 }
 
 # The directory layout of the SDK is as follows:
@@ -35,12 +36,10 @@ declare_args() {
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dartaotruntime or dartaotruntime.exe (executable)
-# ......dartdoc
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
-# ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
@@ -48,7 +47,6 @@ declare_args() {
 # ........dartdev.dart.snapshot
 # ........dartdev.dill
 # ........dartdevc.dart.snapshot
-# ........dartdoc.dart.snapshot
 # ........dds.dart.snapshot
 # ........frontend_server.dart.snapshot
 # ........gen_kernel.dart.snapshot (if not on ia32)
@@ -90,20 +88,13 @@ declare_args() {
 # ......api_readme.md
 
 # Scripts that go under bin/
-_platform_sdk_scripts = [
-  "dartanalyzer",
-  "pub",
-]
+_platform_sdk_scripts = [ "dartanalyzer" ]
 
 _full_sdk_scripts = [
   "dart2js",
   "dartanalyzer",
   "dartdevc",
-  "pub",
 ]
-
-# Scripts not ending in _sdk that go under bin/
-_scripts = [ "dartdoc" ]
 
 # Snapshots that go under bin/snapshots
 _platform_sdk_snapshots = [
@@ -118,10 +109,6 @@ _platform_sdk_snapshots = [
   [
     "dartdev",
     "../utils/dartdev:dartdev",
-  ],
-  [
-    "dartdoc",
-    "../utils/dartdoc",
   ],
   [
     "dds",
@@ -381,30 +368,12 @@ foreach(sdk_script, _full_sdk_scripts) {
   }
 }
 
-foreach(script, _scripts) {
-  copy("copy_${script}_script") {
-    visibility = [
-      ":copy_full_sdk_scripts",
-      ":copy_platform_sdk_scripts",
-    ]
-    ext = ""
-    if (is_win) {
-      ext = ".bat"
-    }
-    sources = [ "bin/$script$ext" ]
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
-  }
-}
-
 # This is the main target for copying scripts in _platform_sdk_scripts to bin/
 group("copy_platform_sdk_scripts") {
   visibility = [ ":_create_platform_sdk" ]
   public_deps = []
   foreach(sdk_script, _platform_sdk_scripts) {
     public_deps += [ ":copy_${sdk_script}_script" ]
-  }
-  foreach(script, _scripts) {
-    public_deps += [ ":copy_${script}_script" ]
   }
 }
 
@@ -414,9 +383,6 @@ group("copy_full_sdk_scripts") {
   public_deps = []
   foreach(sdk_script, _full_sdk_scripts) {
     public_deps += [ ":copy_${sdk_script}_script" ]
-  }
-  foreach(script, _scripts) {
-    public_deps += [ ":copy_${script}_script" ]
   }
 }
 
@@ -460,10 +426,6 @@ group("copy_full_sdk_snapshots") {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
   }
 }
-
-# This rule writes the .packages file for dartdoc resources.
-write_file("$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/.packages",
-           "dartdoc:.")
 
 # This is the main rule for copying the files that dartdoc needs.
 group("copy_dartdoc_files") {
@@ -791,8 +753,9 @@ group("create_common_sdk") {
   ]
 
   # We do not support AOT on ia32 and should therefore not add the
-  # dart native compilation files (since there is no AOT compiler/runtime available)
-  if (dart_target_arch != "ia32") {
+  # dart native compilation files since there is no AOT compiler/runtime
+  # available.
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     public_deps += [ ":group_dart2native" ]
   }
 }

@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,15 +27,6 @@ void main() {
     defineReflectiveTests(MoveFileTest);
     defineReflectiveTests(RenameTest);
   });
-}
-
-/// Wrapper around the test package's `fail` function.
-///
-/// Unlike the test package's `fail` function, this function is not annotated
-/// with @alwaysThrows, so we can call it at the top of a test method without
-/// causing the rest of the method to be flagged as dead code.
-void _fail(String message) {
-  fail(message);
 }
 
 @reflectiveTest
@@ -277,7 +270,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    newFile(join(testFolder, 'other.dart'), content: r'''
+    newFile2(join(testFolder, 'other.dart'), r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -476,7 +469,7 @@ void f() {
 
   Future<void> test_resetOnAnalysisSetChanged_watch_otherFile() async {
     var otherFile = join(testFolder, 'other.dart');
-    newFile(otherFile, content: '// other 1');
+    newFile2(otherFile, '// other 1');
     addTestFile('''
 void f() {
   foo(1 + 2);
@@ -496,7 +489,7 @@ foo(int myName) {}
     // The refactoring is reset, even though it's a different file. It is up to
     // analyzer to track dependencies and provide resolved units fast when
     // possible.
-    newFile(otherFile, content: '// other 2');
+    newFile2(otherFile, '// other 2');
     await pumpEventQueue();
     expect(test_resetCount, initialResetCount + 1);
   }
@@ -849,11 +842,13 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
-    var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    // Create .packages in the project.
-    newFile(join(projectPath, '.packages'), content: '''
-flutter:${libFolder.toUri()}
-''');
+    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
+    newPackageConfigJsonFile(
+      projectPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
+          .toContent(toUriStr: toUriStr),
+    );
   }
 
   /// Tests that there is refactoring of the given [kind] is available at the
@@ -899,9 +894,9 @@ flutter:${libFolder.toUri()}
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
     server.handlers = [handler];
   }
@@ -1096,7 +1091,7 @@ class InlineLocalTest extends _AbstractGetRefactoring_Test {
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     var otherFile = join(testFolder, 'other.dart');
-    newFile(otherFile, content: r'''
+    newFile2(otherFile, r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1164,7 +1159,7 @@ void f() {
   }
 
   Future<void> test_resetOnAnalysisSetChanged() async {
-    newFile(join(testFolder, 'other.dart'), content: '// other 1');
+    newFile2(join(testFolder, 'other.dart'), '// other 1');
     addTestFile('''
 void f() {
   int res = 1 + 2;
@@ -1325,26 +1320,67 @@ void f() {
 class MoveFileTest extends _AbstractGetRefactoring_Test {
   late MoveFileOptions options;
 
-  @failingTest
-  Future<void> test_OK() {
-    _fail('The move file refactoring is not supported under the new driver');
-    newFile('/project/bin/lib.dart');
+  Future<void> test_file_OK() {
+    newFile2('/project/bin/lib.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'lib.dart';
 ''');
     _setOptions('/project/test.dart');
     return assertSuccessfulRefactoring(() {
-      return _sendMoveRequest();
+      return _sendMoveRequest(testFile);
     }, '''
 import 'dart:math';
 import 'bin/lib.dart';
 ''');
   }
 
-  Future<Response> _sendMoveRequest() {
+  Future<void> test_folder_cancel() {
+    newFile2('/project/bin/original_folder/file.dart', '');
+    addTestFile('''
+import 'dart:math';
+import 'original_folder/file.dart';
+''');
+    _setOptions('/project/bin/new_folder');
+    return assertEmptySuccessfulRefactoring(() async {
+      return _sendAndCancelMoveRequest(
+          convertPath('/project/bin/original_folder'));
+    });
+  }
+
+  Future<void> test_folder_OK() {
+    newFile2('/project/bin/original_folder/file.dart', '');
+    addTestFile('''
+import 'dart:math';
+import 'original_folder/file.dart';
+''');
+    _setOptions('/project/bin/new_folder');
+    return assertSuccessfulRefactoring(() async {
+      return _sendMoveRequest(convertPath('/project/bin/original_folder'));
+    }, '''
+import 'dart:math';
+import 'new_folder/file.dart';
+''');
+  }
+
+  Future<Response> _cancelMoveRequest() {
+    // 0 is the id from _sendMoveRequest
+    // 1 is another aribtrary id for the cancel request
+    var request = ServerCancelRequestParams('0').toRequest('1');
+    return serverChannel.sendRequest(request);
+  }
+
+  Future<Response> _sendAndCancelMoveRequest(String item) async {
+    final responses = await Future.wait([
+      _sendMoveRequest(item),
+      _cancelMoveRequest(),
+    ]);
+    return responses.first;
+  }
+
+  Future<Response> _sendMoveRequest(String item) {
     var request = EditGetRefactoringParams(
-            RefactoringKind.MOVE_FILE, testFile, 0, 0, false,
+            RefactoringKind.MOVE_FILE, item, 0, 0, false,
             options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
@@ -1860,6 +1896,58 @@ void f() {
     );
   }
 
+  Future<void> test_enum_constructor_add_toSynthetic() {
+    addTestFile('''
+enum E {
+  v1, v2.new()
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new()', 'newName');
+      },
+      '''
+enum E {
+  v1.newName(), v2.newName();
+
+  const E.newName();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 17);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  Future<void> test_enum_constructor_change() {
+    addTestFile('''
+enum E {
+  v1.test(), v2.test();
+
+  const E.test();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test();', 'newName');
+      },
+      '''
+enum E {
+  v1.newName(), v2.newName();
+
+  const E.newName();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 24);
+        expect(renameFeedback.length, 5);
+      },
+    );
+  }
+
   Future<void> test_feedback() {
     addTestFile('''
 class Test {}
@@ -2044,7 +2132,7 @@ library my.new_name;
   }
 
   Future<void> test_library_partOfDirective() {
-    newFile(join(testFolder, 'my_lib.dart'), content: '''
+    newFile2(join(testFolder, 'my_lib.dart'), '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');
@@ -2201,6 +2289,26 @@ void f() {
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   bool shouldWaitForFullAnalysis = true;
 
+  Future assertEmptySuccessfulRefactoring(
+      Future<Response> Function() requestSender,
+      {void Function(RefactoringFeedback?)? feedbackValidator}) async {
+    var result = await getRefactoringResult(requestSender);
+    assertResultProblemsOK(result);
+    if (feedbackValidator != null) {
+      feedbackValidator(result.feedback);
+    }
+    assertNoTestRefactoringResult(result);
+  }
+
+  /// Asserts that the given [EditGetRefactoringResult] does not have a change
+  /// for [testFile].
+  void assertNoTestRefactoringResult(EditGetRefactoringResult result) {
+    var change = result.change!;
+    if (change.edits.any((edit) => edit.file == testFile)) {
+      fail('Found a SourceFileEdit for $testFile in $change');
+    }
+  }
+
   /// Asserts that [problems] has a single ERROR problem.
   void assertResultProblemsError(List<RefactoringProblem> problems,
       [String? message]) {
@@ -2289,10 +2397,12 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
-    handler = EditDomainHandler(server);
-    server.handlers = [handler];
+    await createProject();
+    server.handlers = [
+      EditDomainHandler(server),
+      ServerDomainHandler(server),
+    ];
   }
 }

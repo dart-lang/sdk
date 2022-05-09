@@ -8,12 +8,14 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
-  static const int _isMixinApplication = 1 << 1;
-  static const int _isSimplyBounded = 1 << 2;
+  static const int _isMacro = 1 << 1;
+  static const int _isMixinApplication = 1 << 2;
+  static const int _isSimplyBounded = 1 << 3;
 
   static void read(SummaryDataReader reader, ClassElementImpl element) {
     var byte = reader.readByte();
     element.isAbstract = (byte & _isAbstract) != 0;
+    element.isMacro = (byte & _isMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
@@ -21,6 +23,7 @@ class ClassElementFlags {
   static void write(BufferedSink sink, ClassElementImpl element) {
     var result = 0;
     result |= element.isAbstract ? _isAbstract : 0;
+    result |= element.isMacro ? _isMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
@@ -51,6 +54,21 @@ class ConstructorElementFlags {
   }
 }
 
+class EnumElementFlags {
+  static const int _isSimplyBounded = 1 << 0;
+
+  static void read(SummaryDataReader reader, EnumElementImpl element) {
+    var byte = reader.readByte();
+    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+  }
+
+  static void write(BufferedSink sink, EnumElementImpl element) {
+    var result = 0;
+    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    sink.writeByte(result);
+  }
+}
+
 class FieldElementFlags {
   static const int _hasImplicitType = 1 << 0;
   static const int _hasInitializer = 1 << 1;
@@ -58,10 +76,12 @@ class FieldElementFlags {
   static const int _isAbstract = 1 << 3;
   static const int _isConst = 1 << 4;
   static const int _isCovariant = 1 << 5;
-  static const int _isExternal = 1 << 6;
-  static const int _isFinal = 1 << 7;
-  static const int _isLate = 1 << 8;
-  static const int _isStatic = 1 << 9;
+  static const int _isEnumConstant = 1 << 6;
+  static const int _isExternal = 1 << 7;
+  static const int _isFinal = 1 << 8;
+  static const int _isLate = 1 << 9;
+  static const int _isStatic = 1 << 10;
+  static const int _isSynthetic = 1 << 11;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -71,10 +91,12 @@ class FieldElementFlags {
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isConst = (byte & _isConst) != 0;
     element.isCovariant = (byte & _isCovariant) != 0;
+    element.isEnumConstant = (byte & _isEnumConstant) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
     element.isStatic = (byte & _isStatic) != 0;
+    element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, FieldElementImpl element) {
@@ -85,10 +107,12 @@ class FieldElementFlags {
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isConst ? _isConst : 0;
     result |= element.isCovariant ? _isCovariant : 0;
+    result |= element.isEnumConstant ? _isEnumConstant : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
     result |= element.isStatic ? _isStatic : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeUInt30(result);
   }
 }
@@ -98,6 +122,7 @@ class FunctionElementFlags {
   static const int _isAsynchronous = 1 << 1;
   static const int _isExternal = 1 << 2;
   static const int _isGenerator = 1 << 3;
+  static const int _isStatic = 1 << 4;
 
   static void read(SummaryDataReader reader, FunctionElementImpl element) {
     var byte = reader.readByte();
@@ -105,6 +130,7 @@ class FunctionElementFlags {
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
+    element.isStatic = (byte & _isStatic) != 0;
   }
 
   static void write(BufferedSink sink, FunctionElementImpl element) {
@@ -113,6 +139,7 @@ class FunctionElementFlags {
     result |= element.isAsynchronous ? _isAsynchronous : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
+    result |= element.isStatic ? _isStatic : 0;
     sink.writeByte(result);
   }
 }
@@ -160,6 +187,7 @@ class MethodElementFlags {
   static const int _isExternal = 1 << 3;
   static const int _isGenerator = 1 << 4;
   static const int _isStatic = 1 << 5;
+  static const int _isSynthetic = 1 << 6;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
     var byte = reader.readByte();
@@ -169,6 +197,7 @@ class MethodElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
+    element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, MethodElementImpl element) {
@@ -179,6 +208,22 @@ class MethodElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
+    sink.writeByte(result);
+  }
+}
+
+class MixinElementFlags {
+  static const int _isSimplyBounded = 1 << 0;
+
+  static void read(SummaryDataReader reader, MixinElementImpl element) {
+    var byte = reader.readByte();
+    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+  }
+
+  static void write(BufferedSink sink, MixinElementImpl element) {
+    var result = 0;
+    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }
 }

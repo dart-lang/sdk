@@ -1,3 +1,6 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.9
 import 'dart:async';
@@ -5,6 +8,7 @@ import 'dart:html';
 import 'dart:typed_data';
 import 'dart:web_audio';
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/minitest.dart';
 
 main() {
@@ -91,6 +95,75 @@ main() {
         // ignores them.
         //expect(() => oscillator.type = ['heap object not a string'], throws);
         expect(oscillator.type, equals('triangle'));
+      }
+    });
+
+    asyncTest(() async {
+      if (AudioContext.supported) {
+        final audioSourceUrl = "/root_dart/tests/lib_2/html/small.mp3";
+
+        Future<void> requestAudioDecode(
+            {bool triggerDecodeError: false,
+            DecodeSuccessCallback successCallback,
+            DecodeErrorCallback errorCallback}) async {
+          HttpRequest audioRequest = HttpRequest();
+          audioRequest.open("GET", audioSourceUrl, async: true);
+          audioRequest.responseType = "arraybuffer";
+          var completer = new Completer<void>();
+          audioRequest.onLoad.listen((_) {
+            ByteBuffer audioData = audioRequest.response;
+            if (triggerDecodeError) audioData = Uint8List.fromList([]).buffer;
+            context
+                .decodeAudioData(audioData, successCallback, errorCallback)
+                .then((_) {
+              completer.complete();
+            }).catchError((e) {
+              completer.completeError(e);
+            });
+          });
+          audioRequest.send();
+          return completer.future;
+        }
+
+        // Decode successfully without callback.
+        await requestAudioDecode();
+
+        // Decode successfully with callback. Use counter to make sure it's only
+        // called once.
+        var successCallbackCalled = 0;
+        await requestAudioDecode(
+            successCallback: (_) {
+              successCallbackCalled += 1;
+            },
+            errorCallback: (_) {});
+        expect(successCallbackCalled, 1);
+
+        // Fail decode without callback.
+        try {
+          await requestAudioDecode(triggerDecodeError: true);
+          fail('Expected decode failure.');
+        } catch (_) {}
+
+        // Fail decode with callback.
+        var errorCallbackCalled = 0;
+        try {
+          await requestAudioDecode(
+              triggerDecodeError: true,
+              successCallback: (_) {},
+              errorCallback: (_) {
+                errorCallbackCalled += 1;
+              });
+          fail('Expected decode failure.');
+        } catch (e) {
+          // Safari may return a null error. Assuming Safari is version >= 14.1,
+          // the Future should complete with a string error if the error
+          // callback never gets called.
+          if (errorCallbackCalled == 0) {
+            expect(e is String, true);
+          } else {
+            expect(errorCallbackCalled, 1);
+          }
+        }
       }
     });
   });

@@ -35,7 +35,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -77,7 +77,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -111,7 +111,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     final expectedCreatedFile =
         path.join(path.dirname(mainFilePath), 'newfile.dart');
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -142,7 +142,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final ofKind = (CodeActionKind kind) => getCodeActions(
@@ -182,7 +182,7 @@ import 'dart:async';
 import 'dart:convert';
 
 Future foo;''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -217,7 +217,7 @@ import 'dart:async';
 import 'dart:convert';
 
 Future foo;''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -244,7 +244,7 @@ Future foo;''';
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -264,7 +264,7 @@ Future foo;''';
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -281,7 +281,7 @@ Future foo;''';
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile2(pubspecFilePath, simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -294,7 +294,7 @@ Future foo;''';
 
   Future<void> test_organizeImportsFix_namedOrganizeImports() async {
     registerLintRules();
-    newFile(analysisOptionsPath, content: '''
+    newFile2(analysisOptionsPath, '''
 linter:
   rules:
     - directives_ordering
@@ -316,7 +316,7 @@ import 'dart:io';
 Completer a;
 ProcessInfo b;
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -341,9 +341,9 @@ ProcessInfo b;
   }
 
   Future<void> test_outsideRoot() async {
-    final otherFilePath = '/home/otherProject/foo.dart';
+    final otherFilePath = convertPath('/home/otherProject/foo.dart');
     final otherFileUri = Uri.file(otherFilePath);
-    newFile(otherFilePath, content: 'bad code to create error');
+    newFile2(otherFilePath, 'bad code to create error');
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -387,7 +387,7 @@ ProcessInfo b;
           request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -437,7 +437,7 @@ ProcessInfo b;
           request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -457,6 +457,102 @@ ProcessInfo b;
       ]),
     );
   }
+
+  Future<void> test_snippets_createMethod_functionTypeNestedParameters() async {
+    const content = '''
+class A {
+  void a() => c^((cell) => cell.south);
+  void b() => c((cell) => cell.west);
+}
+''';
+
+    const expectedContent = r'''
+class A {
+  void a() => c((cell) => cell.south);
+  void b() => c((cell) => cell.west);
+
+  ${1:c}(${2:Function(dynamic cell)} ${3:param0}) {}
+}
+''';
+
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final fixAction = findEditAction(codeActions,
+        CodeActionKind('quickfix.create.method'), "Create method 'c'")!;
+
+    // Ensure the edit came back, and using documentChanges.
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, edit.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void>
+      test_snippets_extractVariable_functionTypeNestedParameters() async {
+    const content = '''
+main() {
+  useFunction(te^st);
+}
+
+useFunction(int g(a, b)) {}
+''';
+
+    const expectedContent = r'''
+main() {
+  ${1:int Function(dynamic a, dynamic b)} ${2:test};
+  useFunction(test);
+}
+
+useFunction(int g(a, b)) {}
+''';
+
+    newFile2(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.create.localVariable'),
+        "Create local variable 'test'")!;
+
+    // Ensure the edit came back, and using documentChanges.
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, edit.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
 }
 
 @reflectiveTest
@@ -473,7 +569,7 @@ var a = [[foo]]();
 var b = bar();
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -495,7 +591,7 @@ void f(String a) {
 }
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -524,7 +620,7 @@ void f(String a) {
   print(a);
 }
     ''';
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -556,7 +652,7 @@ void f(String a) {
     }
     ''';
 
-    newFile(mainFilePath, content: withoutMarkers(content));
+    newFile2(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),

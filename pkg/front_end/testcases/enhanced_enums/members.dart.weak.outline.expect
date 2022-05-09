@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two];
+  final field core::int foo;
+  final field core::int bar;
+  static field self::E staticFoo;
+  static const field self::E one = const self::E::•(0, "one", 1);
+  static const field self::E two = const self::E::•(1, "two", 2);
+  const constructor •(core::int index, core::String name, core::int foo) → self::E
+    : self::E::foo = foo, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  static factory f() → self::E
+    ;
+  method method(core::int value) → core::int
+    ;
+  method staticMethod(core::double d, core::bool b) → core::String
+    ;
+}
+class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2<dynamic>> values = const <self::E2<dynamic>>[self::E2::one, self::E2::two];
+  final field self::E2::X% foo;
+  final field self::E2::X? bar;
+  static field () → self::E2<dynamic> staticFoo;
+  static const field self::E2<core::num> one = const self::E2::•<core::num>(0, "one", 1);
+  static const field self::E2<core::String> two = const self::E2::•<core::String>(1, "two", "2");
+  const constructor •(core::int index, core::String name, self::E2::X% foo) → self::E2<self::E2::X%>
+    : self::E2::foo = foo, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  static factory f<X extends core::Object? = dynamic>() → self::E2<self::E2::f::X%>
+    ;
+  method method(core::int value) → core::int
+    ;
+  method staticMethod(core::double d, covariant-by-class self::E2::X% x) → core::String
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///members.dart:5:6 -> ListConstant(const <E*>[const E{E.foo: 1, E.bar: null, _Enum.index: 0, _Enum._name: "one"}, const E{E.foo: 2, E.bar: null, _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///members.dart:6:3 -> InstanceConstant(const E{E.foo: 1, E.bar: null, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///members.dart:7:3 -> InstanceConstant(const E{E.foo: 2, E.bar: null, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///members.dart:23:6 -> ListConstant(const <E2<dynamic>*>[const E2<num*>{E2.foo: 1, E2.bar: null, _Enum.index: 0, _Enum._name: "one"}, const E2<String*>{E2.foo: "2", E2.bar: null, _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///members.dart:24:3 -> InstanceConstant(const E2<num*>{E2.foo: 1, E2.bar: null, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///members.dart:25:3 -> InstanceConstant(const E2<String*>{E2.foo: "2", E2.bar: null, _Enum.index: 1, _Enum._name: "two"})
+Extra constant evaluation: evaluated: 18, effectively constant: 6

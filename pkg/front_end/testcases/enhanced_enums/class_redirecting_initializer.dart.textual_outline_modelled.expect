@@ -1,0 +1,8 @@
+class C {
+  C(int x, int y, {int z = 42}) {}
+  C.named1(int x, int y, int z) : this(x, y, z: z);
+  String log = "";
+}
+
+expect(expected, actual) {}
+main() {}

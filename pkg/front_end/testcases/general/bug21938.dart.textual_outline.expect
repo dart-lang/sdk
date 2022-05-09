@@ -1,3 +1,2 @@
-// @dart = 2.9
-test() {}
+test(Object x, Function f) {}
 main() {}

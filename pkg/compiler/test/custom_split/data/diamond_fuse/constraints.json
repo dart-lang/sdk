@@ -21,20 +21,19 @@
   },
   {
     "type": "fuse",
-    "name": "step2",
     "nodes": [
       "memory:sdk/tests/web/native/main.dart#step2a",
       "memory:sdk/tests/web/native/main.dart#step2b"
     ]
   },
   {
-    "type": "order",
+    "type": "relative_order",
     "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
-    "successor": "step2"
+    "successor": "memory:sdk/tests/web/native/main.dart#step2a"
   },
   {
-    "type": "order",
-    "predecessor": "step2",
+    "type": "relative_order",
+    "predecessor": "memory:sdk/tests/web/native/main.dart#step2b",
     "successor": "memory:sdk/tests/web/native/main.dart#step3"
   }
 ]

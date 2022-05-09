@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:http/http.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,7 +29,7 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
   late PubPackageService pubPackageService;
 
   @override
-  String get fileName => 'pubspec.yaml';
+  String get fileName => file_paths.pubspecYaml;
 
   @override
   PubspecGenerator get generator =>
@@ -84,7 +85,7 @@ flutter:
   }
 
   void test_flutter_assets_invalidPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -94,7 +95,7 @@ flutter:
   }
 
   void test_flutter_assets_nonExistentPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -104,7 +105,7 @@ flutter:
   }
 
   void test_flutter_assets_noPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -114,7 +115,7 @@ flutter:
   }
 
   void test_flutter_assets_partialPath() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -124,7 +125,7 @@ flutter:
   }
 
   void test_flutter_assets_path_withFollowing() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -134,7 +135,7 @@ flutter:
   }
 
   void test_flutter_assets_path_withoutFollowing() {
-    newFile('/home/test/assets/img1.jpg');
+    newFile2('/home/test/assets/img1.jpg', '');
     getCompletions('''
 flutter:
   assets:
@@ -379,7 +380,7 @@ dependencies:
       return MockProcess(1, 0, '', '');
     };
 
-    newFile('/home/DEPS');
+    newFile2('/home/DEPS', '');
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
     await pumpEventQueue(times: 500);
 

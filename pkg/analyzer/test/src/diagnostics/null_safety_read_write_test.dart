@@ -10,12 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ReadWriteWithNullSafetyTest);
+    defineReflectiveTests(ReadWriteTest);
   });
 }
 
 @reflectiveTest
-class ReadWriteWithNullSafetyTest extends PubPackageResolutionTest {
+class ReadWriteTest extends PubPackageResolutionTest {
   @override
   bool get retainDataForTesting => true;
 

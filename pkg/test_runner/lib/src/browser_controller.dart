@@ -1342,6 +1342,7 @@ class BrowserTestingServer {
 <!DOCTYPE html><html>
 <head>
   <title>Driving page</title>
+  <meta charset="utf-8">
   <style>
 .big-notice {
   background-color: red;

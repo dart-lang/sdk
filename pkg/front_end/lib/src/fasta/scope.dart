@@ -5,19 +5,16 @@
 library fasta.scope;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 
 import 'builder/builder.dart';
+import 'builder/class_builder.dart';
 import 'builder/extension_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
-import 'kernel/body_builder.dart' show JumpTarget;
-import 'kernel/hierarchy/class_member.dart' show ClassMember;
-import 'kernel/kernel_helper.dart';
-import 'util/helpers.dart' show DelayedActionPerformer;
-
 import 'fasta_codes.dart'
     show
         LocatedMessage,
@@ -26,8 +23,14 @@ import 'fasta_codes.dart'
         templateAccessError,
         templateDuplicatedDeclarationUse,
         templateDuplicatedNamePreviouslyUsedCause;
-
+import 'kernel/body_builder.dart' show JumpTarget;
+import 'kernel/hierarchy/class_member.dart' show ClassMember;
+import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
+import 'source/source_class_builder.dart';
+import 'source/source_library_builder.dart';
+import 'source/source_member_builder.dart';
+import 'util/helpers.dart' show DelayedActionPerformer;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -424,6 +427,10 @@ class Scope extends MutableScope {
     _setters.forEach(f);
   }
 
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
+    _extensions?.forEach(f);
+  }
+
   Iterable<Builder> get localMembers => _local.values;
 
   Iterable<MemberBuilder> get localSetters => _setters.values;
@@ -462,7 +469,7 @@ class Scope extends MutableScope {
     return forwardDeclaredLabels;
   }
 
-  Builder? lookupLabel(String name) {
+  JumpTarget? lookupLabel(String name) {
     return labels?[name] ?? _parent?.lookupLabel(name);
   }
 
@@ -608,6 +615,14 @@ class ConstructorScope {
     }
   }
 
+  MemberBuilder? lookupLocalMember(String name) {
+    return local[name];
+  }
+
+  void addLocalMember(String name, MemberBuilder builder) {
+    local[name] = builder;
+  }
+
   @override
   String toString() => "ConstructorScope($className, ${local.keys})";
 }
@@ -642,38 +657,6 @@ abstract class LazyScope extends Scope {
     ensureScope();
     return super._extensions;
   }
-}
-
-class ScopeBuilder {
-  final Scope scope;
-
-  ScopeBuilder(this.scope);
-
-  void addMember(String name, Builder builder) {
-    scope._local[name] = builder;
-  }
-
-  void addSetter(String name, MemberBuilder builder) {
-    scope._setters[name] = builder;
-  }
-
-  void addExtension(ExtensionBuilder builder) {
-    scope.addExtension(builder);
-  }
-
-  Builder? operator [](String name) => scope._local[name];
-}
-
-class ConstructorScopeBuilder {
-  final ConstructorScope scope;
-
-  ConstructorScopeBuilder(this.scope);
-
-  void addMember(String name, MemberBuilder builder) {
-    scope.local[name] = builder;
-  }
-
-  MemberBuilder? operator [](String name) => scope.local[name];
 }
 
 abstract class ProblemBuilder extends BuilderImpl {
@@ -768,7 +751,10 @@ class AmbiguousBuilder extends ProblemBuilder {
   }
 }
 
-mixin ErroneousMemberBuilderMixin implements MemberBuilder {
+mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
+  @override
+  MemberDataForTesting? get dataForTesting => null;
+
   @override
   Member get member => throw new UnsupportedError('$runtimeType.member');
 
@@ -800,13 +786,27 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   bool get isConflictingSetter => false;
 
   @override
+  bool get isConflictingAugmentationMember => false;
+
+  @override
+  void set isConflictingAugmentationMember(bool value) {
+    throw new UnsupportedError(
+        'AmbiguousMemberBuilder.isConflictingAugmentationMember=');
+  }
+
+  @override
   void set parent(Builder? value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
 
   @override
-  LibraryBuilder get library {
-    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+  ClassBuilder get classBuilder {
+    throw new UnsupportedError('AmbiguousMemberBuilder.classBuilder');
+  }
+
+  @override
+  SourceLibraryBuilder get libraryBuilder {
+    throw new UnsupportedError('AmbiguousMemberBuilder.library');
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
@@ -815,12 +815,16 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
 
   @override
   void buildOutlineExpressions(
-      LibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
+  }
+
+  @override
+  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+    assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 
   @override
@@ -828,6 +832,23 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
 
   @override
   List<ClassMember> get localSetters => const <ClassMember>[];
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    assert(false, "Unexpected call to $runtimeType.checkVariance.");
+  }
+
+  @override
+  bool get isAugmentation {
+    throw new UnsupportedError('AmbiguousMemberBuilder.isAugmentation');
+  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder

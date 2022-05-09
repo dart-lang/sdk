@@ -127,7 +127,7 @@ class AnalyzerImpl {
     files.clear();
     errorsResults.clear();
     var libraryUri = libraryFile.uri;
-    if (libraryUri.scheme == 'package' && libraryUri.pathSegments.isNotEmpty) {
+    if (libraryUri.isScheme('package') && libraryUri.pathSegments.isNotEmpty) {
       _selfPackageName = libraryUri.pathSegments[0];
     }
   }
@@ -148,7 +148,7 @@ class AnalyzerImpl {
 
     // Print errors and performance numbers.
     if (printMode == 1) {
-      formatter.formatErrors(errorsResults);
+      await formatter.formatErrors(errorsResults);
     } else if (printMode == 2) {
       _printColdPerf();
     }
@@ -177,7 +177,7 @@ class AnalyzerImpl {
 
   /// Determine whether the given URI refers to a package being analyzed.
   bool _isAnalyzedPackage(Uri uri) {
-    if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
+    if (!uri.isScheme('package') || uri.pathSegments.isEmpty) {
       return false;
     }
     var packageName = uri.pathSegments.first;

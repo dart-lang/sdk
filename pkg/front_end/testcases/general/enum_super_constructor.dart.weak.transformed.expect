@@ -1,0 +1,72 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/enum_super_constructor.dart:9:3: Error: The 'enhanced-enums' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.17 or higher.
+//   A() : super();
+//   ^
+// pkg/front_end/testcases/general/enum_super_constructor.dart:5:1: Context: This is the annotation that opts out this library from the 'enhanced-enums' language feature.
+// // @dart=2.16
+// ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/enum_super_constructor.dart:9:3: Error: Generative enum constructors must be marked as 'const'.
+//   A() : super();
+//   ^
+//
+// pkg/front_end/testcases/general/enum_super_constructor.dart:14:3: Error: The 'enhanced-enums' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.17 or higher.
+//   const B() : super();
+//   ^
+// pkg/front_end/testcases/general/enum_super_constructor.dart:5:1: Context: This is the annotation that opts out this library from the 'enhanced-enums' language feature.
+// // @dart=2.16
+// ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+//   const B() : super();
+//               ^
+//
+// pkg/front_end/testcases/general/enum_super_constructor.dart:9:9: Error: Enum constructors can't contain super-initializers.
+//   A() : super();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::A> values = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'A'.
+  a;
+  ^";
+  static const field self::A a = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:8:3: Error: Couldn't find constructor 'A'.
+  a;
+  ^";
+  constructor •(core::int index, core::String name) → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:9:9: Error: Enum constructors can't contain super-initializers.
+  A() : super();
+        ^"
+    ;
+  method toString() → core::String
+    return "A.${this.{core::_Enum::_name}{core::String}}";
+}
+class B extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::B> values = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+  const B() : super();
+              ^";
+  static const field self::B b = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+  const B() : super();
+              ^";
+  const constructor •(core::int index, core::String name) → self::B
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+  const B() : super();
+              ^"
+    ;
+  method toString() → core::String
+    return "B.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_super_constructor.dart:
+- B. (from org-dartlang-testcase:///enum_super_constructor.dart:14:9)

@@ -25,8 +25,7 @@ intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
     Register cpu_register) {
   ASSERT(RegisterSet::Contains(kDartAvailableCpuRegs, cpu_register));
 
-  // Skip FP + saved PC.
-  intptr_t slots_from_fp = 2;
+  intptr_t slots_from_fp = target::frame_layout.param_end_from_fp + 1;
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     Register reg = static_cast<Register>(i);
     if (reg == cpu_register) break;
@@ -898,6 +897,43 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
 
   // AllocateClosureABI::kResultReg: new object
   __ Ret();
+}
+
+// Generates allocation stub for _GrowableList class.
+// This stub exists solely for performance reasons: default allocation
+// stub is slower as it doesn't use specialized inline allocation.
+void StubCodeCompiler::GenerateAllocateGrowableArrayStub(Assembler* assembler) {
+#if defined(TARGET_ARCH_IA32)
+  // This stub is not used on IA32 because IA32 version of
+  // StubCodeCompiler::GenerateAllocationStubForClass uses inline
+  // allocation. Also, AllocateObjectSlow stub is not generated on IA32.
+  __ Breakpoint();
+#else
+  const intptr_t instance_size = target::RoundedAllocationSize(
+      target::GrowableObjectArray::InstanceSize());
+
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
+    __ Comment("Inline allocation of GrowableList");
+    __ TryAllocateObject(kGrowableObjectArrayCid, instance_size, &slow_case,
+                         Assembler::kNearJump, AllocateObjectABI::kResultReg,
+                         /*temp_reg=*/AllocateObjectABI::kTagsReg);
+    __ StoreIntoObjectNoBarrier(
+        AllocateObjectABI::kResultReg,
+        FieldAddress(AllocateObjectABI::kResultReg,
+                     target::GrowableObjectArray::type_arguments_offset()),
+        AllocateObjectABI::kTypeArgumentsReg);
+
+    __ Ret();
+    __ Bind(&slow_case);
+  }
+
+  const uword tags = target::MakeTagWordForNewSpaceObject(
+      kGrowableObjectArrayCid, instance_size);
+  __ LoadImmediate(AllocateObjectABI::kTagsReg, tags);
+  __ Jump(
+      Address(THR, target::Thread::allocate_object_slow_entry_point_offset()));
+#endif  // defined(TARGET_ARCH_IA32)
 }
 
 // The UnhandledException class lives in the VM isolate, so it cannot cache

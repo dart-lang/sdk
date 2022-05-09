@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,10 +23,11 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getTypeHierarchy';
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     server.handlers = [
+      AnalysisDomainHandler(server),
       SearchDomainHandler(server),
     ];
   }
@@ -161,25 +164,32 @@ class CCC extends BBB implements AAA {}
 
   Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    newFile('/packages/pkgA/lib/libA.dart', content: '''
+    newFile2('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
-    newDotPackagesFile('/packages/pkgA',
-        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
+    newPackageConfigJsonFile(
+      '/packages/pkgA',
+      (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     // reference the package from a project
-    newDotPackagesFile(projectPath,
-        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
+    newPackageConfigJsonFile(
+      projectPath,
+      (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+          .toContent(toUriStr: toUriStr),
+    );
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
 ''');
     await waitForTasksFinished();
     // configure roots
-    var request = AnalysisSetAnalysisRootsParams(
-        [projectPath, convertPath('/packages/pkgA')], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(
+        included: [projectPath, convertPath('/packages/pkgA')], excluded: []);
     // test A type hierarchy
     var items = await _getTypeHierarchy('A {}');
     var names = _toClassNames(items);
@@ -370,6 +380,44 @@ class C extends B {
     ]);
   }
 
+  Future<void> test_class_fromField_toMixinGetter() async {
+    addTestFile('''
+abstract class A {
+  var test = 1;
+}
+class Mixin {
+  get test => 2;
+}
+class B extends A with Mixin {}
+''');
+    var items = await _getTypeHierarchy('test = 1;');
+    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+    var memberA = itemA.memberElement!;
+    var memberB = itemB.memberElement!;
+    expect(memberA.location!.offset, findOffset('test = 1;'));
+    expect(memberB.location!.offset, findOffset('test => 2;'));
+  }
+
+  Future<void> test_class_fromField_toMixinSetter() async {
+    addTestFile('''
+abstract class A {
+  var test = 1;
+}
+class Mixin {
+  set test(m) {}
+}
+class B extends A with Mixin {}
+''');
+    var items = await _getTypeHierarchy('test = 1;');
+    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+    var memberA = itemA.memberElement!;
+    var memberB = itemB.memberElement!;
+    expect(memberA.location!.offset, findOffset('test = 1;'));
+    expect(memberB.location!.offset, findOffset('test(m) {}'));
+  }
+
   Future<void> test_class_implementsTypes() async {
     addTestFile('''
 class MA {}
@@ -429,6 +477,484 @@ class T implements MA, MB {
         'subclasses': []
       }
     ]);
+  }
+
+  Future<void> test_class_member_fromField_toField() async {
+    addTestFile('''
+class A {
+  var test = 1;
+}
+class B extends A {
+  var test = 2;
+}
+''');
+
+    void checkItems(List<TypeHierarchyItem> items) {
+      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+      var memberA = itemA.memberElement!;
+      var memberB = itemB.memberElement!;
+      expect(memberA.location!.offset, findOffset('test = 1;'));
+      expect(memberB.location!.offset, findOffset('test = 2;'));
+    }
+
+    checkItems(await _getTypeHierarchy('test = 1;'));
+    checkItems(await _getTypeHierarchy('test = 2;'));
+  }
+
+  Future<void> test_class_member_fromField_toGetter() async {
+    addTestFile('''
+class A {
+  get test => 1;
+}
+class B extends A {
+  var test = 2;
+}
+''');
+
+    void checkItems(List<TypeHierarchyItem> items) {
+      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+      var memberA = itemA.memberElement!;
+      var memberB = itemB.memberElement!;
+      expect(memberA.location!.offset, findOffset('test => 1'));
+      expect(memberB.location!.offset, findOffset('test = 2;'));
+    }
+
+    checkItems(await _getTypeHierarchy('test => 1;'));
+    checkItems(await _getTypeHierarchy('test = 2;'));
+  }
+
+  Future<void> test_class_member_fromField_toSetter() async {
+    addTestFile('''
+class A {
+  set test(a) {}
+}
+class B extends A {
+  var test = 2;
+}
+''');
+
+    void checkItems(List<TypeHierarchyItem> items) {
+      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+      var memberA = itemA.memberElement!;
+      var memberB = itemB.memberElement!;
+      expect(memberA.location!.offset, findOffset('test(a) {}'));
+      expect(memberB.location!.offset, findOffset('test = 2;'));
+    }
+
+    checkItems(await _getTypeHierarchy('test(a) {}'));
+    checkItems(await _getTypeHierarchy('test = 2;'));
+  }
+
+  Future<void> test_class_member_fromFinalField_toGetter() async {
+    addTestFile('''
+class A {
+  get test => 1;
+}
+class B extends A {
+  final test = 2;
+}
+''');
+
+    void checkItems(List<TypeHierarchyItem> items) {
+      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+      var memberA = itemA.memberElement!;
+      var memberB = itemB.memberElement!;
+      expect(memberA.location!.offset, findOffset('test => 1'));
+      expect(memberB.location!.offset, findOffset('test = 2;'));
+    }
+
+    checkItems(await _getTypeHierarchy('test => 1;'));
+    checkItems(await _getTypeHierarchy('test = 2;'));
+  }
+
+  Future<void> test_class_member_fromFinalField_toSetter() async {
+    addTestFile('''
+class A {
+  set test(x) {}
+}
+class B extends A {
+  final test = 2;
+}
+''');
+    var items = await _getTypeHierarchy('test = 2;');
+    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+    expect(itemA.memberElement, isNull);
+    expect(itemB.memberElement!.location!.offset, findOffset('test = 2;'));
+  }
+
+  Future<void> test_class_member_getter() async {
+    addTestFile('''
+class A {
+  get test => null; // in A
+}
+class B extends A {
+  get test => null; // in B
+}
+class C extends B {
+}
+class D extends C {
+  get test => null; // in D
+}
+''');
+    var items = await _getTypeHierarchy('test => null; // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemD = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemD.classElement.name, 'D');
+    expect(itemA.memberElement!.location!.offset,
+        findOffset('test => null; // in A'));
+    expect(itemB.memberElement!.location!.offset,
+        findOffset('test => null; // in B'));
+    expect(itemC.memberElement, isNull);
+    expect(itemD.memberElement!.location!.offset,
+        findOffset('test => null; // in D'));
+  }
+
+  Future<void> test_class_member_method() async {
+    addTestFile('''
+class A {
+  test() {} // in A
+}
+class B extends A {
+  test() {} // in B
+}
+class C extends B {
+}
+class D extends C {
+  test() {} // in D
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemD = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemD.classElement.name, 'D');
+    expect(
+        itemA.memberElement!.location!.offset, findOffset('test() {} // in A'));
+    expect(
+        itemB.memberElement!.location!.offset, findOffset('test() {} // in B'));
+    expect(itemC.memberElement, isNull);
+    expect(
+        itemD.memberElement!.location!.offset, findOffset('test() {} // in D'));
+  }
+
+  Future<void> test_class_member_method_private_differentLib() async {
+    newFile2(join(testFolder, 'lib.dart'), r'''
+import 'test.dart';
+class A {
+  void _m() {}
+}
+class C extends B {
+  void _m() {}
+}
+''');
+    addTestFile('''
+import 'lib.dart';
+class B extends A {
+  _m() {} // in B
+}
+class D extends C {
+  _m() {} // in D
+}
+''');
+    var items = await _getTypeHierarchy('_m() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemD = items[itemC.subclasses[0]];
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.classElement.name, 'A');
+    expect(itemC.classElement.name, 'C');
+    expect(itemD.classElement.name, 'D');
+    expect(itemA.memberElement, isNull);
+    expect(itemC.memberElement, isNull);
+    expect(itemB.memberElement, isNotNull);
+    expect(itemD.memberElement, isNotNull);
+  }
+
+  Future<void> test_class_member_method_private_sameLib() async {
+    addTestFile('''
+class A {
+  _m() {} // in A
+}
+class B extends A {
+  _m() {} // in B
+}
+class C extends B {
+  _m() {} // in C
+}
+''');
+    var items = await _getTypeHierarchy('_m() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(
+        itemA.memberElement!.location!.offset, findOffset('_m() {} // in A'));
+    expect(
+        itemB.memberElement!.location!.offset, findOffset('_m() {} // in B'));
+    expect(
+        itemC.memberElement!.location!.offset, findOffset('_m() {} // in C'));
+  }
+
+  Future<void> test_class_member_ofMixin2_method() async {
+    addTestFile('''
+class M1 {
+  void test() {} // in M1
+}
+class M2 {
+  void test() {} // in M2
+}
+class D1 extends Object with M1 {}
+class D2 extends Object with M1, M2 {}
+class D3 extends Object with M2, M1 {}
+class D4 extends Object with M2, M1 {
+  void test() {} // in D4
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in M1');
+    var itemM1 = items.firstWhere((e) => e.classElement.name == 'M1');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'D1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'D2');
+    var item3 = items.firstWhere((e) => e.classElement.name == 'D3');
+    var item4 = items.firstWhere((e) => e.classElement.name == 'D4');
+    expect(itemM1, isNotNull);
+    expect(item1, isNotNull);
+    expect(item2, isNotNull);
+    expect(item3, isNotNull);
+    expect(item4, isNotNull);
+    // D1 does not override
+    {
+      var member1 = item1.memberElement;
+      expect(member1, isNull);
+    }
+    // D2 mixes-in M2 last, which overrides
+    {
+      var member2 = item2.memberElement!;
+      expect(member2.location!.offset, findOffset('test() {} // in M2'));
+    }
+    // D3 mixes-in M1 last and does not override itself
+    {
+      var member3 = item3.memberElement;
+      expect(member3, isNull);
+    }
+    // D4 mixes-in M1 last, but it also overrides
+    {
+      var member4 = item4.memberElement!;
+      expect(member4.location!.offset, findOffset('test() {} // in D4'));
+    }
+  }
+
+  Future<void> test_class_member_ofMixin_getter() async {
+    addTestFile('''
+abstract class Base {
+  get test; // in Base
+}
+class Mixin {
+  get test => null; // in Mixin
+}
+class Derived1 extends Base with Mixin {}
+class Derived2 extends Base {
+  get test => null; // in Derived2
+}
+''');
+    var items = await _getTypeHierarchy('test; // in Base');
+    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
+    var memberBase = itemBase.memberElement!;
+    var member1 = item1.memberElement!;
+    var member2 = item2.memberElement!;
+    expect(memberBase.location!.offset, findOffset('test; // in Base'));
+    expect(member1.location!.offset, findOffset('test => null; // in Mixin'));
+    expect(
+        member2.location!.offset, findOffset('test => null; // in Derived2'));
+  }
+
+  Future<void> test_class_member_ofMixin_method() async {
+    addTestFile('''
+abstract class Base {
+  void test(); // in Base
+}
+class Mixin {
+  void test() {} // in Mixin
+}
+class Derived1 extends Base with Mixin {}
+class Derived2 extends Base {
+  void test() {} // in Derived2
+}
+''');
+    var items = await _getTypeHierarchy('test(); // in Base');
+    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
+    var memberBase = itemBase.memberElement!;
+    var member1 = item1.memberElement!;
+    var member2 = item2.memberElement!;
+    expect(memberBase.location!.offset, findOffset('test(); // in Base'));
+    expect(member1.location!.offset, findOffset('test() {} // in Mixin'));
+    expect(member2.location!.offset, findOffset('test() {} // in Derived2'));
+  }
+
+  Future<void> test_class_member_ofMixin_setter() async {
+    addTestFile('''
+abstract class Base {
+  set test(x); // in Base
+}
+class Mixin {
+  set test(x) {} // in Mixin
+}
+class Derived1 extends Base with Mixin {}
+class Derived2 extends Base {
+  set test(x) {} // in Derived2
+}
+''');
+    var items = await _getTypeHierarchy('test(x); // in Base');
+    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
+    var memberBase = itemBase.memberElement!;
+    var member1 = item1.memberElement!;
+    var member2 = item2.memberElement!;
+    expect(memberBase.location!.offset, findOffset('test(x); // in Base'));
+    expect(member1.location!.offset, findOffset('test(x) {} // in Mixin'));
+    expect(member2.location!.offset, findOffset('test(x) {} // in Derived2'));
+  }
+
+  Future<void> test_class_member_ofSuperclassConstraint_getter() async {
+    addTestFile('''
+class A {
+  get test => 0; // in A
+}
+
+mixin M on A {
+  get test => 0; // in M
+}
+''');
+    var items = await _getTypeHierarchy('test => 0; // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test => 0; // in A');
+    _assertMember(inM, 'test => 0; // in M');
+  }
+
+  Future<void> test_class_member_ofSuperclassConstraint_method() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+
+mixin M on A {
+  void test() {} // in M
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test() {} // in A');
+    _assertMember(inM, 'test() {} // in M');
+  }
+
+  Future<void> test_class_member_ofSuperclassConstraint_setter() async {
+    addTestFile('''
+class A {
+  set test(x) {} // in A
+}
+
+mixin M on A {
+  set test(x) {} // in M
+}
+''');
+    var items = await _getTypeHierarchy('test(x) {} // in A');
+
+    var inA = items.firstWhere((e) => e.classElement.name == 'A');
+    var inM = items.firstWhere((e) => e.classElement.name == 'M');
+
+    _assertMember(inA, 'test(x) {} // in A');
+    _assertMember(inM, 'test(x) {} // in M');
+  }
+
+  Future<void> test_class_member_operator() async {
+    addTestFile('''
+class A {
+  operator ==(x) => null; // in A
+}
+class B extends A {
+  operator ==(x) => null; // in B
+}
+class C extends B {
+}
+class D extends C {
+  operator ==(x) => null; // in D
+}
+''');
+    var items = await _getTypeHierarchy('==(x) => null; // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemD = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemD.classElement.name, 'D');
+    expect(itemA.memberElement!.location!.offset,
+        findOffset('==(x) => null; // in A'));
+    expect(itemB.memberElement!.location!.offset,
+        findOffset('==(x) => null; // in B'));
+    expect(itemC.memberElement, isNull);
+    expect(itemD.memberElement!.location!.offset,
+        findOffset('==(x) => null; // in D'));
+  }
+
+  Future<void> test_class_member_setter() async {
+    addTestFile('''
+class A {
+  set test(x) {} // in A
+}
+class B extends A {
+  set test(x) {} // in B
+}
+class C extends B {
+}
+class D extends C {
+  set test(x) {} // in D
+}
+''');
+    var items = await _getTypeHierarchy('test(x) {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemD = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemD.classElement.name, 'D');
+    expect(itemA.memberElement!.location!.offset,
+        findOffset('test(x) {} // in A'));
+    expect(itemB.memberElement!.location!.offset,
+        findOffset('test(x) {} // in B'));
+    expect(itemC.memberElement, isNull);
+    expect(itemD.memberElement!.location!.offset,
+        findOffset('test(x) {} // in D'));
   }
 
   Future<void> test_class_order() async {
@@ -541,6 +1067,76 @@ class E extends A {}
     ]);
   }
 
+  Future<void> test_class_superOnly() async {
+    addTestFile('''
+class A {}
+class B {}
+class C extends A implements B {}
+class D extends C {}
+''');
+    var items = await _getTypeHierarchy('C extends', superOnly: true);
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'C',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [3],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'B',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_class_superOnly_fileDoesNotExist() async {
+    var request = SearchGetTypeHierarchyParams(
+            convertPath('/does/not/exist.dart'), 0,
+            superOnly: true)
+        .toRequest(requestId);
+    var response = await serverChannel.sendRequest(request);
+    var items =
+        SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
+    expect(items, isNull);
+  }
+
   Future<void> test_class_withTypes() async {
     addTestFile('''
 class MA {}
@@ -602,549 +1198,57 @@ class T extends Object with MA, MB {
     ]);
   }
 
-  Future<void> test_fromField_toMixinGetter() async {
+  Future<void> test_enum_displayName() async {
     addTestFile('''
-abstract class A {
-  var test = 1;
-}
-class Mixin {
-  get test => 2;
-}
-class B extends A with Mixin {}
-''');
-    var items = await _getTypeHierarchy('test = 1;');
-    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-    var memberA = itemA.memberElement!;
-    var memberB = itemB.memberElement!;
-    expect(memberA.location!.offset, findOffset('test = 1;'));
-    expect(memberB.location!.offset, findOffset('test => 2;'));
-  }
+mixin M<T> {}
 
-  Future<void> test_fromField_toMixinSetter() async {
-    addTestFile('''
-abstract class A {
-  var test = 1;
-}
-class Mixin {
-  set test(m) {}
-}
-class B extends A with Mixin {}
-''');
-    var items = await _getTypeHierarchy('test = 1;');
-    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-    var memberA = itemA.memberElement!;
-    var memberB = itemB.memberElement!;
-    expect(memberA.location!.offset, findOffset('test = 1;'));
-    expect(memberB.location!.offset, findOffset('test(m) {}'));
-  }
-
-  Future<void> test_member_fromField_toField() async {
-    addTestFile('''
-class A {
-  var test = 1;
-}
-class B extends A {
-  var test = 2;
+enum E with M<int> {
+  v;
 }
 ''');
+    var items = await _getTypeHierarchy('E with');
 
-    void checkItems(List<TypeHierarchyItem> items) {
-      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-      var memberA = itemA.memberElement!;
-      var memberB = itemB.memberElement!;
-      expect(memberA.location!.offset, findOffset('test = 1;'));
-      expect(memberB.location!.offset, findOffset('test = 2;'));
-    }
-
-    checkItems(await _getTypeHierarchy('test = 1;'));
-    checkItems(await _getTypeHierarchy('test = 2;'));
-  }
-
-  Future<void> test_member_fromField_toGetter() async {
-    addTestFile('''
-class A {
-  get test => 1;
-}
-class B extends A {
-  var test = 2;
-}
-''');
-
-    void checkItems(List<TypeHierarchyItem> items) {
-      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-      var memberA = itemA.memberElement!;
-      var memberB = itemB.memberElement!;
-      expect(memberA.location!.offset, findOffset('test => 1'));
-      expect(memberB.location!.offset, findOffset('test = 2;'));
-    }
-
-    checkItems(await _getTypeHierarchy('test => 1;'));
-    checkItems(await _getTypeHierarchy('test = 2;'));
-  }
-
-  Future<void> test_member_fromField_toSetter() async {
-    addTestFile('''
-class A {
-  set test(a) {}
-}
-class B extends A {
-  var test = 2;
-}
-''');
-
-    void checkItems(List<TypeHierarchyItem> items) {
-      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-      var memberA = itemA.memberElement!;
-      var memberB = itemB.memberElement!;
-      expect(memberA.location!.offset, findOffset('test(a) {}'));
-      expect(memberB.location!.offset, findOffset('test = 2;'));
-    }
-
-    checkItems(await _getTypeHierarchy('test(a) {}'));
-    checkItems(await _getTypeHierarchy('test = 2;'));
-  }
-
-  Future<void> test_member_fromFinalField_toGetter() async {
-    addTestFile('''
-class A {
-  get test => 1;
-}
-class B extends A {
-  final test = 2;
-}
-''');
-
-    void checkItems(List<TypeHierarchyItem> items) {
-      var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-      var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-      var memberA = itemA.memberElement!;
-      var memberB = itemB.memberElement!;
-      expect(memberA.location!.offset, findOffset('test => 1'));
-      expect(memberB.location!.offset, findOffset('test = 2;'));
-    }
-
-    checkItems(await _getTypeHierarchy('test => 1;'));
-    checkItems(await _getTypeHierarchy('test = 2;'));
-  }
-
-  Future<void> test_member_fromFinalField_toSetter() async {
-    addTestFile('''
-class A {
-  set test(x) {}
-}
-class B extends A {
-  final test = 2;
-}
-''');
-    var items = await _getTypeHierarchy('test = 2;');
-    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
-    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
-    expect(itemA.memberElement, isNull);
-    expect(itemB.memberElement!.location!.offset, findOffset('test = 2;'));
-  }
-
-  Future<void> test_member_getter() async {
-    addTestFile('''
-class A {
-  get test => null; // in A
-}
-class B extends A {
-  get test => null; // in B
-}
-class C extends B {
-}
-class D extends C {
-  get test => null; // in D
-}
-''');
-    var items = await _getTypeHierarchy('test => null; // in B');
     var itemB = items[0];
+    expect(itemB.classElement.name, 'E');
+
     var itemA = items[itemB.superclass!];
-    var itemC = items[itemB.subclasses[0]];
-    var itemD = items[itemC.subclasses[0]];
-    expect(itemA.classElement.name, 'A');
-    expect(itemB.classElement.name, 'B');
-    expect(itemC.classElement.name, 'C');
-    expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement!.location!.offset,
-        findOffset('test => null; // in A'));
-    expect(itemB.memberElement!.location!.offset,
-        findOffset('test => null; // in B'));
-    expect(itemC.memberElement, isNull);
-    expect(itemD.memberElement!.location!.offset,
-        findOffset('test => null; // in D'));
+    expect(itemA.classElement.name, 'Enum');
+    expect(itemA.displayName, isNull);
+
+    expect(itemB.mixins, hasLength(1));
+    var itemM = items[itemB.mixins[0]];
+    expect(itemM.classElement.name, 'M');
+    expect(itemM.displayName, 'M<int>');
   }
 
-  Future<void> test_member_method() async {
-    addTestFile('''
-class A {
-  test() {} // in A
-}
-class B extends A {
-  test() {} // in B
-}
-class C extends B {
-}
-class D extends C {
-  test() {} // in D
-}
-''');
-    var items = await _getTypeHierarchy('test() {} // in B');
-    var itemB = items[0];
-    var itemA = items[itemB.superclass!];
-    var itemC = items[itemB.subclasses[0]];
-    var itemD = items[itemC.subclasses[0]];
-    expect(itemA.classElement.name, 'A');
-    expect(itemB.classElement.name, 'B');
-    expect(itemC.classElement.name, 'C');
-    expect(itemD.classElement.name, 'D');
-    expect(
-        itemA.memberElement!.location!.offset, findOffset('test() {} // in A'));
-    expect(
-        itemB.memberElement!.location!.offset, findOffset('test() {} // in B'));
-    expect(itemC.memberElement, isNull);
-    expect(
-        itemD.memberElement!.location!.offset, findOffset('test() {} // in D'));
-  }
-
-  Future<void> test_member_method_private_differentLib() async {
-    newFile(join(testFolder, 'lib.dart'), content: r'''
-import 'test.dart';
-class A {
-  void _m() {}
-}
-class C extends B {
-  void _m() {}
-}
-''');
-    addTestFile('''
-import 'lib.dart';
-class B extends A {
-  _m() {} // in B
-}
-class D extends C {
-  _m() {} // in D
-}
-''');
-    var items = await _getTypeHierarchy('_m() {} // in B');
-    var itemB = items[0];
-    var itemA = items[itemB.superclass!];
-    var itemC = items[itemB.subclasses[0]];
-    var itemD = items[itemC.subclasses[0]];
-    expect(itemB.classElement.name, 'B');
-    expect(itemA.classElement.name, 'A');
-    expect(itemC.classElement.name, 'C');
-    expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement, isNull);
-    expect(itemC.memberElement, isNull);
-    expect(itemB.memberElement, isNotNull);
-    expect(itemD.memberElement, isNotNull);
-  }
-
-  Future<void> test_member_method_private_sameLib() async {
-    addTestFile('''
-class A {
-  _m() {} // in A
-}
-class B extends A {
-  _m() {} // in B
-}
-class C extends B {
-  _m() {} // in C
-}
-''');
-    var items = await _getTypeHierarchy('_m() {} // in B');
-    var itemB = items[0];
-    var itemA = items[itemB.superclass!];
-    var itemC = items[itemB.subclasses[0]];
-    expect(itemA.classElement.name, 'A');
-    expect(itemB.classElement.name, 'B');
-    expect(itemC.classElement.name, 'C');
-    expect(
-        itemA.memberElement!.location!.offset, findOffset('_m() {} // in A'));
-    expect(
-        itemB.memberElement!.location!.offset, findOffset('_m() {} // in B'));
-    expect(
-        itemC.memberElement!.location!.offset, findOffset('_m() {} // in C'));
-  }
-
-  Future<void> test_member_ofMixin2_method() async {
-    addTestFile('''
-class M1 {
-  void test() {} // in M1
-}
-class M2 {
-  void test() {} // in M2
-}
-class D1 extends Object with M1 {}
-class D2 extends Object with M1, M2 {}
-class D3 extends Object with M2, M1 {}
-class D4 extends Object with M2, M1 {
-  void test() {} // in D4
-}
-''');
-    var items = await _getTypeHierarchy('test() {} // in M1');
-    var itemM1 = items.firstWhere((e) => e.classElement.name == 'M1');
-    var item1 = items.firstWhere((e) => e.classElement.name == 'D1');
-    var item2 = items.firstWhere((e) => e.classElement.name == 'D2');
-    var item3 = items.firstWhere((e) => e.classElement.name == 'D3');
-    var item4 = items.firstWhere((e) => e.classElement.name == 'D4');
-    expect(itemM1, isNotNull);
-    expect(item1, isNotNull);
-    expect(item2, isNotNull);
-    expect(item3, isNotNull);
-    expect(item4, isNotNull);
-    // D1 does not override
-    {
-      var member1 = item1.memberElement;
-      expect(member1, isNull);
-    }
-    // D2 mixes-in M2 last, which overrides
-    {
-      var member2 = item2.memberElement!;
-      expect(member2.location!.offset, findOffset('test() {} // in M2'));
-    }
-    // D3 mixes-in M1 last and does not override itself
-    {
-      var member3 = item3.memberElement;
-      expect(member3, isNull);
-    }
-    // D4 mixes-in M1 last, but it also overrides
-    {
-      var member4 = item4.memberElement!;
-      expect(member4.location!.offset, findOffset('test() {} // in D4'));
-    }
-  }
-
-  Future<void> test_member_ofMixin_getter() async {
-    addTestFile('''
-abstract class Base {
-  get test; // in Base
-}
-class Mixin {
-  get test => null; // in Mixin
-}
-class Derived1 extends Base with Mixin {}
-class Derived2 extends Base {
-  get test => null; // in Derived2
-}
-''');
-    var items = await _getTypeHierarchy('test; // in Base');
-    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
-    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
-    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
-    var memberBase = itemBase.memberElement!;
-    var member1 = item1.memberElement!;
-    var member2 = item2.memberElement!;
-    expect(memberBase.location!.offset, findOffset('test; // in Base'));
-    expect(member1.location!.offset, findOffset('test => null; // in Mixin'));
-    expect(
-        member2.location!.offset, findOffset('test => null; // in Derived2'));
-  }
-
-  Future<void> test_member_ofMixin_method() async {
-    addTestFile('''
-abstract class Base {
-  void test(); // in Base
-}
-class Mixin {
-  void test() {} // in Mixin
-}
-class Derived1 extends Base with Mixin {}
-class Derived2 extends Base {
-  void test() {} // in Derived2
-}
-''');
-    var items = await _getTypeHierarchy('test(); // in Base');
-    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
-    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
-    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
-    var memberBase = itemBase.memberElement!;
-    var member1 = item1.memberElement!;
-    var member2 = item2.memberElement!;
-    expect(memberBase.location!.offset, findOffset('test(); // in Base'));
-    expect(member1.location!.offset, findOffset('test() {} // in Mixin'));
-    expect(member2.location!.offset, findOffset('test() {} // in Derived2'));
-  }
-
-  Future<void> test_member_ofMixin_setter() async {
-    addTestFile('''
-abstract class Base {
-  set test(x); // in Base
-}
-class Mixin {
-  set test(x) {} // in Mixin
-}
-class Derived1 extends Base with Mixin {}
-class Derived2 extends Base {
-  set test(x) {} // in Derived2
-}
-''');
-    var items = await _getTypeHierarchy('test(x); // in Base');
-    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
-    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
-    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
-    var memberBase = itemBase.memberElement!;
-    var member1 = item1.memberElement!;
-    var member2 = item2.memberElement!;
-    expect(memberBase.location!.offset, findOffset('test(x); // in Base'));
-    expect(member1.location!.offset, findOffset('test(x) {} // in Mixin'));
-    expect(member2.location!.offset, findOffset('test(x) {} // in Derived2'));
-  }
-
-  Future<void> test_member_ofSuperclassConstraint_getter() async {
-    addTestFile('''
-class A {
-  get test => 0; // in A
-}
-
-mixin M on A {
-  get test => 0; // in M
-}
-''');
-    var items = await _getTypeHierarchy('test => 0; // in A');
-
-    var inA = items.firstWhere((e) => e.classElement.name == 'A');
-    var inM = items.firstWhere((e) => e.classElement.name == 'M');
-
-    _assertMember(inA, 'test => 0; // in A');
-    _assertMember(inM, 'test => 0; // in M');
-  }
-
-  Future<void> test_member_ofSuperclassConstraint_method() async {
-    addTestFile('''
-class A {
-  void test() {} // in A
-}
-
-mixin M on A {
-  void test() {} // in M
-}
-''');
-    var items = await _getTypeHierarchy('test() {} // in A');
-
-    var inA = items.firstWhere((e) => e.classElement.name == 'A');
-    var inM = items.firstWhere((e) => e.classElement.name == 'M');
-
-    _assertMember(inA, 'test() {} // in A');
-    _assertMember(inM, 'test() {} // in M');
-  }
-
-  Future<void> test_member_ofSuperclassConstraint_setter() async {
-    addTestFile('''
-class A {
-  set test(x) {} // in A
-}
-
-mixin M on A {
-  set test(x) {} // in M
-}
-''');
-    var items = await _getTypeHierarchy('test(x) {} // in A');
-
-    var inA = items.firstWhere((e) => e.classElement.name == 'A');
-    var inM = items.firstWhere((e) => e.classElement.name == 'M');
-
-    _assertMember(inA, 'test(x) {} // in A');
-    _assertMember(inM, 'test(x) {} // in M');
-  }
-
-  Future<void> test_member_operator() async {
-    addTestFile('''
-class A {
-  operator ==(x) => null; // in A
-}
-class B extends A {
-  operator ==(x) => null; // in B
-}
-class C extends B {
-}
-class D extends C {
-  operator ==(x) => null; // in D
-}
-''');
-    var items = await _getTypeHierarchy('==(x) => null; // in B');
-    var itemB = items[0];
-    var itemA = items[itemB.superclass!];
-    var itemC = items[itemB.subclasses[0]];
-    var itemD = items[itemC.subclasses[0]];
-    expect(itemA.classElement.name, 'A');
-    expect(itemB.classElement.name, 'B');
-    expect(itemC.classElement.name, 'C');
-    expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement!.location!.offset,
-        findOffset('==(x) => null; // in A'));
-    expect(itemB.memberElement!.location!.offset,
-        findOffset('==(x) => null; // in B'));
-    expect(itemC.memberElement, isNull);
-    expect(itemD.memberElement!.location!.offset,
-        findOffset('==(x) => null; // in D'));
-  }
-
-  Future<void> test_member_setter() async {
-    addTestFile('''
-class A {
-  set test(x) {} // in A
-}
-class B extends A {
-  set test(x) {} // in B
-}
-class C extends B {
-}
-class D extends C {
-  set test(x) {} // in D
-}
-''');
-    var items = await _getTypeHierarchy('test(x) {} // in B');
-    var itemB = items[0];
-    var itemA = items[itemB.superclass!];
-    var itemC = items[itemB.subclasses[0]];
-    var itemD = items[itemC.subclasses[0]];
-    expect(itemA.classElement.name, 'A');
-    expect(itemB.classElement.name, 'B');
-    expect(itemC.classElement.name, 'C');
-    expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement!.location!.offset,
-        findOffset('test(x) {} // in A'));
-    expect(itemB.memberElement!.location!.offset,
-        findOffset('test(x) {} // in B'));
-    expect(itemC.memberElement, isNull);
-    expect(itemD.memberElement!.location!.offset,
-        findOffset('test(x) {} // in D'));
-  }
-
-  Future<void> test_superOnly() async {
+  Future<void> test_enum_implements() async {
     addTestFile('''
 class A {}
 class B {}
-class C extends A implements B {}
-class D extends C {}
+enum E implements A, B {
+  v;
+}
 ''');
-    var items = await _getTypeHierarchy('C extends', superOnly: true);
+    var items = await _getTypeHierarchy('E implements');
     expect(_toJson(items), [
       {
         'classElement': {
-          'kind': 'CLASS',
-          'name': 'C',
+          'kind': 'ENUM',
+          'name': 'E',
           'location': anything,
           'flags': 0
         },
         'superclass': 1,
-        'interfaces': [3],
+        'interfaces': [3, 4],
         'mixins': [],
         'subclasses': []
       },
       {
         'classElement': {
           'kind': 'CLASS',
-          'name': 'A',
+          'name': 'Enum',
           'location': anything,
-          'flags': 0
+          'flags': 1
         },
         'superclass': 2,
         'interfaces': [],
@@ -1165,6 +1269,18 @@ class D extends C {}
       {
         'classElement': {
           'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
           'name': 'B',
           'location': anything,
           'flags': 0
@@ -1177,15 +1293,179 @@ class D extends C {}
     ]);
   }
 
-  Future<void> test_superOnly_fileDoesNotExist() async {
-    var request = SearchGetTypeHierarchyParams(
-            convertPath('/does/not/exist.dart'), 0,
-            superOnly: true)
-        .toRequest(requestId);
-    var response = await serverChannel.sendRequest(request);
-    var items =
-        SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
-    expect(items, isNull);
+  Future<void> test_enum_member_getter() async {
+    addTestFile('''
+class A {
+  int get test => 0; // in A
+}
+class B extends A {
+  int get test => 0; // in B
+}
+class C extends B {
+}
+enum E implements C {
+  v;
+  int get test => 0; // in D
+}
+''');
+    var items = await _getTypeHierarchy('test => 0; // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemE = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemE.classElement.name, 'E');
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test => 0; // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test => 0; // in B'),
+    );
+    expect(itemC.memberElement, isNull);
+    expect(
+      itemE.memberElement!.location!.offset,
+      findOffset('test => 0; // in D'),
+    );
+  }
+
+  Future<void> test_enum_member_method() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+class B extends A {
+  void test() {} // in B
+}
+class C extends B {
+}
+enum E implements C {
+  v;
+  void test() {} // in E
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemE = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemE.classElement.name, 'E');
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test() {} // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test() {} // in B'),
+    );
+    expect(itemC.memberElement, isNull);
+    expect(
+      itemE.memberElement!.location!.offset,
+      findOffset('test() {} // in E'),
+    );
+  }
+
+  Future<void> test_enum_member_setter() async {
+    addTestFile('''
+class A {
+  set test(int x) {} // in A
+}
+class B extends A {
+  set test(int x) {} // in B
+}
+class C extends B {
+}
+enum E implements C {
+  v;
+  set test(int x) {} // in E
+}
+''');
+    var items = await _getTypeHierarchy('test(int x) {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass!];
+    var itemC = items[itemB.subclasses[0]];
+    var itemE = items[itemC.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemE.classElement.name, 'E');
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test(int x) {} // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test(int x) {} // in B'),
+    );
+    expect(itemC.memberElement, isNull);
+    expect(
+      itemE.memberElement!.location!.offset,
+      findOffset('test(int x) {} // in E'),
+    );
+  }
+
+  Future<void> test_enum_with() async {
+    addTestFile('''
+mixin M {}
+enum E with M {
+  v;
+}
+''');
+    var items = await _getTypeHierarchy('E with');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'ENUM',
+          'name': 'E',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [3],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Enum',
+          'location': anything,
+          'flags': 1
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'MIXIN',
+          'name': 'M',
+          'location': anything,
+          'flags': 1
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
   }
 
   void _assertMember(TypeHierarchyItem item, String search) {

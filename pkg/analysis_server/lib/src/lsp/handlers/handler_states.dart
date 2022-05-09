@@ -36,6 +36,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_semantic_tokens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_type_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_will_rename_files.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_configuration.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart';
@@ -61,6 +62,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(
     LspAnalysisServer server,
   ) : super(server) {
+    final options = server.initializationOptions;
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
@@ -75,15 +77,13 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
       TextDocumentCloseHandler(server),
     );
     registerHandler(HoverHandler(server));
-    registerHandler(CompletionHandler(
-      server,
-      server.initializationOptions.suggestFromUnimportedLibraries,
-    ));
+    registerHandler(CompletionHandler(server, options));
+    registerHandler(CompletionResolveHandler(server));
     registerHandler(DocumentColorHandler(server));
     registerHandler(DocumentColorPresentationHandler(server));
-    registerHandler(CompletionResolveHandler(server));
     registerHandler(SignatureHelpHandler(server));
     registerHandler(DefinitionHandler(server));
+    registerHandler(TypeDefinitionHandler(server));
     registerHandler(SuperHandler(server));
     registerHandler(ReferencesHandler(server));
     registerHandler(ImplementationHandler(server));
@@ -94,12 +94,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(DocumentSymbolHandler(server));
     registerHandler(CodeActionHandler(server));
     registerHandler(ExecuteCommandHandler(server));
-    registerHandler(
-      WorkspaceFoldersHandler(
-        server,
-        !server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
-      ),
-    );
+    registerHandler(WorkspaceFoldersHandler(
+        server, !options.onlyAnalyzeProjectsWithOpenFiles));
     registerHandler(PrepareRenameHandler(server));
     registerHandler(RenameHandler(server));
     registerHandler(FoldingHandler(server));

@@ -101,6 +101,11 @@ intptr_t ObjectHash(const Object& obj) {
   if (obj.IsNull()) {
     return kNullIdentityHash;
   }
+  // TypeArguments should be handled before Instance as TypeArguments extends
+  // Instance and TypeArguments::CanonicalizeHash just returns 0.
+  if (obj.IsTypeArguments()) {
+    return TypeArguments::Cast(obj).Hash();
+  }
   if (obj.IsInstance()) {
     return Instance::Cast(obj).CanonicalizeHash();
   }
@@ -119,6 +124,10 @@ intptr_t ObjectHash(const Object& obj) {
   }
   // Unlikely.
   return obj.GetClassId();
+}
+
+const char* ObjectToCString(const Object& obj) {
+  return obj.ToCString();
 }
 
 void SetToNull(Object* obj) {
@@ -311,6 +320,10 @@ bool RuntimeEntry::is_leaf() const {
   return runtime_entry_->is_leaf();
 }
 
+intptr_t RuntimeEntry::argument_count() const {
+  return runtime_entry_->argument_count();
+}
+
 namespace target {
 
 const word kOldPageSize = dart::kOldPageSize;
@@ -380,6 +393,9 @@ const word UntaggedType::kTypeClassIdBitSize =
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
 
+const word UntaggedObject::kGenerationalBarrierMask =
+    dart::UntaggedObject::kGenerationalBarrierMask;
+
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
 }
@@ -425,6 +441,14 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return UnhandledException::InstanceSize();
     case kWeakPropertyCid:
       return WeakProperty::InstanceSize();
+    case kWeakReferenceCid:
+      return WeakReference::InstanceSize();
+    case kFinalizerCid:
+      return Finalizer::InstanceSize();
+    case kFinalizerEntryCid:
+      return FinalizerEntry::InstanceSize();
+    case kNativeFinalizerCid:
+      return NativeFinalizer::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kPointerCid:
@@ -497,7 +521,7 @@ word Instance::DataOffsetFor(intptr_t cid) {
     return 0;
   }
   if (dart::IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
+    return TypedData::payload_offset();
   }
   switch (cid) {
     case kArrayCid:

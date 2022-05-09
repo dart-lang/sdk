@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart'
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
@@ -25,6 +26,7 @@ class ExecuteCommandHandler
           Commands.organizeImports: OrganizeImportsCommandHandler(server),
           Commands.fixAll: FixAllCommandHandler(server),
           Commands.performRefactor: PerformRefactorCommandHandler(server),
+          Commands.validateRefactor: ValidateRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         },
         super(server);

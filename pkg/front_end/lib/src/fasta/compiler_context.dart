@@ -86,7 +86,7 @@ class CompilerContext {
   }
 
   static void recordDependency(Uri uri) {
-    if (uri.scheme != "file" && uri.scheme != "http") {
+    if (!uri.isScheme("file") && !uri.isScheme("http")) {
       throw new ArgumentError("Expected a file or http URI, but got: '$uri'.");
     }
     CompilerContext? context = Zone.current[compilerContextKey];

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -29,9 +31,9 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
 
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
-    newFile(testPath, content: code);
+    newFile2(testPath, code);
     var resolveResult =
-        await session.getResolvedUnit(testPath) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,
@@ -137,6 +139,24 @@ MyWidget
 
 @reflectiveTest
 class OutlineComputerTest extends AbstractOutlineComputerTest {
+  String get testPathJson => jsonOfPath(testPath);
+
+  void assertJsonText(Object object, String expected) {
+    expected = expected.trimRight();
+    var actual = JsonEncoder.withIndent('  ').convert(object);
+    if (actual != expected) {
+      print('-----');
+      print(actual);
+      print('-----');
+    }
+    expect(actual, expected);
+  }
+
+  String jsonOfPath(String path) {
+    path = convertPath(path);
+    return json.encode(path);
+  }
+
   Future<void> test_class() async {
     var unitOutline = await _computeOutline('''
 abstract class A<K, V> {
@@ -382,34 +402,270 @@ R fb<R, P>(P p) {}
     }
   }
 
-  Future<void> test_enum() async {
+  Future<void> test_enum_constants() async {
     var unitOutline = await _computeOutline('''
-enum MyEnum {
-  A, B, C
+enum E {
+  v1, v2
 }
 ''');
+
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
-    // MyEnum
+
+    assertJsonText(topOutlines[0], '''
+{
+  "element": {
+    "kind": "ENUM",
+    "name": "E",
+    "location": {
+      "file": $testPathJson,
+      "offset": 5,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 6,
+      "endLine": 1,
+      "endColumn": 7
+    },
+    "flags": 0
+  },
+  "offset": 0,
+  "length": 19,
+  "codeOffset": 0,
+  "codeLength": 19,
+  "children": [
     {
-      var outline_MyEnum = topOutlines[0];
-      var element_MyEnum = outline_MyEnum.element;
-      expect(element_MyEnum.kind, ElementKind.ENUM);
-      expect(element_MyEnum.name, 'MyEnum');
-      {
-        var location = element_MyEnum.location!;
-        expect(location.offset, testCode.indexOf('MyEnum {'));
-        expect(location.length, 'MyEnum'.length);
-      }
-      expect(element_MyEnum.parameters, null);
-      expect(element_MyEnum.returnType, null);
-      // MyEnum children
-      var outlines_MyEnum = outline_MyEnum.children!;
-      expect(outlines_MyEnum, hasLength(3));
-      _isEnumConstant(outlines_MyEnum[0], 'A');
-      _isEnumConstant(outlines_MyEnum[1], 'B');
-      _isEnumConstant(outlines_MyEnum[2], 'C');
+      "element": {
+        "kind": "ENUM_CONSTANT",
+        "name": "v1",
+        "location": {
+          "file": $testPathJson,
+          "offset": 11,
+          "length": 2,
+          "startLine": 2,
+          "startColumn": 3,
+          "endLine": 2,
+          "endColumn": 5
+        },
+        "flags": 0
+      },
+      "offset": 11,
+      "length": 2,
+      "codeOffset": 11,
+      "codeLength": 2
+    },
+    {
+      "element": {
+        "kind": "ENUM_CONSTANT",
+        "name": "v2",
+        "location": {
+          "file": $testPathJson,
+          "offset": 15,
+          "length": 2,
+          "startLine": 2,
+          "startColumn": 7,
+          "endLine": 2,
+          "endColumn": 9
+        },
+        "flags": 0
+      },
+      "offset": 15,
+      "length": 2,
+      "codeOffset": 15,
+      "codeLength": 2
     }
+  ]
+}
+''');
+  }
+
+  Future<void> test_enum_members() async {
+    var unitOutline = await _computeOutline('''
+enum E {
+  v;
+  final int f = 0;
+  const E();
+  const E.named();
+  void aMethod() {}
+  int get aGetter => 0;
+  set aSetter(int value) {}
+}
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines[0], '''
+{
+  "element": {
+    "kind": "ENUM",
+    "name": "E",
+    "location": {
+      "file": $testPathJson,
+      "offset": 5,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 6,
+      "endLine": 1,
+      "endColumn": 7
+    },
+    "flags": 0
+  },
+  "offset": 0,
+  "length": 138,
+  "codeOffset": 0,
+  "codeLength": 138,
+  "children": [
+    {
+      "element": {
+        "kind": "ENUM_CONSTANT",
+        "name": "v",
+        "location": {
+          "file": $testPathJson,
+          "offset": 11,
+          "length": 1,
+          "startLine": 2,
+          "startColumn": 3,
+          "endLine": 2,
+          "endColumn": 4
+        },
+        "flags": 0
+      },
+      "offset": 11,
+      "length": 1,
+      "codeOffset": 11,
+      "codeLength": 1
+    },
+    {
+      "element": {
+        "kind": "FIELD",
+        "name": "f",
+        "location": {
+          "file": $testPathJson,
+          "offset": 26,
+          "length": 1,
+          "startLine": 3,
+          "startColumn": 13,
+          "endLine": 3,
+          "endColumn": 14
+        },
+        "flags": 4,
+        "returnType": "int"
+      },
+      "offset": 16,
+      "length": 16,
+      "codeOffset": 26,
+      "codeLength": 5
+    },
+    {
+      "element": {
+        "kind": "CONSTRUCTOR",
+        "name": "E",
+        "location": {
+          "file": $testPathJson,
+          "offset": 41,
+          "length": 1,
+          "startLine": 4,
+          "startColumn": 9,
+          "endLine": 4,
+          "endColumn": 10
+        },
+        "flags": 0,
+        "parameters": "()"
+      },
+      "offset": 35,
+      "length": 10,
+      "codeOffset": 35,
+      "codeLength": 10
+    },
+    {
+      "element": {
+        "kind": "CONSTRUCTOR",
+        "name": "E.named",
+        "location": {
+          "file": $testPathJson,
+          "offset": 56,
+          "length": 5,
+          "startLine": 5,
+          "startColumn": 11,
+          "endLine": 5,
+          "endColumn": 16
+        },
+        "flags": 0,
+        "parameters": "()"
+      },
+      "offset": 48,
+      "length": 16,
+      "codeOffset": 48,
+      "codeLength": 16
+    },
+    {
+      "element": {
+        "kind": "METHOD",
+        "name": "aMethod",
+        "location": {
+          "file": $testPathJson,
+          "offset": 72,
+          "length": 7,
+          "startLine": 6,
+          "startColumn": 8,
+          "endLine": 6,
+          "endColumn": 15
+        },
+        "flags": 0,
+        "parameters": "()",
+        "returnType": "void"
+      },
+      "offset": 67,
+      "length": 17,
+      "codeOffset": 67,
+      "codeLength": 17
+    },
+    {
+      "element": {
+        "kind": "GETTER",
+        "name": "aGetter",
+        "location": {
+          "file": $testPathJson,
+          "offset": 95,
+          "length": 7,
+          "startLine": 7,
+          "startColumn": 11,
+          "endLine": 7,
+          "endColumn": 18
+        },
+        "flags": 0,
+        "returnType": "int"
+      },
+      "offset": 87,
+      "length": 21,
+      "codeOffset": 87,
+      "codeLength": 21
+    },
+    {
+      "element": {
+        "kind": "SETTER",
+        "name": "aSetter",
+        "location": {
+          "file": $testPathJson,
+          "offset": 115,
+          "length": 7,
+          "startLine": 8,
+          "startColumn": 7,
+          "endLine": 8,
+          "endColumn": 14
+        },
+        "flags": 0,
+        "parameters": "(int value)",
+        "returnType": ""
+      },
+      "offset": 111,
+      "length": 25,
+      "codeOffset": 111,
+      "codeLength": 25
+    }
+  ]
+}
+''');
   }
 
   Future<void> test_extension_named() async {
@@ -1349,13 +1605,5 @@ set propB(int v) {}
     if (returnType != null) {
       expect(element.returnType, returnType);
     }
-  }
-
-  void _isEnumConstant(Outline outline, String name) {
-    var element = outline.element;
-    expect(element.kind, ElementKind.ENUM_CONSTANT);
-    expect(element.name, name);
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
   }
 }

@@ -18,6 +18,12 @@ intptr_t DispatchTable::OriginElement() {
 #elif defined(TARGET_ARCH_ARM64)
   // Max consecutive sub immediate value
   return 4096;
+#elif defined(TARGET_ARCH_RISCV32)
+  // Max consecutive sub immediate value
+  return 2048 / 4;
+#elif defined(TARGET_ARCH_RISCV64)
+  // Max consecutive sub immediate value
+  return 2048 / 8;
 #else
   // No AOT on IA32
   UNREACHABLE();
@@ -35,6 +41,12 @@ intptr_t DispatchTable::LargestSmallOffset() {
 #elif defined(TARGET_ARCH_ARM64)
   // Origin + Max consecutive add immediate value
   return 8192;
+#elif defined(TARGET_ARCH_RISCV32)
+  // Origin + Max consecutive add immediate value
+  return 4096 / 4;
+#elif defined(TARGET_ARCH_RISCV64)
+  // Origin + Max consecutive add immediate value
+  return 4096 / 8;
 #else
   // No AOT on IA32
   UNREACHABLE();

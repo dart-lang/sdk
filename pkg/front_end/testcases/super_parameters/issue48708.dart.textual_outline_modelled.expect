@@ -1,0 +1,18 @@
+abstract class B<D> {
+  B({
+    required this.field,
+  });
+  final D field;
+}
+
+class A {}
+
+class C extends B<A> with Mixin {
+  C({
+    required super.field,
+  });
+}
+
+class Mixin {}
+
+main() {}

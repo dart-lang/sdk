@@ -13389,10 +13389,14 @@ class Element extends Node
     } else if (alignment == ScrollAlignment.BOTTOM) {
       this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
+      // TODO(srujzs): This method shouldn't be calling out to
+      // `scrollIntoViewIfNeeded`. Remove this and make `scrollIntoView` match
+      // the browser definition. If you intend to use `scrollIntoViewIfNeeded`,
+      // use the `Element.scrollIntoViewIfNeeded` method.
       if (alignment == ScrollAlignment.CENTER) {
-        this._scrollIntoViewIfNeeded(true);
+        this.scrollIntoViewIfNeeded(true);
       } else {
-        this._scrollIntoViewIfNeeded();
+        this.scrollIntoViewIfNeeded();
       }
     } else {
       this._scrollIntoView();
@@ -13988,6 +13992,41 @@ class Element extends Node
   }
 
   int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
+
+  /**
+   * Displays this element fullscreen.
+   *
+   * ## Other resources
+   *
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  Future<void> requestFullscreen([Map? options]) {
+    var retValue;
+    if (options != null) {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#, #)',
+          this,
+          this,
+          this,
+          convertDartToNative_Dictionary(options));
+    } else {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#)',
+          this,
+          this,
+          this);
+    }
+    if (retValue != null) return promiseToFuture(retValue);
+    return Future<void>.value();
+  }
 
   // To suppress missing implicit constructor warnings.
   factory Element._() {
@@ -14861,8 +14900,18 @@ class Element extends Node
   @JSName('scrollIntoView')
   void _scrollIntoView([Object? arg]) native;
 
-  @JSName('scrollIntoViewIfNeeded')
-  void _scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
+  /**
+   * Nonstandard version of `scrollIntoView` that scrolls the current element
+   * into the visible area of the browser window if it's not already within the
+   * visible area of the browser window. If the element is already within the
+   * visible area of the browser window, then no scrolling takes place.
+   *
+   * ## Other resources
+   *
+   * * [Element.scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
+   */
+  void scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
 
   void scrollTo([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
@@ -14895,21 +14944,6 @@ class Element extends Node
   void _setAttributeNS(String? namespaceURI, String name, Object value) native;
 
   void setPointerCapture(int pointerId) native;
-
-  @JSName('webkitRequestFullscreen')
-  /**
-   * Displays this element fullscreen.
-   *
-   * ## Other resources
-   *
-   * * [Fullscreen
-   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
-   *   from MDN.
-   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void requestFullscreen() native;
 
   // From ChildNode
 
@@ -25205,9 +25239,50 @@ class Performance extends EventTarget {
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
-  void mark(String markName) native;
+  PerformanceEntry? mark(String markName, [Map? markOptions]) {
+    if (markOptions != null) {
+      var markOptions_1 = convertDartToNative_Dictionary(markOptions);
+      return _mark_1(markName, markOptions_1);
+    }
+    return _mark_2(markName);
+  }
 
-  void measure(String measureName, String? startMark, String? endMark) native;
+  @JSName('mark')
+  PerformanceEntry? _mark_1(markName, markOptions) native;
+  @JSName('mark')
+  PerformanceEntry? _mark_2(markName) native;
+
+  PerformanceMeasure? measure(String measureName,
+      [measureOptions_OR_startMark, String? endMark]) {
+    if (measureOptions_OR_startMark == null && endMark == null) {
+      return _measure_1(measureName);
+    }
+    if ((measureOptions_OR_startMark is String ||
+            measureOptions_OR_startMark == null) &&
+        endMark == null) {
+      return _measure_2(measureName, measureOptions_OR_startMark);
+    }
+    if ((measureOptions_OR_startMark is String ||
+        measureOptions_OR_startMark == null)) {
+      return _measure_3(measureName, measureOptions_OR_startMark, endMark);
+    }
+    if ((measureOptions_OR_startMark is Map) && endMark == null) {
+      var measureOptions_1 =
+          convertDartToNative_Dictionary(measureOptions_OR_startMark);
+      return _measure_4(measureName, measureOptions_1);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @JSName('measure')
+  PerformanceMeasure? _measure_1(measureName) native;
+  @JSName('measure')
+  PerformanceMeasure? _measure_2(measureName, String? startMark) native;
+  @JSName('measure')
+  PerformanceMeasure? _measure_3(measureName, String? startMark, endMark)
+      native;
+  @JSName('measure')
+  PerformanceMeasure? _measure_4(measureName, measureOptions) native;
 
   double now() native;
 
@@ -33683,7 +33758,7 @@ class Window extends EventTarget
    * See [EventStreamProvider] for usage information.
    */
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
-      const _BeforeUnloadEventStreamProvider('beforeunload');
+      const EventStreamProvider('beforeunload');
 
   /// Stream of `beforeunload` events handled by this [Window].
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
@@ -33738,65 +33813,6 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
-}
-
-class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
-  String _returnValue;
-
-  _BeforeUnloadEvent(Event base)
-      : _returnValue = '',
-        super(base);
-
-  String get returnValue => _returnValue;
-
-  set returnValue(String? value) {
-    // Typed as nullable only to be compatible with the overriden method.
-    _returnValue = value!;
-    // FF and IE use the value as the return value, Chrome will return this from
-    // the event callback function.
-    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
-      JS('void', '#.returnValue = #', wrapped, value);
-    }
-  }
-}
-
-class _BeforeUnloadEventStreamProvider
-    implements EventStreamProvider<BeforeUnloadEvent> {
-  final String _eventType;
-
-  const _BeforeUnloadEventStreamProvider(this._eventType);
-
-  Stream<BeforeUnloadEvent> forTarget(EventTarget? e,
-      {bool useCapture: false}) {
-    // Specify the generic type for EventStream only in dart2js.
-    var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
-    var controller = new StreamController<BeforeUnloadEvent>(sync: true);
-
-    stream.listen((event) {
-      var wrapped = new _BeforeUnloadEvent(event);
-      controller.add(wrapped);
-    });
-
-    return controller.stream;
-  }
-
-  String getEventType(EventTarget target) {
-    return _eventType;
-  }
-
-  ElementStream<BeforeUnloadEvent> forElement(Element e,
-      {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
-    return new _ElementEventStreamImpl<BeforeUnloadEvent>(
-        e, _eventType, useCapture);
-  }
-
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
-    return new _ElementListEventStreamImpl<BeforeUnloadEvent>(
-        e, _eventType, useCapture);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34113,8 +34129,6 @@ class WorkletGlobalScope extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
-@deprecated // experimental
 @Native("XPathEvaluator")
 class XPathEvaluator extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34141,8 +34155,6 @@ class XPathEvaluator extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
-@deprecated // experimental
 @Native("XPathExpression")
 class XPathExpression extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34156,8 +34168,6 @@ class XPathExpression extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
-@deprecated // experimental
 @Native("XPathNSResolver")
 class XPathNSResolver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
@@ -34172,8 +34182,6 @@ class XPathNSResolver extends JavaScriptObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
-@deprecated // experimental
 @Native("XPathResult")
 class XPathResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.

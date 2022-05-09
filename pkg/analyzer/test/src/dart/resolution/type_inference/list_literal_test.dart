@@ -26,13 +26,25 @@ main() {
 }
 ''');
 
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['Iterable<int>?'],
-      invokeType: 'Iterable<int>? Function(Iterable<int>?)',
-      type: 'Iterable<int>?',
-    );
+    var node = findNode.methodInvocation('f(null)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        staticType: Null
+    rightParenthesis: )
+  staticInvokeType: Iterable<int>? Function(Iterable<int>?)
+  staticType: Iterable<int>?
+  typeArgumentTypes
+    Iterable<int>?
+''');
   }
 
   test_nested_hasNull_1() async {

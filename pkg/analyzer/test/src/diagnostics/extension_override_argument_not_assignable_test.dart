@@ -11,12 +11,42 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideArgumentNotAssignableTest);
     defineReflectiveTests(
-        ExtensionOverrideArgumentNotAssignableWithNullSafetyTest);
+      ExtensionOverrideArgumentNotAssignableWithoutNullSafetyTest,
+    );
   });
 }
 
 @reflectiveTest
 class ExtensionOverrideArgumentNotAssignableTest
+    extends PubPackageResolutionTest {
+  test_override_onNonNullable() async {
+    await assertErrorsInCode(r'''
+extension E on String {
+  void m() {}
+}
+f() {
+  E(null).m();
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 50,
+          4),
+    ]);
+  }
+
+  test_override_onNullable() async {
+    await assertNoErrorsInCode(r'''
+extension E on String? {
+  void m() {}
+}
+f() {
+  E(null).m();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtensionOverrideArgumentNotAssignableWithoutNullSafetyTest
     extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_subtype() async {
     await assertNoErrorsInCode('''
@@ -59,34 +89,5 @@ void f(B b) {
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 75,
           1),
     ]);
-  }
-}
-
-@reflectiveTest
-class ExtensionOverrideArgumentNotAssignableWithNullSafetyTest
-    extends PubPackageResolutionTest {
-  test_override_onNonNullable() async {
-    await assertErrorsInCode(r'''
-extension E on String {
-  void m() {}
-}
-f() {
-  E(null).m();
-}
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 50,
-          4),
-    ]);
-  }
-
-  test_override_onNullable() async {
-    await assertNoErrorsInCode(r'''
-extension E on String? {
-  void m() {}
-}
-f() {
-  E(null).m();
-}
-''');
   }
 }

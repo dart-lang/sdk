@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.9
 library frontend_server;
 
 import 'dart:async';
@@ -51,6 +52,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
+  ..addFlag('support-mirrors',
+      help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
+          'supported when --aot and --minimal-kernel are not used.',
+      defaultsTo: null)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -85,6 +90,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Path to output Ninja depfile. Only used in batch mode.')
   ..addOption('packages',
       help: '.packages file to use for compilation', defaultsTo: null)
+  ..addMultiOption('source',
+      help: 'List additional source files to include into compilation.',
+      defaultsTo: const <String>[])
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>[
@@ -281,7 +289,10 @@ abstract class CompilerInterface {
   Future<Null> compileExpression(
       String expression,
       List<String> definitions,
+      List<String> definitionTypes,
       List<String> typeDefinitions,
+      List<String> typeBounds,
+      List<String> typeDefaults,
       String libraryUri,
       String klass,
       String method,
@@ -356,6 +367,7 @@ class FrontendCompiler implements CompilerInterface {
   ProcessedOptions _processedOptions;
   FileSystem _fileSystem;
   Uri _mainSource;
+  List<Uri> _additionalSources;
   ArgResults _options;
 
   IncrementalCompiler _generator;
@@ -415,6 +427,8 @@ class FrontendCompiler implements CompilerInterface {
         options['filesystem-scheme'], options['filesystem-root'],
         allowHttp: options['enable-http-uris']);
     _mainSource = resolveInputUri(entryPoint);
+    _additionalSources =
+        (options['source'] as List<String>).map(resolveInputUri).toList();
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
@@ -487,6 +501,18 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['support-mirrors'] == true) {
+      if (options['aot']) {
+        print('Error: --support-mirrors option cannot be used with --aot');
+        return false;
+      }
+      if (options['minimal-kernel']) {
+        print('Error: --support-mirrors option cannot be used with '
+            '--minimal-kernel');
+        return false;
+      }
+    }
+
     if (options['incremental']) {
       if (options['from-dill'] != null) {
         print('Error: --from-dill option cannot be used with --incremental');
@@ -495,7 +521,7 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     if (nullSafety == null &&
-        compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
+        compilerOptions.globalFeatures.nonNullable.isEnabled) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 
@@ -505,6 +531,8 @@ class FrontendCompiler implements CompilerInterface {
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      supportMirrors: options['support-mirrors'] ??
+          !(options['aot'] || options['minimal-kernel']),
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -554,6 +582,7 @@ class FrontendCompiler implements CompilerInterface {
       }
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
+          additionalSources: _additionalSources,
           includePlatform: options['link-platform'],
           deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
@@ -602,7 +631,7 @@ class FrontendCompiler implements CompilerInterface {
     Set<Uri> uris = Set<Uri>();
     for (Uri uri in compiledSources) {
       // Skip empty or corelib dependencies.
-      if (uri == null || uri.scheme == 'org-dartlang-sdk') continue;
+      if (uri == null || uri.isScheme('org-dartlang-sdk')) continue;
       uris.add(uri);
     }
     for (Uri uri in uris) {
@@ -788,8 +817,8 @@ class FrontendCompiler implements CompilerInterface {
     }
     errors.clear();
 
-    IncrementalCompilerResult deltaProgramResult =
-        await _generator.compile(entryPoint: _mainSource);
+    IncrementalCompilerResult deltaProgramResult = await _generator
+        .compile(entryPoints: [_mainSource, ..._additionalSources]);
     Component deltaProgram = deltaProgramResult.component;
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
@@ -822,15 +851,27 @@ class FrontendCompiler implements CompilerInterface {
   Future<Null> compileExpression(
       String expression,
       List<String> definitions,
+      List<String> definitionTypes,
       List<String> typeDefinitions,
+      List<String> typeBounds,
+      List<String> typeDefaults,
       String libraryUri,
       String klass,
       String method,
       bool isStatic) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
-    Procedure procedure = await _generator.compileExpression(expression,
-        definitions, typeDefinitions, libraryUri, klass, method, isStatic);
+    Procedure procedure = await _generator.compileExpression(
+        expression,
+        definitions,
+        definitionTypes,
+        typeDefinitions,
+        typeBounds,
+        typeDefaults,
+        libraryUri,
+        klass,
+        method,
+        isStatic);
     if (procedure != null) {
       Component component = createExpressionEvaluationComponent(procedure);
       final IOSink sink = File(_kernelBinaryFilename).openWrite();
@@ -946,7 +987,7 @@ class FrontendCompiler implements CompilerInterface {
 
     for (var lib in deltaProgram.libraries) {
       Uri uri = lib.importUri;
-      if (uri.scheme == "package") {
+      if (uri.isScheme("package")) {
         packageLibraries.add(lib);
       } else {
         libraries.add(lib);
@@ -1000,7 +1041,7 @@ class FrontendCompiler implements CompilerInterface {
       for (Library lib in libraries) {
         for (LibraryDependency dep in lib.dependencies) {
           Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
-          if (dependencyLibrary.importUri.scheme != "package") continue;
+          if (!dependencyLibrary.importUri.isScheme("package")) continue;
           Uri dependencyLibraryUri =
               dep.importedLibraryReference.asLibrary.fileUri;
           if (libraryUris.contains(dependencyLibraryUri)) continue;
@@ -1045,7 +1086,8 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
-    return IncrementalCompiler(_compilerOptions, _mainSource,
+    return IncrementalCompiler(
+        _compilerOptions, [_mainSource, ..._additionalSources],
         initializeFromDillUri: initializeFromDillUri,
         incrementalSerialization: incrementalSerialization);
   }
@@ -1109,7 +1151,10 @@ class _CompileExpressionRequest {
   // Note that FE will reject a compileExpression command by returning a null
   // procedure when defs or typeDefs include an illegal identifier.
   List<String> defs = <String>[];
+  List<String> defTypes = <String>[];
   List<String> typeDefs = <String>[];
+  List<String> typeBounds = <String>[];
+  List<String> typeDefaults = <String>[];
   String library;
   String klass;
   String method;
@@ -1250,7 +1295,10 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           compiler.compileExpression(
               compileExpressionRequest.expression,
               compileExpressionRequest.defs,
+              compileExpressionRequest.defTypes,
               compileExpressionRequest.typeDefs,
+              compileExpressionRequest.typeBounds,
+              compileExpressionRequest.typeDefaults,
               compileExpressionRequest.library,
               compileExpressionRequest.klass,
               compileExpressionRequest.method,

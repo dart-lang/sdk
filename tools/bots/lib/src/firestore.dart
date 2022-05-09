@@ -74,7 +74,7 @@ class FirestoreDatabase {
         path: '$collectionName/$documentName',
         query: _currentTransaction == null
             ? null
-            : 'transaction=${_escapedCurrentTransaction}'));
+            : 'transaction=$_escapedCurrentTransaction'));
     var response = await _client.get(url, headers: _headers);
     if (response.statusCode == HttpStatus.ok) {
       var document = jsonDecode(response.body);
@@ -123,7 +123,7 @@ class FirestoreDatabase {
     }
     var body = jsonEncode({
       "writes": writes.map((write) => write.data).toList(),
-      "transaction": "$_currentTransaction"
+      "transaction": _currentTransaction
     });
     var response =
         await _client.post(_commitUrl, headers: _headers, body: body);
@@ -140,7 +140,7 @@ class FirestoreDatabase {
     return true;
   }
 
-  Exception _error(http.Response response, {String message: 'Error'}) {
+  Exception _error(http.Response response, {String message = 'Error'}) {
     throw Exception('$message: ${response.statusCode}: '
         '${response.reasonPhrase}:\n${response.body}');
   }
@@ -154,6 +154,7 @@ abstract class Write {
 }
 
 class Update implements Write {
+  @override
   final Map data;
   Update(List<String> updateMask, Map document, {String updateTime})
       : data = {
@@ -188,7 +189,7 @@ class FieldFilter extends Filter {
           'fieldFilter': {
             'field': {'fieldPath': field},
             'op': op,
-            'value': {'$type': value},
+            'value': {type: value},
           }
         });
 }

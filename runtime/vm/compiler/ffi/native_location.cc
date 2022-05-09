@@ -228,7 +228,13 @@ bool NativeFpuRegistersLocation::Equals(const NativeLocation& other) const {
   if (!other.IsFpuRegisters()) {
     return false;
   }
-  return other.AsFpuRegisters().fpu_reg_ == fpu_reg_;
+  auto& other_fpu_reg = other.AsFpuRegisters();
+  if (other_fpu_reg.fpu_reg_kind() != fpu_reg_kind()) {
+    return false;
+  }
+  // We can only compare `fpu_reg_` if the kind is the same.
+  // Q5 is not the same register as (nor overlaps) D5.
+  return other_fpu_reg.fpu_reg_ == fpu_reg_;
 }
 
 bool NativeStackLocation::Equals(const NativeLocation& other) const {
@@ -277,14 +283,14 @@ void NativeLocation::PrintTo(BaseTextBuffer* f) const {
 
 void NativeRegistersLocation::PrintTo(BaseTextBuffer* f) const {
   if (num_regs() == 1) {
-    f->Printf("%s", RegisterNames::RegisterName(regs_->At(0)));
+    f->Printf("%s", RegisterNames::RegisterAbiName(regs_->At(0)));
   } else {
     f->AddString("(");
     for (intptr_t i = 0; i < num_regs(); i++) {
       if (i != 0) {
         f->Printf(", ");
       }
-      f->Printf("%s", RegisterNames::RegisterName(regs_->At(i)));
+      f->Printf("%s", RegisterNames::RegisterAbiName(regs_->At(i)));
     }
     f->AddString(")");
   }

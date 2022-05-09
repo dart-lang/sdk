@@ -122,8 +122,9 @@ class _OverlayFile extends _OverlayResource implements File {
   _OverlayFile(OverlayResourceProvider provider, File file)
       : super(provider, file);
 
+  @Deprecated('Use watch() instead')
   @override
-  Stream<WatchEvent> get changes => _file.changes;
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get exists => provider.hasOverlay(path) || _resource.exists;
@@ -204,6 +205,9 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 
   @override
+  ResourceWatcher watch() => _file.watch();
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     writeAsStringSync(String.fromCharCodes(bytes));
   }
@@ -233,8 +237,9 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   _OverlayFolder(OverlayResourceProvider provider, Folder folder)
       : super(provider, folder);
 
+  @Deprecated('Use watch() instead')
   @override
-  Stream<WatchEvent> get changes => _folder.changes;
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get exists => provider._hasOverlayIn(path) || _resource.exists;
@@ -313,6 +318,9 @@ class _OverlayFolder extends _OverlayResource implements Folder {
     }
     return children.values.toList();
   }
+
+  @override
+  ResourceWatcher watch() => _folder.watch();
 }
 
 /// The base class for resources from an [OverlayResourceProvider].
@@ -345,10 +353,13 @@ abstract class _OverlayResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
-    var parent = _resource.parent2;
+  Folder get parent {
+    var parent = _resource.parent;
     return _OverlayFolder(provider, parent);
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get path => _resource.path;

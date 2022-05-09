@@ -12,6 +12,7 @@
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/simulator.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -26,9 +27,9 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder),
-      use_far_branches_(use_far_branches),
+      use_far_branches_(far_branch_level != 0),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     Call(Address(THR,
@@ -255,17 +256,15 @@ void Assembler::Bind(Label* label) {
 
 #if defined(USING_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
-  EnterCallRuntimeFrame(/*frame_size=*/0, /*is_leaf=*/true);
-  ASSERT(kTsanLoadAcquireRuntimeEntry.is_leaf());
-  CallRuntime(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
-  LeaveCallRuntimeFrame(/*is_leaf=*/true);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
 }
 
 void Assembler::TsanStoreRelease(Register addr) {
-  EnterCallRuntimeFrame(/*frame_size=*/0, /*is_leaf=*/true);
-  ASSERT(kTsanStoreReleaseRuntimeEntry.is_leaf());
-  CallRuntime(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
-  LeaveCallRuntimeFrame(/*is_leaf=*/true);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
 #endif
 
@@ -433,22 +432,6 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
     }
     ldr(dst, Address(pp, dst));
   }
-}
-
-void Assembler::LoadWordFromPoolIndexFixed(Register dst, intptr_t index) {
-  ASSERT(constant_pool_allowed());
-  ASSERT(dst != PP);
-  Operand op;
-  // PP is _un_tagged on ARM64.
-  const uint32_t offset = target::ObjectPool::element_offset(index);
-  const uint32_t upper20 = offset & 0xfffff000;
-  const uint32_t lower12 = offset & 0x00000fff;
-  const Operand::OperandType ot =
-      Operand::CanHold(upper20, kXRegSizeInBits, &op);
-  ASSERT(ot == Operand::Immediate);
-  ASSERT(Address::CanHoldOffset(lower12));
-  add(dst, PP, op);
-  ldr(dst, Address(dst, lower12));
 }
 
 void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
@@ -720,10 +703,6 @@ void Assembler::BranchLink(const Code& target,
       object_pool_builder().FindObject(ToObject(target), patchable);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-}
-
-void Assembler::BranchLinkToRuntime() {
-  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -1288,6 +1267,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest);
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
@@ -1310,6 +1294,11 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest, kObjectBytes);
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
@@ -1568,10 +1557,8 @@ void Assembler::SetupGlobalPoolAndDispatchTable() {
   ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
   sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
-  if (FLAG_use_table_dispatch) {
-    ldr(DISPATCH_TABLE_REG,
-        Address(THR, target::Thread::dispatch_table_array_offset()));
-  }
+  ldr(DISPATCH_TABLE_REG,
+      Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
 void Assembler::CheckCodePointer() {
@@ -1623,6 +1610,10 @@ void Assembler::SetupCSPFromThread(Register thr) {
   // frames before doing an overflow check.)
   ldr(TMP, Address(thr, target::Thread::saved_stack_limit_offset()));
   AddImmediate(CSP, TMP, -4096);
+
+  // TODO(47824): This will probably cause signal handlers on Windows to crash.
+  // Windows requires the stack to grow in order, one page at a time, but
+  // pushing CSP to near the stack limit likely skips over many pages.
 }
 
 void Assembler::RestoreCSP() {
@@ -1753,7 +1744,8 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register state) {
+void Assembler::ExitFullSafepoint(Register state,
+                                  bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Register addr = TMP2;
@@ -1780,7 +1772,14 @@ void Assembler::ExitFullSafepoint(Register state) {
   }
 
   Bind(&slow_path);
-  ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    ldr(addr,
+        Address(THR,
+                target::Thread::
+                    exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   ldr(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   blr(addr);
 
@@ -1788,10 +1787,13 @@ void Assembler::ExitFullSafepoint(Register state) {
 }
 
 void Assembler::TransitionNativeToGenerated(Register state,
-                                            bool exit_safepoint) {
+                                            bool exit_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (exit_safepoint) {
-    ExitFullSafepoint(state);
+    ExitFullSafepoint(state, ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
@@ -1817,109 +1819,82 @@ void Assembler::TransitionNativeToGenerated(Register state,
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
-  Comment("EnterCallRuntimeFrame");
-  EnterFrame(0);
-  if (!FLAG_precompiled_mode) {
-    TagAndPushPPAndPcMarker();  // Save PP and PC marker.
-  }
-
-  // Store fpu registers with the lowest register number at the lowest
-  // address.
-  for (int i = kNumberOfVRegisters - 1; i >= 0; i--) {
-    if ((i >= kAbiFirstPreservedFpuReg) && (i <= kAbiLastPreservedFpuReg)) {
-      // TODO(zra): When SIMD is added, we must also preserve the top
-      // 64-bits of the callee-saved registers.
-      continue;
-    }
-    // TODO(zra): Save the whole V register.
-    VRegister reg = static_cast<VRegister>(i);
-    PushDouble(reg);
-  }
-
-  for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
-    const Register reg = static_cast<Register>(i);
-    Push(reg);
-  }
-
-  if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
-    ReserveAlignedFrameSpace(frame_size);
-  } else {
-    PushPair(kCallLeafRuntimeCalleeSaveScratch1,
-             kCallLeafRuntimeCalleeSaveScratch2);
-  }
-}
-
-void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
-  // SP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t fixed_frame_words_without_pc_and_fp =
-      target::frame_layout.dart_fixed_frame_size - 2;
-  const intptr_t kPushedRegistersSize =
-      kDartVolatileFpuRegCount * sizeof(double) +
-      (kDartVolatileCpuRegCount + (is_leaf ? 2 : 0) +
-       fixed_frame_words_without_pc_and_fp) *
-          target::kWordSize;
-  AddImmediate(SP, FP, -kPushedRegistersSize);
-  if (is_leaf) {
-    PopPair(kCallLeafRuntimeCalleeSaveScratch1,
-            kCallLeafRuntimeCalleeSaveScratch2);
-  }
-  for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
-    const Register reg = static_cast<Register>(i);
-    Pop(reg);
-  }
-
-  for (int i = 0; i < kNumberOfVRegisters; i++) {
-    if ((i >= kAbiFirstPreservedFpuReg) && (i <= kAbiLastPreservedFpuReg)) {
-      // TODO(zra): When SIMD is added, we must also restore the top
-      // 64-bits of the callee-saved registers.
-      continue;
-    }
-    // TODO(zra): Restore the whole V register.
-    VRegister reg = static_cast<VRegister>(i);
-    PopDouble(reg);
-  }
-
-  LeaveStubFrame();
-}
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
+  LoadImmediate(R4, argument_count);
+  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
-void Assembler::CallRuntimeScope::Call(intptr_t argument_count) {
-  assembler_->CallRuntime(entry_, argument_count);
-}
+// FPU: Only the bottom 64-bits of v8-v15 are preserved by the caller. The upper
+// bits might be in use by Dart, so we save the whole register.
+static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
+                                                    kAllFpuRegistersList);
 
-Assembler::CallRuntimeScope::~CallRuntimeScope() {
-  if (preserve_registers_) {
-    assembler_->LeaveCallRuntimeFrame(entry_.is_leaf());
-    if (restore_code_reg_) {
-      assembler_->Pop(CODE_REG);
-    }
+#undef __
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  __ EnterFrame(0);
+
+  if (preserve_registers) {
+    __ PushRegisters(kRuntimeCallSavedRegisters);
+  } else {
+    // These registers must always be preserved.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+    COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
   }
+
+  __ ReserveAlignedFrameSpace(frame_size);
 }
 
-Assembler::CallRuntimeScope::CallRuntimeScope(Assembler* assembler,
-                                              const RuntimeEntry& entry,
-                                              intptr_t frame_size,
-                                              bool preserve_registers,
-                                              const Address* caller)
-    : assembler_(assembler),
-      entry_(entry),
-      preserve_registers_(preserve_registers),
-      restore_code_reg_(caller != nullptr) {
-  if (preserve_registers_) {
-    if (caller != nullptr) {
-      assembler_->Push(CODE_REG);
-      assembler_->ldr(CODE_REG, *caller);
-    }
-    assembler_->EnterCallRuntimeFrame(frame_size, entry.is_leaf());
-  }
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(argument_count == entry.argument_count());
+  // Since we are entering C++ code, we must restore the C stack pointer from
+  // the stack limit to an aligned value nearer to the top of the stack.
+  // We cache the stack limit in callee-saved registers, then align and call,
+  // restoring CSP and SP on return from the call.
+  // This sequence may occur in an intrinsic, so don't use registers an
+  // intrinsic must preserve.
+  __ mov(CSP, SP);
+  __ ldr(TMP, compiler::Address(THR, entry.OffsetFromThread()));
+  __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ blr(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ SetupCSPFromThread(THR);
 }
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // SP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedRegistersSize =
+        kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
+        kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize;
+    __ AddImmediate(SP, FP, -kPushedRegistersSize);
+    __ PopRegisters(kRuntimeCallSavedRegisters);
+  }
+
+  __ LeaveFrame();
+}
+
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#undef __
+#define __ this->
 
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
@@ -1930,6 +1905,13 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+  COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+  COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+  COMPILE_ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+  COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+
   Push(FP);
   mov(FP, SP);
   ReserveAlignedFrameSpace(frame_space);
@@ -2295,16 +2277,22 @@ void Assembler::LoadFieldAddressForRegOffset(Register address,
 }
 
 void Assembler::PushRegisters(const RegisterSet& regs) {
-  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Store fpu registers with the lowest register number at the lowest
-    // address.
-    for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
-      VRegister fpu_reg = static_cast<VRegister>(i);
-      if (regs.ContainsFpuRegister(fpu_reg)) {
-        PushQuad(fpu_reg);
+  VRegister vprev = kNoVRegister;
+  // Store fpu registers with the lowest register number at the lowest
+  // address.
+  for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
+    VRegister fpu_reg = static_cast<VRegister>(i);
+    if (regs.ContainsFpuRegister(fpu_reg)) {
+      if (vprev != kNoVRegister) {
+        PushQuadPair(/*low=*/fpu_reg, /*high=*/vprev);
+        vprev = kNoVRegister;
+      } else {
+        vprev = fpu_reg;
       }
     }
+  }
+  if (vprev != kNoVRegister) {
+    PushQuad(vprev);
   }
 
   // The order in which the registers are pushed must match the order
@@ -2347,50 +2335,98 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
   ASSERT(prev == kNoRegister);
 
-  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Fpu registers have the lowest register number at the lowest address.
-    for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
-      VRegister fpu_reg = static_cast<VRegister>(i);
-      if (regs.ContainsFpuRegister(fpu_reg)) {
+  pop_single = (regs.FpuRegisterCount() & 1) == 1;
+  VRegister vprev = kNoVRegister;
+  // Fpu registers have the lowest register number at the lowest address.
+  for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
+    VRegister fpu_reg = static_cast<VRegister>(i);
+    if (regs.ContainsFpuRegister(fpu_reg)) {
+      if (pop_single) {
         PopQuad(fpu_reg);
+        pop_single = false;
+      } else if (vprev != kNoVRegister) {
+        PopQuadPair(/*low=*/vprev, /*high=*/fpu_reg);
+        vprev = kNoVRegister;
+      } else {
+        vprev = fpu_reg;
       }
     }
   }
+  ASSERT(vprev == kNoVRegister);
 }
 
 void Assembler::PushNativeCalleeSavedRegisters() {
   // Save the callee-saved registers.
+  // We use str instead of the Push macro because we will be pushing the PP
+  // register when it is not holding a pool-pointer since we are coming from
+  // C++ code.
+  Register prev = kNoRegister;
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
     const Register r = static_cast<Register>(i);
-    // We use str instead of the Push macro because we will be pushing the PP
-    // register when it is not holding a pool-pointer since we are coming from
-    // C++ code.
-    str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+    if (prev != kNoRegister) {
+      stp(/*low=*/r, /*high=*/prev,
+          Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
+      prev = kNoRegister;
+    } else {
+      prev = r;
+    }
+  }
+  if (prev != kNoRegister) {
+    str(prev, Address(SP, -1 * target::kWordSize, Address::PreIndex));
   }
 
   // Save the bottom 64-bits of callee-saved V registers.
+  VRegister vprev = kNoVRegister;
   for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
     const VRegister r = static_cast<VRegister>(i);
-    PushDouble(r);
+    if (vprev != kNoVRegister) {
+      PushDoublePair(/*low=*/r, /*high=*/vprev);
+      vprev = kNoVRegister;
+    } else {
+      vprev = r;
+    }
+  }
+  if (vprev != kNoVRegister) {
+    PushDouble(vprev);
   }
 }
 
 void Assembler::PopNativeCalleeSavedRegisters() {
   // Restore the bottom 64-bits of callee-saved V registers.
+  bool pop_single = (kAbiPreservedFpuRegCount & 1) == 1;
+  VRegister vprev = kNoVRegister;
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
     const VRegister r = static_cast<VRegister>(i);
-    PopDouble(r);
+    if (pop_single) {
+      PopDouble(r);
+      pop_single = false;
+    } else if (vprev != kNoVRegister) {
+      PopDoublePair(/*low=*/vprev, /*high=*/r);
+      vprev = kNoVRegister;
+    } else {
+      vprev = r;
+    }
   }
 
   // Restore C++ ABI callee-saved registers.
+  // We use ldr instead of the Pop macro because we will be popping the PP
+  // register when it is not holding a pool-pointer since we are returning to
+  // C++ code. We also skip the dart stack pointer SP, since we are still
+  // using it as the stack pointer.
+  pop_single = (kAbiPreservedCpuRegCount & 1) == 1;
+  Register prev = kNoRegister;
   for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
     Register r = static_cast<Register>(i);
-    // We use ldr instead of the Pop macro because we will be popping the PP
-    // register when it is not holding a pool-pointer since we are returning to
-    // C++ code. We also skip the dart stack pointer SP, since we are still
-    // using it as the stack pointer.
-    ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
+    if (pop_single) {
+      ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
+      pop_single = false;
+    } else if (prev != kNoRegister) {
+      ldp(/*low=*/prev, /*high=*/r,
+          Address(SP, 2 * target::kWordSize, Address::PairPostIndex));
+      prev = kNoRegister;
+    } else {
+      prev = r;
+    }
   }
 }
 

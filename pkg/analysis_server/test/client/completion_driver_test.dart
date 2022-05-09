@@ -4,46 +4,42 @@
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../analysis_server_base.dart';
+import '../services/completion/dart/completion_check.dart';
 import '../services/completion/dart/completion_contributor_util.dart';
 import 'impl/completion_driver.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BasicCompletionTest);
-    defineReflectiveTests(CompletionWithSuggestionsTest);
+    defineReflectiveTests(BasicCompletionTest1);
+    defineReflectiveTests(BasicCompletionTest2);
+    defineReflectiveTests(CompletionWithSuggestionsTest1);
+    defineReflectiveTests(CompletionWithSuggestionsTest2);
   });
 }
 
-abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
+abstract class AbstractCompletionDriverTest
+    extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
-  Map<String, String> packageRoots = {};
   late List<CompletionSuggestion> suggestions;
 
-  String get projectName => 'project';
+  bool get isProtocolVersion1 {
+    return protocol == TestingCompletionProtocol.version1;
+  }
 
-  String get projectPath => '/$projectName';
+  bool get isProtocolVersion2 {
+    return protocol == TestingCompletionProtocol.version2;
+  }
+
+  TestingCompletionProtocol get protocol;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
-  bool get supportsAvailableSuggestions;
-
-  String get testFilePath => '$projectPath/bin/test.dart';
-
-  Future<void> addProjectFile(String relativePath, String content) async {
-    newFile('$projectPath/$relativePath', content: content);
-    // todo (pq): handle more than lib
-    expect(relativePath, startsWith('lib/'));
-    var packageRelativePath = relativePath.substring(4);
-    var uriStr = 'package:$projectName/$packageRelativePath';
-    await driver.waitForSetWithUri(uriStr);
-  }
-
+  @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
       {int? offset}) async {
     driver.addTestFile(content, offset: offset);
@@ -103,13 +99,35 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    if (supportsAvailableSuggestions) {
-      await driver.waitForSetWithUri('dart:core');
-      await driver.waitForSetWithUri('dart:async');
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('dart:core');
+      await waitForSetWithUri('dart:async');
     }
 
-    suggestions = await driver.getSuggestions();
+    switch (protocol) {
+      case TestingCompletionProtocol.version1:
+        suggestions = await driver.getSuggestions();
+        break;
+      case TestingCompletionProtocol.version2:
+        suggestions = await driver.getSuggestions2();
+        break;
+    }
     return suggestions;
+  }
+
+  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
+  Future<CompletionResponseForTesting> getTestCodeSuggestions(
+    String content,
+  ) async {
+    await addTestFile(content);
+
+    return CompletionResponseForTesting(
+      requestOffset: driver.completionOffset,
+      replacementOffset: driver.replacementOffset,
+      replacementLength: driver.replacementLength,
+      isIncomplete: false, // TODO(scheglov) not correct
+      suggestions: suggestions,
+    );
   }
 
   /// Display sorted suggestions.
@@ -121,21 +139,20 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     }
   }
 
-  @mustCallSuper
-  void setUp() {
-    driver = CompletionDriver(
-      supportsAvailableSuggestions: supportsAvailableSuggestions,
-      projectPath: projectPath,
-      testFilePath: testFilePath,
-      resourceProvider: resourceProvider,
-      serverOptions: serverOptions,
-    );
-    driver.createProject(packageRoots: packageRoots);
+  @override
+  Future<void> setUp() async {
+    super.setUp();
 
-    newPubspecYamlFile(projectPath, '');
-    newDotPackagesFile(projectPath, content: '''
-project:${toUri('$projectPath/lib')}
+    writeTestPackagePubspecYamlFile(r'''
+name: test
 ''');
+
+    driver = CompletionDriver(
+      supportsAvailableSuggestions: isProtocolVersion1,
+      server: this,
+    );
+    await driver.createProject();
+
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
   }
 
@@ -183,6 +200,10 @@ project:${toUri('$projectPath/lib')}
     return matches.first;
   }
 
+  Future<void> waitForSetWithUri(String uri) {
+    return driver.waitForSetWithUri(uri);
+  }
+
   void _assertNoErrorsInProjectFiles() {
     var errors = <AnalysisError>[];
     driver.filesErrors.forEach((file, fileErrors) {
@@ -197,10 +218,20 @@ project:${toUri('$projectPath/lib')}
 }
 
 @reflectiveTest
-class BasicCompletionTest extends AbstractCompletionDriverTest {
+class BasicCompletionTest1 extends AbstractCompletionDriverTest
+    with BasicCompletionTestCases {
   @override
-  bool get supportsAvailableSuggestions => false;
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
 
+@reflectiveTest
+class BasicCompletionTest2 extends AbstractCompletionDriverTest
+    with BasicCompletionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
   /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
   Future<void> test_deprecated_member_relevance() async {
     await addTestFile('''
@@ -231,21 +262,53 @@ void f() {
 }
 
 @reflectiveTest
-class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
+class CompletionWithSuggestionsTest1 extends AbstractCompletionDriverTest
+    with CompletionWithSuggestionsTestCases {
   @override
-  bool get supportsAvailableSuggestions => true;
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 
+  @failingTest
   @override
-  String get testFilePath => '$projectPath/lib/test.dart';
+  Future<void> test_project_lib_multipleExports() async {
+    return super.test_project_lib_multipleExports();
+  }
+}
 
+@reflectiveTest
+class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
+    with CompletionWithSuggestionsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @FailingTest(reason: 'Not implemented yet')
+  @override
+  Future<void> test_project_lib_fields_static() {
+    // TODO: implement test_project_lib_fields_static
+    return super.test_project_lib_fields_static();
+  }
+
+  @FailingTest(reason: 'Not implemented yet')
+  @override
+  Future<void> test_project_lib_getters_static() {
+    // TODO: implement test_project_lib_getters_static
+    return super.test_project_lib_getters_static();
+  }
+}
+
+mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
   Future<void> test_project_filterImports_defaultConstructor() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    await addProjectFile('lib/b.dart', r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
 
     await addTestFile('''
 import 'a.dart';
@@ -262,15 +325,20 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_enumValues() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum E {
   e,
 }
 ''');
 
-    await addProjectFile('lib/b.dart', r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
 
     await addTestFile('''
 import 'a.dart';
@@ -279,22 +347,27 @@ void f() {
 }
 ''');
     assertSuggestion(
-        completion: 'E.e',
-        element: ElementKind.ENUM_CONSTANT,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'E.e',
+      element: ElementKind.ENUM_CONSTANT,
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_namedConstructors() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   A.a();
 }
 ''');
 
-    await addProjectFile('lib/b.dart', r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
 
     await addTestFile('''
 import 'a.dart';
@@ -310,13 +383,18 @@ void f() {
   }
 
   Future<void> test_project_filterMultipleImports() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    await addProjectFile('lib/b.dart', r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
 
     await addTestFile('''
 import 'a.dart';
@@ -327,13 +405,13 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
   }
 
   Future<void> test_project_lib() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 enum E {
   e,
@@ -344,6 +422,10 @@ typedef T = Function(Object);
 typedef T2 = double;
 var v = 0;
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -356,41 +438,45 @@ void f() {
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
     assertSuggestion(
-        completion: 'E',
-        element: ElementKind.ENUM,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'E',
+      element: ElementKind.ENUM,
+    );
     assertSuggestion(
-        completion: 'Ex',
-        element: ElementKind.EXTENSION,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'Ex',
+      element: ElementKind.EXTENSION,
+    );
     assertSuggestion(
-        completion: 'M',
-        element: ElementKind.MIXIN,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'M',
+      element: ElementKind.MIXIN,
+    );
     assertSuggestion(
-        completion: 'T',
-        element: ElementKind.FUNCTION_TYPE_ALIAS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'T',
+      element: ElementKind.TYPE_ALIAS,
+    );
     assertSuggestion(
-        completion: 'T2',
-        element: ElementKind.TYPE_ALIAS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'T2',
+      element: ElementKind.TYPE_ALIAS,
+    );
     assertSuggestion(
-        completion: 'v',
-        element: ElementKind.TOP_LEVEL_VARIABLE,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'v',
+      element: ElementKind.TOP_LEVEL_VARIABLE,
+    );
   }
 
   Future<void> test_project_lib_fields_class() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int f = 0;
 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void m() {
@@ -402,11 +488,15 @@ void m() {
   }
 
   Future<void> test_project_lib_fields_static() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static int f = 0;
 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -415,17 +505,21 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A.f',
-        element: ElementKind.FIELD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A.f',
+      element: ElementKind.FIELD,
+    );
   }
 
   Future<void> test_project_lib_getters_class() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   int get g => 0;
 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -437,12 +531,16 @@ void f() {
   }
 
   Future<void> test_project_lib_getters_static() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static int get g => 0;
 }
 ''');
 
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
+
     await addTestFile('''
 void f() {
   ^
@@ -450,16 +548,20 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A.g',
-        element: ElementKind.GETTER,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A.g',
+      element: ElementKind.GETTER,
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
   Future<void> test_project_lib_getters_topLevel() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 int get g => 0;
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -468,20 +570,64 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'g',
-        element: ElementKind.GETTER,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'g',
+      element: ElementKind.GETTER,
+    );
   }
 
-  @failingTest
+  Future<void> test_project_lib_methods_class() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo() => 0;
+}
+''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
+
+    await addTestFile('''
+void f() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'A.foo');
+  }
+
+  Future<void> test_project_lib_methods_static() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+class A {
+  static void foo() => 0;
+}
+''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
+
+    await addTestFile('''
+void f() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'A.foo');
+  }
+
   Future<void> test_project_lib_multipleExports() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    await addProjectFile('lib/b.dart', r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -497,11 +643,15 @@ void f() {
   }
 
   Future<void> test_project_lib_setters_class() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   set s(int s) {}
 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -513,11 +663,15 @@ void f() {
   }
 
   Future<void> test_project_lib_setters_static() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static set g(int g) {}
 }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -530,9 +684,13 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
   Future<void> test_project_lib_setters_topLevel() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 set s(int s) {}
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 void f() {
@@ -541,15 +699,15 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 's',
-        element: ElementKind.SETTER,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 's',
+      element: ElementKind.SETTER,
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38739')
   Future<void>
       test_project_suggestionRelevance_constructorParameterType() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'b.dart';
 
 class A {
@@ -557,9 +715,14 @@ class A {
 }
 ''');
 
-    await addProjectFile('lib/b.dart', r'''
+    newFile2('$testPackageLibPath/b.dart', r'''
 class O { }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
 
     await addTestFile('''
 import 'a.dart';
@@ -583,9 +746,13 @@ void f(List<String> args) {
   }
 
   Future<void> test_project_suggestionRelevance_constructorsAndTypes() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A { }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 import 'a.dart';
@@ -596,37 +763,42 @@ void f(List<String> args) {
 ''');
 
     expect(
+      suggestionWith(
+        completion: 'A',
+        element: ElementKind.CONSTRUCTOR,
+      ).relevance,
+      greaterThan(
         suggestionWith(
-                completion: 'A',
-                element: ElementKind.CONSTRUCTOR,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance,
-        greaterThan(suggestionWith(
-                completion: 'A',
-                element: ElementKind.CLASS,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance));
+          completion: 'A',
+          element: ElementKind.CLASS,
+        ).relevance,
+      ),
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/35529
   Future<void> test_project_suggestMixins() async {
-    await addProjectFile('lib/a.dart', r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 mixin M { }
 class A { }
 ''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
 
     await addTestFile('''
 class C extends Object with ^
 ''');
 
     assertSuggestion(
-        completion: 'M',
-        element: ElementKind.MIXIN,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'M',
+      element: ElementKind.MIXIN,
+    );
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
   }
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
@@ -682,18 +854,20 @@ void f() {
 
     // + Classes.
     assertSuggestion(
-        completion: 'HashMap',
-        file: '/sdk/lib/collection/collection.dart',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'HashMap',
+      file: '/sdk/lib/collection/collection.dart',
+      element: ElementKind.CLASS,
+    );
 
     // + Top level variables.
     assertSuggestion(
-        completion: 'pi',
-        file: '/sdk/lib/math/math.dart',
-        element: ElementKind.TOP_LEVEL_VARIABLE,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'pi',
+      file: '/sdk/lib/math/math.dart',
+      element: ElementKind.TOP_LEVEL_VARIABLE,
+    );
 
     // (No typedefs, enums, extensions defined in the Mock SDK.)
   }
 }
+
+enum TestingCompletionProtocol { version1, version2 }

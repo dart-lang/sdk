@@ -1007,10 +1007,14 @@ $endif
     } else if (alignment == ScrollAlignment.BOTTOM) {
       this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
+      // TODO(srujzs): This method shouldn't be calling out to
+      // `scrollIntoViewIfNeeded`. Remove this and make `scrollIntoView` match
+      // the browser definition. If you intend to use `scrollIntoViewIfNeeded`,
+      // use the `Element.scrollIntoViewIfNeeded` method.
       if (alignment == ScrollAlignment.CENTER) {
-        this._scrollIntoViewIfNeeded(true);
+        this.scrollIntoViewIfNeeded(true);
       } else {
-        this._scrollIntoViewIfNeeded();
+        this.scrollIntoViewIfNeeded();
       }
     } else {
       this._scrollIntoView();
@@ -1583,6 +1587,41 @@ $endif
   }
 
   int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
+
+  /**
+   * Displays this element fullscreen.
+   *
+   * ## Other resources
+   *
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  Future<void> requestFullscreen([Map? options]) {
+    var retValue;
+    if (options != null) {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#, #)',
+          this,
+          this,
+          this,
+          convertDartToNative_Dictionary(options));
+    } else {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#)',
+          this,
+          this,
+          this);
+    }
+    if (retValue != null) return promiseToFuture(retValue);
+    return Future<void>.value();
+  }
 
 $!MEMBERS
 }

@@ -2,11 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Make this a separate library.
-part of dart2js.kernel.element_map;
+import 'package:kernel/ast.dart' as ir;
 
-class KernelAnnotationProcessor implements AnnotationProcessor {
-  final KernelToElementMapImpl elementMap;
+import '../common.dart';
+import '../common/elements.dart';
+import '../constants/values.dart';
+import '../elements/entities.dart';
+import '../ir/annotations.dart';
+import '../js_backend/native_data.dart';
+import '../native/resolver.dart';
+
+import 'element_map.dart';
+
+class KernelAnnotationProcessor {
+  final KernelToElementMap elementMap;
   final NativeBasicDataBuilder _nativeBasicDataBuilder;
   final IrAnnotationData annotationData;
 
@@ -14,7 +23,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
       this.elementMap, this._nativeBasicDataBuilder, this.annotationData)
       : assert(annotationData != null);
 
-  @override
   void extractNativeAnnotations(LibraryEntity library) {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
 
@@ -47,7 +55,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     return annotationName;
   }
 
-  @override
   void extractJsInteropAnnotations(LibraryEntity library) {
     // Unused reporter, add back in if uncommenting report lines down below.
     // DiagnosticReporter reporter = elementMap.reporter;

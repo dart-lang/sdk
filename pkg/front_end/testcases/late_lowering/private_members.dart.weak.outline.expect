@@ -15,13 +15,13 @@ class _Class extends core::Object { // from org-dartlang-testcase:///private_mem
   synthetic constructor •() → self::_Class
     ;
   get _privateField1() → core::int;
-  set _privateField1(core::int #t1) → void;
+  set _privateField1(core::int library org-dartlang-testcase:///private_members_part.dart::_privateField1#param) → void;
   get _privateField2() → core::int?;
-  set _privateField2(core::int? #t2) → void;
+  set _privateField2(core::int? library org-dartlang-testcase:///private_members_part.dart::_privateField2#param) → void;
   get _privateFinalField1() → core::int;
-  set _privateFinalField1(core::int #t3) → void;
+  set _privateFinalField1(core::int library org-dartlang-testcase:///private_members_part.dart::_privateFinalField1#param) → void;
   get _privateFinalField2() → core::int?;
-  set _privateFinalField2(core::int? #t4) → void;
+  set _privateFinalField2(core::int? library org-dartlang-testcase:///private_members_part.dart::_privateFinalField2#param) → void;
 }
 extension _Extension on core::int { // from org-dartlang-testcase:///private_members_part.dart
   static field _privateField1 = self::_#_Extension|_privateField1;
@@ -52,10 +52,10 @@ static field core::bool _#_Extension|_privateFinalField2#isSet /* from org-dartl
 static method main() → dynamic
   ;
 static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1() → core::int;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1(core::int #t5) → void;
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1(core::int library org-dartlang-testcase:///private_members_part.dart::_Extension|_privateField1#param) → void;
 static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2() → core::int?;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2(core::int? #t6) → void;
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2(core::int? library org-dartlang-testcase:///private_members_part.dart::_Extension|_privateField2#param) → void;
 static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1() → core::int;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1(core::int #t7) → void;
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1(core::int library org-dartlang-testcase:///private_members_part.dart::_Extension|_privateFinalField1#param) → void;
 static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2() → core::int?;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2(core::int? #t8) → void;
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2(core::int? library org-dartlang-testcase:///private_members_part.dart::_Extension|_privateFinalField2#param) → void;

@@ -26,7 +26,7 @@ beginCompilationUnit(Future)
   beginTopLevelMember(Future)
     handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
     // WARNING: Reporting at eof for .
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, )
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
       handleIdentifier(Future, typeReference)
       beginTypeArguments(<)
         handleIdentifier(List, typeReference)

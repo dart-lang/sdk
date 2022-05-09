@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class FieldInitializerFactoryConstructorTest extends PubPackageResolutionTest {
-  test_fieldFormalParameter() async {
+  test_class_fieldFormalParameter() async {
     await assertErrorsInCode(r'''
 class A {
   int x = 0;
@@ -27,7 +27,7 @@ class A {
     ]);
   }
 
-  test_functionTypedParameter() async {
+  test_class_fieldFormalParameter_functionTyped() async {
     await assertErrorsInCode(r'''
 class A {
   int Function()? x;
@@ -38,6 +38,23 @@ class A {
       // report "Field initiailizer in factory constructor" as a parse error.
       error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 43, 12),
       error(ParserErrorCode.MISSING_FUNCTION_BODY, 56, 1),
+    ]);
+  }
+
+  test_enum_fieldFormalParameter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int x = 0;
+  const E();
+  factory E._(this.x) => throw 0;
+}
+
+void f() {
+  E._(0);
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 60, 6),
     ]);
   }
 }

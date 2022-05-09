@@ -2,10 +2,13 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:11: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 // var v = (f<dynamic>)/*@typeArgs=int**/(/*@returnType=int**/() {
 //           ^
+// pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:4:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.9
+// ^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

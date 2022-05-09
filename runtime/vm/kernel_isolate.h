@@ -55,6 +55,7 @@ class KernelIsolate : public AllStatic {
       const char* package_config = NULL,
       const char* multiroot_filepaths = NULL,
       const char* multiroot_scheme = NULL,
+      intptr_t default_null_safety = kNullSafetyOptionUnspecified,
       Dart_KernelCompilationVerbosityLevel verbosity =
           Dart_KernelCompilationVerbosityLevel_All);
 
@@ -72,7 +73,10 @@ class KernelIsolate : public AllStatic {
       intptr_t platform_kernel_size,
       const char* expression,
       const Array& definitions,
+      const Array& definition_types,
       const Array& type_definitions,
+      const Array& type_bounds,
+      const Array& type_defaults,
       const char* library_url,
       const char* klass,
       const char* method,

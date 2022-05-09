@@ -6,6 +6,8 @@
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
+enhanced_enums/declared_hashcode: TypeCheckError
+enhanced_enums/declared_index: TypeCheckError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
@@ -29,9 +31,11 @@ general/duplicated_declarations: TypeCheckError
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
 general/implicit_super_call: TypeCheckError
+general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
+general/invocations: TypeCheckError
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError

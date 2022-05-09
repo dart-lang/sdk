@@ -9,11 +9,27 @@ analyzer:
 
 linter:
   rules:
+    always_declare_return_types: true
+    avoid_empty_else: true
+    avoid_relative_lib_imports: true
+    avoid_shadowing_type_parameters: true
+    avoid_types_as_parameter_names: true
     avoid_unused_constructor_parameters: true
+    camel_case_extensions: true
+    curly_braces_in_flow_control_structures: true
     depend_on_referenced_packages: true
     directives_ordering: true
+    empty_catches: true
 
     # We import heavily from package:analyzer/src.
     implementation_imports: false
     # This rule does not work well with package:test_reflective_loader.
+    no_duplicate_case_values: true
     non_constant_identifier_names: false
+    omit_local_variable_types: true
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    prefer_iterable_whereType: true
+    prefer_single_quotes: true
+    unawaited_futures: true
+    unrelated_type_equality_checks: true

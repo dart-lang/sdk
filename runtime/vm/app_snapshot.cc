@@ -2820,7 +2820,7 @@ class CompressedStackMapsSerializationCluster : public SerializationCluster {
       s->AssignRef(map);
       AutoTraceObject(map);
       const intptr_t length = UntaggedCompressedStackMaps::SizeField::decode(
-          map->untag()->payload()->flags_and_size);
+          map->untag()->payload()->flags_and_size());
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::CompressedStackMaps::InstanceSize(length);
@@ -2832,9 +2832,9 @@ class CompressedStackMapsSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       CompressedStackMapsPtr map = objects_[i];
       AutoTraceObject(map);
-      s->WriteUnsigned(map->untag()->payload()->flags_and_size);
+      s->WriteUnsigned(map->untag()->payload()->flags_and_size());
       const intptr_t length = UntaggedCompressedStackMaps::SizeField::decode(
-          map->untag()->payload()->flags_and_size);
+          map->untag()->payload()->flags_and_size());
       uint8_t* cdata =
           reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
       s->WriteBytes(cdata, length);
@@ -2874,7 +2874,7 @@ class CompressedStackMapsDeserializationCluster
           static_cast<CompressedStackMapsPtr>(d->Ref(id));
       Deserializer::InitializeHeader(map, kCompressedStackMapsCid,
                                      CompressedStackMaps::InstanceSize(length));
-      map->untag()->payload()->flags_and_size = flags_and_size;
+      map->untag()->payload()->set_flags_and_size(flags_and_size);
       uint8_t* cdata =
           reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
       d->ReadBytes(cdata, length);
@@ -4567,10 +4567,11 @@ class MintSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-class MintDeserializationCluster : public DeserializationCluster {
+class MintDeserializationCluster
+    : public AbstractInstanceDeserializationCluster {
  public:
   explicit MintDeserializationCluster(bool is_canonical)
-      : DeserializationCluster("int", is_canonical) {}
+      : AbstractInstanceDeserializationCluster("int", is_canonical) {}
   ~MintDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
@@ -4595,31 +4596,6 @@ class MintDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d, bool primary) {}
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (!primary && is_canonical()) {
-      const Class& mint_cls = Class::Handle(
-          d->zone(), d->isolate_group()->object_store()->mint_class());
-      Object& number = Object::Handle(d->zone());
-      Mint& number2 = Mint::Handle(d->zone());
-      SafepointMutexLocker ml(
-          d->isolate_group()->constant_canonicalization_mutex());
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
-        number = refs.At(i);
-        if (!number.IsMint()) continue;
-        number2 =
-            mint_cls.LookupCanonicalMint(d->zone(), Mint::Cast(number).value());
-        if (number2.IsNull()) {
-          number.SetCanonical();
-          mint_cls.InsertCanonicalMint(d->zone(), Mint::Cast(number));
-        } else {
-          refs.SetAt(i, number2);
-        }
-      }
-    }
-  }
-#endif
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4660,10 +4636,11 @@ class DoubleSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-class DoubleDeserializationCluster : public DeserializationCluster {
+class DoubleDeserializationCluster
+    : public AbstractInstanceDeserializationCluster {
  public:
   explicit DoubleDeserializationCluster(bool is_canonical)
-      : DeserializationCluster("double", is_canonical) {}
+      : AbstractInstanceDeserializationCluster("double", is_canonical) {}
   ~DoubleDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
@@ -4678,30 +4655,6 @@ class DoubleDeserializationCluster : public DeserializationCluster {
       dbl->untag()->value_ = d->Read<double>();
     }
   }
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (!primary && is_canonical()) {
-      auto Z = d->zone();
-      auto isolate_group = d->isolate_group();
-      const Class& cls =
-          Class::Handle(Z, isolate_group->object_store()->double_class());
-      SafepointMutexLocker ml(isolate_group->constant_canonicalization_mutex());
-      Double& dbl = Double::Handle(Z);
-      Double& dbl2 = Double::Handle(Z);
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
-        dbl ^= refs.At(i);
-        dbl2 = cls.LookupCanonicalDouble(Z, dbl.value());
-        if (dbl2.IsNull()) {
-          dbl.SetCanonical();
-          cls.InsertCanonicalDouble(Z, dbl);
-        } else {
-          refs.SetAt(i, dbl2);
-        }
-      }
-    }
-  }
-#endif
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5187,7 +5140,7 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
                                      WeakProperty::InstanceSize());
       ReadFromTo(property);
-      property->untag()->next_ = WeakProperty::null();
+      property->untag()->next_seen_by_gc_ = WeakProperty::null();
     }
   }
 };
@@ -5800,6 +5753,7 @@ class VMDeserializationRoots : public DeserializationRoots {
 static const char* const kObjectStoreFieldNames[] = {
 #define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
     OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
@@ -6978,7 +6932,7 @@ void Serializer::PrepareInstructions(
 
     // Now write collected stack maps after the binary search table.
     auto write_stack_map = [&](CompressedStackMapsPtr smap) {
-      const auto flags_and_size = smap->untag()->payload()->flags_and_size;
+      const auto flags_and_size = smap->untag()->payload()->flags_and_size();
       const auto payload_size =
           UntaggedCompressedStackMaps::SizeField::decode(flags_and_size);
       pc_mapping.WriteFixed<uint32_t>(flags_and_size);

@@ -306,6 +306,9 @@ class CompletionMetrics {
   /// run.
   final bool availableSuggestions;
 
+  /// A flag indicating whether the new protocol should be used for this run.
+  final bool useNewProtocol;
+
   /// The function to be executed when this metrics collector is enabled.
   final void Function()? enableFunction;
 
@@ -375,9 +378,11 @@ class CompletionMetrics {
 
   CompletionMetrics(this.name,
       {required this.availableSuggestions,
+      this.useNewProtocol = false,
       this.enableFunction,
       this.disableFunction})
-      : userTag = UserTag(name);
+      : assert(!(availableSuggestions && useNewProtocol)),
+        userTag = UserTag(name);
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
@@ -694,18 +699,22 @@ class CompletionMetricsComputer {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping',
-        availableSuggestions: false,
+        availableSuggestions: true,
         enableFunction: null,
         disableFunction: null));
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
-//     compareRelevanceTables([], availableSuggestions: false);
+//    compareRelevanceTables([], availableSuggestions: false);
 
     // To compare the relative benefit from each of the features, uncomment the
     // line below.
 //    compareIndividualFeatures(availableSuggestions: false);
+
+    // To compare the new protocol to the old, uncomment the lines below.
+//    targetMetrics.add(CompletionMetrics('new protocol',
+//        availableSuggestions: false, useNewProtocol: true));
 
     final collection = AnalysisContextCollectionImpl(
       includedPaths: [rootPath],
@@ -1201,17 +1210,21 @@ class CompletionMetricsComputer {
       OperationPerformanceImpl performance,
       DartCompletionRequest dartRequest,
       [DeclarationsTracker? declarationsTracker,
-      protocol.CompletionAvailableSuggestionsParams?
-          availableSuggestionsParams]) async {
+      protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams,
+      NotImportedSuggestions? notImportedSuggestions]) async {
     List<protocol.CompletionSuggestion> suggestions;
 
     var budget = CompletionBudget(Duration(seconds: 30));
     if (declarationsTracker == null) {
       // available suggestions == false
-      suggestions = await DartCompletionManager(
+      var serverSuggestions = await DartCompletionManager(
         budget: budget,
         listener: listener,
+        notImportedSuggestions: notImportedSuggestions,
       ).computeSuggestions(dartRequest, performance);
+      suggestions = serverSuggestions.map((serverSuggestion) {
+        return serverSuggestion.build();
+      }).toList();
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -1219,13 +1232,16 @@ class CompletionMetricsComputer {
       var includedSuggestionRelevanceTagList =
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
-      suggestions = await DartCompletionManager(
+      var serverSuggestions = await DartCompletionManager(
         budget: budget,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
       ).computeSuggestions(dartRequest, performance);
+      suggestions = serverSuggestions.map((serverSuggestion) {
+        return serverSuggestion.build();
+      }).toList();
 
       computeIncludedSetList(declarationsTracker, dartRequest,
           includedSuggestionSetList, includedElementNames);
@@ -1382,6 +1398,7 @@ class CompletionMetricsComputer {
             request,
             metrics.availableSuggestions ? declarationsTracker : null,
             metrics.availableSuggestions ? availableSuggestionsParams : null,
+            metrics.useNewProtocol ? NotImportedSuggestions() : null,
           );
           stopwatch.stop();
 
@@ -1899,10 +1916,11 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0,
     0.0,
     0.0,
+    0.0,
     0.0
   ];
 
-  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
+  Map<protocol.CompletionSuggestion, List<double>> featureMap = Map.identity();
 
   List<double> cachedFeatures = noFeatures;
 
@@ -1911,7 +1929,8 @@ class MetricsSuggestionListener implements SuggestionListener {
   String? missingCompletionLocationTable;
 
   @override
-  void builtSuggestion(protocol.CompletionSuggestion suggestion) {
+  void builtSuggestion(CompletionSuggestionBuilder suggestionBuilder) {
+    var suggestion = suggestionBuilder.build();
     featureMap[suggestion] = cachedFeatures;
     cachedFeatures = noFeatures;
   }
@@ -1923,6 +1942,7 @@ class MetricsSuggestionListener implements SuggestionListener {
       double hasDeprecated = 0.0,
       double isConstant = 0.0,
       double isNoSuchMethod = 0.0,
+      double isNotImported = 0.0,
       double keyword = 0.0,
       double startsWithDollar = 0.0,
       double superMatches = 0.0,
@@ -1935,6 +1955,7 @@ class MetricsSuggestionListener implements SuggestionListener {
       hasDeprecated,
       isConstant,
       isNoSuchMethod,
+      isNotImported,
       keyword,
       startsWithDollar,
       superMatches,

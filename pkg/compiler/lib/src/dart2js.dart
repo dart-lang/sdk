@@ -11,7 +11,7 @@ import 'dart:isolate' show Isolate;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler_new.dart' as api;
+import '../compiler.dart' as api;
 import 'commandline_options.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
@@ -133,12 +133,14 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showWarnings;
   bool showHints;
   bool enableColors;
+  List<Uri> sources;
   int optimizationLevel = null;
   Uri platformBinaries;
   Map<String, String> environment = Map<String, String>();
   ReadStrategy readStrategy = ReadStrategy.fromDart;
   WriteStrategy writeStrategy = WriteStrategy.toJs;
   FeatureOptions features = FeatureOptions();
+  String invoker;
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -169,14 +171,15 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setOutput(Iterator<String> arguments) {
     outputSpecified = true;
+    String option = arguments.current;
     String path;
-    if (arguments.current == '-o') {
+    if (option == '-o' || option == '--out' || option == '--output') {
       if (!arguments.moveNext()) {
-        helpAndFail('Error: Missing file after -o option.');
+        helpAndFail("Missing file after '$option' option.");
       }
       path = arguments.current;
     } else {
-      path = extractParameter(arguments.current);
+      path = extractParameter(option);
     }
     out = Uri.base.resolve(fe.nativeToUriPath(path));
   }
@@ -184,7 +187,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setOptimizationLevel(String argument) {
     int value = int.tryParse(extractParameter(argument));
     if (value == null || value < 0 || value > 4) {
-      helpAndFail("Error: Unsupported optimization level '$argument', "
+      helpAndFail("Unsupported optimization level '$argument', "
           "supported levels are: 0, 1, 2, 3, 4");
       return;
     }
@@ -288,11 +291,12 @@ Future<api.CompilationResult> compile(List<String> argv,
         Uri.base.resolve(extractPath(argument, isDirectory: true));
   }
 
-  void setUriList(String flag, String argument) {
+  List<Uri> setUriList(String flag, String argument) {
     String list = extractParameter(argument);
-    String uriList = list.splitMapJoin(',',
-        onMatch: (_) => ',', onNonMatch: (p) => '${fe.nativeToUri(p)}');
+    List<Uri> uris = list.split(',').map(fe.nativeToUri).toList();
+    String uriList = uris.map((uri) => '$uri').join(',');
     options.add('${flag}=${uriList}');
+    return uris;
   }
 
   void setModularAnalysisInputs(String argument) {
@@ -358,6 +362,10 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setDillDependencies(String argument) {
     setUriList(Flags.dillDependencies, argument);
+  }
+
+  void setSources(String argument) {
+    sources = setUriList(Flags.sources, argument);
   }
 
   void setCfeOnly(String argument) {
@@ -467,17 +475,21 @@ Future<api.CompilationResult> compile(List<String> argv,
       passThrough(argument);
       return;
     }
-    helpAndFail("Error: Unsupported dump-info format '$argument', "
+    helpAndFail("Unsupported dump-info format '$argument', "
         "supported formats are: json or binary");
   }
 
   String nullSafetyMode = null;
   void setNullSafetyMode(String argument) {
     if (nullSafetyMode != null && nullSafetyMode != argument) {
-      helpAndFail("Error: cannot specify both $nullSafetyMode and $argument.");
+      helpAndFail("Cannot specify both $nullSafetyMode and $argument.");
     }
     nullSafetyMode = argument;
     passThrough(argument);
+  }
+
+  void setInvoker(String argument) {
+    invoker = extractParameter(argument);
   }
 
   void handleThrowOnError(String argument) {
@@ -542,6 +554,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler('--library-root=.+', ignoreOption),
     OptionHandler('--libraries-spec=.+', setLibrarySpecificationUri),
     OptionHandler('${Flags.dillDependencies}=.+', setDillDependencies),
+    OptionHandler('${Flags.sources}=.+', setSources),
     OptionHandler('${Flags.readModularAnalysis}=.+', setModularAnalysisInputs),
     OptionHandler(
         '${Flags.writeModularAnalysis}|${Flags.writeModularAnalysis}=.+',
@@ -561,7 +574,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler('${Flags.codegenShards}=.+', setCodegenShards),
     OptionHandler(Flags.cfeOnly, setCfeOnly),
     OptionHandler(Flags.debugGlobalInference, passThrough),
-    OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
+    OptionHandler('--output(?:=.+)?|--out(?:=.+)?|-o.*', setOutput,
+        multipleArguments: true),
     OptionHandler('-O.*', setOptimizationLevel),
     OptionHandler(Flags.allowMockCompilation, ignoreOption),
     OptionHandler(Flags.fastStartup, ignoreOption),
@@ -645,6 +659,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.testMode, passThrough),
     OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
+    OptionHandler('${Flags.invoker}=.+', setInvoker),
     OptionHandler('${Flags.verbosity}=.+', passThrough),
 
     // Experimental features.
@@ -693,6 +708,13 @@ Future<api.CompilationResult> compile(List<String> argv,
   ];
 
   parseCommandLine(handlers, argv);
+
+  if (invoker == null) {
+    warning("The 'dart2js' entrypoint script is deprecated, "
+        "please use 'dart compile js' instead.");
+  } else if (verbose != null) {
+    print("Compiler invoked from: '$invoker'");
+  }
 
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider;
@@ -748,7 +770,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
   }
 
-  if (arguments.isEmpty && entryUri == null && inputDillUri == null) {
+  if (arguments.isEmpty &&
+      entryUri == null &&
+      inputDillUri == null &&
+      sources == null) {
     helpAndFail('No Dart file specified.');
   }
 
@@ -774,8 +799,11 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   // Make [scriptName] a relative path..
-  String scriptName =
-      fe.relativizeUri(Uri.base, inputDillUri ?? entryUri, Platform.isWindows);
+  String scriptName = sources == null
+      ? fe.relativizeUri(Uri.base, inputDillUri ?? entryUri, Platform.isWindows)
+      : sources
+          .map((uri) => fe.relativizeUri(Uri.base, uri, Platform.isWindows))
+          .join(',');
 
   switch (writeStrategy) {
     case WriteStrategy.toJs:
@@ -1089,7 +1117,7 @@ class AbortLeg {
 
 void writeString(Uri uri, String text) {
   if (!enableWriteString) return;
-  if (uri.scheme != 'file') {
+  if (!uri.isScheme('file')) {
     fail('Unhandled scheme ${uri.scheme}.');
   }
   var file = (File(uri.toFilePath())..createSync(recursive: true))
@@ -1128,28 +1156,25 @@ void help() {
   // before and after running the compiler. Another two lines may be
   // used to print an error message.
   print('''
-Usage: dart2js [options] dartfile
+Compile Dart to JavaScript.
 
-Compiles Dart to JavaScript.
-
-Common options:
-  -o <file> Generate the output into <file>.
-  -m        Generate minified output.
-  -h        Display this message (add -v for information about all options).''');
+Usage: dart compile js [arguments] <dart entry point>
+  -h, --help      Print this usage information (add -v for information about all options).
+  -o, --output    Write the output to <file name>.
+  -O<0,1,2,3,4>   Set the compiler optimization level (defaults to -O1).
+  ''');
 }
 
 void verboseHelp() {
   print(r'''
-Usage: dart2js [options] dartfile
+Compile Dart to JavaScript.
 
-Compiles Dart to JavaScript.
-
-Supported options:
+Usage: dart compile js [arguments] <dart entry point>
   -h, /h, /?, --help
-    Display this message (add -v for information about all options).
+    Print this usage information (add -v for information about all options).
 
-  -o <file>, --out=<file>
-    Generate the output into <file>.
+  -o <file name>, --output=<file name>
+    Write the output to <file name>.
 
   -m, --minify
     Generate minified output.
@@ -1352,6 +1377,15 @@ void helpAndFail(String message) {
   fail(message);
 }
 
+void warning(String message) {
+  if (diagnosticHandler != null) {
+    diagnosticHandler.report(
+        null, null, -1, -1, message, api.Diagnostic.WARNING);
+  } else {
+    print('Warning: $message');
+  }
+}
+
 Future<void> main(List<String> arguments) async {
   // Expand `@path/to/file`
   // When running from bazel, argument of the form `@path/to/file` might be
@@ -1359,7 +1393,7 @@ Future<void> main(List<String> arguments) async {
   // file and expanding them into the resulting argument list.
   //
   // TODO: Move this logic to a single place and share it among all tools.
-  if (arguments.last.startsWith('@')) {
+  if (arguments.length > 0 && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
   }
@@ -1508,6 +1542,7 @@ enum ReadStrategy {
   fromCodegenAndData,
   fromCodegenAndClosedWorldAndData,
 }
+
 enum WriteStrategy {
   toKernel,
   toModularAnalysis,

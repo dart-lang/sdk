@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -186,7 +187,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
 
-  void addPriorityFile(String filePath) {
+  Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
     // versions.
     if (file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
@@ -197,7 +198,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     assert(didAdd);
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
-      _refreshAnalysisRoots();
+      await _refreshAnalysisRoots();
     }
   }
 
@@ -251,7 +252,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         clientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
 
         if (clientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
-          _refreshAnalysisRoots();
+          await _refreshAnalysisRoots();
         }
       }
     }
@@ -355,6 +356,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         } else {
           showErrorMessageToUser('Unknown message type');
         }
+      } on InconsistentAnalysisException {
+        sendErrorResponse(
+            message,
+            ResponseError(
+              code: ErrorCodes.ContentModified,
+              message: 'Document was modified before operation completed',
+            ));
       } catch (error, stackTrace) {
         final errorMessage = message is ResponseMessage
             ? 'An error occurred while handling the response to request ${message.id}'
@@ -497,12 +505,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendNotification(message);
   }
 
-  void removePriorityFile(String path) {
+  Future<void> removePriorityFile(String path) async {
     final didRemove = priorityFiles.remove(path);
     assert(didRemove);
     if (didRemove) {
       _updateDriversAndPluginsPriorityFiles();
-      _refreshAnalysisRoots();
+      await _refreshAnalysisRoots();
     }
   }
 
@@ -680,7 +688,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     await fetchClientConfigurationAndPerformDynamicRegistration();
 
-    _refreshAnalysisRoots();
+    await _refreshAnalysisRoots();
   }
 
   void _afterOverlayChanged(String path, plugin.HasToJson changeForPlugins) {
@@ -725,7 +733,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     capabilitiesComputer.performDynamicRegistration();
   }
 
-  void _refreshAnalysisRoots() {
+  Future<void> _refreshAnalysisRoots() async {
     // When there are open folders, they are always the roots. If there are no
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
@@ -747,7 +755,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     notificationManager.setAnalysisRoots(
         includedPaths.toList(), excludedPaths.toList());
-    contextManager.setRoots(includedPaths.toList(), excludedPaths.toList());
+    await contextManager.setRoots(
+        includedPaths.toList(), excludedPaths.toList());
   }
 
   void _updateDriversAndPluginsPriorityFiles() {

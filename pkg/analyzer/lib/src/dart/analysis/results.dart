@@ -136,7 +136,7 @@ class ParseStringResultImpl implements ParseStringResult {
   ParseStringResultImpl(this.content, this.unit, this.errors);
 
   @override
-  LineInfo get lineInfo => unit.lineInfo!;
+  LineInfo get lineInfo => unit.lineInfo;
 }
 
 class ResolvedForCompletionResultImpl {

@@ -121,7 +121,8 @@ abstract class CombinedMemberSignatureBase<T> {
     if (members.length == 1) {
       bestSoFarIndex = 0;
     } else {
-      bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
+      bool isNonNullableByDefault =
+          classBuilder.libraryBuilder.isNonNullableByDefault;
 
       DartType? bestTypeSoFar;
       for (int candidateIndex = members.length - 1;
@@ -269,7 +270,7 @@ abstract class CombinedMemberSignatureBase<T> {
   /// The this type of [classBuilder].
   InterfaceType get thisType {
     return _thisType ??= _coreTypes.thisInterfaceType(
-        classBuilder.cls, classBuilder.library.nonNullable);
+        classBuilder.cls, classBuilder.libraryBuilder.nonNullable);
   }
 
   /// Returns `true` if the canonical member is declared in [classBuilder].
@@ -295,7 +296,7 @@ abstract class CombinedMemberSignatureBase<T> {
       assert(target != null,
           "No member computed for index ${index} in ${members}");
       candidateType = _computeMemberType(thisType, target);
-      if (!classBuilder.library.isNonNullableByDefault) {
+      if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
         DartType? legacyErasure;
         if (target == hierarchy.coreTypes.objectEquals) {
           // In legacy code we special case `Object.==` to infer `dynamic`
@@ -318,7 +319,7 @@ abstract class CombinedMemberSignatureBase<T> {
 
   DartType getMemberTypeForTarget(Member target) {
     DartType candidateType = _computeMemberType(thisType, target);
-    if (!classBuilder.library.isNonNullableByDefault) {
+    if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
       DartType? legacyErasure;
       if (target == hierarchy.coreTypes.objectEquals) {
         // In legacy code we special case `Object.==` to infer `dynamic`
@@ -341,7 +342,7 @@ abstract class CombinedMemberSignatureBase<T> {
       if (_canonicalMemberIndex == null) {
         return null;
       }
-      if (classBuilder.library.isNonNullableByDefault) {
+      if (classBuilder.libraryBuilder.isNonNullableByDefault) {
         DartType canonicalMemberType = _combinedMemberSignatureType =
             getMemberType(_canonicalMemberIndex!);
         _containsNnbdTypes =
@@ -717,7 +718,7 @@ abstract class CombinedMemberSignatureBase<T> {
       return type;
     }
     InterfaceType? instance = hierarchy.getTypeAsInstanceOf(
-        thisType, member.enclosingClass!, classBuilder.library.library);
+        thisType, member.enclosingClass!, classBuilder.libraryBuilder.library);
     assert(
         instance != null,
         "No instance of $thisType as ${member.enclosingClass} found for "

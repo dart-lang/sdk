@@ -208,6 +208,7 @@ TEST_CASE(EvalExpression) {
         KernelIsolate::CompileExpressionToKernel(
             /*platform_kernel=*/nullptr, /*platform_kernel_size=*/0,
             expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
+            Array::empty_array(), Array::empty_array(), Array::empty_array(),
             String::Handle(lib_handle.url()).ToCString(), "A",
             /* method= */ nullptr,
             /* is_static= */ false);

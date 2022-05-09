@@ -7,8 +7,9 @@
 /// used by patches of that library. We plan to change this when we have a
 /// shared front end and simply use parts.
 
+import "dart:async" show Timer;
 import "dart:core" hide Symbol;
-
+import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, FfiNative;
 import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 
@@ -25,10 +26,12 @@ bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
 
 @patch
 @pragma("vm:external-name", "Internal_makeListFixedLength")
+@pragma("vm:exact-result-type", "dart:core#_List")
 external List<T> makeListFixedLength<T>(List<T> growableList);
 
 @patch
 @pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
+@pragma("vm:exact-result-type", "dart:core#_ImmutableList")
 external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
 
 @patch
@@ -38,6 +41,7 @@ external Object? extractTypeArguments<T>(T instance, Function extract);
 /// The returned string is a [_OneByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateOneByteString")
+@pragma("vm:exact-result-type", "dart:core#_OneByteString")
 external String allocateOneByteString(int length);
 
 /// The [string] must be a [_OneByteString]. The [index] must be valid.
@@ -60,6 +64,7 @@ void copyRangeFromUint8ListToOneByteString(
 /// The returned string is a [_TwoByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateTwoByteString")
+@pragma("vm:exact-result-type", "dart:core#_TwoByteString")
 external String allocateTwoByteString(int length);
 
 /// The [string] must be a [_TwoByteString]. The [index] must be valid.
@@ -69,42 +74,35 @@ external void writeIntoTwoByteString(String string, int index, int codePoint);
 
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
-  static var timerFactory;
+  static Timer Function(int, void Function(Timer), bool)? timerFactory;
 
   // Example: "dart:io _EventHandler._sendData"
-  static var eventHandlerSendData;
+  static late void Function(Object?, SendPort, int) eventHandlerSendData;
 
   // A nullary closure that answers the current clock value in milliseconds.
   // Example: "dart:io _EventHandler._timerMillisecondClock"
-  static var timerMillisecondClock;
-
-  // Implementation of Resource.readAsBytes.
-  static var resourceReadAsBytes;
+  static late int Function() timerMillisecondClock;
 
   // Implementation of package root/map provision.
-  static var packageRootString;
-  static var packageConfigString;
-  static var packageConfigUriFuture;
-  static var resolvePackageUriFuture;
+  static String? packageRootString;
+  static String? packageConfigString;
+  static Future<Uri?> Function()? packageConfigUriFuture;
+  static Future<Uri?> Function(Uri)? resolvePackageUriFuture;
 
-  static var _computeScriptUri;
-  static var _cachedScript;
-  static set platformScript(var f) {
-    _computeScriptUri = f;
+  static Uri Function()? _computeScriptUri;
+  static Uri? _cachedScript;
+  static set platformScript(Object? f) {
+    _computeScriptUri = f as Uri Function()?;
     _cachedScript = null;
   }
 
-  static get platformScript {
-    if (_cachedScript == null && _computeScriptUri != null) {
-      _cachedScript = _computeScriptUri();
-    }
-    return _cachedScript;
+  static Uri? get platformScript {
+    return _cachedScript ??= _computeScriptUri?.call();
   }
 }
 
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name", "Internal_has63BitSmis")
 external bool get has63BitSmis;
 
 @pragma("vm:recognized", "other")
@@ -157,19 +155,14 @@ Int32List _growRegExpStack(Int32List stack) {
   return newStack;
 }
 
-// This function can be used to skip implicit or explicit checked down casts in
-// the parts of the core library implementation where we know by construction the
-// type of a value.
-//
-// Important: this is unsafe and must be used with care.
+@patch
 @pragma("vm:external-name", "Internal_unsafeCast")
-external T unsafeCast<T>(Object? v);
+external T unsafeCast<T>(dynamic v);
 
 // This function can be used to keep an object alive till that point.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name", "Internal_reachabilityFence")
-external void reachabilityFence(Object object);
+external void reachabilityFence(Object? object);
 
 // This function can be used to encode native side effects.
 //
@@ -215,4 +208,224 @@ class LateError {
   static _throwLocalAssignedDuringInitialization(String localName) {
     throw new LateError.localADI(localName);
   }
+}
+
+void checkValidWeakTarget(object, name) {
+  if ((object == null) ||
+      (object is bool) ||
+      (object is num) ||
+      (object is String) ||
+      (object is Pointer) ||
+      (object is Struct) ||
+      (object is Union)) {
+    throw new ArgumentError.value(object, name,
+        "Cannot be a string, number, boolean, null, Pointer, Struct or Union");
+  }
+}
+
+@pragma("vm:entry-point")
+class FinalizerBase {
+  /// The list of finalizers of this isolate.
+  ///
+  /// Reuses [WeakReference] so that we don't have to implement yet another
+  /// mechanism to hold on weakly to things.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external static List<WeakReference<FinalizerBase>>? get _isolateFinalizers;
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external static set _isolateFinalizers(
+      List<WeakReference<FinalizerBase>>? value);
+
+  static int _isolateFinalizersPurgeCollectedAt = 1;
+
+  /// Amortizes the cost for purging nulled out entries.
+  ///
+  /// Similar to how Expandos purge their nulled out entries on a rehash when
+  /// resizing.
+  static void _isolateFinalizersEnsureCapacity() {
+    _isolateFinalizers ??= <WeakReference<FinalizerBase>>[];
+    if (_isolateFinalizers!.length < _isolateFinalizersPurgeCollectedAt) {
+      return;
+    }
+    // retainWhere does a single traversal.
+    _isolateFinalizers!.retainWhere((weak) => weak.target != null);
+    // We might have dropped most finalizers, trigger next resize at 2x.
+    _isolateFinalizersPurgeCollectedAt = _isolateFinalizers!.length * 2;
+  }
+
+  /// Registers this [FinalizerBase] to the isolate.
+  ///
+  /// This is used to prevent sending messages from the GC to the isolate after
+  /// isolate shutdown.
+  void _isolateRegisterFinalizer() {
+    _isolateFinalizersEnsureCapacity();
+    _isolateFinalizers!.add(WeakReference(this));
+  }
+
+  /// The isolate this [FinalizerBase] belongs to.
+  ///
+  /// This is used to send finalizer messages to `_handleFinalizerMessage`
+  /// without a Dart_Port.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external _setIsolate();
+
+  /// All active attachments.
+  ///
+  /// This keeps the [FinalizerEntry]s belonging to this finalizer alive. If an
+  /// entry gets collected, the finalizer is not run when the
+  /// [FinalizerEntry.value] is collected.
+  ///
+  /// TODO(http://dartbug.com/47777): For native finalizers, what data structure
+  /// can we use that we can modify in the VM. So that we don't have to send a
+  /// message to Dart to clean up entries for which the GC has run.
+  ///
+  /// Requirements for data structure:
+  /// 1. Keeps entries reachable. Entries that are collected will never run
+  ///    the GC.
+  /// 2. Atomic insert in Dart on `attach`. GC should not run in between.
+  /// 3. Atomic remove in Dart on `detach`. multiple GC tasks run in parallel.
+  /// 4. Atomic remove in C++ on value being collected. Multiple GC tasks run in
+  ///    parallel.
+  ///
+  /// For Dart finalizers we execute the remove in Dart, much simpler.
+  @pragma("vm:recognized", "other")
+  @pragma('vm:prefer-inline')
+  external Set<FinalizerEntry> get _allEntries;
+  @pragma("vm:recognized", "other")
+  @pragma('vm:prefer-inline')
+  external set _allEntries(Set<FinalizerEntry> entries);
+
+  /// Entries of which the value has been collected.
+  ///
+  /// This is a linked list, with [FinalizerEntry.next].
+  ///
+  /// Atomic exchange: The GC cannot run between reading the value and storing
+  /// `null`. Atomicity guaranteed by force optimizing the function.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external FinalizerEntry? _exchangeEntriesCollectedWithNull();
+
+  /// A weak map from `detach` keys to [FinalizerEntry]s.
+  ///
+  /// Using the [FinalizerEntry.detach] keys as keys in an [Expando] ensures
+  /// they can be GCed.
+  ///
+  /// [FinalizerEntry]s do not get GCed themselves when their
+  /// [FinalizerEntry.detach] is unreachable, in contrast to `WeakProperty`s
+  /// which are GCed themselves when their `key` is no longer reachable.
+  /// To prevent [FinalizerEntry]s staying around in [_detachments] forever,
+  /// we reuse `WeakProperty`s.
+  /// To avoid code duplication, we do not inline the code but use an [Expando]
+  /// here instead.
+  ///
+  /// We cannot eagerly purge entries from the map (in the Expando) when GCed.
+  /// The map is indexed on detach, and doesn't enable finding the entries
+  /// based on their identity.
+  /// Instead we rely on the WeakProperty being nulled out (assuming the
+  /// `detach` key gets GCed) and then reused.
+  @pragma("vm:recognized", "other")
+  @pragma('vm:prefer-inline')
+  external Expando<Set<FinalizerEntry>>? get _detachments;
+  @pragma("vm:recognized", "other")
+  @pragma('vm:prefer-inline')
+  external set _detachments(Expando<Set<FinalizerEntry>>? value);
+
+  void detach(Object detach) {
+    final entries = detachments[detach];
+    if (entries != null) {
+      for (final entry in entries) {
+        entry.token = entry;
+        _allEntries.remove(entry);
+      }
+      detachments[detach] = null;
+    }
+  }
+}
+
+// Extension so that the members can be accessed from other libs.
+extension FinalizerBaseMembers on FinalizerBase {
+  /// See documentation on [_allEntries].
+  @pragma('vm:prefer-inline')
+  Set<FinalizerEntry> get allEntries => _allEntries;
+  @pragma('vm:prefer-inline')
+  set allEntries(Set<FinalizerEntry> value) => _allEntries = value;
+
+  /// See documentation on [_exchangeEntriesCollectedWithNull].
+  FinalizerEntry? exchangeEntriesCollectedWithNull() =>
+      _exchangeEntriesCollectedWithNull();
+
+  /// See documentation on [_detachments].
+  @pragma('vm:prefer-inline')
+  Expando<Set<FinalizerEntry>> get detachments {
+    _detachments ??= Expando<Set<FinalizerEntry>>();
+    return unsafeCast<Expando<Set<FinalizerEntry>>>(_detachments);
+  }
+
+  /// See documentation on [_isolateRegisterFinalizer].
+  isolateRegisterFinalizer() => _isolateRegisterFinalizer();
+
+  /// See documentation on [_setIsolate].
+  setIsolate() => _setIsolate();
+}
+
+/// Contains the informatation of an active [Finalizer.attach].
+///
+/// It holds on to the [value], optional [detach], and [token]. In addition, it
+/// also keeps a reference the [finalizer] it belings to and a [next] field for
+/// when being used in a linked list.
+///
+/// This is being kept alive by [FinalizerBase._allEntries] until either (1)
+/// [Finalizer.detach] detaches it, or (2) [value] is collected and the
+/// `callback` has been invoked.
+///
+/// Note that the GC itself uses an extra hidden field `next_seen_by_gc` to keep a
+/// linked list of pending entries while running the GC.
+@pragma("vm:entry-point")
+class FinalizerEntry {
+  @pragma('vm:never-inline')
+  @pragma("vm:recognized", "other")
+  @pragma("vm:external-name", "FinalizerEntry_allocate")
+  external static FinalizerEntry allocate(
+      Object value, Object? token, Object? detach, FinalizerBase finalizer);
+
+  /// The [value] the [FinalizerBase] is attached to.
+  ///
+  /// Set to `null` by GC when unreachable.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Object? get value;
+
+  /// The [detach] object can be passed to [FinalizerBase] to detach
+  /// the finalizer.
+  ///
+  /// Set to `null` by GC when unreachable.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Object? get detach;
+
+  /// The [token] is passed to [FinalizerBase] when the finalizer is run.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Object? get token;
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set token(Object? value);
+
+  /// The [next] entry in a linked list.
+  ///
+  /// Used in for the linked list starting from
+  /// [FinalizerBase._exchangeEntriesCollectedWithNull].
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external FinalizerEntry? get next;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external int get externalSize;
+
+  /// Update the external size.
+  @FfiNative<Void Function(Handle, IntPtr)>('FinalizerEntry_SetExternalSize')
+  external void setExternalSize(int externalSize);
 }

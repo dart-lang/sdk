@@ -1,0 +1,66 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  field core::int _internalValue = 4;
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+  method capturingThis() → () → core::int {
+    return block {
+      final () → core::int :expressionValueWrappedFinalizable = () → core::int {
+        final core::int result = this.{self::MyFinalizable::_internalValue}{core::int};
+        return block {
+          final core::int :expressionValueWrappedFinalizable = result;
+          _in::reachabilityFence(this);
+        } =>:expressionValueWrappedFinalizable;
+      };
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  method capturingThis2() → () → core::int {
+    return block {
+      final () → core::int :expressionValueWrappedFinalizable = () → core::int {
+        return block {
+          final core::int :expressionValueWrappedFinalizable = this.{self::MyFinalizable::_internalValue}{core::int};
+          _in::reachabilityFence(this);
+        } =>:expressionValueWrappedFinalizable;
+      };
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  method capturingThis3() → () → core::int {
+    return block {
+      final () → core::int :expressionValueWrappedFinalizable = () → core::int {
+        return block {
+          final core::int :expressionValueWrappedFinalizable = this.{self::MyFinalizable::_internalValue}{core::int};
+          _in::reachabilityFence(this);
+        } =>:expressionValueWrappedFinalizable;
+      };
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  method capturingThis4() → () → core::int {
+    return block {
+      final () → core::int :expressionValueWrappedFinalizable = () → core::int {
+        if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
+          return block {
+            final core::int :expressionValueWrappedFinalizable = 3;
+            _in::reachabilityFence(this);
+          } =>:expressionValueWrappedFinalizable;
+        }
+        return block {
+          final core::int :expressionValueWrappedFinalizable = this.{self::MyFinalizable::_internalValue}{core::int};
+          _in::reachabilityFence(this);
+        } =>:expressionValueWrappedFinalizable;
+      };
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+}
+static method main() → void {}

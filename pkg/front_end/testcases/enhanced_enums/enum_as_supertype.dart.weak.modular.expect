@@ -1,0 +1,128 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Enum {
+  synthetic constructor •() → self::A
+    : super core::Enum::•()
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::A::foo};
+}
+class EA extends self::_EA&_Enum&A /*isEnum*/  {
+  static const field core::List<self::EA> values = #C4;
+  static const field self::EA element = #C3;
+  const constructor •(core::int index, core::String name) → self::EA
+    : super self::_EA&_Enum&A::•(index, name)
+    ;
+  method toString() → core::String
+    return "EA.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class B extends core::Object implements core::Enum {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::B::foo};
+}
+class EB extends self::_EB&_Enum&B /*isEnum*/  {
+  static const field core::List<self::EB> values = #C6;
+  static const field self::EB element = #C5;
+  const constructor •(core::int index, core::String name) → self::EB
+    : super self::_EB&_Enum&B::•(index, name)
+    ;
+  method toString() → core::String
+    return "EB.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M extends core::Enum /*isMixinDeclaration*/  {
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::M::foo};
+}
+class EM extends self::_EM&_Enum&M /*isEnum*/  {
+  static const field core::List<self::EM> values = #C8;
+  static const field self::EM element = #C7;
+  const constructor •(core::int index, core::String name) → self::EM
+    : super self::_EM&_Enum&M::•(index, name)
+    ;
+  method toString() → core::String
+    return "EM.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class N extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::N::foo};
+}
+class EN extends self::_EN&_Enum&N /*isEnum*/  {
+  static const field core::List<self::EN> values = #C10;
+  static const field self::EN element = #C9;
+  const constructor •(core::int index, core::String name) → self::EN
+    : super self::_EN&_Enum&N::•(index, name)
+    ;
+  method toString() → core::String
+    return "EN.${this.{core::_Enum::_name}{core::String}}";
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' to be equal to '${y}'.";
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(#C3.{self::_EA&_Enum&A::foo}{core::int}, #C3.{core::_Enum::index}{core::int});
+  self::expectEquals(#C5.{self::_EB&_Enum&B::foo}{core::int}, #C5.{core::_Enum::index}{core::int});
+  self::expectEquals(#C7.{self::_EM&_Enum&M::foo}{core::int}, #C7.{core::_Enum::index}{core::int});
+  self::expectEquals(#C9.{self::_EN&_Enum&N::foo}{core::int}, #C9.{core::_Enum::index}{core::int});
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::EA {index:#C1, _name:#C2}
+  #C4 = <self::EA*>[#C3]
+  #C5 = self::EB {index:#C1, _name:#C2}
+  #C6 = <self::EB*>[#C5]
+  #C7 = self::EM {index:#C1, _name:#C2}
+  #C8 = <self::EM*>[#C7]
+  #C9 = self::EN {index:#C1, _name:#C2}
+  #C10 = <self::EN*>[#C9]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_as_supertype.dart:
+- EA. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
+- _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- EB. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
+- _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
+- EM. (from org-dartlang-testcase:///enum_as_supertype.dart:21:6)
+- _EM&_Enum&M. (from org-dartlang-testcase:///enum_as_supertype.dart:21:6)
+- EN. (from org-dartlang-testcase:///enum_as_supertype.dart:27:6)
+- _EN&_Enum&N. (from org-dartlang-testcase:///enum_as_supertype.dart:27:6)

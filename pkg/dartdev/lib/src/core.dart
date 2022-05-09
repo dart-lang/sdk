@@ -15,19 +15,19 @@ import 'experiments.dart';
 import 'sdk.dart';
 import 'utils.dart';
 
-Logger log;
+late Logger log;
 bool isDiagnostics = false;
 
 /// When set, this function is executed from the [DartdevCommand] constructor to
 /// contribute additional flags.
-void Function(ArgParser argParser, String cmdName) flagContributor;
+void Function(ArgParser argParser, String cmdName)? flagContributor;
 
 abstract class DartdevCommand extends Command<int> {
   final String _name;
   final String _description;
   final bool _verbose;
 
-  Project _project;
+  Project? _project;
 
   @override
   final bool hidden;
@@ -43,7 +43,7 @@ abstract class DartdevCommand extends Command<int> {
   @override
   String get description => _description;
 
-  ArgParser _argParser;
+  ArgParser? _argParser;
 
   @override
   ArgParser get argParser => _argParser ??= createArgParser();
@@ -70,16 +70,16 @@ abstract class DartdevCommand extends Command<int> {
 
 extension DartDevCommand on Command {
   /// Return whether commands should emit verbose output.
-  bool get verbose => globalResults['verbose'];
+  bool get verbose => globalResults!['verbose'];
 
   /// Return whether the tool should emit diagnostic output.
-  bool get diagnosticsEnabled => globalResults['diagnostics'];
+  bool get diagnosticsEnabled => globalResults!['diagnostics'];
 
   /// Return whether any Dart experiments were specified by the user.
   bool get wereExperimentsSpecified =>
       globalResults?.wasParsed(experimentFlagName) ?? false;
 
-  List<String> get specifiedExperiments => globalResults[experimentFlagName];
+  List<String> get specifiedExperiments => globalResults![experimentFlagName];
 }
 
 /// A utility method to start a Dart VM instance with the given arguments and an
@@ -89,7 +89,7 @@ extension DartDevCommand on Command {
 Future<Process> startDartProcess(
   Sdk sdk,
   List<String> arguments, {
-  String cwd,
+  String? cwd,
 }) {
   log.trace('${sdk.dart} ${arguments.join(' ')}');
   return Process.start(sdk.dart, arguments, workingDirectory: cwd);
@@ -98,7 +98,7 @@ Future<Process> startDartProcess(
 void routeToStdout(
   Process process, {
   bool logToTrace = false,
-  void Function(String str) listener,
+  void Function(String str)? listener,
 }) {
   if (isDiagnostics) {
     _streamLineTransform(process.stdout, (String line) {
@@ -136,7 +136,7 @@ void _streamLineTransform(
 class Project {
   final Directory dir;
 
-  PackageConfig _packageConfig;
+  PackageConfig? _packageConfig;
 
   Project() : dir = Directory.current;
 
@@ -147,7 +147,7 @@ class Project {
 
   bool get hasPackageConfigFile => packageConfig != null;
 
-  PackageConfig get packageConfig {
+  PackageConfig? get packageConfig {
     if (_packageConfig == null) {
       File file =
           File(path.join(dir.path, '.dart_tool', 'package_config.json'));
@@ -170,11 +170,11 @@ class PackageConfig {
 
   PackageConfig(this.contents);
 
-  List<Map<String, dynamic>> get packages {
-    List<dynamic> _packages = contents['packages'];
-    return _packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
+  List<Map<String, dynamic>?> get packages {
+    List<dynamic> packages = contents['packages'];
+    return packages.map<Map<String, dynamic>?>(castStringKeyedMap).toList();
   }
 
   bool hasDependency(String packageName) =>
-      packages.any((element) => element['name'] == packageName);
+      packages.any((element) => element!['name'] == packageName);
 }

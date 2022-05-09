@@ -771,7 +771,9 @@ Future<void> runTests<T>(Directory dataDir,
   List<FileSystemEntity> entities = dataDir
       .listSync()
       .where((entity) =>
-          !entity.path.endsWith('~') && !entity.path.endsWith('marker.options'))
+          !entity.path.endsWith('~') &&
+          !entity.path.endsWith('marker.options') &&
+          !entity.path.endsWith('.expect'))
       .toList();
   if (shards > 1) {
     entities.sort((a, b) => getTestName(a).compareTo(getTestName(b)));
@@ -842,9 +844,11 @@ Future<void> runTests<T>(Directory dataDir,
               actualData[marker] = {};
 
           void addActualData(Uri uri, Map<Id, ActualData<T>> actualData) {
-            // ignore: unnecessary_null_comparison
-            assert(uri != null && testData.code.containsKey(uri) ||
-                actualData.isEmpty);
+            assert(
+                // ignore: unnecessary_null_comparison
+                uri != null && testData.code.containsKey(uri) ||
+                    actualData.isEmpty,
+                "Unexpected data ${actualData} for $uri");
             // ignore: unnecessary_null_comparison
             if (uri == null || actualData.isEmpty) {
               // TODO(johnniwinther): Avoid collecting data without

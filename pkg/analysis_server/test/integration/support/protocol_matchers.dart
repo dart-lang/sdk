@@ -230,10 +230,29 @@ final Matcher isChangeContentOverlay = LazyMatcher(() => MatchesJsonObject(
 final Matcher isClosingLabel = LazyMatcher(() => MatchesJsonObject(
     'ClosingLabel', {'offset': isInt, 'length': isInt, 'label': isString}));
 
+/// CompletionCaseMatchingMode
+///
+/// enum {
+///   FIRST_CHAR
+///   ALL_CHARS
+///   NONE
+/// }
+final Matcher isCompletionCaseMatchingMode = MatchesEnum(
+    'CompletionCaseMatchingMode', ['FIRST_CHAR', 'ALL_CHARS', 'NONE']);
+
 /// CompletionId
 ///
 /// String
 final Matcher isCompletionId = isString;
+
+/// CompletionMode
+///
+/// enum {
+///   BASIC
+///   SMART
+/// }
+final Matcher isCompletionMode =
+    MatchesEnum('CompletionMode', ['BASIC', 'SMART']);
 
 /// CompletionService
 ///
@@ -269,6 +288,8 @@ final Matcher isCompletionService =
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
+///   "libraryUri": optional String
+///   "isNotImported": optional bool
 /// }
 final Matcher isCompletionSuggestion =
     LazyMatcher(() => MatchesJsonObject('CompletionSuggestion', {
@@ -296,7 +317,8 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
-          'libraryUriToImportIndex': isInt
+          'libraryUri': isString,
+          'isNotImported': isBool
         }));
 
 /// CompletionSuggestionKind
@@ -784,6 +806,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -865,6 +888,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'DYNAMIC_PARAMETER_REFERENCE',
   'ENUM',
   'ENUM_CONSTANT',
+  'EXTENSION',
   'FIELD',
   'FIELD_STATIC',
   'FUNCTION',
@@ -2136,11 +2160,19 @@ final Matcher isCompletionGetSuggestionDetailsResult = LazyMatcher(() =>
 ///   "file": FilePath
 ///   "offset": int
 ///   "maxResults": int
+///   "completionCaseMatchingMode": optional CompletionCaseMatchingMode
 /// }
-final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
-    MatchesJsonObject('completion.getSuggestions2 params',
-        {'file': isFilePath, 'offset': isInt, 'maxResults': isInt},
-        optionalFields: {'timeout': isInt}));
+final Matcher isCompletionGetSuggestions2Params =
+    LazyMatcher(() => MatchesJsonObject('completion.getSuggestions2 params', {
+          'file': isFilePath,
+          'offset': isInt,
+          'maxResults': isInt
+        }, optionalFields: {
+          'completionCaseMatchingMode': isCompletionCaseMatchingMode,
+          'completionMode': isCompletionMode,
+          'invocationCount': isInt,
+          'timeout': isInt
+        }));
 
 /// completion.getSuggestions2 result
 ///
@@ -2148,7 +2180,6 @@ final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
 ///   "replacementOffset": int
 ///   "replacementLength": int
 ///   "suggestions": List<CompletionSuggestion>
-///   "libraryUrisToImport": List<String>
 ///   "isIncomplete": bool
 /// }
 final Matcher isCompletionGetSuggestions2Result =
@@ -2156,7 +2187,6 @@ final Matcher isCompletionGetSuggestions2Result =
           'replacementOffset': isInt,
           'replacementLength': isInt,
           'suggestions': isListOf(isCompletionSuggestion),
-          'libraryUrisToImport': isListOf(isString),
           'isIncomplete': isBool
         }));
 
@@ -2285,6 +2315,22 @@ final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
 final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
     'edit.bulkFixes result',
     {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
+
+/// edit.formatIfEnabled params
+///
+/// {
+///   "directories": List<FilePath>
+/// }
+final Matcher isEditFormatIfEnabledParams = LazyMatcher(() => MatchesJsonObject(
+    'edit.formatIfEnabled params', {'directories': isListOf(isFilePath)}));
+
+/// edit.formatIfEnabled result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+final Matcher isEditFormatIfEnabledResult = LazyMatcher(() => MatchesJsonObject(
+    'edit.formatIfEnabled result', {'edits': isListOf(isSourceFileEdit)}));
 
 /// edit.format params
 ///

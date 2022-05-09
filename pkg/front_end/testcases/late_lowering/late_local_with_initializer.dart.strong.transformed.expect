@@ -6,8 +6,8 @@ static method main() → dynamic {
   lowered core::int? #lateLocal;
   function #lateLocal#get() → core::int
     return let final core::int? #t1 = #lateLocal in #t1 == null ?{core::int} #lateLocal = 123 : #t1{core::int};
-  function #lateLocal#set(core::int #t2) → dynamic
-    return #lateLocal = #t2;
+  function #lateLocal#set(core::int lateLocal#param) → dynamic
+    return #lateLocal = lateLocal#param;
   self::expect(123, #lateLocal#get(){() → core::int});
   self::expect(124, #lateLocal#set(124){(core::int) → dynamic});
   self::expect(124, #lateLocal#get(){() → core::int});
@@ -21,9 +21,9 @@ static method main() → dynamic {
       }
       return #lateGenericLocal{T%};
     }
-    function #lateGenericLocal#set(T% #t3) → dynamic {
+    function #lateGenericLocal#set(T% lateGenericLocal#param) → dynamic {
       #lateGenericLocal#isSet = true;
-      return #lateGenericLocal = #t3;
+      return #lateGenericLocal = lateGenericLocal#param;
     }
     self::expect(value1, #lateGenericLocal#get(){() → T%});
     self::expect(value2, #lateGenericLocal#set(value2){(T%) → dynamic});

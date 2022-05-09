@@ -56,7 +56,7 @@ static method main() → void {
   new self::A::•();
   new self::B::•();
   self::C<core::num> c = new self::D::•();
-  exp::Expect::throws<dynamic>(() → void {
+  exp::Expect::throws<core::Object>(() → void {
     [@vm.call-site-attributes.metadata=receiverType:#lib::C<dart.core::num>] [@vm.direct-call.metadata=#lib::D.bar] c.{self::C::bar} = 3.14;
   });
   self::E e = new self::F::•();

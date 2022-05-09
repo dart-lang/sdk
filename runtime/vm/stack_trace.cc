@@ -55,7 +55,8 @@ intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
 // Instance caches library and field references.
 // This way we don't have to do the look-ups for every frame in the stack.
 CallerClosureFinder::CallerClosureFinder(Zone* zone)
-    : receiver_context_(Context::Handle(zone)),
+    : closure_(Closure::Handle(zone)),
+      receiver_context_(Context::Handle(zone)),
       receiver_function_(Function::Handle(zone)),
       parent_function_(Function::Handle(zone)),
       context_entry_(Object::Handle(zone)),
@@ -82,7 +83,8 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       var_data_field(Field::Handle(zone)),
       state_field(Field::Handle(zone)),
       on_data_field(Field::Handle(zone)),
-      state_data_field(Field::Handle(zone)) {
+      state_data_field(Field::Handle(zone)),
+      has_value_field(Field::Handle(zone)) {
   const auto& async_lib = Library::Handle(zone, Library::AsyncLibrary());
   // Look up classes:
   // - async:
@@ -142,6 +144,9 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   state_data_field =
       stream_iterator_class.LookupFieldAllowPrivate(Symbols::_stateData());
   ASSERT(!state_data_field.IsNull());
+  has_value_field =
+      stream_iterator_class.LookupFieldAllowPrivate(Symbols::_hasValue());
+  ASSERT(!has_value_field.IsNull());
 }
 
 ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
@@ -200,15 +205,45 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
 
   // If the async* stream is await-for'd:
   if (callback_instance_.GetClassId() == stream_iterator_class.id()) {
-    // _StreamIterator._stateData
-    future_ = Instance::Cast(callback_instance_).GetField(state_data_field);
-    return GetCallerInFutureImpl(future_);
+    // If `_hasValue` is true then the `StreamIterator._stateData` field
+    // contains the iterator's value. In that case we cannot unwind anymore.
+    //
+    // Notice: With correct async* semantics this may never be true: The async*
+    // generator should only be invoked to produce a vaue if there's an
+    // in-progress `await streamIterator.moveNext()` call. Once such call has
+    // finished the async* generator should be paused/yielded until the next
+    // such call - and being paused/yielded means it should not appear in stack
+    // traces.
+    //
+    // See dartbug.com/48695.
+    const auto& stream_iterator = Instance::Cast(callback_instance_);
+    if (stream_iterator.GetField(has_value_field) ==
+        Object::bool_true().ptr()) {
+      return Closure::null();
+    }
+
+    // If we have an await'er for `await streamIterator.moveNext()` we continue
+    // unwinding there.
+    //
+    // Notice: With correct async* semantics this may always contain a Future
+    // See also comment above as well as dartbug.com/48695.
+    future_ = stream_iterator.GetField(state_data_field);
+    if (future_.GetClassId() == future_impl_class.id()) {
+      return GetCallerInFutureImpl(future_);
+    }
+    return Closure::null();
   }
 
   UNREACHABLE();  // If no onData is found we have a bug.
 }
 
 ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
+    const Object& future_listener) {
+  closure_ = GetCallerInFutureListenerInternal(future_listener);
+  return UnwrapAsyncThen(closure_);
+}
+
+ClosurePtr CallerClosureFinder::GetCallerInFutureListenerInternal(
     const Object& future_listener) {
   auto value = GetFutureListenerState(future_listener);
 
@@ -227,6 +262,26 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
 }
 
 ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
+  closure_ = FindCallerInternal(receiver_closure);
+  return UnwrapAsyncThen(closure_);
+}
+
+ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
+  if (closure.IsNull()) return closure.ptr();
+
+  receiver_function_ = closure.function();
+  receiver_function_ = receiver_function_.parent_function();
+  if (receiver_function_.recognized_kind() ==
+      MethodRecognizer::kAsyncThenWrapperHelper) {
+    receiver_context_ = closure.context();
+    RELEASE_ASSERT(receiver_context_.num_variables() == 1);
+    return Closure::RawCast(receiver_context_.At(0));
+  }
+  return closure.ptr();
+}
+
+ClosurePtr CallerClosureFinder::FindCallerInternal(
+    const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
 
@@ -358,23 +413,18 @@ ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
   ASSERT(function.IsAsyncClosure() || function.IsAsyncGenClosure());
 
   // The callee has function signature
-  //   :async_op([result, exception, stack])
-  // So we are guaranteed to
-  //   a) have only tagged arguments on the stack until we find the :async_op
-  //      closure, and
-  //   b) find the async closure.
-  const intptr_t kNumClosureAndArgs = 4;
-  auto& closure = Closure::Handle();
-  for (intptr_t i = 0; i < kNumClosureAndArgs; i++) {
-    ObjectPtr arg = last_object_in_caller[i];
-    if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
-      closure = Closure::RawCast(arg);
-      if (closure.function() == function.ptr()) {
-        return closure.ptr();
-      }
+  //   :async_op(result_or_exception, stack)
+  // so the "this" closure is the 3rd argument.
+  ObjectPtr arg = last_object_in_caller[2];
+  if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
+    auto& closure = Closure::Handle();
+    closure = Closure::RawCast(arg);
+    if (closure.function() == function.ptr()) {
+      return closure.ptr();
     }
   }
-  UNREACHABLE();
+  ASSERT(arg == Symbols::OptimizedOut().ptr());
+  return Closure::null();
 }
 
 ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
@@ -398,6 +448,7 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     ObjectPtr* last_caller_obj =
         reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
     closure = FindClosureInFrame(last_caller_obj, function);
+    if (closure.IsNull()) return Closure::null();
 
     // If this async function hasn't yielded yet, we're still dealing with a
     // normal stack. Continue to next frame as usual.
@@ -432,6 +483,12 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     Object& receiver =
         Object::Handle(*(reinterpret_cast<ObjectPtr*>(frame->GetCallerSp()) +
                          kNumArgsFutureListenerHandleValue));
+    if (receiver.ptr() == Symbols::OptimizedOut().ptr()) {
+      // In the very rare case that _FutureListener.handleValue has deoptimized
+      // it may override the receiver slot in the caller frame with "<optimized
+      // out>" due to the `this` no longer being needed.
+      return Closure::null();
+    }
 
     return caller_closure_finder->GetCallerInFutureListener(receiver);
   }
@@ -582,7 +639,8 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
           ObjectPtr* last_caller_obj =
               reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
           closure = FindClosureInFrame(last_caller_obj, function);
-          if (CallerClosureFinder::IsRunningAsync(closure)) {
+          if (!closure.IsNull() &&
+              CallerClosureFinder::IsRunningAsync(closure)) {
             *sync_async_end = false;
             return frame_count;
           }

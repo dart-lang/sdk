@@ -13,13 +13,13 @@ class A {
 
 /*member: B.:[exact=B]*/
 class B extends A {
-  /*member: B.foo:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/ foo() =>
+  /*member: B.foo:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/ foo() =>
       {};
 }
 
 /*member: C.:[exact=C]*/
 class C extends B {
-  /*member: C.foo:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/ foo() =>
+  /*member: C.foo:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/ foo() =>
       {};
 }
 
@@ -34,22 +34,22 @@ test1() {
   return e. /*invoke: [exact=A]*/ foo();
 }
 
-/*member: test2:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+/*member: test2:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test2() => a. /*invoke: [null|subclass=B]*/ foo();
 
-/*member: test3:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+/*member: test3:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test3() => new B(). /*invoke: [exact=B]*/ foo();
 
-/*member: test4:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+/*member: test4:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test4() => new C(). /*invoke: [exact=C]*/ foo();
 
-/*member: test5:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+/*member: test5:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test5() {
   dynamic e = (a ? new A() : new B());
   return e. /*invoke: [subclass=A]*/ foo();
 }
 
-/*member: test6:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+/*member: test6:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test6() => (a ? new B() : new C()). /*invoke: [subclass=B]*/ foo();
 
 /*member: main:[null]*/

@@ -16,6 +16,8 @@
 
 namespace dart {
 
+#define R(reg) (1 << (reg))
+
 enum Register {
   EAX = 0,
   ECX = 1,
@@ -29,6 +31,8 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 };
 
+// Low and high bytes registers of the the first four general purpose registers.
+// The other four general purpose registers do not have byte registers.
 enum ByteRegister {
   AL = 0,
   CL = 1,
@@ -42,6 +46,10 @@ enum ByteRegister {
 };
 
 inline ByteRegister ByteRegisterOf(Register reg) {
+  // This only works for EAX, ECX, EDX, EBX.
+  // Remaining Register values map to high byte of the above registers.
+  RELEASE_ASSERT(reg == Register::EAX || reg == Register::ECX ||
+                 reg == Register::EDX || reg == Register::EBX);
   return static_cast<ByteRegister>(reg);
 }
 
@@ -61,10 +69,13 @@ enum XmmRegister {
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
 const FpuRegister FpuTMP = XMM7;
+const int kFpuRegisterSize = 16;
+typedef simd128_value_t fpu_register_t;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
@@ -204,6 +215,7 @@ struct RangeErrorABI {
 struct AllocateObjectABI {
   static const Register kResultReg = EAX;
   static const Register kTypeArgumentsReg = EDX;
+  static const Register kTagsReg = kNoRegister;  // Not used.
 };
 
 // ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
@@ -259,11 +271,22 @@ struct DispatchTableNullErrorABI {
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
+const RegList kAllFpuRegistersList = (1 << kNumberOfFpuRegisters) - 1;
 
 const intptr_t kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+
+const RegList kAbiPreservedCpuRegs = (1 << EDI) | (1 << ESI) | (1 << EBX);
+
+// Registers available to Dart that are not preserved by runtime calls.
+const RegList kDartVolatileCpuRegs =
+    kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
+
+const RegList kAbiVolatileFpuRegs = kAllFpuRegistersList;
+
+#undef R
 
 enum ScaleFactor {
   TIMES_1 = 0,
@@ -328,8 +351,7 @@ class CallingConventions {
   static const intptr_t kXmmArgumentRegisters = 0;
   static const intptr_t kNumFpuArgRegs = 0;
 
-  static constexpr intptr_t kCalleeSaveCpuRegisters =
-      (1 << EDI) | (1 << ESI) | (1 << EBX);
+  static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
 
   static const bool kArgumentIntRegXorFpuReg = false;
 

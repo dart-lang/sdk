@@ -172,14 +172,13 @@ class NamedTypeResolver {
       if (typeParameters.isEmpty) {
         return element.thisType;
       } else {
-        var typeArguments = typeSystem.inferGenericFunctionOrType(
+        var inferrer = typeSystem.setupGenericTypeInference(
           typeParameters: typeParameters,
-          parameters: const [],
           declaredReturnType: element.thisType,
-          argumentTypes: const [],
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        )!;
+        );
+        var typeArguments = inferrer.upwardsInfer();
         return element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: _noneOrStarSuffix,
@@ -213,7 +212,7 @@ class NamedTypeResolver {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-        type = typeSystem.toLegacyType(type);
+        type = typeSystem.toLegacyTypeIfOptOut(type);
         return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);

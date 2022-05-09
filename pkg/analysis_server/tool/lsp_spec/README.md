@@ -23,22 +23,23 @@ When there are no open workspace folders (or if the initialization option `onlyA
 
 ## Initialization Options
 
-- `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
-- `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
-- `closingLabels`: When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
-- `outline`: When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
-- `flutterOutline`: When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
+- `onlyAnalyzeProjectsWithOpenFiles` (`bool?`): When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
+- `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
+- `closingLabels` (`bool?`): When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
+- `outline` (`bool?`): When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
+- `flutterOutline` (`bool?`): When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
 
 ## Client Workspace Configuration
 
 Client workspace settings are requested with `workspace/configuration` during initialization and re-requested whenever the client notifies the server with `workspace/didChangeConfiguration`. This allows the settings to take effect without restarting the server.
 
-- `dart.analysisExcludedFolders`: An array of paths (absolute or relative to each workspace folder) that should be excluded from analysis.
-- `dart.enableSdkFormatter`: When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
-- `dart.lineLength`: The number of characters the formatter should wrap code at. If unspecified, code will be wrapped at `80` characters.
-- `dart.completeFunctionCalls`: Completes functions/methods with their required parameters.
-- `dart.showTodos`: Whether to generate diagnostics for TODO comments. If unspecified, diagnostics will not be generated.
-- `dart.renameFilesWithClasses`: When set to `"always"`, will rename files when classes are renamed if the filename matches the class name (but in snake_form). When set to `"prompt"`, a prompt will be shown on each class rename asking to confirm the file rename. Otherwise, files will not be renamed. Renames are performed using LSP's ResourceOperation edits - that means the rename is simply included in the resulting `WorkspaceEdit` and must be handled by the client.
+- `dart.analysisExcludedFolders` (`List<String>?`): An array of paths (absolute or relative to each workspace folder) that should be excluded from analysis.
+- `dart.enableSdkFormatter` (`bool?`): When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
+- `dart.lineLength` (`int?`): The number of characters the formatter should wrap code at. If unspecified, code will be wrapped at `80` characters.
+- `dart.completeFunctionCalls` (`bool?`): When set to true, completes functions/methods with their required parameters.
+- `dart.showTodos` (`bool?`): Whether to generate diagnostics for TODO comments. If unspecified, diagnostics will not be generated.
+- `dart.renameFilesWithClasses` (`String`): When set to `"always"`, will include edits to rename files when classes are renamed if the filename matches the class name (but in snake_form). When set to `"prompt"`, a prompt will be shown on each class rename asking to confirm the file rename. Otherwise, files will not be renamed. Renames are performed using LSP's ResourceOperation edits - that means the rename is simply included in the resulting `WorkspaceEdit` and must be handled by the client.
+- `dart.enableSnippets` (`bool?`): Whether to include code snippets (such as `class`, `stful`, `switch`) in code completion. When unspecified, snippets will be included.
 
 ## Method Status
 
@@ -85,7 +86,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/signatureHelp | ✅ | ✅ | | ✅ | ✅ | trigger character handling outstanding
 | textDocument/declaration | | | | | |
 | textDocument/definition | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/typeDefinition | | | | | |
+| textDocument/typeDefinition | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/implementation | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/references | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | | ✅ | ✅ |

@@ -7,10 +7,7 @@ import 'package:test/test.dart';
 
 import '../../../../client/completion_driver_test.dart';
 
-class CompletionRelevanceTest extends AbstractCompletionDriverTest {
-  @override
-  bool get supportsAvailableSuggestions => true;
-
+abstract class CompletionRelevanceTest extends AbstractCompletionDriverTest {
   /// Assert that all of the given completions were produced and that the
   /// suggestions are ordered in decreasing order based on relevance scores.
   void assertOrder(List<CompletionSuggestion> suggestions) {

@@ -41,12 +41,12 @@ abstract class Workspace {
   SourceFactory createSourceFactory(
       DartSdk? sdk, SummaryDataStore? summaryData);
 
-  /// Find the [WorkspacePackage] where the library at [path] is defined.
+  /// Find the [WorkspacePackage] where the library at [filePath] is defined.
   ///
   /// Separate from [Packages] or [packageMap], this method is designed to find
   /// the package, by its root, in which a library at an arbitrary path is
   /// defined.
-  WorkspacePackage? findPackageFor(String path);
+  WorkspacePackage? findPackageFor(String filePath);
 }
 
 /// Abstract superclass of classes that provide information about a package
@@ -82,7 +82,7 @@ abstract class WorkspacePackage {
   /// example, the case of a [InSummarySource]). In this case, use
   /// [workspace]'s package URI resolver to fetch the file path.
   String? filePathFromSource(Source source) {
-    if (source.uri.scheme == 'package') {
+    if (source.uri.isScheme('package')) {
       return workspace.packageUriResolver.resolveAbsolute(source.uri)?.fullName;
     } else {
       return source.fullName;

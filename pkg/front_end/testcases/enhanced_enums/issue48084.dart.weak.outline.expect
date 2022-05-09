@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two];
+  final field core::String field;
+  static const field self::E one = const self::E::•(0, "one", "foo");
+  static const field self::E two = const self::E::•(1, "two", "bar");
+  const constructor •(core::int index, core::String name, core::String field) → self::E
+    : self::E::field = field, super core::_Enum::•(index, name)
+    ;
+  @core::override
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method expectEquals(dynamic a, dynamic b) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///issue48084.dart:13:4 -> InstanceConstant(const _Override{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48084.dart:5:6 -> ListConstant(const <E*>[const E{E.field: "foo", _Enum.index: 0, _Enum._name: "one"}, const E{E.field: "bar", _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48084.dart:6:3 -> InstanceConstant(const E{E.field: "foo", _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48084.dart:7:3 -> InstanceConstant(const E{E.field: "bar", _Enum.index: 1, _Enum._name: "two"})
+Extra constant evaluation: evaluated: 10, effectively constant: 4

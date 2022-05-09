@@ -242,7 +242,8 @@ abstract class TypeMask implements AbstractValue {
   }
 
   /// Deserializes a [TypeMask] object from [source].
-  factory TypeMask.readFromDataSource(DataSource source, CommonMasks domain) {
+  factory TypeMask.readFromDataSource(
+      DataSourceReader source, CommonMasks domain) {
     TypeMaskKind kind = source.readEnum(TypeMaskKind.values);
     switch (kind) {
       case TypeMaskKind.flat:
@@ -264,7 +265,7 @@ abstract class TypeMask implements AbstractValue {
   }
 
   /// Serializes this [TypeMask] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSinkWriter sink);
 
   /// If [mask] is forwarding, returns the first non-forwarding [TypeMask] in
   /// [mask]'s forwarding chain.

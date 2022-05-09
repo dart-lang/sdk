@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -15,6 +13,8 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -93,20 +93,23 @@ class ToSourceVisitorTest {
   }
 
   void test_visitBinaryExpression() {
+    var findNode = _parseStringToFindNode(r'''
+var v = a + b;
+''');
     _assertSource(
-        "a + b",
-        AstTestFactory.binaryExpression(AstTestFactory.identifier3("a"),
-            TokenType.PLUS, AstTestFactory.identifier3("b")));
+      'a + b',
+      findNode.binary('a + b'),
+    );
   }
 
   void test_visitBinaryExpression_precedence() {
-    var a = AstTestFactory.identifier3('a');
-    var b = AstTestFactory.identifier3('b');
-    var c = AstTestFactory.identifier3('c');
+    var findNode = _parseStringToFindNode(r'''
+var v = a * (b + c);
+''');
     _assertSource(
-        'a * (b + c)',
-        AstTestFactory.binaryExpression(a, TokenType.STAR,
-            AstTestFactory.binaryExpression(b, TokenType.PLUS, c)));
+      'a * (b + c)',
+      findNode.binary('a *'),
+    );
   }
 
   void test_visitBlock_empty() {
@@ -211,11 +214,29 @@ class ToSourceVisitorTest {
             Keyword.ABSTRACT, "C", null, null, null, null));
   }
 
+  void test_visitClassDeclaration_abstractAugment() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        Keyword.ABSTRACT, "C", null, null, null, null,
+        isAugmentation: true);
+    _assertSource("abstract augment class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_abstractMacro() {
     ClassDeclaration declaration = AstTestFactory.classDeclaration(
         Keyword.ABSTRACT, "C", null, null, null, null,
         isMacro: true);
     _assertSource("abstract macro class C {}", declaration);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
+  void test_visitClassDeclaration_augment() {
+    var findNode = _parseStringToFindNode(r'''
+augment class A {}
+''');
+    _assertSource(
+      'augment class A {}',
+      findNode.classDeclaration('class A'),
+    );
   }
 
   void test_visitClassDeclaration_empty() {
@@ -279,10 +300,13 @@ class ToSourceVisitorTest {
   }
 
   void test_visitClassDeclaration_macro() {
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        null, "C", null, null, null, null,
-        isMacro: true);
-    _assertSource("macro class C {}", declaration);
+    var findNode = _parseStringToFindNode(r'''
+macro class A {}
+''');
+    _assertSource(
+      'macro class A {}',
+      findNode.classDeclaration('class A'),
+    );
   }
 
   void test_visitClassDeclaration_multipleMember() {
@@ -406,6 +430,19 @@ class ToSourceVisitorTest {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
+  void test_visitClassTypeAlias_abstractAugment() {
+    _assertSource(
+        "abstract augment class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isAugmentation: true));
+  }
+
   void test_visitClassTypeAlias_abstractMacro() {
     _assertSource(
         "abstract macro class C = S with M1;",
@@ -417,6 +454,17 @@ class ToSourceVisitorTest {
             AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             null,
             isMacro: true));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
+  void test_visitClassTypeAlias_augment() {
+    var findNode = _parseStringToFindNode(r'''
+augment class A = S with M;
+''');
+    _assertSource(
+      'augment class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_generic() {
@@ -446,16 +494,13 @@ class ToSourceVisitorTest {
   }
 
   void test_visitClassTypeAlias_macro() {
+    var findNode = _parseStringToFindNode(r'''
+macro class A = S with M;
+''');
     _assertSource(
-        "macro class C = S with M1;",
-        AstTestFactory.classTypeAlias(
-            "C",
-            null,
-            null,
-            AstTestFactory.namedType4("S"),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
-            null,
-            isMacro: true));
+      'macro class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_minimal() {
@@ -808,6 +853,30 @@ class ToSourceVisitorTest {
 
   void test_visitEmptyStatement() {
     _assertSource(";", AstTestFactory.emptyStatement());
+  }
+
+  void test_visitEnumDeclaration_constant_arguments_named() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  v<double>.named(42)
+}
+''');
+    _assertSource(
+      'enum E {v<double>.named(42)}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_constant_arguments_unnamed() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  v<double>(42)
+}
+''');
+    _assertSource(
+      'enum E {v<double>(42)}',
+      findNode.enumDeclaration('enum E'),
+    );
   }
 
   void test_visitEnumDeclaration_constants_multiple() {
@@ -2721,12 +2790,13 @@ import 'foo.dart'
   }
 
   void test_visitPrefixExpression_precedence() {
-    var a = AstTestFactory.identifier3('a');
-    var b = AstTestFactory.identifier3('b');
+    var findNode = _parseStringToFindNode(r'''
+var v = !(a == b);
+''');
     _assertSource(
-        '!(a == b)',
-        AstTestFactory.prefixExpression(TokenType.BANG,
-            AstTestFactory.binaryExpression(a, TokenType.EQ_EQ, b)));
+      '!(a == b)',
+      findNode.prefix('!'),
+    );
   }
 
   void test_visitPropertyAccess() {
@@ -3453,13 +3523,7 @@ import 'foo.dart'
   FindNode _parseStringToFindNode(String content) {
     var parseResult = parseString(
       content: content,
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: [
-          Feature.enhanced_enums.enableString,
-          Feature.super_parameters.enableString,
-        ],
-      ),
+      featureSet: FeatureSets.latestWithExperiments,
     );
     return FindNode(parseResult.content, parseResult.unit);
   }

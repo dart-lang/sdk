@@ -35,6 +35,10 @@
   V(ExceptionHandlers)                                                         \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
+  V(Finalizer)                                                                 \
+  V(FinalizerBase)                                                             \
+  V(FinalizerEntry)                                                            \
+  V(NativeFinalizer)                                                           \
   V(Function)                                                                  \
   V(FunctionType)                                                              \
   V(FutureOr)                                                                  \
@@ -393,6 +397,9 @@ class FastForwardMap : public ForwardMapBase {
     raw_transferables_from_to_.Add(to);
   }
   void AddWeakProperty(WeakPropertyPtr from) { raw_weak_properties_.Add(from); }
+  void AddWeakReference(WeakReferencePtr from) {
+    raw_weak_references_.Add(from);
+  }
   void AddExternalTypedData(ExternalTypedDataPtr to) {
     raw_external_typed_data_to_.Add(to);
   }
@@ -410,6 +417,7 @@ class FastForwardMap : public ForwardMapBase {
   GrowableArray<ObjectPtr> raw_objects_to_rehash_;
   GrowableArray<ObjectPtr> raw_expandos_to_rehash_;
   GrowableArray<WeakPropertyPtr> raw_weak_properties_;
+  GrowableArray<WeakReferencePtr> raw_weak_references_;
   intptr_t fill_cursor_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(FastForwardMap);
@@ -450,6 +458,9 @@ class SlowForwardMap : public ForwardMapBase {
   void AddWeakProperty(const WeakProperty& from) {
     weak_properties_.Add(&WeakProperty::Handle(from.ptr()));
   }
+  void AddWeakReference(const WeakReference& from) {
+    weak_references_.Add(&WeakReference::Handle(from.ptr()));
+  }
   void AddExternalTypedData(ExternalTypedDataPtr to) {
     external_typed_data_.Add(&ExternalTypedData::Handle(to));
   }
@@ -485,6 +496,7 @@ class SlowForwardMap : public ForwardMapBase {
   GrowableArray<const Object*> objects_to_rehash_;
   GrowableArray<const Object*> expandos_to_rehash_;
   GrowableArray<const WeakProperty*> weak_properties_;
+  GrowableArray<const WeakReference*> weak_references_;
   intptr_t fill_cursor_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(SlowForwardMap);
@@ -577,13 +589,23 @@ class ObjectCopyBase {
                         Class::Handle(class_table_->At(cid)).ToCString());
         return false;
       }
+      const bool implements_finalizable =
+          Class::ImplementsFinalizable(class_table_->At(cid));
+      if (implements_finalizable) {
+        exception_msg_ = OS::SCreate(
+            zone_,
+            "Illegal argument in isolate message: (object implements "
+            "Finalizable - %s)",
+            Class::Handle(class_table_->At(cid)).ToCString());
+        return false;
+      }
       return true;
     }
 #define HANDLE_ILLEGAL_CASE(Type)                                              \
   case k##Type##Cid: {                                                         \
     exception_msg_ =                                                           \
         "Illegal argument in isolate message: "                                \
-        "(object is a" #Type ")";                                              \
+        "(object is a " #Type ")";                                             \
     return false;                                                              \
   }
 
@@ -592,6 +614,8 @@ class ObjectCopyBase {
       // those are the only non-abstract classes (so we avoid checking more cids
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
+      HANDLE_ILLEGAL_CASE(Finalizer)
+      HANDLE_ILLEGAL_CASE(NativeFinalizer)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
@@ -739,6 +763,9 @@ class FastObjectCopyBase : public ObjectCopyBase {
   }
   void EnqueueWeakProperty(WeakPropertyPtr from) {
     fast_forward_map_.AddWeakProperty(from);
+  }
+  void EnqueueWeakReference(WeakReferencePtr from) {
+    fast_forward_map_.AddWeakReference(from);
   }
   void EnqueueObjectToRehash(ObjectPtr to) {
     fast_forward_map_.AddObjectToRehash(to);
@@ -936,6 +963,9 @@ class SlowObjectCopyBase : public ObjectCopyBase {
   }
   void EnqueueWeakProperty(const WeakProperty& from) {
     slow_forward_map_.AddWeakProperty(from);
+  }
+  void EnqueueWeakReference(const WeakReference& from) {
+    slow_forward_map_.AddWeakReference(from);
   }
   void EnqueueObjectToRehash(const Object& to) {
     slow_forward_map_.AddObjectToRehash(to);
@@ -1346,7 +1376,29 @@ class ObjectCopy : public Base {
     Base::StoreCompressedPointerNoBarrier(
         Types::GetWeakPropertyPtr(to), OFFSET_OF(UntaggedWeakProperty, value_),
         Object::null());
+    // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetWeakPropertyPtr(to),
+        OFFSET_OF(UntaggedWeakProperty, next_seen_by_gc_), Object::null());
     Base::EnqueueWeakProperty(from);
+  }
+
+  void CopyWeakReference(typename Types::WeakReference from,
+                         typename Types::WeakReference to) {
+    // We store `null` as target and let the main algorithm know that
+    // we should check reachability of the target again after the fixpoint (if
+    // it became reachable, forward the target).
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetWeakReferencePtr(to),
+        OFFSET_OF(UntaggedWeakReference, target_), Object::null());
+    // Type argument should always be copied.
+    Base::ForwardCompressedPointer(
+        from, to, OFFSET_OF(UntaggedWeakReference, type_arguments_));
+    // To satisfy some ASSERT()s in GC we'll use Object:null() explicitly here.
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetWeakReferencePtr(to),
+        OFFSET_OF(UntaggedWeakReference, next_seen_by_gc_), Object::null());
+    Base::EnqueueWeakReference(from);
   }
 
 #define DEFINE_UNSUPPORTED(clazz)                                              \
@@ -1435,6 +1487,25 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
           }
         }
         i++;
+      }
+    }
+    // After the fix point with [WeakProperty]s do [WeakReference]s.
+    auto& from_weak_reference = WeakReference::Handle(zone_);
+    auto& to_weak_reference = WeakReference::Handle(zone_);
+    auto& weak_reference_target = Object::Handle(zone_);
+    auto& weak_references = fast_forward_map_.raw_weak_references_;
+    for (intptr_t i = 0; i < weak_references.length(); i++) {
+      from_weak_reference = weak_references[i];
+      weak_reference_target =
+          fast_forward_map_.ForwardedObject(from_weak_reference.target());
+      if (weak_reference_target.ptr() != Marker()) {
+        to_weak_reference ^=
+            fast_forward_map_.ForwardedObject(from_weak_reference.ptr());
+
+        // The target became reachable so we'll change the forwarded
+        // [WeakReference]'s target to the new target (it is `null` at this
+        // point).
+        to_weak_reference.set_target(weak_reference_target);
       }
     }
     if (root_copy != Marker()) {
@@ -1583,6 +1654,23 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
           }
         }
         i++;
+      }
+    }
+
+    // After the fix point with [WeakProperty]s do [WeakReference]s.
+    WeakReference& weak_reference = WeakReference::Handle(Z);
+    auto& weak_references = slow_forward_map_.weak_references_;
+    for (intptr_t i = 0; i < weak_references.length(); i++) {
+      const auto& from_weak_reference = *weak_references[i];
+      to = slow_forward_map_.ForwardedObject(from_weak_reference.target());
+      if (to.ptr() != Marker()) {
+        weak_reference ^=
+            slow_forward_map_.ForwardedObject(from_weak_reference.ptr());
+
+        // The target became reachable so we'll change the forwarded
+        // [WeakReference]'s target to the new target (it is `null` at this
+        // point).
+        weak_reference.set_target(to);
       }
     }
 
@@ -1740,10 +1828,10 @@ class ObjectGraphCopier {
       }
 
       if (FLAG_gc_on_foc_slow_path) {
-        // We use kLowMemory to force the GC to compact, which is more likely to
-        // discover untracked pointers (and other issues, like incorrect class
-        // table).
-        thread_->heap()->CollectAllGarbage(GCReason::kLowMemory);
+        // We force the GC to compact, which is more likely to discover
+        // untracked pointers (and other issues, like incorrect class table).
+        thread_->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                           /*compact=*/true);
       }
 
       // Fast copy failed due to
@@ -1779,6 +1867,7 @@ class ObjectGraphCopier {
     MakeUninitializedNewSpaceObjectsGCSafe();
     HandlifyTransferables();
     HandlifyWeakProperties();
+    HandlifyWeakReferences();
     HandlifyExternalTypedData();
     HandlifyObjectsToReHash();
     HandlifyExpandosToReHash();
@@ -1815,6 +1904,10 @@ class ObjectGraphCopier {
   void HandlifyWeakProperties() {
     Handlify(&fast_object_copy_.fast_forward_map_.raw_weak_properties_,
              &slow_object_copy_.slow_forward_map_.weak_properties_);
+  }
+  void HandlifyWeakReferences() {
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_weak_references_,
+             &slow_object_copy_.slow_forward_map_.weak_references_);
   }
   void HandlifyExternalTypedData() {
     Handlify(&fast_object_copy_.fast_forward_map_.raw_external_typed_data_to_,

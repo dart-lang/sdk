@@ -88,34 +88,6 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
-// and the loaded object in the output parameters 'reg' and 'obj'
-// respectively.
-uword InstructionPattern::DecodeLoadObject(uword end,
-                                           const ObjectPool& object_pool,
-                                           Register* reg,
-                                           Object* obj) {
-  // 1. LoadWordFromPool
-  // or
-  // 2. LoadDecodableImmediate
-  uword start = 0;
-  Instr* instr = Instr::At(end - Instr::kInstrSize);
-  if (instr->IsLoadStoreRegOp()) {
-    // Case 1.
-    intptr_t index = 0;
-    start = DecodeLoadWordFromPool(end, reg, &index);
-    *obj = object_pool.ObjectAt(index);
-  } else {
-    // Case 2.
-    intptr_t value = 0;
-    start = DecodeLoadWordImmediate(end, reg, &value);
-    *obj = static_cast<ObjectPtr>(value);
-  }
-  return start;
-}
-
-// Decodes a load sequence ending at 'end' (the last instruction of the load
-// sequence is the instruction before the one at end).  Returns a pointer to
-// the first instruction in the sequence.  Returns the register being loaded
 // and the loaded immediate value in the output parameters 'reg' and 'value'
 // respectively.
 uword InstructionPattern::DecodeLoadWordImmediate(uword end,
@@ -343,6 +315,19 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     }
   }
   // TODO(rmacnak): Loads with offsets beyond 12 bits.
+
+  if (instr->IsAddSubImmOp() && instr->SFField() &&
+      (instr->RnField() == NULL_REG)) {
+    uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
+                                         : (instr->Imm12Field());
+    if (imm == kTrueOffsetFromNull) {
+      *obj = Object::bool_true().ptr();
+      return true;
+    } else if (imm == kFalseOffsetFromNull) {
+      *obj = Object::bool_false().ptr();
+      return true;
+    }
+  }
 
   return false;
 }

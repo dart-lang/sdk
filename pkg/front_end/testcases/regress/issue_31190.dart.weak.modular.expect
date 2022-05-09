@@ -15,10 +15,6 @@ library;
 //   T<U> v;
 //     ^
 //
-// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Error: Expected 0 type arguments.
-//   T<U> v;
-//   ^
-//
 import self as self;
 import "dart:core" as core;
 

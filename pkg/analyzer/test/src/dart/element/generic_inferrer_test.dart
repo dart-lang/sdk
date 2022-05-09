@@ -646,16 +646,17 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       isNonNullableByDefault: false,
     );
 
-    var typeArguments = typeSystem.inferGenericFunctionOrType(
+    var inferrer = typeSystem.setupGenericTypeInference(
       typeParameters: ft.typeFormals,
-      parameters: ft.parameters,
       declaredReturnType: ft.returnType,
-      argumentTypes: arguments,
       contextReturnType: returnType,
       errorReporter: reporter,
       errorNode: astFactory.nullLiteral(KeywordToken(Keyword.NULL, 0)),
       genericMetadataIsEnabled: true,
     );
+    inferrer.constrainArguments(
+        parameters: ft.parameters, argumentTypes: arguments);
+    var typeArguments = inferrer.upwardsInfer();
 
     if (expectError) {
       expect(listener.errors.map((e) => e.errorCode).toList(),
@@ -664,7 +665,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
     }
-    return typeArguments!;
+    return typeArguments;
   }
 
   FunctionType _inferCall2(FunctionType ft, List<DartType> arguments,

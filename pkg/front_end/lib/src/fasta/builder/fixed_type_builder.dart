@@ -48,21 +48,20 @@ class FixedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build(LibraryBuilder library, {TypedefType? origin}) {
+  DartType build(LibraryBuilder library) {
     return type;
   }
 
   @override
-  Supertype buildSupertype(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
-    return unhandled('buildSupertype', 'FixedTypeBuilder', charOffset, fileUri);
+  Supertype buildSupertype(LibraryBuilder library) {
+    return unhandled(
+        'buildSupertype', 'FixedTypeBuilder', charOffset ?? -1, fileUri);
   }
 
   @override
-  Supertype buildMixedInType(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
+  Supertype buildMixedInType(LibraryBuilder library) {
     return unhandled(
-        'buildMixedInType', 'FixedTypeBuilder', charOffset, fileUri);
+        'buildMixedInType', 'FixedTypeBuilder', charOffset ?? -1, fileUri);
   }
 
   @override

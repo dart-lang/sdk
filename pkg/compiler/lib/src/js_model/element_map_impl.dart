@@ -14,8 +14,8 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/names.dart';
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
@@ -37,7 +37,7 @@ import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
-import '../kernel/element_map_impl.dart';
+import '../kernel/element_map.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
@@ -76,7 +76,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  CommonElementsImpl _commonElements;
+  JCommonElements _commonElements;
   JsElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelDartTypes _types;
@@ -130,14 +130,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap(
       this.reporter,
       this._environment,
-      KernelToElementMapImpl _elementMap,
+      KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
@@ -293,11 +293,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
-      this._environment, ir.Component component, DataSource source) {
+      this._environment, ir.Component component, DataSourceReader source) {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
     source.registerComponentLookup(ComponentLookup(component));
@@ -430,7 +430,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   /// Serializes this [JsToElementMap] to [sink].
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
 
     // Serialize the entities before serializing the data.
@@ -510,7 +510,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
-  CommonElementsImpl get commonElements => _commonElements;
+  JCommonElements get commonElements => _commonElements;
 
   FunctionEntity get _mainFunction {
     return programEnv.mainMethod != null
@@ -847,7 +847,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   FieldEntity getField(ir.Field node) => getFieldInternal(node);
 
   @override
-  DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+  DartType getDartType(ir.DartType type) => _typeConverter.visitType(type);
 
   @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
@@ -864,7 +864,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.convert(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability;
 
   @override
   FunctionType getFunctionType(ir.FunctionNode node) {
@@ -1164,14 +1164,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   Dart2jsConstantEvaluator get constantEvaluator {
-    return _constantEvaluator ??= Dart2jsConstantEvaluator(typeEnvironment,
-        (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+    return _constantEvaluator ??=
+        Dart2jsConstantEvaluator(programEnv.mainComponent, typeEnvironment,
+            (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
     },
-        environment: _environment.toMap(),
-        evaluationMode: options.useLegacySubtyping
-            ? ir.EvaluationMode.weak
-            : ir.EvaluationMode.strong);
+            environment: _environment,
+            evaluationMode: options.useLegacySubtyping
+                ? ir.EvaluationMode.weak
+                : ir.EvaluationMode.strong);
   }
 
   @override
@@ -2628,7 +2629,7 @@ class ClosedEntityReader extends EntityReader {
 
   @override
   IndexedMember readMemberFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     int index = source.readInt();
     if (index == 0) {
       return _readLateMemberFromDataSource(source, entityLookup);
@@ -2638,7 +2639,7 @@ class ClosedEntityReader extends EntityReader {
   }
 
   IndexedMember _readLateMemberFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
+      DataSourceReader source, EntityLookup entityLookup) {
     LateMemberKind kind = source.readEnum(LateMemberKind.values);
     switch (kind) {
       case LateMemberKind.constructorBody:
@@ -2663,7 +2664,7 @@ class ClosedEntityWriter extends EntityWriter {
   ClosedEntityWriter(this._earlyMemberIndexLimit);
 
   @override
-  void writeMemberToDataSink(DataSink sink, IndexedMember value) {
+  void writeMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
     if (value.memberIndex >= _earlyMemberIndexLimit) {
       sink.writeInt(0);
       _writeLateMemberToDataSink(sink, value);
@@ -2672,7 +2673,7 @@ class ClosedEntityWriter extends EntityWriter {
     }
   }
 
-  void _writeLateMemberToDataSink(DataSink sink, IndexedMember value) {
+  void _writeLateMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
     if (value is JConstructorBody) {
       sink.writeEnum(LateMemberKind.constructorBody);
       sink.writeMember(value.constructor);

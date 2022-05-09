@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+import "dart:convert" as con;
+
+@#C2
+@#C4
+import "dart:math";
+@#C6
+@#C8
+import "dart:convert";
+import "dart:async";
+import "org-dartlang-testcase:///multiple_imports.dart";
+
+class Const extends core::Object /*hasConstConstructor*/  { // from org-dartlang-testcase:///multiple_imports_lib.dart
+  final field core::int field;
+  const constructor •(core::int field) → self::Const
+    : self::Const::field = field, super core::Object::•()
+    ;
+}
+static method main() → FutureOr<void> {
+  self::method();
+}
+static method /* from org-dartlang-testcase:///multiple_imports_lib.dart */ method() → dynamic {
+  math::Random::•();
+  #C10.{con::JsonCodec::encoder}{con::JsonEncoder};
+}
+
+constants  {
+  #C1 = 0
+  #C2 = self::Const {field:#C1}
+  #C3 = 2
+  #C4 = self::Const {field:#C3}
+  #C5 = 1
+  #C6 = self::Const {field:#C5}
+  #C7 = 3
+  #C8 = self::Const {field:#C7}
+  #C9 = null
+  #C10 = con::JsonCodec {_reviver:#C9, _toEncodable:#C9}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///multiple_imports.dart:
+- Const. (from org-dartlang-testcase:///multiple_imports_lib.dart:18:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

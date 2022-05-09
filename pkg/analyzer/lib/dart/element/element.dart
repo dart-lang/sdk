@@ -104,6 +104,10 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
+  /// Return `true` if this class represents the class 'Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnum;
+
   /// Return `true` if this class represents the class 'Object' defined in the
   /// dart:core library.
   bool get isDartCoreObject;
@@ -409,8 +413,8 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   @Deprecated('Not useful for clients')
   bool get hasLoadLibraryFunction;
 
-  /// Return the [LineInfo] for the [source], or `null` if not computed yet.
-  LineInfo? get lineInfo;
+  /// Return the [LineInfo] for the [source].
+  LineInfo get lineInfo;
 
   /// Return a list containing all of the mixins contained in this compilation
   /// unit.
@@ -467,6 +471,9 @@ abstract class ConstructorElement
 
   /// Return `true` if this constructor represents a factory constructor.
   bool get isFactory;
+
+  /// Return `true` if this constructor represents a generative constructor.
+  bool get isGenerative;
 
   @override
   String get name;
@@ -1145,6 +1152,11 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   /// Return a list containing all of the methods declared in this extension.
   List<MethodElement> get methods;
 
+  /// Return the element representing the field with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// field with the given name.
+  FieldElement? getField(String name);
+
   /// Return the element representing the getter with the given [name] that is
   /// declared in this extension, or `null` if this extension does not declare a
   /// getter with the given name.
@@ -1221,6 +1233,10 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// The name of the method that will be invoked if an attempt is made to
   /// invoke an undefined method on an object.
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
+
+  /// Return `true` if this function represents `identical` from the
+  /// `dart:core` library.
+  bool get isDartCoreIdentical;
 
   /// Return `true` if the function is an entry point, i.e. a top-level function
   /// and has the name `main`.

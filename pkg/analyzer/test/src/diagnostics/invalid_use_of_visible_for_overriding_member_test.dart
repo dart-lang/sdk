@@ -23,7 +23,7 @@ class InvalidUseOfVisibleForOverridingMemberTest
   }
 
   test_differentLibrary_invalid() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class Parent {
@@ -45,7 +45,7 @@ class Child extends Parent {
   }
 
   test_differentLibrary_valid_onlyOverride() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class Parent {
@@ -65,7 +65,7 @@ class Child extends Parent {
   }
 
   test_differentLibrary_valid_overrideAndUse() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
 
 class Parent {

@@ -500,9 +500,10 @@ abstract class IntegrationTestMixin {
   ///   the normal package: URI resolution mechanism.
   ///
   ///   If a package root is a file, then the analyzer will behave as though
-  ///   that file is a ".packages" file in the source directory. The effect is
-  ///   the same as specifying the file as a "--packages" parameter to the Dart
-  ///   VM when executing any Dart file inside the source directory.
+  ///   that file is a ".dart_tool/package_config.json" file in the source
+  ///   directory. The effect is the same as specifying the file as a
+  ///   "--packages" parameter to the Dart VM when executing any Dart file
+  ///   inside the source directory.
   ///
   ///   Files in any directories that are not overridden by this mapping have
   ///   their package: URI's resolved using the normal pubspec.yaml mechanism.
@@ -993,6 +994,11 @@ abstract class IntegrationTestMixin {
   ///   suggestions after filtering is greater than the maxResults, then
   ///   isIncomplete is set to true.
   ///
+  /// completionCaseMatchingMode: CompletionCaseMatchingMode (optional)
+  ///
+  ///   The mode of code completion being invoked. If no value is provided,
+  ///   MATCH_FIRST_CHAR will be assumed.
+  ///
   /// Returns
   ///
   /// replacementOffset: int
@@ -1021,19 +1027,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   This list contains suggestions from both imported, and not yet imported
   ///   libraries. Items from not yet imported libraries will have
-  ///   libraryUriToImportIndex set, which is an index into the
-  ///   libraryUrisToImport in this response.
-  ///
-  /// libraryUrisToImport: List<String>
-  ///
-  ///   The list of libraries with declarations that are not yet available in
-  ///   the file where completion was requested, most often because the library
-  ///   is not yet imported. The declarations still might be included into the
-  ///   suggestions, and the client should use getSuggestionDetails2 on
-  ///   selection to make the library available in the file.
-  ///
-  ///   Each item is the URI of a library, such as package:foo/bar.dart or
-  ///   file:///home/me/workspace/foo/test/bar_test.dart.
+  ///   isNotImported set to true.
   ///
   /// isIncomplete: bool
   ///
@@ -1041,8 +1035,14 @@ abstract class IntegrationTestMixin {
   ///   requested maxResults.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
       String file, int offset, int maxResults,
-      {int? timeout}) async {
+      {CompletionCaseMatchingMode? completionCaseMatchingMode,
+      CompletionMode? completionMode,
+      int? invocationCount,
+      int? timeout}) async {
     var params = CompletionGetSuggestions2Params(file, offset, maxResults,
+            completionCaseMatchingMode: completionCaseMatchingMode,
+            completionMode: completionMode,
+            invocationCount: invocationCount,
             timeout: timeout)
         .toJson();
     var result = await server.send('completion.getSuggestions2', params);
@@ -1144,7 +1144,7 @@ abstract class IntegrationTestMixin {
   }
 
   /// Clients must make this request when the user has selected a completion
-  /// suggestion with the libraryUriToImportIndex field set. The server will
+  /// suggestion with the isNotImported field set to true. The server will
   /// respond with the text to insert, as well as any SourceChange that needs
   /// to be applied in case the completion requires an additional import to be
   /// added. The text to insert might be different from the original suggestion
@@ -1608,6 +1608,36 @@ abstract class IntegrationTestMixin {
     var result = await server.send('edit.format', params);
     var decoder = ResponseDecoder(null);
     return EditFormatResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Format the contents of the files in one or more directories, but only if
+  /// the analysis options file for those files has enabled the 'format'
+  /// option.
+  ///
+  /// If any of the specified directories does not exist, that directory will
+  /// be ignored. If any of the files that are eligible for being formatted
+  /// cannot be formatted because of a syntax error in the file, that file will
+  /// be ignored.
+  ///
+  /// Parameters
+  ///
+  /// directories: List<FilePath>
+  ///
+  ///   The paths of the directories containing the code to be formatted.
+  ///
+  /// Returns
+  ///
+  /// edits: List<SourceFileEdit>
+  ///
+  ///   The edit(s) to be applied in order to format the code. The list will be
+  ///   empty if none of the files were formatted, whether because they were
+  ///   not eligible to be formatted or because they were already formatted.
+  Future<EditFormatIfEnabledResult> sendEditFormatIfEnabled(
+      List<String> directories) async {
+    var params = EditFormatIfEnabledParams(directories).toJson();
+    var result = await server.send('edit.formatIfEnabled', params);
+    var decoder = ResponseDecoder(null);
+    return EditFormatIfEnabledResult.fromJson(decoder, 'result', result);
   }
 
   /// Return the set of assists that are available at the given location. An

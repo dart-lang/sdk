@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -20,11 +20,11 @@ static method testNull() → dynamic {
 }
 static method testList() → dynamic {
   core::print(<dynamic>[]);
-  core::print(<core::String*>["a", "b"]);
+  core::print(<core::String>["a", "b"]);
 }
 static method testMap() → dynamic {
   core::print(<dynamic, dynamic>{});
-  core::print(<core::String*, core::String*>{"a": "b"});
+  core::print(<core::String, core::String>{"a": "b"});
 }
 static method testSymbol() → dynamic {
   core::print(#C1);

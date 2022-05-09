@@ -65,16 +65,18 @@ ARCH_FAMILY = {
     'ia32': 'ia32',
     'x64': 'ia32',
     'arm': 'arm',
-    'armv6': 'arm',
     'arm64': 'arm',
     'arm_x64': 'arm',
     'simarm': 'ia32',
-    'simarmv6': 'ia32',
     'simarm64': 'ia32',
     'simarm_x64': 'ia32',
     'x64c': 'ia32',
     'arm64c': 'arm',
     'simarm64c': 'ia32',
+    'simriscv32': 'ia32',
+    'simriscv64': 'ia32',
+    'riscv32': 'riscv',
+    'riscv64': 'riscv',
 }
 
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
@@ -150,12 +152,10 @@ def GuessOS():
 # Try to guess the host architecture.
 def GuessArchitecture():
     os_id = platform.machine()
-    if os_id.startswith('armv6'):
-        return 'armv6'
+    if os_id.startswith('aarch64') or os_id == 'arm64':
+        return 'arm64'
     elif os_id.startswith('arm'):
         return 'arm'
-    elif os_id.startswith('aarch64'):
-        return 'arm64'
     elif '64' in os_id:
         return 'x64'
     elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):

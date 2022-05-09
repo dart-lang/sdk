@@ -25,7 +25,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         InvocationMode,
         DiagnosticMessage,
         DiagnosticMessageHandler,
-        ExperimentalFlag,
         FileSystem,
         FileSystemEntity,
         NnbdMode,
@@ -77,6 +76,10 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false);
+  args.addFlag('support-mirrors',
+      help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
+          'supported when --aot and --minimal-kernel are not used.',
+      defaultsTo: null);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -93,6 +96,9 @@ void declareCompilerOptions(ArgParser args) {
           ' If multi-root file system is used, the input script and .packages file should be specified using URI.');
   args.addOption('filesystem-scheme',
       help: 'The URI scheme for the multi-root virtual filesystem.');
+  args.addMultiOption('source',
+      help: 'List additional source files to include into compilation.',
+      defaultsTo: const <String>[]);
   args.addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
@@ -193,11 +199,13 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
+  final bool? supportMirrors = options['support-mirrors'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
   final List<String>? experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
+  final List<String> sources = options['source'];
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
     return badUsageExitCode;
@@ -211,6 +219,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     if (splitOutputByPackages) {
       print(
           'Error: --split-output-by-packages option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+  }
+
+  if (supportMirrors == true) {
+    if (aot) {
+      print('Error: --support-mirrors option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+    if (minimalKernel) {
+      print('Error: --support-mirrors option cannot be used with '
+          '--minimal-kernel');
       return badUsageExitCode;
     }
   }
@@ -230,6 +250,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   if (packagesUri != null) {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
+
+  final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
 
   final verbosity = Verbosity.parseArgument(options['verbosity']);
   final errorPrinter = new ErrorPrinter(verbosity);
@@ -254,21 +276,21 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..verbosity = verbosity;
 
   if (nullSafety == null &&
-      compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
+      compilerOptions.globalFeatures.nonNullable.isEnabled) {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
-  compilerOptions.target = createFrontEndTarget(
-    targetName,
-    trackWidgetCreation: options['track-widget-creation'],
-    nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
-  );
+  compilerOptions.target = createFrontEndTarget(targetName,
+      trackWidgetCreation: options['track-widget-creation'],
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
   }
 
   final results = await compileToKernel(mainUri, compilerOptions,
+      additionalSources: additionalSources,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
@@ -338,7 +360,8 @@ class KernelCompilationResults {
 ///
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
-    {bool includePlatform: false,
+    {List<Uri> additionalSources: const <Uri>[],
+    bool includePlatform: false,
     List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
@@ -363,7 +386,8 @@ Future<KernelCompilationResults> compileToKernel(
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    compilerResult = await kernelForProgram(source, options);
+    compilerResult = await kernelForProgram(source, options,
+        additionalSources: additionalSources);
   }
   final Component? component = compilerResult?.component;
   Iterable<Uri>? compiledSources = component?.uriToSource.keys;
@@ -442,6 +466,7 @@ Future runGlobalTransformations(
     {bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
     bool useRapidTypeAnalysis: true}) async {
+  assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
@@ -478,7 +503,7 @@ Future runGlobalTransformations(
 
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
-  obfuscationProhibitions.transformComponent(component, coreTypes);
+  obfuscationProhibitions.transformComponent(component, coreTypes, target);
 
   deferred_loading.transformComponent(component);
 }
@@ -585,12 +610,16 @@ Future<void> autoDetectNullSafetyMode(
 
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false, bool nullSafety = false}) {
+    {bool trackWidgetCreation = false,
+    bool nullSafety = false,
+    bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation, enableNullSafety: nullSafety);
+      trackWidgetCreation: trackWidgetCreation,
+      enableNullSafety: nullSafety,
+      supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }
 

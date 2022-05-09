@@ -22,6 +22,8 @@
 // NB: This utility assumes UN*X style line endings, \n, in the LaTeX
 // source file received as input; it will not work with other styles.
 
+// ignore_for_file: constant_identifier_names
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -32,15 +34,15 @@ import 'package:crypto/crypto.dart';
 // Normalization of the text: removal or normalization of parts that
 // do not affect the output from latex, such as white space.
 
-final commentRE = new RegExp(r"[^\\]%.*"); // NB: . does not match \n.
-final whitespaceAllRE = new RegExp(r"^\s+$");
-final whitespaceRE = new RegExp(r"(?:(?=\s).){2,}"); // \s except end-of-line
+final commentRE = RegExp(r"[^\\]%.*"); // NB: . does not match \n.
+final whitespaceAllRE = RegExp(r"^\s+$");
+final whitespaceRE = RegExp(r"(?:(?=\s).){2,}"); // \s except end-of-line
 
 /// Removes [match]ing part of [line], adjusting that part with the
 /// given [startOffset] and [endOffset], bounded to be valid indices
 /// into the string if needed, then inserts [glue] where text was
 /// removed.  If there is no match then [line] is returned.
-cutMatch(line, match, {startOffset: 0, endOffset: 0, glue: ""}) {
+cutMatch(line, match, {startOffset = 0, endOffset = 0, glue = ""}) {
   if (match == null) return line;
   var start = match.start + startOffset;
   var end = match.end + endOffset;
@@ -50,7 +52,7 @@ cutMatch(line, match, {startOffset: 0, endOffset: 0, glue: ""}) {
   return line.substring(0, start) + glue + line.substring(end);
 }
 
-cutRegexp(line, re, {startOffset: 0, endOffset: 0, glue: ""}) {
+cutRegexp(line, re, {startOffset = 0, endOffset = 0, glue = ""}) {
   return cutMatch(line, re.firstMatch(line),
       startOffset: startOffset, endOffset: endOffset, glue: glue);
 }
@@ -58,12 +60,12 @@ cutRegexp(line, re, {startOffset: 0, endOffset: 0, glue: ""}) {
 /// Removes the rest of [line] starting from the beginning of the
 /// given [match], and adjusting with the given [offset].  If there
 /// is no match then [line] is returned.
-cutFromMatch(line, match, {offset: 0, glue: ""}) {
+cutFromMatch(line, match, {offset = 0, glue = ""}) {
   if (match == null) return line;
   return line.substring(0, match.start + offset) + glue;
 }
 
-cutFromRegexp(line, re, {offset: 0, glue: ""}) {
+cutFromRegexp(line, re, {offset = 0, glue = ""}) {
   return cutFromMatch(line, re.firstMatch(line), offset: offset, glue: glue);
 }
 
@@ -175,8 +177,8 @@ sispNormalize(line) => stripComment(line);
 
 // Managing fragments with significant spacing.
 
-final dartCodeBeginRE = new RegExp(r"^\s*\\begin\s*\{dartCode\}");
-final dartCodeEndRE = new RegExp(r"^\s*\\end\s*\{dartCode\}");
+final dartCodeBeginRE = RegExp(r"^\s*\\begin\s*\{dartCode\}");
+final dartCodeEndRE = RegExp(r"^\s*\\end\s*\{dartCode\}");
 
 /// Recognizes beginning of dartCode block.
 sispIsDartBegin(line) => line.contains(dartCodeBeginRE);
@@ -204,11 +206,10 @@ findEvents(lines, analyzer) {
 /// Returns RegExp text for recognizing a command occupying a line
 /// of its own, given the part of the RegExp that recognizes the
 /// command name, [cmdNameRE]
-lineCommandRE(cmdNameRE) =>
-    new RegExp(r"^\s*\\" + cmdNameRE + r"\s*\{.*\}%?\s*$");
+lineCommandRE(cmdNameRE) => RegExp(r"^\s*\\" + cmdNameRE + r"\s*\{.*\}%?\s*$");
 
-final hashLabelStartRE = new RegExp(r"^\s*\\LMLabel\s*\{");
-final hashLabelEndRE = new RegExp(r"\}\s*$");
+final hashLabelStartRE = RegExp(r"^\s*\\LMLabel\s*\{");
+final hashLabelEndRE = RegExp(r"\}\s*$");
 
 final hashMarkRE = lineCommandRE("LMHash");
 final hashLabelRE = lineCommandRE("LMLabel");
@@ -259,19 +260,19 @@ abstract class HashEvent {
   /// The endLineNumber specifies the end of the block of lines
   /// associated with a given event, for event types concerned with
   /// blocks of lines rather than single lines.
-  setEndLineNumber(n) {}
+  setEndLineNumber(int n) {}
 
   /// Returns null except for \LMHash{} events, where it returns
   /// the startLineNumber.  This serves to specify a boundary because
   /// the preceding \LMHash{} block should stop before the line of
   /// this \LMHash{} command.  Note that hash blocks may stop earlier,
   /// because they cannot contain sectioning commands.
-  getStartLineNumber() => null;
+  int? getStartLineNumber() => null;
 }
 
 class HashMarkerEvent extends HashEvent {
   // Line number of first line in block that gets hashed.
-  var startLineNumber;
+  int startLineNumber;
 
   // Highest possible number of first line after block that gets
   // hashed (where the next \LMHash{} occurs).  Note that this value
@@ -279,19 +280,21 @@ class HashMarkerEvent extends HashEvent {
   // reached), so [endLineNumber] will be initialized in a separate
   // scan.  Also note that the block may end earlier, because a block
   // ends if it would otherwise include a sectioning command.
-  var endLineNumber;
+  int? endLineNumber;
 
   HashMarkerEvent(this.startLineNumber);
 
-  setEndLineNumber(n) {
+  @override
+  setEndLineNumber(int n) {
     endLineNumber = n;
   }
 
-  getStartLineNumber() => startLineNumber;
+  @override
+  int getStartLineNumber() => startLineNumber;
 }
 
 class HashLabelEvent extends HashEvent {
-  var labelText;
+  String labelText;
   HashLabelEvent(this.labelText);
 }
 
@@ -337,10 +340,8 @@ class HashAnalyzer {
         return "subsec:";
       case PENDING_IS_SUBSUBSECTION:
         return "subsubsec:";
-      case PENDING_IS_PARAGRAPH:
-        return "par:";
       case PENDING_IS_NONE:
-        throw "\\LMHash{..} should only be used after a sectioning command " +
+        throw "\\LMHash{..} should only be used after a sectioning command "
             "(\\section, \\subsection, \\subsubsection, \\paragraph)";
       default:
         // set of PENDING_IS_.. was extended, but updates here omitted
@@ -351,10 +352,10 @@ class HashAnalyzer {
   analyze(line) {
     var currentLineNumber = lineNumber++;
     if (isHashMarker(line)) {
-      return new HashMarkerEvent(currentLineNumber);
+      return HashMarkerEvent(currentLineNumber);
     } else if (isHashLabel(line)) {
       var labelText = sectioningPrefix() + extractHashLabel(line);
-      return new HashLabelEvent(labelText);
+      return HashLabelEvent(labelText);
     } else {
       // No events to emit, but we may need to note state changes
       if (isSectionCommand(line)) {
@@ -375,7 +376,7 @@ class HashAnalyzer {
 
 findHashEvents(lines) {
   // Create the list of events, omitting endLineNumbers.
-  var events = findEvents(lines, new HashAnalyzer());
+  var events = findEvents(lines, HashAnalyzer());
   // Set the endLineNumbers.
   var currentEndLineNumber = lines.length;
   for (var event in events.reversed) {
@@ -444,8 +445,8 @@ removeCommand(line, cmdName, startIndex) {
   throw "Unmatched braces";
 }
 
-final commentaryRE = new RegExp(r"\\commentary\s*\{");
-final rationaleRE = new RegExp(r"\\rationale\s*\{");
+final commentaryRE = RegExp(r"\\commentary\s*\{");
+final rationaleRE = RegExp(r"\\rationale\s*\{");
 
 /// Removes {}-balanced '\commentary{..}' commands from [line].
 removeCommentary(line) {
@@ -473,7 +474,7 @@ simplifyLine(line) {
 // ----------------------------------------------------------------------
 // Recognition of line blocks, insertion of block hash into \LMHash{}.
 
-final latexArgumentRE = new RegExp(r"\{.*\}");
+final latexArgumentRE = RegExp(r"\{.*\}");
 
 cleanupLine(line) => cutRegexp(line, commentRE, startOffset: 1).trimRight();
 
@@ -530,15 +531,15 @@ main([args]) {
   }
 
   // Get LaTeX source.
-  var inputFile = new File(args[0]);
+  var inputFile = File(args[0]);
   assert(inputFile.existsSync());
   var lines = inputFile.readAsLinesSync();
 
   // Will hold LaTeX source with normalized spacing etc., plus hash values.
-  var outputFile = new File(args[1]);
+  var outputFile = File(args[1]);
 
   // Will hold hierarchical list of hash values.
-  var listFile = new File(args[2]);
+  var listFile = File(args[2]);
   var listSink = listFile.openWrite();
 
   // Perform single-line normalization.

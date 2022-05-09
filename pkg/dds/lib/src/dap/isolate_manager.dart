@@ -13,6 +13,7 @@ import 'package:vm_service/vm_service.dart' as vm;
 import 'adapters/dart.dart';
 import 'exceptions.dart';
 import 'protocol_generated.dart';
+import 'utils.dart';
 
 /// Manages state of Isolates (called Threads by the DAP protocol).
 ///
@@ -54,6 +55,16 @@ class IsolateManager {
   /// apply changes. This allows applying both [debugSdkLibraries] and
   /// [debugExternalPackageLibraries] in one step.
   bool debugExternalPackageLibraries = true;
+
+  /// Whether to automatically resume new isolates after configuring them.
+  ///
+  /// This setting is almost always `true` because isolates are paused only so
+  /// we can configure them (send breakpoints, pause-on-exceptions,
+  /// setLibraryDebuggables) without races. It is set to `false` during the
+  /// initial connection of an `attachRequest` to allow paused isolates to
+  /// remain paused. In this case, it will be automatically re-set to `true` the
+  /// first time the user resumes.
+  bool autoResumeStartingIsolates = true;
 
   /// The root of the Dart SDK containing the VM running the debug adapter.
   late final String sdkRoot;
@@ -137,13 +148,7 @@ class IsolateManager {
   ThreadInfo? getThread(int threadId) => _threadsByThreadId[threadId];
 
   /// Handles Isolate and Debug events.
-  ///
-  /// If [resumeIfStarting] is `true`, PauseStart/PausePostStart events will be
-  /// automatically resumed from.
-  Future<void> handleEvent(
-    vm.Event event, {
-    bool resumeIfStarting = true,
-  }) async {
+  Future<void> handleEvent(vm.Event event) async {
     final isolateId = event.isolate?.id!;
 
     final eventKind = event.kind;
@@ -162,7 +167,7 @@ class IsolateManager {
     if (eventKind == vm.EventKind.kIsolateExit) {
       _handleExit(event);
     } else if (eventKind?.startsWith('Pause') ?? false) {
-      await _handlePause(event, resumeIfStarting: resumeIfStarting);
+      await _handlePause(event);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
     }
@@ -215,8 +220,7 @@ class IsolateManager {
     ));
   }
 
-  Future<void> resumeIsolate(vm.IsolateRef isolateRef,
-      [String? resumeType]) async {
+  Future<void> resumeIsolate(vm.IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
 
     final thread = _threadsByIsolateId[isolateId];
@@ -236,6 +240,11 @@ class IsolateManager {
   /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
+    // The first time a user resumes a thread is our signal that the app is now
+    // "running" and future isolates can be auto-resumed. This only affects
+    // attach, as it's already `true` for launch requests.
+    autoResumeStartingIsolates = true;
+
     final thread = _threadsByThreadId[threadId];
     if (thread == null) {
       throw DebugAdapterException('Thread $threadId was not found');
@@ -281,6 +290,18 @@ class IsolateManager {
     // Send the breakpoints to all existing threads.
     await Future.wait(_threadsByThreadId.values
         .map((thread) => _sendBreakpoints(thread, uri: uri)));
+  }
+
+  /// Clears all breakpoints.
+  Future<void> clearAllBreakpoints() async {
+    // Clear all breakpoints for each URI. Do not remove the items from the map
+    // as that will stop them being tracked/sent by the call below.
+    _clientBreakpointsByUri.updateAll((key, value) => []);
+
+    // Send the breakpoints to all existing threads.
+    await Future.wait(
+      _threadsByThreadId.values.map((thread) => _sendBreakpoints(thread)),
+    );
   }
 
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
@@ -396,21 +417,18 @@ class IsolateManager {
   ///
   /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the
   /// isolate will be re-configured (pause-exception behaviour, debuggable
-  /// libraries, breakpoints) and then (if [resumeIfStarting] is `true`)
-  /// resumed.
+  /// libraries, breakpoints) and then (if [autoResumeStartingIsolates] is
+  /// `true`) resumed.
   ///
-  /// For [vm.EventKind.kPauseStart] and [resumeIfStarting] is `true`, the
-  /// isolate will be resumed.
+  /// For [vm.EventKind.kPauseStart] and [autoResumeStartingIsolates] is `true`,
+  /// the isolate will be resumed.
   ///
   /// For breakpoints with conditions that are not met and for logpoints, the
   /// isolate will be automatically resumed.
   ///
   /// For all other pause types, the isolate will remain paused and a
   /// corresponding "Stopped" event sent to the editor.
-  Future<void> _handlePause(
-    vm.Event event, {
-    bool resumeIfStarting = true,
-  }) async {
+  Future<void> _handlePause(vm.Event event) async {
     final eventKind = event.kind;
     final isolate = event.isolate!;
     final thread = _threadsByIsolateId[isolate.id!];
@@ -427,17 +445,17 @@ class IsolateManager {
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(thread);
-      if (resumeIfStarting) {
+      if (autoResumeStartingIsolates) {
         await resumeThread(thread.threadId);
       }
     } else if (eventKind == vm.EventKind.kPauseStart) {
       // Don't resume from a PauseStart if this has already happened (see
       // comments on [thread.hasBeenStarted]).
-      if (!thread.hasBeenStarted) {
+      if (!thread.startupHandled) {
+        thread.startupHandled = true;
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
-        if (resumeIfStarting) {
-          thread.hasBeenStarted = true;
+        if (autoResumeStartingIsolates) {
           await resumeThread(thread.threadId);
         } else {
           sendStoppedOnEntryEvent(thread.threadId);
@@ -558,6 +576,14 @@ class IsolateManager {
       // TODO(dantup): Format this using other existing code in protocol converter?
       _adapter.sendOutput('console', '${messageResult?.valueAsString}\n');
     }
+  }
+
+  /// Resumes any paused isolates.
+  Future<void> resumeAll() async {
+    final pausedThreads = threads.where((thread) => thread.paused).toList();
+    await Future.wait(
+      pausedThreads.map((thread) => resumeThread(thread.threadId)),
+    );
   }
 
   /// Calls reloadSources for the given isolate.
@@ -710,7 +736,11 @@ class ThreadInfo {
   int? exceptionReference;
   var paused = false;
 
-  /// Tracks whether an isolate has been started from its PauseStart state.
+  /// Tracks whether an isolates startup routine has been handled.
+  ///
+  /// The startup routine will either automatically resume the isolate or send
+  /// a stopped-on-entry event, depending on whether we're launching or
+  /// attaching.
   ///
   /// This is used to prevent trying to resume a thread twice if a PauseStart
   /// event arrives around the same time that are our initialization code (which
@@ -719,7 +749,12 @@ class ThreadInfo {
   ///
   /// If we send a duplicate resume, it could trigger an unwanted resume for a
   /// breakpoint or exception that occur early on.
-  bool hasBeenStarted = false;
+  ///
+  /// In the case of attach, a similar race exists.. The initialization may
+  /// choose not to resume the isolate (so we can attach to a VM with paused
+  /// isolates) but then a PauseStart event that arrived during initialization
+  /// could trigger a resume that we don't want.
+  bool startupHandled = false;
 
   /// The most recent pauseEvent for this isolate.
   vm.Event? pauseEvent;
@@ -803,7 +838,7 @@ class ThreadInfo {
   Future<List<String?>> resolveUrisToPathsBatch(List<Uri> uris) async {
     // First find the set of URIs we don't already have results for.
     final requiredUris = uris
-        .where((uri) => !uri.isScheme('file'))
+        .where(isResolvableUri)
         .where((uri) => !_resolvedPaths.containsKey(uri.toString()))
         .toSet() // Take only distinct values.
         .toList();
@@ -817,17 +852,24 @@ class ThreadInfo {
       completers.forEach(
         (uri, completer) => _resolvedPaths[uri] = completer.future,
       );
-      final results =
-          await _manager._lookupResolvedPackageUris(isolate, requiredUris);
-      if (results == null) {
-        // If no result, all of the results are null.
-        completers.forEach((uri, completer) => completer.complete(null));
-      } else {
-        // Otherwise, complete each one by index with the corresponding value.
-        results.map(_convertUriToFilePath).forEachIndexed((i, result) {
-          final uri = requiredUris[i].toString();
-          completers[uri]!.complete(result);
-        });
+      try {
+        final results =
+            await _manager._lookupResolvedPackageUris(isolate, requiredUris);
+        if (results == null) {
+          // If no result, all of the results are null.
+          completers.forEach((uri, completer) => completer.complete(null));
+        } else {
+          // Otherwise, complete each one by index with the corresponding value.
+          results.map(_convertUriToFilePath).forEachIndexed((i, result) {
+            final uri = requiredUris[i].toString();
+            completers[uri]!.complete(result);
+          });
+        }
+      } catch (e) {
+        // We can't leave dangling completers here because others may already
+        // be waiting on them, so propogate the error to them.
+        completers.forEach((uri, completer) => completer.completeError(e));
+        rethrow;
       }
     }
 

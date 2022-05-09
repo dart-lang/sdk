@@ -399,6 +399,8 @@ class FfiTestSuite extends TestSuite {
     "x64_linux",
     "x64_macos",
     "x64_win",
+    "riscv32_linux",
+    "riscv64_linux",
   ];
 
   FfiTestSuite(TestConfiguration configuration)
@@ -595,6 +597,7 @@ class StandardTestSuite extends TestSuite {
       '$directory/${name}_analyzer.status',
       '$directory/${name}_analyzer2.status',
       '$directory/${name}_dart2js.status',
+      '$directory/${name}_dart2wasm.status',
       '$directory/${name}_dartdevc.status',
       '$directory/${name}_kernel.status',
       '$directory/${name}_precompiled.status',
@@ -763,6 +766,8 @@ class StandardTestSuite extends TestSuite {
           ...vmOptionsList[vmOptionsVariant],
           ...extraVmOptions,
           if (emitDdsTest) '-DUSE_DDS=true',
+          if (configuration.serviceResponseSizesDirectory != null)
+            '-DSERVICE_RESPONSE_SIZES_DIR=${configuration.serviceResponseSizesDirectory}',
         ];
         var isCrashExpected = expectations.contains(Expectation.crash);
         var commands = _makeCommands(
@@ -952,6 +957,7 @@ class StandardTestSuite extends TestSuite {
     var commands = <Command>[];
     const supportedCompilers = {
       Compiler.dart2js,
+      Compiler.dart2wasm,
       Compiler.dartdevc,
       Compiler.dartdevk
     };

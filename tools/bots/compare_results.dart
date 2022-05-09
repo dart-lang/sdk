@@ -9,8 +9,8 @@
 
 // @dart = 2.9
 
-import '../../pkg/test_runner/bin/compare_results.dart' as compareResults;
+import '../../pkg/test_runner/bin/compare_results.dart' as compare_results;
 
 main(List<String> args) {
-  compareResults.main(args);
+  compare_results.main(args);
 }

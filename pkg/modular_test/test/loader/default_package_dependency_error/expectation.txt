@@ -4,7 +4,8 @@ expect
   is package? yes
   is shared?  yes
   is sdk?  no
-  dependencies: meta, sdk
+  dependencies: meta, smith, sdk
+  lib/config.dart
   lib/expect.dart
   lib/minitest.dart
 
@@ -31,3 +32,13 @@ sdk
   is sdk?  yes
   (no dependencies)
   (sdk sources omitted)
+
+smith
+  is package? yes
+  is shared?  yes
+  is sdk?  no
+  dependencies: sdk
+  lib/builder.dart
+  lib/configuration.dart
+  lib/smith.dart
+  lib/test_matrix.dart

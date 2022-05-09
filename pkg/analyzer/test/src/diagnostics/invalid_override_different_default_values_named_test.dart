@@ -11,13 +11,53 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideDifferentDefaultValuesNamedTest);
     defineReflectiveTests(
-      InvalidOverrideDifferentDefaultValuesNamedWithNullSafetyTest,
+      InvalidOverrideDifferentDefaultValuesNamedWithoutNullSafetyTest,
     );
   });
 }
 
 @reflectiveTest
 class InvalidOverrideDifferentDefaultValuesNamedTest
+    extends InvalidOverrideDifferentDefaultValuesNamedWithoutNullSafetyTest {
+  test_concrete_equal_optIn_extends_optOut() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+// @dart = 2.7
+class A {
+  void foo({int a = 0}) {}
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+class B extends A {
+  void foo({int a = 0}) {}
+}
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+  }
+
+  test_concrete_equal_optOut_extends_optIn() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo({int a = 0}) {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+class B extends A {
+  void foo({int a = 0}) {}
+}
+''');
+  }
+}
+
+@reflectiveTest
+class InvalidOverrideDifferentDefaultValuesNamedWithoutNullSafetyTest
     extends PubPackageResolutionTest {
   test_abstract_different_base_value() async {
     await assertErrorsInCode(
@@ -177,7 +217,7 @@ class B extends A {
   }
 
   test_concrete_equal_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   void foo([a = 0]) {}
 }
@@ -192,7 +232,7 @@ class C extends A {
   }
 
   test_concrete_equal_otherLibrary_listLiteral() async {
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 class C {
   void foo({x: const ['x']}) {}
 }
@@ -302,45 +342,5 @@ class B extends A {
             66, 1),
       ]),
     );
-  }
-}
-
-@reflectiveTest
-class InvalidOverrideDifferentDefaultValuesNamedWithNullSafetyTest
-    extends InvalidOverrideDifferentDefaultValuesNamedTest {
-  test_concrete_equal_optIn_extends_optOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-class A {
-  void foo({int a = 0}) {}
-}
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-
-class B extends A {
-  void foo({int a = 0}) {}
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
-  test_concrete_equal_optOut_extends_optIn() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  void foo({int a = 0}) {}
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart';
-
-class B extends A {
-  void foo({int a = 0}) {}
-}
-''');
   }
 }

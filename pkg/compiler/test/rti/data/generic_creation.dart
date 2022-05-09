@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:needsArgs*/
 
@@ -36,7 +36,7 @@ class V {}
 
 class W {}
 
-sameType(a, b) => Expect.equals(a.runtimeType, b.runtimeType);
+sameType(a, b) => makeLive(a.runtimeType == b.runtimeType);
 
 main() {
   A a = new A<U, V, W>();

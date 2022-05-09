@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS) && !defined(DART_USE_ABSL)
 
 #include "vm/growable_array.h"
 #include "vm/lockers.h"
@@ -133,7 +133,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ::GetCurrentThreadId();
 }
-#endif  // PRODUCT
+#endif  // SUPPORT_TIMELINE
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
@@ -172,14 +172,10 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
-// On Windows stack limits for the current thread are available in
-// the thread information block (TIB). Its fields can be accessed through
-// FS segment register on x86 and GS segment register on x86_64.
-#ifdef _WIN64
-  *upper = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackBase)));
-#else
-  *upper = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackBase)));
-#endif
+  // On Windows stack limits for the current thread are available in
+  // the thread information block (TIB).
+  NT_TIB* tib = reinterpret_cast<NT_TIB*>(NtCurrentTeb());
+  *upper = reinterpret_cast<uword>(tib->StackBase);
   // Notice that we cannot use the TIB's StackLimit for the stack end, as it
   // tracks the end of the committed range. We're after the end of the reserved
   // stack area (most of which will be uncommitted, most times).
@@ -530,4 +526,4 @@ PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnDartThreadExit;
 #endif  // _WIN64
 }  // extern "C"
 
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS) && !defined(DART_USE_ABSL)

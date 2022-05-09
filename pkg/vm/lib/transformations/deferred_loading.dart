@@ -54,7 +54,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   // Fake imports from root library to every core library so they end up in
   // the same loading unit attributed to the user's root library.
   for (final vertex in map.values) {
-    if (vertex.library.importUri.scheme == "dart") {
+    if (vertex.library.importUri.isScheme("dart")) {
       root.successors.add(vertex);
       vertex.isLoadingRoot = false;
     }

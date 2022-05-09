@@ -32,15 +32,35 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A.named(0)');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      constructorName: 'named',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-    );
+    var node = findNode.instanceCreation('A.named(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: dynamic}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
   }
 
   test_class_generic_named_withTypeArguments() async {
@@ -55,15 +75,41 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A<int>');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      constructorName: 'named',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-    );
+    var node = findNode.instanceCreation('A<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A<int>
+''');
     assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
@@ -79,14 +125,28 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A(0)');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-    );
+    var node = findNode.instanceCreation('A(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A<int>
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
   }
 
   test_class_generic_unnamed_withTypeArguments() async {
@@ -99,14 +159,34 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A<int>');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-    );
+    var node = findNode.instanceCreation('A<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: A<int>
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A<int>
+''');
     assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
@@ -122,8 +202,26 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A(0)');
-    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+    var node = findNode.instanceCreation('A(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    staticElement: self::@class::A::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
   }
 
   test_demoteType() async {
@@ -140,10 +238,29 @@ void f<S>(S s) {
 
 ''');
 
-    assertType(
-      findNode.instanceCreation('A(s)'),
-      'A<S>',
-    );
+    var node = findNode.instanceCreation('A(s)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A<S>
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: S}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: s
+        staticElement: s@38
+        staticType: S & int
+    rightParenthesis: )
+  staticType: A<S>
+''');
   }
 
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
@@ -153,14 +270,34 @@ final foo = Map<int>();
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
     ]);
 
-    var creation = findNode.instanceCreation('Map<int>');
-    assertInstanceCreation(
-      creation,
-      mapElement,
-      'Map<dynamic, dynamic>',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'K': 'dynamic', 'V': 'dynamic'},
-    );
+    var node = findNode.instanceCreation('Map<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: Map
+        staticElement: dart:core::@class::Map
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: Map<dynamic, dynamic>
+    staticElement: ConstructorMember
+      base: dart:core::@class::Map::@constructor::•
+      substitution: {K: dynamic, V: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Map<dynamic, dynamic>
+''');
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
@@ -178,15 +315,42 @@ main() {
           messageContains: ["The constructor 'Foo.bar'"]),
     ]);
 
-    var creation = findNode.instanceCreation('Foo.bar<int>');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('Foo'),
-      'Foo<dynamic>',
-      constructorName: 'bar',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'X': 'dynamic'},
-    );
+    var node = findNode.instanceCreation('Foo.bar<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: Foo
+        staticElement: self::@class::Foo
+        staticType: null
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      staticElement: ConstructorMember
+        base: self::@class::Foo::@constructor::bar
+        substitution: {X: dynamic}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::Foo::@constructor::bar
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+''');
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_new() async {
@@ -204,18 +368,46 @@ main() {
           messageContains: ["The constructor 'Foo.new'"]),
     ]);
 
-    var creation = findNode.instanceCreation('Foo.new<int>');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('Foo'),
-      'Foo<dynamic>',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'X': 'dynamic'},
-    );
+    var node = findNode.instanceCreation('Foo.new<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: Foo
+        staticElement: self::@class::Foo
+        staticType: null
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: ConstructorMember
+        base: self::@class::Foo::@constructor::•
+        substitution: {X: dynamic}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::Foo::@constructor::•
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+''');
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class Foo<X> {
   Foo.bar();
 }
@@ -232,15 +424,50 @@ main() {
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
     // AST to reflect the expected structure.
-//    var creation = findNode.instanceCreation('Foo.bar<int>');
-//    var import = findElement.import('package:test/a.dart');
-//    assertInstanceCreation(
-//      creation,
-//      import.importedLibrary.getType('Foo'),
-//      'Foo',
-//      constructorName: 'bar',
-//      expectedPrefix: import.prefix,
-//    );
+    var node = findNode.instanceCreation('Foo.bar<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: Foo
+          staticElement: package:test/a.dart::@class::Foo
+          staticType: null
+        staticElement: package:test/a.dart::@class::Foo
+        staticType: null
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::Foo::@constructor::bar
+        substitution: {X: dynamic}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::Foo::@constructor::bar
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+''');
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
@@ -257,23 +484,45 @@ main() {
           5),
     ]);
 
-    var creation = findNode.instanceCreation('Foo.bar<int>');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('Foo'),
-      // TODO(scheglov) Move type arguments
-      'Foo<dynamic>',
-//      'Foo<int>',
-      constructorName: 'bar',
-      expectedConstructorMember: true,
-      // TODO(scheglov) Move type arguments
-      expectedSubstitution: {'X': 'dynamic'},
-//      expectedSubstitution: {'X': 'int'},
-    );
+    var node = findNode.instanceCreation('Foo.bar<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: Foo
+        staticElement: self::@class::Foo
+        staticType: null
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      staticElement: ConstructorMember
+        base: self::@class::Foo::@constructor::bar
+        substitution: {X: dynamic}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::Foo::@constructor::bar
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+''');
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_prefix() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
+    newFile2('$testPackageLibPath/a.dart', '''
 class Foo<X> {
   Foo.bar();
 }
@@ -289,18 +538,49 @@ main() {
           5),
     ]);
 
-    var import = findElement.import('package:test/a.dart');
-
-    var creation = findNode.instanceCreation('Foo.bar<int>');
-    assertInstanceCreation(
-      creation,
-      import.importedLibrary!.getType('Foo')!,
-      'Foo<int>',
-      constructorName: 'bar',
-      expectedConstructorMember: true,
-      expectedPrefix: import.prefix,
-      expectedSubstitution: {'X': 'int'},
-    );
+    var node = findNode.instanceCreation('Foo.bar<int>');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          staticElement: self::@prefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: Foo
+          staticElement: package:test/a.dart::@class::Foo
+          staticType: null
+        staticElement: package:test/a.dart::@class::Foo
+        staticType: null
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+        rightBracket: >
+      type: Foo<int>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::Foo::@constructor::bar
+        substitution: {X: int}
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
   }
 
   test_namedArgument_anywhere() async {
@@ -324,11 +604,85 @@ void f() {
 }
 ''');
 
-    assertInstanceCreation(
-      findNode.instanceCreation('X(g'),
-      findElement.class_('X'),
-      'X',
-    );
+    var node = findNode.instanceCreation('X(g');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: X
+        staticElement: self::@class::X
+        staticType: null
+      type: X
+    staticElement: self::@class::X::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: g1
+          staticElement: self::@function::g1
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A Function()
+        staticType: A
+        typeArgumentTypes
+          A
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: c
+            staticElement: self::@class::X::@constructor::•::@parameter::c
+            staticType: null
+          colon: :
+        expression: MethodInvocation
+          methodName: SimpleIdentifier
+            token: g3
+            staticElement: self::@function::g3
+            staticType: T Function<T>()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: C? Function()
+          staticType: C?
+          typeArgumentTypes
+            C?
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: g2
+          staticElement: self::@function::g2
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: B Function()
+        staticType: B
+        typeArgumentTypes
+          B
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: d
+            staticElement: self::@class::X::@constructor::•::@parameter::d
+            staticType: null
+          colon: :
+        expression: MethodInvocation
+          methodName: SimpleIdentifier
+            token: g4
+            staticElement: self::@function::g4
+            staticType: T Function<T>()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: D? Function()
+          staticType: D?
+          typeArgumentTypes
+            D?
+    rightParenthesis: )
+  staticType: X
+''');
 
     var g1 = findNode.methodInvocation('g1()');
     assertType(g1, 'A');
@@ -362,16 +716,35 @@ void f() {
 }
 ''');
 
-    var creation = findNode.instanceCreation('B.named(0)');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      constructorName: 'named',
-      expectedTypeNameElement: findElement.typeAlias('B'),
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-    );
+    var node = findNode.instanceCreation('B.named(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@typeAlias::B
+        staticType: null
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: dynamic}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
   }
 
   test_typeAlias_generic_class_generic_named_infer_partial() async {
@@ -387,16 +760,37 @@ void f() {
 }
 ''');
 
-    var creation = findNode.instanceCreation('B.named(0, ');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int, String>',
-      constructorName: 'named',
-      expectedTypeNameElement: findElement.typeAlias('B'),
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int', 'U': 'String'},
-    );
+    var node = findNode.instanceCreation('B.named(0, ');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@typeAlias::B
+        staticType: null
+      type: A<int, String>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: dynamic, U: String}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticType: A<int, String>
+''');
   }
 
   test_typeAlias_generic_class_generic_unnamed_infer_all() async {
@@ -412,15 +806,28 @@ void f() {
 }
 ''');
 
-    var creation = findNode.instanceCreation('B(0)');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      expectedTypeNameElement: findElement.typeAlias('B'),
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-    );
+    var node = findNode.instanceCreation('B(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@typeAlias::B
+        staticType: null
+      type: A<int>
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
   }
 
   test_typeAlias_generic_class_generic_unnamed_infer_partial() async {
@@ -436,15 +843,30 @@ void f() {
 }
 ''');
 
-    var creation = findNode.instanceCreation('B(0, ');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int, String>',
-      expectedTypeNameElement: findElement.typeAlias('B'),
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int', 'U': 'String'},
-    );
+    var node = findNode.instanceCreation('B(0, ');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@typeAlias::B
+        staticType: null
+      type: A<int, String>
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticType: A<int, String>
+''');
   }
 
   test_typeAlias_notGeneric_class_generic_named_argumentTypeMismatch() async {
@@ -462,16 +884,35 @@ void f() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1),
     ]);
 
-    var creation = findNode.instanceCreation('B.named(0)');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<String>',
-      constructorName: 'named',
-      expectedTypeNameElement: findElement.typeAlias('B'),
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'String'},
-    );
+    var node = findNode.instanceCreation('B.named(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@typeAlias::B
+        staticType: null
+      type: A<String>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: String}
+      staticType: null
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A<String>
+''');
   }
 
   test_typeAlias_notGeneric_class_generic_unnamed_argumentTypeMismatch() async {
@@ -489,15 +930,28 @@ void f() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1),
     ]);
 
-    var creation = findNode.instanceCreation('B(0)');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<String>',
-      expectedTypeNameElement: findElement.typeAlias('B'),
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'String'},
-    );
+    var node = findNode.instanceCreation('B(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: B
+        staticElement: self::@typeAlias::B
+        staticType: null
+      type: A<String>
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::•
+      substitution: {T: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A<String>
+''');
   }
 
   test_unnamed_declaredNew() async {
@@ -512,8 +966,26 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A(0)');
-    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+    var node = findNode.instanceCreation('A(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    staticElement: self::@class::A::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
   }
 
   test_unnamedViaNew_declaredNew() async {
@@ -528,8 +1000,31 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A.new(0)');
-    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+    var node = findNode.instanceCreation('A.new(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
   }
 
   test_unnamedViaNew_declaredUnnamed() async {
@@ -544,8 +1039,31 @@ void f() {
 
 ''');
 
-    var creation = findNode.instanceCreation('A.new(0)');
-    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+    var node = findNode.instanceCreation('A.new(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
   }
 }
 
@@ -567,7 +1085,30 @@ void f() {
     ]);
 
     // Resolution should continue even though the experiment is not enabled.
-    var creation = findNode.instanceCreation('A.new(0)');
-    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+    var node = findNode.instanceCreation('A.new(0)');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: self::@class::A::@constructor::•
+      staticType: null
+    staticElement: self::@class::A::@constructor::•
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
   }
 }

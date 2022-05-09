@@ -32,12 +32,12 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
   no-such-method-forwarder method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<self::MyFuture::T*>* onTimeout = #C1}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
-static method g1(core::bool* x) → asy::Future<core::int*>* async {
+static method g1(core::bool* x) → asy::Future<core::int*>* async /* futureValueType= core::int* */ {
   return (x ?{core::Object*} 42 : asy::Future::value<core::int*>(42)) as{TypeError} FutureOr<core::int*>*;
 }
-static method g2(core::bool* x) → asy::Future<core::int*>* async 
+static method g2(core::bool* x) → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
   return (x ?{core::Object*} 42 : asy::Future::value<core::int*>(42)) as{TypeError} FutureOr<core::int*>*;
-static method g3(core::bool* x) → asy::Future<core::int*>* async {
+static method g3(core::bool* x) → asy::Future<core::int*>* async /* futureValueType= core::int* */ {
   core::Object* y = x ?{core::Object*} 42 : asy::Future::value<core::int*>(42);
   return y as{TypeError} FutureOr<core::int*>*;
 }

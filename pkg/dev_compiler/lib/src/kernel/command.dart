@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
@@ -177,8 +176,8 @@ Future<CompilerResult> _compile(List<String> args,
       options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
-    if (uri.scheme == '') {
-      return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
+    if (!uri.hasScheme) {
+      return Uri(scheme: options.multiRootScheme, path: '/${uri.path}');
     }
     return uri;
   }
@@ -276,7 +275,7 @@ Future<CompilerResult> _compile(List<String> args,
         additionalDills,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: options.enableNullSafety)),
+            enableNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
@@ -315,7 +314,7 @@ Future<CompilerResult> _compile(List<String> args,
         inputDigests,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: options.enableNullSafety)),
+            enableNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
@@ -382,7 +381,7 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       component.unbindCanonicalNames();
     }
-    var sink = File(p.withoutExtension(outPaths.first) + '.dill').openWrite();
+    var sink = File('${p.withoutExtension(outPaths.first)}.dill').openWrite();
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
@@ -405,7 +404,7 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       compiledLibraries.unbindCanonicalNames();
     }
-    fullDillUri = p.withoutExtension(outPaths.first) + '.full.dill';
+    fullDillUri = '${p.withoutExtension(outPaths.first)}.full.dill';
     var sink = File(fullDillUri).openWrite();
     kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
@@ -419,8 +418,8 @@ Future<CompilerResult> _compile(List<String> args,
     }
     var sb = StringBuffer();
     kernel.Printer(sb).writeComponentFile(component);
-    outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
-    outFiles.add(File(outPaths.first.split('.')[0] + '.ast.xml')
+    outFiles.add(File('${outPaths.first}.txt').writeAsString(sb.toString()));
+    outFiles.add(File('${outPaths.first.split('.')[0]}.ast.xml')
         .writeAsString(DebugPrinter.prettyPrint(compiledLibraries)));
   }
 
@@ -486,7 +485,7 @@ Future<CompilerResult> _compile(List<String> args,
       compilerState.incrementalCompiler.updateNeededDillLibrariesWithHierarchy(
           neededDillLibraries, result.classHierarchy);
       for (var lib in neededDillLibraries) {
-        if (lib.importUri.scheme == 'dart') continue;
+        if (lib.importUri.isScheme('dart')) continue;
         var uri = compilerState.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw StateError('Library ${lib.importUri} was recorded as used, '
@@ -552,7 +551,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var component = loadComponentFromBinary(inputs.single);
   var invalidLibraries = <Uri>[];
   for (var library in component.libraries) {
-    if (library.importUri.scheme != 'dart') {
+    if (!library.importUri.isScheme('dart')) {
       invalidLibraries.add(library.importUri);
     }
   }
@@ -584,7 +583,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri(output + '.map').toString(),
+        mapUrl: p.toUri('$output.map').toString(),
         customScheme: options.multiRootScheme,
         multiRootOutputPath: options.multiRootOutputPath,
         component: component);
@@ -592,7 +591,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
   }
   await Future.wait(outFiles);
@@ -825,10 +824,6 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
     }
   }
 
-  // Add platform defined variables
-  // TODO(47243) Remove when all code paths read these from the `Target`.
-  declaredVariables.addAll(sdkLibraryEnvironmentDefines);
-
   return declaredVariables;
 }
 
@@ -841,11 +836,14 @@ String defaultSdkSummaryPath({bool soundNullSafety}) {
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
-/// Returns the absolute path to the default `.packages` file, or `null` if one
-/// could not be found.
+/// Return the path to the runtime Dart SDK.
+String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
+
+/// Returns the absolute path to the default `package_config.json` file, or
+/// `null` if one could not be found.
 ///
-/// Checks for a `.packages` file in the current working directory, or in any
-/// parent directory.
+/// Checks for a `.dart_tool/package_config.json` file in the current working
+/// directory, or in any parent directory.
 String _findPackagesFilePath() {
   // TODO(jmesserly): this was copied from package:package_config/discovery.dart
   // Unfortunately the relevant function is not public. CFE APIs require a URI
@@ -854,9 +852,9 @@ String _findPackagesFilePath() {
   if (!dir.isAbsolute) dir = dir.absolute;
   if (!dir.existsSync()) return null;
 
-  // Check for $cwd/.packages
+  // Check for $cwd/.dart_tool/package_config.json
   while (true) {
-    var file = File(p.join(dir.path, '.packages'));
+    var file = File.fromUri(dir.uri.resolve('.dart_tool/package_config.json'));
     if (file.existsSync()) return file.path;
 
     // If we didn't find it, search the parent directory.

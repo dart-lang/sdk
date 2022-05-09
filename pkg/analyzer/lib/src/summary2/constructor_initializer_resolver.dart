@@ -18,12 +18,16 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     for (var unitElement in _libraryElement.units) {
-      var classElements = [...unitElement.classes, ...unitElement.mixins];
+      var classElements = [
+        ...unitElement.classes,
+        ...unitElement.enums,
+        ...unitElement.mixins,
+      ];
       for (var classElement in classElements) {
         for (var constructorElement in classElement.constructors) {
           _constructor(
             unitElement as CompilationUnitElementImpl,
-            classElement as ClassElementImpl,
+            classElement as AbstractClassElementImpl,
             constructorElement as ConstructorElementImpl,
           );
         }
@@ -33,7 +37,7 @@ class ConstructorInitializerResolver {
 
   void _constructor(
     CompilationUnitElementImpl unitElement,
-    ClassElementImpl classElement,
+    AbstractClassElementImpl classElement,
     ConstructorElementImpl element,
   ) {
     if (element.isSynthetic) return;
@@ -46,7 +50,7 @@ class ConstructorInitializerResolver {
       element,
     );
 
-    var astResolver = AstResolver(_linker, unitElement, initializerScope, node,
+    var astResolver = AstResolver(_linker, unitElement, initializerScope,
         enclosingClassElement: classElement,
         enclosingExecutableElement: element);
 

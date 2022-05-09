@@ -73,3 +73,7 @@ T createSentinel<T>() => createJsSentinel<T>();
 @patch
 @pragma('dart2js:tryInline')
 bool isSentinel(dynamic value) => isJsSentinel(value);
+
+@patch
+@pragma('dart2js:tryInline')
+T unsafeCast<T>(dynamic v) => v;

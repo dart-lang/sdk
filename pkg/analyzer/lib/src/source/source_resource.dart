@@ -44,9 +44,8 @@ class FileSource extends Source {
   /// Initialize a newly created source object to represent the given [file]. If
   /// a [uri] is given, then it will be used as the URI from which the source
   /// was derived, otherwise a `file:` URI will be created based on the [file].
-  FileSource(File file, [Uri? uri])
+  FileSource(this.file, [Uri? uri])
       : uri = uri ?? file.toUri(),
-        file = file,
         id = _idTable.putIfAbsent(
             '${uri ?? file.toUri()}@${file.path}', () => _idTable.length);
 
@@ -80,7 +79,7 @@ class FileSource extends Source {
 
   @Deprecated('Use uri.isScheme("dart") instead')
   @override
-  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
+  bool get isInSystemLibrary => uri.isScheme(DartUriResolver.DART_SCHEME);
 
   @Deprecated('Not used anymore')
   @override
@@ -100,11 +99,11 @@ class FileSource extends Source {
   UriKind get uriKind => UriKind.fromScheme(uri.scheme);
 
   @override
-  bool operator ==(Object object) {
-    if (object is FileSource) {
-      return id == object.id;
-    } else if (object is Source) {
-      return uri == object.uri;
+  bool operator ==(Object other) {
+    if (other is FileSource) {
+      return id == other.id;
+    } else if (other is Source) {
+      return uri == other.uri;
     }
     return false;
   }

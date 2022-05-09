@@ -3,32 +3,23 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
-
-import '../builder/constructor_builder.dart';
-
+import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/forest.dart';
-import '../kernel/implicit_field_type.dart';
-import '../kernel/internal_ast.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
+import '../kernel/implicit_field_type.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import 'factor_type.dart';
-
 import 'type_inferrer.dart';
-
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
@@ -122,14 +113,14 @@ abstract class TypeInferenceEngine {
   /// This is represented as a map from a constructor to its library
   /// builder because the builder is used to report errors due to cyclic
   /// inference dependencies.
-  final Map<Constructor, ConstructorBuilder> toBeInferred = {};
+  final Map<Constructor, SourceConstructorBuilder> toBeInferred = {};
 
   /// A map containing constructors in the process of being inferred.
   ///
   /// This is used to detect cyclic inference dependencies.  It is represented
   /// as a map from a constructor to its library builder because the builder
   /// is used to report errors.
-  final Map<Constructor, ConstructorBuilder> beingInferred = {};
+  final Map<Constructor, SourceConstructorBuilder> beingInferred = {};
 
   final Map<Member, TypeDependency> typeDependencies = {};
 
@@ -153,8 +144,8 @@ abstract class TypeInferenceEngine {
   void finishTopLevelInitializingFormals() {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
-    for (ConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes();
+    for (SourceConstructorBuilder builder in toBeInferred.values) {
+      builder.inferFormalTypes(typeSchemaEnvironment);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -186,7 +177,9 @@ abstract class TypeInferenceEngine {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
-  TypeInferenceEngineImpl(Instrumentation? instrumentation)
+  final Benchmarker? benchmarker;
+
+  TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
 
   @override
@@ -200,8 +193,12 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
-    return new TypeInferrerImpl(
-        this, uri, false, thisType, library, assignedVariables, dataForTesting);
+    if (benchmarker == null) {
+      return new TypeInferrerImpl(this, uri, false, thisType, library,
+          assignedVariables, dataForTesting);
+    }
+    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
+        assignedVariables, dataForTesting, benchmarker!);
   }
 
   @override
@@ -215,8 +212,12 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
-    return new TypeInferrerImpl(
-        this, uri, true, thisType, library, assignedVariables, dataForTesting);
+    if (benchmarker == null) {
+      return new TypeInferrerImpl(this, uri, true, thisType, library,
+          assignedVariables, dataForTesting);
+    }
+    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
+        assignedVariables, dataForTesting, benchmarker!);
   }
 }
 

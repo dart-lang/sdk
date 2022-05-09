@@ -23,6 +23,7 @@
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
 #include "vm/type_testing_stubs.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/code_statistics.h"
@@ -529,7 +530,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
       stream->WriteFixed<uint32_t>(
-          map.ptr()->untag()->payload()->flags_and_size);
+          map.ptr()->untag()->payload()->flags_and_size());
       stream->WriteBytes(map.ptr()->untag()->payload()->data(), payload_size);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
@@ -884,7 +885,8 @@ intptr_t ImageWriter::AlignWithBreakInstructions(intptr_t alignment,
     ASSERT_EQUAL(remaining, 4);
     bytes_written += WriteBytes(&kBreakInstructionFiller, remaining);
   }
-#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                 \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   // The break instruction is a single byte, repeated to fill a word.
   bytes_written += WriteBytes(&kBreakInstructionFiller, remaining);
 #else
@@ -1055,48 +1057,81 @@ void AssemblyImageWriter::Finalize() {
   }
 }
 
-static void EnsureAssemblerIdentifier(char* label) {
+static void AddAssemblerIdentifier(ZoneTextBuffer* printer, const char* label) {
+  ASSERT(label[0] != '.');
   for (char c = *label; c != '\0'; c = *++label) {
+#define OP(dart_name, asm_name)                                                \
+  if (strncmp(label, dart_name, strlen(dart_name)) == 0) {                     \
+    printer->AddString(asm_name);                                              \
+    label += (strlen(dart_name) - 1);                                          \
+    continue;                                                                  \
+  }
+
+    OP("+", "operator_add")
+    OP("-", "operator_sub")
+    OP("*", "operator_mul")
+    OP("/", "operator_div")
+    OP("~/", "operator_truncdiv")
+    OP("%", "operator_mod")
+    OP("~", "operator_not")
+    OP("&", "operator_and")
+    OP("|", "operator_or")
+    OP("^", "operator_xor")
+    OP("<<", "operator_sll")
+    OP(">>>", "operator_srl")
+    OP(">>", "operator_sra")
+    OP("[]=", "operator_set")
+    OP("[]", "operator_get")
+    OP("unary-", "operator_neg")
+    OP("==", "operator_eq")
+    OP("<anonymous closure>", "anonymous_closure")
+    OP("<=", "operator_le")
+    OP("<", "operator_lt")
+    OP(">=", "operator_ge")
+    OP(">", "operator_gt")
+#undef OP
+
     if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
-        ((c >= '0') && (c <= '9'))) {
+        ((c >= '0') && (c <= '9')) || (c == '.')) {
+      printer->AddChar(c);
       continue;
     }
-    *label = '_';
+    printer->AddChar('_');
   }
 }
 
 const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
                                                      const Code& code) {
   ASSERT(!code.IsNull());
-  const char* prefix = FLAG_precompiled_mode ? "Precompiled_" : "";
   owner_ = code.owner();
   if (owner_.IsNull()) {
     insns_ = code.instructions();
     const char* name = StubCode::NameOfStub(insns_.EntryPoint());
     ASSERT(name != nullptr);
-    return OS::SCreate(zone_, "%sStub_%s", prefix, name);
+    return OS::SCreate(zone_, "Stub_%s", name);
   }
   // The weak reference to the Code's owner should never have been removed via
   // an intermediate serialization, since WSRs are only introduced during
   // precompilation.
   owner_ = WeakSerializationReference::Unwrap(owner_);
   ASSERT(!owner_.IsNull());
+  ZoneTextBuffer printer(zone_);
   if (owner_.IsClass()) {
-    string_ = Class::Cast(owner_).Name();
-    const char* name = string_.ToCString();
-    EnsureAssemblerIdentifier(const_cast<char*>(name));
-    return OS::SCreate(zone_, "%sAllocationStub_%s_%" Pd, prefix, name,
-                       code_index);
+    const char* name = Class::Cast(owner_).ScrubbedNameCString();
+    printer.AddString("AllocationStub_");
+    AddAssemblerIdentifier(&printer, name);
   } else if (owner_.IsAbstractType()) {
     const char* name = namer_.StubNameForType(AbstractType::Cast(owner_));
-    return OS::SCreate(zone_, "%s%s_%" Pd, prefix, name, code_index);
+    printer.AddString(name);
   } else if (owner_.IsFunction()) {
-    const char* name = Function::Cast(owner_).ToQualifiedCString();
-    EnsureAssemblerIdentifier(const_cast<char*>(name));
-    return OS::SCreate(zone_, "%s%s_%" Pd, prefix, name, code_index);
+    const char* name = Function::Cast(owner_).QualifiedScrubbedNameCString();
+    AddAssemblerIdentifier(&printer, name);
   } else {
     UNREACHABLE();
   }
+
+  printer.Printf("_%" Pd, code_index);
+  return printer.buffer();
 }
 
 const char* SnapshotTextObjectNamer::SnapshotNameFor(
@@ -1293,98 +1328,33 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // CFA = Canonical frame address
   assembly_stream_->WriteString(".cfi_startproc\n");
 
-#if defined(TARGET_ARCH_X64)
-  assembly_stream_->WriteString(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(
-      ".cfi_offset rbp, 0\n");  // saved fp is *(CFA+0)
-  assembly_stream_->WriteString(
-      ".cfi_offset rip, 8\n");  // saved pc is *(CFA+8)
-  // saved sp is CFA+16
-  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
-  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
-  // because DW_CFA_val_offset uses scaled operand and we don't know what
-  // data alignment factor will be choosen by the assembler when emitting CIE.
-  // DW_CFA_expression          0x10
-  // uleb128 register (rsp)        7   (DWARF register number)
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+  // Below .cfi_def_cfa defines CFA as caller's SP, while .cfi_offset R, offs
+  // tells unwinder that caller's value of register R is stored at address
+  // CFA+offs.
 
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#elif defined(TARGET_ARCH_X64)
+  assembly_stream_->WriteString(".cfi_def_cfa rbp, 16\n");
+  assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
+  assembly_stream_->WriteString(".cfi_offset rip, -8\n");
 #elif defined(TARGET_ARCH_ARM64)
   COMPILE_ASSERT(R29 == FP);
   COMPILE_ASSERT(R30 == LINK_REGISTER);
-  assembly_stream_->WriteString(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(
-      ".cfi_offset x29, 0\n");  // saved fp is *(CFA+0)
-  assembly_stream_->WriteString(
-      ".cfi_offset x30, 8\n");  // saved pc is *(CFA+8)
-  // saved sp is CFA+16
-  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
-  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
-  // because DW_CFA_val_offset uses scaled operand and we don't know what
-  // data alignment factor will be choosen by the assembler when emitting CIE.
-#if defined(DART_TARGET_OS_ANDROID)
-  // On Android libunwindstack has a bug (b/191113792): it does not push
-  // CFA value to the expression stack before evaluating expression given
-  // to DW_CFA_expression. We have to workaround this bug by manually pushing
-  // CFA (R11) to the stack using DW_OP_breg29 0.
-  // DW_CFA_expression          0x10
-  // uleb128 register (x31)       31
-  // uleb128 size of operation     4
-  // DW_OP_breg11               0x8d (0x70 + 29)
-  // sleb128 offset                0
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 4, 0x8d, 0, 0x23, 16\n");
-#else
-  // DW_CFA_expression          0x10
-  // uleb128 register (x31)       31
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
-#endif
-
+  assembly_stream_->WriteString(".cfi_def_cfa x29, 16\n");
+  assembly_stream_->WriteString(".cfi_offset x29, -16\n");
+  assembly_stream_->WriteString(".cfi_offset x30, -8\n");
 #elif defined(TARGET_ARCH_ARM)
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
-  assembly_stream_->WriteString(".cfi_def_cfa r7, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(".cfi_offset r7, 0\n");  // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(".cfi_def_cfa r7, 8\n");
+  assembly_stream_->WriteString(".cfi_offset r7, -8\n");
 #else
   COMPILE_ASSERT(FP == R11);
-  assembly_stream_->WriteString(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
-  assembly_stream_->WriteString(
-      ".cfi_offset r11, 0\n");  // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(".cfi_def_cfa r11, 8\n");
+  assembly_stream_->WriteString(".cfi_offset r11, -8\n");
 #endif
-  assembly_stream_->WriteString(".cfi_offset lr, 4\n");  // saved pc is *(CFA+4)
-  // saved sp is CFA+8
-  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
-  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
-  // because DW_CFA_val_offset uses scaled operand and we don't know what
-  // data alignment factor will be choosen by the assembler when emitting CIE.
-#if defined(DART_TARGET_OS_ANDROID)
-  // On Android libunwindstack has a bug (b/191113792): it does not push
-  // CFA value to the expression stack before evaluating expression given
-  // to DW_CFA_expression. We have to workaround this bug by manually pushing
-  // CFA (R11) to the stack using DW_OP_breg11 0.
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        13
-  // uleb128 size of operation     4
-  // DW_OP_breg11               0x7b (0x70 + 11)
-  // sleb128 offset                0
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 4, 0x7b, 0, 0x23, 16\n");
-#else
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        13
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_->WriteString(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
-#endif
-
+  assembly_stream_->WriteString(".cfi_offset lr, -4\n");
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
@@ -1392,6 +1362,16 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".save {r11, lr}\n");
   assembly_stream_->WriteString(".setfp r11, sp, #0\n");
 #endif
+#elif defined(TARGET_ARCH_RISCV32)
+  assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -8\n");
+  assembly_stream_->WriteString(".cfi_offset ra, -4\n");
+#elif defined(TARGET_ARCH_RISCV64)
+  assembly_stream_->WriteString(".cfi_def_cfa fp, 0\n");
+  assembly_stream_->WriteString(".cfi_offset fp, -16\n");
+  assembly_stream_->WriteString(".cfi_offset ra, -8\n");
+#else
+#error Unexpected architecture.
 #endif
 }
 

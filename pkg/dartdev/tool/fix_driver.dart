@@ -8,9 +8,8 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/commands/fix.dart';
 import 'package:dartdev/src/core.dart';
 import 'package:dartdev/src/utils.dart';
-import 'package:meta/meta.dart';
 
-Future<void> main(List<String> args) async {
+Future<int?> main(List<String> args) async {
   var runner = FixRunner(logger: Logger.standard());
   var result = await runner.runFix(args);
   return result.returnCode;
@@ -32,7 +31,7 @@ class CapturedProgress extends Progress {
   }
 
   @override
-  void finish({String message, bool showTiming = false}) {
+  void finish({String? message, bool showTiming = false}) {
     // todo (pq): consider capturing / tracking finish display updates.
     finished = true;
   }
@@ -85,7 +84,7 @@ class CapturingLogger implements Logger {
 
 class FixResult<T extends Logger> {
   /// The value returned by [FixCommand.run].
-  final int returnCode;
+  final int? returnCode;
 
   /// The logger used in driving fixes.
   final T logger;
@@ -104,7 +103,7 @@ class FixRunner<T extends Logger> extends CommandRunner<int> {
     allowTrailingOptions: false,
   );
 
-  FixRunner({@required this.logger})
+  FixRunner({required this.logger})
       : super('fix_runner',
             'A command-line utility for testing the `dart fix` command.') {
     addCommand(FixCommand());
@@ -112,14 +111,14 @@ class FixRunner<T extends Logger> extends CommandRunner<int> {
   }
 
   @override
-  Future<int> runCommand(ArgResults topLevelResults) async {
+  Future<int?> runCommand(ArgResults topLevelResults) async {
     var result = await super.runCommand(topLevelResults);
     return result;
   }
 
   Future<FixResult<T>> runFix(List<String> args) async {
     log = logger;
-    var argResults = argParser.parse(['fix', ...?args]);
+    var argResults = argParser.parse(['fix', ...args]);
     var result = await runCommand(argResults);
     return FixResult(logger, result);
   }

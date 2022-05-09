@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:macro/macro.dart" as mac;
+
+import "package:macro/macro.dart";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+}
+class B2 extends self::B1 {
+  synthetic constructor •() → self::B2
+    : super self::B1::•()
+    ;
+}
+class C1 extends self::C2 {
+  synthetic constructor •() → self::C1
+    : super self::C2::•()
+    ;
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+}
+class D1 extends core::Object {
+  synthetic constructor •() → self::D1
+    : super core::Object::•()
+    ;
+}
+class D2 extends core::Object {
+  synthetic constructor •() → self::D2
+    : super core::Object::•()
+    ;
+}
+@#C1
+@#C2
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFunction1(self::A a) → self::A {
+  core::print("isExactly=true");
+  core::print("isSubtype=true");
+  throw 42;
+}
+@#C1
+@#C2
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFunction2(self::B1 a) → self::B2 {
+  core::print("isExactly=false");
+  core::print("isSubtype=true");
+  throw 42;
+}
+@#C1
+@#C2
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFunction3(self::C1 a) → self::C2 {
+  core::print("isExactly=false");
+  core::print("isSubtype=false");
+  throw 42;
+}
+@#C1
+@#C2
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ topLevelFunction4(self::D1 a) → self::D2 {
+  core::print("isExactly=false");
+  core::print("isSubtype=false");
+  throw 42;
+}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ topLevelFunction1GeneratedMethod_es() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ topLevelFunction2GeneratedMethod_s() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ topLevelFunction3GeneratedMethod_() → void {}
+static method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ topLevelFunction4GeneratedMethod_() → void {}
+
+constants  {
+  #C1 = mac::FunctionDeclarationsMacro2 {}
+  #C2 = mac::FunctionDefinitionMacro2 {}
+}

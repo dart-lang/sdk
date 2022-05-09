@@ -7,16 +7,22 @@
 /// A library to invoke the CFE to compute kernel summary files.
 ///
 /// Used by `utils/bazel/kernel_worker.dart`.
-
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
+    as isolatedExecutor;
+import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
+    as processExecutor;
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    show SerializationMode;
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
+import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/flutter.dart';
@@ -94,7 +100,22 @@ final summaryArgsParser = new ArgParser()
       help: 'Sets the verbosity level used for filtering messages during '
           'compilation.',
       allowed: fe.Verbosity.allowedValues,
-      allowedHelp: fe.Verbosity.allowedValuesHelp);
+      allowedHelp: fe.Verbosity.allowedValuesHelp)
+  ..addMultiOption('precompiled-macro',
+      help: 'Configuration for precompiled macro binaries or kernel files.\n'
+          'Must be used in combination with --precompiled-macro-format.\n'
+          'The expected format of this option is as follows: '
+          '<macro-library-uri>;<absolute-path-to-binary>\nFor example: '
+          '--precompiled-macro="package:some_macro/some_macro.dart;'
+          '/path/to/compiled/macro"')
+  ..addOption('precompiled-macro-format',
+      help: 'The format for precompiled macros.',
+      allowed: ['aot', 'kernel'],
+      defaultsTo: 'aot')
+  ..addOption('macro-serialization-mode',
+      help: 'The serialization mode for communicating with macros.',
+      allowed: ['bytedata', 'json'],
+      defaultsTo: 'bytedata');
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -273,6 +294,50 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         nnbdMode: nnbdMode);
   }
 
+  // Either set up or reset the state for macros based on experiment status.
+  // TODO: Make this a part of `initializeCompiler`, if/when we want to make it
+  // more widely supported.
+  if (state.processedOpts.globalFeatures.macros.isEnabled) {
+    enableMacros = true;
+    forceEnableMacros = true;
+
+    SerializationMode serializationMode;
+    switch (parsedArgs['macro-serialization-mode']) {
+      case 'json':
+        serializationMode = SerializationMode.jsonServer;
+        break;
+      case 'bytedata':
+        serializationMode = SerializationMode.byteDataServer;
+        break;
+      default:
+        throw ArgumentError('Unrecognized macro serialization mode '
+            '${parsedArgs['macro-serialization-mode']}');
+    }
+
+    var format = parsedArgs['precompiled-macro-format'];
+    switch (format) {
+      case 'kernel':
+        state.options.macroExecutorProvider =
+            () => isolatedExecutor.start(serializationMode);
+        break;
+      case 'aot':
+        state.options.macroExecutorProvider = () => processExecutor.start(
+            serializationMode, processExecutor.CommunicationChannel.socket);
+        break;
+      default:
+        throw ArgumentError('Unrecognized precompiled macro format $format');
+    }
+    var precompiledMacroUris = state.options.precompiledMacroUris = {};
+    for (var parts in (parsedArgs['precompiled-macro'] as List<String>)
+        .map((arg) => arg.split(';'))) {
+      precompiledMacroUris[Uri.parse(parts[0])] = toUri(parts[1]);
+    }
+  } else {
+    enableMacros = false;
+    forceEnableMacros = false;
+    state.options.precompiledMacroUris = {};
+  }
+
   void onDiagnostic(fe.DiagnosticMessage message) {
     if (fe.Verbosity.shouldPrint(verbosity, message)) {
       fe.printDiagnosticMessage(message, out.writeln);
@@ -296,7 +361,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     if (recordUsedInputs) {
       Set<Uri> usedOutlines = {};
       for (Library lib in incrementalCompilerResult.neededDillLibraries) {
-        if (lib.importUri.scheme == "dart") continue;
+        if (lib.importUri.isScheme("dart")) continue;
         Uri uri = state.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw new StateError("Library ${lib.importUri} was recorded as used, "

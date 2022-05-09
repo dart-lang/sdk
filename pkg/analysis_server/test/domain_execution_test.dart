@@ -163,9 +163,9 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   late String contextId;
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = ExecutionDomainHandler(server);
     _createExecutionContext(testFile);
   }
@@ -188,8 +188,8 @@ void contextFunction() {
 }
 ''';
 
-    var path = newFile('/test.dart').path;
-    newFile(path, content: code);
+    var path = newFile2('/test.dart', '').path;
+    newFile2(path, code);
 
     var request = ExecutionGetSuggestionsParams(
         'a.',
@@ -213,7 +213,7 @@ void contextFunction() {
   }
 
   void test_mapUri_file() {
-    var path = newFile('/a/b.dart').path;
+    var path = newFile2('/a/b.dart', '').path;
     // map the file
     var result = _mapUri(file: path);
     expect(result.file, isNull);
@@ -229,7 +229,7 @@ void contextFunction() {
   }
 
   void test_mapUri_uri() {
-    var path = newFile('/a/b.dart').path;
+    var path = newFile2('/a/b.dart', '').path;
     // map the uri
     var result = _mapUri(uri: Uri.file(path).toString());
     expect(result.file, convertPath('/a/b.dart'));

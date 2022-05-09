@@ -170,6 +170,90 @@ main() {
 
     assertType(findNode.cascade('foo?'), 'A?');
   }
+
+  test_ofEnum_read() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v;
+  int get foo => 0;
+}
+
+void f(E e) {
+  (e).foo;
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('foo;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_ofEnum_read_fromMixin() async {
+    await assertNoErrorsInCode('''
+mixin M on Enum {
+  int get foo => 0;
+}
+
+enum E with M {
+  v;
+}
+
+void f(E e) {
+  (e).foo;
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('foo;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_ofEnum_write() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v;
+  set foo(int _) {}
+}
+
+void f(E e) {
+  (e).foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
+  }
 }
 
 mixin PropertyAccessResolutionTestCases on PubPackageResolutionTest {
@@ -227,15 +311,6 @@ void f(A a) {
       ),
       type: 'int',
     );
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'num',
-      );
-    }
   }
 
   test_extensionOverride_write() async {
@@ -260,19 +335,6 @@ void f(A a) {
       writeType: 'int',
       operatorElement: null,
       type: 'int',
-    );
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
     );
   }
 
@@ -339,15 +401,6 @@ void f() {
       ),
       type: 'int',
     );
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
   }
 
   test_instanceCreation_write() async {
@@ -370,19 +423,6 @@ void f() {
       writeType: 'int',
       operatorElement: null,
       type: 'int',
-    );
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
     );
   }
 
@@ -575,15 +615,6 @@ void f() {
       ),
       type: 'int',
     );
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'num',
-      );
-    }
   }
 
   test_ofExtension_write() async {
@@ -608,19 +639,6 @@ void f() {
       writeType: 'int',
       operatorElement: null,
       type: 'int',
-    );
-
-    var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
     );
   }
 
@@ -683,20 +701,8 @@ class B extends A {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
     assertSuperExpression(
       propertyAccess.target,
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
     );
   }
 
@@ -725,20 +731,8 @@ class B extends A {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    if (hasAssignmentLeftResolution) {
-      assertPropertyAccess2(
-        propertyAccess,
-        element: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
-
     assertSuperExpression(
       propertyAccess.target,
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      propertyAccess.propertyName,
     );
   }
 

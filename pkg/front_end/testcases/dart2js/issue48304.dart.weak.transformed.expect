@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  abstract method call<T extends core::Object? = dynamic>() → dynamic;
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object? = dynamic>() → dynamic
+    return core::print(self::C::call::T%);
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class Wrapper extends core::Object {
+  final field self::B b;
+  final field self::B call;
+  constructor •(self::B b, self::B call) → self::Wrapper
+    : self::Wrapper::b = b, self::Wrapper::call = call, super core::Object::•()
+    ;
+  static method _#new#tearOff(self::B b, self::B call) → self::Wrapper
+    return new self::Wrapper::•(b, call);
+}
+static method main() → void {
+  self::B b = new self::C::•();
+  b.{self::B::call}<self::A>(){() → dynamic};
+  new self::Wrapper::•(b, b).{self::Wrapper::b}<self::A>(){() → dynamic};
+  new self::Wrapper::•(b, b).{self::Wrapper::b}{self::B}.{self::B::call}<self::A>(){() → dynamic};
+  new self::Wrapper::•(b, b).{self::Wrapper::call}<self::A>(){() → dynamic};
+  new self::Wrapper::•(b, b).{self::Wrapper::call}{self::B}.{self::B::call}<self::A>(){() → dynamic};
+}

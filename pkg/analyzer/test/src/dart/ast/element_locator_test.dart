@@ -63,6 +63,18 @@ class A {
     expect(element, isConstructorElement);
   }
 
+  test_locate_ConstructorSelector_EnumConstantArguments_EnumConstantDeclaration() async {
+    await resolveTestCode(r'''
+enum E {
+  v.named(); // 0
+  const E.named();
+}
+''');
+    var node = findNode.constructorSelector('named(); // 0');
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.constructor('named'));
+  }
+
   test_locate_ExportDirective() async {
     await resolveTestCode("export 'dart:code';");
     var node = findNode.export('export');
@@ -192,7 +204,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -208,7 +220,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 ''');
     await resolveTestCode(r'''
 class A {}
@@ -272,12 +284,12 @@ void main() {
     var libPath = convertPath('$testPackageLibPath/lib.dart');
     var partPath = convertPath('$testPackageLibPath/test.dart');
 
-    newFile(libPath, content: r'''
+    newFile2(libPath, r'''
 library my.lib;
 part 'test.dart';
 ''');
 
-    newFile(partPath, content: r'''
+    newFile2(partPath, r'''
 part of my.lib;
 ''');
 
@@ -314,7 +326,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_exportUri() async {
-    newFile("$testPackageLibPath/foo.dart", content: '');
+    newFile2("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("export 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
@@ -329,7 +341,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_importUri() async {
-    newFile("$testPackageLibPath/foo.dart", content: '');
+    newFile2("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("import 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
@@ -337,7 +349,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_partUri() async {
-    newFile("$testPackageLibPath/foo.dart", content: 'part of lib;');
+    newFile2("$testPackageLibPath/foo.dart", 'part of lib;');
     await resolveTestCode('''
 library lib;
 

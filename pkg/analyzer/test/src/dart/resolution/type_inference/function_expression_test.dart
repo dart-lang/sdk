@@ -18,7 +18,7 @@ main() {
 class FunctionExpressionTest extends PubPackageResolutionTest
     with FunctionExpressionTestCases {
   test_contextFunctionType_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 
 int Function(int a) v;
@@ -42,7 +42,7 @@ void f() {
   }
 
   test_contextFunctionType_nonNullify_returnType_takeActual() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 
 void foo(int Function() x) {}
@@ -60,7 +60,7 @@ void test(int? a) {
   }
 
   test_contextFunctionType_nonNullify_returnType_takeContext() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 
 void foo(int Function() x) {}
@@ -117,7 +117,7 @@ Object? Function() v = () async => foo();
   }
 
   test_optOut_downward_returnType_expressionBody_Null() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 void foo(Map<String, String> Function() f) {}
 ''');
     await resolveTestCode('''
@@ -460,7 +460,7 @@ main() {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 enum E { a, b }
 ''');
 

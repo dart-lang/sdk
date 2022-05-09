@@ -1,0 +1,100 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Enum {
+  synthetic constructor •() → self::A
+    ;
+  get foo() → core::int
+    ;
+}
+abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::A::foo};
+}
+class EA extends self::_EA&_Enum&A /*isEnum*/  {
+  static const field core::List<self::EA> values = const <self::EA>[self::EA::element];
+  static const field self::EA element = const self::EA::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::EA
+    ;
+  method toString() → core::String
+    return "EA.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class B extends core::Object implements core::Enum {
+  synthetic constructor •() → self::B
+    ;
+  get foo() → core::int
+    ;
+}
+abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::B::foo};
+}
+class EB extends self::_EB&_Enum&B /*isEnum*/  {
+  static const field core::List<self::EB> values = const <self::EB>[self::EB::element];
+  static const field self::EB element = const self::EB::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::EB
+    ;
+  method toString() → core::String
+    return "EB.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M extends core::Enum /*isMixinDeclaration*/  {
+  get foo() → core::int
+    ;
+}
+abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::M::foo};
+}
+class EM extends self::_EM&_Enum&M /*isEnum*/  {
+  static const field core::List<self::EM> values = const <self::EM>[self::EM::element];
+  static const field self::EM element = const self::EM::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::EM
+    ;
+  method toString() → core::String
+    return "EM.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class N extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  get foo() → core::int
+    ;
+}
+abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get foo() → core::int
+    return super.{self::N::foo};
+}
+class EN extends self::_EN&_Enum&N /*isEnum*/  {
+  static const field core::List<self::EN> values = const <self::EN>[self::EN::element];
+  static const field self::EN element = const self::EN::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::EN
+    ;
+  method toString() → core::String
+    return "EN.${this.{core::_Enum::_name}{core::String}}";
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:9:6 -> ListConstant(const <EA*>[const EA{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:9:18 -> InstanceConstant(const EA{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:15:6 -> ListConstant(const <EB*>[const EB{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:15:18 -> InstanceConstant(const EB{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:21:6 -> ListConstant(const <EM*>[const EM{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:21:18 -> InstanceConstant(const EM{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:27:6 -> ListConstant(const <EN*>[const EN{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:27:18 -> InstanceConstant(const EN{})
+Extra constant evaluation: evaluated: 32, effectively constant: 8

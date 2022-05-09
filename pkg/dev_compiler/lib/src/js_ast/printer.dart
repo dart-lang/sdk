@@ -2,16 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-// ignore_for_file: always_declare_return_types, prefer_single_quotes
-// ignore_for_file: prefer_collection_literals, omit_local_variable_types
-// ignore_for_file: prefer_final_fields
+// ignore_for_file: always_declare_return_types
+// ignore_for_file: library_prefixes
+// ignore_for_file: omit_local_variable_types
 // ignore_for_file: prefer_initializing_formals
-// ignore_for_file: slash_for_doc_comments, unnecessary_const
+// ignore_for_file: prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_is_not_empty
+// ignore_for_file: prefer_single_quotes
 // ignore_for_file: use_function_type_syntax_for_parameters
 
-part of js_ast;
+library js_ast.printer;
+
+import 'characters.dart' as charCodes;
+import 'nodes.dart';
+import 'precedence.dart';
 
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
@@ -49,7 +53,7 @@ abstract class JavaScriptPrintingContext {
   /// Callback after printing the last character representing [node].
   void exitNode(Node node) {}
 
-  Printer printer;
+  late Printer printer;
 }
 
 /// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
@@ -82,7 +86,7 @@ class Printer implements NodeVisitor {
   // The current indentation level.
   int _indentLevel = 0;
   // A cache of all indentation strings used so far.
-  List<String> _indentList = <String>[""];
+  final List<String> _indentList = [""];
 
   /// Whether the next call to [indent] should just be a no-op.
   bool _skipNextIndent = false;
@@ -91,7 +95,7 @@ class Printer implements NodeVisitor {
   static final expressionContinuationRegExp = RegExp(r'^[-+([]');
 
   Printer(JavaScriptPrintingOptions options, JavaScriptPrintingContext context,
-      {LocalNamer localNamer})
+      {LocalNamer? localNamer})
       : options = options,
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
@@ -101,7 +105,7 @@ class Printer implements NodeVisitor {
   }
 
   static LocalNamer determineRenamer(
-      LocalNamer localNamer, JavaScriptPrintingOptions options) {
+      LocalNamer? localNamer, JavaScriptPrintingOptions options) {
     if (localNamer != null) return localNamer;
     return (options.shouldCompressOutput && options.minifyLocalVariables)
         ? MinifyRenamer()
@@ -139,9 +143,9 @@ class Printer implements NodeVisitor {
     if (!shouldCompressOutput) out(" ");
   }
 
-  String lastAddedString;
+  String lastAddedString = '\u0000';
+
   int get lastCharCode {
-    if (lastAddedString == null) return 0;
     assert(lastAddedString.isNotEmpty);
     return lastAddedString.codeUnitAt(lastAddedString.length - 1);
   }
@@ -227,7 +231,7 @@ class Printer implements NodeVisitor {
   }
 
   visitCommaSeparated(List<Expression> nodes, int hasRequiredType,
-      {bool newInForInit, bool newAtStatementBegin}) {
+      {required bool newInForInit, required bool newAtStatementBegin}) {
     for (int i = 0; i < nodes.length; i++) {
       if (i != 0) {
         atStatementBegin = false;
@@ -251,10 +255,11 @@ class Printer implements NodeVisitor {
     visitAll(program.body);
   }
 
-  bool blockBody(Node body, {bool needsSeparation, bool needsNewline}) {
+  bool blockBody(Node body,
+      {required bool needsSeparation, required bool needsNewline}) {
     if (body is Block) {
       spaceOut();
-      blockOut(body, false, needsNewline);
+      blockOut(body, shouldIndent: false, needsNewline: needsNewline);
       return true;
     }
     if (shouldCompressOutput && needsSeparation) {
@@ -281,7 +286,8 @@ class Printer implements NodeVisitor {
     }
   }
 
-  void blockOut(Block node, bool shouldIndent, bool needsNewline) {
+  void blockOut(Block node,
+      {required bool shouldIndent, required bool needsNewline}) {
     if (shouldIndent) indent();
     context.enterNode(node);
     out("{");
@@ -297,7 +303,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitBlock(Block block) {
-    blockOut(block, true, true);
+    blockOut(block, shouldIndent: true, needsNewline: true);
   }
 
   @override
@@ -378,19 +384,19 @@ class Printer implements NodeVisitor {
     spaceOut();
     out("(");
     if (loop.init != null) {
-      visitNestedExpression(loop.init, EXPRESSION,
+      visitNestedExpression(loop.init!, EXPRESSION,
           newInForInit: true, newAtStatementBegin: false);
     }
     out(";");
     if (loop.condition != null) {
       spaceOut();
-      visitNestedExpression(loop.condition, EXPRESSION,
+      visitNestedExpression(loop.condition!, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
     out(";");
     if (loop.update != null) {
       spaceOut();
-      visitNestedExpression(loop.update, EXPRESSION,
+      visitNestedExpression(loop.update!, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
@@ -482,7 +488,7 @@ class Printer implements NodeVisitor {
     } else {
       outIndent("return");
       pendingSpace = true;
-      visitNestedExpression(node.value, EXPRESSION,
+      visitNestedExpression(node.value!, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
     outSemicolonLn();
@@ -515,12 +521,12 @@ class Printer implements NodeVisitor {
     outIndent("try");
     blockBody(node.body, needsSeparation: true, needsNewline: false);
     if (node.catchPart != null) {
-      visit(node.catchPart);
+      visit(node.catchPart!);
     }
     if (node.finallyPart != null) {
       spaceOut();
       out("finally");
-      blockBody(node.finallyPart, needsSeparation: true, needsNewline: true);
+      blockBody(node.finallyPart!, needsSeparation: true, needsNewline: true);
     } else {
       lineOut();
     }
@@ -555,18 +561,26 @@ class Printer implements NodeVisitor {
   }
 
   @override
-  visitSwitchCase(SwitchCase node) {
-    if (node.isDefault) {
-      outIndentLn("default:");
-    } else {
-      outIndent("case");
-      pendingSpace = true;
-      visitNestedExpression(node.expression, EXPRESSION,
-          newInForInit: false, newAtStatementBegin: false);
-      outLn(":");
+  visitCase(Case node) {
+    outIndent("case");
+    pendingSpace = true;
+    visitNestedExpression(node.expression, EXPRESSION,
+        newInForInit: false, newAtStatementBegin: false);
+    outLn(":");
+    if (!node.body.statements.isEmpty) {
+      indentMore();
+      blockOutWithoutBraces(node.body);
+      indentLess();
     }
-    if (node.body.statements.isNotEmpty) {
-      blockOut(node.body, true, true);
+  }
+
+  @override
+  visitDefault(Default node) {
+    outIndentLn("default:");
+    if (!node.body.statements.isEmpty) {
+      indentMore();
+      blockOutWithoutBraces(node.body);
+      indentLess();
     }
   }
 
@@ -576,7 +590,7 @@ class Printer implements NodeVisitor {
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
-  void functionOut(Fun fun, Identifier name) {
+  void functionOut(Fun fun, Identifier? name) {
     out("function");
     if (fun.isGenerator) out("*");
     if (name != null) {
@@ -587,21 +601,21 @@ class Printer implements NodeVisitor {
     }
     localNamer.enterScope(fun);
     out("(");
-    if (fun.params != null) {
-      visitCommaSeparated(fun.params, PRIMARY,
-          newInForInit: false, newAtStatementBegin: false);
-    }
+
+    visitCommaSeparated(fun.params, PRIMARY,
+        newInForInit: false, newAtStatementBegin: false);
+
     out(")");
     switch (fun.asyncModifier) {
-      case const AsyncModifier.sync():
+      case AsyncModifier.sync():
         break;
-      case const AsyncModifier.async():
+      case AsyncModifier.async():
         out(' async');
         break;
-      case const AsyncModifier.syncStar():
+      case AsyncModifier.syncStar():
         out(' sync*');
         break;
-      case const AsyncModifier.asyncStar():
+      case AsyncModifier.asyncStar():
         out(' async*');
         break;
     }
@@ -620,7 +634,7 @@ class Printer implements NodeVisitor {
   }
 
   visitNestedExpression(Expression node, int requiredPrecedence,
-      {bool newInForInit, bool newAtStatementBegin}) {
+      {required bool newInForInit, required bool newAtStatementBegin}) {
     int nodePrecedence = node.precedenceLevel;
     bool needsParentheses =
         // a - (b + c).
@@ -652,7 +666,7 @@ class Printer implements NodeVisitor {
   visitVariableDeclarationList(VariableDeclarationList list) {
     // Note: keyword can be null for non-static field declarations.
     if (list.keyword != null) {
-      out(list.keyword);
+      out(list.keyword!);
       out(" ");
     }
     visitCommaSeparated(list.declarations, ASSIGNMENT,
@@ -679,16 +693,15 @@ class Printer implements NodeVisitor {
   visitDestructuredVariable(DestructuredVariable node) {
     var name = node.name;
     var property = node.property;
-    if (name != null) {
-      visit(node.name);
-    } else if (property != null) {
+    visit(name);
+    if (property != null) {
       out("[");
-      visit(node.property);
+      visit(property);
       out("]");
     }
     var structure = node.structure;
     if (structure != null) {
-      if (name != null || property != null) {
+      if (property != null) {
         out(":");
         spaceOut();
       }
@@ -713,26 +726,24 @@ class Printer implements NodeVisitor {
   visitAssignment(Assignment assignment) {
     visitNestedExpression(assignment.leftHandSide, LEFT_HAND_SIDE,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-    if (assignment.value != null) {
-      spaceOut();
-      String op = assignment.op;
-      if (op != null) out(op);
-      out("=");
-      spaceOut();
-      visitNestedExpression(assignment.value, ASSIGNMENT,
-          newInForInit: inForInit, newAtStatementBegin: false);
-    }
+    spaceOut();
+    String? op = assignment.op;
+    if (op != null) out(op);
+    out("=");
+    spaceOut();
+    visitNestedExpression(assignment.value, ASSIGNMENT,
+        newInForInit: inForInit, newAtStatementBegin: false);
   }
 
   @override
-  visitVariableInitialization(VariableInitialization init) {
-    visitNestedExpression(init.declaration, LEFT_HAND_SIDE,
+  visitVariableInitialization(VariableInitialization initialization) {
+    visitNestedExpression(initialization.declaration, LEFT_HAND_SIDE,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-    if (init.value != null) {
+    if (initialization.value != null) {
       spaceOut();
       out("=");
       spaceOut();
-      visitNestedExpression(init.value, ASSIGNMENT,
+      visitNestedExpression(initialization.value!, ASSIGNMENT,
           newInForInit: inForInit, newAtStatementBegin: false);
     }
   }
@@ -857,6 +868,8 @@ class Printer implements NodeVisitor {
         rightPrecedenceRequirement = UNARY;
         break;
       default:
+        leftPrecedenceRequirement = EXPRESSION;
+        rightPrecedenceRequirement = EXPRESSION;
         context.error("Forgot operator: $op");
     }
 
@@ -915,7 +928,7 @@ class Printer implements NodeVisitor {
     out(yield.star ? "yield*" : "yield");
     if (yield.value == null) return;
     out(" ");
-    visitNestedExpression(yield.value, yield.precedenceLevel,
+    visitNestedExpression(yield.value!, yield.precedenceLevel,
         newInForInit: inForInit, newAtStatementBegin: false);
   }
 
@@ -974,20 +987,21 @@ class Printer implements NodeVisitor {
 
   @override
   visitAccess(PropertyAccess access) {
-    // Normally we can omit parens on the receiver if it is a Call, even though
-    // Call expressions have lower precedence. However this optimization doesn't
-    // work inside New expressions:
-    //
-    //     new obj.foo().bar()
-    //
-    // This will be parsed as:
-    //
-    //     (new obj.foo()).bar()
-    //
-    // Which is incorrect. So we must have parenthesis in this case:
-    //
-    //     new (obj.foo()).bar()
-    //
+    /// Normally we can omit parens on the receiver if it is a Call, even though
+    /// Call expressions have lower precedence.
+    ///
+    /// However this optimization doesn't work inside New expressions:
+    ///
+    ///     new obj.foo().bar()
+    ///
+    /// This will be parsed as:
+    ///
+    ///     (new obj.foo()).bar()
+    ///
+    /// Which is incorrect. So we must have parenthesis in this case:
+    ///
+    ///     new (obj.foo()).bar()
+    ///
     int precedence = inNewTarget ? ACCESS : CALL;
 
     visitNestedExpression(access.receiver, precedence,
@@ -1025,7 +1039,7 @@ class Printer implements NodeVisitor {
     var body = fun.body;
     if (body is Expression) {
       spaceOut();
-      // Object initializers require parenthesis to disambiguate
+      // Object initializers require parentheses to disambiguate
       // AssignmentExpression from FunctionBody. See:
       // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
       var needsParen = fun.body is ObjectInitializer;
@@ -1177,7 +1191,7 @@ class Printer implements NodeVisitor {
     visit(node.name);
     if (node.heritage != null) {
       out(' extends ');
-      visit(node.heritage);
+      visit(node.heritage!);
     }
     spaceOut();
     if (node.methods.isNotEmpty) {
@@ -1215,10 +1229,8 @@ class Printer implements NodeVisitor {
     var fun = node.function;
     localNamer.enterScope(fun);
     out("(");
-    if (fun.params != null) {
-      visitCommaSeparated(fun.params, SPREAD,
-          newInForInit: false, newAtStatementBegin: false);
-    }
+    visitCommaSeparated(fun.params, SPREAD,
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     // TODO(jmesserly): async modifiers
     if (fun.body.statements.isEmpty) {
@@ -1226,7 +1238,7 @@ class Printer implements NodeVisitor {
       out("{}");
     } else {
       spaceOut();
-      blockOut(fun.body, false, false);
+      blockOut(fun.body, shouldIndent: false, needsNewline: false);
     }
     localNamer.leaveScope();
   }
@@ -1263,13 +1275,15 @@ class Printer implements NodeVisitor {
     indent();
     out('import ');
     if (node.defaultBinding != null) {
-      visit(node.defaultBinding);
+      visit(node.defaultBinding!);
       if (node.namedImports != null) {
         out(',');
         spaceOut();
       }
     }
-    nameSpecifierListOut(node.namedImports, false);
+    if (node.namedImports != null) {
+      nameSpecifierListOut(node.namedImports!, false);
+    }
     fromClauseOut(node.from);
     outSemicolonLn();
   }
@@ -1287,13 +1301,13 @@ class Printer implements NodeVisitor {
   @override
   visitExportClause(ExportClause node) {
     nameSpecifierListOut(node.exports, true);
-    fromClauseOut(node.from);
+    if (node.from != null) {
+      fromClauseOut(node.from!);
+    }
   }
 
   nameSpecifierListOut(List<NameSpecifier> names, bool export) {
-    if (names == null) return;
-
-    if (names.length == 1 && names[0].name.name == '*') {
+    if (names.length == 1 && names[0].name!.name == '*') {
       nameSpecifierOut(names[0], export);
       return;
     }
@@ -1312,11 +1326,9 @@ class Printer implements NodeVisitor {
   }
 
   fromClauseOut(LiteralString from) {
-    if (from != null) {
-      out(' from');
-      spaceOut();
-      out("'${from.valueWithoutQuotes}.js'");
-    }
+    out(' from');
+    spaceOut();
+    out("'${from.valueWithoutQuotes}.js'");
   }
 
   /// This is unused, see [nameSpecifierOut].
@@ -1329,11 +1341,13 @@ class Printer implements NodeVisitor {
     if (node.isStar) {
       out('*');
     } else {
-      var localName = localNamer.getName(node.name);
+      assert(node.name != null);
+      var nodeName = node.name!;
+      var localName = localNamer.getName(nodeName);
       if (node.asName == null) {
         // If our local was renamed, generate an implicit "as".
         // This is a convenience feature so imports and exports can be renamed.
-        var name = node.name.name;
+        var name = nodeName.name;
         if (localName != name) {
           out(export ? localName : name);
           out(' as ');
@@ -1345,13 +1359,8 @@ class Printer implements NodeVisitor {
     }
     if (node.asName != null) {
       out(' as ');
-      visitIdentifier(node.asName);
+      visitIdentifier(node.asName!);
     }
-  }
-
-  @override
-  visitModule(Module node) {
-    visitAll(node.body);
   }
 
   @override
@@ -1433,15 +1442,15 @@ class Printer implements NodeVisitor {
 
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
-class VarCollector extends BaseVisitor {
+class VarCollector extends BaseVisitorVoid {
   bool nested;
   final Set<String> vars;
   final Set<String> params;
 
   VarCollector()
       : nested = false,
-        vars = Set<String>(),
-        params = Set<String>();
+        vars = {},
+        params = {};
 
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
@@ -1449,12 +1458,10 @@ class VarCollector extends BaseVisitor {
   void collectVarsInFunction(FunctionExpression fun) {
     if (!nested) {
       nested = true;
-      if (fun.params != null) {
-        for (var param in fun.params) {
-          // TODO(jmesserly): add ES6 support. Currently not needed because
-          // dart2js does not emit ES6 rest param or destructuring.
-          params.add((param as Identifier).name);
-        }
+      for (var param in fun.params) {
+        // TODO(jmesserly): add ES6 support. Currently not needed because
+        // dart2js does not emit ES6 rest param or destructuring.
+        params.add((param as Identifier).name);
       }
       fun.body.accept(this);
       nested = false;
@@ -1491,7 +1498,7 @@ class VarCollector extends BaseVisitor {
   @override
   void visitClassExpression(ClassExpression node) {
     // Note that we don't bother collecting the name of the class.
-    if (node.heritage != null) node.heritage.accept(this);
+    node.heritage?.accept(this);
     for (Method method in node.methods) {
       method.accept(this);
     }
@@ -1516,10 +1523,8 @@ class VarCollector extends BaseVisitor {
   }
 }
 
-/**
- * Returns true, if the given node must be wrapped into braces when used
- * as then-statement in an [If] that has an else branch.
- */
+/// Returns true, if the given node must be wrapped into braces when used
+/// as then-statement in an [If] that has an else branch.
 class DanglingElseVisitor extends BaseVisitor<bool> {
   JavaScriptPrintingContext context;
 
@@ -1531,11 +1536,15 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   @override
   bool visitNode(Node node) {
     context.error("Forgot node: $node");
-    return null;
+    return true;
   }
 
   @override
   bool visitBlock(Block node) => false;
+  @override
+  bool visitComment(Comment node) => true;
+  @override
+  bool visitCommentExpression(CommentExpression node) => true;
   @override
   bool visitExpressionStatement(ExpressionStatement node) => false;
   @override
@@ -1567,9 +1576,9 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   @override
   bool visitTry(Try node) {
     if (node.finallyPart != null) {
-      return node.finallyPart.accept(this);
+      return node.finallyPart!.accept(this);
     } else {
-      return node.catchPart.accept(this);
+      return node.catchPart!.accept(this);
     }
   }
 
@@ -1578,7 +1587,9 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   @override
   bool visitSwitch(Switch node) => false;
   @override
-  bool visitSwitchCase(SwitchCase node) => false;
+  bool visitCase(Case node) => false;
+  @override
+  bool visitDefault(Default node) => false;
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node) => false;
   @override
@@ -1618,7 +1629,7 @@ class MinifyRenamer implements LocalNamer {
   void enterScope(Node node) {
     var vars = VarCollector();
     node.accept(vars);
-    maps.add(Map<String, String>());
+    maps.add({});
     variableNumberStack.add(variableNumber);
     parameterNumberStack.add(parameterNumber);
     vars.forEachVar(declareVariable);
@@ -1734,7 +1745,7 @@ class MinifyRenamer implements LocalNamer {
 
 /// Like [BaseVisitor], but calls [declare] for [Identifier] declarations, and
 /// [visitIdentifier] otherwise.
-abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
+abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
   declare(Identifier node);
 
   @override
@@ -1760,7 +1771,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   @override
   visitDestructuredVariable(DestructuredVariable node) {
     var name = node.name;
-    if (name is Identifier) _scanVariableBinding(name);
+    _scanVariableBinding(name);
     super.visitDestructuredVariable(node);
   }
 
@@ -1773,7 +1784,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   @override
   visitVariableInitialization(VariableInitialization node) {
     _scanVariableBinding(node.declaration);
-    if (node.value != null) node.value.accept(this);
+    node.value?.accept(this);
   }
 
   @override
@@ -1797,7 +1808,7 @@ abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   @override
   visitClassExpression(ClassExpression node) {
     declare(node.name);
-    if (node.heritage != null) node.heritage.accept(this);
+    node.heritage?.accept(this);
     for (Method element in node.methods) {
       element.accept(this);
     }

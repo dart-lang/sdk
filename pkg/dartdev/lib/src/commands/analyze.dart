@@ -81,13 +81,14 @@ class AnalyzeCommand extends DartdevCommand {
   String get invocation => '${super.invocation} [<directory>]';
 
   @override
-  FutureOr<int> run() async {
+  Future<int> run() async {
+    final args = argResults!;
     // Find targets from the 'rest' params.
     final List<io.FileSystemEntity> targets = [];
-    if (argResults.rest.isEmpty) {
+    if (args.rest.isEmpty) {
       targets.add(io.Directory.current);
     } else {
-      for (String targetPath in argResults.rest) {
+      for (String targetPath in args.rest) {
         if (io.Directory(targetPath).existsSync()) {
           targets.add(io.Directory(targetPath));
         } else if (io.File(targetPath).existsSync()) {
@@ -100,8 +101,8 @@ class AnalyzeCommand extends DartdevCommand {
 
     final List<AnalysisError> errors = <AnalysisError>[];
 
-    final machineFormat = argResults['format'] == 'machine';
-    final jsonFormat = argResults['format'] == 'json';
+    final machineFormat = args['format'] == 'machine';
+    final jsonFormat = args['format'] == 'json';
 
     final targetsNames =
         targets.map((entity) => path.basename(entity.path)).join(', ');
@@ -113,9 +114,9 @@ class AnalyzeCommand extends DartdevCommand {
       _packagesFile(),
       io.Directory(sdk.sdkPath),
       targets,
-      cacheDirectoryPath: argResults['cache'],
+      cacheDirectoryPath: args['cache'],
       commandName: 'analyze',
-      argResults: argResults,
+      argResults: args,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
@@ -134,10 +135,16 @@ class AnalyzeCommand extends DartdevCommand {
       }
     });
 
+    server.onCrash.then((_) {
+      log.stderr('The analysis server shut down unexpectedly.');
+      log.stdout('Please report this at dartbug.com.');
+      io.exit(1);
+    });
+
     await server.analysisFinished;
     analysisFinished = true;
 
-    await server.shutdown(timeout: Duration(milliseconds: 100));
+    await server.shutdown(timeout: Duration(seconds: 1));
 
     progress?.finish(showTiming: true);
 
@@ -160,7 +167,9 @@ class AnalyzeCommand extends DartdevCommand {
       emitDefaultFormat(
         log,
         errors,
-        relativeToDir: relativeTo is io.File ? relativeTo.parent : relativeTo,
+        relativeToDir: relativeTo is io.File
+            ? relativeTo.parent
+            : relativeTo as io.Directory?,
         verbose: verbose,
       );
     }
@@ -181,8 +190,8 @@ class AnalyzeCommand extends DartdevCommand {
       return 3;
     }
 
-    bool fatalWarnings = argResults['fatal-warnings'];
-    bool fatalInfos = argResults['fatal-infos'];
+    bool fatalWarnings = args['fatal-warnings'];
+    bool fatalInfos = args['fatal-infos'];
 
     if (fatalWarnings && hasWarnings) {
       return 2;
@@ -193,8 +202,8 @@ class AnalyzeCommand extends DartdevCommand {
     }
   }
 
-  io.File _packagesFile() {
-    var path = argResults['packages'];
+  io.File? _packagesFile() {
+    var path = argResults!['packages'];
     if (path is String) {
       var file = io.File(path);
       if (!file.existsSync()) {
@@ -210,7 +219,7 @@ class AnalyzeCommand extends DartdevCommand {
   static void emitDefaultFormat(
     Logger log,
     List<AnalysisError> errors, {
-    io.Directory relativeToDir,
+    io.Directory? relativeToDir,
     bool verbose = false,
   }) {
     final ansi = log.ansi;
@@ -220,10 +229,10 @@ class AnalyzeCommand extends DartdevCommand {
 
     final wrapWidth = dartdevUsageLineLength == null
         ? null
-        : (dartdevUsageLineLength - _bodyIndentWidth);
+        : (dartdevUsageLineLength! - _bodyIndentWidth);
 
     for (final AnalysisError error in errors) {
-      var severity = error.severity.toLowerCase().padLeft(_severityWidth);
+      var severity = error.severity!.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
         severity = ansi.error(severity);
       }
@@ -231,7 +240,7 @@ class AnalyzeCommand extends DartdevCommand {
       var codeRef = error.code;
       // If we're in verbose mode, write any error urls instead of error codes.
       if (error.url != null && verbose) {
-        codeRef = error.url;
+        codeRef = error.url!;
       }
 
       // Emit "file:line:col * Error message. Correction (code)."
@@ -278,7 +287,7 @@ class AnalyzeCommand extends DartdevCommand {
           'range': range,
         };
 
-    Map<String, dynamic> position(int offset, int line, int column) => {
+    Map<String, dynamic> position(int? offset, int? line, int? column) => {
           'offset': offset,
           'line': line,
           'column': column,
@@ -364,8 +373,8 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   /// Return a relative path if it is a shorter reference than the given dir.
-  static String _relativePath(String givenPath, io.Directory fromDir) {
-    String fromPath = fromDir?.absolute?.resolveSymbolicLinksSync();
+  static String _relativePath(String givenPath, io.Directory? fromDir) {
+    String? fromPath = fromDir?.absolute.resolveSymbolicLinksSync();
     String relative = path.relative(givenPath, from: fromPath);
     return relative.length <= givenPath.length ? relative : givenPath;
   }

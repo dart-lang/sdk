@@ -1,10 +1,9 @@
-// @dart = 2.9
 class A<X> {
-  bar<Y extends X>() => null;
+  bar<Y extends X>() => throw '';
 }
 
 class B {
-  static A<Y> foo<Y extends Object>() => null;
+  static A<Y> foo<Y extends Object>() => throw '';
 }
 
 baz() {}

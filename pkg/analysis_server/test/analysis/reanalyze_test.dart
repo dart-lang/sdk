@@ -5,11 +5,12 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,42 +19,45 @@ void main() {
 }
 
 @reflectiveTest
-class ReanalyzeTest extends AbstractAnalysisTest {
-  Map<String, List<AnalysisError>> filesErrors = {};
+class ReanalyzeTest extends PubPackageAnalysisServerTest {
+  Map<File, List<AnalysisError>> filesErrors = {};
 
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
+      filesErrors[getFile(decoded.file)] = decoded.errors;
     }
   }
 
   Future<void> test_reanalyze() async {
-    var b = convertPath('/other/b.dart');
+    var b = getFolder(testPackageLibPath).parent.getChildAssumingFile('b.dart');
 
-    newFile(testFile, content: r'''
-import '../../other/b.dart';
+    var file = newFile2('$testPackageTestPath/a.dart', r'''
+import '../b.dart';
 
 var b = B();
 ''');
-    createProject();
+
+    await setRoots(included: [testPackageTestPath], excluded: []);
 
     // b.dart does not exist, and `B` is unresolved.
     await waitForTasksFinished();
-    expect(filesErrors[testFile], hasLength(2));
+    expect(filesErrors[file], hasLength(2));
 
     // Clear errors, so that we'll notice new results.
     filesErrors.clear();
 
     // Create b.dart, reanalyzing should fix the error.
-    newFile(b, content: 'class B {}');
+    b.writeAsStringSync('class B {}');
 
     // Reanalyze.
-    server.reanalyze();
+    await handleSuccessfulRequest(
+      AnalysisReanalyzeParams().toRequest('0'),
+    );
     await waitForTasksFinished();
 
     // No errors.
-    expect(filesErrors[testFile], isEmpty);
+    expect(filesErrors[file], isEmpty);
   }
 }

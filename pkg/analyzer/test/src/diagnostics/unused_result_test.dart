@@ -363,6 +363,62 @@ void main() {
     ]);
   }
 
+  test_getter_expressionStatement_id_dotResult_dotId() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo.isEven;
+}
+''');
+  }
+
+  test_getter_expressionStatement_result() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo;
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 77, 3),
+    ]);
+  }
+
+  test_getter_expressionStatement_result_dotId() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo.isEven;
+}
+''');
+  }
+
+  test_getter_expressionStatement_result_dotId_dotId() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo.isEven.hashCode;
+}
+''');
+  }
+
   test_getter_result_passed() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -441,6 +497,37 @@ void main() {
     ]);
   }
 
+  test_method_result_assertInitializer() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  B(A a) :
+    assert(a.foo() != 7);
+}
+''');
+  }
+
+  test_method_result_assertStatement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  assert(a.foo() != 7);
+}
+''');
+  }
+
   test_method_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -455,6 +542,234 @@ void main() {
   print(bar);
 }
 ''');
+  }
+
+  test_method_result_binaryExpression() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  1 + a.foo();
+}
+''');
+  }
+
+  test_method_result_conditional() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  if (a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_constructorCall() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  B(int i);
+}
+
+void f(A a) {
+  new B(a.foo());
+}
+''');
+  }
+
+  test_method_result_doWhile() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  do {}
+  while (a.foo());
+}
+''');
+  }
+
+  test_method_result_fieldInitializer() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  int i;
+  B(A a) : i = a.foo();
+}
+''');
+  }
+
+  test_method_result_for() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  for (var i = 1; i < a.foo(); i++) {}
+}
+''');
+  }
+
+  test_method_result_for_updaters() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  for (var i = 1; i < 7; a.foo()) {}
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 119, 3),
+    ]);
+  }
+
+  test_method_result_forElement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  List<int> foo() => [];
+}
+
+void f(A a) {
+  // Note that the list literal is unused, but we unconditionally consider use
+  // within a list literal to be "use of result."
+  [
+    for (var e in a.foo()) e,
+  ];
+}
+''');
+  }
+
+  test_method_result_forIn() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  List<int> foo() => [];
+}
+
+void f(A a) {
+  for (var _ in a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_ifElement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  // Note that the list literal is unused, but we unconditionally consider use
+  // within a list literal to be "use of result."
+  [
+    if (a.foo()) 1,
+  ];
+}
+''');
+  }
+
+  test_method_result_ifNull() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int? foo() => 1;
+}
+
+int f(A a) {
+  return a.foo() ?? 7;
+}
+''');
+  }
+
+  test_method_result_indexExpression() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a, List<int> list) {
+  list[a.foo()];
+}
+''');
+  }
+
+  test_method_result_nullCheck_isUsed() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int? foo() => 1;
+}
+
+int f(A a) {
+  return a.foo()!;
+}
+''');
+  }
+
+  test_method_result_nullCheck_notUsed() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int? foo() => 1;
+}
+
+void f(A a) {
+  a.foo()!;
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 97, 3),
+    ]);
   }
 
   test_method_result_passed() async {
@@ -488,6 +803,57 @@ int f2() {
 ''');
   }
 
+  test_method_result_spread() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  List<int> foo() => [];
+}
+
+void f(A a) {
+  // Note that the list literal is unused, but we unconditionally consider use
+  // within a list literal to be "use of result."
+  [...a.foo()];
+}
+''');
+  }
+
+  test_method_result_superInitializer() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  B(int i);
+}
+
+class C extends B {
+  C(A a) : super(a.foo());
+}
+''');
+  }
+
+  test_method_result_switchCondition() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  switch (a.foo()) {}
+}
+''');
+  }
+
   test_method_result_targetedMethod() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -512,6 +878,21 @@ class A {
 
 void main() {
   A().foo().hashCode; // OK
+}
+''');
+  }
+
+  test_method_result_thrown() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  throw a.foo();
 }
 ''');
   }
@@ -579,6 +960,36 @@ class A {
 
 void main() {
   A().foo()..toString();
+}
+''');
+  }
+
+  test_method_result_while() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  while (a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_yield() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+Stream<int> f(A a) async* {
+  yield a.foo();
 }
 ''');
   }

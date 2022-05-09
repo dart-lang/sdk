@@ -30,7 +30,7 @@ class FunctionExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(FunctionExpressionImpl node) {
+  void resolve(FunctionExpressionImpl node, {required DartType? contextType}) {
     var parent = node.parent;
     // Note: `isFunctionDeclaration` must have an explicit type to work around
     // https://github.com/dart-lang/language/issues/1785.
@@ -39,28 +39,35 @@ class FunctionExpressionResolver {
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
       _resolver.flowAnalysis
-          .executableDeclaration_enter(node, node.parameters, true);
+          .executableDeclaration_enter(node, node.parameters, isClosure: true);
     }
 
-    var contextType = InferenceContext.getContext(node);
-    if (contextType is FunctionType) {
-      contextType = _matchTypeParameters(
+    bool wasFunctionTypeSupplied = contextType is FunctionType;
+    node.wasFunctionTypeSupplied = wasFunctionTypeSupplied;
+    DartType? imposedType;
+    if (wasFunctionTypeSupplied) {
+      var instantiatedType = _matchTypeParameters(
         node.typeParameters,
         contextType,
       );
-      if (contextType is FunctionType) {
-        _inferFormalParameters(node.parameters, contextType);
-        InferenceContext.setType(body, contextType.returnType);
+      if (instantiatedType is FunctionType) {
+        _inferFormalParameters(node.parameters, instantiatedType);
+        var returnType = instantiatedType.returnType;
+        if (!returnType.isDynamic) {
+          imposedType = returnType;
+        }
       }
     }
 
-    node.visitChildren(_resolver);
+    node.typeParameters?.accept(_resolver);
+    node.parameters?.accept(_resolver);
+    imposedType = node.body.resolve(_resolver, imposedType);
     if (isFunctionDeclaration) {
       // A side effect of visiting the children is that the parameters are now
       // in scope, so we can visit the documentation comment now.
       parent.documentationComment?.accept(_resolver);
     }
-    _resolve2(node);
+    _resolve2(node, imposedType, contextType: contextType);
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
       _resolver.checkForBodyMayCompleteNormally(
@@ -135,13 +142,6 @@ class FunctionExpressionResolver {
     }
   }
 
-  /// Infers the return type of a local function, either a lambda or
-  /// (in strong mode) a local function declaration.
-  DartType _inferLocalFunctionReturnType(FunctionExpression node) {
-    var body = node.body;
-    return InferenceContext.getContext(body) ?? DynamicTypeImpl.instance;
-  }
-
   /// Given the downward inference [type], return the function type expressed
   /// in terms of the type parameters from [typeParameterList].
   ///
@@ -168,15 +168,16 @@ class FunctionExpressionResolver {
     }).toList());
   }
 
-  void _resolve2(FunctionExpressionImpl node) {
+  void _resolve2(FunctionExpressionImpl node, DartType? imposedType,
+      {required DartType? contextType}) {
     var functionElement = node.declaredElement as ExecutableElementImpl;
 
     if (_shouldUpdateReturnType(node)) {
-      var returnType = _inferLocalFunctionReturnType(node);
-      functionElement.returnType = returnType;
+      functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
-    _inferenceHelper.recordStaticType(node, functionElement.type);
+    _inferenceHelper.recordStaticType(node, functionElement.type,
+        contextType: contextType);
   }
 
   static bool _shouldUpdateReturnType(FunctionExpression node) {

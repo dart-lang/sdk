@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
+import '../environment.dart';
 import '../kernel/dart2js_target.dart';
 
 typedef ReportErrorFunction = void Function(
@@ -18,16 +19,18 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
 
   bool requiresConstant;
 
-  Dart2jsConstantEvaluator(
+  Dart2jsConstantEvaluator(ir.Component component,
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
-      {Map<String, String> environment = const {},
+      {Environment environment,
       bool supportReevaluationForTesting = false,
       ir.EvaluationMode evaluationMode})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
         assert(evaluationMode != null),
         super(
+            const Dart2jsDartLibrarySupport(),
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
-            environment,
+            component,
+            environment?.definitions ?? const {},
             typeEnvironment,
             ErrorReporter(reportError),
             enableTripleShift: true,

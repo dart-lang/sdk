@@ -302,8 +302,6 @@ class RangeBoundary : public ValueObject {
   int64_t SmiLowerBound() const { return LowerBound(kRangeBoundarySmi); }
 
  private:
-  friend class FlowGraphDeserializer;  // For setting fields directly.
-
   RangeBoundary(Kind kind, int64_t value, int64_t offset)
       : kind_(kind), value_(value), offset_(offset) {}
 
@@ -412,6 +410,9 @@ class Range : public ZoneAllocated {
 
   // [0, +inf]
   bool IsPositive() const;
+
+  // [-inf, -1]
+  bool IsNegative() const;
 
   // [-inf, val].
   bool OnlyLessThanOrEqualTo(int64_t val) const;
@@ -536,8 +537,6 @@ class Range : public ZoneAllocated {
                        Range* result);
 
  private:
-  friend class FlowGraphDeserializer;  // For setting min_/max_ directly.
-
   RangeBoundary min_;
   RangeBoundary max_;
 
@@ -559,6 +558,9 @@ class RangeUtils : public AllStatic {
 
   static bool IsPositive(Range* range) {
     return !Range::IsUnknown(range) && range->IsPositive();
+  }
+  static bool IsNegative(Range* range) {
+    return !Range::IsUnknown(range) && range->IsNegative();
   }
 
   static bool Overlaps(Range* range, intptr_t min, intptr_t max) {

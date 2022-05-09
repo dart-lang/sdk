@@ -36,20 +36,61 @@ main() {
 }
 
 void testMediaType() {
-  for (var mimeType in ["", "text/plain", "text/javascript"]) {
-    for (var charset in ["", ";charset=US-ASCII", ";charset=UTF-8"]) {
+  for (var mimeType in ["", "text/plain", "Text/PLAIN", "text/javascript"]) {
+    for (var charset in ["", "US-ASCII", "UTF-8"]) {
       for (var base64 in ["", ";base64"]) {
         bool isBase64 = base64.isNotEmpty;
-        var text = "data:$mimeType$charset$base64,";
+        // Parsing the URI from source:
+        var charsetParameter = charset.isEmpty ? "" : ";charset=$charset";
+        var text = "data:$mimeType$charsetParameter$base64,";
         var uri = UriData.parse(text);
 
-        String expectedCharset =
-            charset.isEmpty ? "US-ASCII" : charset.substring(9);
+        String expectedCharset = charset.isEmpty ? "US-ASCII" : charset;
         String expectedMimeType = mimeType.isEmpty ? "text/plain" : mimeType;
 
         Expect.equals(text, "$uri");
         Expect.equals(expectedMimeType, uri.mimeType);
+        Expect.isTrue(uri.isMimeType(expectedMimeType));
+        Expect.isTrue(uri.isMimeType(expectedMimeType.toUpperCase()));
+        Expect.isTrue(uri.isMimeType(expectedMimeType.toLowerCase()));
         Expect.equals(expectedCharset, uri.charset);
+        Expect.isTrue(uri.isCharset(expectedCharset));
+        Expect.isTrue(uri.isCharset(expectedCharset.toLowerCase()));
+        Expect.isTrue(uri.isCharset(expectedCharset.toUpperCase()));
+        var expectedEncoding = Encoding.getByName(expectedCharset);
+        if (expectedEncoding != null) {
+          Expect.isTrue(uri.isEncoding(expectedEncoding));
+        }
+        Expect.equals(isBase64, uri.isBase64);
+
+        // Creating the URI using a constructor:
+        var encoding = Encoding.getByName(charset);
+        uri = UriData.fromString("",
+            mimeType: mimeType, encoding: encoding, base64: isBase64);
+        expectedMimeType =
+            (mimeType.isEmpty || mimeType.toLowerCase() == "text/plain")
+                ? "text/plain"
+                : mimeType;
+        expectedEncoding = encoding;
+        expectedCharset = expectedEncoding?.name ?? "US-ASCII";
+        var expectedText = "data:"
+            "${expectedMimeType == "text/plain" ? "" : expectedMimeType}"
+            "${charset.isEmpty ? "" : ";charset=$expectedCharset"}"
+            "${isBase64 ? ";base64" : ""}"
+            ",";
+
+        Expect.equals(expectedText, "$uri");
+        Expect.equals(expectedMimeType, uri.mimeType);
+        Expect.isTrue(uri.isMimeType(expectedMimeType));
+        Expect.isTrue(uri.isMimeType(expectedMimeType.toUpperCase()));
+        Expect.isTrue(uri.isMimeType(expectedMimeType.toLowerCase()));
+        Expect.equals(expectedCharset, uri.charset);
+        Expect.isTrue(uri.isCharset(expectedCharset));
+        Expect.isTrue(uri.isCharset(expectedCharset.toLowerCase()));
+        Expect.isTrue(uri.isCharset(expectedCharset.toUpperCase()));
+        if (expectedEncoding != null) {
+          Expect.isTrue(uri.isEncoding(expectedEncoding));
+        }
         Expect.equals(isBase64, uri.isBase64);
       }
     }
@@ -238,8 +279,8 @@ void testErrors() {
   Expect.throwsFormatException(() => UriData.parse("data:type/sub;k=v;base64"));
 
   void formatError(String input) {
-    Expect.throwsFormatException(() => UriData.parse("data:;base64,$input"),
-        input);
+    Expect.throwsFormatException(
+        () => UriData.parse("data:;base64,$input"), input);
   }
 
   // Invalid base64 format (detected when parsed).

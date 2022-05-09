@@ -131,6 +131,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
+  bool get isUnsupported => library.isUnsupported;
+
+  @override
   bool get isSynthetic => library.isSynthetic;
 
   @override
@@ -266,18 +269,19 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
     bool isSetter = declaration.isSetter;
     if (isSetter) {
-      scopeBuilder.addSetter(name, declaration as MemberBuilder);
+      scope.addLocalMember(name, declaration as MemberBuilder, setter: true);
     } else {
-      scopeBuilder.addMember(name, declaration);
+      scope.addLocalMember(name, declaration, setter: false);
     }
     if (declaration.isExtension) {
-      scopeBuilder.addExtension(declaration as ExtensionBuilder);
+      scope.addExtension(declaration as ExtensionBuilder);
     }
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
-        exportScopeBuilder.addSetter(name, declaration as MemberBuilder);
+        exportScope.addLocalMember(name, declaration as MemberBuilder,
+            setter: true);
       } else {
-        exportScopeBuilder.addMember(name, declaration);
+        exportScope.addLocalMember(name, declaration, setter: false);
       }
     }
     return declaration;
@@ -336,7 +340,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         case "void":
           // TODO(ahe): It's likely that we shouldn't be exporting these types
           // from dart:core, and this case can be removed.
-          declaration = loader.coreLibrary.exportScopeBuilder[name]!;
+          declaration = loader.coreLibrary.exportScope
+              .lookupLocalMember(name, setter: false)!;
           break;
 
         default:
@@ -350,7 +355,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           declaration = new InvalidTypeDeclarationBuilder(
               name, message.withoutLocation());
       }
-      exportScopeBuilder.addMember(name, declaration);
+      exportScope.addLocalMember(name, declaration, setter: false);
     });
 
     Map<Reference, Builder>? sourceBuildersMap =
@@ -371,9 +376,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         }
 
         if (declaration.isSetter) {
-          exportScopeBuilder.addSetter(name, declaration as MemberBuilder);
+          exportScope.addLocalMember(name, declaration as MemberBuilder,
+              setter: true);
         } else {
-          exportScopeBuilder.addMember(name, declaration);
+          exportScope.addLocalMember(name, declaration, setter: false);
         }
       } else {
         Uri libraryUri;
@@ -408,11 +414,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (isSetter) {
           declaration =
               library.exportScope.lookupLocalMember(name, setter: true)!;
-          exportScopeBuilder.addSetter(name, declaration as MemberBuilder);
+          exportScope.addLocalMember(name, declaration as MemberBuilder,
+              setter: true);
         } else {
           declaration =
               library.exportScope.lookupLocalMember(name, setter: false)!;
-          exportScopeBuilder.addMember(name, declaration);
+          exportScope.addLocalMember(name, declaration, setter: false);
         }
         // ignore: unnecessary_null_comparison
         if (declaration == null) {

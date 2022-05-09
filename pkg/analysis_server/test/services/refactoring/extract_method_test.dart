@@ -11,15 +11,129 @@ import 'abstract_refactoring.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ExtractMethodEnumTest);
     defineReflectiveTests(ExtractMethodTest);
   });
 }
 
 @reflectiveTest
-class ExtractMethodTest extends RefactoringTest {
-  @override
-  late ExtractMethodRefactoringImpl refactoring;
+class ExtractMethodEnumTest extends _ExtractMethodTest {
+  Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
+    await indexTestUnit('''
+enum E {
+  v;
+  void res() {}
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(
+        "Enum 'E' already declares method with name 'res'.");
+  }
 
+  Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
+    await indexTestUnit('''
+mixin M {
+  void res() {}
+}
+
+enum E with M {
+  v;
+  void foo() {
+    res();
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError("Created method will shadow method 'M.res'.");
+  }
+
+  Future<void> test_bad_conflict_topLevel_willHideInheritedMemberUsage() async {
+    await indexTestUnit('''
+mixin M {
+  void res() {}
+}
+
+enum E with M {
+  v;
+  void foo() {
+    res();
+  }
+}
+
+void f() {
+// start
+  print(0);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(
+        "Created function will shadow method 'M.res'.");
+  }
+
+  Future<void> test_singleExpression_method() async {
+    await indexTestUnit('''
+enum E {
+  v;
+  void foo() {
+    int a = 1 + 2;
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E {
+  v;
+  void foo() {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
+  Future<void> test_statements_method() async {
+    await indexTestUnit('''
+enum E {
+  v;
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E {
+  v;
+  void foo() {
+// start
+    res();
+// end
+  }
+
+  void res() {
+    print(0);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtractMethodTest extends _ExtractMethodTest {
   Future<void> test_bad_assignmentLeftHandSide() async {
     await indexTestUnit('''
 void f() {
@@ -2877,6 +2991,11 @@ import 'dart:async';
 Completer<int> newCompleter() => null;
 ''');
   }
+}
+
+class _ExtractMethodTest extends RefactoringTest {
+  @override
+  late ExtractMethodRefactoringImpl refactoring;
 
   Future _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();

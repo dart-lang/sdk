@@ -6,12 +6,11 @@ library dart2js.js_model.strategy;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../backend_strategy.dart';
 import '../common.dart';
 import '../common/codegen.dart';
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart';
 import '../deferred_load/output_unit.dart';
 import '../dump_info.dart';
@@ -41,6 +40,7 @@ import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js/js.dart' as js;
 import '../kernel/kernel_strategy.dart';
+import '../kernel/kernel_world.dart';
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
@@ -61,7 +61,9 @@ import 'js_world.dart';
 import 'js_world_builder.dart';
 import 'locals.dart';
 
-class JsBackendStrategy implements BackendStrategy {
+/// JS Strategy pattern that defines the element model used in type inference
+/// and code generation.
+class JsBackendStrategy {
   final Compiler _compiler;
   JsKernelToElementMap _elementMap;
 
@@ -102,17 +104,14 @@ class JsBackendStrategy implements BackendStrategy {
         sourceInformationStrategy);
   }
 
-  @override
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitterTask);
     return result;
   }
 
-  @override
   FunctionCompiler get functionCompiler => _functionCompiler;
 
-  @override
   CodeEmitterTask get emitterTask => _emitterTask;
 
   Namer get namerForTesting => _namer;
@@ -158,7 +157,7 @@ class JsBackendStrategy implements BackendStrategy {
     return _rtiChecksBuilder;
   }
 
-  @override
+  /// Create the [JClosedWorld] from [closedWorld].
   JClosedWorld createJClosedWorld(
       KClosedWorld closedWorld, OutputUnitData outputUnitData) {
     KernelFrontendStrategy strategy = _compiler.frontendStrategy;
@@ -168,8 +167,8 @@ class JsBackendStrategy implements BackendStrategy {
         strategy.elementMap,
         closedWorld.liveMemberUsage,
         closedWorld.annotationsData);
-    ClosureDataBuilder closureDataBuilder =
-        ClosureDataBuilder(_elementMap, closedWorld.annotationsData);
+    ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
+        _compiler.reporter, _elementMap, closedWorld.annotationsData);
     JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(_elementMap,
         closureDataBuilder, _compiler.options, _compiler.abstractValueStrategy);
     JClosedWorld jClosedWorld = closedWorldBuilder.convertClosedWorld(
@@ -179,12 +178,17 @@ class JsBackendStrategy implements BackendStrategy {
     return jClosedWorld;
   }
 
-  @override
+  /// Registers [closedWorld] as the current closed world used by this backend
+  /// strategy.
+  ///
+  /// This is used to support serialization after type inference.
   void registerJClosedWorld(covariant JsClosedWorld closedWorld) {
     _elementMap = closedWorld.elementMap;
   }
 
-  @override
+  /// Called when the compiler starts running the codegen.
+  ///
+  /// Returns the [CodegenInputs] objects with the needed data.
   CodegenInputs onCodegenStart(
       GlobalTypeInferenceResults globalTypeInferenceResults) {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
@@ -209,14 +213,14 @@ class JsBackendStrategy implements BackendStrategy {
     RecipeEncoder rtiRecipeEncoder = RecipeEncoderImpl(closedWorld,
         rtiSubstitutions, closedWorld.nativeData, closedWorld.commonElements);
 
-    CodegenInputs codegen = CodegenInputsImpl(
-        rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
+    CodegenInputs codegen =
+        CodegenInputs(rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
     return codegen;
   }
 
-  @override
+  /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task,
       JClosedWorld closedWorld,
@@ -314,10 +318,12 @@ class JsBackendStrategy implements BackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSink sink = ObjectSink(data, useDataKinds: useDataKinds);
+      DataSinkWriter sink =
+          DataSinkWriter(ObjectDataSink(data), useDataKinds: useDataKinds);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSource source = ObjectSource(data, useDataKinds: useDataKinds);
+      DataSourceReader source =
+          DataSourceReader(ObjectDataSource(data), useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(
@@ -341,13 +347,13 @@ class JsBackendStrategy implements BackendStrategy {
     return worldImpact;
   }
 
-  @override
+  /// Called when code generation has been completed.
   void onCodegenEnd(CodegenInputs codegen) {
     sourceInformationStrategy.onComplete();
     codegen.tracer.close();
   }
 
-  @override
+  /// Generates the output and returns the total size of the generated code.
   int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
       CodegenInputs codegenInputs, CodegenWorld codegenWorld) {
     int programSize = emitterTask.assembleProgram(
@@ -356,7 +362,7 @@ class JsBackendStrategy implements BackendStrategy {
     return programSize;
   }
 
-  @override
+  /// Creates the [SsaBuilder] used for the element model.
   SsaBuilder createSsaBuilder(
       CompilerTask task, SourceInformationStrategy sourceInformationStrategy) {
     return KernelSsaBuilder(
@@ -369,12 +375,12 @@ class JsBackendStrategy implements BackendStrategy {
         sourceInformationStrategy);
   }
 
-  @override
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
 
-  @override
+  /// Creates the [TypesInferrer] used by this strategy.
   TypesInferrer createTypesInferrer(
       JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
@@ -383,15 +389,20 @@ class JsBackendStrategy implements BackendStrategy {
         _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
-  @override
-  void prepareCodegenReader(DataSource source) {
+  /// Prepare [source] to deserialize modular code generation data.
+  void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
     source.registerComponentLookup(
         ComponentLookup(_elementMap.programEnv.mainComponent));
   }
 
-  @override
+  /// Calls [f] for every member that needs to be serialized for modular code
+  /// generation and returns an [EntityWriter] for encoding these members in
+  /// the serialized data.
+  ///
+  /// The needed members include members computed on demand during non-modular
+  /// code generation, such as constructor bodies and and generator bodies.
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);

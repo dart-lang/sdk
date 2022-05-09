@@ -460,11 +460,11 @@ class AmdModuleBuilder extends _ModuleBuilder {
 }
 
 bool isSdkInternalRuntimeUri(Uri importUri) {
-  return importUri.scheme == 'dart' && importUri.path == '_runtime';
+  return importUri.isScheme('dart') && importUri.path == '_runtime';
 }
 
 String libraryUriToJsIdentifier(Uri importUri) {
-  if (importUri.scheme == 'dart') {
+  if (importUri.isScheme('dart')) {
     return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
   }
   return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));
@@ -490,7 +490,7 @@ String pathToJSIdentifier(String path) {
 
 /// Creates function name given [moduleName].
 String loadFunctionName(String moduleName) =>
-    'load__' + pathToJSIdentifier(moduleName.replaceAll('.', '_'));
+    'load__${pathToJSIdentifier(moduleName.replaceAll('.', '_'))}';
 
 /// Creates function name identifier given [moduleName].
 Identifier loadFunctionIdentifier(String moduleName) =>

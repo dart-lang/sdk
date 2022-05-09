@@ -178,7 +178,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (name != null) {
         constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName.type2.name.staticElement;
+        var classElem = parent.constructorName.type.name.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -367,7 +367,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (identical(entity, node.superclass2)) {
+    if (identical(entity, node.superclass)) {
       optype.completionLocation = 'ClassTypeAlias_superclass';
       optype.includeTypeNameSuggestions = true;
     }
@@ -450,6 +450,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    if (identical(entity, node.name)) {
+      optype.completionLocation = 'ConstructorSelector_name';
+    }
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     if (node.label == null || identical(entity, node.label)) {
       optype.includeStatementLabelSuggestions = true;
@@ -493,6 +500,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
     optype.includeVoidReturnSuggestions = true;
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    if (node.semicolon != null) {
+      if (node.members.contains(entity) ||
+          identical(entity, node.rightBracket)) {
+        optype.completionLocation = 'EnumDeclaration_member';
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -561,7 +579,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    if (identical(entity, node.superclass2)) {
+    if (identical(entity, node.superclass)) {
       optype.completionLocation = 'ExtendsClause_superclass';
       optype.includeTypeNameSuggestions = true;
     }
@@ -585,6 +603,29 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.fields) {
       optype.completionLocation = 'FieldDeclaration_fields';
     }
+
+    // Incomplete code looks like a "field" declaration.
+    if (node.fields.type == null) {
+      var variables = node.fields.variables;
+      // class A { static late ^ }
+      if (node.staticKeyword != null &&
+          variables.length == 1 &&
+          variables[0].name.name == 'late') {
+        optype.completionLocation = 'FieldDeclaration_static_late';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+      // class A { static ^ }
+      if (node.staticKeyword == null &&
+          offset <= node.semicolon.offset &&
+          variables.length == 1 &&
+          variables[0].name.name == 'static') {
+        optype.completionLocation = 'FieldDeclaration_static';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+    }
+
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
     }
@@ -956,6 +997,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       Element? element;
       if (grandparent is ConstructorReferenceNode) {
         element = grandparent.staticElement;
+      } else if (grandparent is InstanceCreationExpression) {
+        element = grandparent.constructorName.staticElement;
       } else if (grandparent is MethodInvocation) {
         element = grandparent.methodName.staticElement;
       }
@@ -1311,7 +1354,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    if (node.mixinTypes2.contains(entity)) {
+    if (node.mixinTypes.contains(entity)) {
       optype.completionLocation = 'WithClause_mixinType';
     }
     optype.includeTypeNameSuggestions = true;
@@ -1333,6 +1376,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       var parent = node.parent;
       if (parent is Annotation) {
         return 'annotation';
+      } else if (parent is EnumConstantArguments) {
+        return 'enumConstantArguments';
       } else if (parent is ExtensionOverride) {
         return 'extensionOverride';
       } else if (parent is FunctionExpressionInvocation) {

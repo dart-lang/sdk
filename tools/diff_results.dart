@@ -6,8 +6,8 @@
 // @dart = 2.9
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:glob/glob.dart';
@@ -213,7 +213,7 @@ List<CommonGroup> buildCommonGroups(String commitA, String commitB,
   int h = 0;
   while (h < diffs.length) {
     final d = diffs[h++];
-    final builders = Set<String>()..add(d.builder);
+    final builders = <String>{}..add(d.builder);
     final gropupDiffs = <Diff>[d];
 
     while (h < diffs.length) {
@@ -294,6 +294,7 @@ class Result {
   Result(this.commit, this.builderName, this.buildNumber, this.name,
       this.expected, this.result);
 
+  @override
   String toString() => '(expected: $expected, actual: $result)';
 
   bool sameResult(Result other) {
@@ -310,7 +311,14 @@ class Result {
     return false;
   }
 
+  @override
   int get hashCode => name.hashCode ^ builderName.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
 }
 
 String currentDate() {
@@ -322,7 +330,7 @@ Set<String> loadVmBuildersFromTestMatrix(List<Glob> globs) {
   final contents = File('tools/bots/test_matrix.json').readAsStringSync();
   final testMatrix = json.decode(contents);
 
-  final vmBuilders = Set<String>();
+  final vmBuilders = <String>{};
   for (final config in testMatrix['builder_configurations']) {
     for (final builder in config['builders']) {
       if (builder.startsWith('vm-') || builder.startsWith('app-')) {
@@ -334,7 +342,7 @@ Set<String> loadVmBuildersFromTestMatrix(List<Glob> globs) {
   // This one is in the test_matrix.json but we don't run it on CI.
   vmBuilders.remove('vm-kernel-asan-linux-release-ia32');
 
-  if (!globs.isEmpty) {
+  if (globs.isNotEmpty) {
     vmBuilders.removeWhere((String builder) {
       return !globs.any((Glob glob) => glob.matches(builder));
     });

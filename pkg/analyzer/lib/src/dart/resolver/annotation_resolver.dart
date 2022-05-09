@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -25,9 +21,6 @@ class AnnotationResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _genericMetadataIsEnabled =>
-      _definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
   void resolve(
       AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     node.typeArguments?.accept(_resolver);
@@ -38,7 +31,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ClassElement classElement,
     SimpleIdentifierImpl? constructorName,
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     ConstructorElement? constructorElement;
@@ -105,7 +98,7 @@ class AnnotationResolver {
     SimpleIdentifierImpl? constructorName,
     List<TypeParameterElement> typeParameters,
     ConstructorElement? constructorElement,
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     InterfaceType Function(List<DartType> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
@@ -118,103 +111,17 @@ class AnnotationResolver {
         CompileTimeErrorCode.INVALID_ANNOTATION,
         node,
       );
-      _resolver.visitArgumentList(argumentList,
-          whyNotPromotedList: whyNotPromotedList);
+      AnnotationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: argumentList,
+              rawType: null,
+              contextType: null,
+              whyNotPromotedList: whyNotPromotedList,
+              constructorName: constructorName)
+          .resolveInvocation();
       return;
     }
-
-    // If no type parameters, the elements are correct.
-    if (typeParameters.isEmpty) {
-      var typeArgumentList = node.typeArguments;
-      if (typeArgumentList != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-          typeArgumentList,
-          [
-            typeDisplayName,
-            typeParameters.length,
-            typeArgumentList.arguments.length,
-          ],
-        );
-      }
-      _resolveConstructorInvocationArguments(node);
-      InferenceContext.setType(argumentList, constructorElement.type);
-      _resolver.visitArgumentList(argumentList,
-          whyNotPromotedList: whyNotPromotedList);
-      return;
-    }
-
-    void resolveWithFixedTypeArguments(
-      List<DartType> typeArguments,
-      ConstructorElement constructorElement,
-    ) {
-      var type = instantiateElement(typeArguments);
-      constructorElement = ConstructorMember.from(constructorElement, type);
-      constructorName?.staticElement = constructorElement;
-      node.element = constructorElement;
-      _resolveConstructorInvocationArguments(node);
-
-      InferenceContext.setType(argumentList, constructorElement.type);
-      _resolver.visitArgumentList(argumentList,
-          whyNotPromotedList: whyNotPromotedList);
-    }
-
-    if (!_genericMetadataIsEnabled) {
-      var typeArguments = List.filled(
-        typeParameters.length,
-        DynamicTypeImpl.instance,
-      );
-      resolveWithFixedTypeArguments(typeArguments, constructorElement);
-      return;
-    }
-
-    var typeArgumentList = node.typeArguments;
-    if (typeArgumentList != null) {
-      List<DartType> typeArguments;
-      if (typeArgumentList.arguments.length == typeParameters.length) {
-        typeArguments = typeArgumentList.arguments
-            .map((element) => element.typeOrThrow)
-            .toList();
-        var substitution = Substitution.fromPairs(
-          typeParameters,
-          typeArguments,
-        );
-        for (var i = 0; i < typeParameters.length; i++) {
-          var typeParameter = typeParameters[i];
-          var bound = typeParameter.bound;
-          if (bound != null) {
-            bound = substitution.substituteType(bound);
-            var typeArgument = typeArguments[i];
-            if (!_resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                typeArgumentList.arguments[i],
-                [typeArgument, typeParameter.name, bound],
-              );
-            }
-          }
-        }
-      } else {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-          typeArgumentList,
-          [
-            typeDisplayName,
-            typeParameters.length,
-            typeArgumentList.arguments.length,
-          ],
-        );
-        typeArguments = List.filled(
-          typeParameters.length,
-          DynamicTypeImpl.instance,
-        );
-      }
-      resolveWithFixedTypeArguments(typeArguments, constructorElement);
-      return;
-    }
-
-    _resolver.visitArgumentList(argumentList,
-        whyNotPromotedList: whyNotPromotedList);
 
     var elementToInfer = ConstructorElementToInfer(
       typeParameters,
@@ -222,17 +129,15 @@ class AnnotationResolver {
     );
     var constructorRawType = elementToInfer.asType;
 
-    var inferred = _resolver.inferenceHelper.inferGenericInvoke(
-        node, constructorRawType, typeArgumentList, argumentList, node,
-        isConst: true)!;
-
-    constructorElement = ConstructorMember.from(
-      constructorElement,
-      inferred.returnType as InterfaceType,
-    );
-    constructorName?.staticElement = constructorElement;
-    node.element = constructorElement;
-    _resolveConstructorInvocationArguments(node);
+    AnnotationInferrer(
+            resolver: _resolver,
+            node: node,
+            argumentList: argumentList,
+            rawType: constructorRawType,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList,
+            constructorName: constructorName)
+        .resolveInvocation();
   }
 
   void _extensionGetter(
@@ -432,57 +337,12 @@ class AnnotationResolver {
     }
   }
 
-  /// Given an [argumentList] and the [executableElement] that will be invoked
-  /// using those argument, compute the list of parameters that correspond to
-  /// the list of arguments. An error will be reported if any of the arguments
-  /// cannot be matched to a parameter. Return the parameters that correspond to
-  /// the arguments, or `null` if no correspondence could be computed.
-  ///
-  /// TODO(scheglov) this is duplicate
-  List<ParameterElement?>? _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement? executableElement) {
-    if (executableElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(argumentList, parameters);
-  }
-
-  /// Given an [argumentList] and the [parameters] related to the element that
-  /// will be invoked using those arguments, compute the list of parameters that
-  /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. Return the parameters that
-  /// correspond to the arguments.
-  ///
-  /// TODO(scheglov) this is duplicate
-  List<ParameterElement?> _resolveArgumentsToParameters(
-      ArgumentList argumentList, List<ParameterElement> parameters) {
-    return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _errorReporter.reportErrorForNode);
-  }
-
-  void _resolveConstructorInvocationArguments(AnnotationImpl node) {
-    var argumentList = node.arguments;
-    // error will be reported in ConstantVerifier
-    if (argumentList == null) {
-      return;
-    }
-    // resolve arguments to parameters
-    var constructor = node.element;
-    if (constructor is ConstructorElement) {
-      var parameters = _resolveArgumentsToFunction(argumentList, constructor);
-      if (parameters != null) {
-        argumentList.correspondingStaticParameters = parameters;
-      }
-    }
-  }
-
   void _typeAliasConstructorInvocation(
     AnnotationImpl node,
     TypeAliasElement typeAliasElement,
     SimpleIdentifierImpl? constructorName,
     InterfaceType aliasedType,
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var constructorElement = aliasedType.lookUpConstructor(
@@ -543,8 +403,15 @@ class AnnotationResolver {
       AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = node.arguments;
     if (arguments != null) {
-      _resolver.visitArgumentList(arguments,
-          whyNotPromotedList: whyNotPromotedList);
+      AnnotationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: arguments,
+              rawType: null,
+              contextType: null,
+              whyNotPromotedList: whyNotPromotedList,
+              constructorName: null)
+          .resolveInvocation();
     }
   }
 }

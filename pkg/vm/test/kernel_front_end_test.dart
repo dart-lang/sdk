@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show computePlatformBinariesLocation;
+import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart';
 
@@ -24,6 +26,15 @@ Future<void> testCompile(List<String> args) async {
   final compilerExitCode =
       await runCompiler(createCompilerArgParser().parse(args), '');
   expect(compilerExitCode, successExitCode);
+}
+
+bool containsLibrary(Component component, String name) {
+  for (final lib in component.libraries) {
+    if (lib.importUri.pathSegments.last == name) {
+      return true;
+    }
+  }
+  return false;
 }
 
 main() {
@@ -127,5 +138,29 @@ main() {
       outputDill(),
       'test-filesystem-scheme:///$mainScript',
     ]);
+  }, timeout: Timeout.none);
+
+  test('multiple-sources', () async {
+    final src1 = File('${tempDir.path}/src1.dart');
+    final src2 = File('${tempDir.path}/src2.dart');
+    src1.writeAsStringSync("main() {}");
+    src2.writeAsStringSync("entryPoint() {}");
+    await testCompile([
+      '--platform',
+      platformPath(),
+      '--no-link-platform',
+      // Need to specify --packages as front-end refuses to infer
+      // its location when compiling multiple sources.
+      '--packages',
+      '$sdkDir/$packageConfigFile',
+      '--source',
+      src2.path,
+      '--output',
+      outputDill(),
+      src1.path,
+    ]);
+    final component = loadComponentFromBinary(outputDill());
+    expect(containsLibrary(component, 'src1.dart'), equals(true));
+    expect(containsLibrary(component, 'src2.dart'), equals(true));
   }, timeout: Timeout.none);
 }

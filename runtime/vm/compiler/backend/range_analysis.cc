@@ -1643,16 +1643,10 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    if (def->IsBinaryInt64Op()) {
-      return new (Z) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
-    } else if (def->IsShiftInt64Op()) {
-      return new (Z) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
-    } else if (def->IsSpeculativeShiftInt64Op()) {
-      return new (Z)
-          SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
-    } else {
-      UNREACHABLE();
-    }
+    return BinaryIntegerOpInstr::Make(
+        kUnboxedUint32, op_kind, left, right, deopt_id,
+        def->IsSpeculativeShiftInt64Op() ? Instruction::kGuardInputs
+                                         : Instruction::kNotSpeculative);
   } else if (def->IsBoxInt64()) {
     Value* value = def->AsBoxInt64()->value()->CopyWithType();
     return new (Z) BoxUint32Instr(value);
@@ -2080,6 +2074,10 @@ int64_t RangeBoundary::ConstantValue() const {
 
 bool Range::IsPositive() const {
   return OnlyGreaterThanOrEqualTo(0);
+}
+
+bool Range::IsNegative() const {
+  return OnlyLessThanOrEqualTo(-1);
 }
 
 bool Range::OnlyLessThanOrEqualTo(int64_t val) const {
@@ -2799,14 +2797,24 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kFinalizer_callback:
+    case Slot::Kind::kFinalizer_type_arguments:
+    case Slot::Kind::kFinalizerBase_all_entries:
+    case Slot::Kind::kFinalizerBase_detachments:
+    case Slot::Kind::kFinalizerBase_entries_collected:
+    case Slot::Kind::kFinalizerEntry_detach:
+    case Slot::Kind::kFinalizerEntry_finalizer:
+    case Slot::Kind::kFinalizerEntry_next:
+    case Slot::Kind::kFinalizerEntry_token:
+    case Slot::Kind::kFinalizerEntry_value:
+    case Slot::Kind::kNativeFinalizer_callback:
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_signature:
     case Slot::Kind::kFunctionType_named_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kInstance_native_fields_array:
-    case Slot::Kind::kPointerBase_data_field:
-    case Slot::Kind::kTypedDataView_data:
+    case Slot::Kind::kTypedDataView_typed_data:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
     case Slot::Kind::kTypeParameters_names:
@@ -2818,6 +2826,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kUnhandledException_stacktrace:
     case Slot::Kind::kWeakProperty_key:
     case Slot::Kind::kWeakProperty_value:
+    case Slot::Kind::kWeakReference_target:
+    case Slot::Kind::kWeakReference_type_arguments:
       // Not an integer valued field.
       UNREACHABLE();
       break;

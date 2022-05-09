@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common_elements.dart' show CommonElements;
+import '../common/elements.dart' show CommonElements;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -45,6 +45,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     this._graph = graph;
     visitDominatorTree(graph);
   }
+
+  @override
+  bool validPostcondition(HGraph graph) => true;
 
   @override
   void visitBasicBlock(HBasicBlock node) {

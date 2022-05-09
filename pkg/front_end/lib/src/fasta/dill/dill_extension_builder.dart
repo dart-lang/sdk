@@ -3,20 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 
 import '../builder/extension_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
-import '../kernel/kernel_helper.dart';
-
 import '../scope.dart';
-
-import '../util/helpers.dart';
-
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
 
@@ -47,10 +40,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
             Procedure procedure = descriptor.member.asProcedure;
-            scopeBuilder.addMember(
+            scope.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, this));
+                    procedure, descriptor, this),
+                setter: false);
           } else {
             _methods[name] = descriptor;
           }
@@ -60,23 +54,27 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.member.asProcedure;
-          scopeBuilder.addMember(name.text,
-              new DillExtensionGetterBuilder(procedure, descriptor, this));
+          scope.addLocalMember(name.text,
+              new DillExtensionGetterBuilder(procedure, descriptor, this),
+              setter: false);
           break;
         case ExtensionMemberKind.Field:
           Field field = descriptor.member.asField;
-          scopeBuilder.addMember(name.text,
-              new DillExtensionFieldBuilder(field, descriptor, this));
+          scope.addLocalMember(
+              name.text, new DillExtensionFieldBuilder(field, descriptor, this),
+              setter: false);
           break;
         case ExtensionMemberKind.Setter:
           Procedure procedure = descriptor.member.asProcedure;
-          scopeBuilder.addSetter(name.text,
-              new DillExtensionSetterBuilder(procedure, descriptor, this));
+          scope.addLocalMember(name.text,
+              new DillExtensionSetterBuilder(procedure, descriptor, this),
+              setter: true);
           break;
         case ExtensionMemberKind.Operator:
           Procedure procedure = descriptor.member.asProcedure;
-          scopeBuilder.addMember(name.text,
-              new DillExtensionOperatorBuilder(procedure, descriptor, this));
+          scope.addLocalMember(name.text,
+              new DillExtensionOperatorBuilder(procedure, descriptor, this),
+              setter: false);
           break;
       }
     }
@@ -84,10 +82,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       Procedure procedure = descriptor.member.asProcedure;
       assert(_tearOffs.containsKey(name),
           "No tear found for ${descriptor} in ${_tearOffs}");
-      scopeBuilder.addMember(
+      scope.addLocalMember(
           name.text,
           new DillExtensionInstanceMethodBuilder(
-              procedure, descriptor, this, _tearOffs[name]!));
+              procedure, descriptor, this, _tearOffs[name]!),
+          setter: false);
     });
   }
 
@@ -95,22 +94,14 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   List<TypeVariableBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
       _typeParameters =
-          computeTypeVariableBuilders(library, extension.typeParameters);
+          computeTypeVariableBuilders(libraryBuilder, extension.typeParameters);
     }
     return _typeParameters;
   }
 
   @override
   TypeBuilder get onType {
-    return _onType ??= library.loader.computeTypeBuilder(extension.onType);
-  }
-
-  @override
-  void buildOutlineExpressions(
-      LibraryBuilder library,
-      CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    // TODO(johnniwinther): Remove the need for this.
+    return _onType ??=
+        libraryBuilder.loader.computeTypeBuilder(extension.onType);
   }
 }

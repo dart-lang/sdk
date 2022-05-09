@@ -1,5 +1,21 @@
 # Changelog
 
+## 8.2.2
+- Updated the following optional fields to be nullable in `SocketStatistic`:
+  - `endTime`
+  - `lastReadTime`
+  - `lastWriteTime`
+
+## 8.2.1
+- Changed type of `UriList.uris` from `dynamic` to `List<String?>?`.
+- Remove `example/vm_service_asserts.dart'
+
+## 8.2.0
+- Update to version `3.56` of the spec.
+- Added optional `line` and `column` properties to `SourceLocation`.
+- Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level
+  coverage information.
+
 ## 8.1.0
 - Update to version `3.55` of the spec.
 - Added `streamCpuSamplesWithUserTag` RPC.

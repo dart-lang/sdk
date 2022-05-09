@@ -312,7 +312,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     String uriString = relativizeUri(uri)!;
     Map<String, List<FormattedMessage>> actualMap = _actualMessages.putIfAbsent(
         uriString, () => <String, List<FormattedMessage>>{});
-    if (uri.scheme == 'org-dartlang-sdk') {
+    if (uri.isScheme('org-dartlang-sdk')) {
       location = new Location(Uri.base.resolve(uri.path.substring(1)),
           location.line, location.column);
     }

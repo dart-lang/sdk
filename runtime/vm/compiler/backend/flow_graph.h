@@ -397,6 +397,23 @@ class FlowGraph : public ZoneAllocated {
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
 
+  // Returns true if mismatch in input/output representations is allowed.
+  bool unmatched_representations_allowed() const {
+    return unmatched_representations_allowed_;
+  }
+
+  // After the last SelectRepresentations pass all further transformations
+  // should maintain matching input/output representations.
+  void disallow_unmatched_representations() {
+    unmatched_representations_allowed_ = false;
+  }
+
+  // Returns true if this flow graph was built for a huge method
+  // and certain optimizations should be disabled.
+  bool is_huge_method() const { return huge_method_; }
+  // Mark this flow graph as huge and disable certain optimizations.
+  void mark_huge_method() { huge_method_ = true; }
+
   PrologueInfo prologue_info() const { return prologue_info_; }
 
   // Computes the loop hierarchy of the flow graph on demand.
@@ -605,7 +622,6 @@ class FlowGraph : public ZoneAllocated {
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.
   GrowableArray<intptr_t> parent_;
-  GrowableArray<BitVector*> assigned_vars_;
 
   intptr_t current_ssa_temp_index_;
   intptr_t max_block_id_;
@@ -623,6 +639,8 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_dead_;
 
   bool licm_allowed_;
+  bool unmatched_representations_allowed_ = true;
+  bool huge_method_ = false;
 
   const PrologueInfo prologue_info_;
 

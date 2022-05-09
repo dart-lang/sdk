@@ -415,17 +415,21 @@ class A {
     await resolveTestCode('''
 class A {
   void f() {
-    myUndefinedMethod(0, bbb: 1.0, ccc: '2');
+    var c = '2';
+    int? d;
+    myUndefinedMethod(0, bbb: 1.0, ccc: c, ddd: d);
   }
 }
 ''');
     await assertHasFix('''
 class A {
   void f() {
-    myUndefinedMethod(0, bbb: 1.0, ccc: '2');
+    var c = '2';
+    int? d;
+    myUndefinedMethod(0, bbb: 1.0, ccc: c, ddd: d);
   }
 
-  void myUndefinedMethod(int i, {double bbb, String ccc}) {}
+  void myUndefinedMethod(int i, {required double bbb, required String ccc, int? ddd}) {}
 }
 ''');
     // linked positions
@@ -509,6 +513,26 @@ class A {
   static void myUndefinedMethod() {}
 }
 ''');
+  }
+
+  Future<void> test_functionType_argument() async {
+    await resolveTestCode('''
+class A {
+  a() => b((c) => c.d);
+}
+''');
+    await assertHasFix('''
+class A {
+  a() => b((c) => c.d);
+
+  b(Function(dynamic c) param0) {}
+}
+''');
+    var groups = change.linkedEditGroups;
+    var index = 0;
+    assertLinkedGroup(groups[index++], ['b((c', 'b(Function']);
+    assertLinkedGroup(groups[index++], ['Function(dynamic c)']);
+    assertLinkedGroup(groups[index++], ['param0']);
   }
 
   Future<void> test_functionType_method_enclosingClass_instance() async {

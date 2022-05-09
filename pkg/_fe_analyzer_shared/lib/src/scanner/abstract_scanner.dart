@@ -73,6 +73,9 @@ abstract class AbstractScanner implements Scanner {
   /// and https://github.com/dart-lang/language/issues/60
   bool _enableTripleShift = false;
 
+  /// If `true`, 'augment' is treated as a built-in identifier.
+  bool _forAugmentationLibrary = false;
+
   /**
    * The string offset for the next token that will be created.
    *
@@ -159,6 +162,7 @@ abstract class AbstractScanner implements Scanner {
       _enableExtensionMethods = config.enableExtensionMethods;
       _enableNonNullable = config.enableNonNullable;
       _enableTripleShift = config.enableTripleShift;
+      _forAugmentationLibrary = config.forAugmentationLibrary;
     }
   }
 
@@ -1619,6 +1623,9 @@ abstract class AbstractScanner implements Scanner {
         (keyword == Keyword.LATE || keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
+    if (!_forAugmentationLibrary && keyword == Keyword.AUGMENT) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    }
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
         identical(next, $_) ||
@@ -2055,13 +2062,18 @@ class ScannerConfiguration {
   /// and https://github.com/dart-lang/language/issues/60
   final bool enableTripleShift;
 
+  /// If `true`, 'augment' is treated as a built-in identifier.
+  final bool forAugmentationLibrary;
+
   const ScannerConfiguration({
     bool enableExtensionMethods = false,
     bool enableNonNullable = false,
     bool enableTripleShift = false,
+    bool forAugmentationLibrary = false,
   })  : this.enableExtensionMethods = enableExtensionMethods,
         this.enableNonNullable = enableNonNullable,
-        this.enableTripleShift = enableTripleShift;
+        this.enableTripleShift = enableTripleShift,
+        this.forAugmentationLibrary = forAugmentationLibrary;
 }
 
 bool _isIdentifierChar(int next, bool allowDollar) {

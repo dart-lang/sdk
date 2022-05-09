@@ -22,9 +22,9 @@ class SortMembersTest extends AbstractAnalysisTest {
   late SourceFileEdit fileEdit;
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
   }
 
@@ -195,7 +195,7 @@ class MyAnnotation {
   }
 
   Future<void> test_OK_genericFunctionType() async {
-    newAnalysisOptionsYamlFile(projectPath, content: '''
+    newAnalysisOptionsYamlFile2(projectPath, '''
 analyzer:
   strong-mode: true
 ''');

@@ -8,14 +8,14 @@ import 'package:path/path.dart' as p;
 
 /// For commands where we are able to initialize the [ArgParser], this value
 /// is used as the usageLineLength.
-int get dartdevUsageLineLength =>
+int? get dartdevUsageLineLength =>
     stdout.hasTerminal ? stdout.terminalColumns : null;
 
 /// Given a data structure which is a Map of String to dynamic values, return
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> castStringKeyedMap(dynamic untyped) {
-  final Map<dynamic, dynamic> map = untyped as Map<dynamic, dynamic>;
-  return map?.cast<String, dynamic>();
+  final Map<dynamic, dynamic> map = untyped! as Map<dynamic, dynamic>;
+  return map.cast<String, dynamic>();
 }
 
 /// Emit the given word with the correct pluralization.
@@ -31,8 +31,8 @@ String relativePath(String filePath, Directory dir) {
 }
 
 /// String utility to trim some suffix from the end of a [String].
-String trimEnd(String s, String suffix) {
-  if (s != null && suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {
+String trimEnd(String s, String? suffix) {
+  if (suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {
     return s.substring(0, s.length - suffix.length);
   }
   return s;
@@ -45,7 +45,7 @@ extension FileSystemEntityExtension on FileSystemEntity {
 }
 
 /// Wraps [text] to the given [width], if provided.
-String wrapText(String text, {int width}) {
+String wrapText(String text, {int? width}) {
   if (width == null) {
     return text;
   }

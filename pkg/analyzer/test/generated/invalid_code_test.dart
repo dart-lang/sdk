@@ -10,8 +10,74 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidCodeTest);
-    defineReflectiveTests(InvalidCodeWithNullSafetyTest);
+    defineReflectiveTests(InvalidCodeWithoutNullSafetyTest);
   });
+}
+
+@reflectiveTest
+class InvalidCodeTest extends PubPackageResolutionTest {
+  test_functionExpression_emptyBody() async {
+    await _assertCanBeAnalyzed(r'''
+var v = <T>();
+''');
+  }
+
+  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
+    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
+    // we parse it as FunctionExpressionInvocation.
+    await _assertCanBeAnalyzed(r'''
+var v = a?.8(b);
+''');
+  }
+
+  test_inAnnotation_noFlow_labeledStatement() async {
+    await _assertCanBeAnalyzed('''
+@A(() { label: })
+typedef F = void Function();
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifExpression() async {
+    await _assertCanBeAnalyzed('''
+typedef void F({a = [if (true) 0]});
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifStatement() async {
+    await _assertCanBeAnalyzed('''
+typedef void F([a = () { if (true) 0; }]);
+''');
+  }
+
+  test_issue_40837() async {
+    await _assertCanBeAnalyzed('''
+class A {
+  const A(_);
+}
+
+@A(() => 0)
+class B {}
+''');
+  }
+
+  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  static void foo<T2>() {}
+}
+''');
+    await _assertCanBeAnalyzed('''
+// @dart = 2.9
+import 'a.dart';
+
+const bar = A.foo();
+''');
+  }
+
+  Future<void> _assertCanBeAnalyzed(String text) async {
+    await resolveTestCode(text);
+    assertHasTestErrors();
+  }
 }
 
 /// Tests for various end-to-end cases when invalid code caused exceptions
@@ -19,7 +85,7 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends PubPackageResolutionTest
+class InvalidCodeWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
   //  test cases.
@@ -96,7 +162,7 @@ extension E on Object {
   }
 
   test_extensionOverrideInAnnotationContext_importedWithPrefix() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 extension E on Object {
   int f() => 0;
 }
@@ -336,6 +402,19 @@ part 'test.dart';
 ''');
   }
 
+  test_issue_48688() async {
+    // During parsing we recover as `<synthetic>.bar.baz()`.
+    // So, we have a synthetic empty identifier.
+    // There was a bug - we considered it a reference to the unnamed extension.
+    await _assertCanBeAnalyzed(r'''
+void f() {
+  final foo.bar.baz();
+}
+
+extension on int {}
+''');
+  }
+
   test_keywordInConstructorInitializer_assert() async {
     await _assertCanBeAnalyzed('''
 class C {
@@ -401,72 +480,6 @@ class A {
 class B {
   dynamic @A(const A()) x;
 }
-''');
-  }
-
-  Future<void> _assertCanBeAnalyzed(String text) async {
-    await resolveTestCode(text);
-    assertHasTestErrors();
-  }
-}
-
-@reflectiveTest
-class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest {
-  test_functionExpression_emptyBody() async {
-    await _assertCanBeAnalyzed(r'''
-var v = <T>();
-''');
-  }
-
-  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
-    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
-    // we parse it as FunctionExpressionInvocation.
-    await _assertCanBeAnalyzed(r'''
-var v = a?.8(b);
-''');
-  }
-
-  test_inAnnotation_noFlow_labeledStatement() async {
-    await _assertCanBeAnalyzed('''
-@A(() { label: })
-typedef F = void Function();
-''');
-  }
-
-  test_inDefaultValue_noFlow_ifExpression() async {
-    await _assertCanBeAnalyzed('''
-typedef void F({a = [if (true) 0]});
-''');
-  }
-
-  test_inDefaultValue_noFlow_ifStatement() async {
-    await _assertCanBeAnalyzed('''
-typedef void F([a = () { if (true) 0; }]);
-''');
-  }
-
-  test_issue_40837() async {
-    await _assertCanBeAnalyzed('''
-class A {
-  const A(_);
-}
-
-@A(() => 0)
-class B {}
-''');
-  }
-
-  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A<T> {
-  static void foo<T2>() {}
-}
-''');
-    await _assertCanBeAnalyzed('''
-// @dart = 2.9
-import 'a.dart';
-
-const bar = A.foo();
 ''');
   }
 

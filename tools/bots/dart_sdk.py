@@ -19,6 +19,21 @@ def BuildRootPath(path, arch='x64', build_mode='release'):
                         utils.GetBuildRoot(BUILD_OS, build_mode, arch), path)
 
 
+def UploadFlutterCipd(arch, sdk_path, channel):
+    cipd_os = bot_utils.SYSTEM_TO_CIPD[BUILD_OS]
+    cipd_arch = bot_utils.ARCH_TO_CIPD[arch]
+    cipd_platform = cipd_os + '-' + cipd_arch
+    version = utils.GetVersion()
+    name = 'flutter/dart-sdk/%s' % cipd_platform
+    version_tag = 'version:%s' % version
+    git_tag = 'git_revision:%s' % utils.GetGitRevision()
+    bot_utils.run([
+        'cipd', 'create', '-name', name, '-in', sdk_path, '-install-mode',
+        'copy', '-tag', version_tag, '-tag', git_tag, '-ref', channel,
+        '-preserve-writable'
+    ])
+
+
 def BuildDartdocAPIDocs(dirname):
     dart_sdk = BuildRootPath('dart-sdk')
     dart_exe = os.path.join(dart_sdk, 'bin', 'dart')
@@ -234,6 +249,12 @@ if __name__ == '__main__':
             sdk_path = BuildRootPath('dart-sdk', arch=arch)
             CreateAndUploadSDKZip(arch, sdk_path)
             DartArchiveUnstrippedBinaries(arch)
+            if CHANNEL != bot_utils.Channel.BLEEDING_EDGE:
+                try:
+                    UploadFlutterCipd(arch, sdk_path, CHANNEL)
+                except Exception as error:
+                    print('Error uploading to CIPD:')
+                    print(repr(error))
         if BUILD_OS == 'linux':
             CreateUploadVersionFile()
     else:

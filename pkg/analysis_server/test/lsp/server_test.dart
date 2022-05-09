@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,7 +22,10 @@ void main() {
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_inconsistentStateError() async {
-    await initialize();
+    await initialize(
+      // Error is expected and checked below.
+      failTestOnAnyErrorNotification: false,
+    );
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
@@ -41,6 +48,67 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await server.exited.timeout(const Duration(seconds: 10));
   }
 
+  Future<void> test_path_doesNotExist() async {
+    final missingFileUri = Uri.file(join(projectFolderPath, 'missing.dart'));
+    await initialize();
+    await expectLater(
+      getHover(missingFileUri, startOfDocPos),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist')),
+    );
+  }
+
+  Future<void> test_path_invalidFormat() async {
+    await initialize();
+    await expectLater(
+      // Add some invalid path characters to the end of a valid file:// URI.
+      formatDocument(mainFileUri.toString() + r'***###\\\///:::.dart'),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'File URI did not contain a valid file path')),
+    );
+  }
+
+  Future<void> test_path_missingDriveLetterWindows() async {
+    // This test is only valid on Windows, as a URI in the format:
+    //    file:///foo/bar.dart
+    // is valid for non-Windows platforms, but not valid on Windows as it does
+    // not have a drive letter.
+    if (!Platform.isWindows) {
+      return;
+    }
+    final missingDriveLetterFileUri = Uri.file('/foo/bar.dart');
+    await initialize();
+    await expectLater(
+      getHover(missingDriveLetterFileUri, startOfDocPos),
+      // The Uri.file() above translates to a non-file:// URI of just 'a/b.dart'
+      // so will get the not-file-scheme error message.
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'URI was not an absolute file path (missing drive letter)')),
+    );
+  }
+
+  Future<void> test_path_notFileScheme() async {
+    final relativeFileUri = Uri(scheme: 'foo', path: '/a/b.dart');
+    await initialize();
+    await expectLater(
+      getHover(relativeFileUri, startOfDocPos),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'URI was not a valid file:// URI')),
+    );
+  }
+
+  Future<void> test_path_relative() async {
+    final relativeFileUri = Uri.file('a/b.dart');
+    await initialize();
+    await expectLater(
+      getHover(relativeFileUri, startOfDocPos),
+      // The Uri.file() above translates to a non-file:// URI of just 'a/b.dart'
+      // so will get the not-file-scheme error message.
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'URI was not a valid file:// URI')),
+    );
+  }
+
   Future<void> test_shutdown_initialized() async {
     await initialize();
     final response = await sendShutdown();
@@ -53,7 +121,10 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_unknownNotifications_logError() async {
-    await initialize();
+    await initialize(
+      // Error is expected and checked below.
+      failTestOnAnyErrorNotification: false,
+    );
 
     final notification =
         makeNotification(Method.fromJson(r'some/randomNotification'), null);

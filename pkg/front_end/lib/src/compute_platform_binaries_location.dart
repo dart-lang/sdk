@@ -95,7 +95,7 @@ Uri computePlatformBinariesLocation({bool forceBuildDir: false}) {
 /// Translates an SDK URI ("org-dartlang-sdk:///...") to a file URI.
 Uri translateSdk(Uri uri) {
   if (CompilerContext.isActive) {
-    if (uri.scheme == "org-dartlang-sdk") {
+    if (uri.isScheme("org-dartlang-sdk")) {
       String path = uri.path;
       if (path.startsWith("/sdk/")) {
         CompilerContext context = CompilerContext.current;
@@ -148,7 +148,7 @@ Uri translateSdk(Uri uri) {
 }
 
 bool isExistingFile(Uri uri) {
-  if (uri.scheme == "file") {
+  if (uri.isScheme("file")) {
     return new File.fromUri(uri).existsSync();
   } else {
     return false;

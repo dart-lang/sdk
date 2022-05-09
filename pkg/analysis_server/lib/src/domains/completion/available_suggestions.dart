@@ -155,7 +155,7 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
     case DeclarationKind.FUNCTION:
       return protocol.ElementKind.FUNCTION;
     case DeclarationKind.FUNCTION_TYPE_ALIAS:
-      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+      return protocol.ElementKind.TYPE_ALIAS;
     case DeclarationKind.GETTER:
       return protocol.ElementKind.GETTER;
     case DeclarationKind.METHOD:
@@ -173,7 +173,7 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
 
 /// Computes the best URI to import [what] into the [unit] library.
 String? _getRelativeFileUri(DartCompletionRequest request, Uri what) {
-  if (what.scheme == 'file') {
+  if (what.isScheme('file')) {
     var pathContext = request.analysisSession.resourceProvider.pathContext;
 
     var libraryPath = request.libraryElement.source.fullName;

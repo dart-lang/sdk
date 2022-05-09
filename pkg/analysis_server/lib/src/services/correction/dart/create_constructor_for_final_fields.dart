@@ -4,17 +4,18 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorForFinalFields extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
-
-  bool get _isNonNullable => unit.featureSet.isEnabled(Feature.non_nullable);
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -33,15 +34,12 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       return;
     }
 
-    // prepare names of uninitialized final fields
-    var fieldNames = <String>[];
+    var variableLists = <VariableDeclarationList>[];
     for (var member in classDeclaration.members) {
       if (member is FieldDeclaration) {
         var variableList = member.fields;
         if (variableList.isFinal && !variableList.isLate) {
-          fieldNames.addAll(variableList.variables
-              .where((v) => v.initializer == null)
-              .map((v) => v.name.name));
+          variableLists.add(variableList);
         }
       }
     }
@@ -59,41 +57,22 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       if (keyClass == null) {
         return;
       }
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(targetLocation.offset, (builder) {
-          builder.write(targetLocation.prefix);
-          builder.write('const ');
-          builder.write(className);
-          builder.write('({');
-          builder.writeType(
-            keyClass.instantiate(
-              typeArguments: const [],
-              nullabilitySuffix: _isNonNullable
-                  ? NullabilitySuffix.question
-                  : NullabilitySuffix.star,
-            ),
-          );
-          builder.write(' key');
 
-          var childrenFields = <String>[];
-          for (var fieldName in fieldNames) {
-            if (fieldName == 'child' || fieldName == 'children') {
-              childrenFields.add(fieldName);
-              continue;
-            }
-            builder.write(', this.');
-            builder.write(fieldName);
-          }
-          for (var fieldName in childrenFields) {
-            builder.write(', this.');
-            builder.write(fieldName);
-          }
-
-          builder.write('}) : super(key: key);');
-          builder.write(targetLocation.suffix);
-        });
-      });
+      if (unit.featureSet.isEnabled(Feature.super_parameters)) {
+        await _withSuperParameters(
+            builder, targetLocation, className, variableLists);
+      } else {
+        await _withoutSuperParameters(
+            builder, targetLocation, className, keyClass, variableLists);
+      }
     } else {
+      var fieldNames = <String>[];
+      for (var variableList in variableLists) {
+        fieldNames.addAll(variableList.variables
+            .where((v) => v.initializer == null)
+            .map((v) => v.name.name));
+      }
+
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(targetLocation.offset, (builder) {
           builder.write(targetLocation.prefix);
@@ -102,6 +81,96 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
           builder.write(targetLocation.suffix);
         });
       });
+    }
+  }
+
+  Future<void> _withoutSuperParameters(
+      ChangeBuilder builder,
+      ClassMemberLocation targetLocation,
+      String className,
+      ClassElement keyClass,
+      List<VariableDeclarationList> variableLists) async {
+    var isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable);
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
+        builder.write(targetLocation.prefix);
+        builder.write('const ');
+        builder.write(className);
+        builder.write('({');
+        builder.writeType(
+          keyClass.instantiate(
+            typeArguments: const [],
+            nullabilitySuffix: isNonNullable
+                ? NullabilitySuffix.question
+                : NullabilitySuffix.star,
+          ),
+        );
+        builder.write(' key');
+
+        _writeParameters(builder, variableLists, isNonNullable);
+
+        builder.write('}) : super(key: key);');
+        builder.write(targetLocation.suffix);
+      });
+    });
+  }
+
+  Future<void> _withSuperParameters(
+      ChangeBuilder builder,
+      ClassMemberLocation targetLocation,
+      String className,
+      List<VariableDeclarationList> variableLists) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
+        builder.write(targetLocation.prefix);
+        builder.write('const ');
+        builder.write(className);
+        builder.write('({');
+        builder.write('super.key');
+
+        _writeParameters(builder, variableLists, true);
+
+        builder.write('});');
+        builder.write(targetLocation.suffix);
+      });
+    });
+  }
+
+  void _writeParameters(DartEditBuilder builder,
+      List<VariableDeclarationList> variableLists, bool isNonNullable) {
+    var childrenFields = <String>[];
+    var childrenNullables = <bool>[];
+    for (var variableList in variableLists) {
+      var fieldNames = variableList.variables
+          .where((v) => v.initializer == null)
+          .map((v) => v.name.name);
+
+      for (var fieldName in fieldNames) {
+        if (fieldName == 'child' || fieldName == 'children') {
+          childrenFields.add(fieldName);
+          childrenNullables.add(variableList.type?.type?.nullabilitySuffix ==
+              NullabilitySuffix.question);
+          continue;
+        }
+        builder.write(', ');
+        if (isNonNullable &&
+            variableList.type?.type?.nullabilitySuffix !=
+                NullabilitySuffix.question) {
+          builder.write('required ');
+        }
+        builder.write('this.');
+        builder.write(fieldName);
+      }
+    }
+    for (var i = 0; i < childrenFields.length; i++) {
+      var fieldName = childrenFields[i];
+      var nullableField = childrenNullables[i];
+      builder.write(', ');
+      if (isNonNullable && !nullableField) {
+        builder.write('required ');
+      }
+      builder.write('this.');
+      builder.write(fieldName);
     }
   }
 

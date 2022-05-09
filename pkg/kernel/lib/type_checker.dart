@@ -27,7 +27,7 @@ abstract class TypeChecker {
 
   void checkComponent(Component component) {
     for (Library library in component.libraries) {
-      if (ignoreSdk && library.importUri.scheme == 'dart') continue;
+      if (ignoreSdk && library.importUri.isScheme('dart')) continue;
       for (Class class_ in library.classes) {
         hierarchy.forEachOverridePair(class_,
             (Member ownMember, Member superMember, bool isSetter) {
@@ -39,7 +39,7 @@ abstract class TypeChecker {
         new TypeCheckingVisitor(this, environment, hierarchy);
     for (Library library in component.libraries) {
       currentLibrary = library;
-      if (ignoreSdk && library.importUri.scheme == 'dart') continue;
+      if (ignoreSdk && library.importUri.isScheme('dart')) continue;
       for (Class class_ in library.classes) {
         currentThisType = coreTypes.thisInterfaceType(
             class_, class_.enclosingLibrary.nonNullable);

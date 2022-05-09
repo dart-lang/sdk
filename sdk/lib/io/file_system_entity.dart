@@ -11,20 +11,12 @@ part of dart.io;
 /// to indicate the object's type.
 class FileSystemEntityType {
   static const file = const FileSystemEntityType._internal(0);
-  @Deprecated("Use file instead")
-  static const FILE = file;
 
   static const directory = const FileSystemEntityType._internal(1);
-  @Deprecated("Use directory instead")
-  static const DIRECTORY = directory;
 
   static const link = const FileSystemEntityType._internal(2);
-  @Deprecated("Use link instead")
-  static const LINK = link;
 
   static const notFound = const FileSystemEntityType._internal(3);
-  @Deprecated("Use notFound instead")
-  static const NOT_FOUND = notFound;
 
   static const _typeList = const [
     FileSystemEntityType.file,
@@ -447,7 +439,7 @@ abstract class FileSystemEntity {
   ///
   /// Use `events` to specify what events to listen for. The constants in
   /// [FileSystemEvent] can be or'ed together to mix events. Default is
-  /// [FileSystemEvent.ALL].
+  /// [FileSystemEvent.all].
   ///
   /// A move event may be reported as separate delete and create events.
   Stream<FileSystemEvent> watch(
@@ -870,29 +862,19 @@ abstract class FileSystemEntity {
 class FileSystemEvent {
   /// Bitfield for [FileSystemEntity.watch], to enable [FileSystemCreateEvent]s.
   static const int create = 1 << 0;
-  @Deprecated("Use create instead")
-  static const int CREATE = 1 << 0;
 
   /// Bitfield for [FileSystemEntity.watch], to enable [FileSystemModifyEvent]s.
   static const int modify = 1 << 1;
-  @Deprecated("Use modify instead")
-  static const int MODIFY = 1 << 1;
 
   /// Bitfield for [FileSystemEntity.watch], to enable [FileSystemDeleteEvent]s.
   static const int delete = 1 << 2;
-  @Deprecated("Use delete instead")
-  static const int DELETE = 1 << 2;
 
   /// Bitfield for [FileSystemEntity.watch], to enable [FileSystemMoveEvent]s.
   static const int move = 1 << 3;
-  @Deprecated("Use move instead")
-  static const int MOVE = 1 << 3;
 
   /// Bitfield for [FileSystemEntity.watch], for enabling all of [create],
   /// [modify], [delete] and [move].
   static const int all = create | modify | delete | move;
-  @Deprecated("Use all instead")
-  static const int ALL = create | modify | delete | move;
 
   static const int _modifyAttributes = 1 << 4;
   static const int _deleteSelf = 1 << 5;

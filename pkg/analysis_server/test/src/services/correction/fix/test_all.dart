@@ -15,6 +15,8 @@ import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
 import 'add_late_test.dart' as add_late;
+import 'add_leading_newline_to_string_test.dart'
+    as add_leading_newline_to_string;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
 import 'add_missing_enum_like_case_clauses_test.dart'
@@ -46,6 +48,7 @@ import 'change_to_nearest_precise_value_test.dart'
 import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
+import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
@@ -55,6 +58,7 @@ import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
+import 'convert_to_cascade_test.dart' as convert_to_cascade;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
@@ -73,11 +77,13 @@ import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_raw_string_test.dart' as convert_to_raw_string;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
@@ -96,6 +102,7 @@ import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
+import 'extract_local_variable_test.dart' as extract_local_variable;
 import 'fix_in_file_test.dart' as fix_in_file;
 import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
@@ -124,6 +131,7 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
+import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
@@ -140,6 +148,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
+import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
@@ -155,6 +164,7 @@ import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
+import 'remove_unnecessary_late_test.dart' as remove_unnecessary_late;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
@@ -182,6 +192,7 @@ import 'replace_container_with_sized_box_test.dart'
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
+import 'replace_null_check_with_cast_test.dart' as replace_null_check_with_cast;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_return_type_iterable_test.dart' as replace_return_type_iterable;
@@ -203,6 +214,9 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
+import 'sort_unnamed_constructor_first_test.dart'
+    as sort_unnamed_constructor_first_test;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_curly_braces_test.dart' as use_curly_braces;
@@ -227,6 +241,7 @@ void main() {
     add_field_formal_parameters.main();
     add_key_to_constructors.main();
     add_late.main();
+    add_leading_newline_to_string.main();
     add_missing_enum_case_clauses.main();
     add_missing_enum_like_case_clauses.main();
     add_missing_parameter_named.main();
@@ -251,6 +266,7 @@ void main() {
     change_to_nearest_precise_value.main();
     change_to_static_access.main();
     change_type_annotation.main();
+    convert_class_to_enum.main();
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
@@ -259,6 +275,7 @@ void main() {
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();
+    convert_to_cascade.main();
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();
@@ -274,10 +291,12 @@ void main() {
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
+    convert_to_raw_string.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
+    convert_to_super_parameters.main();
     convert_to_where_type.main();
     create_class.main();
     create_constructor_for_final_field.main();
@@ -296,6 +315,7 @@ void main() {
     data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
+    extract_local_variable.main();
     fix_in_file.main();
     fix_processor_map.main();
     ignore_error.main();
@@ -322,6 +342,7 @@ void main() {
     remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
+    remove_assignment.main();
     remove_await.main();
     remove_comparison.main();
     remove_const.main();
@@ -336,6 +357,7 @@ void main() {
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
+    remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
     remove_non_null_assertion_test.main();
@@ -349,6 +371,7 @@ void main() {
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
+    remove_unnecessary_late.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
     remove_unnecessary_raw_string.main();
@@ -370,6 +393,7 @@ void main() {
     replace_final_with_const.main();
     replace_final_with_var.main();
     replace_new_with_const.main();
+    replace_null_check_with_cast.main();
     replace_null_with_closure.main();
     replace_null_with_void.main();
     replace_return_type.main();
@@ -391,6 +415,8 @@ void main() {
     replace_with_tear_off.main();
     replace_with_var.main();
     sort_properties_last.main();
+    sort_constructor_first_test.main();
+    sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
     use_const.main();
     use_curly_braces.main();

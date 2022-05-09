@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart' as type;
 
 import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
+import '../builder/mixin_application_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
 import '../builder/type_variable_builder.dart' as type;
 
@@ -69,6 +70,11 @@ class ValueKinds {
   static const ValueKind Initializer =
       const SingleValueKind<type.Initializer>();
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
+  static const ValueKind MixinApplicationBuilder =
+      const SingleValueKind<type.MixinApplicationBuilder>();
+  static const ValueKind MixinApplicationBuilderOrNull =
+      const SingleValueKind<type.MixinApplicationBuilder>(
+          NullValue.MixinApplicationBuilder);
   static const ValueKind Modifiers =
       const SingleValueKind<List<type.Modifier>>();
   static const ValueKind ModifiersOrNull =
@@ -116,6 +122,8 @@ class ValueKinds {
       const SingleValueKind<type.TypeBuilder>();
   static const ValueKind TypeBuilderOrNull =
       const SingleValueKind<type.TypeBuilder>(NullValue.TypeBuilder);
+  static const ValueKind TypeBuilderList =
+      const SingleValueKind<List<type.TypeBuilder>>();
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValue.TypeBuilderList);
   static const ValueKind TypeVariableListOrNull =

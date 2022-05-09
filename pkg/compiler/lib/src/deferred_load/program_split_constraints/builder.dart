@@ -28,12 +28,10 @@ class Constraint {
   /// Imports which load before [import].
   final Set<Constraint> predecessors = {};
 
-  /// Whether or not this [ConstraintNode] should always apply transitions as
+  /// Whether or not this [Constraint] should always apply transitions as
   /// opposed to conditionally applying transitions.
   bool get alwaysApplyTransitions {
-    return combinerType == null ||
-        combinerType == CombinerType.and ||
-        combinerType == CombinerType.fuse;
+    return combinerType == null || combinerType == CombinerType.and;
   }
 
   Constraint(this.name, this.imports, this.combinerType) {
@@ -122,11 +120,27 @@ class Builder {
 
     // 3) Build a graph of [Constraint]s by processing user constraints and
     // intializing each [Constraint]'s predecessor / successor members.
-    for (var constraint in nodes.ordered) {
-      var successor = nodeToConstraintMap[constraint.successor];
-      var predecessor = nodeToConstraintMap[constraint.predecessor];
+    void createEdge(NamedNode successorNode, NamedNode predecessorNode) {
+      var successor = nodeToConstraintMap[successorNode];
+      var predecessor = nodeToConstraintMap[predecessorNode];
       successor.predecessors.add(predecessor);
       predecessor.successors.add(successor);
+    }
+
+    for (var constraint in nodes.ordered) {
+      if (constraint is RelativeOrderNode) {
+        createEdge(constraint.successor, constraint.predecessor);
+      } else if (constraint is FuseNode) {
+        // Fuse nodes are just syntactic sugar for generating cycles in the
+        // ordering graph.
+        for (var node1 in constraint.nodes) {
+          for (var node2 in constraint.nodes) {
+            if (node1 != node2) {
+              createEdge(node1, node2);
+            }
+          }
+        }
+      }
     }
 
     // 4) Compute the transitive closure of constraints. This gives us a map of
@@ -135,9 +149,9 @@ class Builder {
     // always loaded after the parent.
     Map<ImportEntity, Set<ImportEntity>> singletonTransitions = {};
     Map<Constraint, SetTransition> setTransitions = {};
-    Queue<_WorkItem> queue = Queue.from(nodeToConstraintMap.values
-        .where((node) => node.successors.isEmpty)
-        .map((node) => _WorkItem(node)));
+    Map<Constraint, Set<ImportEntity>> processed = {};
+    Queue<_WorkItem> queue =
+        Queue.from(nodeToConstraintMap.values.map((node) => _WorkItem(node)));
     while (queue.isNotEmpty) {
       var item = queue.removeFirst();
       var constraint = item.child;
@@ -154,14 +168,6 @@ class Builder {
         for (var import in imports) {
           // We insert an implicit 'self' transition for every import.
           var transitions = singletonTransitions[import] ??= {import};
-
-          // In the case of [CombinerType.fuse], the nodes in the
-          // [Constraint] form a strongly connected component,
-          // i.e. [ImportEntity]s that are always part of a
-          // single [ImportSet].
-          if (constraint.combinerType == CombinerType.fuse) {
-            transitions.addAll(imports);
-          }
           transitions.addAll(transitiveChildren);
         }
       } else {
@@ -177,6 +183,14 @@ class Builder {
         ...transitiveChildren,
       };
       for (var predecessor in constraint.predecessors) {
+        // We allow cycles in the constraint graph, so we need to support
+        // reprocessing constraints when we need to consider new transitive
+        // children.
+        if (processed.containsKey(predecessor) &&
+            processed[predecessor].containsAll(predecessorTransitiveChildren)) {
+          continue;
+        }
+        (processed[predecessor] ??= {}).addAll(predecessorTransitiveChildren);
         queue.add(_WorkItem(predecessor,
             transitiveChildren: predecessorTransitiveChildren));
       }

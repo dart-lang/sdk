@@ -134,9 +134,6 @@ class FallThroughError {
   @pragma("vm:entry-point")
   FallThroughError._create(this._url, this._line);
 
-  @pragma("vm:external-name", "FallThroughError_throwNew")
-  external static _throwNew(int caseClausePos);
-
   @patch
   String toString() {
     return "'$_url': Switch case fall-through at line $_line.";
@@ -175,9 +172,6 @@ class AbstractClassInstantiationError {
   @pragma("vm:entry-point")
   AbstractClassInstantiationError._create(
       this._className, this._url, this._line);
-
-  @pragma("vm:external-name", "AbstractClassInstantiationError_throwNew")
-  external static _throwNew(int caseClausePos, String className);
 
   @patch
   String toString() {

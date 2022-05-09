@@ -8,7 +8,7 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -16,11 +16,9 @@ import '../ir/constants.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
 import '../ir/visitors.dart';
-import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -32,68 +30,15 @@ import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import 'element_map.dart';
 
-/// Visitor that computes the world impact of a member.
-class KernelImpactBuilder extends ImpactBuilderBase
-    with KernelImpactRegistryMixin {
-  @override
+/// [ImpactRegistry] that converts kernel based impact data to world impact
+/// object based on the K model.
+class KernelImpactConverter implements ImpactRegistry {
   final ResolutionWorldImpactBuilder impactBuilder;
-  @override
   final KernelToElementMap elementMap;
-  @override
   final DiagnosticReporter reporter;
-  @override
   final CompilerOptions _options;
-  @override
   final MemberEntity currentMember;
-  final Set<PragmaAnnotation> _annotations;
-  @override
   final ConstantValuefier _constantValuefier;
-
-  KernelImpactBuilder(
-      this.elementMap,
-      this.currentMember,
-      this.reporter,
-      this._options,
-      ir.StaticTypeContext staticTypeContext,
-      StaticTypeCacheImpl staticTypeCache,
-      VariableScopeModel variableScopeModel,
-      this._annotations,
-      this._constantValuefier)
-      : this.impactBuilder = ResolutionWorldImpactBuilder(
-            elementMap.commonElements.dartTypes, currentMember),
-        super(staticTypeContext, staticTypeCache, elementMap.classHierarchy,
-            variableScopeModel);
-
-  @override
-  CommonElements get commonElements => elementMap.commonElements;
-
-  @override
-  NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
-
-  @override
-  bool get useAsserts => _options.enableUserAssertions;
-
-  @override
-  bool get inferEffectivelyFinalVariableTypes =>
-      !_annotations.contains(PragmaAnnotation.disableFinal);
-}
-
-/// Converts a [ImpactData] object based on kernel to the corresponding
-/// [ResolutionImpact] based on the K model.
-class KernelImpactConverter extends KernelImpactRegistryMixin {
-  @override
-  final ResolutionWorldImpactBuilder impactBuilder;
-  @override
-  final KernelToElementMap elementMap;
-  @override
-  final DiagnosticReporter reporter;
-  @override
-  final CompilerOptions _options;
-  @override
-  final MemberEntity currentMember;
-  @override
-  final ConstantValuefier _constantValuefier;
-  @override
   final ir.StaticTypeContext staticTypeContext;
 
   KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
@@ -101,37 +46,13 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
       : this.impactBuilder = ResolutionWorldImpactBuilder(
             elementMap.commonElements.dartTypes, currentMember);
 
-  @override
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
 
-  @override
   CommonElements get commonElements => elementMap.commonElements;
 
-  @override
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
-  /// Converts a [ImpactData] object based on kernel to the corresponding
-  /// [ResolutionImpact] based on the K model.
-  ResolutionImpact convert(ImpactData impactData) {
-    impactData.apply(this);
-    return impactBuilder;
-  }
-}
-
-/// [ImpactRegistry] that converts kernel based impact data to world impact
-/// object based on the K model.
-abstract class KernelImpactRegistryMixin implements ImpactRegistry {
-  CompilerOptions get _options;
-  DiagnosticReporter get reporter;
-  KernelToElementMap get elementMap;
-  MemberEntity get currentMember;
-  ResolutionWorldImpactBuilder get impactBuilder;
-  ir.TypeEnvironment get typeEnvironment;
-  CommonElements get commonElements;
   DartTypes get dartTypes => commonElements.dartTypes;
-  NativeBasicData get _nativeBasicData;
-  ConstantValuefier get _constantValuefier;
-  ir.StaticTypeContext get staticTypeContext;
 
   String typeToString(DartType type) =>
       type.toStructuredText(dartTypes, _options);
@@ -216,7 +137,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.SYNC_STAR);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.syncStarIterableFactory,
-        const CallStructure.unnamed(1, 1),
+        CallStructure.unnamed(1, 1),
         <DartType>[elementMap.getDartType(elementType)]));
   }
 
@@ -225,7 +146,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.ASYNC);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncAwaitCompleterFactory,
-        const CallStructure.unnamed(0, 1),
+        CallStructure.unnamed(0, 1),
         <DartType>[elementMap.getDartType(elementType)]));
   }
 
@@ -234,7 +155,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.ASYNC_STAR);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncStarStreamControllerFactory,
-        const CallStructure.unnamed(1, 1),
+        CallStructure.unnamed(1, 1),
         <DartType>[elementMap.getDartType(elementType)]));
   }
 
@@ -870,5 +791,12 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         }
       }
     }
+  }
+
+  /// Converts a [ImpactData] object based on kernel to the corresponding
+  /// [ResolutionImpact] based on the K model.
+  ResolutionImpact convert(ImpactData impactData) {
+    impactData.apply(this);
+    return impactBuilder;
   }
 }

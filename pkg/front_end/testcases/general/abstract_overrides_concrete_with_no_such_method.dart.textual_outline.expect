@@ -1,6 +1,5 @@
-// @dart = 2.9
 abstract class A {
-  A foo() => null;
+  A foo() => throw '';
 }
 
 abstract class B extends A {

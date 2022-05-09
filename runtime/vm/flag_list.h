@@ -127,8 +127,9 @@ constexpr bool FLAG_support_il_printer = false;
     "Force cloning of objects needed in compiler (ICData and Field).")         \
   P(guess_icdata_cid, bool, true,                                              \
     "Artificially create type feedback for arithmetic etc. operations")        \
-  P(huge_method_cutoff_in_tokens, int, 20000,                                  \
-    "Huge method cutoff in tokens: Disables optimizations for huge methods.")  \
+  P(huge_method_cutoff_in_ast_nodes, int, 10000,                               \
+    "Huge method cutoff in AST nodes: Disables optimizations for huge "        \
+    "methods.")                                                                \
   P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
     "Consider thread pool isolates for idle tasks after this long.")           \
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
@@ -140,9 +141,14 @@ constexpr bool FLAG_support_il_printer = false;
   P(scavenger_tasks, int, 2,                                                   \
     "The number of tasks to spawn during scavenging (0 means "                 \
     "perform all marking on main thread).")                                    \
+  P(mark_when_idle, bool, false,                                               \
+    "The Dart thread will assist in concurrent marking during idle time and "  \
+    "is counted as one marker task")                                           \
   P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
+  P(hash_map_probes_limit, int, kMaxInt32,                                     \
+    "Limit number of probes while doing lookups in hash maps.")                \
   P(max_polymorphic_checks, int, 4,                                            \
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
@@ -184,7 +190,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
   P(retain_function_objects, bool, true,                                       \
     "Serialize function objects for all code objects even if not otherwise "   \
     "needed in the precompiled runtime.")                                      \
@@ -197,6 +202,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Generate code for a generic CPU, unknown at compile time")                \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
+  D(trace_finalizers, bool, false, "Traces finalizers.")                       \
   D(trace_ic, bool, false, "Trace IC handling")                                \
   D(trace_ic_miss_in_optimized, bool, false,                                   \
     "Trace IC miss in optimized code")                                         \

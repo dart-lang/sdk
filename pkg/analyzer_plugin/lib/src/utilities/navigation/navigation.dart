@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -33,10 +34,8 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
 
 /// A concrete implementation of [NavigationCollector].
 class NavigationCollectorImpl implements NavigationCollector {
-  /// Whether the collector is collecting target code locations. Computers can
-  /// skip computing these if this is false.
-  @override
-  final bool collectCodeLocations;
+  /// Each target which was created from an element is added here.
+  final List<TargetToUpdate> targetsToUpdate = [];
 
   /// A list of navigation regions.
   final List<NavigationRegion> regions = <NavigationRegion>[];
@@ -54,25 +53,24 @@ class NavigationCollectorImpl implements NavigationCollector {
 
   final Map<String, int> fileMap = <String, int>{};
 
-  NavigationCollectorImpl({this.collectCodeLocations = false});
+  NavigationCollectorImpl();
 
   @override
   void addRange(
       SourceRange range, ElementKind targetKind, Location targetLocation,
-      {Location? targetCodeLocation}) {
+      {analyzer.Element? targetElement}) {
     addRegion(range.offset, range.length, targetKind, targetLocation,
-        targetCodeLocation: targetCodeLocation);
+        targetElement: targetElement);
   }
 
   @override
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation,
-      {Location? targetCodeLocation}) {
+      {analyzer.Element? targetElement}) {
     var range = SourceRange(offset, length);
     // add new target
     var targets = regionMap.putIfAbsent(range, () => <int>[]);
-    var targetIndex =
-        _addTarget(targetKind, targetLocation, targetCodeLocation);
+    var targetIndex = _addTarget(targetKind, targetLocation, targetElement);
     targets.add(targetIndex);
   }
 
@@ -96,7 +94,8 @@ class NavigationCollectorImpl implements NavigationCollector {
     return index;
   }
 
-  int _addTarget(ElementKind kind, Location location, Location? codeLocation) {
+  int _addTarget(
+      ElementKind kind, Location location, analyzer.Element? element) {
     var pair = Pair<ElementKind, Location>(kind, location);
     var index = targetMap[pair];
     if (index == null) {
@@ -104,12 +103,23 @@ class NavigationCollectorImpl implements NavigationCollector {
       var fileIndex = _addFile(file);
       index = targets.length;
       var target = NavigationTarget(kind, fileIndex, location.offset,
-          location.length, location.startLine, location.startColumn,
-          codeOffset: collectCodeLocations ? codeLocation?.offset : null,
-          codeLength: collectCodeLocations ? codeLocation?.length : null);
+          location.length, location.startLine, location.startColumn);
       targets.add(target);
       targetMap[pair] = index;
+      if (element != null) {
+        targetsToUpdate.add(TargetToUpdate(element, target));
+      }
     }
     return index;
   }
+}
+
+/// The element and the navigation target created for it.
+///
+/// If code location feature is enabled, we update [target] using [element].
+class TargetToUpdate {
+  final analyzer.Element element;
+  final NavigationTarget target;
+
+  TargetToUpdate(this.element, this.target);
 }

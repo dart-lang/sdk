@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Bad {
   Bad.bar() : this.baz();
   Bad.foo() : this();

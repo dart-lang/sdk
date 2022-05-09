@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method getElements() → core::Iterable<core::int*>* sync* 
+static method getElements() → core::Iterable<core::int> sync* 
   ;
 static method main() → dynamic
   ;

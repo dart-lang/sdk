@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
@@ -17,9 +18,11 @@ import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
+import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
@@ -65,50 +68,6 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
       ? lsp.Either2<String, lsp.MarkupContent>.t1(content)
       : lsp.Either2<String, lsp.MarkupContent>.t2(
           _asMarkup(preferredFormats, content));
-}
-
-/// Builds an LSP snippet string with supplied ranges as tabstops.
-String buildSnippetStringWithTabStops(
-  String? text,
-  List<int>? offsetLengthPairs,
-) {
-  text ??= '';
-  offsetLengthPairs ??= const [];
-
-  // Snippets syntax is documented in the LSP spec:
-  // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
-  //
-  // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
-
-  final output = [];
-  var offset = 0;
-
-  // When there's only a single tabstop, it should be ${0} as this is treated
-  // specially as the final cursor position (if we use 1, the editor will insert
-  // a 0 at the end of the string which is not what we expect).
-  // When there are multiple, start with ${1} since these are placeholders the
-  // user can tab through and the editor-inserted ${0} at the end is expected.
-  var tabStopNumber = offsetLengthPairs.length <= 2 ? 0 : 1;
-
-  for (var i = 0; i < offsetLengthPairs.length; i += 2) {
-    final pairOffset = offsetLengthPairs[i];
-    final pairLength = offsetLengthPairs[i + 1];
-
-    // Add any text that came before this tabstop to the result.
-    output.add(escapeSnippetString(text.substring(offset, pairOffset)));
-
-    // Add this tabstop
-    final tabStopText = escapeSnippetString(
-        text.substring(pairOffset, pairOffset + pairLength));
-    output.add('\${${tabStopNumber++}:$tabStopText}');
-
-    offset = pairOffset + pairLength;
-  }
-
-  // Add any remaining text that was after the last tabstop.
-  output.add(escapeSnippetString(text.substring(offset)));
-
-  return output.join('');
 }
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
@@ -160,51 +119,74 @@ WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
   return edit;
 }
 
-/// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange] that can include
-/// experimental [server.SnippetTextEdit]s if the client has indicated support
-/// for these in the experimental section of their client capabilities.
+/// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange].
+///
+/// Can return experimental [server.SnippetTextEdit]s if the following are true:
+/// - the client has indicated support for in the experimental section of their
+///   client capabilities, and
+/// - [allowSnippets] is true, and
+/// - [change] contains only a single edit to the single file [filePath]
+/// - [lineInfo] is provided (which should be for the single edited file)
 ///
 /// Note: This code will fetch the version of each document being modified so
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
-    lsp.LspAnalysisServer server, server.SourceChange change) {
+  lsp.LspAnalysisServer server,
+  server.SourceChange change, {
+  // The caller must specify whether snippets are valid here for where they're
+  // sending this edit. Right now, support is limited to CodeActions.
+  bool allowSnippets = false,
+  String? filePath,
+  LineInfo? lineInfo,
+}) {
   // In order to return snippets, we must ensure we are only modifying a single
-  // existing file with a single edit and that there is a linked edit group with
-  // only one position and no suggestions.
-  if (!server.clientCapabilities!.experimentalSnippetTextEdit ||
+  // existing file with a single edit and that there is either a selection or a
+  // linked edit group (otherwise there's no value in snippets).
+  if (!allowSnippets ||
+      !server.clientCapabilities!.experimentalSnippetTextEdit ||
+      !server.clientCapabilities!.documentChanges ||
+      filePath == null ||
+      lineInfo == null ||
       change.edits.length != 1 ||
-      change.edits.first.fileStamp == -1 || // new file
-      change.edits.first.edits.length != 1 ||
-      change.linkedEditGroups.isEmpty ||
-      change.linkedEditGroups.first.positions.length != 1 ||
-      change.linkedEditGroups.first.suggestions.isNotEmpty) {
+      change.edits.single.fileStamp == -1 || // new file
+      change.edits.single.file != filePath ||
+      change.edits.single.edits.length != 1 ||
+      (change.selection == null && change.linkedEditGroups.isEmpty)) {
     return createPlainWorkspaceEdit(server, change.edits);
   }
 
-  // Additionally, the selection must fall within the edit offset.
-  final edit = change.edits.first.edits.first;
-  final selectionOffset = change.linkedEditGroups.first.positions.first.offset;
-  final selectionLength = change.linkedEditGroups.first.length;
+  final fileEdit = change.edits.single;
+  final snippetEdits = toSnippetTextEdits(
+    fileEdit.file,
+    fileEdit,
+    change.linkedEditGroups,
+    lineInfo,
+    selectionOffset: change.selection?.offset,
+  );
 
-  if (selectionOffset < edit.offset ||
-      selectionOffset + selectionLength > edit.offset + edit.length) {
-    return createPlainWorkspaceEdit(server, change.edits);
-  }
+  // Compile the edits into a TextDocumentEdit for this file.
+  final textDocumentEdit = lsp.TextDocumentEdit(
+    textDocument: server.getVersionedDocumentIdentifier(fileEdit.file),
+    edits: snippetEdits
+        .map((e) => Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit,
+            lsp.TextEdit>.t1(e))
+        .toList(),
+  );
 
-  return toWorkspaceEdit(
-      server.clientCapabilities!,
-      change.edits
-          .map((e) => FileEditInformation(
-                server.getVersionedDocumentIdentifier(e.file),
-                // We should never produce edits for a file with no LineInfo.
-                server.getLineInfo(e.file)!,
-                e.edits,
-                selectionOffsetRelative: selectionOffset - edit.offset,
-                selectionLength: selectionLength,
-                newFile: e.fileStamp == -1,
-              ))
-          .toList());
+  // Convert to the union that documentChanges require.
+  final textDocumentEditsAsUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
+      lsp.RenameFile, lsp.DeleteFile>.t1(textDocumentEdit);
+
+  // Convert to the union that documentChanges is.
+  final documentChanges = Either2<
+      List<lsp.TextDocumentEdit>,
+      List<
+          Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
+              lsp.DeleteFile>>>.t2([textDocumentEditsAsUnion]);
+
+  /// Add the textDocumentEdit to a WorkspaceEdit.
+  return lsp.WorkspaceEdit(documentChanges: documentChanges);
 }
 
 lsp.CompletionItemKind? declarationKindToCompletionItemKind(
@@ -364,8 +346,9 @@ lsp.CompletionItem declarationToCompletionItem(
     // we can assume if an item is callable it's probably being used in a context
     // that can invoke it.
     isInvocation: isCallable,
-    defaultArgumentListString: declaration.defaultArgumentListString,
-    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
+    requiredArgumentListString: declaration.defaultArgumentListString,
+    requiredArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
+    hasOptionalParameters: declaration.parameterNames?.isNotEmpty ?? false,
     completion: completion,
     selectionOffset: 0,
     selectionLength: 0,
@@ -418,7 +401,7 @@ lsp.CompletionItem declarationToCompletionItem(
         ? InsertTextMode.asIs
         : null,
     // data, used for completionItem/resolve.
-    data: lsp.DartCompletionItemResolutionInfo(
+    data: lsp.DartSuggestionSetCompletionItemResolutionInfo(
         file: file,
         offset: offset,
         libId: includedSuggestionSet.id,
@@ -572,15 +555,6 @@ lsp.SymbolKind elementKindToSymbolKind(
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
-/// Escapes a string to be used in an LSP edit that uses Snippet mode.
-///
-/// Snippets can contain special markup like `${a:b}` so some characters need
-/// escaping (according to the LSP spec, those are `$`, `}` and `\`).
-String escapeSnippetString(String input) => input.replaceAllMapped(
-      RegExp(r'[$}\\]'), // Replace any of $ } \
-      (c) => '\\${c[0]}', // Prefix with a backslash
-    );
-
 String? getCompletionDetail(
   server.CompletionSuggestion suggestion,
   lsp.CompletionItemKind? completionKind,
@@ -683,6 +657,36 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
 bool isDartDocument(lsp.TextDocumentIdentifier? doc) =>
     doc?.uri.endsWith('.dart') ?? false;
 
+/// Converts a [server.Location] to an [lsp.Range] by translating the
+/// offset/length using a `LineInfo`.
+///
+/// This function ignores any line/column info on the
+/// [server.Location] assuming it is either not available not unreliable.
+lsp.Range locationOffsetLenToRange(
+        server.LineInfo lineInfo, server.Location location) =>
+    toRange(lineInfo, location.offset, location.length);
+
+/// Converts a [server.Location] to an [lsp.Range] if all line and column
+/// values are available.
+///
+/// Returns null if any values are -1 or null.
+lsp.Range? locationToRange(server.Location location) {
+  final startLine = location.startLine;
+  final startColumn = location.startColumn;
+  final endLine = location.endLine ?? -1;
+  final endColumn = location.endColumn ?? -1;
+  if (startLine == -1 ||
+      startColumn == -1 ||
+      endLine == -1 ||
+      endColumn == -1) {
+    return null;
+  }
+  // LSP positions are 0-based but Location is 1-based.
+  return Range(
+      start: Position(line: startLine - 1, character: startColumn - 1),
+      end: Position(line: endLine - 1, character: endColumn - 1));
+}
+
 /// Merges two [WorkspaceEdit]s into a single one.
 ///
 /// Will throw if given [WorkspaceEdit]s that do not use documentChanges.
@@ -768,7 +772,18 @@ ErrorOr<String> pathOfUri(Uri? uri) {
     ));
   }
   try {
-    return ErrorOr<String>.success(uri.toFilePath());
+    final filePath = uri.toFilePath();
+    // On Windows, paths that start with \ and not a drive letter are not
+    // supported but will return `true` from `path.isAbsolute` so check for them
+    // specifically.
+    if (Platform.isWindows && filePath.startsWith(r'\')) {
+      return ErrorOr<String>.error(ResponseError(
+        code: lsp.ServerErrorCodes.InvalidFilePath,
+        message: 'URI was not an absolute file path (missing drive letter)',
+        data: uri.toString(),
+      ));
+    }
+    return ErrorOr<String>.success(filePath);
   } catch (e) {
     // Even if tryParse() works and file == scheme, toFilePath() can throw on
     // Windows if there are invalid characters.
@@ -780,7 +795,7 @@ ErrorOr<String> pathOfUri(Uri? uri) {
 }
 
 lsp.Diagnostic pluginToDiagnostic(
-  server.LineInfo Function(String) getLineInfo,
+  server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
   required bool clientSupportsCodeDescription,
@@ -800,10 +815,19 @@ lsp.Diagnostic pluginToDiagnostic(
     message = '$message\n${error.correction}';
   }
 
-  var lineInfo = getLineInfo(error.location.file);
+  final range = locationToRange(error.location) ??
+      locationOffsetLenToRange(
+        // TODO(dantup): This null assertion is not sound and can lead to
+        //   errors (for example during a large rename where files may be
+        //   removed as diagnostics are being mapped). To remove this,
+        //   error.location should be updated to require line/col information
+        //   (which involves breaking changes).
+        getLineInfo(error.location.file)!,
+        error.location,
+      );
   var documentationUrl = error.url;
   return lsp.Diagnostic(
-    range: toRange(lineInfo, error.location.offset, error.location.length),
+    range: range,
     severity: pluginToDiagnosticSeverity(error.severity),
     code: error.code,
     source: languageSourceName,
@@ -831,6 +855,9 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(
         uri: Uri.file(file).toString(),
+        // TODO(dantup): Switch to using line/col information from the context
+        // message once confirmed that AnalyzerConverter is not using the wrong
+        // LineInfo.
         range: toRange(
           lineInfo,
           message.location.offset,
@@ -885,6 +912,126 @@ lsp.Location? searchResultToLocation(
   return lsp.Location(
     uri: Uri.file(result.location.file).toString(),
     range: toRange(lineInfo, location.offset, location.length),
+  );
+}
+
+/// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
+///
+/// Edit groups offsets are based on the entire content being modified after all
+/// edits, so [editOffset] must to take into account both the offset of the edit
+/// _and_ any delta from edits prior to this one in the file.
+///
+/// [selectionOffset] is also absolute and assumes [edit.replacement] will be
+/// inserted at [editOffset].
+lsp.SnippetTextEdit snippetTextEditFromEditGroups(
+  String filePath,
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  required List<server.LinkedEditGroup> editGroups,
+  required int editOffset,
+  required int? selectionOffset,
+}) {
+  return lsp.SnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringForEditGroups(
+      edit.replacement,
+      filePath: filePath,
+      editGroups: editGroups,
+      editOffset: editOffset,
+      selectionOffset: selectionOffset,
+    ),
+  );
+}
+
+/// Creates a SnippetTextEdit for an edit with a selection placeholder.
+///
+/// [selectionOffset] is relative to (and therefore must be within) the edit.
+lsp.SnippetTextEdit snippetTextEditWithSelection(
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  required int selectionOffsetRelative,
+  int? selectionLength,
+}) {
+  return lsp.SnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringWithTabStops(
+      edit.replacement,
+      [selectionOffsetRelative, selectionLength ?? 0],
+    ),
+  );
+}
+
+lsp.CompletionItem snippetToCompletionItem(
+  lsp.LspAnalysisServer server,
+  LspClientCapabilities capabilities,
+  String file,
+  LineInfo lineInfo,
+  Position position,
+  Snippet snippet,
+) {
+  assert(capabilities.completionSnippets);
+
+  final formats = capabilities.completionDocumentationFormats;
+  final documentation = snippet.documentation;
+  final supportsAsIsInsertMode =
+      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  final changes = snippet.change;
+
+  // We must only get one change for this file to be able to apply snippets.
+  final thisFilesChange = changes.edits.singleWhere((e) => e.file == file);
+  final otherFilesChanges = changes.edits.where((e) => e.file != file).toList();
+
+  // If this completion involves editing other files, we'll need to build
+  // a command that the client will call to apply those edits later, because
+  // LSP Completions can only provide simple edits for the current file.
+  Command? command;
+  if (otherFilesChanges.isNotEmpty) {
+    final workspaceEdit = createPlainWorkspaceEdit(server, otherFilesChanges);
+    command = Command(
+        title: 'Add import',
+        command: Commands.sendWorkspaceEdit,
+        arguments: [workspaceEdit]);
+  }
+
+  /// Convert the changes to TextEdits using snippet tokens for linked edit
+  /// groups.
+  final mainFileEdits = toSnippetTextEdits(
+    file,
+    thisFilesChange,
+    changes.linkedEditGroups,
+    lineInfo,
+    selectionOffset:
+        changes.selection?.file == file ? changes.selection?.offset : null,
+  );
+
+  // For LSP, we need to provide the main edit and other edits separately. The
+  // main edit must include the location that completion was invoked. If we find
+  // more than one, take the first one since imports are usually added as later
+  // edits (so when applied sequentially they will be inserted at the start of
+  // the file after the other edits).
+  final mainEdit = mainFileEdits
+      .firstWhere((edit) => edit.range.start.line == position.line);
+  final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
+
+  return lsp.CompletionItem(
+    label: snippet.label,
+    filterText: snippet.prefix,
+    kind: lsp.CompletionItemKind.Snippet,
+    command: command,
+    documentation: documentation != null
+        ? asStringOrMarkupContent(formats, documentation)
+        : null,
+    // Force snippets to be sorted at the bottom of the list.
+    // TODO(dantup): Consider if we can rank these better. Client-side
+    //   snippets have always been forced to the bottom partly because they
+    //   show up in more places than wanted.
+    sortText: 'zzz${snippet.prefix}',
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
+    textEdit: Either2<TextEdit, InsertReplaceEdit>.t1(mainEdit),
+    additionalTextEdits: nonMainEdits,
   );
 }
 
@@ -972,10 +1119,9 @@ lsp.CodeActionKind toCodeActionKind(
 lsp.CompletionItem toCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
-  server.CompletionSuggestion suggestion,
-  int replacementOffset,
-  int insertLength,
-  int replacementLength, {
+  server.CompletionSuggestion suggestion, {
+  Range? replacementRange,
+  Range? insertionRange,
   required bool includeCommitCharacters,
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
@@ -1034,8 +1180,9 @@ lsp.CompletionItem toCompletionItem(
     completeFunctionCalls: completeFunctionCalls,
     isCallable: isCallable,
     isInvocation: isInvocation,
-    defaultArgumentListString: suggestion.defaultArgumentListString,
-    defaultArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    requiredArgumentListString: suggestion.defaultArgumentListString,
+    requiredArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    hasOptionalParameters: suggestion.parameterNames?.isNotEmpty ?? false,
     completion: suggestion.completion,
     selectionOffset: suggestion.selectionOffset,
     selectionLength: suggestion.selectionLength,
@@ -1092,20 +1239,22 @@ lsp.CompletionItem toCompletionItem(
     insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
         ? InsertTextMode.asIs
         : null,
-    textEdit: supportsInsertReplace && insertLength != replacementLength
-        ? Either2<TextEdit, InsertReplaceEdit>.t2(
-            InsertReplaceEdit(
-              insert: toRange(lineInfo, replacementOffset, insertLength),
-              replace: toRange(lineInfo, replacementOffset, replacementLength),
-              newText: insertText,
-            ),
-          )
-        : Either2<TextEdit, InsertReplaceEdit>.t1(
-            TextEdit(
-              range: toRange(lineInfo, replacementOffset, replacementLength),
-              newText: insertText,
-            ),
-          ),
+    textEdit: (insertionRange == null || replacementRange == null)
+        ? null
+        : supportsInsertReplace && insertionRange != replacementRange
+            ? Either2<TextEdit, InsertReplaceEdit>.t2(
+                InsertReplaceEdit(
+                  insert: insertionRange,
+                  replace: replacementRange,
+                  newText: insertText,
+                ),
+              )
+            : Either2<TextEdit, InsertReplaceEdit>.t1(
+                TextEdit(
+                  range: replacementRange,
+                  newText: insertText,
+                ),
+              ),
   );
 }
 
@@ -1350,18 +1499,38 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
   );
 }
 
-lsp.SnippetTextEdit toSnippetTextEdit(
-    LspClientCapabilities capabilities,
-    server.LineInfo lineInfo,
-    server.SourceEdit edit,
-    int selectionOffsetRelative,
-    int? selectionLength) {
-  return lsp.SnippetTextEdit(
-    insertTextFormat: lsp.InsertTextFormat.Snippet,
-    range: toRange(lineInfo, edit.offset, edit.length),
-    newText: buildSnippetStringWithTabStops(
-        edit.replacement, [selectionOffsetRelative, selectionLength ?? 0]),
-  );
+List<lsp.SnippetTextEdit> toSnippetTextEdits(
+  String filePath,
+  server.SourceFileEdit change,
+  List<server.LinkedEditGroup> editGroups,
+  LineInfo lineInfo, {
+  required int? selectionOffset,
+}) {
+  final snippetEdits = <lsp.SnippetTextEdit>[];
+
+  // Edit groups offsets are based on the document after the edits are applied.
+  // This means we must compute an offset delta for each edit that takes into
+  // account all edits that might be made before it in the document (which are
+  // after it in the edits). To do this, reverse the list when computing the
+  // offsets, but reverse them back to the original list order when returning so
+  // that we do not apply them incorrectly in tests (where we will apply them
+  // in-sequence).
+
+  var offsetDelta = 0;
+  for (final edit in change.edits.reversed) {
+    snippetEdits.add(snippetTextEditFromEditGroups(
+      filePath,
+      lineInfo,
+      edit,
+      editGroups: editGroups,
+      editOffset: edit.offset + offsetDelta,
+      selectionOffset: selectionOffset,
+    ));
+
+    offsetDelta += edit.replacement.length - edit.length;
+  }
+
+  return snippetEdits.reversed.toList();
 }
 
 ErrorOr<server.SourceRange> toSourceRange(
@@ -1412,8 +1581,9 @@ Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>
         toTextEdit(lineInfo, edit));
   }
   return Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>.t1(
-      toSnippetTextEdit(capabilities, lineInfo, edit, selectionOffsetRelative,
-          selectionLength));
+      snippetTextEditWithSelection(lineInfo, edit,
+          selectionOffsetRelative: selectionOffsetRelative,
+          selectionLength: selectionLength));
 }
 
 lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
@@ -1496,8 +1666,9 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
   required bool completeFunctionCalls,
   required bool isCallable,
   required bool isInvocation,
-  required String? defaultArgumentListString,
-  required List<int>? defaultArgumentListTextRanges,
+  required String? requiredArgumentListString,
+  required List<int>? requiredArgumentListTextRanges,
+  required bool hasOptionalParameters,
   required String completion,
   required int selectionOffset,
   required int selectionLength,
@@ -1524,22 +1695,24 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
         isInvocation) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       final hasRequiredParameters =
-          (defaultArgumentListTextRanges?.length ?? 0) > 0;
-      final functionCallSuffix = hasRequiredParameters
-          ? buildSnippetStringWithTabStops(
-              defaultArgumentListString,
-              defaultArgumentListTextRanges,
-            )
-          : '\${0:}'; // No required params still gets a tabstop in the parens.
-      insertText = '${escapeSnippetString(insertText)}($functionCallSuffix)';
+          requiredArgumentListTextRanges?.isNotEmpty ?? false;
+      final functionCallSuffix =
+          hasRequiredParameters && requiredArgumentListString != null
+              ? buildSnippetStringWithTabStops(
+                  requiredArgumentListString, requiredArgumentListTextRanges)
+              // Optional params still gets a final tab stop in the parens.
+              : hasOptionalParameters
+                  ? SnippetBuilder.finalTabStop
+                  // And no parameters at all we skip the tabstop in the parens.
+                  : '';
+      insertText =
+          '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
     } else if (selectionOffset != 0 &&
-        // We don't need a tabstop if the selection is the end of the string.
+        // We don't need a tab stop if the selection is the end of the string.
         selectionOffset != completion.length) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       insertText = buildSnippetStringWithTabStops(
-        completion,
-        [selectionOffset, selectionLength],
-      );
+          completion, [selectionOffset, selectionLength]);
     }
   }
 

@@ -14,6 +14,11 @@ mixin ResourceProviderMixin {
 
   String convertPath(String path) => resourceProvider.convertPath(path);
 
+  void deleteAnalysisOptionsYamlFile(String directoryPath) {
+    var path = join(directoryPath, file_paths.analysisOptionsYaml);
+    deleteFile(path);
+  }
+
   void deleteFile(String path) {
     String convertedPath = convertPath(path);
     resourceProvider.deleteFile(convertedPath);
@@ -22,6 +27,15 @@ mixin ResourceProviderMixin {
   void deleteFolder(String path) {
     String convertedPath = convertPath(path);
     resourceProvider.deleteFolder(convertedPath);
+  }
+
+  void deletePackageConfigJsonFile(String directoryPath) {
+    var path = join(
+      directoryPath,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
+    deleteFile(path);
   }
 
   File getFile(String path) {
@@ -50,22 +64,27 @@ mixin ResourceProviderMixin {
     resourceProvider.modifyFile(convertedPath, content);
   }
 
+  @Deprecated('Use newAnalysisOptionsYamlFile2() instead')
   File newAnalysisOptionsYamlFile(String directoryPath, {String content = ''}) {
+    return newAnalysisOptionsYamlFile2(directoryPath, content);
+  }
+
+  File newAnalysisOptionsYamlFile2(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.analysisOptionsYaml);
-    return newFile(path, content: content);
+    return newFile2(path, content);
   }
 
   File newBazelBuildFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.bazelBuild);
-    return newFile(path, content: content);
+    return newFile2(path, content);
   }
 
-  File newDotPackagesFile(String directoryPath, {String content = ''}) {
-    String path = join(directoryPath, file_paths.dotPackages);
-    return newFile(path, content: content);
-  }
-
+  @Deprecated('Use newFile2() instead')
   File newFile(String path, {String content = ''}) {
+    return newFile2(path, content);
+  }
+
+  File newFile2(String path, String content) {
     String convertedPath = convertPath(path);
     return resourceProvider.newFile(convertedPath, content);
   }
@@ -75,18 +94,18 @@ mixin ResourceProviderMixin {
     return resourceProvider.newFolder(convertedPath);
   }
 
-  File newPackageConfigJsonFile(String directoryPath, {String content = ''}) {
+  File newPackageConfigJsonFile(String directoryPath, String content) {
     String path = join(
       directoryPath,
       file_paths.dotDartTool,
       file_paths.packageConfigJson,
     );
-    return newFile(path, content: content);
+    return newFile2(path, content);
   }
 
   File newPubspecYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.pubspecYaml);
-    return newFile(path, content: content);
+    return newFile2(path, content);
   }
 
   Uri toUri(String path) {

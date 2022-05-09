@@ -82,10 +82,39 @@ class ForwardingNode {
         (canonicalMember.classBuilder != classBuilder &&
             needsTypeOrCovarianceUpdate) ||
         needMixinStub;
-    bool needsSuperImpl = _superClassMember != null &&
-        _superClassMember!
+    bool needsSuperImpl = false;
+    Member? superTarget;
+    if (_superClassMember != null) {
+      superTarget =
+          _superClassMember!.getMember(_combinedMemberSignature.membersBuilder);
+      if (superTarget is Procedure &&
+          interfaceMember is Procedure &&
+          (superTarget.function.positionalParameters.length <
+                  interfaceMember.function.positionalParameters.length ||
+              superTarget.function.namedParameters.length <
+                  interfaceMember.function.namedParameters.length)) {
+        // [superTarget] is not a valid implementation for [interfaceMember]
+        // since [interfaceMember] has more parameters than [superTarget].
+        //
+        // For instance
+        //
+        //    class A {
+        //      void method() {}
+        //    }
+        //    abstract class B<T> extends A {
+        //      void method({T? a});
+        //    }
+        //
+        // Any concrete implementation of B must provide its own implementation
+        // of `B.method` and cannot forward to `A.method`.
+      } else {
+        // [superTarget] is a valid implementation for [interfaceMember] so
+        // we need to add concrete forwarding stub of the variances differ.
+        needsSuperImpl = _superClassMember!
                 .getCovariance(_combinedMemberSignature.membersBuilder) !=
             _combinedMemberSignature.combinedMemberSignatureCovariance;
+      }
+    }
     if (stubNeeded) {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
           copyLocation: false)!;
@@ -124,7 +153,7 @@ class ForwardingNode {
         if (needsSuperImpl ||
             (needMixinStub && _superClassMember == _mixedInMember)) {
           _createForwardingImplIfNeeded(
-              stub.function, stub.name, classBuilder.cls,
+              stub.function, stub.name, classBuilder.cls, superTarget,
               isForwardingStub: needsForwardingStub);
         }
       }
@@ -136,16 +165,16 @@ class ForwardingNode {
             .applyCovariance(interfaceMember);
       }
       if (needsSuperImpl) {
-        _createForwardingImplIfNeeded(
-            interfaceMember.function!, interfaceMember.name, classBuilder.cls,
+        _createForwardingImplIfNeeded(interfaceMember.function!,
+            interfaceMember.name, classBuilder.cls, superTarget,
             isForwardingStub: true);
       }
       return null;
     }
   }
 
-  void _createForwardingImplIfNeeded(
-      FunctionNode function, Name name, Class enclosingClass,
+  void _createForwardingImplIfNeeded(FunctionNode function, Name name,
+      Class enclosingClass, Member? superTarget,
       {required bool isForwardingStub}) {
     // ignore: unnecessary_null_comparison
     assert(isForwardingStub != null);
@@ -155,12 +184,10 @@ class ForwardingNode {
     }
     // If there is no concrete implementation in the superclass, then the method
     // is fully abstract and we don't need to do anything.
-    if (_superClassMember == null) {
+    if (superTarget == null) {
       return;
     }
     Procedure procedure = function.parent as Procedure;
-    Member superTarget =
-        _superClassMember!.getMember(_combinedMemberSignature.membersBuilder);
     if (superTarget is Procedure && superTarget.isForwardingStub) {
       Procedure superProcedure = superTarget;
       superTarget = superProcedure.concreteForwardingStubTarget!;
@@ -212,7 +239,7 @@ class ForwardingNode {
                 parameter.type,
                 superParameterType,
                 _combinedMemberSignature
-                        .classBuilder.library.isNonNullableByDefault
+                        .classBuilder.libraryBuilder.isNonNullableByDefault
                     ? SubtypeCheckMode.withNullabilities
                     : SubtypeCheckMode.ignoringNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
@@ -241,7 +268,7 @@ class ForwardingNode {
                 parameter.type,
                 superParameterType,
                 _combinedMemberSignature
-                        .classBuilder.library.isNonNullableByDefault
+                        .classBuilder.libraryBuilder.isNonNullableByDefault
                     ? SubtypeCheckMode.withNullabilities
                     : SubtypeCheckMode.ignoringNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
@@ -280,7 +307,7 @@ class ForwardingNode {
               parameter.type,
               superParameterType,
               _combinedMemberSignature
-                      .classBuilder.library.isNonNullableByDefault
+                      .classBuilder.libraryBuilder.isNonNullableByDefault
                   ? SubtypeCheckMode.withNullabilities
                   : SubtypeCheckMode.ignoringNullabilities)) {
             expression = new AsExpression(expression, superParameterType)

@@ -257,7 +257,6 @@ class Location : public ValueObject {
     kPrefersRegister,
     kRequiresRegister,
     kRequiresFpuRegister,
-    kRequiresStackSlot,
     kWritableRegister,
     kSameAsFirstInput,
   };
@@ -283,10 +282,6 @@ class Location : public ValueObject {
 
   static Location RequiresFpuRegister() {
     return UnallocatedLocation(kRequiresFpuRegister);
-  }
-
-  static Location RequiresStackSlot() {
-    return UnallocatedLocation(kRequiresStackSlot);
   }
 
   static Location WritableRegister() {
@@ -533,7 +528,7 @@ class SmallSet {
  public:
   SmallSet() : data_(0) {}
 
-  explicit SmallSet(intptr_t data) : data_(data) {}
+  explicit SmallSet(uintptr_t data) : data_(data) {}
 
   bool Contains(T value) const { return (data_ & ToMask(value)) != 0; }
 
@@ -545,15 +540,15 @@ class SmallSet {
 
   void Clear() { data_ = 0; }
 
-  intptr_t data() const { return data_; }
+  uintptr_t data() const { return data_; }
 
  private:
-  static intptr_t ToMask(T value) {
-    ASSERT(static_cast<intptr_t>(value) < (kWordSize * kBitsPerByte));
-    return 1 << static_cast<intptr_t>(value);
+  static uintptr_t ToMask(T value) {
+    ASSERT(static_cast<uintptr_t>(value) < (kWordSize * kBitsPerByte));
+    return static_cast<uintptr_t>(1) << static_cast<uintptr_t>(value);
   }
 
-  intptr_t data_;
+  uintptr_t data_;
 };
 
 class RegisterSet : public ValueObject {
@@ -564,8 +559,8 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
-  explicit RegisterSet(intptr_t cpu_register_mask,
-                       intptr_t fpu_register_mask = 0)
+  explicit RegisterSet(uintptr_t cpu_register_mask,
+                       uintptr_t fpu_register_mask = 0)
       : RegisterSet() {
     AddTaggedRegisters(cpu_register_mask, fpu_register_mask);
   }
@@ -593,13 +588,15 @@ class RegisterSet : public ValueObject {
       if (reg == PC) continue;
 #elif defined(TARGET_ARCH_ARM64)
       if (reg == R31) continue;
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+      if (reg == ZR || reg == TP || reg == GP) continue;
 #endif
       Add(Location::RegisterLocation(reg));
     }
 
-      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
-        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
-      }
+    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+    }
   }
 
   void AddAllArgumentRegisters() {
@@ -620,8 +617,8 @@ class RegisterSet : public ValueObject {
 #endif
   }
 
-  void AddTaggedRegisters(intptr_t cpu_register_mask,
-                          intptr_t fpu_register_mask) {
+  void AddTaggedRegisters(uintptr_t cpu_register_mask,
+                          uintptr_t fpu_register_mask) {
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
       if (Utils::TestBit(cpu_register_mask, i)) {
         const Register reg = static_cast<Register>(i);
@@ -694,12 +691,12 @@ class RegisterSet : public ValueObject {
   intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers()); }
 
   static intptr_t RegisterCount(intptr_t registers);
-  static bool Contains(intptr_t register_set, intptr_t reg) {
-    return (register_set & (1 << reg)) != 0;
+  static bool Contains(uintptr_t register_set, intptr_t reg) {
+    return (register_set & (static_cast<uintptr_t>(1) << reg)) != 0;
   }
 
-  intptr_t cpu_registers() const { return cpu_registers_.data(); }
-  intptr_t fpu_registers() const { return fpu_registers_.data(); }
+  uintptr_t cpu_registers() const { return cpu_registers_.data(); }
+  uintptr_t fpu_registers() const { return fpu_registers_.data(); }
 
   void Clear() {
     cpu_registers_.Clear();
@@ -719,12 +716,19 @@ class RegisterSet : public ValueObject {
 class LocationSummary : public ZoneAllocated {
  public:
   enum ContainsCall {
-    kNoCall,  // Used registers must be reserved as tmp.
-    kCall,    // Registers have been saved and can be used without reservation.
-    kCallCalleeSafe,       // Registers will be saved by the callee.
-    kCallOnSlowPath,       // Used registers must be reserved as tmp.
-    kCallOnSharedSlowPath  // Registers used to invoke shared stub must be
-                           // reserved as tmp.
+    // Used registers must be reserved as tmp.
+    kNoCall,
+    // Registers have been saved and can be used without reservation.
+    kCall,
+    // Registers will be saved by the callee.
+    kCallCalleeSafe,
+    // Used registers must be reserved as tmp.
+    kCallOnSlowPath,
+    // Registers used to invoke shared stub must be reserved as tmp.
+    kCallOnSharedSlowPath,
+    // Location is a native leaf call so any register not in the native ABI
+    // callee-save (or input/output/tmp) set might get clobbered.
+    kNativeLeafCall
   };
 
   LocationSummary(Zone* zone,
@@ -799,6 +803,8 @@ class LocationSummary : public ZoneAllocated {
   bool call_on_shared_slow_path() const {
     return contains_call_ == kCallOnSharedSlowPath;
   }
+
+  bool native_leaf_call() const { return contains_call_ == kNativeLeafCall; }
 
   void PrintTo(BaseTextBuffer* f) const;
 

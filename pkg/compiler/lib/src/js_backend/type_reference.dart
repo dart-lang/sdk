@@ -64,7 +64,7 @@ library js_backend.type_reference;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
-import '../common_elements.dart' show CommonElements;
+import '../common/elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
@@ -117,7 +117,7 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   TypeReference(this.typeRecipe) : sourceInformation = null;
   TypeReference._(this.typeRecipe, this._value, this.sourceInformation);
 
-  factory TypeReference.readFromDataSource(DataSource source) {
+  factory TypeReference.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     TypeRecipe recipe = source.readTypeRecipe();
     bool forLazyInitializer = source.readBool();
@@ -125,7 +125,7 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
     return TypeReference(recipe)..forLazyInitializer = forLazyInitializer;
   }
 
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeTypeRecipe(typeRecipe);
     sink.writeBool(forLazyInitializer);

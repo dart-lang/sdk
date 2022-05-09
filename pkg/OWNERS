@@ -1,0 +1,5 @@
+file:/tools/OWNERS_FOUNDATION #{LAST_RESORT_SUGGESTION}
+file:/tools/OWNERS_INFRA #{LAST_RESORT_SUGGESTION}
+
+# Test status file
+per-file pkg.status=file:/tools/OWNERS_ENG

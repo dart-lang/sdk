@@ -367,6 +367,15 @@ mixin ElementsTypesMixin {
     required AnalysisContext analysisContext,
     required AnalysisSessionImpl analysisSession,
   }) {
+    var uri = Uri.parse(uriStr);
+    var source = _MockSource(uri);
+
+    var definingUnit = CompilationUnitElementImpl(
+      source: source,
+      librarySource: source,
+      lineInfo: LineInfo([0]),
+    );
+
     var library = LibraryElementImpl(
       analysisContext,
       analysisSession,
@@ -375,18 +384,9 @@ mixin ElementsTypesMixin {
       0,
       FeatureSet.latestLanguageVersion(),
     );
-    library.typeSystem = typeSystem;
-    library.typeProvider = typeSystem.typeProvider;
-
-    var uri = Uri.parse(uriStr);
-    var source = _MockSource(uri);
-
-    var definingUnit = CompilationUnitElementImpl();
-    definingUnit.source = source;
-    definingUnit.librarySource = source;
-
-    definingUnit.enclosingElement = library;
     library.definingCompilationUnit = definingUnit;
+    library.typeProvider = typeSystem.typeProvider;
+    library.typeSystem = typeSystem;
 
     return library;
   }

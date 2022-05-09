@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*spec.class: Class1:needsArgs*/
 class Class1<T> {
   Class1();
@@ -16,7 +18,7 @@ class Class2<T> {
 
 main() {
   dynamic cls1 = new Class1<int>();
-  print('${cls1.runtimeType}');
+  makeLive('${cls1.runtimeType}');
   new Class2<int>();
   cls1 = null;
 }

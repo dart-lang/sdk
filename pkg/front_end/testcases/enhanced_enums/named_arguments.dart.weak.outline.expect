@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E0 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E0> values = const <self::E0>[self::E0::one, self::E0::two];
+  final field core::int foo;
+  final field core::int bar;
+  static const field self::E0 one = const self::E0::•(0, "one", 1, bar: 1);
+  static const field self::E0 two = const self::E0::•(1, "two", 2, bar: 2);
+  const constructor •(core::int index, core::String name, core::int foo, {required core::int bar}) → self::E0
+    : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E0.${this.{core::_Enum::_name}{core::String}}";
+}
+class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1<dynamic>> values = const <self::E1<dynamic>>[self::E1::one, self::E1::two];
+  final field self::E1::X% foo;
+  static const field self::E1<core::String> one = const self::E1::•<core::String>(0, "one", foo: "1");
+  static const field self::E1<core::int> two = const self::E1::•<core::int>(1, "two", foo: 2);
+  const constructor •(core::int index, core::String name, {required self::E1::X% foo}) → self::E1<self::E1::X%>
+    : self::E1::foo = foo, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2<dynamic, dynamic, dynamic>> values = const <self::E2<dynamic, dynamic, dynamic>>[self::E2::one, self::E2::two, self::E2::three];
+  final field self::E2::X% foo;
+  final field self::E2::Y% bar;
+  final field self::E2::Z? baz;
+  static const field self::E2<core::int, core::String, core::double> one = const self::E2::•<core::int, core::String, core::double>(0, "one", 1, bar: "1", baz: 3.14);
+  static const field self::E2<core::String, core::int, core::double> two = const self::E2::•<core::String, core::int, core::double>(1, "two", "2", baz: 3.14, bar: 2);
+  static const field self::E2<core::double, core::bool, dynamic> three = const self::E2::•<core::double, core::bool, dynamic>(2, "three", 3.0, bar: false);
+  const constructor •(core::int index, core::String name, self::E2::X% foo, {required self::E2::Y% bar, self::E2::Z? baz = null}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
+    : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///named_arguments.dart:5:6 -> ListConstant(const <E0*>[const E0{E0.foo: 1, E0.bar: 1, _Enum.index: 0, _Enum._name: "one"}, const E0{E0.foo: 2, E0.bar: 2, _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:6:3 -> InstanceConstant(const E0{E0.foo: 1, E0.bar: 1, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:7:3 -> InstanceConstant(const E0{E0.foo: 2, E0.bar: 2, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///named_arguments.dart:15:6 -> ListConstant(const <E1<dynamic>*>[const E1<String*>{E1.foo: "1", _Enum.index: 0, _Enum._name: "one"}, const E1<int*>{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:16:3 -> InstanceConstant(const E1<String*>{E1.foo: "1", _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:17:3 -> InstanceConstant(const E1<int*>{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///named_arguments.dart:24:6 -> ListConstant(const <E2<dynamic, dynamic, dynamic>*>[const E2<int*, String*, double*>{E2.foo: 1, E2.bar: "1", E2.baz: 3.14, _Enum.index: 0, _Enum._name: "one"}, const E2<String*, int*, double*>{E2.foo: "2", E2.bar: 2, E2.baz: 3.14, _Enum.index: 1, _Enum._name: "two"}, const E2<double*, bool*, dynamic>{E2.foo: 3.0, E2.bar: false, E2.baz: null, _Enum.index: 2, _Enum._name: "three"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:25:3 -> InstanceConstant(const E2<int*, String*, double*>{E2.foo: 1, E2.bar: "1", E2.baz: 3.14, _Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:26:3 -> InstanceConstant(const E2<String*, int*, double*>{E2.foo: "2", E2.bar: 2, E2.baz: 3.14, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///named_arguments.dart:27:3 -> InstanceConstant(const E2<double*, bool*, dynamic>{E2.foo: 3.0, E2.bar: false, E2.baz: null, _Enum.index: 2, _Enum._name: "three"})
+Extra constant evaluation: evaluated: 31, effectively constant: 10

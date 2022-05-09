@@ -57,7 +57,7 @@ class SecurityConfiguration {
     String nonce = base64.encode(nonceData);
 
     uri = new Uri(
-        scheme: uri.scheme == "wss" ? "https" : "http",
+        scheme: uri.isScheme("wss") ? "https" : "http",
         userInfo: uri.userInfo,
         host: uri.host,
         port: uri.port,
@@ -100,8 +100,7 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        WebSocketTransformer
-            .upgrade(request, compression: serverOptions)
+        WebSocketTransformer.upgrade(request, compression: serverOptions)
             .then((webSocket) {
           webSocket.listen((message) {
             Expect.equals("Hello World", message);
@@ -136,8 +135,7 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        WebSocketTransformer
-            .upgrade(request, compression: serverOpts)
+        WebSocketTransformer.upgrade(request, compression: serverOpts)
             .then((webSocket) {
           webSocket.listen((message) {
             Expect.equals("Hello World", message);
@@ -186,9 +184,9 @@ class SecurityConfiguration {
           ..headers.add(
               "Sec-WebSocket-Extensions",
               "permessage-deflate;"
-              // Test quoted values and space padded =
-              'server_max_window_bits="10"; client_max_window_bits = 12'
-              'client_no_context_takeover; server_no_context_takeover');
+                  // Test quoted values and space padded =
+                  'server_max_window_bits="10"; client_max_window_bits = 12'
+                  'client_no_context_takeover; server_no_context_takeover');
         request.response.contentLength = 0;
         request.response.detachSocket().then((socket) {
           return new WebSocket.fromUpgradedSocket(socket, serverSide: true);
@@ -218,8 +216,7 @@ class SecurityConfiguration {
       server.listen((request) {
         // Stuff
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        WebSocketTransformer
-            .upgrade(request, compression: serverCompression)
+        WebSocketTransformer.upgrade(request, compression: serverCompression)
             .then((webSocket) {
           webSocket.listen((message) {
             Expect.equals("Hello World", message);
@@ -342,22 +339,22 @@ class SecurityConfiguration {
     testReturnHeaders(
         'permessage-deflate; server_max_window_bits=10',
         "permessage-deflate;"
-        " server_max_window_bits=10;"
-        " client_max_window_bits=10");
+            " server_max_window_bits=10;"
+            " client_max_window_bits=10");
     // Don't provider context takeover if requested but not enabled.
     // Default is not enabled.
     testReturnHeaders(
         'permessage-deflate; client_max_window_bits;'
-        'client_no_context_takeover',
+            'client_no_context_takeover',
         'permessage-deflate; client_max_window_bits=15');
     // Enable context Takeover and provide if requested.
     compression = new CompressionOptions(
         clientNoContextTakeover: true, serverNoContextTakeover: true);
     testReturnHeaders(
         'permessage-deflate; client_max_window_bits; '
-        'client_no_context_takeover',
+            'client_no_context_takeover',
         'permessage-deflate; client_no_context_takeover; '
-        'client_max_window_bits=15',
+            'client_max_window_bits=15',
         serverCompression: compression);
     // Enable context takeover and don't provide if not requested
     compression = new CompressionOptions(

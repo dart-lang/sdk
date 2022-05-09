@@ -35,7 +35,6 @@
 #include "vm/raw_object.h"
 #include "vm/report.h"
 #include "vm/static_type_exactness_state.h"
-#include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
 
@@ -68,6 +67,7 @@ class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
 class ObjectGraphCopier;
+class NativeArguments;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -236,6 +236,8 @@ class BaseTextBuffer;
   OBJECT_SERVICE_SUPPORT(object)                                               \
   friend class Object;
 
+extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
   Untagged##object* untag() const {                                            \
@@ -244,7 +246,8 @@ class BaseTextBuffer;
   }                                                                            \
   SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
-  friend class Thread;
+  friend class Thread;                                                         \
+  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -270,7 +273,8 @@ class BaseTextBuffer;
   SNAPSHOT_SUPPORT(rettype)                                                    \
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
-  friend class Thread;
+  friend class Thread;                                                         \
+  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)
@@ -453,7 +457,8 @@ class Object {
   V(Bool, bool_false)                                                          \
   V(Smi, smi_illegal_cid)                                                      \
   V(Smi, smi_zero)                                                             \
-  V(ApiError, typed_data_acquire_error)                                        \
+  V(ApiError, no_callbacks_error)                                              \
+  V(UnwindError, unwind_in_progress_error)                                     \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, speculative_inlining_error)                                 \
@@ -654,15 +659,28 @@ class Object {
     return obj;
   }
 
-  cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
-  void set_vtable(cpp_vtable value) { *vtable_address() = value; }
+  // Memcpy to account for the strict aliasing rule.
+  // Explicit cast to silence -Wdynamic-class-memaccess.
+  // This is still undefined behavior because we're messing with the internal
+  // representation of C++ objects, but works okay in practice with
+  // -fno-strict-vtable-pointers.
+  cpp_vtable vtable() const {
+    cpp_vtable result;
+    memcpy(&result, reinterpret_cast<const void*>(this),  // NOLINT
+           sizeof(result));
+    return result;
+  }
+  void set_vtable(cpp_vtable value) {
+    memcpy(reinterpret_cast<void*>(this), &value,  // NOLINT
+           sizeof(cpp_vtable));
+  }
 
   static ObjectPtr Allocate(intptr_t cls_id,
                             intptr_t size,
                             Heap::Space space,
                             bool compressed);
 
-  static intptr_t RoundedAllocationSize(intptr_t size) {
+  static constexpr intptr_t RoundedAllocationSize(intptr_t size) {
     return Utils::RoundUp(size, kObjectAlignment);
   }
 
@@ -798,11 +816,6 @@ class Object {
     obj->SetPtr(ptr, kObjectCid);
   }
 
-  cpp_vtable* vtable_address() const {
-    uword vtable_addr = reinterpret_cast<uword>(this);
-    return reinterpret_cast<cpp_vtable*>(vtable_addr);
-  }
-
   static cpp_vtable builtin_vtables_[kNumPredefinedCids];
 
   // The static values below are singletons shared between the different
@@ -882,6 +895,18 @@ class Object {
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
+// Used to declare setters and getters for untagged object fields that are
+// defined with the WSR_COMPRESSED_POINTER_FIELD macro.
+//
+// In the precompiler, the getter transparently unwraps the
+// WeakSerializationReference, if present, to get the wrapped value of the
+// appropriate type, since a WeakSerializationReference object should be
+// transparent to the parts of the precompiler that are not the serializer.
+// Meanwhile, the setter takes an Object to allow the precompiler to set the
+// field to a WeakSerializationReference.
+//
+// Since WeakSerializationReferences are only used during precompilation,
+// this macro creates the normally expected getter and setter otherwise.
 #if defined(DART_PRECOMPILER)
 #define PRECOMPILER_WSR_FIELD_DECLARATION(Type, Name)                          \
   Type##Ptr Name() const;                                                      \
@@ -1491,16 +1516,11 @@ class Class : public Object {
   FieldPtr LookupInstanceFieldAllowPrivate(const String& name) const;
   FieldPtr LookupStaticFieldAllowPrivate(const String& name) const;
 
-  DoublePtr LookupCanonicalDouble(Zone* zone, double value) const;
-  MintPtr LookupCanonicalMint(Zone* zone, int64_t value) const;
-
   // The methods above are more efficient than this generic one.
   InstancePtr LookupCanonicalInstance(Zone* zone, const Instance& value) const;
 
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
-  void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
-  void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -1595,6 +1615,10 @@ class Class : public Object {
   }
   static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
     return clazz->untag()->num_native_fields_;
+  }
+  static bool ImplementsFinalizable(ClassPtr clazz) {
+    ASSERT(Class::Handle(clazz).is_type_finalized());
+    return ImplementsFinalizableBit::decode(clazz->untag()->state_bits_);
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1819,6 +1843,7 @@ class Class : public Object {
     kIsAllocatedBit,
     kIsLoadedBit,
     kHasPragmaBit,
+    kImplementsFinalizableBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1841,6 +1866,8 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
   class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
   class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
+  class ImplementsFinalizableBit
+      : public BitField<uint32_t, bool, kImplementsFinalizableBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1878,6 +1905,12 @@ class Class : public Object {
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
   void set_has_pragma(bool has_pragma) const;
+
+  bool implements_finalizable() const {
+    ASSERT(is_type_finalized());
+    return ImplementsFinalizable(ptr());
+  }
+  void set_implements_finalizable(bool value) const;
 
  private:
   void set_functions(const Array& value) const;
@@ -2630,6 +2663,7 @@ class Function : public Object {
   void PrintName(const NameFormattingParams& params,
                  BaseTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
+  const char* QualifiedScrubbedNameCString() const;
   StringPtr QualifiedUserVisibleName() const;
   const char* QualifiedUserVisibleNameCString() const;
 
@@ -3173,11 +3207,9 @@ class Function : public Object {
   // deoptimize, since we won't generate deoptimization info or register
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
-  bool ForceOptimize() const {
-    return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-           IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
-           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField();
-  }
+  bool ForceOptimize() const;
+
+  bool IsFinalizerForceOptimized() const;
 
   bool CanBeInlined() const;
 
@@ -4389,7 +4421,7 @@ class Field : public Object {
   void RegisterDependentCode(const Code& code) const;
 
   // Deoptimize all dependent code objects.
-  void DeoptimizeDependentCode() const;
+  void DeoptimizeDependentCode(bool are_mutators_stopped = false) const;
 
   // Used by background compiler to check consistency of field copy with its
   // original.
@@ -4507,15 +4539,6 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
   class IsNonNullableIntBit
       : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
-
-  // Update guarded cid and guarded length for this field. Returns true, if
-  // deoptimization of dependent code is required.
-  bool UpdateGuardedCidAndLength(const Object& value) const;
-
-  // Update guarded exactness state for this field. Returns true, if
-  // deoptimization of dependent code is required.
-  // Assumes that guarded cid was already updated.
-  bool UpdateGuardedExactnessState(const Object& value) const;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -4718,6 +4741,7 @@ class Library : public Object {
   void SetName(const String& name) const;
 
   StringPtr url() const { return untag()->url(); }
+  static StringPtr UrlOf(LibraryPtr lib) { return lib->untag()->url(); }
   StringPtr private_key() const { return untag()->private_key(); }
   bool LoadNotStarted() const {
     return untag()->load_state_ == UntaggedLibrary::kAllocated;
@@ -5417,6 +5441,16 @@ class Instructions : public Object {
   static const intptr_t kPolymorphicEntryOffsetJIT = 48;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
   static const intptr_t kPolymorphicEntryOffsetAOT = 20;
+#elif defined(TARGET_ARCH_RISCV32)
+  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 6;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
+#elif defined(TARGET_ARCH_RISCV64)
+  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 42;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 6;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 16;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -5507,8 +5541,11 @@ class Instructions : public Object {
     return memcmp(a->untag()->data(), b->untag()->data(), Size(a)) == 0;
   }
 
-  uint32_t Hash() const {
-    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart()), Size());
+  uint32_t Hash() const { return Hash(ptr()); }
+
+  static uint32_t Hash(const InstructionsPtr instr) {
+    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart(instr)),
+                     Size(instr));
   }
 
   CodeStatistics* stats() const;
@@ -5730,7 +5767,7 @@ class PcDescriptors : public Object {
   // pc descriptors table to visit objects if any in the table.
   // Note: never return a reference to a UntaggedPcDescriptors::PcDescriptorRec
   // as the object can move.
-  class Iterator : ValueObject {
+  class Iterator : public ValueObject {
    public:
     Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
         : descriptors_(descriptors),
@@ -5868,6 +5905,11 @@ class CodeSourceMap : public Object {
     return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
   }
 
+  uint32_t Hash() const {
+    NoSafepointScope no_safepoint;
+    return HashBytes(Data(), Length());
+  }
+
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
  private:
@@ -5883,7 +5925,7 @@ class CompressedStackMaps : public Object {
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
-        raw->untag()->payload()->flags_and_size);
+        raw->untag()->payload()->flags_and_size());
   }
 
   const uint8_t* data() const { return ptr()->untag()->payload()->data(); }
@@ -5891,8 +5933,8 @@ class CompressedStackMaps : public Object {
   // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
   bool Equals(const CompressedStackMaps& other) const {
     // All of the table flags and payload size must match.
-    if (untag()->payload()->flags_and_size !=
-        other.untag()->payload()->flags_and_size) {
+    if (untag()->payload()->flags_and_size() !=
+        other.untag()->payload()->flags_and_size()) {
       return false;
     }
     NoSafepointScope no_safepoint;
@@ -5902,7 +5944,7 @@ class CompressedStackMaps : public Object {
 
   static intptr_t HeaderSize() {
     return sizeof(UntaggedCompressedStackMaps) +
-           sizeof(UntaggedCompressedStackMaps::Payload);
+           sizeof(UntaggedCompressedStackMaps::Payload::FlagsAndSizeHeader);
   }
   static intptr_t UnroundedSize(CompressedStackMapsPtr maps) {
     return UnroundedSize(CompressedStackMaps::PayloadSizeOf(maps));
@@ -5910,9 +5952,7 @@ class CompressedStackMaps : public Object {
   static intptr_t UnroundedSize(intptr_t length) {
     return HeaderSize() + length;
   }
-  static intptr_t InstanceSize() {
-    return 0;
-  }
+  static intptr_t InstanceSize() { return 0; }
   static intptr_t InstanceSize(intptr_t length) {
     return RoundedAllocationSize(UnroundedSize(length));
   }
@@ -5920,13 +5960,13 @@ class CompressedStackMaps : public Object {
   bool UsesGlobalTable() const { return UsesGlobalTable(ptr()); }
   static bool UsesGlobalTable(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::UsesTableBit::decode(
-        raw->untag()->payload()->flags_and_size);
+        raw->untag()->payload()->flags_and_size());
   }
 
   bool IsGlobalTable() const { return IsGlobalTable(ptr()); }
   static bool IsGlobalTable(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::GlobalTableBit::decode(
-        raw->untag()->payload()->flags_and_size);
+        raw->untag()->payload()->flags_and_size());
   }
 
   static CompressedStackMapsPtr NewInlined(const void* payload, intptr_t size) {
@@ -5976,18 +6016,18 @@ class CompressedStackMaps : public Object {
 
     uintptr_t payload_size() const {
       return UntaggedCompressedStackMaps::SizeField::decode(
-          payload()->flags_and_size);
+          payload()->flags_and_size());
     }
     const uint8_t* data() const { return payload()->data(); }
 
     bool UsesGlobalTable() const {
       return UntaggedCompressedStackMaps::UsesTableBit::decode(
-          payload()->flags_and_size);
+          payload()->flags_and_size());
     }
 
     bool IsGlobalTable() const {
       return UntaggedCompressedStackMaps::GlobalTableBit::decode(
-          payload()->flags_and_size);
+          payload()->flags_and_size());
     }
 
    private:
@@ -6683,7 +6723,7 @@ class Code : public Object {
   // embedded objects in the instructions using pointer_offsets.
 
   static const intptr_t kBytesPerElement =
-      sizeof(reinterpret_cast<UntaggedCode*>(0)->data()[0]);
+      sizeof(reinterpret_cast<UntaggedCode*>(kOffsetOfPtr)->data()[0]);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   struct ArrayTraits {
@@ -9093,15 +9133,6 @@ class Number : public Instance {
   // TODO(iposva): Add more useful Number methods.
   StringPtr ToString(Heap::Space space) const;
 
-  // Numbers are canonicalized differently from other instances/strings.
-  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
-  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
-
-#if defined(DEBUG)
-  // Check if number is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
 
@@ -9305,7 +9336,6 @@ class Mint : public Integer {
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
   static MintPtr NewCanonical(int64_t value);
-  static MintPtr NewCanonicalLocked(Thread* thread, int64_t value);
 
  private:
   void set_value(int64_t value) const;
@@ -9332,7 +9362,6 @@ class Double : public Number {
 
   // Returns a canonical double object allocated in the old gen space.
   static DoublePtr NewCanonical(double d);
-  static DoublePtr NewCanonicalLocked(Thread* thread, double d);
 
   // Returns a canonical double object (allocated in the old gen space) or
   // Double::null() if str points to a string that does not convert to a
@@ -9724,7 +9753,7 @@ class String : public Instance {
 };
 
 // Synchronize with implementation in compiler (intrinsifier).
-class StringHasher : ValueObject {
+class StringHasher : public ValueObject {
  public:
   StringHasher() : hash_(0) {}
   void Add(uint16_t code_unit) { hash_ = CombineHashes(hash_, code_unit); }
@@ -10220,9 +10249,16 @@ class Bool : public Instance {
 class Array : public Instance {
  public:
   // Returns `true` if we use card marking for arrays of length [array_length].
-  static bool UseCardMarkingForAllocation(const intptr_t array_length) {
+  static constexpr bool UseCardMarkingForAllocation(
+      const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
   }
+
+  // WB invariant restoration code only applies to arrives which have at most
+  // this many elements. Consequently WB elimination code should not eliminate
+  // WB on arrays of larger lengths across instructions that can cause GC.
+  // Note: we also can't restore WB invariant for arrays which use card marking.
+  static constexpr intptr_t kMaxLengthForWriteBarrierElimination = 8;
 
   intptr_t Length() const { return LengthOf(ptr()); }
   static intptr_t LengthOf(const ArrayPtr array) {
@@ -10319,7 +10355,7 @@ class Array : public Instance {
     return OFFSET_OF(UntaggedArray, type_arguments_);
   }
 
-  static bool IsValidLength(intptr_t len) {
+  static constexpr bool IsValidLength(intptr_t len) {
     return 0 <= len && len <= kMaxElements;
   }
 
@@ -10329,7 +10365,7 @@ class Array : public Instance {
     return 0;
   }
 
-  static intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
@@ -10662,7 +10698,7 @@ class Float64x2 : public Instance {
 
 class PointerBase : public Instance {
  public:
-  static intptr_t data_field_offset() {
+  static intptr_t data_offset() {
     return OFFSET_OF(UntaggedPointerBase, data_);
   }
 };
@@ -10806,7 +10842,9 @@ class TypedData : public TypedDataBase {
 
 #undef TYPED_GETTER_SETTER
 
-  static intptr_t data_offset() { return UntaggedTypedData::payload_offset(); }
+  static intptr_t payload_offset() {
+    return UntaggedTypedData::payload_offset();
+  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedTypedData) ==
@@ -10916,10 +10954,6 @@ class ExternalTypedData : public TypedDataBase {
                                             Dart_HandleFinalizer callback,
                                             intptr_t external_size) const;
 
-  static intptr_t data_offset() {
-    return OFFSET_OF(UntaggedExternalTypedData, data_);
-  }
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedExternalTypedData));
   }
@@ -10992,7 +11026,7 @@ class TypedDataView : public TypedDataBase {
     return IsExternalTypedDataClassId(cid);
   }
 
-  static intptr_t data_offset() {
+  static intptr_t typed_data_offset() {
     return OFFSET_OF(UntaggedTypedDataView, typed_data_);
   }
 
@@ -11291,7 +11325,7 @@ class LinkedHashMap : public LinkedHashBase {
   //  - There are no checks for concurrent modifications.
   //  - Accessing a key or value before the first call to MoveNext and after
   //    MoveNext returns false will result in crashes.
-  class Iterator : ValueObject {
+  class Iterator : public ValueObject {
    public:
     explicit Iterator(const LinkedHashMap& map)
         : data_(Array::Handle(map.data())),
@@ -11387,7 +11421,7 @@ class LinkedHashSet : public LinkedHashBase {
   //  - There are no checks for concurrent modifications.
   //  - Accessing a key or value before the first call to MoveNext and after
   //    MoveNext returns false will result in crashes.
-  class Iterator : ValueObject {
+  class Iterator : public ValueObject {
    public:
     explicit Iterator(const LinkedHashSet& set)
         : data_(Array::Handle(set.data())),
@@ -11976,7 +12010,7 @@ class WeakProperty : public Instance {
   }
 
   static void Clear(WeakPropertyPtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_ ==
+    ASSERT(raw_weak->untag()->next_seen_by_gc_ ==
            CompressedWeakPropertyPtr(WeakProperty::null()));
     // This action is performed by the GC. No barrier.
     raw_weak->untag()->key_ = Object::null();
@@ -11985,6 +12019,182 @@ class WeakProperty : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
+  friend class Class;
+};
+
+class WeakReference : public Instance {
+ public:
+  ObjectPtr target() const { return untag()->target(); }
+  void set_target(const Object& target) const {
+    untag()->set_target(target.ptr());
+  }
+  static intptr_t target_offset() {
+    return OFFSET_OF(UntaggedWeakReference, target_);
+  }
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedWeakReference, type_arguments_);
+  }
+
+  static WeakReferencePtr New(Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedWeakReference));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakReference, Instance);
+  friend class Class;
+};
+
+class FinalizerBase;
+class FinalizerEntry : public Instance {
+ public:
+  ObjectPtr value() const { return untag()->value(); }
+  void set_value(const Object& value) const { untag()->set_value(value.ptr()); }
+  static intptr_t value_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, value_);
+  }
+
+  ObjectPtr detach() const { return untag()->detach(); }
+  void set_detach(const Object& value) const {
+    untag()->set_detach(value.ptr());
+  }
+  static intptr_t detach_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, detach_);
+  }
+
+  ObjectPtr token() const { return untag()->token(); }
+  void set_token(const Object& value) const { untag()->set_token(value.ptr()); }
+  static intptr_t token_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, token_);
+  }
+
+  FinalizerBasePtr finalizer() const { return untag()->finalizer(); }
+  void set_finalizer(const FinalizerBase& value) const;
+  static intptr_t finalizer_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, finalizer_);
+  }
+
+  FinalizerEntryPtr next() const { return untag()->next(); }
+  void set_next(const FinalizerEntry& value) const {
+    untag()->set_next(value.ptr());
+  }
+  static intptr_t next_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, next_);
+  }
+
+  intptr_t external_size() const { return untag()->external_size(); }
+  void set_external_size(intptr_t value) const {
+    untag()->set_external_size(value);
+  }
+  static intptr_t external_size_offset() {
+    return OFFSET_OF(UntaggedFinalizerEntry, external_size_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedFinalizerEntry));
+  }
+
+  // Allocates a new FinalizerEntry, initializing the external size (to 0) and
+  // finalizer.
+  //
+  // Should only be used for object tests.
+  //
+  // Does not initialize `value`, `token`, and `detach` to allow for flexible
+  // testing code setting those manually.
+  //
+  // Does _not_ add the entry to the finalizer. We could add the entry to
+  // finalizer.all_entries.data, but we have no way of initializing the hashset
+  // index.
+  static FinalizerEntryPtr New(const FinalizerBase& finalizer,
+                               Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(FinalizerEntry, Instance);
+  friend class Class;
+};
+
+class FinalizerBase : public Instance {
+ public:
+  static intptr_t isolate_offset() {
+    return OFFSET_OF(UntaggedFinalizerBase, isolate_);
+  }
+  Isolate* isolate() const { return untag()->isolate_; }
+  void set_isolate(Isolate* value) const { untag()->isolate_ = value; }
+
+  static intptr_t detachments_offset() {
+    return OFFSET_OF(UntaggedFinalizerBase, detachments_);
+  }
+
+  LinkedHashSetPtr all_entries() const { return untag()->all_entries(); }
+  void set_all_entries(const LinkedHashSet& value) const {
+    untag()->set_all_entries(value.ptr());
+  }
+  static intptr_t all_entries_offset() {
+    return OFFSET_OF(UntaggedFinalizerBase, all_entries_);
+  }
+
+  FinalizerEntryPtr entries_collected() const {
+    return untag()->entries_collected();
+  }
+  void set_entries_collected(const FinalizerEntry& value) const {
+    untag()->set_entries_collected(value.ptr());
+  }
+  static intptr_t entries_collected_offset() {
+    return OFFSET_OF(UntaggedFinalizer, entries_collected_);
+  }
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(FinalizerBase, Instance);
+  friend class Class;
+};
+
+class Finalizer : public FinalizerBase {
+ public:
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedFinalizer, type_arguments_);
+  }
+
+  ObjectPtr callback() const { return untag()->callback(); }
+  static intptr_t callback_offset() {
+    return OFFSET_OF(UntaggedFinalizer, callback_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedFinalizer));
+  }
+
+  static FinalizerPtr New(Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Finalizer, FinalizerBase);
+  friend class Class;
+};
+
+class NativeFinalizer : public FinalizerBase {
+ public:
+  typedef void (*Callback)(void*);
+
+  PointerPtr callback() const { return untag()->callback(); }
+  void set_callback(const Pointer& value) const {
+    untag()->set_callback(value.ptr());
+  }
+  static intptr_t callback_offset() {
+    return OFFSET_OF(UntaggedNativeFinalizer, callback_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedNativeFinalizer));
+  }
+
+  static NativeFinalizerPtr New(Heap::Space space = Heap::kNew);
+
+  void RunCallback(const FinalizerEntry& entry,
+                   const char* trace_context) const;
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(NativeFinalizer, FinalizerBase);
   friend class Class;
 };
 
@@ -12110,22 +12320,6 @@ void Object::SetPtr(ObjectPtr value, intptr_t default_cid) {
     cid = kInstanceCid;
   }
   set_vtable(builtin_vtables_[cid]);
-#if defined(DEBUG)
-  if (FLAG_verify_handles && ptr_->IsHeapObject() && (ptr_ != Object::null())) {
-    Heap* isolate_heap = IsolateGroup::Current()->heap();
-    // TODO(rmacnak): Remove after rewriting StackFrame::VisitObjectPointers
-    // to not use handles.
-    if (!isolate_heap->new_space()->scavenging()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
-      uword addr = UntaggedObject::ToAddr(ptr_);
-      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-        ASSERT(FLAG_write_protect_code);
-        addr = UntaggedObject::ToAddr(OldPage::ToWritable(ptr_));
-        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
-      }
-    }
-  }
-#endif
 }
 
 intptr_t Field::HostOffset() const {

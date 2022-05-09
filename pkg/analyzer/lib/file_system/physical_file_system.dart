@@ -13,7 +13,7 @@ import 'package:watcher/watcher.dart';
 
 /// The name of the directory containing plugin specific subfolders used to
 /// store data across sessions.
-const String _SERVER_DIR = ".dartServer";
+const String _serverDir = ".dartServer";
 
 /// Returns the path to default state location.
 ///
@@ -28,7 +28,7 @@ String? _getStandardStateLocation() {
 
   final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
   return home != null && io.FileSystemEntity.isDirectorySync(home)
-      ? join(home, _SERVER_DIR)
+      ? join(home, _serverDir)
       : null;
 }
 
@@ -96,8 +96,9 @@ class PhysicalResourceProvider implements ResourceProvider {
 class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
+  @Deprecated('Use watch() instead')
   @override
-  Stream<WatchEvent> get changes => FileWatcher(_entry.path).events;
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   int get lengthSync {
@@ -180,6 +181,12 @@ class _PhysicalFile extends _PhysicalResource implements File {
   Uri toUri() => Uri.file(path);
 
   @override
+  ResourceWatcher watch() {
+    final watcher = FileWatcher(_entry.path);
+    return ResourceWatcher(watcher.events, watcher.ready);
+  }
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     try {
       _file.writeAsBytesSync(bytes);
@@ -202,15 +209,9 @@ class _PhysicalFile extends _PhysicalResource implements File {
 class _PhysicalFolder extends _PhysicalResource implements Folder {
   _PhysicalFolder(io.Directory directory) : super(directory);
 
+  @Deprecated('Use watch() instead')
   @override
-  Stream<WatchEvent> get changes =>
-      DirectoryWatcher(_entry.path).events.handleError((Object error) {},
-          test: (error) =>
-              error is io.FileSystemException &&
-              // Don't suppress "Directory watcher closed," so the outer
-              // listener can see the interruption & act on it.
-              !error.message
-                  .startsWith("Directory watcher closed unexpectedly"));
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get isRoot {
@@ -308,6 +309,18 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Uri toUri() => Uri.directory(path);
+
+  @override
+  ResourceWatcher watch() {
+    final watcher = DirectoryWatcher(_entry.path);
+    final events = watcher.events.handleError((Object error) {},
+        test: (error) =>
+            error is io.FileSystemException &&
+            // Don't suppress "Directory watcher closed," so the outer
+            // listener can see the interruption & act on it.
+            !error.message.startsWith("Directory watcher closed unexpectedly"));
+    return ResourceWatcher(events, watcher.ready);
+  }
 }
 
 /// A `dart:io` based implementation of [Resource].
@@ -329,10 +342,13 @@ abstract class _PhysicalResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent2 {
+  Folder get parent {
     String parentPath = pathContext.dirname(path);
     return _PhysicalFolder(io.Directory(parentPath));
   }
+
+  @override
+  Folder get parent2 => parent;
 
   @override
   String get path => _entry.path;

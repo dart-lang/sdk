@@ -20,32 +20,33 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 /// https://github.com/dart-lang/language
 /// See `resources/type-system/subtyping.md`
 class SubtypeHelper {
+  final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final InterfaceTypeImpl _nullNone;
   final InterfaceTypeImpl _objectNone;
   final InterfaceTypeImpl _objectQuestion;
 
-  SubtypeHelper(TypeSystemImpl typeSystem)
-      : _typeProvider = typeSystem.typeProvider,
-        _nullNone = typeSystem.nullNone,
-        _objectNone = typeSystem.objectNone,
-        _objectQuestion = typeSystem.objectQuestion;
+  SubtypeHelper(this._typeSystem)
+      : _typeProvider = _typeSystem.typeProvider,
+        _nullNone = _typeSystem.nullNone,
+        _objectNone = _typeSystem.objectNone,
+        _objectQuestion = _typeSystem.objectQuestion;
 
-  /// Return `true` if [_T0] is a subtype of [_T1].
-  bool isSubtypeOf(DartType _T0, DartType _T1) {
+  /// Return `true` if [T0_] is a subtype of [T1_].
+  bool isSubtypeOf(DartType T0_, DartType T1_) {
     // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
-    if (identical(_T0, _T1)) {
+    if (identical(T0_, T1_)) {
       return true;
     }
 
     // `_` is treated as a top and a bottom type during inference.
-    if (identical(_T0, UnknownInferredType.instance) ||
-        identical(_T1, UnknownInferredType.instance)) {
+    if (identical(T0_, UnknownInferredType.instance) ||
+        identical(T1_, UnknownInferredType.instance)) {
       return true;
     }
 
-    var T0 = _T0 as TypeImpl;
-    var T1 = _T1 as TypeImpl;
+    var T0 = T0_ as TypeImpl;
+    var T1 = T1_ as TypeImpl;
 
     var T1_nullability = T1.nullabilitySuffix;
     var T0_nullability = T0.nullabilitySuffix;
@@ -342,25 +343,13 @@ class SubtypeHelper {
 
   /// Check that [f] is a subtype of [g].
   bool _isFunctionSubtypeOf(FunctionType f, FunctionType g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
-
-    // The number of type parameters must be the same.
-    if (fTypeFormals.length != gTypeFormals.length) {
+    var fresh = _typeSystem.relateTypeParameters(f.typeFormals, g.typeFormals);
+    if (fresh == null) {
       return false;
     }
 
-    // The bounds of type parameters must be equal.
-    var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
-      return isSubtypeOf(t, s) && isSubtypeOf(s, t);
-    });
-    if (freshTypeFormalTypes == null) {
-      return false;
-    }
-
-    f = f.instantiate(freshTypeFormalTypes);
-    g = g.instantiate(freshTypeFormalTypes);
+    f = f.instantiate(fresh.typeParameterTypes);
+    g = g.instantiate(fresh.typeParameterTypes);
 
     if (!isSubtypeOf(f.returnType, g.returnType)) {
       return false;

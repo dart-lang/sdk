@@ -1,0 +1,138 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get foo() → core::String
+    return "foo";
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method bar() → core::int
+    return 42;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  set callOnAssignment(() → void f) → void {
+    f(){() → void};
+  }
+}
+abstract class _E1&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  get foo() → core::String
+    return "foo";
+}
+class E1 extends self::_E1&_Enum&A /*isEnum*/  {
+  static const field core::List<self::E1> values = #C7;
+  static const field self::E1 one = #C3;
+  static const field self::E1 two = #C6;
+  const constructor •(core::int index, core::String name) → self::E1
+    : super self::_E1&_Enum&A::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _E2&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  get foo() → core::String
+    return "foo";
+}
+abstract class _E2&_Enum&A&B extends self::_E2&_Enum&A implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&A&B
+    : super self::_E2&_Enum&A::•(index, _name)
+    ;
+  method bar() → core::int
+    return 42;
+}
+class E2 extends self::_E2&_Enum&A&B /*isEnum*/  {
+  static const field core::List<self::E2> values = #C10;
+  static const field self::E2 one = #C8;
+  static const field self::E2 two = #C9;
+  const constructor •(core::int index, core::String name) → self::E2
+    : super self::_E2&_Enum&A&B::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _E3&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  set callOnAssignment(() → void f) → void {
+    f(){() → void};
+  }
+}
+class E3 extends self::_E3&_Enum&M /*isEnum*/  {
+  static const field core::List<self::E3> values = #C13;
+  static const field self::E3 one = #C11;
+  static const field self::E3 two = #C12;
+  const constructor •(core::int index, core::String name) → self::E3
+    : super self::_E3&_Enum&M::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' and '${y}' to be equal.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  try {
+    f(){() → void};
+    throw "Expected function to throw.";
+  }
+  on core::Object catch(final core::Object e) {
+  }
+}
+static method throwOnCall() → void {
+  throw 42;
+}
+static method main() → dynamic {
+  self::expectEquals(#C3.{self::_E1&_Enum&A::foo}{core::String}, "foo");
+  self::expectEquals(#C6.{self::_E1&_Enum&A::foo}{core::String}, "foo");
+  self::expectEquals(#C8.{self::_E2&_Enum&A::foo}{core::String}, "foo");
+  self::expectEquals(#C9.{self::_E2&_Enum&A::foo}{core::String}, "foo");
+  self::expectEquals(#C8.{self::_E2&_Enum&A&B::bar}(){() → core::int}, "bar");
+  self::expectEquals(#C9.{self::_E2&_Enum&A&B::bar}(){() → core::int}, "bar");
+  self::expectThrows(#C11.{self::_E3&_Enum&M::callOnAssignment} = #C14);
+  self::expectThrows(#C12.{self::_E3&_Enum&M::callOnAssignment} = #C14);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "one"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "two"
+  #C6 = self::E1 {index:#C4, _name:#C5}
+  #C7 = <self::E1>[#C3, #C6]
+  #C8 = self::E2 {index:#C1, _name:#C2}
+  #C9 = self::E2 {index:#C4, _name:#C5}
+  #C10 = <self::E2>[#C8, #C9]
+  #C11 = self::E3 {index:#C1, _name:#C2}
+  #C12 = self::E3 {index:#C4, _name:#C5}
+  #C13 = <self::E3>[#C11, #C12]
+  #C14 = static-tearoff self::throwOnCall
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///simple_mixins.dart:
+- E1. (from org-dartlang-testcase:///simple_mixins.dart:19:6)
+- _E1&_Enum&A. (from org-dartlang-testcase:///simple_mixins.dart:19:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E2. (from org-dartlang-testcase:///simple_mixins.dart:21:6)
+- _E2&_Enum&A&B. (from org-dartlang-testcase:///simple_mixins.dart:21:6)
+- _E2&_Enum&A. (from org-dartlang-testcase:///simple_mixins.dart:21:6)
+- E3. (from org-dartlang-testcase:///simple_mixins.dart:23:6)
+- _E3&_Enum&M. (from org-dartlang-testcase:///simple_mixins.dart:23:6)

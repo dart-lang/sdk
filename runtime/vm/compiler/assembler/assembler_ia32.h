@@ -229,12 +229,12 @@ class FieldAddress : public Address {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false)
+                     intptr_t far_branch_level = 0)
       : AssemblerBase(object_pool_builder),
         jit_cookie_(0),
         code_(NewZoneHandle(ThreadState::Current()->zone())) {
     // This mode is only needed and implemented for ARM.
-    ASSERT(!use_far_branches);
+    ASSERT(far_branch_level == 0);
   }
   ~Assembler() {}
 
@@ -713,6 +713,8 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadDImmediate(XmmRegister dst, double value);
+
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);
@@ -732,7 +734,6 @@ class Assembler : public AssemblerBase {
 
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
-  void LoadDoubleConstant(XmmRegister dst, double value);
 
   void LoadCompressed(Register dest, const Address& slot) { movl(dest, slot); }
 
@@ -819,22 +820,18 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void TransitionNativeToGenerated(Register scratch,
+                                   bool exit_safepoint,
+                                   bool ignore_unwind_in_progress = false);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
-  // Create a frame for calling into runtime that preserves all volatile
-  // registers.  Frame's RSP is guaranteed to be correctly aligned and
-  // frame_space bytes are reserved under it.
-  void EnterCallRuntimeFrame(intptr_t frame_space);
-  void LeaveCallRuntimeFrame();
-
+  // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   void Call(const Code& code,
             bool movable_target = false,
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
-  void CallToRuntime();
   // Will not clobber any registers and can therefore be called with 5 live
   // registers.
   void CallVmStub(const Code& code);

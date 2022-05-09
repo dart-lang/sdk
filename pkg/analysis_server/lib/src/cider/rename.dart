@@ -31,19 +31,23 @@ class CanRenameResponse {
     _flutterWidgetState = _findFlutterStateClass(element, name);
 
     RefactoringStatus? status;
-    if (element is LocalVariableElement) {
-      status = validateVariableName(name);
-    } else if (element is ParameterElement) {
+    if (element is ParameterElement) {
       status = validateParameterName(name);
+    } else if (element is VariableElement) {
+      status = validateVariableName(name);
     } else if (element is FunctionElement) {
       status = validateFunctionName(name);
-    } else if (element is TopLevelVariableElement) {
-      status = validateVariableName(name);
+    } else if (element is FieldElement) {
+      status = validateFieldName(name);
+    } else if (element is MethodElement) {
+      status = validateMethodName(name);
     } else if (element is TypeAliasElement) {
       status = validateTypeAliasName(name);
     } else if (element is ClassElement) {
       status = validateClassName(name);
-    } else if (status == null) {
+    }
+
+    if (status == null) {
       return null;
     }
     return CheckNameResponse(status, this);
@@ -79,7 +83,7 @@ class CheckNameResponse {
 
   String get oldName => canRename.refactoringElement.element.displayName;
 
-  RenameResponse? computeRenameRanges() {
+  Future<RenameResponse?> computeRenameRanges2() async {
     var elements = <Element>[];
     var element = canRename.refactoringElement.element;
     if (element is PropertyInducingElement && element.isSynthetic) {
@@ -91,15 +95,15 @@ class CheckNameResponse {
     } else {
       elements.add(element);
     }
+    var fileResolver = canRename._fileResolver;
     var matches = <CiderSearchMatch>[];
     for (var element in elements) {
-      matches.addAll(canRename._fileResolver.findReferences(element));
+      matches.addAll(await fileResolver.findReferences2(element));
     }
-
     FlutterWidgetRename? flutterRename;
     if (canRename._flutterWidgetState != null) {
       var stateWidget = canRename._flutterWidgetState!;
-      var match = canRename._fileResolver.findReferences(stateWidget.state);
+      var match = await fileResolver.findReferences2(stateWidget.state);
       flutterRename = FlutterWidgetRename(stateWidget.newName, match);
     }
     return RenameResponse(matches, this, flutterWidgetRename: flutterRename);
@@ -113,8 +117,9 @@ class CiderRenameComputer {
 
   /// Check if the identifier at the [line], [column] for the file at the
   /// [filePath] can be renamed.
-  CanRenameResponse? canRename(String filePath, int line, int column) {
-    var resolvedUnit = _fileResolver.resolve(path: filePath);
+  Future<CanRenameResponse?> canRename2(
+      String filePath, int line, int column) async {
+    var resolvedUnit = await _fileResolver.resolve2(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
 

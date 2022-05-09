@@ -45,6 +45,185 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
+  Future<void> test_class_methodField() async {
+    addTestFile('''
+class A {
+  foo() {}
+  bar() {}
+}
+class B {
+  int foo;
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.FIELD, 'B');
+  }
+
+  Future<void> test_class_methodGetter() async {
+    addTestFile('''
+class A {
+  foo() {}
+  bar() {}
+}
+class B {
+  get foo => null;
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+  }
+
+  Future<void> test_class_methodGetterSetter() async {
+    addTestFile('''
+class A {
+  foo() {}
+  bar() {}
+}
+class B {
+  get foo => null;
+  set foo(x) {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(3));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
+  }
+
+  Future<void> test_class_methodMethod() async {
+    addTestFile('''
+class A {
+  foo() {}
+  bar() {}
+}
+class B {
+  foo() {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.METHOD, 'B');
+  }
+
+  Future<void> test_class_methodSetter() async {
+    addTestFile('''
+class A {
+  foo() {}
+  bar() {}
+}
+class B {
+  set foo(x) {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
+  }
+
+  Future<void> test_enum_methodField() async {
+    addTestFile('''
+enum A {
+  v;
+  void foo() {}
+  void bar() {}
+}
+
+enum B {
+  v;
+  int foo;
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.FIELD, 'B');
+  }
+
+  Future<void> test_enum_methodGetter() async {
+    addTestFile('''
+enum A {
+  v;
+  void foo() {}
+  void bar() {}
+}
+
+enum B {
+  v;
+  int get foo => 0;
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+  }
+
+  Future<void> test_enum_methodGetterSetter() async {
+    addTestFile('''
+enum A {
+  v;
+  void foo() {}
+  void bar() {}
+}
+
+enum B {
+  v;
+  int get foo => 0;
+  set foo(int x) {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(3));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
+  }
+
+  Future<void> test_enum_methodMethod() async {
+    addTestFile('''
+enum A {
+  v;
+  void foo() {}
+  void bar() {}
+}
+
+enum B {
+  v;
+  void foo() {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.METHOD, 'B');
+  }
+
+  Future<void> test_enums_methodSetter() async {
+    addTestFile('''
+enum A {
+  v;
+  void foo() {}
+  void bar() {}
+}
+
+enum B {
+  v;
+  set foo(int x) {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
+  }
+
   Future<void> test_localVariable() async {
     addTestFile('''
 class A {
@@ -68,87 +247,5 @@ class A {
 ''');
     await findMemberDeclarations('foo');
     expect(results, isEmpty);
-  }
-
-  Future<void> test_methodField() async {
-    addTestFile('''
-class A {
-  foo() {}
-  bar() {}
-}
-class B {
-  int foo;
-}
-''');
-    await findMemberDeclarations('foo');
-    expect(results, hasLength(2));
-    assertHasDeclaration(ElementKind.METHOD, 'A');
-    assertHasDeclaration(ElementKind.FIELD, 'B');
-  }
-
-  Future<void> test_methodGetter() async {
-    addTestFile('''
-class A {
-  foo() {}
-  bar() {}
-}
-class B {
-  get foo => null;
-}
-''');
-    await findMemberDeclarations('foo');
-    expect(results, hasLength(2));
-    assertHasDeclaration(ElementKind.METHOD, 'A');
-    assertHasDeclaration(ElementKind.GETTER, 'B');
-  }
-
-  Future<void> test_methodGetterSetter() async {
-    addTestFile('''
-class A {
-  foo() {}
-  bar() {}
-}
-class B {
-  get foo => null;
-  set foo(x) {}
-}
-''');
-    await findMemberDeclarations('foo');
-    expect(results, hasLength(3));
-    assertHasDeclaration(ElementKind.METHOD, 'A');
-    assertHasDeclaration(ElementKind.GETTER, 'B');
-    assertHasDeclaration(ElementKind.SETTER, 'B');
-  }
-
-  Future<void> test_methodMethod() async {
-    addTestFile('''
-class A {
-  foo() {}
-  bar() {}
-}
-class B {
-  foo() {}
-}
-''');
-    await findMemberDeclarations('foo');
-    expect(results, hasLength(2));
-    assertHasDeclaration(ElementKind.METHOD, 'A');
-    assertHasDeclaration(ElementKind.METHOD, 'B');
-  }
-
-  Future<void> test_methodSetter() async {
-    addTestFile('''
-class A {
-  foo() {}
-  bar() {}
-}
-class B {
-  set foo(x) {}
-}
-''');
-    await findMemberDeclarations('foo');
-    expect(results, hasLength(2));
-    assertHasDeclaration(ElementKind.METHOD, 'A');
-    assertHasDeclaration(ElementKind.SETTER, 'B');
   }
 }

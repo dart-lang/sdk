@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A<S> {
   void method<T extends S>(S s) {}
 }

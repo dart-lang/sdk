@@ -17,6 +17,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_analysis_context.dart';
+import '../../../generated/test_support.dart';
 import '../../../generated/type_system_test.dart';
 import '../resolution/context_collection_resolution.dart';
 
@@ -467,7 +468,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 class CompilationUnitElementImplTest {
   void test_getType_declared() {
     CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit("/lib.dart");
+        ElementFactory.compilationUnit(source: TestSource("/lib.dart"));
     String className = "C";
     ClassElement classElement = ElementFactory.classElement2(className);
     unit.classes = <ClassElement>[classElement];
@@ -476,7 +477,7 @@ class CompilationUnitElementImplTest {
 
   void test_getType_undeclared() {
     CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit("/lib.dart");
+        ElementFactory.compilationUnit(source: TestSource("/lib.dart"));
     String className = "C";
     ClassElement classElement = ElementFactory.classElement2(className);
     unit.classes = <ClassElement>[classElement];
@@ -487,7 +488,7 @@ class CompilationUnitElementImplTest {
 @reflectiveTest
 class ElementAnnotationImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   final String f;
   const A(this.f);
@@ -692,8 +693,8 @@ enum B {B1, B2, B3}
     FieldElement b2Element = B.getField('B2')!;
     expect(b2Element.isEnumConstant, isTrue);
 
-    FieldElement indexElement = B.getField('index')!;
-    expect(indexElement.isEnumConstant, isFalse);
+    FieldElement valuesElement = B.getField('values')!;
+    expect(valuesElement.isEnumConstant, isFalse);
   }
 }
 
@@ -1327,10 +1328,14 @@ class LibraryElementImplTest {
     AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "test");
     CompilationUnitElement unitLib = library.definingCompilationUnit;
-    CompilationUnitElementImpl unitA =
-        ElementFactory.compilationUnit("unit_a.dart", unitLib.source);
-    CompilationUnitElementImpl unitB =
-        ElementFactory.compilationUnit("unit_b.dart", unitLib.source);
+    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit(
+      source: TestSource("unit_a.dart"),
+      librarySource: unitLib.source,
+    );
+    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit(
+      source: TestSource("unit_b.dart"),
+      librarySource: unitLib.source,
+    );
     library.parts = <CompilationUnitElement>[unitA, unitB];
     expect(library.units,
         unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));
@@ -1361,7 +1366,7 @@ class LibraryElementImplTest {
 @reflectiveTest
 class TopLevelVariableElementImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 const int C = 42;
 ''');
     await resolveTestCode(r'''

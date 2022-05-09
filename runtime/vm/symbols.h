@@ -102,7 +102,6 @@ class ObjectPointerVisitor;
   V(EvalSourceUri, "evaluate:source")                                          \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
-  V(ExceptionParameter, ":exception")                                          \
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
@@ -138,6 +137,9 @@ class ObjectPointerVisitor;
   V(FfiVoid, "Void")                                                           \
   V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
+  V(Finalizable, "Finalizable")                                                \
+  V(FinalizerBase, "FinalizerBase")                                            \
+  V(FinalizerEntry, "FinalizerEntry")                                          \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \
   V(Float32List, "Float32List")                                                \
@@ -288,11 +290,13 @@ class ObjectPointerVisitor;
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
+  V(_CompleteWithNoFutureOnAsyncReturn, "_completeWithNoFutureOnAsyncReturn")  \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
+  V(_Enum, "_Enum")                                                            \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
@@ -307,6 +311,8 @@ class ObjectPointerVisitor;
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
+  V(_FinalizerImpl, "_FinalizerImpl")                                          \
+  V(_NativeFinalizer, "_NativeFinalizer")                                      \
   V(_Float32ArrayFactory, "Float32List.")                                      \
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float32List, "_Float32List")                                              \
@@ -400,11 +406,15 @@ class ObjectPointerVisitor;
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
+  V(_WeakReferenceImpl, "_WeakReferenceImpl")                                  \
   V(_typedDataBase, "_typedDataBase")                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
   V(_handleMessage, "_handleMessage")                                          \
+  V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
+  V(_handleNativeFinalizerMessage, "_handleNativeFinalizerMessage")            \
+  V(_hasValue, "_hasValue")                                                    \
   V(_instanceOf, "_instanceOf")                                                \
   V(_listGetAt, "_listGetAt")                                                  \
   V(_listLength, "_listLength")                                                \
@@ -474,6 +484,7 @@ class ObjectPointerVisitor;
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
   V(vm_external_name, "vm:external-name")                                      \
+  V(vm_invisible, "vm:invisible")                                              \
   V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")
 
 // Contains a list of frequently used strings in a canonicalized form. This

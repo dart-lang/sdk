@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Foo<U> {
   static List<U> Function() foo8Prime() {}
   static List<U> Function(List<U>) foo15Prime = null;

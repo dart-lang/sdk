@@ -138,6 +138,13 @@ class NativeType : public ZoneAllocated {
   virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const = 0;
 
+  // Returns the number of primitive members when this aggregrate is flattened
+  // out, and sets the out-parameters to the first two such primitive members.
+  virtual intptr_t PrimitivePairMembers(
+      const NativePrimitiveType** first,
+      const NativePrimitiveType** second,
+      intptr_t offset_in_members = 0) const = 0;
+
   virtual ~NativeType() {}
 
  protected:
@@ -206,6 +213,9 @@ class NativePrimitiveType : public NativeType {
 
   virtual intptr_t NumPrimitiveMembersRecursive() const;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const;
+  virtual intptr_t PrimitivePairMembers(const NativePrimitiveType** first,
+                                        const NativePrimitiveType** second,
+                                        intptr_t offset_in_members = 0) const;
 
   virtual ~NativePrimitiveType() {}
 
@@ -251,6 +261,9 @@ class NativeArrayType : public NativeType {
 
   virtual intptr_t NumPrimitiveMembersRecursive() const;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const;
+  virtual intptr_t PrimitivePairMembers(const NativePrimitiveType** first,
+                                        const NativePrimitiveType** second,
+                                        intptr_t offset_in_members = 0) const;
 
  private:
   const NativeType& element_type_;
@@ -300,6 +313,9 @@ class NativeCompoundType : public NativeType {
 
   virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const;
+  virtual intptr_t PrimitivePairMembers(const NativePrimitiveType** first,
+                                        const NativePrimitiveType** second,
+                                        intptr_t offset_in_members = 0) const;
 
  protected:
   NativeCompoundType(const NativeTypes& members,

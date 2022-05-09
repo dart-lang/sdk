@@ -4,11 +4,11 @@
 
 // @dart = 2.7
 
-/*spec.class: global#List:deps=[Class,JSArray.markFixedList],explicit=[List,List<Object>,List<String>?,List<markFixedList.T>],indirect,needsArgs*/
-/*prod.class: global#List:deps=[Class],indirect,needsArgs*/
+/*spec.class: global#List:deps=[Class,JSArray.markFixedList],explicit=[List,List<Object>,List<String>?,List<markFixedList.T>],needsArgs,test*/
+/*prod.class: global#List:deps=[Class],needsArgs,test*/
 
-/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
-/*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],indirect,needsArgs*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
+/*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
 
 main() {
   var c = new Class<int>();
@@ -17,7 +17,7 @@ main() {
   set is Set<String>;
 }
 
-/*class: Class:implicit=[Class.T],indirect,needsArgs*/
+/*class: Class:implicit=[Class.T],needsArgs,test*/
 class Class<T> {
   m() {
     return <T>[];

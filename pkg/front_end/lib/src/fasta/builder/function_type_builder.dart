@@ -11,8 +11,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         NamedType,
         Supertype,
-        TypeParameter,
-        TypedefType;
+        TypeParameter;
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
@@ -28,13 +27,15 @@ import 'type_variable_builder.dart';
 class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder? returnType;
   final List<TypeVariableBuilder>? typeVariables;
-  final List<FormalParameterBuilder>? formals;
+  final List<ParameterBuilder>? formals;
   @override
   final NullabilityBuilder nullabilityBuilder;
   @override
   final Uri? fileUri;
   @override
   final int charOffset;
+
+  FunctionType? _type;
 
   FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
       this.nullabilityBuilder, this.fileUri, this.charOffset);
@@ -66,13 +67,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write("(");
     if (formals != null) {
       bool isFirst = true;
-      for (FormalParameterBuilder t in formals!) {
+      for (ParameterBuilder t in formals!) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
           isFirst = false;
         }
-        buffer.write(t.fullNameForErrors);
+        buffer.write(t.name);
       }
     }
     buffer.write(") ->");
@@ -83,22 +84,26 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  FunctionType build(LibraryBuilder library, {TypedefType? origin}) {
+  FunctionType build(LibraryBuilder library) {
+    return _type ??= _buildInternal(library);
+  }
+
+  FunctionType _buildInternal(LibraryBuilder library) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
+      for (ParameterBuilder formal in formals!) {
         DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
-          if (formal.isRequired) requiredParameterCount++;
+          if (formal.isRequiredPositional) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
-          namedParameters.add(new NamedType(formal.name, type,
-              isRequired: formal.isNamedRequired));
+          namedParameters.add(new NamedType(formal.name!, type,
+              isRequired: formal.isRequiredNamed));
         }
       }
       if (namedParameters != null) {
@@ -111,29 +116,26 @@ class FunctionTypeBuilder extends TypeBuilder {
       for (TypeVariableBuilder t in typeVariables!) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library, origin: origin);
+        t.bound?.build(library);
       }
     }
     return new FunctionType(positionalParameters, builtReturnType,
         nullabilityBuilder.build(library),
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount,
-        typedefType: origin);
+        requiredParameterCount: requiredParameterCount);
   }
 
   @override
-  Supertype? buildSupertype(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
+  Supertype? buildSupertype(LibraryBuilder library) {
     library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 
   @override
-  Supertype? buildMixedInType(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
-    return buildSupertype(library, charOffset, fileUri);
+  Supertype? buildMixedInType(LibraryBuilder library) {
+    return buildSupertype(library);
   }
 
   @override
@@ -143,14 +145,15 @@ class FunctionTypeBuilder extends TypeBuilder {
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeVariableBuilder>? clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables =
-          contextLibrary.copyTypeVariables(typeVariables!, contextDeclaration);
+      clonedTypeVariables = contextLibrary.copyTypeVariables(
+          typeVariables!, contextDeclaration,
+          kind: TypeVariableKind.function);
     }
-    List<FormalParameterBuilder>? clonedFormals;
+    List<ParameterBuilder>? clonedFormals;
     if (formals != null) {
       clonedFormals =
-          new List<FormalParameterBuilder>.generate(formals!.length, (int i) {
-        FormalParameterBuilder formal = formals![i];
+          new List<ParameterBuilder>.generate(formals!.length, (int i) {
+        ParameterBuilder formal = formals![i];
         return formal.clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }

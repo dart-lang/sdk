@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -10,11 +9,11 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_analysis_context.dart';
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -150,12 +149,7 @@ class LegacyTypeAsserterTest {
                 AstTestFactory.formalParameterList(),
                 AstTestFactory.expressionFunctionBody(e)))
       ],
-      featureSet: nonNullable
-          ? FeatureSet.latestLanguageVersion()
-          : FeatureSet.fromEnableFlags2(
-              sdkLanguageVersion: Version.parse('2.9.0'),
-              flags: [],
-            ),
+      featureSet: nonNullable ? FeatureSets.latest : FeatureSets.language_2_9,
     );
   }
 }

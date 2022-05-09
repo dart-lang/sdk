@@ -45,16 +45,11 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ BranchIf(NOT_ZERO, &done);
 
-  if (preserve_registers) {
-    __ EnterCallRuntimeFrame(0);
-  } else {
-    __ ReserveAlignedFrameSpace(0);
-  }
-  __ movq(CallingConventions::kArg1Reg, RAX);
-  __ movq(CallingConventions::kArg2Reg, THR);
-  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
-  if (preserve_registers) {
-    __ LeaveCallRuntimeFrame();
+  {
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    __ movq(CallingConventions::kArg1Reg, RAX);
+    __ movq(CallingConventions::kArg2Reg, THR);
+    rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
 
   __ Bind(&done);
@@ -335,7 +330,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+static void GenerateExitSafepointStubCommon(Assembler* assembler,
+                                            uword runtime_entry_offset) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
@@ -349,12 +345,24 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ movq(Address(THR, target::Thread::execution_state_offset()),
           Immediate(target::Thread::vm_execution_state()));
 
-  __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ movq(RAX, Address(THR, runtime_entry_offset));
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
   __ PopRegisters(all_registers);
   __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
+}
+
+void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
+    Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler,
+      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Calls native code within a safepoint.
@@ -716,15 +724,17 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     }
 
     // Pass target::NativeArguments structure by value and call native function.
-    __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-    __ movq(Address(RSP, argc_tag_offset),
-            R10);  // Set argc in target::NativeArguments.
-    __ movq(Address(RSP, argv_offset),
-            R13);  // Set argv in target::NativeArguments.
-    __ leaq(RAX,
-            Address(RBP, 2 * target::kWordSize));  // Compute return value addr.
-    __ movq(Address(RSP, retval_offset),
-            RAX);  // Set retval in target::NativeArguments.
+    // Set thread in NativeArgs.
+    __ movq(Address(RSP, thread_offset), THR);
+    // Set argc in target::NativeArguments.
+    __ movq(Address(RSP, argc_tag_offset), R10);
+    // Set argv in target::NativeArguments.
+    __ movq(Address(RSP, argv_offset), R13);
+    // Compute return value addr.
+    __ leaq(RAX, Address(RBP, (target::frame_layout.param_end_from_fp + 1) *
+                                  target::kWordSize));
+    // Set retval in target::NativeArguments.
+    __ movq(Address(RSP, retval_offset), RAX);
 
     // Pass the pointer to the target::NativeArguments.
     __ movq(CallingConventions::kArg1Reg, RSP);
@@ -967,14 +977,18 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  // Pass address of saved registers block.
-  __ movq(CallingConventions::kArg1Reg, RSP);
-  bool is_lazy =
-      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-  __ movq(CallingConventions::kArg2Reg, Immediate(is_lazy ? 1 : 0));
-  __ ReserveAlignedFrameSpace(0);  // Ensure stack is aligned before the call.
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
-  // Result (RAX) is stack-size (FP - SP) in bytes.
+  {
+    // Pass address of saved registers block.
+    __ movq(CallingConventions::kArg1Reg, RSP);
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ movq(CallingConventions::kArg2Reg, Immediate(is_lazy ? 1 : 0));
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (RAX) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX temporarily.
@@ -1006,10 +1020,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ pushq(RBX);  // Preserve exception as first local.
     __ pushq(RDX);  // Preserve stacktrace as second local.
   }
-  __ ReserveAlignedFrameSpace(0);
-  // Pass last FP as a parameter.
-  __ movq(CallingConventions::kArg1Reg, RBP);
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
+  {
+    __ movq(CallingConventions::kArg1Reg, RBP);  // Pass last FP as a parameter.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX.
     __ movq(RBX, Address(RBP, target::frame_layout.first_local_from_fp *
@@ -1362,7 +1379,6 @@ static const RegisterSet kCalleeSavedRegisterSet(
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1505,7 +1521,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
-  __ popq(RCX);
 
   __ ret();
 }
@@ -1758,7 +1773,6 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           Address stub_code,
                                            bool cards) {
   Label add_to_mark_stack, remember_card, lost_race;
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
@@ -1820,14 +1834,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
-  // Setup frame, push callee-saved registers.
-  __ pushq(CODE_REG);
-  __ movq(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg, THR);
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ popq(CODE_REG);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/true);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+  }
   __ ret();
 
   __ Bind(&add_to_mark_stack);
@@ -1862,13 +1875,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ ret();
 
   __ Bind(&marking_overflow);
-  __ pushq(CODE_REG);
-  __ movq(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg, THR);
-  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ popq(CODE_REG);
+  {
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/true);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+  }
   __ ret();
 
   __ Bind(&lost_race);
@@ -1898,34 +1911,30 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
-    __ pushq(CODE_REG);
-    __ movq(CODE_REG, stub_code);
-    __ EnterCallRuntimeFrame(0);
-    __ movq(CallingConventions::kArg1Reg, RDX);
-    __ movq(CallingConventions::kArg2Reg, R13);
-    __ CallRuntime(kRememberCardRuntimeEntry, 2);
-    __ LeaveCallRuntimeFrame();
-    __ popq(CODE_REG);
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ movq(CallingConventions::kArg1Reg, RDX);
+      __ movq(CallingConventions::kArg2Reg, R13);
+      rt.Call(kRememberCardRuntimeEntry, 2);
+    }
     __ ret();
   }
 }
 
 void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler, Address(THR, target::Thread::write_barrier_code_offset()),
-      false);
+  GenerateWriteBarrierStubHelper(assembler, false);
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
-  GenerateWriteBarrierStubHelper(
-      assembler,
-      Address(THR, target::Thread::array_write_barrier_code_offset()), true);
+  GenerateWriteBarrierStubHelper(assembler, true);
 }
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
   // Note: Keep in sync with calling function.
-  const Register kTagsReg = R8;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   {
     Label slow_case;
@@ -2036,14 +2045,13 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kTagsToClsIdReg = R8;
-
   if (!FLAG_precompiled_mode) {
     __ movq(CODE_REG,
             Address(THR, target::Thread::call_to_runtime_stub_offset()));
   }
 
-  __ ExtractClassIdFromTags(kTagsToClsIdReg, kTagsToClsIdReg);
+  __ ExtractClassIdFromTags(AllocateObjectABI::kTagsReg,
+                            AllocateObjectABI::kTagsReg);
 
   // Create a stub frame.
   // Ensure constant pool is allowed so we can e.g. load class object.
@@ -2054,7 +2062,7 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   __ pushq(AllocateObjectABI::kResultReg);
 
   // Push class of object to be allocated.
-  __ LoadClassById(AllocateObjectABI::kResultReg, kTagsToClsIdReg);
+  __ LoadClassById(AllocateObjectABI::kResultReg, AllocateObjectABI::kTagsReg);
   __ pushq(AllocateObjectABI::kResultReg);
 
   // Must be Object::null() if non-parameterized class.
@@ -2105,7 +2113,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
-  const Register kTagsReg = R8;
+  const Register kTagsReg = AllocateObjectABI::kTagsReg;
 
   __ movq(kTagsReg, Immediate(tags));
 
@@ -3140,12 +3148,18 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #error Unimplemented
 #endif
   Label exit_through_non_ffi;
-  // Check if we exited generated from FFI. If so do transition.
+  // Check if we exited generated from FFI. If so do transition - this is needed
+  // because normally runtime calls transition back to generated via destructor
+  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
+  // have this boilerplate, don't have this stack resource, have to transition
+  // explicitly.
   __ cmpq(compiler::Address(
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(/*leave_safepoint=*/true,
+                                 /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
   // Set the tag.
@@ -3763,8 +3777,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ xorq(RBX, RBX); /* Zero. */
     __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
-        RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),
-        RDI);
+        RAX, FieldAddress(RAX, target::PointerBase::data_offset()), RDI);
     Label done, init_loop;
     __ Bind(&init_loop);
     __ cmpq(RDI, RCX);

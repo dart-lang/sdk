@@ -434,6 +434,10 @@ void InvokeEmitter(
 #include "vm/compiler/backend/locations_helpers_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 
+#elif defined(TARGET_ARCH_RISCV32)
+
+#elif defined(TARGET_ARCH_RISCV64)
+
 #else
 #error Unknown architecture.
 #endif

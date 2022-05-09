@@ -16,6 +16,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart'
     show TypeEnvironment, SubtypeCheckMode;
+import 'package:kernel/util/graph.dart' as kernelGraph;
 
 import 'abi.dart';
 import 'native_type_cfe.dart';
@@ -35,7 +36,6 @@ enum NativeType {
   kUint16,
   kUint32,
   kUint64,
-  kIntptr,
   kFloat,
   kDouble,
   kVoid,
@@ -56,11 +56,6 @@ const Set<NativeType> nativeIntTypesFixedSize = <NativeType>{
   NativeType.kUint64,
 };
 
-const Set<NativeType> nativeIntTypes = <NativeType>{
-  ...nativeIntTypesFixedSize,
-  NativeType.kIntptr,
-};
-
 /// The [NativeType] class names.
 const Map<NativeType, String> nativeTypeClassNames = <NativeType, String>{
   NativeType.kNativeType: 'NativeType',
@@ -76,7 +71,6 @@ const Map<NativeType, String> nativeTypeClassNames = <NativeType, String>{
   NativeType.kUint16: 'Uint16',
   NativeType.kUint32: 'Uint32',
   NativeType.kUint64: 'Uint64',
-  NativeType.kIntptr: 'IntPtr',
   NativeType.kFloat: 'Float',
   NativeType.kDouble: 'Double',
   NativeType.kVoid: 'Void',
@@ -104,7 +98,6 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kUint16: 2,
   NativeType.kUint32: 4,
   NativeType.kUint64: 8,
-  NativeType.kIntptr: WORD_SIZE,
   NativeType.kFloat: 4,
   NativeType.kDouble: 8,
   NativeType.kVoid: UNKNOWN,
@@ -125,7 +118,6 @@ const List<NativeType> optimizedTypes = [
   NativeType.kUint16,
   NativeType.kUint32,
   NativeType.kUint64,
-  NativeType.kIntptr,
   NativeType.kFloat,
   NativeType.kDouble,
   NativeType.kPointer,
@@ -203,10 +195,14 @@ class FfiTransformer extends Transformer {
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
   final Procedure addressGetter;
-  final Procedure structPointerRef;
-  final Procedure structPointerElemAt;
-  final Procedure unionPointerRef;
-  final Procedure unionPointerElemAt;
+  final Procedure structPointerGetRef;
+  final Procedure structPointerSetRef;
+  final Procedure structPointerGetElemAt;
+  final Procedure structPointerSetElemAt;
+  final Procedure unionPointerGetRef;
+  final Procedure unionPointerSetRef;
+  final Procedure unionPointerGetElemAt;
+  final Procedure unionPointerSetElemAt;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -227,9 +223,9 @@ class FfiTransformer extends Transformer {
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
   final Procedure arrayCheckIndex;
-  final Field arrayNestedDimensionsFlattened;
-  final Field arrayNestedDimensionsFirst;
-  final Field arrayNestedDimensionsRest;
+  final Procedure arrayNestedDimensionsFlattened;
+  final Procedure arrayNestedDimensionsFirst;
+  final Procedure arrayNestedDimensionsRest;
   final Constructor structFromTypedDataBase;
   final Constructor unionFromTypedDataBase;
   final Constructor arrayConstructor;
@@ -249,11 +245,14 @@ class FfiTransformer extends Transformer {
   final Procedure storeAbiSpecificIntAtIndexMethod;
   final Procedure abiCurrentMethod;
   final Map<Constant, Abi> constantAbis;
+  final Class intptrClass;
+  late AbiSpecificNativeTypeCfe intptrNativeTypeCfe;
   final Procedure memCopy;
   final Procedure allocationTearoff;
   final Procedure asFunctionTearoff;
   final Procedure lookupFunctionTearoff;
   final Procedure getNativeFieldFunction;
+  final Class finalizableClass;
   final Procedure reachabilityFenceFunction;
   final Procedure checkAbiSpecificIntegerMappingFunction;
 
@@ -365,12 +364,12 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', 'Array', '_nestedDimensions'),
         arrayCheckIndex =
             index.getProcedure('dart:ffi', 'Array', '_checkIndex'),
-        arrayNestedDimensionsFlattened =
-            index.getField('dart:ffi', 'Array', '_nestedDimensionsFlattened'),
-        arrayNestedDimensionsFirst =
-            index.getField('dart:ffi', 'Array', '_nestedDimensionsFirst'),
-        arrayNestedDimensionsRest =
-            index.getField('dart:ffi', 'Array', '_nestedDimensionsRest'),
+        arrayNestedDimensionsFlattened = index.getProcedure(
+            'dart:ffi', 'Array', 'get:_nestedDimensionsFlattened'),
+        arrayNestedDimensionsFirst = index.getProcedure(
+            'dart:ffi', 'Array', 'get:_nestedDimensionsFirst'),
+        arrayNestedDimensionsRest = index.getProcedure(
+            'dart:ffi', 'Array', 'get:_nestedDimensionsRest'),
         structFromTypedDataBase =
             index.getConstructor('dart:ffi', 'Struct', '_fromTypedDataBase'),
         unionFromTypedDataBase =
@@ -378,14 +377,22 @@ class FfiTransformer extends Transformer {
         arrayConstructor = index.getConstructor('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelProcedure('dart:ffi', '_fromAddress'),
-        structPointerRef =
+        structPointerGetRef =
             index.getProcedure('dart:ffi', 'StructPointer', 'get:ref'),
-        structPointerElemAt =
+        structPointerSetRef =
+            index.getProcedure('dart:ffi', 'StructPointer', 'set:ref'),
+        structPointerGetElemAt =
             index.getProcedure('dart:ffi', 'StructPointer', '[]'),
-        unionPointerRef =
+        structPointerSetElemAt =
+            index.getProcedure('dart:ffi', 'StructPointer', '[]='),
+        unionPointerGetRef =
             index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
-        unionPointerElemAt =
+        unionPointerSetRef =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'set:ref'),
+        unionPointerGetElemAt =
             index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
+        unionPointerSetElemAt =
+            index.getProcedure('dart:ffi', 'UnionPointer', '[]='),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
         unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
@@ -461,6 +468,7 @@ class FfiTransformer extends Transformer {
                     as ConstantExpression)
                 .constant,
             abi)),
+        intptrClass = index.getClass('dart:ffi', 'IntPtr'),
         memCopy = index.getTopLevelProcedure('dart:ffi', '_memCopy'),
         allocationTearoff = index.getProcedure(
             'dart:ffi', 'AllocatorAlloc', LibraryIndex.tearoffPrefix + 'call'),
@@ -472,6 +480,7 @@ class FfiTransformer extends Transformer {
             LibraryIndex.tearoffPrefix + 'lookupFunction'),
         getNativeFieldFunction = index.getTopLevelProcedure(
             'dart:nativewrappers', '_getNativeField'),
+        finalizableClass = index.getClass('dart:ffi', 'Finalizable'),
         reachabilityFenceFunction =
             index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'),
         checkAbiSpecificIntegerMappingFunction = index.getTopLevelProcedure(
@@ -482,6 +491,9 @@ class FfiTransformer extends Transformer {
         .getThisType(coreTypes, Nullability.nonNullable);
     pointerVoidType =
         InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
+    intptrNativeTypeCfe =
+        NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
+            as AbiSpecificNativeTypeCfe;
   }
 
   @override
@@ -548,7 +560,7 @@ class FfiTransformer extends Transformer {
     if (nativeType_ == NativeType.kPointer) {
       return nativeType;
     }
-    if (nativeIntTypes.contains(nativeType_)) {
+    if (nativeIntTypesFixedSize.contains(nativeType_)) {
       return InterfaceType(intClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
@@ -971,18 +983,61 @@ class FfiTransformer extends Transformer {
   }
 }
 
+/// Returns all libraries including the ones from component except for platform
+/// libraries that are only in component.
+Set<Library> _getAllRelevantLibraries(
+    Component component, List<Library> libraries) {
+  Set<Library> allLibs = {};
+  allLibs.addAll(libraries);
+  for (Library lib in component.libraries) {
+    // Skip real dart: libraries. dart:core imports dart:ffi, but that doesn't
+    // mean we have to transform anything.
+    if (lib.importUri.isScheme("dart") && !lib.isSynthetic) continue;
+    allLibs.add(lib);
+  }
+  return allLibs;
+}
+
 /// Checks if any library depends on dart:ffi.
-bool importsFfi(Component component, List<Library> libraries) {
-  Set<Library> allLibs = {...component.libraries, ...libraries};
+Library? importsFfi(Component component, List<Library> libraries) {
   final Uri dartFfiUri = Uri.parse("dart:ffi");
+  Set<Library> allLibs = _getAllRelevantLibraries(component, libraries);
   for (Library lib in allLibs) {
     for (LibraryDependency dependency in lib.dependencies) {
-      if (dependency.targetLibrary.importUri == dartFfiUri) {
-        return true;
+      Library targetLibrary = dependency.targetLibrary;
+      if (targetLibrary.importUri == dartFfiUri) {
+        return targetLibrary;
       }
     }
   }
-  return false;
+  return null;
+}
+
+/// Calculates the libraries in [libraries] that transitively imports dart:ffi.
+///
+/// Returns null if dart:ffi is not imported.
+List<Library>? calculateTransitiveImportsOfDartFfiIfUsed(
+    Component component, List<Library> libraries) {
+  Set<Library> allLibs = _getAllRelevantLibraries(component, libraries);
+
+  final Uri dartFfiUri = Uri.parse("dart:ffi");
+  Library? dartFfi;
+  canFind:
+  for (Library lib in allLibs) {
+    for (LibraryDependency dependency in lib.dependencies) {
+      Library targetLibrary = dependency.targetLibrary;
+      if (targetLibrary.importUri == dartFfiUri) {
+        dartFfi = targetLibrary;
+        break canFind;
+      }
+    }
+  }
+  if (dartFfi == null) return null;
+
+  kernelGraph.LibraryGraph graph = new kernelGraph.LibraryGraph(allLibs);
+  Set<Library> result =
+      kernelGraph.calculateTransitiveDependenciesOf(graph, {dartFfi});
+  return (result..retainAll(libraries)).toList();
 }
 
 extension on Map<Abi, Object?> {

@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+    show DependencyWalker, Node;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -24,8 +26,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary/link.dart' as graph
-    show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
@@ -87,7 +87,7 @@ class FileState {
   /// Files that reference this file.
   final List<FileState> referencingFiles = [];
 
-  _FileStateFiles? _files;
+  FileStateFiles? _files;
 
   LibraryCycle? _libraryCycle;
 
@@ -154,10 +154,10 @@ class FileState {
     }
   }
 
-  _FileStateFiles files({
+  FileStateFiles files({
     OperationPerformanceImpl? performance,
   }) {
-    return _files ??= _FileStateFiles(
+    return _files ??= FileStateFiles(
       owner: this,
       performance: performance ?? OperationPerformanceImpl('<root>'),
     );
@@ -191,6 +191,68 @@ class FileState {
   @override
   String toString() {
     return path;
+  }
+}
+
+class FileStateFiles {
+  final List<FileState> imported = [];
+  final List<FileState> exported = [];
+  final List<FileState> parted = [];
+  final List<FileState> ofLibrary = [];
+
+  FileStateFiles({
+    required FileState owner,
+    required OperationPerformanceImpl performance,
+  }) {
+    var unlinked = owner._unlinked;
+    var location = unlinked.location;
+    var unlinkedUnit = unlinked.unlinked.unit;
+
+    // Build the graph.
+    for (var directive in unlinkedUnit.imports) {
+      var file = location._fileForRelativeUri(
+        relativeUri: directive.uri,
+        performance: performance,
+      );
+      if (file != null) {
+        file.referencingFiles.add(owner);
+        imported.add(file);
+      }
+    }
+    for (var directive in unlinkedUnit.exports) {
+      var file = location._fileForRelativeUri(
+        relativeUri: directive.uri,
+        performance: performance,
+      );
+      if (file != null) {
+        exported.add(file);
+        file.referencingFiles.add(owner);
+      }
+    }
+    for (var uri in unlinkedUnit.parts) {
+      var file = location._fileForRelativeUri(
+        containingLibrary: owner,
+        relativeUri: uri,
+        performance: performance,
+      );
+      if (file != null) {
+        parted.add(file);
+        file.referencingFiles.add(owner);
+      }
+    }
+
+    ofLibrary.add(owner);
+    ofLibrary.addAll(parted);
+  }
+
+  /// Return all directly referenced files - imported, exported or parted.
+  Set<FileState> get directReferencedFiles {
+    return <FileState>{...imported, ...exported, ...parted};
+  }
+
+  /// Return all directly referenced libraries - imported or exported.
+  Set<FileState> get directReferencedLibraries {
+    return <FileState>{...imported, ...exported};
   }
 }
 
@@ -500,7 +562,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[' + libraries.join(', ') + ']';
+    return '[${libraries.join(', ')}]';
   }
 }
 
@@ -512,68 +574,6 @@ class _ContentWithDigest {
     required this.content,
     required this.digest,
   });
-}
-
-class _FileStateFiles {
-  final List<FileState> imported = [];
-  final List<FileState> exported = [];
-  final List<FileState> parted = [];
-  final List<FileState> ofLibrary = [];
-
-  _FileStateFiles({
-    required FileState owner,
-    required OperationPerformanceImpl performance,
-  }) {
-    var unlinked = owner._unlinked;
-    var location = unlinked.location;
-    var unlinkedUnit = unlinked.unlinked.unit;
-
-    // Build the graph.
-    for (var directive in unlinkedUnit.imports) {
-      var file = location._fileForRelativeUri(
-        relativeUri: directive.uri,
-        performance: performance,
-      );
-      if (file != null) {
-        file.referencingFiles.add(owner);
-        imported.add(file);
-      }
-    }
-    for (var directive in unlinkedUnit.exports) {
-      var file = location._fileForRelativeUri(
-        relativeUri: directive.uri,
-        performance: performance,
-      );
-      if (file != null) {
-        exported.add(file);
-        file.referencingFiles.add(owner);
-      }
-    }
-    for (var uri in unlinkedUnit.parts) {
-      var file = location._fileForRelativeUri(
-        containingLibrary: owner,
-        relativeUri: uri,
-        performance: performance,
-      );
-      if (file != null) {
-        parted.add(file);
-        file.referencingFiles.add(owner);
-      }
-    }
-
-    ofLibrary.add(owner);
-    ofLibrary.addAll(parted);
-  }
-
-  /// Return all directly referenced files - imported, exported or parted.
-  Set<FileState> get directReferencedFiles {
-    return <FileState>{...imported, ...exported, ...parted};
-  }
-
-  /// Return all directly referenced libraries - imported or exported.
-  Set<FileState> get directReferencedLibraries {
-    return <FileState>{...imported, ...exported};
-  }
 }
 
 class _FileStateLocation {
@@ -663,7 +663,7 @@ class _FileStateLocation {
 
     var siblings = <Resource>[];
     try {
-      siblings = resource.parent2.getChildren();
+      siblings = resource.parent.getChildren();
     } catch (_) {}
 
     for (var sibling in siblings) {
@@ -870,10 +870,10 @@ class _FileStateUnlinked {
       location.source,
       errorListener,
       featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
     );
     parser.enableOptionalNewAndConst = true;
     var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
@@ -961,7 +961,8 @@ class _FileStateUnlinked {
       hasPartOfDirective: hasPartOfDirective,
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
-      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
+      lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
+      macroClasses: [],
       partOfName: partOfName,
       partOfUri: partOfUriStr,
       parts: parts,

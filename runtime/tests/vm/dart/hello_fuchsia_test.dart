@@ -21,13 +21,13 @@ testAddressParse() async {
 }
 
 testSimpleBind() async {
-  var s = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  var s = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   print("port = ${s.port}");
   await s.close();
 }
 
 testSimpleConnect() async {
-  var server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  var server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   print("server port = ${server.port}");
   server.listen((socket) {
     print("listen socket port = ${socket.port}");
@@ -36,7 +36,7 @@ testSimpleConnect() async {
   var socket = await RawSocket.connect("127.0.0.1", server.port);
   print("socket port = ${socket.port}");
   if (socket.remoteAddress.address != "127.0.0.1" ||
-      socket.remoteAddress.type != InternetAddressType.IP_V4) {
+      socket.remoteAddress.type != InternetAddressType.IPv4) {
     throw "Bad remote address ${socket.remoteAddress}";
   }
   if (socket.remotePort is! int) {
@@ -68,7 +68,7 @@ testSimpleReadWriteClose() async {
     }
   }
 
-  var server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  var server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((client) {
     int bytesRead = 0;
     int bytesWritten = 0;
@@ -79,7 +79,7 @@ testSimpleReadWriteClose() async {
     client.writeEventsEnabled = false;
     client.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           if (doneReading) {
             break;
           }
@@ -97,7 +97,7 @@ testSimpleReadWriteClose() async {
             doneReading = true;
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           assert(!client.writeEventsEnabled);
           bytesWritten +=
               client.write(data, bytesWritten, data.length - bytesWritten);
@@ -109,12 +109,12 @@ testSimpleReadWriteClose() async {
             print("client WRITE event: done writing.");
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           print("client READ_CLOSED event");
           client.close();
           server.close();
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           assert(!closedEventReceived);
           print("client CLOSED event");
           closedEventReceived = true;
@@ -139,7 +139,7 @@ testSimpleReadWriteClose() async {
 
     socket.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           assert(socket.available() > 0);
           print("server READ event: ${bytesRead} read");
           var buffer = socket.read()!;
@@ -151,7 +151,7 @@ testSimpleReadWriteClose() async {
             socket.close();
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           assert(bytesRead == 0);
           assert(!socket.writeEventsEnabled);
           bytesWritten +=
@@ -164,12 +164,12 @@ testSimpleReadWriteClose() async {
             data = new List<int>.filled(messageSize, -1);
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           print("server READ_CLOSED event");
           verifyTestData(data);
           socket.close();
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           assert(!closedEventReceived);
           print("server CLOSED event");
           closedEventReceived = true;
@@ -210,7 +210,7 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
     }
   }
 
-  var server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  var server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((client) {
     int bytesRead = 0;
     int bytesWritten = 0;
@@ -221,7 +221,7 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
     client.writeEventsEnabled = false;
     client.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           if (doneReading) {
             break;
           }
@@ -247,7 +247,7 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
             doneReading = true;
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           assert(!client.writeEventsEnabled);
           bytesWritten +=
               client.write(data, bytesWritten, data.length - bytesWritten);
@@ -257,14 +257,14 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
           }
           if (bytesWritten == data.length) {
             print("client WRITE event: done writing.");
-            client.shutdown(SocketDirection.SEND);
+            client.shutdown(SocketDirection.send);
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           print("client READ_CLOSED event");
           server.close();
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           assert(!closedEventReceived);
           print("client CLOSED event");
           closedEventReceived = true;
@@ -287,7 +287,7 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
 
     socket.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           assert(socket.available() > 0);
           if (dropReads) {
             if (clientReadCount != 10) {
@@ -303,7 +303,7 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
           data.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           assert(bytesRead == 0);
           assert(!socket.writeEventsEnabled);
           bytesWritten +=
@@ -316,12 +316,12 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
             data = new List<int>.filled(messageSize, -1);
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           print("server READ_CLOSED event");
           verifyTestData(data);
           socket.close();
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           assert(!closedEventReceived);
           print("server CLOSED event");
           closedEventReceived = true;

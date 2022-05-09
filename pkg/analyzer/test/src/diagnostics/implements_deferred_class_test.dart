@@ -15,8 +15,8 @@ main() {
 
 @reflectiveTest
 class ImplementsDeferredClassTest extends PubPackageResolutionTest {
-  test_implements() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+  test_class_implements() async {
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 ''');
@@ -29,8 +29,8 @@ class B implements a.A {}
     ]);
   }
 
-  test_implements_interfaceTypeTypedef() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+  test_class_implements_interfaceTypeTypedef() async {
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 typedef B = A;
@@ -44,8 +44,8 @@ class C implements a.B {}
     ]);
   }
 
-  test_mixinApplication() async {
-    newFile('$testPackageLibPath/lib1.dart', content: '''
+  test_classTypeAlias() async {
+    newFile2('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 ''');
@@ -58,5 +58,23 @@ class C = B with M implements a.A;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3),
     ]);
+  }
+
+  test_mixin() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' deferred as math;
+mixin M implements math.Random {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11),
+    ]);
+    var mathImport = findElement.import('dart:math');
+    var randomElement = mathImport.importedLibrary!.getType('Random')!;
+
+    var element = findElement.mixin('M');
+    assertElementTypes(element.interfaces, ['Random']);
+
+    var typeRef = findNode.namedType('Random {}');
+    assertNamedType(typeRef, randomElement, 'Random',
+        expectedPrefix: mathImport.prefix);
   }
 }

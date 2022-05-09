@@ -10,22 +10,23 @@ import 'dart:io';
 
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:bazel_worker/testing.dart';
-import 'package:path/path.dart' show dirname, join, joinAll;
 import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
-File file(String path) => File(join(tmp.path, joinAll(path.split('/'))));
+File file(String path) => File.fromUri(tmp.uri.resolve(path));
 
 void main() {
   var baseArgs = <String>[];
-  final binDir = dirname(Platform.resolvedExecutable);
-  // Note, the bots use the dart binary in the top-level build directory.
-  // On windows, this is a .bat file.
-  final dartdevc = 'dartdevc${Platform.isWindows ? ".bat" : ""}';
-  final executable = binDir.endsWith('bin')
-      ? join(binDir, dartdevc)
-      : join(binDir, 'dart-sdk', 'bin', dartdevc);
-  final executableArgs = <String>[];
+  final executableArgs = <String>[
+    Platform.script
+        .resolve('../../bin/dartdevc.dart')
+        .toFilePath(windows: Platform.isWindows),
+    '--sound-null-safety',
+    '--dart-sdk-summary',
+    Uri.file(Platform.resolvedExecutable, windows: Platform.isWindows)
+        .resolve('ddc_outline_sound.dill')
+        .path
+  ];
   group('DDC: Hello World', () {
     final argsFile = file('hello_world.args');
     final inputDartFile = file('hello_world.dart');
@@ -54,7 +55,7 @@ void main() {
 
     test('can compile in worker mode', () async {
       var args = executableArgs.toList()..add('--persistent_worker');
-      var process = await Process.start(executable, args);
+      var process = await Process.start(Platform.executable, args);
       var messageGrouper = AsyncMessageGrouper(process.stdout);
 
       var request = WorkRequest();
@@ -97,7 +98,7 @@ void main() {
 
     test('can compile in basic mode', () {
       var args = executableArgs.toList()..addAll(compilerArgs);
-      var result = Process.runSync(executable, args);
+      var result = Process.runSync(Platform.executable, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -109,7 +110,7 @@ void main() {
       var args = List<String>.from(executableArgs)
         ..add('--does-not-exist')
         ..addAll(compilerArgs);
-      var result = Process.runSync(executable, args);
+      var result = Process.runSync(Platform.executable, args);
 
       expect(result.exitCode, 64);
       expect(result.stdout,
@@ -123,7 +124,7 @@ void main() {
         ..add('--does-not-exist')
         ..add('--ignore-unrecognized-flags')
         ..addAll(compilerArgs);
-      var result = Process.runSync(executable, args);
+      var result = Process.runSync(Platform.executable, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -135,7 +136,7 @@ void main() {
       argsFile.createSync();
       argsFile.writeAsStringSync(compilerArgs.join('\n'));
       var args = executableArgs.toList()..add('@${argsFile.path}');
-      var process = await Process.start(executable, args);
+      var process = await Process.start(Platform.executable, args);
       await stderr.addStream(process.stderr);
       var futureProcessOutput = process.stdout.map(utf8.decode).toList();
 
@@ -149,7 +150,7 @@ void main() {
         ..add('--modules')
         ..add('legacy')
         ..addAll(compilerArgs);
-      var result = Process.runSync(executable, args);
+      var result = Process.runSync(Platform.executable, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -187,7 +188,7 @@ void main() {
 
     test('can compile in basic mode', () {
       var result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -203,7 +204,7 @@ void main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -223,7 +224,7 @@ void main() {
 
     test('reports error on overlapping summaries', () {
       var result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -239,7 +240,7 @@ void main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -255,7 +256,7 @@ void main() {
       expect(greeting2Summary.existsSync(), isTrue);
 
       result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -289,7 +290,7 @@ void main() {
 
     test('incorrect usage', () {
       var result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -304,7 +305,7 @@ void main() {
     test('compile errors', () {
       badFileDart.writeAsStringSync('main() => "hello world"');
       var result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -340,7 +341,7 @@ void main() {
 
     test('works if part and library supplied', () {
       var result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [
@@ -359,7 +360,7 @@ void main() {
 
     test('works if part is not supplied', () {
       var result = Process.runSync(
-          executable,
+          Platform.executable,
           executableArgs +
               baseArgs +
               [

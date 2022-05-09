@@ -4,9 +4,9 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: A:direct,explicit=[A.T*],needsArgs*/
+/*spec.class: A:explicit=[A.T*],needsArgs,test*/
 class A<T> {
   call(T t) {}
 }
@@ -15,7 +15,7 @@ class A<T> {
 test(o) => o is Function(int);
 
 main() {
-  Expect.isFalse(test(new A<int>()));
-  Expect.isFalse(test(new A<String>()));
+  makeLive(test(new A<int>()));
+  makeLive(test(new A<String>()));
   new A().call(null); // Use .call to ensure it is live.
 }

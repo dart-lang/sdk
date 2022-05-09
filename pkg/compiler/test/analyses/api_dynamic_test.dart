@@ -14,7 +14,7 @@ main(List<String> args) {
   asyncTest(() async {
     await run(
         Uri.parse('memory:main.dart'), 'pkg/compiler/test/analyses/$goldenFile',
-        analyzedUrisFilter: (Uri uri) => uri.scheme == 'dart',
+        analyzedUrisFilter: (Uri uri) => uri.isScheme('dart'),
         memorySourceFiles: {'main.dart': 'main() {}'},
         verbose: args.contains('-v'),
         generate: args.contains('-g'));

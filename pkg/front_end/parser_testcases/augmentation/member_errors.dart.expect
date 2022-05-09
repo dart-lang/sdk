@@ -1,0 +1,1179 @@
+Problems reported:
+
+parser/augmentation/member_errors:2:11: The modifier 'augment' was already specified.
+  augment augment method() {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:3:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external method();
+          ^^^^^^^^
+
+parser/augmentation/member_errors:4:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment method();
+           ^^^^^^^
+
+parser/augmentation/member_errors:6:11: The modifier 'augment' was already specified.
+  augment augment void method() {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:7:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external void method();
+          ^^^^^^^^
+
+parser/augmentation/member_errors:8:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment void method();
+           ^^^^^^^
+
+parser/augmentation/member_errors:10:11: The modifier 'augment' was already specified.
+  augment augment get getter => null;
+          ^^^^^^^
+
+parser/augmentation/member_errors:11:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external get getter;
+          ^^^^^^^^
+
+parser/augmentation/member_errors:12:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment get getter;
+           ^^^^^^^
+
+parser/augmentation/member_errors:14:11: The modifier 'augment' was already specified.
+  augment augment int get getter => 0;
+          ^^^^^^^
+
+parser/augmentation/member_errors:15:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external int get getter;
+          ^^^^^^^^
+
+parser/augmentation/member_errors:16:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment int get getter;
+           ^^^^^^^
+
+parser/augmentation/member_errors:18:11: The modifier 'augment' was already specified.
+  augment augment set setter(value) {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:19:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external set setter(value);
+          ^^^^^^^^
+
+parser/augmentation/member_errors:20:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment set setter(value);
+           ^^^^^^^
+
+parser/augmentation/member_errors:22:11: The modifier 'augment' was already specified.
+  augment augment void set setter(value) {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:23:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external void set setter(value);
+          ^^^^^^^^
+
+parser/augmentation/member_errors:24:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment void set setter(value);
+           ^^^^^^^
+
+parser/augmentation/member_errors:26:11: The modifier 'augment' was already specified.
+  augment augment var field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:27:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external var field;
+          ^^^^^^^^
+
+parser/augmentation/member_errors:28:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment var field;
+           ^^^^^^^
+
+parser/augmentation/member_errors:30:11: The modifier 'augment' was already specified.
+  augment augment final field = 0;
+          ^^^^^^^
+
+parser/augmentation/member_errors:31:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external final field;
+          ^^^^^^^^
+
+parser/augmentation/member_errors:32:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment final field;
+           ^^^^^^^
+
+parser/augmentation/member_errors:34:11: The modifier 'augment' was already specified.
+  augment augment const field = 0;
+          ^^^^^^^
+
+parser/augmentation/member_errors:35:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external const field;
+          ^^^^^^^^
+
+parser/augmentation/member_errors:35:26: The const variable 'field' must be initialized.
+  augment external const field;
+                         ^^^^^
+
+parser/augmentation/member_errors:36:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment const field;
+           ^^^^^^^
+
+parser/augmentation/member_errors:36:26: The const variable 'field' must be initialized.
+  external augment const field;
+                         ^^^^^
+
+parser/augmentation/member_errors:38:11: The modifier 'augment' was already specified.
+  augment augment int field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:39:11: Members can't be declared to be both 'external' and 'augment'.
+  augment external int field;
+          ^^^^^^^^
+
+parser/augmentation/member_errors:40:12: Members can't be declared to be both 'augment' and 'external'.
+  external augment int field;
+           ^^^^^^^
+
+parser/augmentation/member_errors:42:11: The modifier 'augment' was already specified.
+  augment augment late var field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:46:11: The modifier 'augment' was already specified.
+  augment augment late final field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:50:11: The modifier 'augment' was already specified.
+  augment augment late int field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:54:11: The modifier 'augment' was already specified.
+  augment augment static method() {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:55:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment method() {}
+         ^^^^^^^
+
+parser/augmentation/member_errors:57:11: The modifier 'augment' was already specified.
+  augment augment static void method() {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:58:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment void method() {}
+         ^^^^^^^
+
+parser/augmentation/member_errors:60:11: The modifier 'augment' was already specified.
+  augment augment static get getter => null;
+          ^^^^^^^
+
+parser/augmentation/member_errors:61:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment get getter => null;
+         ^^^^^^^
+
+parser/augmentation/member_errors:63:11: The modifier 'augment' was already specified.
+  augment augment static int get getter => 0;
+          ^^^^^^^
+
+parser/augmentation/member_errors:64:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment int get getter => 0;
+         ^^^^^^^
+
+parser/augmentation/member_errors:66:11: The modifier 'augment' was already specified.
+  augment augment static set setter(value) {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:67:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment set setter(value) {}
+         ^^^^^^^
+
+parser/augmentation/member_errors:69:11: The modifier 'augment' was already specified.
+  augment augment static void set setter(value) {}
+          ^^^^^^^
+
+parser/augmentation/member_errors:70:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment void set setter(value) {}
+         ^^^^^^^
+
+parser/augmentation/member_errors:72:11: The modifier 'augment' was already specified.
+  augment augment static var field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:73:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment var field;
+         ^^^^^^^
+
+parser/augmentation/member_errors:75:11: The modifier 'augment' was already specified.
+  augment augment static final field = 0;
+          ^^^^^^^
+
+parser/augmentation/member_errors:76:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment final field = 0;
+         ^^^^^^^
+
+parser/augmentation/member_errors:78:11: The modifier 'augment' was already specified.
+  augment augment static const field = 0;
+          ^^^^^^^
+
+parser/augmentation/member_errors:79:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment const field = 0;
+         ^^^^^^^
+
+parser/augmentation/member_errors:81:11: The modifier 'augment' was already specified.
+  augment augment static int field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:82:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment int field;
+         ^^^^^^^
+
+parser/augmentation/member_errors:84:11: The modifier 'augment' was already specified.
+  augment augment static late var field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:85:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment late var field;
+         ^^^^^^^
+
+parser/augmentation/member_errors:87:11: The modifier 'augment' was already specified.
+  augment augment static late final field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:88:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment late final field;
+         ^^^^^^^
+
+parser/augmentation/member_errors:90:11: The modifier 'augment' was already specified.
+  augment augment static late int field;
+          ^^^^^^^
+
+parser/augmentation/member_errors:91:10: The modifier 'augment' should be before the modifier 'static'.
+  static augment late int field;
+         ^^^^^^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, Class)
+      handleNoType(Class)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, null, null, null, null, method)
+            handleNoType(augment)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, augment, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, external, null, null, null, null, method)
+            handleNoType(external)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(null, augment, (, null, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, external, null, null, null, null, method)
+            handleNoType(augment)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(null, external, (, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, null, null, null, null, method)
+            handleVoidKeyword(void)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, augment, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, external, null, null, null, null, method)
+            handleVoidKeyword(void)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(null, augment, (, null, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, external, null, null, null, null, method)
+            handleVoidKeyword(void)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(null, external, (, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, null, null, null, get, getter)
+            handleNoType(augment)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(=>)
+            handleNoFormalParameters(=>, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleLiteralNull(null)
+            handleExpressionFunctionBody(=>, ;)
+          endClassMethod(get, augment, =>, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, external, null, null, null, get, getter)
+            handleNoType(external)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(;)
+            handleNoFormalParameters(;, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(get, augment, ;, null, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, external, null, null, null, get, getter)
+            handleNoType(augment)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(;)
+            handleNoFormalParameters(;, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(get, external, ;, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, null, null, null, get, getter)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(get)
+            handleType(int, null)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(=>)
+            handleNoFormalParameters(=>, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endClassMethod(get, augment, =>, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, external, null, null, null, get, getter)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(get)
+            handleType(int, null)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(;)
+            handleNoFormalParameters(;, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(get, augment, ;, null, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, external, null, null, null, get, getter)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(get)
+            handleType(int, null)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(;)
+            handleNoFormalParameters(;, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(get, external, ;, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, null, null, null, set, setter)
+            handleNoType(augment)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.NonStaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(set, augment, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, external, null, null, null, set, setter)
+            handleNoType(external)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.NonStaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(set, augment, (, null, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, external, null, null, null, set, setter)
+            handleNoType(augment)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.NonStaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(set, external, (, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, null, null, null, set, setter)
+            handleVoidKeyword(void)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.NonStaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(set, augment, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, external, null, null, null, set, setter)
+            handleVoidKeyword(void)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.NonStaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(set, augment, (, null, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, external, null, null, null, set, setter)
+            handleVoidKeyword(void)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.NonStaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endClassMethod(set, external, (, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, null, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, null, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, external, null, null, null, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, external, null, null, null, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, external, null, null, null, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, external, null, null, null, var, 1, external, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, null, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            beginFieldInitializer(=)
+              handleLiteralInt(0)
+            endFieldInitializer(=, ;)
+          endClassFields(null, augment, null, null, null, null, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, external, null, null, null, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, external, null, null, null, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, external, null, null, null, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, external, null, null, null, final, 1, external, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, null, const, ;)
+            handleNoType(const)
+            handleIdentifier(field, fieldDeclaration)
+            beginFieldInitializer(=)
+              handleLiteralInt(0)
+            endFieldInitializer(=, ;)
+          endClassFields(null, augment, null, null, null, null, const, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, external, null, null, null, const, ;)
+            handleNoType(const)
+            handleIdentifier(field, fieldDeclaration)
+            handleRecoverableError(Message[ConstFieldWithoutInitializer, The const variable 'field' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: field}], field, field)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, external, null, null, null, const, 1, augment, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, external, null, null, null, const, ;)
+            handleNoType(const)
+            handleIdentifier(field, fieldDeclaration)
+            handleRecoverableError(Message[ConstFieldWithoutInitializer, The const variable 'field' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: field}], field, field)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, external, null, null, null, const, 1, external, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, null, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {string: external, string2: augment}], external, external)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, external, null, null, null, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, external, null, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ConflictingModifiers, Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {string: augment, string2: external}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, external, null, null, null, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, external, null, null, null, null, 1, external, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, null, null, late, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, null, null, late, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, static, null, null, null, method)
+            handleNoType(static)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+            endFormalParameters(0, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, augment, (, null, })
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, static, null, null, null, method)
+            handleNoType(augment)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+            endFormalParameters(0, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, static, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, static, null, null, null, method)
+            handleVoidKeyword(void)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+            endFormalParameters(0, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, augment, (, null, })
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, static, null, null, null, method)
+            handleVoidKeyword(void)
+            handleIdentifier(method, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+            endFormalParameters(0, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, static, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, static, null, null, get, getter)
+            handleNoType(static)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(=>)
+            handleNoFormalParameters(=>, MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleLiteralNull(null)
+            handleExpressionFunctionBody(=>, ;)
+          endClassMethod(get, augment, =>, null, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, static, null, null, get, getter)
+            handleNoType(augment)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(=>)
+            handleNoFormalParameters(=>, MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleLiteralNull(null)
+            handleExpressionFunctionBody(=>, ;)
+          endClassMethod(get, static, =>, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, static, null, null, get, getter)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(get)
+            handleType(int, null)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(=>)
+            handleNoFormalParameters(=>, MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endClassMethod(get, augment, =>, null, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, static, null, null, get, getter)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(get)
+            handleType(int, null)
+            handleIdentifier(getter, methodDeclaration)
+            handleNoTypeVariables(=>)
+            handleNoFormalParameters(=>, MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endClassMethod(get, static, =>, null, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, static, null, null, set, setter)
+            handleNoType(static)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.StaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.StaticMethod)
+            endFormalParameters(1, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(set, augment, (, null, })
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, static, null, null, set, setter)
+            handleNoType(augment)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.StaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.StaticMethod)
+            endFormalParameters(1, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(set, static, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, augment, null, static, null, null, set, setter)
+            handleVoidKeyword(void)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.StaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.StaticMethod)
+            endFormalParameters(1, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(set, augment, (, null, })
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, static, null, null, set, setter)
+            handleVoidKeyword(void)
+            handleIdentifier(setter, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.StaticMethod)
+              beginMetadataStar(value)
+              endMetadataStar(0)
+              beginFormalParameter(value, MemberKind.StaticMethod, null, null, null)
+                handleNoType(()
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.StaticMethod)
+            endFormalParameters(1, (, ), MemberKind.StaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(set, static, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, null, var, })
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, static, null, null, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, null, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, static, null, null, var, 1, static, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, null, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            beginFieldInitializer(=)
+              handleLiteralInt(0)
+            endFieldInitializer(=, ;)
+          endClassFields(null, augment, null, static, null, null, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, null, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            beginFieldInitializer(=)
+              handleLiteralInt(0)
+            endFieldInitializer(=, ;)
+          endClassFields(null, null, null, static, null, null, final, 1, static, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, null, const, ;)
+            handleNoType(const)
+            handleIdentifier(field, fieldDeclaration)
+            beginFieldInitializer(=)
+              handleLiteralInt(0)
+            endFieldInitializer(=, ;)
+          endClassFields(null, augment, null, static, null, null, const, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, null, const, ;)
+            handleNoType(const)
+            handleIdentifier(field, fieldDeclaration)
+            beginFieldInitializer(=)
+              handleLiteralInt(0)
+            endFieldInitializer(=, ;)
+          endClassFields(null, null, null, static, null, null, const, 1, static, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, null, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, static, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, null, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, static, null, null, null, 1, static, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, late, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, static, null, late, var, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, late, var, ;)
+            handleNoType(var)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, static, null, late, var, 1, static, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, late, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, static, null, late, final, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, late, final, ;)
+            handleNoType(final)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, static, null, late, final, 1, static, ;)
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleRecoverableError(Message[DuplicatedModifier, The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, augment, null, static, null, late, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, augment, null, static, null, late, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'augment' should be before the modifier 'static'., Try re-ordering the modifiers., {string: augment, string2: static}], augment, augment)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, static, null, late, null, ;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(field)
+            handleType(int, null)
+            handleIdentifier(field, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, static, null, late, null, 1, static, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 65, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

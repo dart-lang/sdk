@@ -68,6 +68,7 @@ class LspClientCapabilities {
   final bool literalCodeActions;
   final bool insertReplaceCompletionRanges;
   final bool definitionLocationLink;
+  final bool typeDefinitionLocationLink;
   final bool hierarchicalSymbols;
   final bool diagnosticCodeDescription;
   final Set<CodeActionKind> codeActionKinds;
@@ -109,6 +110,8 @@ class LspClientCapabilities {
             false,
         definitionLocationLink =
             raw.textDocument?.definition?.linkSupport ?? false,
+        typeDefinitionLocationLink =
+            raw.textDocument?.typeDefinition?.linkSupport ?? false,
         completionItemTags = _listToSet(
             raw.textDocument?.completion?.completionItem?.tagSupport?.valueSet),
         diagnosticTags = _listToSet(

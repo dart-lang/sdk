@@ -19,7 +19,10 @@ void main() {
 class FileModificationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_change_badPosition() async {
     final contents = '';
-    await initialize();
+    await initialize(
+      // Error is expected and checked below.
+      failTestOnAnyErrorNotification: false,
+    );
     await openFile(mainFileUri, contents);
 
     // Since this is a notification and not a request, the server cannot
@@ -86,7 +89,10 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
           end: Position(line: 1, character: 1)),
       text: 'test',
     ));
-    await initialize();
+    await initialize(
+      // Error is expected and checked below.
+      failTestOnAnyErrorNotification: false,
+    );
     final notificationParams = await expectErrorNotification(
       () => changeFile(222, mainFileUri, [simpleEdit]),
     );
@@ -131,7 +137,10 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_open_invalidPath() async {
-    await initialize();
+    await initialize(
+      // Error is expected and checked below.
+      failTestOnAnyErrorNotification: false,
+    );
 
     final notificationParams = await expectErrorNotification(
       () => openFile(Uri.http('localhost', 'not-a-file'), ''),

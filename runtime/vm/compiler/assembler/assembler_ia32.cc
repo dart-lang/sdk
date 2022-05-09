@@ -11,6 +11,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -2060,6 +2061,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
     movl(dest, value);
   }
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   pushl(value);
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
@@ -2174,7 +2180,7 @@ void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   addl(dest, inc_imm);
 }
 
-void Assembler::LoadDoubleConstant(XmmRegister dst, double value) {
+void Assembler::LoadDImmediate(XmmRegister dst, double value) {
   // TODO(5410843): Need to have a code constants table.
   int64_t constant = bit_cast<int64_t, double>(value);
   pushl(Immediate(Utils::High32Bits(constant)));
@@ -2361,7 +2367,8 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register scratch) {
+void Assembler::ExitFullSafepoint(Register scratch,
+                                  bool ignore_unwind_in_progress) {
   ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
@@ -2386,7 +2393,14 @@ void Assembler::ExitFullSafepoint(Register scratch) {
   }
 
   Bind(&slow_path);
-  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    movl(scratch,
+         Address(THR,
+                 target::Thread::
+                     exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
   call(scratch);
 
@@ -2394,10 +2408,13 @@ void Assembler::ExitFullSafepoint(Register scratch) {
 }
 
 void Assembler::TransitionNativeToGenerated(Register scratch,
-                                            bool exit_safepoint) {
+                                            bool exit_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (exit_safepoint) {
-    ExitFullSafepoint(scratch);
+    ExitFullSafepoint(scratch, ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
@@ -2430,59 +2447,86 @@ static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
 // save it.
 static const intptr_t kNumberOfVolatileXmmRegisters = kNumberOfXmmRegisters - 1;
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  Comment("EnterCallRuntimeFrame");
-  EnterFrame(0);
-
-  // Preserve volatile CPU registers.
-  for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
-    pushl(volatile_cpu_registers[i]);
-  }
-
-  // Preserve all XMM registers except XMM0
-  subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kFpuRegisterSize));
-  // Store XMM registers with the lowest register number at the lowest
-  // address.
-  intptr_t offset = 0;
-  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    movups(Address(ESP, offset), xmm_reg);
-    offset += kFpuRegisterSize;
-  }
-
-  ReserveAlignedFrameSpace(frame_space);
-}
-
-void Assembler::LeaveCallRuntimeFrame() {
-  // ESP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t kPushedRegistersSize =
-      kNumberOfVolatileCpuRegisters * target::kWordSize +
-      kNumberOfVolatileXmmRegisters * kFpuRegisterSize;
-  leal(ESP, Address(EBP, -kPushedRegistersSize));
-
-  // Restore all XMM registers except XMM0
-  // XMM registers have the lowest register number at the lowest address.
-  intptr_t offset = 0;
-  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    movups(xmm_reg, Address(ESP, offset));
-    offset += kFpuRegisterSize;
-  }
-  addl(ESP, Immediate(offset));
-
-  // Restore volatile CPU registers.
-  for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
-    popl(volatile_cpu_registers[i]);
-  }
-
-  leave();
-}
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  movl(ECX, compiler::Address(THR, entry.OffsetFromThread()));
+  movl(EDX, compiler::Immediate(argument_count));
+  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+}
+
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  __ EnterFrame(0);
+
+  if (preserve_registers_) {
+    // Preserve volatile CPU registers.
+    for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
+      __ pushl(volatile_cpu_registers[i]);
+    }
+
+    // Preserve all XMM registers except XMM0
+    __ subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kFpuRegisterSize));
+    // Store XMM registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      __ movups(Address(ESP, offset), xmm_reg);
+      offset += kFpuRegisterSize;
+    }
+  } else {
+    // These registers must always be preserved.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+  }
+
+  __ ReserveAlignedFrameSpace(frame_size);
+}
+
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(argument_count == entry.argument_count());
+  __ movl(EAX, compiler::Address(THR, entry.OffsetFromThread()));
+  __ movl(compiler::Assembler::VMTagAddress(), EAX);
+  __ call(EAX);
+  __ movl(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(VMTag::kDartTagId));
+}
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // ESP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedRegistersSize =
+        kNumberOfVolatileCpuRegisters * target::kWordSize +
+        kNumberOfVolatileXmmRegisters * kFpuRegisterSize;
+    __ leal(ESP, Address(EBP, -kPushedRegistersSize));
+
+    // Restore all XMM registers except XMM0
+    // XMM registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      __ movups(xmm_reg, Address(ESP, offset));
+      offset += kFpuRegisterSize;
+    }
+    __ addl(ESP, Immediate(offset));
+
+    // Restore volatile CPU registers.
+    for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
+      __ popl(volatile_cpu_registers[i]);
+    }
+  }
+
+  __ leave();
 }
 
 void Assembler::Call(const Code& target,
@@ -2499,10 +2543,6 @@ void Assembler::CallVmStub(const Code& target) {
       target::ToRawPointer(target_as_object) +
       target::Code::entry_point_offset(CodeEntryKind::kNormal) -
       kHeapObjectTag));
-}
-
-void Assembler::CallToRuntime() {
-  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::Jmp(const Code& target) {
@@ -2698,6 +2738,9 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+
   EnterFrame(0);
   ReserveAlignedFrameSpace(frame_space);
 }

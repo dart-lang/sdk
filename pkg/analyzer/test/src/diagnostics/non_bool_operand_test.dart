@@ -10,13 +10,38 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolOperandTest);
-    defineReflectiveTests(NonBoolOperandWithNullSafetyTest);
+    defineReflectiveTests(NonBoolOperandWithoutNullSafetyTest);
     defineReflectiveTests(NonBoolOperandWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class NonBoolOperandTest extends PubPackageResolutionTest
+class NonBoolOperandTest extends PubPackageResolutionTest {
+  test_and_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  if(x && true) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
+  }
+
+  test_or_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  if(x || false) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolOperandWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_and_left() async {
     await assertErrorsInCode(r'''
@@ -83,31 +108,6 @@ bool f(bool left, double right) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonBoolOperandWithNullSafetyTest extends PubPackageResolutionTest {
-  test_and_null() async {
-    await assertErrorsInCode(r'''
-m() {
-  Null x;
-  if(x && true) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
-    ]);
-  }
-
-  test_or_null() async {
-    await assertErrorsInCode(r'''
-m() {
-  Null x;
-  if(x || false) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
     ]);
   }
 }

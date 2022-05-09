@@ -26,6 +26,7 @@ int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendEditOrganizeDirectives(pathname);
     var edit = result.edit;
@@ -45,6 +46,7 @@ int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendEditOrganizeDirectives(pathname);
     var edit = result.edit;
@@ -62,6 +64,7 @@ int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     try {
       await sendEditOrganizeDirectives(pathname);

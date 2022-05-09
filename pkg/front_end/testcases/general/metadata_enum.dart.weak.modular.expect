@@ -1,29 +1,18 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 @#C1
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E*>* values = #C11;
-  static const field self::E* E1 = #C4;
-  static const field self::E* E2 = #C7;
-  static const field self::E* E3 = #C10;
-  const constructor •(core::int* index, core::String* name) → self::E*
+  static const field core::List<self::E> values = #C11;
+  static const field self::E E1 = #C4;
+  static const field self::E E2 = #C7;
+  static const field self::E E3 = #C10;
+  const constructor •(core::int index, core::String name) → self::E
     : super core::_Enum::•(index, name)
     ;
-  method toString() → core::String*
+  method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → core::int*; -> core::_Enum::index
-  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static const field dynamic a = #C1;
 static method main() → dynamic {}
@@ -46,5 +35,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///metadata_enum.dart:
 - E. (from org-dartlang-testcase:///metadata_enum.dart:8:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

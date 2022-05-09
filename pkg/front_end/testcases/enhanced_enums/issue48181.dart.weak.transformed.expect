@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+//   f3.foo();
+//     ^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+//   f1,
+//     ^
+//
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
+//   f2(42),
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = #C7;
+  static const field self::E e1 = #C3;
+  static const field self::E e2 = #C6;
+  const constructor •(core::int index, core::String name) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  static factory f(core::int i) → self::E
+    return #C7.{core::List::[]}(i){(core::int) → self::E};
+}
+class F extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::F> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+  f1,
+    ^";
+  static const field self::F f1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+  f1,
+    ^";
+  static const field self::F f2 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
+  f2(42),
+    ^";
+  static const field self::F f3 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+  f3.foo();
+    ^^^";
+  method toString() → core::String
+    return "F.${this.{core::_Enum::_name}{core::String}}";
+  static factory •(core::int i) → self::F
+    return invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+  f1,
+    ^".{core::List::[]}(i){(core::int) → self::F};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "e1"
+  #C3 = self::E {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "e2"
+  #C6 = self::E {index:#C4, _name:#C5}
+  #C7 = <self::E*>[#C3, #C6]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue48181.dart:
+- E. (from org-dartlang-testcase:///issue48181.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

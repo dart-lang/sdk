@@ -63,7 +63,8 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile)!;
 
-  void addAnalysisSubscription(AnalysisService service, String file) {
+  Future<void> addAnalysisSubscription(
+      AnalysisService service, String file) async {
     // add file to subscription
     var files = analysisSubscriptions[service];
     if (files == null) {
@@ -74,7 +75,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     // set subscriptions
     var request =
         AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
-    handleSuccessfulRequest(request);
+    await waitResponse(request);
   }
 
   void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
@@ -85,7 +86,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   String addTestFile(String content) {
-    newFile(testFile, content: content);
+    newFile2(testFile, content);
     testCode = content;
     return testFile;
   }
@@ -114,9 +115,9 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Creates a project [projectPath].
-  void createProject({Map<String, String>? packageRoots}) {
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
     newFolder(projectPath);
-    setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [projectPath], excluded: []);
   }
 
   void doAllDeclarationsTrackerWork() {
@@ -175,20 +176,25 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
-  void setRoots({
+  Future<Response> setRoots({
     required List<String> included,
     required List<String> excluded,
-  }) {
-    var includedConverted = included.map(convertPath).toList();
-    var excludedConverted = excluded.map(convertPath).toList();
+    bool validateSuccessResponse = true,
+  }) async {
     var request = AnalysisSetAnalysisRootsParams(
-        includedConverted, excludedConverted,
-        packageRoots: {}).toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+      included.map(convertPath).toList(),
+      excluded.map(convertPath).toList(),
+      packageRoots: {},
+    ).toRequest('0');
+    var response = await waitResponse(request);
+    if (validateSuccessResponse) {
+      expect(response, isResponseSuccess(request.id));
+    }
+    return response;
   }
 
   @mustCallSuper
-  void setUp() {
+  void setUp() async {
     serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
     testFolder = convertPath('/project/bin');
@@ -197,11 +203,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
     handler = analysisHandler;
-    // listen for notifications
-    var notificationStream = serverChannel.notificationController.stream;
-    notificationStream.listen((Notification notification) {
-      processNotification(notification);
-    });
+    serverChannel.notifications.listen(processNotification);
   }
 
   @mustCallSuper
@@ -210,7 +212,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
-  Future waitForTasksFinished() {
+  Future<void> waitForTasksFinished() {
     return server.onAnalysisComplete;
   }
 

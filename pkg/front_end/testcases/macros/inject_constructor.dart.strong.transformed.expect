@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///inject_constructor.dart";
+
+class Class extends core::Object {
+  constructor •() → self::Class
+    : super core::Object::•() {
+    core::print("injected");
+  }
+  constructor named() → self::Class
+    : super core::Object::•() {
+    core::print("named-injected");
+  }
+}
+static method main() → dynamic {
+  new self::Class::•();
+  new self::Class::named();
+}

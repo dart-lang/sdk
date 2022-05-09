@@ -14,9 +14,6 @@ class PluginLocator {
   /// directory.
   static const String defaultPluginFolderName = 'analyzer_plugin';
 
-  /// The name of the `pubspec.yaml` file.
-  static const String pubspecFileName = 'pubspec.yaml';
-
   /// The name of the `tools` directory, in which the default plugin directory
   /// is located.
   static const String toolsFolderName = 'tools';

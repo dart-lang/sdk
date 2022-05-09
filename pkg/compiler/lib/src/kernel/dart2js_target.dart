@@ -55,7 +55,7 @@ bool allowedNativeTest(Uri uri) {
 
 bool maybeEnableNative(Uri uri) {
   bool allowedDartLibrary() {
-    if (uri.scheme != 'dart') return false;
+    if (!uri.isScheme('dart')) return false;
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
@@ -70,8 +70,10 @@ class Dart2jsTarget extends Target {
   final String name;
 
   final CompilerOptions? options;
+  final bool canPerformGlobalTransforms;
 
-  Dart2jsTarget(this.name, this.flags, {this.options});
+  Dart2jsTarget(this.name, this.flags,
+      {this.options, this.canPerformGlobalTransforms = true});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -118,7 +120,7 @@ class Dart2jsTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       maybeEnableNative(importer) ||
-      (importer.scheme == 'package' &&
+      (importer.isScheme('package') &&
           importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
@@ -157,8 +159,10 @@ class Dart2jsTarget extends Target {
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
-    transformMixins.transformLibraries(libraries);
-    logger?.call("Mixin transformations performed");
+    if (canPerformGlobalTransforms) {
+      transformMixins.transformLibraries(libraries);
+      logger?.call("Mixin transformations performed");
+    }
   }
 
   @override
@@ -221,6 +225,10 @@ class Dart2jsTarget extends Target {
   @override
   ConstantsBackend get constantsBackend =>
       const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
+
+  @override
+  DartLibrarySupport get dartLibrarySupport =>
+      const Dart2jsDartLibrarySupport();
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -313,4 +321,9 @@ class Dart2jsConstantsBackend extends ConstantsBackend {
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;
+}
+
+class Dart2jsDartLibrarySupport extends CustomizedDartLibrarySupport {
+  const Dart2jsDartLibrarySupport()
+      : super(supported: const {'_dart2js_runtime_metrics'});
 }

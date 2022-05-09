@@ -4,6 +4,8 @@
 
 // ignore_for_file: avoid_function_literals_in_foreach_calls
 
+import 'dart:math' show Random;
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:fixnum/fixnum.dart';
 
@@ -240,7 +242,9 @@ class FormatJsBigIntBenchmark extends Benchmark {
 class DummyBenchmark extends BenchmarkBase {
   DummyBenchmark(String name) : super(name);
   @override
-  double measure() => 2000 * 1000 * 1.0; // A rate of one run per 2s.
+  // A rate of one run per 2s, with a millisecond of noise.  Some variation is
+  // needed for Golem's noise-based filtering and regression detection.
+  double measure() => (2000 + Random().nextDouble() - 0.5) * 1000;
 }
 
 /// Create [ParseJsBigIntBenchmark], or a dummy benchmark if JavaScript BigInt

@@ -1,0 +1,53 @@
+class A1 {
+  A1(this.foo);
+  final String foo;
+}
+
+class A2 {
+  A2({this.foo = "bar"});
+  final String foo;
+}
+
+class A3 {
+  A3([this.foo = "bar"]);
+  final String foo;
+}
+
+class A4 {
+  A4([this.foo = "bar"]);
+  final String foo;
+}
+
+class D1 extends TTTTA1 {
+  D1(super.foo);
+}
+
+class D2 extends TTTTA2 {
+  D2({super.foo});
+}
+
+class D3 extends TTTTA3 {
+  D3([super.foo]);
+}
+
+class D4 extends TTTTA4 {
+  D4([super.foo]);
+}
+
+main() {}
+typedef TA1 = A1;
+typedef TA2 = A2;
+typedef TA3 = A3;
+typedef TA4 = A4;
+typedef TTA1 = TA1;
+typedef TTA2 = TA2;
+typedef TTA3 = TA3;
+typedef TTA4 = TA4;
+typedef TTTA1 = TTA1;
+typedef TTTA2 = TTA2;
+typedef TTTA3 = TTA3;
+typedef TTTA4 = TTA4;
+typedef TTTTA1 = TTTA1;
+typedef TTTTA2 = TTTA2;
+typedef TTTTA3 = TTTA3;
+typedef TTTTA4 = TTTA4;

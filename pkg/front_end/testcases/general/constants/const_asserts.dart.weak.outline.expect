@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+// pkg/front_end/testcases/general/constants/const_asserts.dart:19:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
 //   const Foo.withInvalidCondition(this.x) : assert(x);
 //                                                   ^
 //
-// pkg/front_end/testcases/general/constants/const_asserts.dart:19:21: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/const_asserts.dart:21:21: Error: Constant expression expected.
 // Try inserting 'const'.
 //       : assert(bool.fromEnvironment("foo", defaultValue: null));
 //                     ^^^^^^^^^^^^^^^
@@ -26,7 +26,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, x), super core::Object::•()
     ;
   const constructor withInvalidCondition(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+    : self::Foo::x = x, assert(invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:19:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
                                                   ^" in x as{TypeError} core::bool*), super core::Object::•()
     ;
@@ -87,11 +87,11 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:11:50 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:12:59 -> StringConstant("foo was false")
 Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
-Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:73 -> StringConstant("btw foo was false")
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:19:21 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:21:22 -> NullConstant(null)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:31:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:59 -> StringConstant("foo was false")
+Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:15:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:17:73 -> StringConstant("btw foo was false")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:21:21 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:23:22 -> NullConstant(null)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:33:24 -> InstanceConstant(const Foo{Foo.x: 1})
 Extra constant evaluation: evaluated: 45, effectively constant: 7

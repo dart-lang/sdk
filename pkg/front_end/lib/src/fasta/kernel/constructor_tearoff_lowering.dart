@@ -4,8 +4,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
-import '../builder/member_builder.dart';
+
+import '../builder/library_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_member_builder.dart';
 import 'kernel_helper.dart';
 
 const String _tearOffNamePrefix = '_#';
@@ -272,13 +274,14 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
 /// Creates the body for the redirecting factory [tearOff] with the target
 /// [constructor] and [typeArguments].
 ///
-/// Returns the [SynthesizedFunctionNode] object need to perform default value
+/// Returns the [DelayedDefaultValueCloner] object need to perform default value
 /// computation.
-SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
+DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
     Procedure tearOff,
     Member target,
     List<DartType> typeArguments,
-    FreshTypeParameters freshTypeParameters) {
+    FreshTypeParameters freshTypeParameters,
+    LibraryBuilder libraryBuilder) {
   int fileOffset = tearOff.fileOffset;
 
   List<TypeParameter> typeParameters;
@@ -315,9 +318,9 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
   }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
-  return new SynthesizedFunctionNode(
+  return new DelayedDefaultValueCloner(
       substitutionMap, target.function!, tearOff.function,
-      identicalSignatures: false);
+      identicalSignatures: false, libraryBuilder: libraryBuilder);
 }
 
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
@@ -325,7 +328,7 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
 Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
     Name name, Uri fileUri, int fileOffset, Reference? reference) {
   return new Procedure(name, ProcedureKind.Method, new FunctionNode(null),
-      fileUri: fileUri, isStatic: true, reference: reference)
+      fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
     ..startFileOffset = fileOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset

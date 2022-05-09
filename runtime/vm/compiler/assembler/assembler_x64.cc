@@ -11,6 +11,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/instructions.h"
+#include "vm/tags.h"
 
 namespace dart {
 
@@ -20,10 +21,10 @@ DECLARE_FLAG(bool, precompiled_mode);
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder), constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
-  ASSERT(!use_far_branches);
+  ASSERT(far_branch_level == 0);
 
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     call(Address(THR,
@@ -85,10 +86,6 @@ void Assembler::Call(const Code& target) {
       ToObject(target), ObjectPoolBuilderEntry::kNotPatchable);
   LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
-void Assembler::CallToRuntime() {
-  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::pushq(Register reg) {
@@ -184,7 +181,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint() {
+void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Label done, slow_path;
@@ -209,7 +206,14 @@ void Assembler::ExitFullSafepoint() {
   }
 
   Bind(&slow_path);
-  movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    movq(TMP,
+         Address(THR,
+                 target::Thread::
+                     exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
 
   // Use call instead of CallCFunction to avoid having to clean up shadow space
@@ -220,10 +224,13 @@ void Assembler::ExitFullSafepoint() {
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
+void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (leave_safepoint) {
-    ExitFullSafepoint();
+    ExitFullSafepoint(ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
@@ -297,6 +304,13 @@ void Assembler::EmitW(Register reg,
   if (prefix2 >= 0) {
     EmitUint8(prefix2);
   }
+  EmitUint8(opcode);
+  EmitOperand(reg & 7, address);
+}
+
+void Assembler::EmitB(int reg, const Address& address, int opcode) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg & ~0x10, address, reg >= 8 ? REX_PREFIX : REX_NONE);
   EmitUint8(opcode);
   EmitOperand(reg & 7, address);
 }
@@ -1379,6 +1393,17 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   }
 }
 
+void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
+  int64_t bits = bit_cast<int64_t>(immediate);
+  if (bits == 0) {
+    xorps(dst, dst);
+  } else {
+    intptr_t index = FindImmediate(bits);
+    LoadUnboxedDouble(
+        dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
+  }
+}
+
 void Assembler::LoadCompressed(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   movq(dest, slot);
@@ -1486,7 +1511,8 @@ void Assembler::StoreBarrier(Register object,
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
-  movb(TMP, FieldAddress(object, target::Object::tags_offset()));
+  movb(ByteRegisterOf(TMP),
+       FieldAddress(object, target::Object::tags_offset()));
   shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
@@ -1552,7 +1578,8 @@ void Assembler::StoreIntoArrayBarrier(Register object,
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
-  movb(TMP, FieldAddress(object, target::Object::tags_offset()));
+  movb(ByteRegisterOf(TMP),
+       FieldAddress(object, target::Object::tags_offset()));
   shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
@@ -1581,6 +1608,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
     movq(dest, value);
   }
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   pushq(value);
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
@@ -1606,6 +1638,11 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
     OBJ(mov)(dest, value);
   }
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   pushq(value);
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
@@ -1724,7 +1761,7 @@ void Assembler::StoreToOffset(Register reg,
   switch (sz) {
     case kByte:
     case kUnsignedByte:
-      return movb(address, reg);
+      return movb(address, ByteRegisterOf(reg));
     case kTwoBytes:
     case kUnsignedTwoBytes:
       return movw(address, reg);
@@ -1842,42 +1879,6 @@ static const RegisterSet kVolatileRegisterSet(
     CallingConventions::kVolatileCpuRegisters,
     CallingConventions::kVolatileXmmRegisters);
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  Comment("EnterCallRuntimeFrame");
-  EnterFrame(0);
-  if (!FLAG_precompiled_mode) {
-    pushq(CODE_REG);
-    pushq(PP);
-  }
-
-  // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-  PushRegisters(kVolatileRegisterSet);
-
-  ReserveAlignedFrameSpace(frame_space);
-}
-
-void Assembler::LeaveCallRuntimeFrame() {
-  // RSP might have been modified to reserve space for arguments
-  // and ensure proper alignment of the stack frame.
-  // We need to restore it before restoring registers.
-  const intptr_t kPushedCpuRegistersCount =
-      RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
-  const intptr_t kPushedXmmRegistersCount =
-      RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
-  const intptr_t kPushedRegistersSize =
-      kPushedCpuRegistersCount * target::kWordSize +
-      kPushedXmmRegistersCount * kFpuRegisterSize +
-      (target::frame_layout.dart_fixed_frame_size - 2) *
-          target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
-
-  leaq(RSP, Address(RBP, -kPushedRegistersSize));
-
-  // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-  PopRegisters(kVolatileRegisterSet);
-
-  LeaveStubFrame();
-}
-
 void Assembler::CallCFunction(Register reg, bool restore_rsp) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
@@ -1903,24 +1904,86 @@ void Assembler::CallCFunction(Address address, bool restore_rsp) {
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
-  entry.Call(this, argument_count);
+  ASSERT(!entry.is_leaf());
+  // Argument count is not checked here, but in the runtime entry for a more
+  // informative error message.
+  movq(RBX, compiler::Address(THR, entry.OffsetFromThread()));
+  LoadImmediate(R10, compiler::Immediate(argument_count));
+  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+}
+
+#define __ assembler_->
+
+LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
+                                   intptr_t frame_size,
+                                   bool preserve_registers)
+    : assembler_(assembler), preserve_registers_(preserve_registers) {
+  __ Comment("EnterCallRuntimeFrame");
+  __ EnterFrame(0);
+
+  if (preserve_registers_) {
+    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
+    __ PushRegisters(kVolatileRegisterSet);
+  } else {
+    // These registers must always be preserved.
+    ASSERT(IsCalleeSavedRegister(THR));
+    ASSERT(IsCalleeSavedRegister(PP));
+    ASSERT(IsCalleeSavedRegister(CODE_REG));
+  }
+
+  __ ReserveAlignedFrameSpace(frame_size);
+}
+
+void LeafRuntimeScope::Call(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  ASSERT(entry.is_leaf());
+  ASSERT(entry.argument_count() == argument_count);
+  COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
+  __ movq(RAX, compiler::Address(THR, entry.OffsetFromThread()));
+  __ movq(compiler::Assembler::VMTagAddress(), RAX);
+  __ CallCFunction(RAX);
+  __ movq(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(VMTag::kDartTagId));
+}
+
+LeafRuntimeScope::~LeafRuntimeScope() {
+  if (preserve_registers_) {
+    // RSP might have been modified to reserve space for arguments
+    // and ensure proper alignment of the stack frame.
+    // We need to restore it before restoring registers.
+    const intptr_t kPushedCpuRegistersCount =
+        RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
+    const intptr_t kPushedXmmRegistersCount =
+        RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
+    const intptr_t kPushedRegistersSize =
+        kPushedCpuRegistersCount * target::kWordSize +
+        kPushedXmmRegistersCount * kFpuRegisterSize;
+
+    __ leaq(RSP, Address(RBP, -kPushedRegistersSize));
+
+    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
+    __ PopRegisters(kVolatileRegisterSet);
+  } else {
+    const intptr_t kPushedRegistersSize =
+        (target::frame_layout.dart_fixed_frame_size - 2) *
+        target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
+    __ leaq(RSP, Address(RBP, -kPushedRegistersSize));
+  }
+
+  __ LeaveFrame();
 }
 
 #if defined(USING_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
-  PushRegisters(kVolatileRegisterSet);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   leaq(CallingConventions::kArg1Reg, addr);
-  ASSERT(kTsanLoadAcquireRuntimeEntry.is_leaf());
-  CallRuntime(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
-  PopRegisters(kVolatileRegisterSet);
+  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
 }
 
 void Assembler::TsanStoreRelease(Address addr) {
-  PushRegisters(kVolatileRegisterSet);
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   leaq(CallingConventions::kArg1Reg, addr);
-  ASSERT(kTsanStoreReleaseRuntimeEntry.is_leaf());
-  CallRuntime(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
-  PopRegisters(kVolatileRegisterSet);
+  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
 #endif
 
@@ -2024,6 +2087,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
+  // Already saved.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+  COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+
   EnterFrame(0);
   ReserveAlignedFrameSpace(frame_space);
 }

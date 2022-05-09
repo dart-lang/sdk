@@ -273,6 +273,7 @@ class Library extends NamedNode
   static const int NonNullableByDefaultFlag = 1 << 1;
   static const int NonNullableByDefaultModeBit1 = 1 << 2;
   static const int NonNullableByDefaultModeBit2 = 1 << 3;
+  static const int IsUnsupportedFlag = 1 << 4;
 
   int flags = 0;
 
@@ -320,6 +321,13 @@ class Library extends NamedNode
             NonNullableByDefaultModeBit2;
         break;
     }
+  }
+
+  /// If true, the library is not supported through the 'dart.library.*' value
+  /// used in conditional imports and `bool.fromEnvironment` constants.
+  bool get isUnsupported => flags & IsUnsupportedFlag != 0;
+  void set isUnsupported(bool value) {
+    flags = value ? (flags | IsUnsupportedFlag) : (flags & ~IsUnsupportedFlag);
   }
 
   String? name;
@@ -832,14 +840,6 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  // The following fields describe parameters of the underlying type when
-  // that is a function type.  They are needed to keep such attributes as names
-  // and annotations. When the underlying type is not a function type, they are
-  // empty.
-  final List<TypeParameter> typeParametersOfFunctionType;
-  final List<VariableDeclaration> positionalParameters;
-  final List<VariableDeclaration> namedParameters;
-
   Typedef(this.name, this.type,
       {Reference? reference,
       required this.fileUri,
@@ -850,16 +850,8 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
       // ignore: unnecessary_null_comparison
       : assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.typeParametersOfFunctionType =
-            typeParametersOfFunctionType ?? <TypeParameter>[],
-        this.positionalParameters =
-            positionalParameters ?? <VariableDeclaration>[],
-        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.typeParametersOfFunctionType, this);
-    setParents(this.positionalParameters, this);
-    setParents(this.namedParameters, this);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -875,9 +867,6 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     visitList(annotations, v);
     visitList(typeParameters, v);
     type?.accept(v);
-    visitList(typeParametersOfFunctionType, v);
-    visitList(positionalParameters, v);
-    visitList(namedParameters, v);
   }
 
   @override
@@ -887,9 +876,6 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     if (type != null) {
       type = v.visitDartType(type!);
     }
-    v.transformList(typeParametersOfFunctionType, this);
-    v.transformList(positionalParameters, this);
-    v.transformList(namedParameters, this);
   }
 
   @override
@@ -904,9 +890,6 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         type = newType;
       }
     }
-    v.transformTypeParameterList(typeParametersOfFunctionType, this);
-    v.transformVariableDeclarationList(positionalParameters, this);
-    v.transformVariableDeclarationList(namedParameters, this);
   }
 
   @override
@@ -3665,6 +3648,10 @@ class FunctionNode extends TreeNode {
   /// here the return types are `Future<Foo>` and `FutureOr<Foo>` for `method1`
   /// and `method2`, respectively, but the future value type is in both cases
   /// `Foo`.
+  ///
+  /// For pre-nnbd libraries, this is set to `flatten(T)` of the return type
+  /// `T`, which can be seen as the pre-nnbd equivalent of the future value
+  /// type.
   DartType? futureValueType;
 
   void Function()? lazyBuilder;
@@ -3732,7 +3719,7 @@ class FunctionNode extends TreeNode {
     named.sort();
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.from(
+    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.of(
         parent is Constructor
             ? parent.enclosingClass.typeParameters
             : typeParameters);
@@ -3782,9 +3769,9 @@ class FunctionNode extends TreeNode {
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
-        List.from(parentConstructor.enclosingClass.typeParameters);
+        List.of(parentConstructor.enclosingClass.typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
-        List.from(typedef.typeParameters);
+        List.of(typedef.typeParameters);
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedefTypeParametersCopy, library);
     TypedefType typedefType =
@@ -3826,9 +3813,9 @@ class FunctionNode extends TreeNode {
         "Only run this method on a factory");
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy = List.from(typeParameters);
+    List<TypeParameter> classTypeParametersCopy = List.of(typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
-        List.from(typedef.typeParameters);
+        List.of(typedef.typeParameters);
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedefTypeParametersCopy, library);
     TypedefType typedefType =
@@ -10063,7 +10050,7 @@ class Catch extends TreeNode {
           type.className.node != null &&
           type.classNode.name == 'Object') {
         Uri uri = type.classNode.enclosingLibrary.importUri;
-        return uri.scheme == 'dart' &&
+        return uri.isScheme('dart') &&
             uri.path == 'core' &&
             type.nullability == Nullability.nonNullable;
       }
@@ -11191,8 +11178,7 @@ class FunctionType extends DartType {
   @override
   final Nullability declaredNullability;
 
-  /// The [Typedef] this function type is created for.
-  final TypedefType? typedefType;
+  TypedefType? _typedefType;
 
   final DartType returnType;
 
@@ -11204,14 +11190,26 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int? requiredParameterCount,
-      this.typedefType})
+      TypedefType? typedefType})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters.length;
+            requiredParameterCount ?? positionalParameters.length,
+        _typedefType = typedefType;
 
-  Reference? get typedefReference => typedefType?.typedefReference;
+  Reference? get typedefReference => _typedefType?.typedefReference;
 
   Typedef? get typedef => typedefReference?.asTypedef;
+
+  /// The [Typedef] this function type is created for, if any.
+  TypedefType? get typedefType => _typedefType;
+
+  void set typedefType(TypedefType? value) {
+    assert(
+        _typedefType == null,
+        "Cannot change an already set FunctionType.typedefType from "
+        "$_typedefType to $value.");
+    _typedefType = value;
+  }
 
   @override
   Nullability get nullability => declaredNullability;

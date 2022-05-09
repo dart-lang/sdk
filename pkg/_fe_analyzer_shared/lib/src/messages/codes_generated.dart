@@ -687,6 +687,52 @@ const MessageCode messageCantDisambiguateNotEnoughInformation = const MessageCod
         r"""Try providing type arguments for the literal explicitly to disambiguate it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateCantHaveNamedParameters =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' can't be declared with named parameters.""",
+        withArguments: _withArgumentsCantHaveNamedParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCantHaveNamedParameters =
+    const Code<Message Function(String name)>(
+  "CantHaveNamedParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantHaveNamedParameters(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantHaveNamedParameters,
+      problemMessage: """'${name}' can't be declared with named parameters.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCantHaveOptionalParameters =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' can't be declared with optional parameters.""",
+        withArguments: _withArgumentsCantHaveOptionalParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCantHaveOptionalParameters =
+    const Code<Message Function(String name)>(
+  "CantHaveOptionalParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantHaveOptionalParameters(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantHaveOptionalParameters,
+      problemMessage:
+          """'${name}' can't be declared with optional parameters.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 
@@ -1434,6 +1480,17 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalFailedAssertionWithNonStringMessage =
+    messageConstEvalFailedAssertionWithNonStringMessage;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalFailedAssertionWithNonStringMessage =
+    const MessageCode("ConstEvalFailedAssertionWithNonStringMessage",
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+        problemMessage:
+            r"""This assertion failed with a non-String message.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String nameOKEmpty)>
     templateConstEvalGetterNotFound =
     const Template<Message Function(String nameOKEmpty)>(
@@ -1889,15 +1946,6 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
       problemMessage: """The name of the enclosing class is '${name}'.""",
       arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeContinueLabelNotTarget = messageContinueLabelNotTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageContinueLabelNotTarget = const MessageCode(
-    "ContinueLabelNotTarget",
-    analyzerCodes: <String>["LABEL_UNDEFINED"],
-    problemMessage: r"""Target of continue must be a label.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
@@ -2734,6 +2782,14 @@ const MessageCode messageEncoding = const MessageCode("Encoding",
     problemMessage: r"""Unable to decode bytes as UTF-8.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumAbstractMember = messageEnumAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumAbstractMember = const MessageCode(
+    "EnumAbstractMember",
+    problemMessage: r"""Enums can't declare abstract members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -2759,6 +2815,57 @@ Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumConstructorSuperInitializer =
+    messageEnumConstructorSuperInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumConstructorSuperInitializer = const MessageCode(
+    "EnumConstructorSuperInitializer",
+    problemMessage: r"""Enum constructors can't contain super-initializers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumConstructorTearoff = messageEnumConstructorTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumConstructorTearoff = const MessageCode(
+    "EnumConstructorTearoff",
+    problemMessage: r"""Enum constructors can't be torn off.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumContainsRestrictedInstanceDeclaration =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""An enum can't declare a non-abstract member named '#name'.""",
+        withArguments: _withArgumentsEnumContainsRestrictedInstanceDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeEnumContainsRestrictedInstanceDeclaration =
+    const Code<Message Function(String name)>(
+  "EnumContainsRestrictedInstanceDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumContainsRestrictedInstanceDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumContainsRestrictedInstanceDeclaration,
+      problemMessage:
+          """An enum can't declare a non-abstract member named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumContainsValuesDeclaration =
+    messageEnumContainsValuesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumContainsValuesDeclaration = const MessageCode(
+    "EnumContainsValuesDeclaration",
+    problemMessage: r"""An enum can't declare a member named 'values'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2768,14 +2875,78 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
     problemMessage: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEnumDeclaresFactory = messageEnumDeclaresFactory;
+const Code<Null> codeEnumDeclaresConstFactory = messageEnumDeclaresConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumDeclaresFactory = const MessageCode(
-    "EnumDeclaresFactory",
-    problemMessage: r"""Enums can't declare factory constructors.""",
+const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
+    "EnumDeclaresConstFactory",
+    problemMessage: r"""Enums can't declare const factory constructors.""",
     correctionMessage:
         r"""Try removing the factory constructor declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumFactoryRedirectsToConstructor =
+    messageEnumFactoryRedirectsToConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
+    "EnumFactoryRedirectsToConstructor",
+    problemMessage:
+        r"""Enum factory constructors can't redirect to generative constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateEnumImplementerContainsRestrictedInstanceDeclaration =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'.""",
+        withArguments:
+            _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeEnumImplementerContainsRestrictedInstanceDeclaration =
+    const Code<Message Function(String name, String name2)>(
+  "EnumImplementerContainsRestrictedInstanceDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeEnumImplementerContainsRestrictedInstanceDeclaration,
+      problemMessage:
+          """'${name}' has 'Enum' as a superinterface and can't contain non-static members with name '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumImplementerContainsValuesDeclaration =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+        withArguments: _withArgumentsEnumImplementerContainsValuesDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeEnumImplementerContainsValuesDeclaration =
+    const Code<Message Function(String name)>(
+  "EnumImplementerContainsValuesDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumImplementerContainsValuesDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumImplementerContainsValuesDeclaration,
+      problemMessage:
+          """'${name}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
@@ -2787,6 +2958,38 @@ const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
     correctionMessage: r"""Try moving the enum to the top-level.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateEnumInheritsRestricted =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""An enum can't inherit a member named '#name'.""",
+        withArguments: _withArgumentsEnumInheritsRestricted);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeEnumInheritsRestricted =
+    const Code<Message Function(String name)>(
+  "EnumInheritsRestricted",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumInheritsRestricted(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumInheritsRestricted,
+      problemMessage: """An enum can't inherit a member named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumInheritsRestrictedMember =
+    messageEnumInheritsRestrictedMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumInheritsRestrictedMember = const MessageCode(
+    "EnumInheritsRestrictedMember",
+    severity: Severity.context,
+    problemMessage: r"""This is the inherited member""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInstantiation = messageEnumInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2794,6 +2997,39 @@ const MessageCode messageEnumInstantiation = const MessageCode(
     "EnumInstantiation",
     analyzerCodes: <String>["INSTANTIATE_ENUM"],
     problemMessage: r"""Enums can't be instantiated.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumNonConstConstructor = messageEnumNonConstConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumNonConstConstructor = const MessageCode(
+    "EnumNonConstConstructor",
+    problemMessage:
+        r"""Generative enum constructors must be marked as 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumSupertypeOfNonAbstractClass =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Non-abstract class '#name' has 'Enum' as a superinterface.""",
+        withArguments: _withArgumentsEnumSupertypeOfNonAbstractClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeEnumSupertypeOfNonAbstractClass =
+    const Code<Message Function(String name)>(
+  "EnumSupertypeOfNonAbstractClass",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumSupertypeOfNonAbstractClass,
+      problemMessage:
+          """Non-abstract class '${name}' has 'Enum' as a superinterface.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
@@ -3226,27 +3462,29 @@ Message _withArgumentsExperimentDisabled(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string2)>
+const Template<Message Function(String string, String string2)>
     templateExperimentDisabledInvalidLanguageVersion =
-    const Template<Message Function(String string2)>(
+    const Template<Message Function(String string, String string2)>(
         problemMessageTemplate:
-            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+            r"""This requires the '#string' language feature, which requires language version of #string2 or higher.""",
         withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string2)>
+const Code<Message Function(String string, String string2)>
     codeExperimentDisabledInvalidLanguageVersion =
-    const Code<Message Function(String string2)>(
+    const Code<Message Function(String string, String string2)>(
         "ExperimentDisabledInvalidLanguageVersion",
         analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentDisabledInvalidLanguageVersion(String string2) {
+Message _withArgumentsExperimentDisabledInvalidLanguageVersion(
+    String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
   return new Message(codeExperimentDisabledInvalidLanguageVersion,
       problemMessage:
-          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
-      arguments: {'string2': string2});
+          """This requires the '${string}' language feature, which requires language version of ${string2} or higher.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3278,6 +3516,123 @@ Message _withArgumentsExperimentNotEnabled(String string, String string2) {
           """This requires the '${string}' language feature to be enabled.""",
       correctionMessage:
           """Try updating your pubspec.yaml to set the minimum SDK constraint to ${string2} or higher, and running 'pub get'.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateExperimentNotEnabledOffByDefault = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""This requires the experimental '#string' language feature to be enabled.""",
+    correctionMessageTemplate:
+        r"""Try passing the '--enable-experiment=#string' command line option.""",
+    withArguments: _withArgumentsExperimentNotEnabledOffByDefault);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeExperimentNotEnabledOffByDefault =
+    const Code<Message Function(String string)>(
+        "ExperimentNotEnabledOffByDefault",
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentNotEnabledOffByDefault(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentNotEnabledOffByDefault,
+      problemMessage:
+          """This requires the experimental '${string}' language feature to be enabled.""",
+      correctionMessage: """Try passing the '--enable-experiment=${string}' command line option.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateExperimentOptOutComment = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""This is the annotation that opts out this library from the '#string' language feature.""",
+    withArguments: _withArgumentsExperimentOptOutComment);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExperimentOptOutComment =
+    const Code<Message Function(String string)>("ExperimentOptOutComment",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentOptOutComment(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentOptOutComment,
+      problemMessage:
+          """This is the annotation that opts out this library from the '${string}' language feature.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateExperimentOptOutExplicit = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' language feature is disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the `@dart=` annotation or setting the language version to #string2 or higher.""",
+    withArguments: _withArgumentsExperimentOptOutExplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeExperimentOptOutExplicit =
+    const Code<Message Function(String string, String string2)>(
+  "ExperimentOptOutExplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentOptOutExplicit(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentOptOutExplicit,
+      problemMessage:
+          """The '${string}' language feature is disabled for this library.""",
+      correctionMessage:
+          """Try removing the `@dart=` annotation or setting the language version to ${string2} or higher.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateExperimentOptOutImplicit = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' language feature is disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the package language version or setting the language version to #string2 or higher.""",
+    withArguments: _withArgumentsExperimentOptOutImplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeExperimentOptOutImplicit =
+    const Code<Message Function(String string, String string2)>(
+  "ExperimentOptOutImplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentOptOutImplicit(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentOptOutImplicit,
+      problemMessage:
+          """The '${string}' language feature is disabled for this library.""",
+      correctionMessage:
+          """Try removing the package language version or setting the language version to ${string2} or higher.""",
       arguments: {'string': string, 'string2': string2});
 }
 
@@ -3854,6 +4209,36 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode
     "FfiAbiSpecificIntegerMappingInvalid",
     problemMessage:
         r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)>
+    templateFfiCompoundImplementsFinalizable =
+    const Template<Message Function(String string, String name)>(
+        problemMessageTemplate:
+            r"""#string '#name' can't implement Finalizable.""",
+        correctionMessageTemplate:
+            r"""Try removing the implements clause from '#name'.""",
+        withArguments: _withArgumentsFfiCompoundImplementsFinalizable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)>
+    codeFfiCompoundImplementsFinalizable =
+    const Code<Message Function(String string, String name)>(
+  "FfiCompoundImplementsFinalizable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiCompoundImplementsFinalizable(
+    String string, String name) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiCompoundImplementsFinalizable,
+      problemMessage: """${string} '${name}' can't implement Finalizable.""",
+      correctionMessage:
+          """Try removing the implements clause from '${name}'.""",
+      arguments: {'string': string, 'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5131,26 +5516,6 @@ Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Uri uri_)> templateInferredPackageUri =
-    const Template<Message Function(Uri uri_)>(
-        problemMessageTemplate:
-            r"""Interpreting this as package URI, '#uri'.""",
-        withArguments: _withArgumentsInferredPackageUri);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_)> codeInferredPackageUri =
-    const Code<Message Function(Uri uri_)>("InferredPackageUri",
-        severity: Severity.warning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInferredPackageUri(Uri uri_) {
-  String? uri = relativizeUri(uri_);
-  return new Message(codeInferredPackageUri,
-      problemMessage: """Interpreting this as package URI, '${uri}'.""",
-      arguments: {'uri': uri_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5401,6 +5766,33 @@ Message _withArgumentsInputFileNotFound(Uri uri_) {
   return new Message(codeInputFileNotFound,
       problemMessage: """Input file not found: ${uri}.""",
       arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInstanceAndSynthesizedStaticConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""This instance member conflicts with the synthesized static member called '#name'.""",
+    withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInstanceAndSynthesizedStaticConflict =
+    const Code<Message Function(String name)>(
+        "InstanceAndSynthesizedStaticConflict",
+        analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstanceAndSynthesizedStaticConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInstanceAndSynthesizedStaticConflict,
+      problemMessage:
+          """This instance member conflicts with the synthesized static member called '${name}'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6013,6 +6405,17 @@ Message _withArgumentsInvalidContinueTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidEscapeStarted = messageInvalidEscapeStarted;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidEscapeStarted = const MessageCode(
+    "InvalidEscapeStarted",
+    index: 126,
+    problemMessage: r"""The string '\' can't stand alone.""",
+    correctionMessage:
+        r"""Try adding another backslash (\) to escape the '\'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateInvalidGetterSetterTypeFieldContext =
     const Template<Message Function(String name)>(
@@ -6337,11 +6740,34 @@ Message _withArgumentsInvalidTypeVariableVariancePositionInReturnType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
+const Code<Null> codeInvalidUnicodeEscapeUBracket =
+    messageInvalidUnicodeEscapeUBracket;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidUnicodeEscape = const MessageCode(
-    "InvalidUnicodeEscape",
+const MessageCode messageInvalidUnicodeEscapeUBracket = const MessageCode(
+    "InvalidUnicodeEscapeUBracket",
+    index: 125,
+    problemMessage:
+        r"""An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUnicodeEscapeUNoBracket =
+    messageInvalidUnicodeEscapeUNoBracket;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUnicodeEscapeUNoBracket = const MessageCode(
+    "InvalidUnicodeEscapeUNoBracket",
+    index: 124,
+    problemMessage:
+        r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUnicodeEscapeUStarted =
+    messageInvalidUnicodeEscapeUStarted;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUnicodeEscapeUStarted = const MessageCode(
+    "InvalidUnicodeEscapeUStarted",
     index: 38,
     problemMessage:
         r"""An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""");
@@ -6482,17 +6908,6 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropIndexNotSupported =
-    messageJsInteropIndexNotSupported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
-    "JsInteropIndexNotSupported",
-    problemMessage:
-        r"""JS interop classes do not support [] and []= operator methods.""",
-    correctionMessage: r"""Try replacing with a normal method.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -6596,6 +7011,16 @@ const MessageCode messageJsInteropNonExternalMember = const MessageCode(
     problemMessage:
         r"""This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
     correctionMessage: r"""Try annotating the member with `external`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropOperatorsNotSupported =
+    messageJsInteropOperatorsNotSupported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
+    "JsInteropOperatorsNotSupported",
+    problemMessage: r"""JS interop classes do not support operator methods.""",
+    correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -6913,6 +7338,34 @@ const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
     analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
     problemMessage: r"""'loadLibrary' takes no arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMacroClassNotDeclaredMacro = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class.""",
+    correctionMessageTemplate: r"""Try adding the 'macro' class modifier.""",
+    withArguments: _withArgumentsMacroClassNotDeclaredMacro);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMacroClassNotDeclaredMacro =
+    const Code<Message Function(String name)>(
+  "MacroClassNotDeclaredMacro",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMacroClassNotDeclaredMacro(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMacroClassNotDeclaredMacro,
+      problemMessage:
+          """Non-abstract class '${name}' implements 'Macro' but isn't declared as a macro class.""",
+      correctionMessage: """Try adding the 'macro' class modifier.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMainNotFunctionDeclaration =
@@ -7353,6 +7806,37 @@ const MessageCode messageMoreThanOneSuperInitializer = const MessageCode(
     problemMessage: r"""Can't have more than one 'super' initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateMultipleClauses = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""Each '#string' definition can have at most one '#string2' clause.""",
+    correctionMessageTemplate:
+        r"""Try combining all of the '#string2' clauses into a single clause.""",
+    withArguments: _withArgumentsMultipleClauses);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeMultipleClauses =
+    const Code<Message Function(String string, String string2)>(
+        "MultipleClauses",
+        index: 121);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMultipleClauses(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeMultipleClauses,
+      problemMessage:
+          """Each '${string}' definition can have at most one '${string2}' clause.""",
+      correctionMessage: """Try combining all of the '${string2}' clauses into a single clause.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7660,6 +8144,46 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationClassMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationClassMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonAugmentationClassMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationClassMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationClassMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationClassMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationClassMemberConflictCause =
+    messageNonAugmentationClassMemberConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationClassMemberConflictCause =
+    const MessageCode("NonAugmentationClassMemberConflictCause",
+        severity: Severity.context,
+        problemMessage: r"""This is the existing member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7706,72 +8230,6 @@ Message _withArgumentsNonNullableNotAssignedError(String name) {
       problemMessage:
           """Non-nullable variable '${name}' must be assigned before it can be used.""",
       arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonNullableOptOutComment = messageNonNullableOptOutComment;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonNullableOptOutComment = const MessageCode(
-    "NonNullableOptOutComment",
-    severity: Severity.context,
-    problemMessage:
-        r"""This is the annotation that opts out this library from null safety features.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateNonNullableOptOutExplicit = const Template<
-        Message Function(String string)>(
-    problemMessageTemplate:
-        r"""Null safety features are disabled for this library.""",
-    correctionMessageTemplate:
-        r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
-    withArguments: _withArgumentsNonNullableOptOutExplicit);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeNonNullableOptOutExplicit =
-    const Code<Message Function(String string)>(
-  "NonNullableOptOutExplicit",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableOptOutExplicit(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeNonNullableOptOutExplicit,
-      problemMessage: """Null safety features are disabled for this library.""",
-      correctionMessage:
-          """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
-      arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateNonNullableOptOutImplicit = const Template<
-        Message Function(String string)>(
-    problemMessageTemplate:
-        r"""Null safety features are disabled for this library.""",
-    correctionMessageTemplate:
-        r"""Try removing the package language version or setting the language version to #string or higher.""",
-    withArguments: _withArgumentsNonNullableOptOutImplicit);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeNonNullableOptOutImplicit =
-    const Code<Message Function(String string)>(
-  "NonNullableOptOutImplicit",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableOptOutImplicit(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeNonNullableOptOutImplicit,
-      problemMessage: """Null safety features are disabled for this library.""",
-      correctionMessage:
-          """Try removing the package language version or setting the language version to ${string} or higher.""",
-      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7989,6 +8447,96 @@ const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
         r"""The '?..' cascade operator must be first in the cascade sequence.""",
     correctionMessage:
         r"""Try moving the '?..' operator to be the first cascade operator in the sequence.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateNullSafetyDisabledInvalidLanguageVersion =
+    const Template<Message Function(String string2)>(
+        problemMessageTemplate:
+            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+        withArguments: _withArgumentsNullSafetyDisabledInvalidLanguageVersion);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeNullSafetyDisabledInvalidLanguageVersion =
+    const Code<Message Function(String string2)>(
+        "NullSafetyDisabledInvalidLanguageVersion",
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullSafetyDisabledInvalidLanguageVersion(String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeNullSafetyDisabledInvalidLanguageVersion,
+      problemMessage:
+          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
+      arguments: {'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNullSafetyOptOutComment = messageNullSafetyOptOutComment;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNullSafetyOptOutComment = const MessageCode(
+    "NullSafetyOptOutComment",
+    severity: Severity.context,
+    problemMessage:
+        r"""This is the annotation that opts out this library from null safety features.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateNullSafetyOptOutExplicit = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""Null safety features are disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
+    withArguments: _withArgumentsNullSafetyOptOutExplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNullSafetyOptOutExplicit =
+    const Code<Message Function(String string)>(
+  "NullSafetyOptOutExplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullSafetyOptOutExplicit(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeNullSafetyOptOutExplicit,
+      problemMessage: """Null safety features are disabled for this library.""",
+      correctionMessage:
+          """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateNullSafetyOptOutImplicit = const Template<
+        Message Function(String string)>(
+    problemMessageTemplate:
+        r"""Null safety features are disabled for this library.""",
+    correctionMessageTemplate:
+        r"""Try removing the package language version or setting the language version to #string or higher.""",
+    withArguments: _withArgumentsNullSafetyOptOutImplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNullSafetyOptOutImplicit =
+    const Code<Message Function(String string)>(
+  "NullSafetyOptOutImplicit",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullSafetyOptOutImplicit(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeNullSafetyOptOutImplicit,
+      problemMessage: """Null safety features are disabled for this library.""",
+      correctionMessage:
+          """Try removing the package language version or setting the language version to ${string} or higher.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableInterfaceError =
@@ -8244,6 +8792,37 @@ const MessageCode messageOperatorWithTypeParameters = const MessageCode(
     problemMessage:
         r"""Types parameters aren't allowed when defining an operator.""",
     correctionMessage: r"""Try removing the type parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateOutOfOrderClauses = const Template<
+        Message Function(String string, String string2)>(
+    problemMessageTemplate:
+        r"""The '#string' clause must come before the '#string2' clause.""",
+    correctionMessageTemplate:
+        r"""Try moving the '#string' clause before the '#string2' clause.""",
+    withArguments: _withArgumentsOutOfOrderClauses);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeOutOfOrderClauses =
+    const Code<Message Function(String string, String string2)>(
+        "OutOfOrderClauses",
+        index: 122);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOutOfOrderClauses(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeOutOfOrderClauses,
+      problemMessage:
+          """The '${string}' clause must come before the '${string2}' clause.""",
+      correctionMessage: """Try moving the '${string}' clause before the '${string2}' clause.""",
+      arguments: {'string': string, 'string2': string2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
@@ -9462,6 +10041,17 @@ const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
     correctionMessage: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperParameterInitializerOutsideConstructor =
+    messageSuperParameterInitializerOutsideConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperParameterInitializerOutsideConstructor =
+    const MessageCode("SuperParameterInitializerOutsideConstructor",
+        problemMessage:
+            r"""Super-initializer formal parameters can only be used in generative constructors.""",
+        correctionMessage: r"""Try removing 'super.'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateSuperclassHasNoConstructor =
     const Template<Message Function(String name)>(
@@ -10197,6 +10787,44 @@ Message _withArgumentsUnexpectedToken(Token token) {
   return new Message(codeUnexpectedToken,
       problemMessage: """Unexpected token '${lexeme}'.""",
       arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedTokens = messageUnexpectedTokens;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedTokens = const MessageCode(
+    "UnexpectedTokens",
+    index: 123,
+    problemMessage: r"""Unexpected tokens.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationClassMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation member '#name' doesn't match a member in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationClassMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationClassMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationClassMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationClassMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationClassMember,
+      problemMessage:
+          """Augmentation member '${name}' doesn't match a member in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -25,6 +25,7 @@ DART="$BIN_DIR/dart"
 unset EXTRA_OPTIONS
 declare -a EXTRA_OPTIONS
 
+EXTRA_OPTIONS+=('--invoker=development_script')
 if test -t 1; then
   # Stdout is a terminal.
   if test 8 -le `tput colors`; then

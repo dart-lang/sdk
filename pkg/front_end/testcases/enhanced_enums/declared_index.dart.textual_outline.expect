@@ -1,0 +1,82 @@
+enum E1 {
+  element;
+
+  int get index => 42;
+}
+
+enum E2 {
+  element;
+
+  String get index => "foo";
+}
+
+enum E3 {
+  element;
+
+  final int index = 42;
+}
+
+enum E4 {
+  element;
+
+  List<String> index() => [];
+}
+
+enum E5 {
+  element;
+
+  Never get index => throw 42;
+}
+
+enum E6 {
+  element;
+
+  final int foo = 0, index = 1, bar = 2;
+}
+
+enum E7 {
+  element;
+
+  void set index(int value) {}
+  int get index;
+}
+
+enum E8 {
+  element;
+
+  void set index(String value) {}
+}
+
+enum E9 {
+  element;
+
+  double get index;
+}
+
+enum E10 {
+  element;
+
+  static int get index => 42;
+}
+
+enum E11 {
+  element;
+
+  static void set index(int value) {}
+}
+
+enum E12 { index }
+
+abstract class I13 {
+  int get index;
+}
+
+enum E13 implements I13 { element }
+
+abstract class I14 {
+  Never get index;
+}
+
+enum E14 implements I14 { element }
+
+main() {}

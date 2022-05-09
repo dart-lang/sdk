@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method main() → dynamic async 
+  ;
+static method returnsString() → asy::Future<core::String> async 
+  ;
+static method returnsFutureOrString() → asy::Future<core::String> async 
+  ;
+static method returnsAwaitFutureOrString() → asy::Future<core::String> async 
+  ;
+static method returnsFutureString() → asy::Future<core::String> async 
+  ;
+static method returnsAwaitFutureString() → FutureOr<core::String> async 
+  ;
+static method returnsObject() → asy::Future<core::Object> async 
+  ;
+static method returnsFutureOrObject() → asy::Future<core::Object> async 
+  ;
+static method returnsAwaitFutureOrObject() → asy::Future<core::Object> async 
+  ;
+static method returnsFutureObject() → asy::Future<core::Object> async 
+  ;
+static method returnsAwaitFutureObject() → FutureOr<core::Object> async 
+  ;
+static method getFutureOr<T extends core::Object? = dynamic>(self::getFutureOr::T% v) → FutureOr<self::getFutureOr::T%> async 
+  ;
+static method getFuture<T extends core::Object? = dynamic>(self::getFuture::T% v) → asy::Future<self::getFuture::T%> async 
+  ;

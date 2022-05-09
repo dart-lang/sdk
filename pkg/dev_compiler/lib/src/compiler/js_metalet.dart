@@ -322,10 +322,10 @@ class MetaLetVariable extends InterpolatedExpression {
   /// Compute fresh IDs to avoid
   static int _uniqueId = 0;
 
-  MetaLetVariable(this.displayName) : super(displayName + '@${++_uniqueId}');
+  MetaLetVariable(this.displayName) : super('$displayName@${++_uniqueId}');
 }
 
-class _VariableUseCounter extends BaseVisitor<void> {
+class _VariableUseCounter extends BaseVisitorVoid {
   final counts = <MetaLetVariable, int>{};
   @override
   void visitInterpolatedExpression(InterpolatedExpression node) {
@@ -336,7 +336,7 @@ class _VariableUseCounter extends BaseVisitor<void> {
   }
 }
 
-class _IdentFinder extends BaseVisitor<void> {
+class _IdentFinder extends BaseVisitorVoid {
   final String name;
   bool found = false;
   _IdentFinder(this.name);

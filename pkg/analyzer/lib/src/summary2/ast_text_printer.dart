@@ -142,7 +142,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _compilationUnitMember(node);
     _token(node.abstractKeyword);
     _token(node.macroKeyword);
@@ -159,7 +159,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     _compilationUnitMember(node);
     _token(node.abstractKeyword);
     _token(node.macroKeyword);
@@ -167,7 +167,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name.accept(this);
     node.typeParameters?.accept(this);
     _token(node.equals);
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     _token(node.semicolon);
@@ -231,7 +231,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type2.accept(this);
+    node.type.accept(this);
     _token(node.period);
     node.name?.accept(this);
   }
@@ -239,6 +239,12 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitConstructorReference(ConstructorReference node) {
     node.constructorName.accept(this);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _token(node.period);
+    node.name.accept(this);
   }
 
   @override
@@ -296,9 +302,17 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    node.typeArguments?.accept(this);
+    node.constructorSelector?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _declaration(node);
     node.name.accept(this);
+    node.arguments?.accept(this);
   }
 
   @override
@@ -306,8 +320,13 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _compilationUnitMember(node);
     _token(node.enumKeyword);
     node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
     _token(node.leftBracket);
-    _nodeList(node.constants, node.rightBracket);
+    _nodeList(node.constants, node.semicolon ?? node.rightBracket);
+    _token(node.semicolon);
+    node.members.accept(this);
     _token(node.rightBracket);
   }
 
@@ -338,7 +357,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     _token(node.extendsKeyword);
-    node.superclass2.accept(this);
+    node.superclass.accept(this);
   }
 
   @override
@@ -572,7 +591,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     _token(node.implementsKeyword);
-    _nodeList(node.interfaces2, node.endToken.next);
+    _nodeList(node.interfaces, node.endToken.next);
   }
 
   @override
@@ -740,7 +759,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     _token(node.onKeyword);
-    _nodeList(node.superclassConstraints2, node.endToken.next);
+    _nodeList(node.superclassConstraints, node.endToken.next);
   }
 
   @override
@@ -877,6 +896,18 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _normalFormalParameter(node);
+    _token(node.keyword);
+    node.type?.accept(this);
+    _token(node.superKeyword);
+    _token(node.period);
+    node.identifier.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _nodeList(node.labels);
     _token(node.keyword);
@@ -1005,7 +1036,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     _token(node.withKeyword);
-    _nodeList(node.mixinTypes2, node.endToken.next);
+    _nodeList(node.mixinTypes, node.endToken.next);
   }
 
   @override

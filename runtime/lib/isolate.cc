@@ -184,6 +184,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   bool error_found = false;
   Function& erroneous_closure_function = Function::Handle(zone);
   Class& erroneous_nativewrapper_class = Class::Handle(zone);
+  Class& erroneous_finalizable_class = Class::Handle(zone);
   const char* error_message = nullptr;
 
   {
@@ -242,6 +243,9 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     break;
 
           MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          // TODO(http://dartbug.com/47777): Send and exit support: remove this.
+          MESSAGE_SNAPSHOT_ILLEGAL(Finalizer);
+          MESSAGE_SNAPSHOT_ILLEGAL(NativeFinalizer);
           MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
           MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
           MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
@@ -252,6 +256,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
             klass = class_table->At(cid);
             if (klass.num_native_fields() != 0) {
               erroneous_nativewrapper_class = klass.ptr();
+              error_found = true;
+              break;
+            }
+            if (klass.implements_finalizable()) {
+              erroneous_finalizable_class = klass.ptr();
               error_found = true;
               break;
             }
@@ -269,13 +278,18 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
                                       "Illegal argument in isolate message"
                                       " : (object is a closure - %s)",
                                       erroneous_closure_function.ToCString());
-    } else {
-      ASSERT(!erroneous_nativewrapper_class.IsNull());
+    } else if (!erroneous_nativewrapper_class.IsNull()) {
       exception_message =
           OS::SCreate(zone,
                       "Illegal argument in isolate message"
                       " : (object extends NativeWrapper - %s)",
                       erroneous_nativewrapper_class.ToCString());
+    } else {
+      ASSERT(!erroneous_finalizable_class.IsNull());
+      exception_message = OS::SCreate(zone,
+                                      "Illegal argument in isolate message"
+                                      " : (object implements Finalizable - %s)",
+                                      erroneous_finalizable_class.ToCString());
     }
     return Exceptions::CreateUnhandledException(
         zone, Exceptions::kArgumentValue, exception_message);
@@ -284,6 +298,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   return obj.ptr();
 }
 
+// TODO(http://dartbug.com/47777): Add support for Finalizers.
 DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   if (!port.IsNull()) {
@@ -330,7 +345,6 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     Dart_Port origin_id,
                     const char* script_url,
-                    const Function& func,
                     PersistentHandle* closure_tuple_handle,
                     SerializedObjectBuffer* message_buffer,
                     const char* package_config,
@@ -415,7 +429,6 @@ static const char* NewConstChar(const char* chars) {
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port origin_id,
                                      const char* script_url,
-                                     const Function& func,
                                      PersistentHandle* closure_tuple_handle,
                                      SerializedObjectBuffer* message_buffer,
                                      const char* package_config,
@@ -438,29 +451,10 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(message_buffer->StealMessage()),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
-  // Either we have a top-level function or we have a closure.
-  ASSERT((closure_tuple_handle_ != nullptr) == func.IsNull());
+  ASSERT(closure_tuple_handle_ != nullptr);
 
   auto thread = Thread::Current();
   auto isolate = thread->isolate();
-
-  if (!func.IsNull()) {
-    auto zone = thread->zone();
-    const auto& cls = Class::Handle(zone, func.Owner());
-    const auto& lib = Library::Handle(zone, cls.library());
-    const auto& lib_url = String::Handle(zone, lib.url());
-    library_url_ = NewConstChar(lib_url.ToCString());
-
-    String& func_name = String::Handle(zone);
-    func_name = func.name();
-    function_name_ = NewConstChar(String::ScrubName(func_name));
-    if (!cls.IsTopLevel()) {
-      const auto& class_name = String::Handle(zone, cls.Name());
-      class_name_ = NewConstChar(class_name.ToCString());
-    }
-  } else {
-    ASSERT(closure_tuple_handle != nullptr);
-  }
 
   // Inherit flags from spawning isolate.
   isolate->FlagsCopyTo(isolate_flags());
@@ -659,9 +653,10 @@ class SpawnIsolateTask : public ThreadPool::Task {
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
     api_flags.is_system_isolate = false;
-    Dart_Isolate isolate = (create_group_callback)(
-        state_->script_url(), name, nullptr, state_->package_config(),
-        &api_flags, parent_isolate_->init_callback_data(), &error);
+    Dart_Isolate isolate =
+        (create_group_callback)(state_->script_url(), name, nullptr,
+                                state_->package_config(), &api_flags,
+                                parent_isolate_->init_callback_data(), &error);
     parent_isolate_->DecrementSpawnCount();
     parent_isolate_ = nullptr;
 
@@ -679,7 +674,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     auto initialize_callback = Isolate::InitializeCallback();
     if (initialize_callback == nullptr) {
       FailedSpawn(
-          "Lightweight isolate spawn is not supported by this Dart embedder\n");
+          "Lightweight isolate spawn is not supported by this Dart embedder\n",
+          /*has_current_isolate=*/false);
       return;
     }
 
@@ -908,19 +904,6 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-static FunctionPtr GetTopLevelFunction(Zone* zone, const Instance& closure) {
-  if (closure.IsClosure()) {
-    auto& func = Function::Handle(zone);
-    func = Closure::Cast(closure).function();
-    if (func.IsImplicitClosureFunction() && func.is_static()) {
-      ASSERT(Closure::Cast(closure).context() == Context::null());
-      // Get the parent function so that we get the right function name.
-      return func.parent_function();
-    }
-  }
-  return Function::null();
-}
-
 DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
@@ -933,20 +916,17 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
   GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(9));
 
-  const auto& func = Function::Handle(zone, GetTopLevelFunction(zone, closure));
   PersistentHandle* closure_tuple_handle = nullptr;
-  if (func.IsNull()) {
-    // We have a non-toplevel closure that we might need to copy.
-    // Result will be [<closure-copy>, <objects-in-msg-to-rehash>]
-    const auto& closure_copy_tuple = Object::Handle(
-        zone, CopyMutableObjectGraph(closure));  // Throws if it fails.
-    ASSERT(closure_copy_tuple.IsArray());
-    ASSERT(Object::Handle(zone, Array::Cast(closure_copy_tuple).At(0))
-               .IsClosure());
-    closure_tuple_handle =
-        isolate->group()->api_state()->AllocatePersistentHandle();
-    closure_tuple_handle->set_ptr(closure_copy_tuple.ptr());
-  }
+  // We have a non-toplevel closure that we might need to copy.
+  // Result will be [<closure-copy>, <objects-in-msg-to-rehash>]
+  const auto& closure_copy_tuple = Object::Handle(
+      zone, CopyMutableObjectGraph(closure));  // Throws if it fails.
+  ASSERT(closure_copy_tuple.IsArray());
+  ASSERT(
+      Object::Handle(zone, Array::Cast(closure_copy_tuple).At(0)).IsClosure());
+  closure_tuple_handle =
+      isolate->group()->api_state()->AllocatePersistentHandle();
+  closure_tuple_handle->set_ptr(closure_copy_tuple.ptr());
 
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
@@ -964,15 +944,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   const char* utf8_debug_name =
       debugName.IsNull() ? NULL : String2UTF8(debugName);
   if (closure_tuple_handle != nullptr && utf8_debug_name == nullptr) {
-    ASSERT(func.IsNull());
-
     const auto& closure_function = Function::Handle(zone, closure.function());
     utf8_debug_name =
         NewConstChar(closure_function.QualifiedUserVisibleNameCString());
   }
 
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
-      port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
+      port.Id(), isolate->origin_id(), String2UTF8(script_uri),
       closure_tuple_handle, &message_buffer, utf8_package_config,
       paused.value(), fatal_errors, on_exit_port, on_error_port,
       utf8_debug_name, isolate->group()));
@@ -1108,6 +1086,62 @@ DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0, 0) {
   const Library& root_lib =
       Library::Handle(zone, isolate->group()->object_store()->root_library());
   return root_lib.url();
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_registerKernelBlob, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedData, kernel_blob,
+                               arguments->NativeArgAt(0));
+  auto register_kernel_blob_callback = Isolate::RegisterKernelBlobCallback();
+  if (register_kernel_blob_callback == nullptr) {
+    const auto& error =
+        String::Handle(zone, String::New("Registration of kernel blobs is not "
+                                         "supported by this Dart embedder.\n"));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+  bool is_kernel = false;
+  {
+    NoSafepointScope no_safepoint;
+    is_kernel =
+        Dart_IsKernel(reinterpret_cast<uint8_t*>(kernel_blob.DataAddr(0)),
+                      kernel_blob.LengthInBytes());
+  }
+  if (!is_kernel) {
+    const auto& error = String::Handle(
+        zone, String::New("kernelBlob doesn\'t contain a valid kernel.\n"));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+  const char* uri = nullptr;
+  {
+    NoSafepointScope no_safepoint;
+    uri = register_kernel_blob_callback(
+        reinterpret_cast<uint8_t*>(kernel_blob.DataAddr(0)),
+        kernel_blob.LengthInBytes());
+  }
+  if (uri == nullptr) {
+    const Instance& exception = Instance::Handle(
+        thread->isolate_group()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+  return String::New(uri);
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_unregisterKernelBlob, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, kernel_blob_uri,
+                               arguments->NativeArgAt(0));
+  auto unregister_kernel_blob_callback =
+      Isolate::UnregisterKernelBlobCallback();
+  if (unregister_kernel_blob_callback == nullptr) {
+    const auto& error =
+        String::Handle(zone, String::New("Registration of kernel blobs is not "
+                                         "supported by this Dart embedder.\n"));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+  unregister_kernel_blob_callback(kernel_blob_uri.ToCString());
+  return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {

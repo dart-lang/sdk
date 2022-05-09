@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = #C9;
+  final field core::String field;
+  static const field self::E one = #C4;
+  static const field self::E two = #C8;
+  const constructor •(core::int index, core::String name, core::String field) → self::E
+    : self::E::field = field, super core::_Enum::•(index, name)
+    ;
+  @#C10
+  method toString() → core::String
+    return this.{self::E::field}{core::String};
+}
+static method expectEquals(dynamic a, dynamic b) → dynamic {
+  if(!(a =={core::Object::==}{(core::Object) → core::bool} b)) {
+    throw "Expected '${a}' and '${b}' to be equal.";
+  }
+}
+static method main() → dynamic {
+  self::expectEquals("${#C4}", "foo");
+  self::expectEquals("${#C8}", "bar");
+}
+
+constants  {
+  #C1 = "foo"
+  #C2 = 0
+  #C3 = "one"
+  #C4 = self::E {field:#C1, index:#C2, _name:#C3}
+  #C5 = "bar"
+  #C6 = 1
+  #C7 = "two"
+  #C8 = self::E {field:#C5, index:#C6, _name:#C7}
+  #C9 = <self::E*>[#C4, #C8]
+  #C10 = core::_Override {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue48084.dart:
+- E. (from org-dartlang-testcase:///issue48084.dart:11:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

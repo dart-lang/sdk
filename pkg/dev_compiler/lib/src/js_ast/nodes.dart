@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+// ignore_for_file: always_declare_return_types
+// ignore_for_file: omit_local_variable_types
+// ignore_for_file: prefer_single_quotes
+// ignore_for_file: unnecessary_this
 
-// ignore_for_file: always_declare_return_types, prefer_final_fields
-// ignore_for_file: always_require_non_null_named_parameters
-// ignore_for_file: omit_local_variable_types, unnecessary_this
-// ignore_for_file: prefer_initializing_formals
-// ignore_for_file: slash_for_doc_comments, prefer_single_quotes
+library js_ast.nodes;
 
-part of js_ast;
+import 'precedence.dart';
+import 'printer.dart';
 
 abstract class NodeVisitor<T> {
   T visitProgram(Program node);
@@ -32,7 +32,8 @@ abstract class NodeVisitor<T> {
   T visitTry(Try node);
   T visitCatch(Catch node);
   T visitSwitch(Switch node);
-  T visitSwitchCase(SwitchCase node);
+  T visitCase(Case node);
+  T visitDefault(Default node);
   T visitFunctionDeclaration(FunctionDeclaration node);
   T visitLabeledStatement(LabeledStatement node);
   T visitLiteralStatement(LiteralStatement node);
@@ -84,7 +85,6 @@ abstract class NodeVisitor<T> {
   T visitExportDeclaration(ExportDeclaration node);
   T visitExportClause(ExportClause node);
   T visitNameSpecifier(NameSpecifier node);
-  T visitModule(Module node);
 
   T visitComment(Comment node);
   T visitCommentExpression(CommentExpression node);
@@ -103,12 +103,8 @@ abstract class NodeVisitor<T> {
   T visitSimpleBindingPattern(SimpleBindingPattern node);
 }
 
-class BaseVisitor<T> implements NodeVisitor<T> {
-  T visitNode(Node node) {
-    node.visitChildren(this);
-    return null;
-  }
-
+abstract class BaseVisitor<T> implements NodeVisitor<T> {
+  T visitNode(Node node);
   @override
   T visitProgram(Program node) => visitNode(node);
 
@@ -158,7 +154,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   @override
   T visitCatch(Catch node) => visitNode(node);
   @override
-  T visitSwitchCase(SwitchCase node) => visitNode(node);
+  T visitCase(Case node) => visitNode(node);
+  @override
+  T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
 
@@ -252,8 +250,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitExportClause(ExportClause node) => visitNode(node);
   @override
   T visitNameSpecifier(NameSpecifier node) => visitNode(node);
-  @override
-  T visitModule(Module node) => visitNode(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
@@ -279,11 +275,10 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitInterpolatedIdentifier(InterpolatedIdentifier node) =>
       visitInterpolatedNode(node);
 
-  // Ignore comments by default.
   @override
-  T visitComment(Comment node) => null;
+  T visitComment(Comment node);
   @override
-  T visitCommentExpression(CommentExpression node) => null;
+  T visitCommentExpression(CommentExpression node);
 
   @override
   T visitAwait(Await node) => visitExpression(node);
@@ -303,20 +298,35 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitSimpleBindingPattern(SimpleBindingPattern node) => visitNode(node);
 }
 
+class BaseVisitorVoid extends BaseVisitor<void> {
+  @override
+  void visitNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  // Ignore comments by default.
+  @override
+  void visitComment(Comment node) {}
+  @override
+  void visitCommentExpression(CommentExpression node) {}
+}
+
 abstract class Node {
   /// Sets the source location of this node. For performance reasons, we allow
   /// setting this after construction.
-  Object sourceInformation;
+  Object? sourceInformation;
 
   T accept<T>(NodeVisitor<T> visitor);
   void visitChildren(NodeVisitor visitor);
 
-  // Shallow clone of node.  Does not clone positions since the only use of this
-  // private method is create a copy with a new position.
+  /// Shallow clone of node.
+  ///
+  /// Does not clone positions since the only use of this private method is
+  /// create a copy with a new position.
   Node _clone();
 
-  // Returns a node equivalent to [this], but with new source position and end
-  // source position.
+  /// Returns a node equivalent to [this], but with new source position and end
+  /// source position.
   Node withSourceInformation(sourceInformation) {
     if (sourceInformation == this.sourceInformation) {
       return this;
@@ -352,8 +362,8 @@ abstract class Node {
 
 // TODO(jmesserly): rename to Module.
 class Program extends Node {
-  /// Script tag hash-bang, e.g. `#!/usr/bin/env node`
-  final String scriptTag;
+  /// Script tag hash-bang, e.g. `#!/usr/bin/env node`.
+  final String? scriptTag;
 
   /// Top-level statements in the program.
   final List<ModuleItem> body;
@@ -361,7 +371,7 @@ class Program extends Node {
   /// The module's own name.
   ///
   /// This is not used in ES6, but is provided to allow module lowering.
-  final String name;
+  final String? name;
 
   Program(this.body, {this.scriptTag, this.name});
 
@@ -395,7 +405,7 @@ abstract class Statement extends ModuleItem {
   /// JavaScript syntax error due to a redeclared identifier.
   bool shadows(Set<String> names) => false;
 
-  /// Whether this statement would always `return` if used as a funtion body.
+  /// Whether this statement would always `return` if used as a function body.
   ///
   /// This is only well defined on the outermost block; it cannot be used for a
   /// block inside of a loop (because of `break` and `continue`).
@@ -421,9 +431,8 @@ class Block extends Statement {
   /// True to preserve this [Block] for scoping reasons.
   final bool isScope;
 
-  Block(this.statements, {this.isScope = false}) {
-    assert(statements.every((s) => s is Statement));
-  }
+  Block(this.statements, {this.isScope = false});
+
   Block.empty()
       : statements = <Statement>[],
         isScope = false;
@@ -498,13 +507,13 @@ class If extends Statement {
   final Statement otherwise;
 
   If(this.condition, this.then, this.otherwise);
-  If.noElse(this.condition, this.then) : this.otherwise = null;
+  If.noElse(this.condition, this.then) : this.otherwise = EmptyStatement();
 
   @override
   bool get alwaysReturns =>
       hasElse && then.alwaysReturns && otherwise.alwaysReturns;
 
-  bool get hasElse => otherwise != null;
+  bool get hasElse => otherwise is! EmptyStatement;
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitIf(this);
@@ -513,7 +522,7 @@ class If extends Statement {
   void visitChildren(NodeVisitor visitor) {
     condition.accept(visitor);
     then.accept(visitor);
-    if (otherwise != null) otherwise.accept(visitor);
+    otherwise.accept(visitor);
   }
 
   @override
@@ -526,9 +535,9 @@ abstract class Loop extends Statement {
 }
 
 class For extends Loop {
-  final Expression init;
-  final Expression condition;
-  final Expression update;
+  final Expression? init;
+  final Expression? condition;
+  final Expression? update;
 
   For(this.init, this.condition, this.update, Statement body) : super(body);
 
@@ -537,9 +546,9 @@ class For extends Loop {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (init != null) init.accept(visitor);
-    if (condition != null) condition.accept(visitor);
-    if (update != null) update.accept(visitor);
+    init?.accept(visitor);
+    condition?.accept(visitor);
+    update?.accept(visitor);
     body.accept(visitor);
   }
 
@@ -628,7 +637,8 @@ class Do extends Loop {
 }
 
 class Continue extends Statement {
-  final String targetLabel; // Can be null.
+  /// Name of the label L for `continue L;` or `null` for `continue;`.
+  final String? targetLabel;
 
   Continue(this.targetLabel);
 
@@ -642,7 +652,8 @@ class Continue extends Statement {
 }
 
 class Break extends Statement {
-  final String targetLabel; // Can be null.
+  /// Name of the label L for `break L;` or `null` for `break;`.
+  final String? targetLabel;
 
   Break(this.targetLabel);
 
@@ -656,7 +667,7 @@ class Break extends Statement {
 }
 
 class Return extends Statement {
-  final Expression value; // Can be null.
+  final Expression? value;
 
   Return([this.value]);
 
@@ -671,7 +682,7 @@ class Return extends Statement {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
@@ -686,7 +697,7 @@ class Return extends Statement {
 
 final _returnFinder = _ReturnFinder();
 
-class _ReturnFinder extends BaseVisitor {
+class _ReturnFinder extends BaseVisitorVoid {
   bool found = false;
   @override
   visitReturn(Return node) {
@@ -718,8 +729,8 @@ class Throw extends Statement {
 
 class Try extends Statement {
   final Block body;
-  final Catch catchPart; // Can be null if [finallyPart] is non-null.
-  final Block finallyPart; // Can be null if [catchPart] is non-null.
+  final Catch? catchPart; // Can be null if [finallyPart] is non-null.
+  final Block? finallyPart; // Can be null if [catchPart] is non-null.
 
   Try(this.body, this.catchPart, this.finallyPart) {
     assert(catchPart != null || finallyPart != null);
@@ -731,8 +742,8 @@ class Try extends Statement {
   @override
   void visitChildren(NodeVisitor visitor) {
     body.accept(visitor);
-    if (catchPart != null) catchPart.accept(visitor);
-    if (finallyPart != null) finallyPart.accept(visitor);
+    catchPart?.accept(visitor);
+    finallyPart?.accept(visitor);
   }
 
   @override
@@ -760,7 +771,7 @@ class Catch extends Node {
 
 class Switch extends Statement {
   final Expression key;
-  final List<SwitchCase> cases;
+  final List<SwitchClause> cases;
 
   Switch(this.key, this.cases);
 
@@ -779,26 +790,43 @@ class Switch extends Statement {
   Switch _clone() => Switch(key, cases);
 }
 
-class SwitchCase extends Node {
-  final Expression expression;
+abstract class SwitchClause extends Node {
   final Block body;
 
-  SwitchCase(this.expression, this.body);
-  SwitchCase.defaultCase(this.body) : expression = null;
+  SwitchClause(this.body);
+}
 
-  bool get isDefault => expression == null;
+class Case extends SwitchClause {
+  final Expression expression;
+
+  Case(this.expression, Block body) : super(body);
 
   @override
-  T accept<T>(NodeVisitor<T> visitor) => visitor.visitSwitchCase(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitCase(this);
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    expression?.accept(visitor);
+    expression.accept(visitor);
     body.accept(visitor);
   }
 
   @override
-  SwitchCase _clone() => SwitchCase(expression, body);
+  Case _clone() => Case(expression, body);
+}
+
+class Default extends SwitchClause {
+  Default(Block body) : super(body);
+
+  @override
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitDefault(this);
+
+  @override
+  void visitChildren(NodeVisitor visitor) {
+    body.accept(visitor);
+  }
+
+  @override
+  Default _clone() => Default(body);
 }
 
 class FunctionDeclaration extends Statement {
@@ -852,8 +880,8 @@ class LiteralStatement extends Statement {
   LiteralStatement _clone() => LiteralStatement(code);
 }
 
-// Not a real JavaScript node, but represents the yield statement from a dart
-// program translated to JavaScript.
+/// Not a real JavaScript node, but represents the yield statement from a dart
+/// program translated to JavaScript.
 class DartYield extends Statement {
   final Expression expression;
 
@@ -877,11 +905,11 @@ abstract class Expression extends Node {
   Expression();
 
   factory Expression.binary(List<Expression> exprs, String op) {
-    Expression comma;
+    Expression? comma;
     for (var node in exprs) {
       comma = (comma == null) ? node : Binary(op, comma, node);
     }
-    return comma;
+    return comma!;
   }
 
   int get precedenceLevel;
@@ -896,7 +924,7 @@ abstract class Expression extends Node {
       ExpressionStatement(Yield(this, star: star));
 
   Expression toVoidExpression() => this;
-  Expression toAssignExpression(Expression left, [String op]) =>
+  Expression toAssignExpression(Expression left, [String? op]) =>
       Assignment.compound(left, op, this);
 
   // TODO(jmesserly): make this work for more cases?
@@ -924,16 +952,13 @@ class LiteralExpression extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * [VariableDeclarationList] is a subclass of [Expression] to simplify the
- * AST.
- */
+/// [VariableDeclarationList] is a subclass of [Expression] to simplify the AST.
 class VariableDeclarationList extends Expression {
-  /**
-   * The `var` or `let` or `const` keyword used for this variable declaration
-   * list.
-   */
-  final String keyword;
+  /// The `var` or `let` or `const` keyword used for this variable declaration
+  /// list.
+  ///
+  /// Can be null in the case of non-static field declarations.
+  final String? keyword;
   final List<VariableInitialization> declarations;
 
   VariableDeclarationList(this.keyword, this.declarations);
@@ -970,10 +995,12 @@ class VariableDeclarationList extends Expression {
 
 class Assignment extends Expression {
   final Expression leftHandSide;
-  final String op; // Null, if the assignment is not compound.
+  final String? op; // `null` if the assignment is not compound.
   final Expression value;
 
   Assignment(this.leftHandSide, this.value) : op = null;
+
+  // If `this.op == null` this will be a non-compound assignment.
   Assignment.compound(this.leftHandSide, this.op, this.value);
 
   @override
@@ -987,7 +1014,7 @@ class Assignment extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     leftHandSide.accept(visitor);
-    if (value != null) value.accept(visitor);
+    value.accept(visitor);
   }
 
   @override
@@ -996,9 +1023,9 @@ class Assignment extends Expression {
 
 class VariableInitialization extends Expression {
   final VariableBinding declaration;
-  final Expression value; // May be null.
+  // The initializing value can be missing, e.g. for `a` in `var a, b=1;`.
+  final Expression? value;
 
-  /// [value] may be null.
   VariableInitialization(this.declaration, this.value);
 
   @override
@@ -1014,7 +1041,7 @@ class VariableInitialization extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     declaration.accept(visitor);
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 }
 
@@ -1030,27 +1057,23 @@ abstract class VariableBinding extends Expression {
 class DestructuredVariable extends Expression implements Parameter {
   final Identifier name;
 
-  /// The proprety in an object binding pattern, for example:
+  /// The property in an object binding pattern, for example:
   ///
   ///     let key = 'z';
   ///     let {[key]: foo} = {z: 'bar'};
   ///     console.log(foo); // "bar"
   ///
   // TODO(jmesserly): parser does not support this feature.
-  final Expression property;
-
-  final BindingPattern structure;
-  final Expression defaultValue;
+  final Expression? property;
+  final BindingPattern? structure;
+  final Expression? defaultValue;
 
   DestructuredVariable(
-      {this.name, this.property, this.structure, this.defaultValue}) {
-    assert(name != null || structure != null);
-  }
+      {required this.name, this.property, this.structure, this.defaultValue});
 
   @override
   bool shadows(Set<String> names) {
-    return (name?.shadows(names) ?? false) ||
-        (structure?.shadows(names) ?? false);
+    return name.shadows(names) || (structure?.shadows(names) ?? false);
   }
 
   @override
@@ -1058,7 +1081,7 @@ class DestructuredVariable extends Expression implements Parameter {
       visitor.visitDestructuredVariable(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    name?.accept(visitor);
+    name.accept(visitor);
     structure?.accept(visitor);
     defaultValue?.accept(visitor);
   }
@@ -1098,9 +1121,7 @@ abstract class BindingPattern extends Expression implements VariableBinding {
 
 class SimpleBindingPattern extends BindingPattern {
   final Identifier name;
-  SimpleBindingPattern(Identifier name)
-      : name = name,
-        super([DestructuredVariable(name: name)]);
+  SimpleBindingPattern(this.name) : super([DestructuredVariable(name: name)]);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) =>
@@ -1334,9 +1355,9 @@ class Prefix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-// SpreadElement isn't really a prefix expression, as it can only appear in
-// certain places such as ArgumentList and BindingPattern, but we pretend
-// it is for simplicity's sake.
+/// SpreadElement isn't really a prefix expression, as it can only appear in
+/// certain places such as ArgumentList and BindingPattern, but we pretend
+/// it is for simplicity's sake.
 class Spread extends Prefix {
   Spread(Expression operand) : super('...', operand);
 
@@ -1380,7 +1401,7 @@ class Identifier extends Expression implements Parameter {
       throw ArgumentError.value(name, "name", "not a valid identifier");
     }
   }
-  static RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
+  static final RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
   @override
   bool shadows(Set<String> names) => names.contains(name);
@@ -1397,7 +1418,7 @@ class Identifier extends Expression implements Parameter {
   void visitChildren(NodeVisitor visitor) {}
 }
 
-// This is an expression for convenience in the AST.
+/// This is an expression for convenience in the AST.
 class RestParameter extends Expression implements Parameter {
   final Identifier parameter;
 
@@ -1432,8 +1453,8 @@ class This extends Expression {
   void visitChildren(NodeVisitor visitor) {}
 }
 
-// `super` is more restricted in the ES6 spec, but for simplicity we accept
-// it anywhere that `this` is accepted.
+/// `super` is more restricted in the ES6 spec, but for simplicity we accept
+/// it anywhere that `this` is accepted.
 class Super extends Expression {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitSuper(this);
@@ -1448,9 +1469,11 @@ class Super extends Expression {
 class NamedFunction extends Expression {
   final Identifier name;
   final Fun function;
-  // A heuristic to force extra parens around this function.  V8 and other
-  // engines use this IIFE (immediately invoked function expression) heuristic
-  // to eagerly parse a function.
+
+  /// A heuristic to force extra parens around this function.
+  ///
+  /// V8 and other engines use this IIFE (immediately invoked function
+  /// expression) heuristic to eagerly parse a function.
   final bool immediatelyInvoked;
 
   NamedFunction(this.name, this.function, [this.immediatelyInvoked = false]);
@@ -1483,7 +1506,7 @@ class Fun extends FunctionExpression {
   @override
   final Block body;
 
-  /** Whether this is a JS generator (`function*`) that may contain `yield`. */
+  /// Whether this is a JS generator (`function*`) that may contain `yield`.
   final bool isGenerator;
 
   final AsyncModifier asyncModifier;
@@ -1537,12 +1560,9 @@ class ArrowFun extends FunctionExpression {
   ArrowFun _clone() => ArrowFun(params, body);
 }
 
-/**
- * The Dart sync, sync*, async, and async* modifier.
- * See [DartYield].
- *
- * This is not used for JS functions.
- */
+/// The Dart sync, sync*, async, and async* modifier.
+///
+/// See [DartYield]. This is not used for JS functions.
 class AsyncModifier {
   final bool isAsync;
   final bool isYielding;
@@ -1626,16 +1646,14 @@ class LiteralNull extends Literal {
 class LiteralString extends Literal {
   final String value;
 
-  /**
-   * Constructs a LiteralString from a string value.
-   *
-   * The constructor does not add the required quotes.  If [value] is not
-   * surrounded by quotes and property escaped, the resulting object is invalid
-   * as a JS value.
-   *
-   * TODO(sra): Introduce variants for known valid strings that don't allocate a
-   * new string just to add quotes.
-   */
+  /// Constructs a LiteralString from a string value.
+  ///
+  /// The constructor does not add the required quotes.  If [value] is not
+  /// surrounded by quotes and property escaped, the resulting object is invalid
+  /// as a JS value.
+  ///
+  /// TODO(sra): Introduce variants for known valid strings that don't allocate
+  /// a new string just to add quotes.
   LiteralString(this.value);
 
   /// Gets the value inside the string without the beginning and end quotes.
@@ -1657,10 +1675,8 @@ class LiteralNumber extends Literal {
   @override
   LiteralNumber _clone() => LiteralNumber(value);
 
-  /**
-   * Use a different precedence level depending on whether the value contains a
-   * dot to ensure we generate `(1).toString()` and `1.0.toString()`.
-   */
+  /// Use a different precedence level depending on whether the value contains a
+  /// dot to ensure we generate `(1).toString()` and `1.0.toString()`.
   @override
   int get precedenceLevel => value.contains('.') ? PRIMARY : UNARY;
 }
@@ -1688,10 +1704,9 @@ class ArrayInitializer extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * An empty place in an [ArrayInitializer].
- * For example the list [1, , , 2] would contain two holes.
- */
+/// An empty place in an [ArrayInitializer].
+///
+/// For example the list [1, , , 2] would contain two holes.
 class ArrayHole extends Expression {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayHole(this);
@@ -1710,9 +1725,7 @@ class ObjectInitializer extends Expression {
   final List<Property> properties;
   final bool _multiline;
 
-  /**
-   * Constructs a new object-initializer containing the given [properties].
-   */
+  /// Constructs a new object-initializer containing the given [properties].
   ObjectInitializer(this.properties, {bool multiline = false})
       : _multiline = multiline;
 
@@ -1731,11 +1744,11 @@ class ObjectInitializer extends Expression {
 
   @override
   int get precedenceLevel => PRIMARY;
-  /**
-   * If set to true, forces a vertical layout when using the [Printer].
-   * Otherwise, layout will be vertical if and only if any [properties]
-   * are [FunctionExpression]s.
-   */
+
+  /// If set to true, forces a vertical layout when using the [Printer].
+  ///
+  /// Otherwise, layout will be vertical if and only if any [properties] are
+  /// [FunctionExpression]s.
   bool get multiline {
     return _multiline || properties.any((p) => p.value is FunctionExpression);
   }
@@ -1762,23 +1775,23 @@ class Property extends Node {
 
 // TODO(jmesserly): parser does not support this yet.
 class TemplateString extends Expression {
-  /**
-   * The parts of this template string: a sequence of [String]s and
-   * [Expression]s. Strings and expressions will alternate, for example:
-   *
-   *     `foo${1 + 2} bar ${'hi'}`
-   *
-   * would be represented by [strings]:
-   *
-   *     ['foo', ' bar ', '']
-   *
-   * and [interpolations]:
-   *
-   *     [new JS.Binary('+', js.number(1), js.number(2)),
-   *      new JS.LiteralString("'hi'")]
-   *
-   * There should be exactly one more string than interpolation expression.
-   */
+  /// The parts of this template string: a sequence of [String]s and
+  /// [Expression]s.
+  ///
+  /// Strings and expressions will alternate, for example:
+  ///
+  ///     `foo${1 + 2} bar ${'hi'}`
+  ///
+  /// would be represented by [strings]:
+  ///
+  ///     ['foo', ' bar ', '']
+  ///
+  /// and [interpolations]:
+  ///
+  ///     [new JS.Binary('+', js.number(1), js.number(2)),
+  ///      new JS.LiteralString("'hi'")]
+  ///
+  /// There should be exactly one more string than interpolation expression.
   final List<String> strings;
   final List<Expression> interpolations;
 
@@ -1828,12 +1841,10 @@ class TaggedTemplate extends Expression {
 
 // TODO(jmesserly): parser does not support this yet.
 class Yield extends Expression {
-  final Expression value; // Can be null.
+  final Expression? value;
 
-  /**
-   * Whether this yield expression is a `yield*` that iterates each item in
-   * [value].
-   */
+  /// Whether this yield expression is a `yield*` that iterates each item in
+  /// [value].
   final bool star;
 
   Yield(this.value, {this.star = false});
@@ -1843,7 +1854,7 @@ class Yield extends Expression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
+    value?.accept(visitor);
   }
 
   @override
@@ -1868,7 +1879,7 @@ class ClassDeclaration extends Statement {
 
 class ClassExpression extends Expression {
   final Identifier name;
-  final Expression heritage; // Can be null.
+  final Expression? heritage;
   final List<Method> methods;
 
   ClassExpression(this.name, this.heritage, this.methods);
@@ -1879,7 +1890,7 @@ class ClassExpression extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     name.accept(visitor);
-    if (heritage != null) heritage.accept(visitor);
+    heritage?.accept(visitor);
     for (Method element in methods) {
       element.accept(visitor);
     }
@@ -2100,13 +2111,13 @@ class InterpolatedIdentifier extends Expression
   bool get allowRename => false;
 }
 
-/**
- * [RegExpLiteral]s, despite being called "Literal", do not inherit from
- * [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
- * are thus not in the same category as numbers or strings.
- */
+/// [RegExpLiteral]s, despite being called "Literal", do not inherit from
+/// [Literal].
+///
+/// Indeed, regular expressions in JavaScript have a side-effect and are thus
+/// not in the same category as numbers or strings.
 class RegExpLiteral extends Expression {
-  /** Contains the pattern and the flags.*/
+  /// Contains the pattern and the flags.
   final String pattern;
 
   RegExpLiteral(this.pattern);
@@ -2122,14 +2133,12 @@ class RegExpLiteral extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * An asynchronous await.
- *
- * Not part of JavaScript. We desugar this expression before outputting.
- * Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
- */
+/// An asynchronous await.
+///
+/// Not part of JavaScript. We desugar this expression before outputting.
+/// Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
 class Await extends Expression {
-  /** The awaited expression. */
+  /// The awaited expression.
   final Expression expression;
 
   Await(this.expression);
@@ -2144,12 +2153,10 @@ class Await extends Expression {
   Await _clone() => Await(expression);
 }
 
-/**
- * A comment.
- *
- * Extends [Statement] so we can add comments before statements in
- * [Block] and [Program].
- */
+/// A comment.
+///
+/// Extends [Statement] so we can add comments before statements in [Block] and
+/// [Program].
 class Comment extends Statement {
   final String comment;
 
@@ -2164,12 +2171,10 @@ class Comment extends Statement {
   void visitChildren(NodeVisitor visitor) {}
 }
 
-/**
- * A comment for expressions.
- *
- * Extends [Expression] so we can add comments before expressions.
- * Has the highest possible precedence, so we don't add parentheses around it.
- */
+/// A comment for expressions.
+///
+/// Extends [Expression] so we can add comments before expressions. Has the
+/// highest possible precedence, so we don't add parentheses around it.
 class CommentExpression extends Expression {
   final String comment;
   final Expression expression;
@@ -2196,33 +2201,29 @@ class DebuggerStatement extends Statement {
   void visitChildren(NodeVisitor visitor) {}
 }
 
-/**
- * Represents allowed module items:
- * [Statement], [ImportDeclaration], and [ExportDeclaration].
- */
+/// Represents allowed module items:
+/// [Statement], [ImportDeclaration], and [ExportDeclaration].
 abstract class ModuleItem extends Node {}
 
 class ImportDeclaration extends ModuleItem {
-  final Identifier defaultBinding; // Can be null.
+  final Identifier? defaultBinding;
 
-  // Can be null, a single specifier of `* as name`, or a list.
-  final List<NameSpecifier> namedImports;
+  // Can be `null`, a single specifier of `* as name`, or a list.
+  final List<NameSpecifier>? namedImports;
 
   final LiteralString from;
 
-  ImportDeclaration({this.defaultBinding, this.namedImports, this.from}) {
-    assert(from != null);
-  }
+  ImportDeclaration(
+      {this.defaultBinding, this.namedImports, required this.from});
 
-  /** The `import "name.js"` form of import */
+  /// The `import "name.js"` form of import.
   ImportDeclaration.all(LiteralString module) : this(from: module);
 
-  /** If this import has `* as name` returns the name, otherwise null. */
-  Identifier get importStarAs {
-    if (namedImports != null &&
-        namedImports.length == 1 &&
-        namedImports[0].isStar) {
-      return namedImports[0].asName;
+  /// If this import has `* as name` returns the name, otherwise null.
+  Identifier? get importStarAs {
+    var imports = namedImports;
+    if (imports != null && imports.length == 1 && imports[0].isStar) {
+      return imports[0].asName;
     }
     return null;
   }
@@ -2231,8 +2232,9 @@ class ImportDeclaration extends ModuleItem {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitImportDeclaration(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    if (namedImports != null) {
-      for (NameSpecifier name in namedImports) {
+    var imports = namedImports;
+    if (imports != null) {
+      for (NameSpecifier name in imports) {
         name.accept(visitor);
       }
     }
@@ -2245,16 +2247,14 @@ class ImportDeclaration extends ModuleItem {
 }
 
 class ExportDeclaration extends ModuleItem {
-  /**
-   * Exports a name from this module.
-   *
-   * This can be a [ClassDeclaration] or [FunctionDeclaration].
-   * If [isDefault] is true, it can also be an [Expression].
-   * Otherwise it can be a [VariableDeclarationList] or an [ExportClause].
-   */
+  /// Exports a name from this module.
+  ///
+  /// This can be a [ClassDeclaration] or [FunctionDeclaration].
+  /// If [isDefault] is true, it can also be an [Expression].
+  /// Otherwise it can be a [VariableDeclarationList] or an [ExportClause].
   final Node exported;
 
-  /** True if this is an `export default`. */
+  /// True if this is an `export default`.
   final bool isDefault;
 
   ExportDeclaration(this.exported, {this.isDefault = false}) {
@@ -2269,7 +2269,7 @@ class ExportDeclaration extends ModuleItem {
   /// if this is an `export *`.
   ///
   /// This can be useful for lowering to other module formats.
-  List<NameSpecifier> get exportedNames {
+  List<NameSpecifier>? get exportedNames {
     if (isDefault) return [NameSpecifier(Identifier('default'))];
 
     var exported = this.exported;
@@ -2300,15 +2300,15 @@ class ExportDeclaration extends ModuleItem {
 
 class ExportClause extends Node {
   final List<NameSpecifier> exports;
-  final LiteralString from; // Can be null.
+  final LiteralString? from;
 
   ExportClause(this.exports, {this.from});
 
-  /** The `export * from 'name.js'` form. */
+  /// The `export * from 'name.js'` form.
   ExportClause.star(LiteralString from)
       : this([NameSpecifier.star()], from: from);
 
-  /** True if this is an `export *`. */
+  /// True if this is an `export *`.
   bool get exportStar => exports.length == 1 && exports[0].isStar;
 
   @override
@@ -2318,22 +2318,22 @@ class ExportClause extends Node {
     for (NameSpecifier name in exports) {
       name.accept(visitor);
     }
-    if (from != null) from.accept(visitor);
+    from?.accept(visitor);
   }
 
   @override
   ExportClause _clone() => ExportClause(exports, from: from);
 }
 
-/** An import or export specifier. */
+/// An import or export specifier.
 class NameSpecifier extends Node {
-  final Identifier name;
-  final Identifier asName; // Can be null.
+  final Identifier? name;
+  final Identifier? asName;
 
   NameSpecifier(this.name, {this.asName});
   NameSpecifier.star() : this(null);
 
-  /** True if this is a `* as someName` specifier. */
+  /// True if this is a `* as someName` specifier.
   bool get isStar => name == null;
 
   @override
@@ -2342,27 +2342,4 @@ class NameSpecifier extends Node {
   void visitChildren(NodeVisitor visitor) {}
   @override
   NameSpecifier _clone() => NameSpecifier(name, asName: asName);
-}
-
-// TODO(jmesserly): should this be related to [Program]?
-class Module extends Node {
-  /// The module's name
-  // TODO(jmesserly): this is not declared in ES6, but is known by the loader.
-  // We use this because some ES5 desugarings require it.
-  final String name;
-
-  final List<ModuleItem> body;
-  Module(this.body, {this.name});
-
-  @override
-  T accept<T>(NodeVisitor<T> visitor) => visitor.visitModule(this);
-  @override
-  void visitChildren(NodeVisitor visitor) {
-    for (ModuleItem item in body) {
-      item.accept(visitor);
-    }
-  }
-
-  @override
-  Module _clone() => Module(body);
 }

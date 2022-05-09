@@ -1,0 +1,348 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:6: Error: Can't declare a member that conflicts with an inherited one.
+// enum E2 with A2 { // Error.
+//      ^^^^^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:14:11: Context: This is the inherited member.
+//   int get values => 42;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:6: Error: Can't declare a member that conflicts with an inherited one.
+// enum E6 with M6 { // Error.
+//      ^^^^^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:46:11: Context: This is the inherited member.
+//   int get values => 42;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:9:6: Error: An enum can't inherit a member named 'hashCode'.
+// enum E1 with A1 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:6:11: Context: This is the inherited member
+//   int get hashCode => 42;
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:6: Error: An enum can't inherit a member named 'values'.
+// enum E2 with A2 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:14:11: Context: This is the inherited member
+//   int get values => 42;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:25:6: Error: An enum can't inherit a member named 'index'.
+// enum E3 with A3 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:22:11: Context: This is the inherited member
+//   int get index => 42;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:33:6: Error: An enum can't inherit a member named '=='.
+// enum E4 with A4 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:30:16: Context: This is the inherited member
+//   bool operator==(Object other) => true;
+//                ^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:41:6: Error: An enum can't inherit a member named 'hashCode'.
+// enum E5 with M5 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:38:11: Context: This is the inherited member
+//   int get hashCode => 42;
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:6: Error: An enum can't inherit a member named 'values'.
+// enum E6 with M6 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:46:11: Context: This is the inherited member
+//   int get values => 42;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:57:6: Error: An enum can't inherit a member named 'index'.
+// enum E7 with M7 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:54:11: Context: This is the inherited member
+//   int get index => 42;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:65:6: Error: An enum can't inherit a member named '=='.
+// enum E8 with M8 { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:62:16: Context: This is the inherited member
+//   bool operator==(Object other) => true;
+//                ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    : super core::Object::•()
+    ;
+  get hashCode() → core::int
+    return 42;
+}
+abstract class _E1&_Enum&A1 = core::_Enum with self::A1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&A1
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get hashCode() → core::int
+    return super.{self::A1::hashCode};
+}
+class E1 extends self::_E1&_Enum&A1 /*isEnum*/  {
+  static const field core::List<self::E1> values = #C4;
+  static const field self::E1 element = #C3;
+  const constructor •(core::int index, core::String name) → self::E1
+    : super self::_E1&_Enum&A1::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class A2 extends core::Object {
+  synthetic constructor •() → self::A2
+    : super core::Object::•()
+    ;
+  get values() → core::int
+    return 42;
+}
+abstract class _E2&_Enum&A2 = core::_Enum with self::A2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&A2
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get values() → core::int
+    return super.{self::A2::values};
+}
+class E2 extends self::_E2&_Enum&A2 /*isEnum*/  {
+  static const field core::List<self::E2> values = #C6;
+  static const field self::E2 element = #C5;
+  const constructor •(core::int index, core::String name) → self::E2
+    : super self::_E2&_Enum&A2::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class A3 extends core::Object {
+  synthetic constructor •() → self::A3
+    : super core::Object::•()
+    ;
+  get index() → core::int
+    return 42;
+}
+abstract class _E3&_Enum&A3 = core::_Enum with self::A3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3&_Enum&A3
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get index() → core::int
+    return super.{self::A3::index};
+}
+class E3 extends self::_E3&_Enum&A3 /*isEnum*/  {
+  static const field core::List<self::E3> values = #C8;
+  static const field self::E3 element = #C7;
+  const constructor •(core::int index, core::String name) → self::E3
+    : super self::_E3&_Enum&A3::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class A4 extends core::Object {
+  synthetic constructor •() → self::A4
+    : super core::Object::•()
+    ;
+  operator ==(core::Object other) → core::bool
+    return true;
+}
+abstract class _E4&_Enum&A4 = core::_Enum with self::A4 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&A4
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub operator ==(core::Object other) → core::bool
+    return super.{self::A4::==}(other);
+}
+class E4 extends self::_E4&_Enum&A4 /*isEnum*/  {
+  static const field core::List<self::E4> values = #C10;
+  static const field self::E4 element = #C9;
+  const constructor •(core::int index, core::String name) → self::E4
+    : super self::_E4&_Enum&A4::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M5 extends core::Object /*isMixinDeclaration*/  {
+  get hashCode() → core::int
+    return 42;
+}
+abstract class _E5&_Enum&M5 = core::_Enum with self::M5 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&M5
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get hashCode() → core::int
+    return super.{self::M5::hashCode};
+}
+class E5 extends self::_E5&_Enum&M5 /*isEnum*/  {
+  static const field core::List<self::E5> values = #C12;
+  static const field self::E5 element = #C11;
+  const constructor •(core::int index, core::String name) → self::E5
+    : super self::_E5&_Enum&M5::•(index, name)
+    ;
+  method toString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M6 extends core::Object /*isMixinDeclaration*/  {
+  get values() → core::int
+    return 42;
+}
+abstract class _E6&_Enum&M6 = core::_Enum with self::M6 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&M6
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get values() → core::int
+    return super.{self::M6::values};
+}
+class E6 extends self::_E6&_Enum&M6 /*isEnum*/  {
+  static const field core::List<self::E6> values = #C14;
+  static const field self::E6 element = #C13;
+  const constructor •(core::int index, core::String name) → self::E6
+    : super self::_E6&_Enum&M6::•(index, name)
+    ;
+  method toString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M7 extends core::Object /*isMixinDeclaration*/  {
+  get index() → core::int
+    return 42;
+}
+abstract class _E7&_Enum&M7 = core::_Enum with self::M7 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&M7
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub get index() → core::int
+    return super.{self::M7::index};
+}
+class E7 extends self::_E7&_Enum&M7 /*isEnum*/  {
+  static const field core::List<self::E7> values = #C16;
+  static const field self::E7 element = #C15;
+  const constructor •(core::int index, core::String name) → self::E7
+    : super self::_E7&_Enum&M7::•(index, name)
+    ;
+  method toString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M8 extends core::Object /*isMixinDeclaration*/  {
+  operator ==(core::Object other) → core::bool
+    return true;
+}
+abstract class _E8&_Enum&M8 = core::_Enum with self::M8 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&M8
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub operator ==(core::Object other) → core::bool
+    return super.{self::M8::==}(other);
+}
+class E8 extends self::_E8&_Enum&M8 /*isEnum*/  {
+  static const field core::List<self::E8> values = #C18;
+  static const field self::E8 element = #C17;
+  const constructor •(core::int index, core::String name) → self::E8
+    : super self::_E8&_Enum&M8::•(index, name)
+    ;
+  method toString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class A9 extends core::Object {
+  synthetic constructor •() → self::A9
+    : super core::Object::•()
+    ;
+  abstract get index() → core::int;
+  abstract get hashCode() → core::int;
+  abstract operator ==(core::Object other) → core::bool;
+}
+abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract mixin-stub get index() → core::int; -> self::A9::index
+  abstract mixin-stub get hashCode() → core::int; -> self::A9::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> self::A9::==
+}
+class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
+  static const field core::List<self::E9> values = #C20;
+  static const field self::E9 element = #C19;
+  const constructor •(core::int index, core::String name) → self::E9
+    : super self::_E9&_Enum&A9::•(index, name)
+    ;
+  method toString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M10 extends core::Object /*isMixinDeclaration*/  {
+  abstract get index() → core::int;
+  abstract get hashCode() → core::int;
+  abstract operator ==(core::Object other) → core::bool;
+}
+abstract class _E10&_Enum&M10 = core::_Enum with self::M10 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&M10
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract mixin-stub get index() → core::int; -> self::M10::index
+  abstract mixin-stub get hashCode() → core::int; -> self::M10::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> self::M10::==
+}
+class E10 extends self::_E10&_Enum&M10 /*isEnum*/  {
+  static const field core::List<self::E10> values = #C22;
+  static const field self::E10 element = #C21;
+  const constructor •(core::int index, core::String name) → self::E10
+    : super self::_E10&_Enum&M10::•(index, name)
+    ;
+  method toString() → core::String
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2>[#C5]
+  #C7 = self::E3 {index:#C1, _name:#C2}
+  #C8 = <self::E3>[#C7]
+  #C9 = self::E4 {index:#C1, _name:#C2}
+  #C10 = <self::E4>[#C9]
+  #C11 = self::E5 {index:#C1, _name:#C2}
+  #C12 = <self::E5>[#C11]
+  #C13 = self::E6 {index:#C1, _name:#C2}
+  #C14 = <self::E6>[#C13]
+  #C15 = self::E7 {index:#C1, _name:#C2}
+  #C16 = <self::E7>[#C15]
+  #C17 = self::E8 {index:#C1, _name:#C2}
+  #C18 = <self::E8>[#C17]
+  #C19 = self::E9 {index:#C1, _name:#C2}
+  #C20 = <self::E9>[#C19]
+  #C21 = self::E10 {index:#C1, _name:#C2}
+  #C22 = <self::E10>[#C21]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///inherited_restricted_members.dart:
+- E1. (from org-dartlang-testcase:///inherited_restricted_members.dart:9:6)
+- _E1&_Enum&A1. (from org-dartlang-testcase:///inherited_restricted_members.dart:9:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E2. (from org-dartlang-testcase:///inherited_restricted_members.dart:17:6)
+- _E2&_Enum&A2. (from org-dartlang-testcase:///inherited_restricted_members.dart:17:6)
+- E3. (from org-dartlang-testcase:///inherited_restricted_members.dart:25:6)
+- _E3&_Enum&A3. (from org-dartlang-testcase:///inherited_restricted_members.dart:25:6)
+- E4. (from org-dartlang-testcase:///inherited_restricted_members.dart:33:6)
+- _E4&_Enum&A4. (from org-dartlang-testcase:///inherited_restricted_members.dart:33:6)
+- E5. (from org-dartlang-testcase:///inherited_restricted_members.dart:41:6)
+- _E5&_Enum&M5. (from org-dartlang-testcase:///inherited_restricted_members.dart:41:6)
+- E6. (from org-dartlang-testcase:///inherited_restricted_members.dart:49:6)
+- _E6&_Enum&M6. (from org-dartlang-testcase:///inherited_restricted_members.dart:49:6)
+- E7. (from org-dartlang-testcase:///inherited_restricted_members.dart:57:6)
+- _E7&_Enum&M7. (from org-dartlang-testcase:///inherited_restricted_members.dart:57:6)
+- E8. (from org-dartlang-testcase:///inherited_restricted_members.dart:65:6)
+- _E8&_Enum&M8. (from org-dartlang-testcase:///inherited_restricted_members.dart:65:6)
+- E9. (from org-dartlang-testcase:///inherited_restricted_members.dart:75:6)
+- _E9&_Enum&A9. (from org-dartlang-testcase:///inherited_restricted_members.dart:75:6)
+- E10. (from org-dartlang-testcase:///inherited_restricted_members.dart:85:6)
+- _E10&_Enum&M10. (from org-dartlang-testcase:///inherited_restricted_members.dart:85:6)

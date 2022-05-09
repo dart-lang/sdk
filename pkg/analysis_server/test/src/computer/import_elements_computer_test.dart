@@ -49,8 +49,9 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   Future<void> createBuilder(String content) async {
     originalContent = content;
-    newFile(path, content: content);
-    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
+    newFile2(path, content);
+    var result =
+        await (await session).getResolvedUnit(path) as ResolvedUnitResult;
     computer = ImportElementsComputer(resourceProvider, result);
   }
 
@@ -80,7 +81,7 @@ main() {
   }
 
   Future<void> test_createEdits_addImport_noPrefix() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -100,7 +101,7 @@ import 'package:pkg/foo.dart';
   }
 
   Future<void> test_createEdits_addImport_prefix() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -120,7 +121,7 @@ import 'package:pkg/foo.dart' as foo;
   }
 
   Future<void> test_createEdits_addShow_multipleNames() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -141,7 +142,7 @@ import 'package:pkg/foo.dart' as foo;
   }
 
   Future<void> test_createEdits_addShow_removeHide() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -160,7 +161,7 @@ import 'package:pkg/foo.dart' show A, B, C hide D;
   }
 
   Future<void> test_createEdits_addShow_singleName_noPrefix() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -179,7 +180,7 @@ import 'package:pkg/foo.dart' show B, A;
   }
 
   Future<void> test_createEdits_addShow_singleName_prefix() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -200,7 +201,7 @@ import 'package:pkg/foo.dart' as foo show B, A;
   }
 
   Future<void> test_createEdits_alreadyImported_noCombinators() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -217,7 +218,7 @@ import 'package:pkg/foo.dart';
   }
 
   Future<void> test_createEdits_alreadyImported_withPrefix() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -234,7 +235,7 @@ import 'package:pkg/foo.dart' as foo;
   }
 
   Future<void> test_createEdits_alreadyImported_withShow() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -263,7 +264,7 @@ class A {
   }
 
   Future<void> test_createEdits_invalidUri() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -289,7 +290,7 @@ import 'package:pkg/foo.dart';
   }
 
   Future<void> test_createEdits_removeHide_firstInCombinator() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -308,7 +309,7 @@ import 'package:pkg/foo.dart' hide B, C;
   }
 
   Future<void> test_createEdits_removeHide_lastInCombinator() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -327,7 +328,7 @@ import 'package:pkg/foo.dart' hide A, B;
   }
 
   Future<void> test_createEdits_removeHide_middleInCombinator() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -346,7 +347,7 @@ import 'package:pkg/foo.dart' hide A, C;
   }
 
   Future<void> test_createEdits_removeHide_multipleCombinators() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -365,7 +366,7 @@ import 'package:pkg/foo.dart' hide A, C hide A, C;
   }
 
   Future<void> test_createEdits_removeHide_multipleNames() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -384,7 +385,7 @@ import 'package:pkg/foo.dart' hide B, C hide D, F hide G, H;
   }
 
   Future<void> test_createEdits_removeHideCombinator_first() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -403,7 +404,7 @@ import 'package:pkg/foo.dart' hide B hide C;
   }
 
   Future<void> test_createEdits_removeHideCombinator_last() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -422,7 +423,7 @@ import 'package:pkg/foo.dart' hide A hide B;
   }
 
   Future<void> test_createEdits_removeHideCombinator_middle() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -441,7 +442,7 @@ import 'package:pkg/foo.dart' hide A hide C;
   }
 
   Future<void> test_createEdits_removeHideCombinator_only() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -460,7 +461,7 @@ import 'package:pkg/foo.dart';
   }
 
   Future<void> test_createEdits_removeHideCombinator_only_multiple() async {
-    var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart');
+    var fooFile = newFile2('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()

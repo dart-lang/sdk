@@ -52,6 +52,7 @@ namespace dart {
   V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
+  V(AllocateGrowableArray)                                                     \
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
@@ -125,6 +126,7 @@ namespace dart {
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
+  V(ExitSafepointIgnoreUnwindInProgress)                                       \
   V(CallNativeThroughSafepoint)                                                \
   V(InitStaticField)                                                           \
   V(InitLateStaticField)                                                       \

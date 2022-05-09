@@ -143,4 +143,25 @@ void f(List<String> list) {
 }
 ''');
   }
+
+  Future<void> test_return() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) {
+    if (e == 'whatever') {
+      return;
+    }
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<String> list) {
+  for (var e in list) {
+    if (e == 'whatever') {
+      continue;
+    }
+  }
+}
+''');
+  }
 }

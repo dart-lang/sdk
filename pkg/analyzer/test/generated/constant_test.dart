@@ -5,7 +5,9 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,6 +48,25 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
 
   test_bitXor_int_int() async {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
+  }
+
+  test_conditionalExpression_unknownCondition_dynamic() async {
+    await assertErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+const x = kIsWeb ? a : b;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+          1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 62,
+          1),
+    ]);
+
+    var x_result = findElement.topVar('x').evaluationResult;
+    assertDartObjectText(x_result.value, r'''
+dynamic <unknown>
+''');
   }
 
   test_constructorInvocation_fieldInitializer() async {
@@ -372,6 +393,112 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueBool(true, "'a' != 'b'");
   }
 
+  test_object_enum() async {
+    await resolveTestCode('''
+enum E { v1, v2 }
+const x1 = E.v1;
+const x2 = E.v2;
+''');
+
+    _assertTopVarConstValue('x1', r'''
+E
+  _name: String v1
+  index: int 0
+''');
+
+    _assertTopVarConstValue('x2', r'''
+E
+  _name: String v2
+  index: int 1
+''');
+  }
+
+  /// Enum constants can reference other constants.
+  test_object_enum_enhanced_constants() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v1(42), v2(v1);
+  final Object? a;
+  const E([this.a]);
+}
+''');
+
+    assertDartObjectText(findElement.field('v2').evaluationResult.value, r'''
+E
+  _name: String v2
+  a: E
+    _name: String v1
+    a: int 42
+    index: int 0
+  index: int 1
+''');
+  }
+
+  test_object_enum_enhanced_named() async {
+    await resolveTestCode('''
+enum E<T> {
+  v1<double>.named(10),
+  v2.named(20);
+  final T f;
+  const E.named(this.f);
+}
+
+const x1 = E.v1;
+const x2 = E.v2;
+''');
+
+    _assertTopVarConstValue('x1', r'''
+E<double>
+  _name: String v1
+  f: double 10.0
+  index: int 0
+''');
+
+    _assertTopVarConstValue('x2', r'''
+E<int>
+  _name: String v2
+  f: int 20
+  index: int 1
+''');
+  }
+
+  test_object_enum_enhanced_unnamed() async {
+    await resolveTestCode('''
+enum E<T> {
+  v1<int>(10),
+  v2(20),
+  v3('abc');
+  final T f;
+  const E(this.f);
+}
+
+const x1 = E.v1;
+const x2 = E.v2;
+const x3 = E.v3;
+''');
+
+    _assertTopVarConstValue('x1', r'''
+E<int>
+  _name: String v1
+  f: int 10
+  index: int 0
+''');
+
+    _assertTopVarConstValue('x2', r'''
+E<int>
+  _name: String v2
+  f: int 20
+  index: int 1
+''');
+
+    _assertTopVarConstValue('x3', r'''
+E<String>
+  _name: String v3
+  f: String abc
+  index: int 2
+''');
+  }
+
   test_parenthesizedExpression() async {
     await _assertValueString("a", "('a')");
   }
@@ -444,6 +571,254 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueInt(6, "'Dvorak'.length");
   }
 
+  test_superFormalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  final int b;
+  const A({required this.a, required this.b});
+}
+
+class B extends A {
+  final int c;
+  const B(this.c, {required super.b}) : super(a: 1);
+}
+
+const x = B(3, b: 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+    b: int 2
+  c: int 3
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_hasNamedArgument_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  final int b;
+  const A(this.a, {required this.b});
+}
+
+class B extends A {
+  final int c;
+  const B(super.a, {required this.c}) : super(b: 2);
+}
+
+const x = B(1, c: 3);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+    b: int 2
+  c: int 3
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B extends A {
+  final int b;
+  const B(this.b, {required super.a}) : super();
+}
+
+const x = B(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredNamed_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B<T> extends A {
+  final int b;
+  const B(this.b, {required super.a}) : super();
+}
+
+const x = B<int>(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B extends A {
+  final int b;
+  const B(super.a, this.b) : super();
+}
+
+const x = B(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_explicitSuper_requiredPositional_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B<T> extends A {
+  final int b;
+  const B(super.a, this.b) : super();
+}
+
+const x = B<int>(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B extends A {
+  final int b;
+  const B(this.b, {required super.a});
+}
+
+const x = B(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredNamed_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B<T> extends A {
+  final int b;
+  const B(this.b, {required super.a});
+}
+
+const x = B<int>(2, a: 1);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B extends A {
+  final int b;
+  const B(super.a, this.b);
+}
+
+const x = B(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  test_superFormalParameter_implicitSuper_requiredPositional_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B<T> extends A {
+  final int b;
+  const B(super.a, this.b);
+}
+
+const x = B<int>(1, 2);
+''');
+
+    var value = findElement.topVar('x').evaluationResult.value;
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+''');
+  }
+
+  void _assertTopVarConstValue(String name, String expected) {
+    assertDartObjectText(_topVarConstResult(name).value, expected);
+  }
+
   Future<void> _assertValueBool(bool expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value!;
@@ -490,5 +865,21 @@ $context
     );
 
     return evaluator.evaluate(expression);
+  }
+
+  EvaluationResultImpl _topVarConstResult(String name) {
+    var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
+    return element.evaluationResult!;
+  }
+}
+
+extension on VariableElement {
+  EvaluationResultImpl get evaluationResult {
+    var constVariable = this as ConstVariableElement;
+    var evaluationResult = constVariable.evaluationResult;
+    if (evaluationResult == null) {
+      fail('Not evaluated: $this');
+    }
+    return evaluationResult;
   }
 }

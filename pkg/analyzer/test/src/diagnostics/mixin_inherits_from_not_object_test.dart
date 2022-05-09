@@ -15,54 +15,7 @@ main() {
 
 @reflectiveTest
 class MixinInheritsFromNotObjectTest extends PubPackageResolutionTest {
-  test_classAlias_class_extends() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {}
-class C = Object with B;
-''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
-    ]);
-  }
-
-  test_classAlias_class_with() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends Object with A {}
-class C = Object with B;
-''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 66, 1),
-    ]);
-  }
-
-  test_classAlias_classAlias_with() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B = Object with A;
-class C = Object with B;
-''');
-  }
-
-  test_classAlias_classAlias_with2() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class C = Object with A, B;
-class D = Object with C;
-''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 72, 1),
-    ]);
-  }
-
-  test_classAlias_mixin() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-mixin B on A {}
-class C = A with B;
-''');
-  }
-
-  test_classDeclaration_class_extends() async {
+  test_class_class_extends() async {
     await assertErrorsInCode(r'''
 class A {}
 class B extends A {}
@@ -72,7 +25,7 @@ class C extends Object with B {}
     ]);
   }
 
-  test_classDeclaration_class_extends_Object() async {
+  test_class_class_extends_Object() async {
     await assertNoErrorsInCode(r'''
 class A {}
 class B extends Object {}
@@ -80,7 +33,7 @@ class C extends Object with B {}
 ''');
   }
 
-  test_classDeclaration_class_with() async {
+  test_class_class_with() async {
     await assertErrorsInCode(r'''
 class A {}
 class B extends Object with A {}
@@ -90,7 +43,7 @@ class C extends Object with B {}
     ]);
   }
 
-  test_classDeclaration_classAlias_with() async {
+  test_class_classTypeAlias_with() async {
     await assertNoErrorsInCode(r'''
 class A {}
 class B = Object with A;
@@ -98,7 +51,7 @@ class C extends Object with B {}
 ''');
   }
 
-  test_classDeclaration_classAlias_with2() async {
+  test_class_classTypeAlias_with2() async {
     await assertErrorsInCode(r'''
 class A {}
 class B {}
@@ -109,11 +62,115 @@ class D extends Object with C {}
     ]);
   }
 
-  test_classDeclaration_mixin() async {
+  test_class_mixin() async {
     await assertNoErrorsInCode(r'''
 class A {}
 mixin B on A {}
 class C extends A with B {}
 ''');
+  }
+
+  test_classTypeAlias_class_extends() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends A {}
+class C = Object with B;
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
+    ]);
+  }
+
+  test_classTypeAlias_class_with() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends Object with A {}
+class C = Object with B;
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 66, 1),
+    ]);
+  }
+
+  test_classTypeAlias_classAlias_with() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B = Object with A;
+class C = Object with B;
+''');
+  }
+
+  test_classTypeAlias_classAlias_with2() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class C = Object with A, B;
+class D = Object with C;
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 72, 1),
+    ]);
+  }
+
+  test_classTypeAlias_mixin() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+mixin B on A {}
+class C = A with B;
+''');
+  }
+
+  test_enum_class_extends() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends A {}
+enum E with B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 44, 1),
+    ]);
+  }
+
+  test_enum_class_extends_Object() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends Object {}
+enum E with B {
+  v
+}
+''');
+  }
+
+  test_enum_class_with() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends Object with A {}
+enum E with B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 56, 1),
+    ]);
+  }
+
+  test_enum_classTypeAlias_with() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B = Object with A;
+enum E with B {
+  v
+}
+''');
+  }
+
+  test_enum_classTypeAlias_with2() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class C = Object with A, B;
+enum E with C {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 62, 1),
+    ]);
   }
 }

@@ -18,6 +18,10 @@ const char* kArch = "arm64";
 const char* kArch = "ia32";
 #elif defined(TARGET_ARCH_X64)
 const char* kArch = "x64";
+#elif defined(TARGET_ARCH_RISCV32)
+const char* kArch = "riscv32";
+#elif defined(TARGET_ARCH_RISCV64)
+const char* kArch = "riscv64";
 #endif
 
 #if defined(DART_TARGET_OS_ANDROID)

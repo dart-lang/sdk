@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.15
+
 // Utilities for converting between JavaScript source-code Strings and the
 // String value they represent.
 
@@ -15,7 +17,7 @@ class StringToSourceKind {
   /// [true] if contents require no escaping with the preferred quoting.
   final bool simple;
 
-  const StringToSourceKind({this.doubleQuotes, this.simple});
+  const StringToSourceKind({required this.doubleQuotes, required this.simple});
 
   String get quote => doubleQuotes ? '"' : "'";
 }
@@ -23,7 +25,7 @@ class StringToSourceKind {
 class StringToSource {
   const StringToSource();
 
-  static StringToSourceKind analyze(String value, {/*required*/ bool utf8}) {
+  static StringToSourceKind analyze(String value, {required bool utf8}) {
     final ascii = !utf8;
     int singleQuotes = 0;
     int doubleQuotes = 0;
@@ -73,9 +75,9 @@ class StringToSource {
 
   static void writeString(
       StringBuffer sb, String string, StringToSourceKind kind,
-      {/*required*/ bool utf8}) {
+      {required bool utf8}) {
     for (int rune in string.runes) {
-      String escape = _irregularEscape(rune, kind.doubleQuotes);
+      String? escape = _irregularEscape(rune, kind.doubleQuotes);
       if (escape != null) {
         sb.write(escape);
         continue;
@@ -109,7 +111,7 @@ class StringToSource {
 
   static bool _isUnpairedSurrogate(int code) => (code & 0xFFFFF800) == 0xD800;
 
-  static String _irregularEscape(int code, bool useDoubleQuotes) {
+  static String? _irregularEscape(int code, bool useDoubleQuotes) {
     switch (code) {
       case charCodes.$SQ:
         return useDoubleQuotes ? r"'" : r"\'";

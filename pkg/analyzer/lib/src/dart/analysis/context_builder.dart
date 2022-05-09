@@ -25,10 +25,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:cli_util/cli_util.dart';
 
 /// An implementation of a context builder.
 class ContextBuilderImpl implements ContextBuilder {
@@ -57,6 +59,7 @@ class ContextBuilderImpl implements ContextBuilder {
     String? sdkSummaryPath,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     FileContentCache? fileContentCache,
+    MacroKernelBuilder? macroKernelBuilder,
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
@@ -72,7 +75,12 @@ class ContextBuilderImpl implements ContextBuilder {
 
     SummaryDataStore? summaryData;
     if (librarySummaryPaths != null) {
-      summaryData = SummaryDataStore(librarySummaryPaths);
+      summaryData = SummaryDataStore();
+      for (var summaryPath in librarySummaryPaths) {
+        var bytes = resourceProvider.getFile(summaryPath).readAsBytesSync();
+        var bundle = PackageBundleReader(bytes);
+        summaryData.addBundle(summaryPath, bundle);
+      }
     }
 
     var workspace = contextRoot.workspace;
@@ -95,7 +103,7 @@ class ContextBuilderImpl implements ContextBuilder {
       updateAnalysisOptions(options);
     }
 
-    var driver = AnalysisDriver.tmp1(
+    var driver = AnalysisDriver(
       scheduler: scheduler,
       logger: performanceLog,
       resourceProvider: resourceProvider,
@@ -109,6 +117,7 @@ class ContextBuilderImpl implements ContextBuilder {
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
+      macroKernelBuilder: macroKernelBuilder,
     );
 
     if (declaredVariables != null) {
@@ -171,7 +180,7 @@ class ContextBuilderImpl implements ContextBuilder {
       );
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
-        var libFolder = resourceProvider.getFile(embedderYamlPath).parent2;
+        var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
         var locator = EmbedderYamlLocator.forLibFolder(libFolder);
         var embedderMap = locator.embedderYamls;
         if (embedderMap.isNotEmpty) {
@@ -193,7 +202,7 @@ class ContextBuilderImpl implements ContextBuilder {
   /// TODO(scheglov) Get it from [Workspace]?
   File? _findPubspecFile(ContextRoot contextRoot) {
     for (var current in contextRoot.root.withAncestors) {
-      var file = current.getChildAssumingFile('pubspec.yaml');
+      var file = current.getChildAssumingFile(file_paths.pubspecYaml);
       if (file.exists) {
         return file;
       }

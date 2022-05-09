@@ -1040,7 +1040,8 @@ class CallSiteInliner : public ValueObject {
 
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
-      TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
+      TRACE_INLINING(THR_Print(
+          "     Bailout: not inlinable due to !function.CanBeInlined()\n"));
       PRINT_INLINING_TREE("Not inlinable", &call_data->caller, &function,
                           call_data->call);
       return false;
@@ -1165,6 +1166,9 @@ class CallSiteInliner : public ValueObject {
             // As a side effect of parsing the function, it may be marked
             // as not inlinable. This happens for async and async* functions
             // when causal stack traces are being tracked.
+            TRACE_INLINING(
+                THR_Print("     Bailout: not inlinable due to "
+                          "!function.CanBeInlined()\n"));
             return false;
           }
         }
@@ -2597,9 +2601,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     *array = elements;
     array_cid = kArrayCid;
   } else if (IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements = new (Z)
-        LoadUntaggedInstr(new (Z) Value(*array),
-                          compiler::target::TypedDataBase::data_field_offset());
+    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
+        new (Z) Value(*array), compiler::target::PointerBase::data_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   }
@@ -2994,9 +2997,8 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          Instruction** cursor) {
   if (array_cid == kDynamicCid || IsExternalTypedDataClassId(array_cid)) {
     // Internal or External typed data: load untagged.
-    auto elements = new (Z)
-        LoadUntaggedInstr(new (Z) Value(*array),
-                          compiler::target::TypedDataBase::data_field_offset());
+    auto elements = new (Z) LoadUntaggedInstr(
+        new (Z) Value(*array), compiler::target::PointerBase::data_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   } else {
@@ -3770,7 +3772,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
     // Recognized [] operators.
-    case MethodRecognizer::kImmutableArrayGetIndexed:
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed:
     case MethodRecognizer::kInt8ArrayGetIndexed:

@@ -57,6 +57,30 @@ class B extends A {
     ]);
   }
 
+  test_enumConstant_withArgumentList() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v();
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 3),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 12, 2),
+    ]);
+  }
+
+  test_enumConstant_withoutArgumentList() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  const E(int a);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 1),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 11, 1),
+    ]);
+  }
+
   test_functionExpression() async {
     await assertErrorsInCode('''
 main() {
@@ -85,5 +109,29 @@ main() {
 }''', [
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 65, 2),
     ]);
+  }
+
+  test_superParameter_optional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int? a);
+}
+
+class B extends A {
+  B([super.a]) : super();
+}
+''');
+  }
+
+  test_superParameter_required() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B(super.a) : super();
+}
+''');
   }
 }

@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class::redirect1a, self::Class::redirect2a, self::Class::redirect3a, self::Class::redirect4a, self::Class::redirect5a, self::Class::redirect6a, self::Class::redirect1b, self::Class::redirect2b, self::Class::redirect3b, self::Class::redirect4b, self::Class::redirect5b, self::Class::redirect6b]/*isLegacy*/;
+  constructor positional([core::int a = 0, core::int b = 42]) → self::Class
+    ;
+  constructor named({core::int a = 0, core::int b = 42}) → self::Class
+    ;
+  static factory redirect1a() → self::Class
+    return new self::Class::positional();
+  static factory redirect2a(core::int a) → self::Class
+    return new self::Class::positional(a);
+  static factory redirect3a([core::int a]) → self::Class
+    return new self::Class::positional(a);
+  static factory redirect4a(core::int a, [core::int b]) → self::Class
+    return new self::Class::positional(a, b);
+  static factory redirect5a([core::int a, core::int b]) → self::Class
+    return new self::Class::positional(a, b);
+  static factory redirect6a([core::int a, core::int b]) → self::Class
+    return new self::Class::positional(a, b);
+  static factory redirect1b() → self::Class
+    return new self::Class::named();
+  static factory redirect2b({core::int a}) → self::Class
+    return new self::Class::named(a: a);
+  static factory redirect3b({core::int b}) → self::Class
+    return new self::Class::named(b: b);
+  static factory redirect4b({core::int a, core::int b}) → self::Class
+    return new self::Class::named(a: a, b: b);
+  static factory redirect5b({core::int b, core::int a}) → self::Class
+    return new self::Class::named(b: b, a: a);
+  static factory redirect6b({core::int a, core::int b}) → self::Class
+    return new self::Class::named(a: a, b: b);
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect1a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect2a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect3a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect4a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect5a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect6a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect1b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect2b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect3b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect4b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect5b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_default_values.dart:5:7 -> ConstructorTearOffConstant(Class.redirect6b)
+Extra constant evaluation: evaluated: 41, effectively constant: 12

@@ -15,9 +15,7 @@ import 'type_declaration_builder.dart';
 abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   Scope get scope;
 
-  ScopeBuilder get scopeBuilder;
-
-  LibraryBuilder get library;
+  LibraryBuilder get libraryBuilder;
 
   /// Lookup a member accessed statically through this declaration.
   Builder? findStaticBuilder(
@@ -48,19 +46,15 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   final Scope scope;
 
   @override
-  final ScopeBuilder scopeBuilder;
-
-  @override
   final Uri fileUri;
 
   DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
       String name, LibraryBuilder parent, int charOffset, this.scope)
-      : scopeBuilder = new ScopeBuilder(scope),
-        fileUri = parent.fileUri,
+      : fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 
   @override
-  LibraryBuilder get library {
+  LibraryBuilder get libraryBuilder {
     LibraryBuilder library = parent as LibraryBuilder;
     return library.partOfLibrary ?? library;
   }
@@ -68,7 +62,7 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage>? context}) {
-    library.addProblem(message, charOffset, length, fileUri,
+    libraryBuilder.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled, context: context);
   }
 }

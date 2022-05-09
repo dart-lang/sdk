@@ -25,7 +25,6 @@ import '../../dev_compiler.dart';
 import '../compiler/js_names.dart';
 import 'asset_file_system.dart';
 import 'command.dart';
-import 'target.dart' show sdkLibraryEnvironmentDefines;
 
 /// The service that handles expression compilation requests from
 /// the debugger.
@@ -231,8 +230,6 @@ class ExpressionCompilerWorker {
       ..omitPlatform = true
       ..environmentDefines = {
         if (environmentDefines != null) ...environmentDefines,
-        // TODO(47243) Remove when all code paths read these from the `Target`.
-        ...sdkLibraryEnvironmentDefines
       }
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
@@ -302,7 +299,7 @@ class ExpressionCompilerWorker {
     var libraryUri = Uri.parse(request.libraryUri);
     var moduleName = request.moduleName;
 
-    if (libraryUri.scheme == 'dart') {
+    if (libraryUri.isScheme('dart')) {
       // compiling expressions inside the SDK currently fails because
       // SDK kernel outlines do not contain information that is needed
       // to detect the scope for expression evaluation - such as local
@@ -332,7 +329,7 @@ class ExpressionCompilerWorker {
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
 
     var component = _sdkComponent;
-    if (libraryUri.scheme != 'dart') {
+    if (!libraryUri.isScheme('dart')) {
       _processedOptions.ticker.logMs('Collecting libraries for $moduleName');
 
       var libraries =

@@ -68,6 +68,10 @@ typedef uint16_t ClassIdTagType;
   V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
+  V(FinalizerBase)                                                             \
+  V(Finalizer)                                                                 \
+  V(NativeFinalizer)                                                           \
+  V(FinalizerEntry)                                                            \
   V(FunctionType)                                                              \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
@@ -93,6 +97,7 @@ typedef uint16_t ClassIdTagType;
   V(StackTrace)                                                                \
   V(RegExp)                                                                    \
   V(WeakProperty)                                                              \
+  V(WeakReference)                                                             \
   V(MirrorReference)                                                           \
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
@@ -152,12 +157,8 @@ typedef uint16_t ClassIdTagType;
   V(Float)                                                                     \
   V(Double)
 
-#define CLASS_LIST_FFI_NUMERIC(V)                                              \
-  CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(V)                                         \
-  V(IntPtr)
-
 #define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
-  CLASS_LIST_FFI_NUMERIC(V)                                                    \
+  CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(V)                                         \
   V(Void)                                                                      \
   V(Handle)                                                                    \
   V(Bool)

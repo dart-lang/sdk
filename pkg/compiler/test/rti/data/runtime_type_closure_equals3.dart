@@ -4,11 +4,11 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 String method() => null;
 
-/*spec.class: Class1:direct,explicit=[Class1.T*],needsArgs*/
+/*spec.class: Class1:explicit=[Class1.T*],needsArgs,test*/
 /*prod.class: Class1:needsArgs*/
 class Class1<T> {
   Class1();
@@ -23,9 +23,9 @@ class Class1<T> {
     /*needsSignature*/
     T local2(T t, String s) => t;
 
-    Expect.isTrue(local1a.runtimeType == local1b.runtimeType);
-    Expect.isFalse(local1a.runtimeType == local2.runtimeType);
-    Expect.isFalse(local1a.runtimeType == method.runtimeType);
+    makeLive(local1a.runtimeType == local1b.runtimeType);
+    makeLive(local1a.runtimeType == local2.runtimeType);
+    makeLive(local1a.runtimeType == method.runtimeType);
   }
 }
 

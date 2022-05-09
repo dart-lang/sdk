@@ -259,6 +259,7 @@ class ExplicitTypeLintListener extends LintListener {
   @override
   void endClassFields(
       Token? abstractToken,
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -296,10 +297,17 @@ class LatestType {
 }
 
 class ImportsTwiceLintListener extends LintListener {
-  Set<Uri> seenImports = new Set<Uri>();
+  Map<Uri, Set<String?>> seenImports = {};
+
+  Token? seenAsKeyword;
 
   @override
-  void endImport(Token importKeyword, Token? semicolon) {
+  void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
+    seenAsKeyword = asKeyword;
+  }
+
+  @override
+  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     Token importUriToken = importKeyword.next!;
     String importUri = importUriToken.lexeme;
     if (importUri.startsWith("r")) {
@@ -308,14 +316,21 @@ class ImportsTwiceLintListener extends LintListener {
       importUri = importUri.substring(1, importUri.length - 1);
     }
     Uri resolved = uri.resolve(importUri);
-    if (resolved.scheme == "package") {
+    if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;
       }
     }
-    if (!seenImports.add(resolved)) {
-      onProblem(importUriToken.offset, importUriToken.lexeme.length,
-          "Uri '$resolved' already imported once.");
+    String? asName = seenAsKeyword?.lexeme;
+    Set<String?> asNames = seenImports[resolved] ??= {};
+    if (!asNames.add(asName)) {
+      if (asName != null) {
+        onProblem(importUriToken.offset, importUriToken.lexeme.length,
+            "Uri '$resolved' already imported once as '${asName}'.");
+      } else {
+        onProblem(importUriToken.offset, importUriToken.lexeme.length,
+            "Uri '$resolved' already imported once.");
+      }
     }
   }
 }
@@ -331,7 +346,7 @@ class ExportsLintListener extends LintListener {
       exportUri = exportUri.substring(1, exportUri.length - 1);
     }
     Uri resolved = uri.resolve(exportUri);
-    if (resolved.scheme == "package") {
+    if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;
       }

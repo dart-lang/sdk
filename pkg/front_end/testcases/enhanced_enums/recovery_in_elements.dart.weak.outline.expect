@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/recovery_in_elements.dart:8:3: Error: Expected an identifier, but got 'final'.
+// Try inserting an identifier before 'final'.
+//   final String foo = "foo"; // Error: attempt to parse the field as an element.
+//   ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/recovery_in_elements.dart:8:3: Error: Expected '}' before this.
+//   final String foo = "foo"; // Error: attempt to parse the field as an element.
+//   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
+  static const field self::E element = const self::E::•(0, "element");
+  const constructor •(core::int index, core::String name) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///recovery_in_elements.dart:5:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///recovery_in_elements.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 7, effectively constant: 2

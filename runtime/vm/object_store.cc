@@ -78,6 +78,8 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   resume_capabilities_ = GrowableObjectArray::New();
   exit_listeners_ = GrowableObjectArray::New();
   error_listeners_ = GrowableObjectArray::New();
+  dart_args_1_ = Array::New(1);
+  dart_args_2_ = Array::New(2);
 
   // Allocate pre-allocated unhandled exception object initialized with the
   // pre-allocated OutOfMemoryError.
@@ -87,6 +89,10 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   set_preallocated_unhandled_exception(UnhandledException::Handle(
       zone, UnhandledException::New(Instance::Cast(out_of_memory),
                                     preallocated_stack_trace)));
+  const UnwindError& preallocated_unwind_error =
+      UnwindError::Handle(zone, UnwindError::New(String::Handle(
+                                    zone, String::New("isolate is exiting"))));
+  set_preallocated_unwind_error(preallocated_unwind_error);
 
   return Error::null();
 }
@@ -95,6 +101,7 @@ ObjectStore::ObjectStore()
     :
 #define EMIT_FIELD_INIT(type, name) name##_(nullptr),
       OBJECT_STORE_FIELD_LIST(EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT,
@@ -136,7 +143,8 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 #define EMIT_FIELD_NAME(type, name) #name "_",
         OBJECT_STORE_FIELD_LIST(
             EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
-            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
     };
     ObjectPtr* current = from();
@@ -206,6 +214,15 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   return result.ptr();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static void DisableDebuggingAndInlining(const Function& function) {
+  if (FLAG_async_debugger) {
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
+  }
+}
+#endif  // DART_PRECOMPILED_RUNTIME
+
 void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -247,11 +264,16 @@ void ObjectStore::InitKnownObjects() {
                                      function_name, 0, 3, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining the _CompleteOnAsyncReturn function.
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
+  DisableDebuggingAndInlining(function);
+
+  function_name =
+      async_lib.PrivateName(Symbols::_CompleteWithNoFutureOnAsyncReturn());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 3, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_with_no_future_on_async_return(function);
+  DisableDebuggingAndInlining(function);
 
   function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
   ASSERT(!function_name.IsNull());
@@ -259,11 +281,7 @@ void ObjectStore::InitKnownObjects() {
                                      function_name, 0, 4, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_error(function);
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining the _CompleteOnAsyncError function.
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
+  DisableDebuggingAndInlining(function);
 
   cls =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
@@ -279,8 +297,7 @@ void ObjectStore::InitKnownObjects() {
       if (function.IsNull()) {
         break;
       }
-      function.set_is_debuggable(false);
-      function.set_is_inlinable(false);
+      DisableDebuggingAndInlining(function);
     }
   }
 
@@ -357,6 +374,8 @@ void ObjectStore::LazyInitCoreMembers() {
   if (list_class_.load() == Type::null()) {
     ASSERT(non_nullable_list_rare_type_.load() == Type::null());
     ASSERT(non_nullable_map_rare_type_.load() == Type::null());
+    ASSERT(enum_index_field_.load() == Field::null());
+    ASSERT(enum_name_field_.load() == Field::null());
     ASSERT(_object_equals_function_.load() == Function::null());
     ASSERT(_object_hash_code_function_.load() == Function::null());
     ASSERT(_object_to_string_function_.load() == Function::null());
@@ -377,6 +396,21 @@ void ObjectStore::LazyInitCoreMembers() {
     ASSERT(!cls.IsNull());
     type ^= cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
+
+    auto& field = Field::Handle(zone);
+
+    cls = core_lib.LookupClassAllowPrivate(Symbols::_Enum());
+    ASSERT(!cls.IsNull());
+    const auto& error = cls.EnsureIsFinalized(thread);
+    ASSERT(error == Error::null());
+
+    field = cls.LookupInstanceField(Symbols::Index());
+    ASSERT(!field.IsNull());
+    enum_index_field_.store(field.ptr());
+
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    ASSERT(!field.IsNull());
+    enum_name_field_.store(field.ptr());
 
     auto& function = Function::Handle(zone);
 
@@ -431,6 +465,39 @@ void ObjectStore::LazyInitAsyncMembers() {
   }
 }
 
+void ObjectStore::LazyInitFfiMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (handle_finalizer_message_function_.load() == Function::null()) {
+    auto* const zone = thread->zone();
+    auto& cls = Class::Handle(zone);
+    auto& function = Function::Handle(zone);
+    auto& error = Error::Handle(zone);
+
+    const auto& ffi_lib = Library::Handle(zone, Library::FfiLibrary());
+    ASSERT(!ffi_lib.IsNull());
+
+    cls = finalizer_class();
+    ASSERT(!cls.IsNull());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
+    function =
+        cls.LookupFunctionAllowPrivate(Symbols::_handleFinalizerMessage());
+    ASSERT(!function.IsNull());
+    handle_finalizer_message_function_.store(function.ptr());
+
+    cls = native_finalizer_class();
+    ASSERT(!cls.IsNull());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
+    function = cls.LookupFunctionAllowPrivate(
+        Symbols::_handleNativeFinalizerMessage());
+    ASSERT(!function.IsNull());
+    handle_native_finalizer_message_function_.store(function.ptr());
+  }
+}
+
 void ObjectStore::LazyInitIsolateMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
@@ -473,13 +540,14 @@ void ObjectStore::LazyInitInternalMembers() {
     auto* const zone = thread->zone();
     auto& cls = Class::Handle(zone);
     auto& field = Field::Handle(zone);
+    auto& error = Error::Handle(zone);
 
     const auto& internal_lib =
         Library::Handle(zone, Library::InternalLibrary());
     cls = internal_lib.LookupClass(Symbols::Symbol());
     ASSERT(!cls.IsNull());
-    const auto& error = cls.EnsureIsFinalized(thread);
-    ASSERT(error == Error::null());
+    error = cls.EnsureIsFinalized(thread);
+    ASSERT(error.IsNull());
     symbol_class_.store(cls.ptr());
 
     field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());

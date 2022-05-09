@@ -6,7 +6,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
@@ -758,8 +758,9 @@ void main() {
 }
 
 runTests() async {
-  CompilationResult result = await runCompiler(memorySourceFiles: {
-    'main.dart': r'''
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: {
+        'main.dart': r'''
     import 'dart:collection';
     class AList<E> extends ListBase<E> {
       noSuchMethod(_) {}
@@ -770,7 +771,9 @@ runTests() async {
       print('${const []}${const {}}${(){}}${new AList()}');
     }
     '''
-  }, beforeRun: (compiler) => compiler.stopAfterTypeInference = true);
+      },
+      beforeRun: (compiler) =>
+          compiler.stopAfterGlobalTypeInferenceForTesting = true);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

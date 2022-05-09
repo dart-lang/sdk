@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -473,35 +474,34 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(manager.notificationManager, notificationManager);
   }
 
-  void test_pathsFor_withPackagesFile() {
+  void test_pathsFor_withPackageConfigJsonFile() {
     //
     // Build the minimal directory structure for a plugin package that includes
-    // a .packages file.
+    // a '.dart_tool/package_config.json' file.
     //
     var pluginDirPath = newFolder('/plugin').path;
-    var pluginFilePath = newFile('/plugin/bin/plugin.dart').path;
-    var packagesFilePath = newDotPackagesFile('/plugin').path;
+    var pluginFile = newFile2('/plugin/bin/plugin.dart', '');
+    var packageConfigFile = newPackageConfigJsonFile('/plugin', '');
     //
     // Test path computation.
     //
-    var paths = manager.pathsFor(pluginDirPath);
-    expect(paths, hasLength(2));
-    expect(paths[0], pluginFilePath);
-    expect(paths[1], packagesFilePath);
+    var files = manager.filesFor(pluginDirPath);
+    expect(files.execution, pluginFile);
+    expect(files.packages, packageConfigFile);
   }
 
   void test_pathsFor_withPubspec_inBazelWorkspace() {
     //
     // Build a Bazel workspace containing four packages, including the plugin.
     //
-    newFile('/workspaceRoot/WORKSPACE');
+    newFile2('/workspaceRoot/WORKSPACE', '');
     newFolder('/workspaceRoot/bazel-bin');
     newFolder('/workspaceRoot/bazel-genfiles');
 
     String newPackage(String packageName, [List<String>? dependencies]) {
       var packageRoot =
           newFolder('/workspaceRoot/third_party/dart/$packageName').path;
-      newFile('$packageRoot/lib/$packageName.dart');
+      newFile2('$packageRoot/lib/$packageName.dart', '');
       var buffer = StringBuffer();
       if (dependencies != null) {
         buffer.writeln('dependencies:');
@@ -514,30 +514,46 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     }
 
     var pluginDirPath = newPackage('plugin', ['b', 'c']);
-    newPackage('b', ['d']);
-    newPackage('c', ['d']);
-    newPackage('d');
-    var pluginFilePath = newFile('$pluginDirPath/bin/plugin.dart').path;
+    var bRootPath = newPackage('b', ['d']);
+    var cRootPath = newPackage('c', ['d']);
+    var dRootPath = newPackage('d');
+    var pluginFile = newFile2('$pluginDirPath/bin/plugin.dart', '');
     //
     // Test path computation.
     //
-    var paths = manager.pathsFor(pluginDirPath);
-    expect(paths, hasLength(2));
-    expect(paths[0], pluginFilePath);
-    var packagesFile = getFile(paths[1]);
+    var files = manager.filesFor(pluginDirPath);
+    expect(files.execution, pluginFile);
+    var packagesFile = files.packages;
     expect(packagesFile.exists, isTrue);
+
     var content = packagesFile.readAsStringSync();
-    var lines = content.split('\n');
-    String asFileUri(String input) => Uri.file(convertPath(input)).toString();
-    expect(
-        lines,
-        unorderedEquals([
-          'plugin:${asFileUri('/workspaceRoot/third_party/dart/plugin/lib')}',
-          'b:${asFileUri('/workspaceRoot/third_party/dart/b/lib')}',
-          'c:${asFileUri('/workspaceRoot/third_party/dart/c/lib')}',
-          'd:${asFileUri('/workspaceRoot/third_party/dart/d/lib')}',
-          ''
-        ]));
+    expect(content, '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "b",
+      "rootUri": "${toUriStr(bRootPath)}",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "c",
+      "rootUri": "${toUriStr(cRootPath)}",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "d",
+      "rootUri": "${toUriStr(dRootPath)}",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "plugin",
+      "rootUri": "${toUriStr(pluginDirPath)}",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''');
   }
 
   void test_pluginsForContextRoot_none() {
@@ -760,7 +776,7 @@ abstract class PluginTestSupport {
       //
       // Create a pubspec.yaml file.
       //
-      var pubspecFile = io.File(path.join(pluginPath, 'pubspec.yaml'));
+      var pubspecFile = io.File(path.join(pluginPath, file_paths.pubspecYaml));
       pubspecFile.writeAsStringSync(_getPubspecFileContent());
       //
       // Create the 'bin' directory.

@@ -133,7 +133,7 @@ class PSEntry {
   PSEntry(this.key, this.value);
 
   @override
-  String toString() => '${key != null ? (key.toString() + ': ') : ''}$value';
+  String toString() => '${key != null ? ('$key: ') : ''}$value';
 }
 
 /// Representation of git-dependency in `pubspec.yaml`.

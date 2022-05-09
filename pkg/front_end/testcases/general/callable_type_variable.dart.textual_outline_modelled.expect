@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class1<T extends Function> {
   Class1(this.field);
   T field;

@@ -42,7 +42,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
       {bool appendComma = false, int? replacementLength}) {
-    var appendColon = !_isInNamedExpression();
+    var appendColon = !_isEditingNamedArgLabel();
     var namedArgs = _namedArgs();
     for (var parameter in parameters) {
       if (parameter.isNamed) {
@@ -73,7 +73,9 @@ class ArgListContributor extends DartCompletionContributor {
           // If there's a replacement length and the preference is to replace,
           // we should not include colons/commas.
           appendColon: appendColon && !willReplace,
-          appendComma: appendComma && !willReplace,
+          // Commas should always be suppressed when we're not inserting colons:
+          //     ke^: Key()
+          appendComma: appendComma && appendColon && !willReplace,
           replacementLength: replacementLength);
     }
   }
@@ -199,9 +201,13 @@ class ArgListContributor extends DartCompletionContributor {
       var entity = request.target.entity;
       if (entity is NamedExpression) {
         var offset = request.offset;
-        if (entity.offset < offset && offset < entity.end) {
-          return true;
+        var nameId = entity.name.label;
+        // `^id: value` - add a new named argument.
+        // `^: value` - edit the name of this named argument.
+        if (offset == nameId.offset && !nameId.isSynthetic) {
+          return false;
         }
+        return nameId.offset <= offset && offset <= nameId.end;
       }
     }
     return false;
@@ -213,16 +219,6 @@ class ArgListContributor extends DartCompletionContributor {
     var parent = containingNode.parent;
     var newExpr = parent != null ? flutter.identifyNewExpression(parent) : null;
     return newExpr != null && flutter.isWidgetCreation(newExpr);
-  }
-
-  /// Return `true` if the [request] is inside of a [NamedExpression] name.
-  bool _isInNamedExpression() {
-    var entity = request.target.entity;
-    if (entity is NamedExpression) {
-      var name = entity.name;
-      return name.offset < request.offset && request.offset < name.end;
-    }
-    return false;
   }
 
   /// Return `true` if the completion target is in the middle or beginning of

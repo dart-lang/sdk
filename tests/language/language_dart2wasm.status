@@ -1,0 +1,10 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+# Sections in this file should contain "$compiler == dart2wasm".
+
+[ $compiler == dart2wasm ]
+vm/*: SkipByDesign # Tests for the VM.
+
+[ $compiler == dart2wasm && $runtime == d8 ]
+import/conditional_string_test: SkipByDesign # No XHR in d8

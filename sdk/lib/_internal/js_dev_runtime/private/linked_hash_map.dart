@@ -99,7 +99,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, key.hashCode);
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           K k = JS('', '#[#]', buckets, i);
@@ -131,7 +131,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       JS('', '#.set(#, #)', _map, key, value);
     });
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 
@@ -140,7 +140,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, key.hashCode);
+      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           K k = JS('', '#[#]', buckets, i);
@@ -164,7 +164,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     int length = JS('', '#.size', map);
     JS('', '#.set(#, #)', map, key, value);
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 
@@ -177,7 +177,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
         dart.identityEquals)) {
       @notNull
       K k = key;
-      var hash = JS<int>('!', '# & 0x3ffffff', k.hashCode);
+      var hash = JS<int>('!', '# & 0x3fffffff', k.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) {
         JS('', '#.set(#, [#])', _keyMap, hash, key);
@@ -196,7 +196,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       value = JS('', 'null');
     }
     JS('', '#.set(#, #)', map, key, value);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
     return value;
   }
 
@@ -206,7 +206,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
-      var hash = JS<int>('!', '# & 0x3ffffff', key.hashCode);
+      var hash = JS<int>('!', '# & 0x3fffffff', key.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return null; // not found
       for (int i = 0, n = JS('!', '#.length', buckets);;) {
@@ -226,7 +226,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     var map = _map;
     V value = JS('', '#.get(#)', map, key);
     if (JS<bool>('!', '#.delete(#)', map, key)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
     return value == null ? null : value; // coerce undefined to null.
   }
@@ -236,14 +236,14 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 }
 
 @NoReifyGeneric()
 K putLinkedMapKey<K>(@notNull K key, keyMap) {
-  var hash = JS<int>('!', '# & 0x3ffffff', key.hashCode);
+  var hash = JS<int>('!', '# & 0x3fffffff', key.hashCode);
   var buckets = JS('', '#.get(#)', keyMap, hash);
   if (buckets == null) {
     JS('', '#.set(#, [#])', keyMap, hash, key);

@@ -30,6 +30,20 @@ import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
+import 'package:analyzer/src/dart/element/well_bounded.dart';
+
+/// Fresh type parameters created to unify two lists of type parameters.
+class RelatedTypeParameters {
+  static final _empty = RelatedTypeParameters._([], []);
+
+  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterType> typeParameterTypes;
+
+  RelatedTypeParameters._(
+    this.typeParameters,
+    this.typeParameterTypes,
+  );
+}
 
 /// The [TypeSystem] implementation.
 class TypeSystemImpl implements TypeSystem {
@@ -333,6 +347,52 @@ class TypeSystemImpl implements TypeSystem {
     return null;
   }
 
+  /// Computes the set of free type parameters appearing in [rootType].
+  ///
+  /// If a non-null [candidates] set is given, then only type parameters
+  /// appearing in it are considered; otherwise all type parameters are
+  /// considered.
+  List<TypeParameterElement>? getFreeParameters(DartType rootType,
+      {Set<TypeParameterElement>? candidates}) {
+    List<TypeParameterElement>? parameters;
+    Set<DartType> visitedTypes = HashSet<DartType>();
+    Set<TypeParameterElement> boundTypeParameters =
+        HashSet<TypeParameterElement>();
+
+    void appendParameters(DartType? type) {
+      if (type == null) {
+        return;
+      }
+      if (visitedTypes.contains(type)) {
+        return;
+      }
+      visitedTypes.add(type);
+      if (type is TypeParameterType) {
+        var element = type.element;
+        if ((candidates == null || candidates.contains(element)) &&
+            !boundTypeParameters.contains(element)) {
+          parameters ??= <TypeParameterElement>[];
+          parameters!.add(element);
+        }
+      } else {
+        if (type is FunctionType) {
+          assert(!type.typeFormals.any((t) => boundTypeParameters.contains(t)));
+          boundTypeParameters.addAll(type.typeFormals);
+          appendParameters(type.returnType);
+          type.parameters.map((p) => p.type).forEach(appendParameters);
+          // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
+          type.alias?.typeArguments.forEach(appendParameters);
+          boundTypeParameters.removeAll(type.typeFormals);
+        } else if (type is InterfaceType) {
+          type.typeArguments.forEach(appendParameters);
+        }
+      }
+    }
+
+    appendParameters(rootType);
+    return parameters;
+  }
+
   /// Computes the greatest lower bound of [T1] and [T2].
   DartType getGreatestLowerBound(DartType T1, DartType T2) {
     return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
@@ -411,13 +471,9 @@ class TypeSystemImpl implements TypeSystem {
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
   /// infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
   ///
-  /// This is similar to [inferGenericFunctionOrType], but the return type is
+  /// This is similar to [setupGenericTypeInference], but the return type is
   /// also considered as part of the solution.
-  ///
-  /// If this function is called with a [contextType] that is also
-  /// uninstantiated, or a [fnType] that is already instantiated, it will have
-  /// no effect and return `null`.
-  List<DartType>? inferFunctionTypeInstantiation(
+  List<DartType> inferFunctionTypeInstantiation(
     FunctionType contextType,
     FunctionType fnType, {
     ErrorReporter? errorReporter,
@@ -432,87 +488,14 @@ class TypeSystemImpl implements TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = GenericInferrer(this, fnType.typeFormals);
+    var inferrer = GenericInferrer(this, fnType.typeFormals,
+        errorReporter: errorReporter,
+        errorNode: errorNode,
+        genericMetadataIsEnabled: genericMetadataIsEnabled);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.infer(
-      fnType.typeFormals,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-      genericMetadataIsEnabled: genericMetadataIsEnabled,
-    );
-  }
-
-  /// Infers type arguments for a generic type, function, method, or
-  /// list/map literal, using the downward context type as well as the
-  /// argument types if available.
-  ///
-  /// For example, given a function type with generic type parameters, this
-  /// infers the type parameters from the actual argument types, and returns the
-  /// instantiated function type.
-  ///
-  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
-  /// result type R, and generic type parameters T0, T1, ... Tm, use the
-  /// argument types A0, A1, ... An to solve for the type parameters.
-  ///
-  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
-  /// running the subtype algorithm, and when we reach a type parameter Tj,
-  /// recording the lower or upper bound it must satisfy. At the end, all
-  /// constraints can be combined to determine the type.
-  ///
-  /// All constraints on each type parameter Tj are tracked, as well as where
-  /// they originated, so we can issue an error message tracing back to the
-  /// argument values, type parameter "extends" clause, or the return type
-  /// context.
-  List<DartType>? inferGenericFunctionOrType({
-    ClassElement? genericClass,
-    required List<TypeParameterElement> typeParameters,
-    required List<ParameterElement> parameters,
-    required DartType declaredReturnType,
-    required List<DartType> argumentTypes,
-    required DartType? contextReturnType,
-    ErrorReporter? errorReporter,
-    AstNode? errorNode,
-    bool downwards = false,
-    bool isConst = false,
-    required bool genericMetadataIsEnabled,
-  }) {
-    if (typeParameters.isEmpty) {
-      return null;
-    }
-
-    // Create a TypeSystem that will allow certain type parameters to be
-    // inferred. It will optimistically assume these type parameters can be
-    // subtypes (or supertypes) as necessary, and track the constraints that
-    // are implied by this.
-    var inferrer = GenericInferrer(this, typeParameters);
-
-    if (contextReturnType != null) {
-      if (isConst) {
-        contextReturnType = eliminateTypeVariables(contextReturnType);
-      }
-      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
-    }
-
-    for (int i = 0; i < argumentTypes.length; i++) {
-      // Try to pass each argument to each parameter, recording any type
-      // parameter bounds that were implied by this assignment.
-      inferrer.constrainArgument(
-        argumentTypes[i],
-        parameters[i].type,
-        parameters[i].name,
-        genericClass: genericClass,
-      );
-    }
-
-    return inferrer.infer(
-      typeParameters,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-      downwardsInferPhase: downwards,
-      genericMetadataIsEnabled: genericMetadataIsEnabled,
-    );
+    return inferrer.upwardsInfer();
   }
 
   /// Given a [DartType] [type], if [type] is an uninstantiated
@@ -543,7 +526,7 @@ class TypeSystemImpl implements TypeSystem {
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyType(type) as InterfaceType;
+      type = toLegacyTypeIfOptOut(type) as InterfaceType;
       return type;
     } else if (typeAliasElement != null) {
       var typeParameters = typeAliasElement.typeParameters;
@@ -552,7 +535,7 @@ class TypeSystemImpl implements TypeSystem {
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyType(type);
+      type = toLegacyTypeIfOptOut(type);
       return type;
     } else {
       throw ArgumentError('Missing element');
@@ -604,46 +587,12 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    List<TypeParameterElement>? getFreeParameters(DartType rootType) {
-      List<TypeParameterElement>? parameters;
-      Set<DartType> visitedTypes = HashSet<DartType>();
-
-      void appendParameters(DartType? type) {
-        if (type == null) {
-          return;
-        }
-        if (visitedTypes.contains(type)) {
-          return;
-        }
-        visitedTypes.add(type);
-        if (type is TypeParameterType) {
-          var element = type.element;
-          if (all.contains(element)) {
-            parameters ??= <TypeParameterElement>[];
-            parameters!.add(element);
-          }
-        } else {
-          if (type is FunctionType) {
-            appendParameters(type.returnType);
-            type.parameters.map((p) => p.type).forEach(appendParameters);
-            // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
-            type.alias?.typeArguments.forEach(appendParameters);
-          } else if (type is InterfaceType) {
-            type.typeArguments.forEach(appendParameters);
-          }
-        }
-      }
-
-      appendParameters(rootType);
-      return parameters;
-    }
-
     bool hasProgress = true;
     while (hasProgress) {
       hasProgress = false;
       for (TypeParameterElement parameter in partials.keys) {
         DartType value = partials[parameter]!;
-        var freeParameters = getFreeParameters(value);
+        var freeParameters = getFreeParameters(value, candidates: all);
         if (freeParameters == null) {
           defaults[parameter] = value;
           partials.remove(parameter);
@@ -800,6 +749,15 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return false;
+  }
+
+  /// Check if [left] is equal to [right].
+  ///
+  /// Implements:
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/subtyping.md#type-equality`
+  bool isEqualTo(DartType left, DartType right) {
+    return isSubtypeOf(left, right) && isSubtypeOf(right, left);
   }
 
   /// A function bounded type is either `Function` itself, or a type variable
@@ -1178,6 +1136,17 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// See `15.2 Super-bounded types` in the language specification.
+  TypeBoundedResult isWellBounded(
+    DartType type, {
+    required bool allowSuperBounded,
+  }) {
+    return TypeBoundedHelper(this).isWellBounded(
+      type,
+      allowSuperBounded: allowSuperBounded,
+    );
+  }
+
   /// Returns the least closure of [type] with respect to [typeParameters].
   ///
   /// https://github.com/dart-lang/language
@@ -1261,19 +1230,17 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
   }) {
     var typeParameters = mixinElement.typeParameters;
-    var inferrer = GenericInferrer(this, typeParameters);
+    var inferrer = GenericInferrer(this, typeParameters,
+        genericMetadataIsEnabled: genericMetadataIsEnabled);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
     }
 
-    var inferredTypes = inferrer.infer(
-      typeParameters,
-      considerExtendsClause: false,
-      genericMetadataIsEnabled: genericMetadataIsEnabled,
-    )!;
-    inferredTypes =
-        inferredTypes.map(_removeBoundsOfGenericFunctionTypes).toList();
+    var inferredTypes = inferrer
+        .upwardsInfer()
+        .map(_removeBoundsOfGenericFunctionTypes)
+        .toList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1283,8 +1250,8 @@ class TypeSystemImpl implements TypeSystem {
         // TODO(scheglov) waiting for the spec
         // https://github.com/dart-lang/sdk/issues/42605
       } else {
-        srcType = toLegacyType(srcType);
-        destType = toLegacyType(destType);
+        srcType = toLegacyTypeIfOptOut(srcType);
+        destType = toLegacyTypeIfOptOut(destType);
       }
       if (srcType != destType) {
         // Failed to find an appropriate substitution
@@ -1411,6 +1378,72 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
+  /// Given two lists of type parameters, check that that they have the same
+  /// number of elements, and their bounds are equal.
+  ///
+  /// The return value will be a new list of fresh type parameters, that can
+  /// be used to instantiate both function types, allowing further comparison.
+  RelatedTypeParameters? relateTypeParameters(
+    List<TypeParameterElement> typeParameters1,
+    List<TypeParameterElement> typeParameters2,
+  ) {
+    if (typeParameters1.length != typeParameters2.length) {
+      return null;
+    }
+    if (typeParameters1.isEmpty) {
+      return RelatedTypeParameters._empty;
+    }
+
+    var freshTypeParameters = <TypeParameterElementImpl>[];
+    var freshTypeParameterTypes = <TypeParameterType>[];
+    for (var i = 0; i < typeParameters1.length; i++) {
+      var freshTypeParameter = TypeParameterElementImpl(
+        typeParameters1[i].name,
+        -1,
+      );
+      freshTypeParameters.add(freshTypeParameter);
+      freshTypeParameterTypes.add(
+        TypeParameterTypeImpl(
+          element: freshTypeParameter,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      );
+    }
+
+    var substitution1 = Substitution.fromPairs(
+      typeParameters1,
+      freshTypeParameterTypes,
+    );
+    var substitution2 = Substitution.fromPairs(
+      typeParameters2,
+      freshTypeParameterTypes,
+    );
+
+    for (var i = 0; i < typeParameters1.length; i++) {
+      var bound1 = typeParameters1[i].bound;
+      var bound2 = typeParameters2[i].bound;
+      if (bound1 == null && bound2 == null) {
+        continue;
+      }
+      bound1 ??= DynamicTypeImpl.instance;
+      bound2 ??= DynamicTypeImpl.instance;
+      bound1 = substitution1.substituteType(bound1);
+      bound2 = substitution2.substituteType(bound2);
+      if (!isEqualTo(bound1, bound2)) {
+        return null;
+      }
+
+      if (!bound1.isDynamic) {
+        freshTypeParameters[i].bound = bound1;
+      }
+    }
+
+    return RelatedTypeParameters._(
+      freshTypeParameters,
+      freshTypeParameterTypes,
+    );
+  }
+
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
   /// `Object?` with `Null` or `Never` and all contravariant occurrences of
   /// `Null` or `Never` with `Object` or `Object?`.
@@ -1468,17 +1501,40 @@ class TypeSystemImpl implements TypeSystem {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
   }
 
-  DartType toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
+  /// Prepares to infer type arguments for a generic type, function, method, or
+  /// list/map literal, initializing a [GenericInferrer] using the downward
+  /// context type.
+  GenericInferrer setupGenericTypeInference(
+      {required List<TypeParameterElement> typeParameters,
+      required DartType declaredReturnType,
+      required DartType? contextReturnType,
+      ErrorReporter? errorReporter,
+      AstNode? errorNode,
+      required bool genericMetadataIsEnabled,
+      bool isConst = false}) {
+    // Create a GenericInferrer that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferrer = GenericInferrer(this, typeParameters,
+        errorReporter: errorReporter,
+        errorNode: errorNode,
+        genericMetadataIsEnabled: genericMetadataIsEnabled);
+
+    if (contextReturnType != null) {
+      if (isConst) {
+        contextReturnType = eliminateTypeVariables(contextReturnType);
+      }
+      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
+    }
+
+    return inferrer;
   }
 
   /// If a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType toLegacyTypeIfOptOut(DartType type) {
-    if (isNonNullableByDefault) {
-      return type;
-    }
+    if (isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(typeProvider, type);
   }
 

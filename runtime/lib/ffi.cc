@@ -15,6 +15,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/heap/gc_shared.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -44,7 +45,7 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
 
 #define DEFINE_NATIVE_ENTRY_LOAD(type)                                         \
   DEFINE_NATIVE_ENTRY(Ffi_load##type, 0, 2) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_LOAD)
+CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_LOAD)
 #undef DEFINE_NATIVE_ENTRY_LOAD
 
 DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
@@ -57,7 +58,7 @@ DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
 
 #define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
   DEFINE_NATIVE_ENTRY(Ffi_store##type, 0, 3) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
+CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_STORE)
 #undef DEFINE_NATIVE_ENTRY_STORE
 
 DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
@@ -242,5 +243,41 @@ DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   return Pointer::New(type_arg, reinterpret_cast<intptr_t>(FfiResolve));
 }
+
+DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
+                        void,
+                        (Dart_Handle entry_handle, intptr_t external_size)) {
+  Thread* const thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+  const auto& entry_object =
+      Object::Handle(zone, Api::UnwrapHandle(entry_handle));
+  const auto& entry = FinalizerEntry::Cast(entry_object);
+
+  Heap::Space space;
+  intptr_t external_size_diff;
+  {
+    NoSafepointScope no_safepoint;
+    space = SpaceForExternal(entry.ptr());
+    const intptr_t external_size_old = entry.external_size();
+    if (FLAG_trace_finalizers) {
+      THR_Print("Setting external size from  %" Pd " to  %" Pd
+                " bytes in %s space\n",
+                external_size_old, external_size, space == 0 ? "new" : "old");
+    }
+    external_size_diff = external_size - external_size_old;
+    if (external_size_diff == 0) {
+      return;
+    }
+    entry.set_external_size(external_size);
+  }
+  // The next call cannot be in safepoint.
+  if (external_size_diff > 0) {
+    IsolateGroup::Current()->heap()->AllocatedExternal(external_size_diff,
+                                                       space);
+  } else {
+    IsolateGroup::Current()->heap()->FreedExternal(-external_size_diff, space);
+  }
+};
 
 }  // namespace dart

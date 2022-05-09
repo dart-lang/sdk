@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Operators1 {
   operator ==() => true;
   operator <() => true;
@@ -41,7 +40,7 @@ class Operators2 {
   operator ~(a, b) => true;
 }
 class Operators3 {
-  operator ==([a]) => true;
+  operator ==([a = 0]) => true;
   operator <([a]) => true;
   operator >([a]) => true;
   operator <=([a]) => true;

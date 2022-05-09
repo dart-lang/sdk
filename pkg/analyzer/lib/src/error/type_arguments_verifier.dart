@@ -13,12 +13,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
@@ -35,7 +33,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type2.name.staticElement;
+    var classElement = node.constructorName.type.name.staticElement;
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
@@ -48,7 +46,7 @@ class TypeArgumentsVerifier {
     if (typeParameters.isEmpty) {
       return;
     }
-    var typeArgumentList = node.constructorName.type2.typeArguments;
+    var typeArgumentList = node.constructorName.type.typeArguments;
     if (typeArgumentList == null) {
       return;
     }
@@ -87,6 +85,55 @@ class TypeArgumentsVerifier {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           errorNode,
+          [typeArgument, typeParameter.name, bound],
+        );
+      }
+    }
+  }
+
+  void checkEnumConstantDeclaration(EnumConstantDeclaration node) {
+    var constructorElement = node.constructorElement;
+    if (constructorElement == null) {
+      return;
+    }
+
+    var enumElement = constructorElement.enclosingElement;
+    var typeParameters = enumElement.typeParameters;
+
+    var typeArgumentList = node.arguments?.typeArguments;
+    var typeArgumentNodes = typeArgumentList?.arguments;
+    if (typeArgumentList != null &&
+        typeArgumentNodes != null &&
+        typeArgumentNodes.length != typeParameters.length) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM,
+        typeArgumentList,
+        [typeParameters.length, typeArgumentNodes.length],
+      );
+    }
+
+    if (typeParameters.isEmpty) {
+      return;
+    }
+
+    // Check that type arguments are regular-bounded.
+    var typeArguments = constructorElement.returnType.typeArguments;
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          typeArgumentNodes?[i] ?? node.name,
           [typeArgument, typeParameter.name, bound],
         );
       }
@@ -252,7 +299,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.name.staticElement, null)) {
+    if (_isMissingTypeArguments(node, type, node.name.staticElement)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
@@ -539,8 +586,7 @@ class TypeArgumentsVerifier {
   ///   contain `_`
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element,
-      Expression? inferenceContextNode) {
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
     List<DartType> typeArguments;
     var alias = type.alias;
     if (alias != null) {
@@ -554,16 +600,6 @@ class TypeArgumentsVerifier {
     // Check if this type has type arguments and at least one is dynamic.
     // If so, we may need to issue a strict-raw-types error.
     if (typeArguments.any((t) => t.isDynamic)) {
-      // If we have an inference context node, check if the type was inferred
-      // from it. Some cases will not have a context type, such as the type
-      // annotation `List` in `List list;`
-      if (inferenceContextNode != null) {
-        var contextType = InferenceContext.getContext(inferenceContextNode);
-        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
-          // Type was inferred from downwards context: not an error.
-          return false;
-        }
-      }
       if (element != null && element.hasOptionalTypeArgs) {
         return false;
       }

@@ -13,7 +13,7 @@ extension Extension on core::int* {
 static method Extension|syncStarMethod(lowered final core::int* #this) → dynamic sync* {}
 static method Extension|get#syncStarMethod(lowered final core::int* #this) → () →* dynamic
   return () → dynamic => self::Extension|syncStarMethod(#this);
-static method Extension|asyncMethod(lowered final core::int* #this) → dynamic async {}
+static method Extension|asyncMethod(lowered final core::int* #this) → dynamic async /* futureValueType= dynamic */ {}
 static method Extension|get#asyncMethod(lowered final core::int* #this) → () →* dynamic
   return () → dynamic => self::Extension|asyncMethod(#this);
 static method Extension|asyncStarMethod(lowered final core::int* #this) → dynamic async* {}

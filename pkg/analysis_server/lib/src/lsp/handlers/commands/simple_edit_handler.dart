@@ -40,16 +40,10 @@ abstract class SimpleEditCommandHandler
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initilized');
+      return serverNotInitializedError;
     }
 
     final lineInfo = unit.lineInfo;
-    if (lineInfo == null) {
-      return error(ErrorCodes.InternalError,
-          'Unable to produce edits for $docIdentifier as no LineInfo was found');
-    }
-
     final workspaceEdit = toWorkspaceEdit(
       clientCapabilities,
       [FileEditInformation(docIdentifier, lineInfo, edits)],

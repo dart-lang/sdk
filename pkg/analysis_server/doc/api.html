@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.8
+  1.33.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,6 +236,15 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.33.0</h4>
+<ul>
+  <li>Requests <tt>getSuggestions2</tt> and <tt>getSuggestionDetails2</tt>
+    are enabled.</li>
+</ul>
+<h4>1.32.10</h4>
+<ul>
+  <li>The <tt>MOVE_FILE</tt> refactor now supports moving/renaming folders.</li>
+</ul>
 <h4>1.32.8</h4>
 <ul>
   <li>Added <tt>server.cancelRequest</tt> to allow clients to request cancellation
@@ -309,9 +318,11 @@ a:focus, a:hover {
 </ul>
 
 <p><a href="#domain_completion">Completion</a></p><ul><li><a href="#request_completion.getSuggestions">completion.getSuggestions</a></li>
+<li><a href="#request_completion.getSuggestions2">completion.getSuggestions2</a></li>
 <li><a href="#request_completion.setSubscriptions">completion.setSubscriptions</a></li>
 <li><a class="deprecated" href="#request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></li>
 <li><a href="#request_completion.getSuggestionDetails">completion.getSuggestionDetails</a></li>
+<li><a href="#request_completion.getSuggestionDetails2">completion.getSuggestionDetails2</a></li>
 </ul>
 
 <p><a href="#domain_search">Search</a></p><ul><li><a href="#request_search.findElementReferences">search.findElementReferences</a></li>
@@ -969,7 +980,8 @@ a:focus, a:hover {
         </p>
         <p>
           If a package root is a file, then the analyzer
-          will behave as though that file is a ".packages" file in the
+          will behave as though that file is a
+          ".dart_tool/package_config.json" file in the
           source directory. The effect is the same as specifying the file
           as a "--packages" parameter to the Dart VM when
           executing any Dart file inside the source directory.
@@ -1601,6 +1613,94 @@ a:focus, a:hover {
           The identifier used to associate results with this
           completion request.
         </p>
+      </dd></dl></dd><dt class="request"><a name="request_completion.getSuggestions2">completion.getSuggestions2</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "completion.getSuggestions2"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>offset</b>": int
+    "<b>maxResults</b>": int
+    "<b>completionCaseMatchingMode</b>": <span style="color:#999999">optional</span> <a href="#type_CompletionCaseMatchingMode">CompletionCaseMatchingMode</a>
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>replacementOffset</b>": int
+    "<b>replacementLength</b>": int
+    "<b>suggestions</b>": List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;
+    "<b>isIncomplete</b>": bool
+  }
+}</pre></div>
+    <p>
+      Request that completion suggestions for the given offset in the given
+      file be returned. The suggestions will be filtered using fuzzy matching
+      with the already existing prefix.
+    </p>
+    
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
+        
+        <p>
+          The file containing the point at which suggestions are to be made.
+        </p>
+      </dd><dt class="field"><b>offset: int</b></dt><dd>
+        
+        <p>
+          The offset within the file at which suggestions are to be made.
+        </p>
+      </dd><dt class="field"><b>maxResults: int</b></dt><dd>
+        
+        <p>
+          The maximum number of suggestions to return. If the number of
+          suggestions after filtering is greater than the <tt>maxResults</tt>,
+          then <tt>isIncomplete</tt> is set to <tt>true</tt>.
+        </p>
+      </dd><dt class="field"><b>completionCaseMatchingMode: <a href="#type_CompletionCaseMatchingMode">CompletionCaseMatchingMode</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The mode of code completion being invoked. If no value is provided,
+          <tt>MATCH_FIRST_CHAR</tt> will be assumed.
+        </p>
+      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>replacementOffset: int</b></dt><dd>
+        
+        <p>
+          The offset of the start of the text to be  replaced. This will be
+          different from the offset used  to request the completion suggestions
+          if there was a portion of an identifier before the original offset.
+          In particular, the replacementOffset will be the offset of the
+          beginning of said identifier.
+        </p>
+      </dd><dt class="field"><b>replacementLength: int</b></dt><dd>
+        
+        <p>
+          The length of the text to be replaced if the remainder of the
+          identifier containing the cursor is to be replaced when the
+          suggestion is applied (that is, the number of characters in the
+          existing identifier).
+        </p>
+      </dd><dt class="field"><b>suggestions: List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;</b></dt><dd>
+        
+        <p>
+          The completion suggestions being reported. This list is filtered
+          by the already existing prefix, and sorted first by relevance,
+          and (if the same) by the suggestion text. The list will have at
+          most <tt>maxResults</tt> items. If the user types a new keystroke,
+          the client is expected to either do local filtering (when the
+          returned list was complete), or ask the server again (if
+          <tt>isIncomplete</tt> was <tt>true</tt>).
+        </p>
+        <p>
+          This list contains suggestions from both imported, and not yet
+          imported libraries. Items from not yet imported libraries will
+          have <tt>isNotImported</tt> set to <tt>true</tt>.
+        </p>
+      </dd><dt class="field"><b>isIncomplete: bool</b></dt><dd>
+        
+        <p>
+          True if the number of suggestions after filtering was greater than
+          the requested <tt>maxResults</tt>.
+        </p>
       </dd></dl></dd><dt class="request"><a name="request_completion.setSubscriptions">completion.setSubscriptions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "completion.setSubscriptions"
@@ -1711,6 +1811,73 @@ a:focus, a:hover {
           A change for the client to apply in case the library containing
           the accepted completion suggestion needs to be imported. The field
           will be omitted if there are no additional changes that need to be made.
+        </p>
+      </dd></dl></dd><dt class="request"><a name="request_completion.getSuggestionDetails2">completion.getSuggestionDetails2</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "completion.getSuggestionDetails2"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>offset</b>": int
+    "<b>completion</b>": String
+    "<b>libraryUri</b>": String
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>completion</b>": String
+    "<b>change</b>": <a href="#type_SourceChange">SourceChange</a>
+  }
+}</pre></div>
+    <p>
+      Clients must make this request when the user has selected a completion
+      suggestion with the <tt>isNotImported</tt> field set to <tt>true</tt>.
+      The server will respond with the text to insert, as well as any
+      <tt>SourceChange</tt> that needs to be applied in case the completion
+      requires an additional import to be  added. The text to insert might be
+      different from the original suggestion to include an import prefix if the
+      library will be imported with a prefix to avoid shadowing
+      conflicts in the file.
+    </p>
+    
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
+        
+        <p>
+          The path of the file into which this completion is being inserted.
+        </p>
+      </dd><dt class="field"><b>offset: int</b></dt><dd>
+        
+        <p>
+          The offset in the file where the completion will be inserted.
+        </p>
+      </dd><dt class="field"><b>completion: String</b></dt><dd>
+        
+        <p>
+          The <tt>completion</tt> from the selected
+          <tt>CompletionSuggestion</tt>.  It could be a name of a class, or a
+          name of a constructor in form "typeName.constructorName()", or an
+          enumeration constant in form "enumName.constantName", etc.
+        </p>
+      </dd><dt class="field"><b>libraryUri: String</b></dt><dd>
+        
+        <p>
+          The URI of the library to import, so that the element referenced
+          in the <tt>completion</tt> becomes accessible.
+        </p>
+      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>completion: String</b></dt><dd>
+        
+        <p>
+          The full text to insert, which possibly includes now an import prefix.
+          The client should insert this text, not the <tt>completion</tt> from
+          the selected <tt>CompletionSuggestion</tt>.
+        </p>
+      </dd><dt class="field"><b>change: <a href="#type_SourceChange">SourceChange</a></b></dt><dd>
+        
+        <p>
+          A change for the client to apply to make the accepted completion
+          suggestion available. In most cases the change is to add a new
+          import directive to the file.
         </p>
       </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_completion.results">completion.results</a></dt><dd><div class="box"><pre>notification: {
   "event": "completion.results"
@@ -2143,6 +2310,7 @@ a:focus, a:hover {
     The edit domain contains commands related to edits that can be
     applied to the code.
   </p>
+  
   
   
   
@@ -3117,6 +3285,8 @@ a:focus, a:hover {
   
   
   
+  
+  
 <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
     <p>
       A directive to begin overlaying the contents of a file. The supplied
@@ -3478,13 +3648,50 @@ a:focus, a:hover {
           The label associated with this range that should be displayed to the
           user.
         </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionCaseMatchingMode">CompletionCaseMatchingMode: String</a></dt><dd>
+    <p>
+      An enumeration of the character case matching modes that the user may set in the client.
+    </p>
+    
+  <dl><dt class="value">FIRST_CHAR</dt><dd>
+        
+        <p>
+          Match the first character case only when filtering completions, the default for this
+          enumeration.
+        </p>
+      </dd><dt class="value">ALL_CHARS</dt><dd>
+        
+        <p>
+          Match all character cases when filtering completion lists.
+        </p>
+      </dd><dt class="value">NONE</dt><dd>
+        
+        <p>
+          Do not match character cases when filtering completion lists.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionId">CompletionId: String</a></dt><dd>
     
     <p>
       An identifier used to associate completion results with a
       completion request.
     </p>
-  </dd><dt class="typeDefinition"><a name="type_CompletionService">CompletionService: String</a></dt><dd>
+  </dd><dt class="typeDefinition"><a name="type_CompletionMode">CompletionMode: String</a></dt><dd>
+    <p>
+      An enumeration of the kinds of code completion that users can invoke.
+    </p>
+    
+  <dl><dt class="value">BASIC</dt><dd>
+        
+        <p>
+          Basic code completion invocation type, and the default for this
+          enumeration.
+        </p>
+      </dd><dt class="value">SMART</dt><dd>
+        
+        <p>
+          Smart code completion, currently not implemented.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionService">CompletionService: String</a></dt><dd>
     <p>
       An enumeration of the completion services to which a client can subscribe.
     </p>
@@ -3666,6 +3873,37 @@ a:focus, a:hover {
         <p>
           The type of the options parameter being suggested. This field is
           omitted if the parameterName field is omitted.
+        </p>
+      </dd><dt class="field"><b>libraryUri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          This field  is omitted if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
+        </p>
+        <p>
+          This field  is omitted if this suggestion corresponds to a locally
+          declared element.
+        </p>
+        <p>
+          If this suggestion corresponds to an already imported element,
+          then this field is the URI of a library that provides this element,
+          not the URI of the library where the element is declared.
+        </p>
+        <p>
+          If this suggestion corresponds to an element from a not yet
+          imported library, this field is the URI of a library that could be
+          imported to make this suggestion  accessible in the file where
+          completion was requested, such as <tt>package:foo/bar.dart</tt> or
+          <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+        </p>
+      </dd><dt class="field"><b>isNotImported: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          True if the suggestion is for an element from a not yet imported
+          library. This field is omitted if the element is declared locally,
+          or is from library is already imported, so that the suggestion can
+          be inserted as is, or if <tt>getSuggestions</tt> was used rather
+          than <tt>getSuggestions2</tt>.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestionKind">CompletionSuggestionKind: String</a></dt><dd>
     <p>
@@ -4375,7 +4613,7 @@ a:focus, a:hover {
   <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_TEAR_OFF</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
-      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
+      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FIELD_STATIC</dt><dd>
@@ -4733,11 +4971,19 @@ a:focus, a:hover {
       the user edit the variable name after the operation, all occurrences of
       the name could be edited simultaneously.
     </p>
+    <p>
+      Edit groups may have a length of 0 and function as tabstops where there
+      is no default text, for example, an edit that inserts an <tt>if</tt>
+      statement might provide an empty group between parens where a condition
+      should be typed. For this reason, it's also valid for a group to contain
+      only a single position that is not linked to others.
+    </p>
     
   <dl><dt class="field"><b>positions: List&lt;<a href="#type_Position">Position</a>&gt;</b></dt><dd>
         
         <p>
-          The positions of the regions that should be edited simultaneously.
+          The positions of the regions (after applying the relevant edits) that
+          should be edited simultaneously.
         </p>
       </dd><dt class="field"><b>length: int</b></dt><dd>
         
@@ -6027,10 +6273,15 @@ a:focus, a:hover {
         </p>
       </dd></dl></dd><dt class="refactoring">MOVE_FILE</dt><dd>
     <p>
-      Move the given file and update all of the references to that file
-      and from it. The move operation is supported in general case - for
-      renaming a file in the same folder, moving it to a different folder
-      or both.
+      Move the given file or folder and update all of the references to
+      and from it. The move operation is supported in general case -
+      for renaming an item in the same folder, moving it to a different
+      folder or both.
+
+      Moving or renaming large folders may take time and clients should
+      consider showing an indicator to the user with the ability to
+      cancel the request (which can be done using
+      <tt>server.cancelRequest</tt>).
     </p>
     <p>
       The refactoring must be activated before an actual file moving
@@ -6098,7 +6349,7 @@ a:focus, a:hover {
   TODO: TBD
 </p>
 <h2 class="domain"><a name="index">Index</a></h2>
-<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li><li><a href="#request_server.cancelRequest">cancelRequest</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.log">log</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_BulkFix">BulkFix</a></li><li><a href="#type_BulkFixDetail">BulkFixDetail</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_KytheEntry">KytheEntry</a></li><li><a href="#type_KytheVName">KytheVName</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li><li><a href="#request_server.cancelRequest">cancelRequest</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.log">log</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.getSuggestions2">getSuggestions2</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li><li><a href="#request_completion.getSuggestionDetails2">getSuggestionDetails2</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_BulkFix">BulkFix</a></li><li><a href="#type_BulkFixDetail">BulkFixDetail</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionCaseMatchingMode">CompletionCaseMatchingMode</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionMode">CompletionMode</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_KytheEntry">KytheEntry</a></li><li><a href="#type_KytheVName">KytheVName</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
 
 
 </body></html>

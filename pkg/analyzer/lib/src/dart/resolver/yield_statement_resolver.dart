@@ -133,13 +133,30 @@ class YieldStatementResolver {
     }
   }
 
+  DartType? _computeContextType(
+    BodyInferenceContext bodyContext,
+    YieldStatement node,
+  ) {
+    var elementType = bodyContext.contextType;
+    if (elementType != null) {
+      var contextType = elementType;
+      if (node.star != null) {
+        contextType = bodyContext.isSynchronous
+            ? _typeProvider.iterableType(elementType)
+            : _typeProvider.streamType(elementType);
+      }
+      return contextType;
+    } else {
+      return null;
+    }
+  }
+
   void _resolve_generator(
     BodyInferenceContext bodyContext,
     YieldStatement node,
   ) {
-    _setContextType(bodyContext, node);
-
-    node.expression.accept(_resolver);
+    _resolver.analyzeExpression(
+        node.expression, _computeContextType(bodyContext, node));
 
     if (node.star != null) {
       _resolver.nullableDereferenceVerifier.expression(
@@ -166,21 +183,5 @@ class YieldStatementResolver {
     );
 
     _checkForUseOfVoidResult(node.expression);
-  }
-
-  void _setContextType(
-    BodyInferenceContext bodyContext,
-    YieldStatement node,
-  ) {
-    var elementType = bodyContext.contextType;
-    if (elementType != null) {
-      var contextType = elementType;
-      if (node.star != null) {
-        contextType = bodyContext.isSynchronous
-            ? _typeProvider.iterableType(elementType)
-            : _typeProvider.streamType(elementType);
-      }
-      InferenceContext.setType(node.expression, contextType);
-    }
   }
 }

@@ -8,7 +8,7 @@
 // allow inlining of empty functions and from main.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
+import 'package:compiler/compiler.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';

@@ -6,6 +6,7 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
+import "dart:mirrors";
 
 Future<HttpServer> setupServer({Uri? targetServer}) {
   final completer = new Completer<HttpServer>();
@@ -343,6 +344,95 @@ void testAutoRedirectWithHeaders() {
   });
 }
 
+void testShouldCopyHeadersOnRedirect() {
+  final clientClass = reflect(HttpClient()).type;
+  final fnName = Symbol("shouldCopyHeaderOnRedirect");
+
+  shouldCopyHeaderOnRedirect(
+          String headerKey, Uri originalUrl, Uri redirectUri) =>
+      clientClass.invoke(
+          fnName, [headerKey, originalUrl, redirectUri]).reflectee as bool;
+
+  checkShouldCopyHeader(
+      String headerKey, String originalUrl, String redirectUri, bool expected) {
+    if (shouldCopyHeaderOnRedirect(
+            headerKey, Uri.parse(originalUrl), Uri.parse(redirectUri)) !=
+        expected) {
+      Expect.fail(
+          "shouldCopyHeaderOnRedirect($headerKey, $originalUrl, $redirectUri) => ${!expected}");
+    }
+  }
+
+  // Redirect on localhost.
+  checkShouldCopyHeader(
+      "authorization", "http://localhost", "http://localhost/foo", true);
+  checkShouldCopyHeader(
+      "cat", "http://localhost", "http://localhost/foo", true);
+
+  // Redirect to same IP address.
+  checkShouldCopyHeader("authorization", "http://192.168.20.20",
+      "http://192.168.20.20/foo", true);
+  checkShouldCopyHeader(
+      "cat", "http://192.168.20.20", "http://192.168.20.20/foo", true);
+
+  // Redirect to different IP address.
+  checkShouldCopyHeader(
+      "authorization", "http://192.168.20.20", "http://192.168.20.99", false);
+  checkShouldCopyHeader(
+      "cat", "http://192.168.20.20", "http://192.168.20.99", true);
+
+  // Redirect to same domain.
+  checkShouldCopyHeader(
+      "authorization", "http://foo.com", "http://foo.com/foo", true);
+  checkShouldCopyHeader("cat", "http://foo.com", "http://foo.com/foo", true);
+
+  // Redirect to same domain with explicit ports.
+  checkShouldCopyHeader(
+      "authorization", "http://foo.com", "http://foo.com:80/foo", true);
+  checkShouldCopyHeader("cat", "http://foo.com", "http://foo.com:80/foo", true);
+
+  // Redirect to subdomain.
+  checkShouldCopyHeader(
+      "authorization", "https://foo.com", "https://www.foo.com", true);
+  checkShouldCopyHeader("cat", "https://foo.com", "https://www.foo.com", true);
+
+  // Redirect to different domain.
+  checkShouldCopyHeader(
+      "authorization", "https://foo.com", "https://wwwfoo.com", false);
+  checkShouldCopyHeader("cat", "https://foo.com", "https://wwwfoo.com", true);
+
+  // Redirect to different port.
+  checkShouldCopyHeader(
+      "authorization", "http://foo.com", "http://foo.com:81", false);
+  checkShouldCopyHeader("cat", "http://foo.com", "http://foo.com:81", true);
+
+  // Redirect from secure to insecure.
+  checkShouldCopyHeader(
+      "authorization", "https://foo.com", "http://foo.com", false);
+  checkShouldCopyHeader("cat", "https://foo.com", "http://foo.com", true);
+
+  // Redirect from secure to insecure, same port.
+  checkShouldCopyHeader(
+      "authorization", "https://foo.com:8888", "http://foo.com:8888", false);
+  checkShouldCopyHeader(
+      "cat", "https://foo.com:8888", "http://foo.com:8888", true);
+
+  // Redirect from insecure to secure.
+  checkShouldCopyHeader(
+      "authorization", "http://foo.com", "https://foo.com", false);
+  checkShouldCopyHeader("cat", "http://foo.com", "https://foo.com", true);
+
+  // Redirect to subdomain, different port.
+  checkShouldCopyHeader(
+      "authorization", "https://foo.com:80", "https://www.foo.com:81", false);
+  checkShouldCopyHeader(
+      "cat", "https://foo.com:80", "https://www.foo.com:81", true);
+
+  // Different header casting:
+  checkShouldCopyHeader(
+      "AuThOrIzAtiOn", "https://foo.com", "https://bar.com", false);
+}
+
 void testCrossDomainAutoRedirectWithHeaders() {
   setupTargetServer().then((targetServer) {
     setupServer(
@@ -517,6 +607,7 @@ main() {
   testManualRedirectWithHeaders();
   testAutoRedirect();
   testAutoRedirectWithHeaders();
+  testShouldCopyHeadersOnRedirect();
   testCrossDomainAutoRedirectWithHeaders();
   testAutoRedirect301POST();
   testAutoRedirect303POST();

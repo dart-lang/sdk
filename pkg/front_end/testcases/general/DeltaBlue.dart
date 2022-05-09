@@ -18,7 +18,7 @@
 //
 // Translated first from Smalltalk to JavaScript, and finally to
 // Dart by Google 2008-2010.
-// @dart=2.9
+
 /**
  * A Dart implementation of the DeltaBlue constraint-solving
  * algorithm, as described in:
@@ -122,7 +122,7 @@ abstract class Constraint {
    * there is one, or nil, if there isn't.
    * Assume: I am not already satisfied.
    */
-  Constraint satisfy(mark) {
+  Constraint? satisfy(mark) {
     chooseMethod(mark);
     if (!isSatisfied()) {
       if (strength == REQUIRED) {
@@ -132,7 +132,7 @@ abstract class Constraint {
     }
     markInputs(mark);
     Variable out = output();
-    Constraint overridden = out.determinedBy;
+    Constraint? overridden = out.determinedBy;
     if (overridden != null) overridden.markUnsatisfied();
     out.determinedBy = this;
     if (!planner.addPropagate(this, mark)) print("Cycle encountered");
@@ -410,7 +410,7 @@ class EqualityConstraint extends BinaryConstraint {
  **/
 class Variable {
   List<Constraint> constraints = <Constraint>[];
-  Constraint determinedBy;
+  Constraint? determinedBy;
   int mark = 0;
   Strength walkStrength = WEAKEST;
   bool stay = true;
@@ -453,7 +453,7 @@ class Planner {
    */
   void incrementalAdd(Constraint c) {
     int mark = newMark();
-    for (Constraint overridden = c.satisfy(mark);
+    for (Constraint? overridden = c.satisfy(mark);
         overridden != null;
         overridden = overridden.satisfy(mark));
   }
@@ -579,7 +579,7 @@ class Planner {
         Constraint c = v.constraints[i];
         if (!c.isSatisfied()) unsatisfied.add(c);
       }
-      Constraint determining = v.determinedBy;
+      Constraint? determining = v.determinedBy;
       for (int i = 0; i < v.constraints.length; i++) {
         Constraint next = v.constraints[i];
         if (next != determining && next.isSatisfied()) {
@@ -592,7 +592,7 @@ class Planner {
   }
 
   void addConstraintsConsumingTo(Variable v, List<Constraint> coll) {
-    Constraint determining = v.determinedBy;
+    Constraint? determining = v.determinedBy;
     for (int i = 0; i < v.constraints.length; i++) {
       Constraint c = v.constraints[i];
       if (c != determining && c.isSatisfied()) coll.add(c);
@@ -636,7 +636,7 @@ class Plan {
  */
 void chainTest(int n) {
   planner = new Planner();
-  Variable prev = null, first = null, last = null;
+  Variable? prev = null, first = null, last = null;
   // Build chain of n equality constraints.
   for (int i = 0; i <= n; i++) {
     Variable v = new Variable("v$i", 0);
@@ -645,8 +645,8 @@ void chainTest(int n) {
     if (i == n) last = v;
     prev = v;
   }
-  new StayConstraint(last, STRONG_DEFAULT);
-  EditConstraint edit = new EditConstraint(first, PREFERRED);
+  new StayConstraint(last!, STRONG_DEFAULT);
+  EditConstraint edit = new EditConstraint(first!, PREFERRED);
   Plan plan = planner.extractPlanFromConstraints(<Constraint>[edit]);
   for (int i = 0; i < 100; i++) {
     first.value = i;
@@ -668,7 +668,7 @@ void projectionTest(int n) {
   planner = new Planner();
   Variable scale = new Variable("scale", 10);
   Variable offset = new Variable("offset", 1000);
-  Variable src = null, dst = null;
+  Variable? src = null, dst = null;
 
   List<Variable> dests = <Variable>[];
   for (int i = 0; i < n; i++) {
@@ -678,8 +678,8 @@ void projectionTest(int n) {
     new StayConstraint(src, NORMAL);
     new ScaleConstraint(src, scale, offset, dst, REQUIRED);
   }
-  change(src, 17);
-  if (dst.value != 1170) print("Projection 1 failed");
+  change(src!, 17);
+  if (dst!.value != 1170) print("Projection 1 failed");
   change(dst, 1050);
   if (src.value != 5) print("Projection 2 failed");
   change(scale, 5);
@@ -702,4 +702,4 @@ void change(Variable v, int newValue) {
   edit.destroyConstraint();
 }
 
-Planner planner;
+late Planner planner;

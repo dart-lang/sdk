@@ -32,7 +32,7 @@ class MapTypeMask extends AllocationTypeMask {
 
   /// Deserializes a [MapTypeMask] object from [source].
   factory MapTypeMask.readFromDataSource(
-      DataSource source, CommonMasks domain) {
+      DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
@@ -46,7 +46,7 @@ class MapTypeMask extends AllocationTypeMask {
 
   /// Serializes this [MapTypeMask] to [sink].
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(TypeMaskKind.map);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);

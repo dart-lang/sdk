@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/core.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -18,13 +20,17 @@ const Timeout longTimeout = Timeout(Duration(minutes: 5));
 /// version:
 const String dartVersionFilePrefix2_9 = '// @dart = 2.9\n';
 
+void initGlobalState() {
+  log = Logger.standard();
+}
+
 TestProject project(
-        {String mainSrc,
-        String analysisOptions,
+        {String? mainSrc,
+        String? analysisOptions,
         bool logAnalytics = false,
         String name = TestProject._defaultProjectName,
-        VersionConstraint sdkConstraint,
-        Map<String, dynamic> pubspec}) =>
+        VersionConstraint? sdkConstraint,
+        Map<String, dynamic>? pubspec}) =>
     TestProject(
         mainSrc: mainSrc,
         analysisOptions: analysisOptions,
@@ -35,9 +41,13 @@ TestProject project(
 class TestProject {
   static const String _defaultProjectName = 'dartdev_temp';
 
-  Directory dir;
+  late Directory dir;
 
   String get dirPath => dir.path;
+
+  String get pubCachePath => path.join(dirPath, 'pub_cache');
+
+  String get pubCacheBinPath => path.join(pubCachePath, 'bin');
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
@@ -47,19 +57,20 @@ class TestProject {
 
   final bool logAnalytics;
 
-  final VersionConstraint sdkConstraint;
+  final VersionConstraint? sdkConstraint;
 
-  final Map<String, dynamic> pubspec;
+  final Map<String, dynamic>? pubspec;
 
-  Process _process;
+  Process? _process;
 
   TestProject(
-      {String mainSrc,
-      String analysisOptions,
+      {String? mainSrc,
+      String? analysisOptions,
       this.name = _defaultProjectName,
       this.logAnalytics = false,
       this.sdkConstraint,
       this.pubspec}) {
+    initGlobalState();
     dir = Directory.systemTemp.createTempSync('a');
     file(
         'pubspec.yaml',
@@ -97,28 +108,41 @@ dev_dependencies:
     _process?.kill();
     await _process?.exitCode;
     _process = null;
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
+    int deleteAttempts = 5;
+    while (dir.existsSync()) {
+      try {
+        dir.deleteSync(recursive: true);
+      } catch (e) {
+        if ((--deleteAttempts) <= 0) {
+          rethrow;
+        }
+        await Future.delayed(Duration(milliseconds: 500));
+        print('Got $e while deleting $dir. Trying again...');
+      }
     }
   }
 
   Future<ProcessResult> run(
     List<String> arguments, {
-    String workingDir,
+    String? workingDir,
   }) async {
-    _process = await Process.start(
+    final process = await Process.start(
         Platform.resolvedExecutable,
         [
           '--no-analytics',
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
-    final stdoutContents = _process.stdout.transform(utf8.decoder).join();
-    final stderrContents = _process.stderr.transform(utf8.decoder).join();
-    final code = await _process.exitCode;
+        environment: {
+          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
+          'PUB_CACHE': pubCachePath,
+        });
+    _process = process;
+    final stdoutContents = process.stdout.transform(utf8.decoder).join();
+    final stderrContents = process.stderr.transform(utf8.decoder).join();
+    final code = await process.exitCode;
     return ProcessResult(
-      _process.pid,
+      process.pid,
       code,
       await stdoutContents,
       await stderrContents,
@@ -127,7 +151,7 @@ dev_dependencies:
 
   Future<Process> start(
     List<String> arguments, {
-    String workingDir,
+    String? workingDir,
   }) {
     return Process.start(
         Platform.resolvedExecutable,
@@ -136,11 +160,14 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'})
+        environment: {
+          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
+          'PUB_CACHE': pubCachePath,
+        })
       ..then((p) => _process = p);
   }
 
-  String _sdkRootPath;
+  String? _sdkRootPath;
 
   /// Return the root of the SDK.
   String get sdkRootPath {
@@ -152,24 +179,24 @@ dev_dependencies:
         if (File(path.join(tryDir, 'pkg', 'dartdev', 'bin', 'dartdev.dart'))
             .existsSync()) {
           _sdkRootPath = tryDir;
-          return _sdkRootPath;
+          return _sdkRootPath!;
         }
         current = tryDir;
       } while (path.dirname(current) != current);
       throw StateError('can not find SDK repository root');
     }
-    return _sdkRootPath;
+    return _sdkRootPath!;
   }
 
   String get absolutePathToDartdevFile =>
       path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
 
-  Directory findDirectory(String name) {
+  Directory? findDirectory(String name) {
     var directory = Directory(path.join(dir.path, name));
     return directory.existsSync() ? directory : null;
   }
 
-  File findFile(String name) {
+  File? findFile(String name) {
     var file = File(path.join(dir.path, name));
     return file.existsSync() ? file : null;
   }

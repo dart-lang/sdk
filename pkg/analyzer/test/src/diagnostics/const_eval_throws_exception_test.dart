@@ -53,6 +53,18 @@ main() {
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 129, 18),
     ]);
   }
+
+  test_enum_constructor_initializer_asExpression() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v();
+  final int x;
+  const E({int? x}) : x = x as int;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 3),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -70,7 +82,7 @@ var v = const A(3, 2);
 
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 class Foo {
   final double value;
 
@@ -100,7 +112,7 @@ void main() {
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 class Foo {
   final double value;
 
@@ -129,7 +141,7 @@ void main() {
   }
 
   test_default_constructor_arg_empty_map_import() async {
-    newFile('$testPackageLibPath/other.dart', content: '''
+    newFile2('$testPackageLibPath/other.dart', '''
 class C {
   final Map<String, int> m;
   const C({this.m = const <String, int>{}})
@@ -278,7 +290,7 @@ const c = [if (0 < 1) 3 else nil + 1];
   }
 
   test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('$testPackageLibPath/lib.dart', content: r'''
+    newFile2('$testPackageLibPath/lib.dart', r'''
 class A<T> {
   final int f;
   const A() : f = T.foo;

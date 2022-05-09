@@ -9,7 +9,8 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE = 18;
+const int LINE = 19;
+const int COL = 7;
 
 // Issue: https://github.com/dart-lang/sdk/issues/36622
 Future<void> testMain() async {
@@ -62,7 +63,10 @@ var tests = <IsolateTest>[
     expect(futureBpt.resolved, isTrue);
     expect(
         script.getLineNumberFromTokenPos(futureBpt.location!.tokenPos), LINE);
-    expect(script.getColumnNumberFromTokenPos(futureBpt.location!.tokenPos), 7);
+    expect(futureBpt.location!.line, LINE);
+    expect(
+        script.getColumnNumberFromTokenPos(futureBpt.location!.tokenPos), COL);
+    expect(futureBpt.location!.column, COL);
 
     // Remove the breakpoints.
     expect((await service.removeBreakpoint(isolateId, futureBpt.id!)).type,

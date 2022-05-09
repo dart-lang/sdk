@@ -5,7 +5,7 @@
 library dart2js.constants.values;
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;

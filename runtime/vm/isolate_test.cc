@@ -22,11 +22,13 @@ VM_UNIT_TEST_CASE(IsolateCurrent) {
 
 // Test to ensure that an exception is thrown if no isolate creation
 // callback has been set by the embedder when an isolate is spawned.
-TEST_CASE(IsolateSpawn) {
-  const char* kScriptChars =
+void IsolateSpawn(const char* platform_script_value) {
+  char* scriptChars = OS::SCreate(
+      nullptr,
       "import 'dart:isolate';\n"
       // Ignores printed lines.
       "var _nullPrintClosure = (String line) {};\n"
+      "var _platformScript = () => Uri.parse(\"%s\");\n"
       "void entry(message) {}\n"
       "void testMain() {\n"
       "  Isolate.spawn(entry, null);\n"
@@ -35,9 +37,12 @@ TEST_CASE(IsolateSpawn) {
       "  var rp = RawReceivePort();\n"
       "  rp.sendPort.send(null);\n"
       "  rp.handler = (_) { rp.close(); };\n"
-      "}\n";
+      "}\n",
+      platform_script_value);
 
-  Dart_Handle test_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle test_lib = TestCase::LoadTestScript(scriptChars, NULL);
+
+  free(scriptChars);
 
   // Setup the internal library's 'internalPrint' function.
   // Necessary because asynchronous errors use "print" to print their
@@ -47,9 +52,19 @@ TEST_CASE(IsolateSpawn) {
   Dart_Handle internal_lib = Dart_LookupLibrary(url);
   EXPECT_VALID(internal_lib);
   Dart_Handle print = Dart_GetField(test_lib, NewString("_nullPrintClosure"));
+  EXPECT_VALID(print);
   Dart_Handle result =
       Dart_SetField(internal_lib, NewString("_printClosure"), print);
+  EXPECT_VALID(result);
 
+  Dart_Handle platform_script =
+      Dart_GetField(test_lib, NewString("_platformScript"));
+  EXPECT_VALID(platform_script);
+  Dart_Handle vmlibraryhooks_class =
+      Dart_GetClass(internal_lib, NewString("VMLibraryHooks"));
+  EXPECT_VALID(vmlibraryhooks_class);
+  result = Dart_SetField(vmlibraryhooks_class, NewString("platformScript"),
+                         platform_script);
   EXPECT_VALID(result);
 
   // Setup the 'scheduleImmediate' closure.
@@ -72,10 +87,20 @@ TEST_CASE(IsolateSpawn) {
   EXPECT_VALID(result);
   // Run until all ports to isolate are closed.
   result = Dart_RunLoop();
-  EXPECT_ERROR(result, "Unsupported operation: Isolate.spawn");
+  EXPECT_ERROR(
+      result,
+      "Lightweight isolate spawn is not supported by this Dart embedder");
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
+}
+
+TEST_CASE(IsolateSpawn_FileUri) {
+  IsolateSpawn("file:/a.dart");
+}
+
+TEST_CASE(IsolateSpawn_PackageUri) {
+  IsolateSpawn("package:/a.dart");
 }
 
 class InterruptChecker : public ThreadPool::Task {

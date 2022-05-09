@@ -6,7 +6,7 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
 //
-// Current version: 2.16.0
+// Current version: 2.17.0
 
 #ifndef RUNTIME_VM_EXPERIMENTAL_FEATURES_H_
 #define RUNTIME_VM_EXPERIMENTAL_FEATURES_H_
@@ -24,6 +24,9 @@ enum class ExperimentalFeature {
   spread_collections,
   triple_shift,
   constructor_tearoffs,
+  enhanced_enums,
+  named_arguments_anywhere,
+  super_parameters,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

@@ -23,13 +23,19 @@ abstract class MigrationResolutionHooks
   /// Called after the resolver has determined the type of an expression node.
   /// Should return the type that the expression has after migrations have been
   /// applied.
-  DartType modifyExpressionType(Expression expression, DartType dartType);
+  DartType modifyExpressionType(
+      Expression expression, DartType dartType, DartType? contextType);
 
   /// Called after the resolver has inferred the type of a function literal
   /// parameter.  Should return the type that the parameter has after migrations
   /// have been applied.
   DartType modifyInferredParameterType(
       ParameterElement parameter, DartType type);
+
+  /// Called at the beginning of visiting a binary expression, to report the
+  /// context type of the binary expression.
+  void reportBinaryExpressionContext(
+      BinaryExpression node, DartType? contextType);
 
   /// Called after the resolver has determined the read and write types
   /// of the assignment expression.

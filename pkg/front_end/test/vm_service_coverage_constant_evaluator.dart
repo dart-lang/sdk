@@ -23,7 +23,7 @@ class CoverageHelper extends helper.CoverageHelper {
 
   @override
   bool includeCoverageFor(Uri uri) {
-    if (uri.scheme != "package") return false;
+    if (!uri.isScheme("package")) return false;
     if (uri.path.startsWith("front_end/src/fasta/kernel/constant_")) {
       return true;
     }

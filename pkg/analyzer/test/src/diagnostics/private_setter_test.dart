@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PrivateSetterTest extends PubPackageResolutionTest {
   test_typeLiteral_privateField_differentLibrary() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static int _foo = 0;
 }
@@ -42,13 +42,6 @@ main() {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('_foo = 0'),
-        aImport.setter('_foo'),
-      );
-    }
   }
 
   test_typeLiteral_privateField_sameLibrary() async {
@@ -65,7 +58,7 @@ main() {
   }
 
   test_typeLiteral_privateSetter_differentLibrary_hasGetter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static set _foo(int _) {}
 
@@ -93,17 +86,10 @@ main() {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('_foo = 0'),
-        aImport.setter('_foo'),
-      );
-    }
   }
 
   test_typeLiteral_privateSetter_differentLibrary_noGetter() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 class A {
   static set _foo(int _) {}
 }
@@ -129,13 +115,6 @@ main() {
       operatorElement: null,
       type: 'int',
     );
-
-    if (hasAssignmentLeftResolution) {
-      assertElement(
-        findNode.simple('_foo = 0'),
-        aImport.setter('_foo'),
-      );
-    }
   }
 
   test_typeLiteral_privateSetter_sameLibrary() async {

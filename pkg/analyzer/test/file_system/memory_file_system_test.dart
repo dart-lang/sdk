@@ -511,7 +511,7 @@ class MemoryResourceProviderTest extends BaseTest
       String path, Function(List<WatchEvent> changesReceived) test) {
     var folder = provider.getResource(path) as Folder;
     var changesReceived = <WatchEvent>[];
-    folder.changes.listen(changesReceived.add);
+    folder.watch().changes.listen(changesReceived.add);
     return test(changesReceived);
   }
 }

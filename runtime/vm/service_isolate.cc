@@ -49,19 +49,40 @@ DEFINE_FLAG(bool,
 
 #define VM_SERVICE_METHOD_CALL_FROM_NATIVE 5
 
-static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
-                                          intptr_t code,
-                                          const String& name) {
-  const Array& list = Array::Handle(Array::New(4));
-  ASSERT(!list.IsNull());
-  const Integer& code_int = Integer::Handle(Integer::New(code));
-  const Integer& port_int = Integer::Handle(Integer::New(port_id));
-  const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
-  list.SetAt(0, code_int);
-  list.SetAt(1, port_int);
-  list.SetAt(2, send_port);
-  list.SetAt(3, name);
-  return list.ptr();
+bool ServiceIsolate::SendServiceControlMessage(Thread* thread,
+                                               Dart_Port port_id,
+                                               intptr_t code,
+                                               const char* name) {
+  Dart_CObject ccode;
+  ccode.type = Dart_CObject_kInt32;
+  ccode.value.as_int32 = code;
+
+  Dart_CObject port_int;
+  port_int.type = Dart_CObject_kInt64;
+  port_int.value.as_int64 = port_id;
+
+  Dart_CObject send_port;
+  send_port.type = Dart_CObject_kSendPort;
+  send_port.value.as_send_port.id = port_id;
+  send_port.value.as_send_port.origin_id = port_id;
+
+  Dart_CObject cname;
+  cname.type = Dart_CObject_kString;
+  cname.value.as_string = const_cast<char*>(name);
+
+  Dart_CObject* values[4];
+  values[0] = &ccode;
+  values[1] = &port_int;
+  values[2] = &send_port;
+  values[3] = &cname;
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kArray;
+  message.value.as_array.length = 4;
+  message.value.as_array.values = values;
+
+  return PortMap::PostMessage(WriteApiMessage(thread->zone(), &message, port_,
+                                              Message::kNormalPriority));
 }
 
 static ArrayPtr MakeServerControlMessage(const SendPort& sp,
@@ -217,21 +238,18 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   if (Dart::VmIsolateNameEquals(isolate->name())) {
     return false;
   }
-  ASSERT(isolate != NULL);
-  HANDLESCOPE(thread);
-  const String& name = String::Handle(String::New(isolate->name()));
-  ASSERT(!name.IsNull());
-  const Array& list = Array::Handle(MakeServiceControlMessage(
-      Dart_GetMainPortId(), VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID, name));
-  ASSERT(!list.IsNull());
+
+  Dart_Port main_port = Dart_GetMainPortId();
   if (FLAG_trace_service) {
     OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Isolate %s %" Pd64
                                               " registered.\n",
-                 name.ToCString(), Dart_GetMainPortId());
+                 isolate->name(), main_port);
   }
-  return PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, /* same_group */ false, list, port_,
-      Message::kNormalPriority));
+  bool result = SendServiceControlMessage(thread, main_port,
+                                          VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID,
+                                          isolate->name());
+  isolate->set_is_service_registered(true);
+  return result;
 }
 
 bool ServiceIsolate::SendIsolateShutdownMessage() {
@@ -243,21 +261,17 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   if (Dart::VmIsolateNameEquals(isolate->name())) {
     return false;
   }
-  ASSERT(isolate != NULL);
-  HANDLESCOPE(thread);
-  const String& name = String::Handle(String::New(isolate->name()));
-  ASSERT(!name.IsNull());
-  const Array& list = Array::Handle(MakeServiceControlMessage(
-      Dart_GetMainPortId(), VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID, name));
-  ASSERT(!list.IsNull());
+
+  Dart_Port main_port = Dart_GetMainPortId();
   if (FLAG_trace_service) {
     OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Isolate %s %" Pd64
                                               " deregistered.\n",
-                 name.ToCString(), Dart_GetMainPortId());
+                 isolate->name(), main_port);
   }
-  return PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, /* same_group */ false, list, port_,
-      Message::kNormalPriority));
+
+  return SendServiceControlMessage(thread, main_port,
+                                   VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
+                                   isolate->name());
 }
 
 void ServiceIsolate::SendServiceExitMessage() {

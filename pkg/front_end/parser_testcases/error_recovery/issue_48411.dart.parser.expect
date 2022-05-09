@@ -1,0 +1,67 @@
+NOTICE: Stream was rewritten by parser!
+
+class A {
+A(int x);
+A.y(int x);
+}
+
+class B extends A {
+B(int x) : assert(x > 0) ,super(x);
+}
+
+class B2 extends A {
+B2(int x) : assert(x > 0) ,super.y(x);
+}
+
+class B3 extends A {
+B3(int x) : assert(x > 0) ,this.y(x);
+B3.y(int x);
+}
+
+class C extends A {
+int y;
+C(int x) : assert(x > 0) ,y = 2*21;
+}
+
+class D extends A {
+D(int x) : assert(x > 0) ,assert(x - 1 > 0);
+}
+
+class E extends A {
+final int y;
+E(int x) : assert(x > 0) ,this.y = x*2;
+}
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+A[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+A[StringToken].[SimpleToken]y[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]
+B[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]x[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken] ,[SyntheticToken]super[KeywordToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B2[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]
+B2[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]x[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken] ,[SyntheticToken]super[KeywordToken].[SimpleToken]y[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B3[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]
+B3[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]x[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken] ,[SyntheticToken]this[KeywordToken].[SimpleToken]y[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+B3[StringToken].[SimpleToken]y[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]
+int[StringToken] y[StringToken];[SimpleToken]
+C[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]x[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken] ,[SyntheticToken]y[StringToken] =[SimpleToken] 2[StringToken]*[SimpleToken]21[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] D[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]
+D[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]x[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken] ,[SyntheticToken]assert[KeywordToken]([BeginToken]x[StringToken] -[SimpleToken] 1[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] E[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]
+final[KeywordToken] int[StringToken] y[StringToken];[SimpleToken]
+E[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]x[StringToken] >[SimpleToken] 0[StringToken])[SimpleToken] ,[SyntheticToken]this[KeywordToken].[SimpleToken]y[StringToken] =[SimpleToken] x[StringToken]*[SimpleToken]2[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -82,14 +82,14 @@ ParseStringResult parseString(
       featureSet: featureSet,
     );
   var token = scanner.tokenize();
+  var lineInfo = LineInfo(scanner.lineStarts);
   var parser = Parser(
     source,
     errorCollector,
     featureSet: scanner.featureSet,
+    lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(token);
-  var lineInfo = LineInfo(scanner.lineStarts);
-  unit.lineInfo = lineInfo;
   ParseStringResult result =
       ParseStringResultImpl(content, unit, errorCollector.errors);
   if (throwIfDiagnostics && result.errors.isNotEmpty) {

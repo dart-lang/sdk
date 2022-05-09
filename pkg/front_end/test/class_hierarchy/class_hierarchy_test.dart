@@ -34,24 +34,18 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new InheritanceDataExtractor(compilerResult, actualMap)
+    new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new InheritanceDataExtractor(compilerResult, actualMap)
+    new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
         .computeForClass(cls);
   }
 
@@ -59,8 +53,8 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features? computeErrorData(TestConfig config, InternalCompilerResult compiler,
-      Id id, List<FormattedMessage> errors) {
+  Features? computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return null; //errorsToText(errors, useCodes: true);
   }
 

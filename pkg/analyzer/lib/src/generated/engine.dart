@@ -5,10 +5,13 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -16,6 +19,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+export 'package:analyzer/dart/analysis/analysis_options.dart';
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
 export 'package:analyzer/src/generated/timestamped_data.dart'
     show TimestampedData;
@@ -148,69 +152,6 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
-abstract class AnalysisOptions {
-  /// A flag indicating whether to run checks on AndroidManifest.xml file to
-  /// see if it is complaint with Chrome OS.
-  bool get chromeOsManifestChecks;
-
-  /// The set of features that are globally enabled for this context.
-  FeatureSet get contextFeatures;
-
-  /// Return a list of the names of the packages for which, if they define a
-  /// plugin, the plugin should be enabled.
-  List<String> get enabledPluginNames;
-
-  /// Return `true` if timing data should be gathered during execution.
-  bool get enableTiming;
-
-  /// Return a list of error processors that are to be used when reporting
-  /// errors in some analysis context.
-  List<ErrorProcessor> get errorProcessors;
-
-  /// Return a list of exclude patterns used to exclude some sources from
-  /// analysis.
-  List<String> get excludePatterns;
-
-  /// Return `true` if analysis is to generate hint results (e.g. type inference
-  /// based information and pub best practices).
-  bool get hint;
-
-  /// Return `true` if analysis is to generate lint warnings.
-  bool get lint;
-
-  /// Return a list of the lint rules that are to be run in an analysis context
-  /// if [lint] returns `true`.
-  List<Linter> get lintRules;
-
-  /// The version range for the SDK specified in `pubspec.yaml`, or `null` if
-  /// there is no `pubspec.yaml` or if it does not contain an SDK range.
-  VersionConstraint? get sdkVersionConstraint;
-
-  /// Return the opaque signature of the options.
-  Uint32List get signature;
-
-  /// Return `true` if analyzer should use the Dart 2.0 Front End parser.
-  bool get useFastaParser;
-
-  /// Return `true` the lint with the given [name] is enabled.
-  bool isLintEnabled(String name);
-
-  /// Determine whether two signatures returned by [signature] are equal.
-  static bool signaturesEqual(Uint32List a, Uint32List b) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-}
-
-/// A set of analysis options used to control the behavior of an analysis
-/// context.
 class AnalysisOptionsImpl implements AnalysisOptions {
   /// The cached [unlinkedSignature].
   Uint32List? _unlinkedSignature;
@@ -223,6 +164,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   VersionConstraint? sdkVersionConstraint;
+
+  /// The constraint on the language version for every Dart file.
+  /// Violations will be reported as analysis errors.
+  VersionConstraint? sourceLanguageConstraint;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
@@ -242,7 +187,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   List<String> enabledPluginNames = const <String>[];
 
-  @override
+  /// Return `true` if timing data should be gathered during execution.
   bool enableTiming = false;
 
   /// A list of error processors that are to be used when reporting errors in
@@ -261,9 +206,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The lint rules that are to be run in an analysis context if [lint] returns
   /// `true`.
   List<Linter>? _lintRules;
-
-  @override
-  bool useFastaParser = true;
 
   /// A flag indicating whether implicit casts are allowed in [strongMode]
   /// (they are always allowed in Dart 1.0 mode).
@@ -303,27 +245,32 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool chromeOsManifestChecks = false;
 
+  @override
+  late CodeStyleOptions codeStyleOptions;
+
   /// The set of "un-ignorable" error names, as parsed in [AnalyzerOptions] from
   /// an analysis options file.
   Set<String> unignorableNames = {};
 
   /// Initialize a newly created set of analysis options to have their default
   /// values.
-  AnalysisOptionsImpl();
+  AnalysisOptionsImpl() {
+    codeStyleOptions = CodeStyleOptionsImpl(this, useFormatter: false);
+  }
 
   /// Initialize a newly created set of analysis options to have the same values
   /// as those in the given set of analysis [options].
   AnalysisOptionsImpl.from(AnalysisOptions options) {
+    codeStyleOptions = options.codeStyleOptions;
     contextFeatures = options.contextFeatures;
     enabledPluginNames = options.enabledPluginNames;
-    enableTiming = options.enableTiming;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
     hint = options.hint;
     lint = options.lint;
     lintRules = options.lintRules;
-    useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
+      enableTiming = options.enableTiming;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
       propagateLinterExceptions = options.propagateLinterExceptions;
@@ -389,7 +336,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(strictCasts);
       buffer.addBool(strictInference);
       buffer.addBool(strictRawTypes);
-      buffer.addBool(useFastaParser);
 
       // Append features.
       buffer.addInt(ExperimentStatus.knownFeatures.length);
@@ -444,9 +390,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   Uint32List get unlinkedSignature {
     if (_unlinkedSignature == null) {
       ApiSignature buffer = ApiSignature();
-
-      // Append boolean flags.
-      buffer.addBool(useFastaParser);
 
       // Append the current language version.
       buffer.addInt(ExperimentStatus.currentVersion.major);

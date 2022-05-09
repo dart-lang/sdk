@@ -29,16 +29,26 @@ class CodeReference {
   factory CodeReference.fromAstNode(AstNode node) {
     var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>()!;
     var source = compilationUnit.declaredElement!.source;
-    var location = compilationUnit.lineInfo!.getLocation(node.offset);
+    var location = compilationUnit.lineInfo.getLocation(node.offset);
     return CodeReference(source.fullName, node.offset, location.lineNumber,
         location.columnNumber, _computeEnclosingName(node));
   }
 
-  factory CodeReference.fromElement(
-      Element element, LineInfo Function(String) getLineInfo) {
-    var path = element.source!.fullName;
+  factory CodeReference.fromElement(Element element) {
+    var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
+    if (unitElement == null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is LibraryElement) {
+        unitElement = enclosingElement.definingCompilationUnit;
+      } else {
+        throw StateError('Unexpected element: $element');
+      }
+    }
+
+    var path = unitElement.source.fullName;
     var offset = element.nameOffset;
-    var location = getLineInfo(path).getLocation(offset);
+
+    var location = unitElement.lineInfo.getLocation(offset);
     return CodeReference(path, offset, location.lineNumber,
         location.columnNumber, _computeElementFullName(element));
   }
@@ -242,6 +252,7 @@ enum EdgeOriginKind {
   alwaysNullableType,
   angularAnnotation,
   argumentErrorCheckNotNull,
+  builtValueNullableAnnotation,
   callTearOff,
   compoundAssignment,
   // See [DummyOrigin].

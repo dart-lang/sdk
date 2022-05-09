@@ -2,4 +2,5 @@ enum A {
   a,
   b,
 }
+
 main() {}

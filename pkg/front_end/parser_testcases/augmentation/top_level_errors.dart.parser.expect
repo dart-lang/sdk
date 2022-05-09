@@ -1,0 +1,81 @@
+augment augment method() {}
+augment external method();
+external augment method();
+
+augment augment void method() {}
+augment external void method();
+external augment void method();
+
+augment augment get getter => null;
+augment external get getter;
+external augment get getter;
+
+augment augment int get getter => 0;
+augment external int get getter;
+external augment int get getter;
+
+augment augment set setter(value) {}
+augment external set setter(value);
+external augment set setter(value);
+
+augment augment void set setter(value) {}
+augment external void set setter(value);
+external augment void set setter(value);
+
+augment augment var field;
+augment external var field;
+external augment var field;
+
+augment augment int field = 0;
+augment external int field;
+external augment int field;
+
+augment augment class Class {}
+abstract augment class Class {}
+
+augment augment class Class = Object with Mixin;
+abstract augment class Class = Object with Mixin;
+
+augment augment mixin Mixin {}
+
+
+augment[KeywordToken] augment[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] external[KeywordToken] method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] external[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+augment[KeywordToken] external[KeywordToken] get[KeywordToken] getter[StringToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] get[KeywordToken] getter[StringToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] external[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] external[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] external[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] external[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] int[StringToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] external[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+external[KeywordToken] augment[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+abstract[KeywordToken] augment[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+abstract[KeywordToken] augment[KeywordToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+
+augment[KeywordToken] augment[KeywordToken] mixin[KeywordToken] Mixin[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

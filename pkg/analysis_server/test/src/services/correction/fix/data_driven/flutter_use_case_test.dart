@@ -706,6 +706,116 @@ void f() {
 ''');
   }
 
+  Future<void> test_material_FlatButton_deprecated() async {
+    setPackageContent('''
+@deprecated
+class FlatButton {
+  factory FlatButton.icon({
+    Key? key,
+    required VoidCallback? onPressed,
+    VoidCallback? onLongPress,
+    ValueChanged<bool>? onHighlightChanged,
+    ButtonTextTheme? textTheme,
+    Color? highlightColor,
+    Brightness? colorBrightness,
+    Clip? clipBehavior,
+    FocusNode? focusNode,
+    bool autofocus = true,
+    required Widget icon,
+    required Widget label,
+  }) => FlatButton();
+  FlatButton();
+}
+class Key {}
+class UniqueKey extends Key {}
+typedef VoidCallback = void Function();
+typedef ValueChanged<T> = void Function(T value);
+class ButtonTextTheme {}
+class Color {}
+class Colors {
+  static Color blue = Color();
+}
+class Brightness {
+  static Brightness dark = Brightness();
+}
+class Clip {
+  static Clip hardEdge = Clip();
+}
+class FocusNode {}
+class Widget {}
+class Icon extends Widget {
+  Icon(String icon);
+}
+class Text extends Widget {
+  Text(String content);
+}
+class Icons {
+  static String ten_k_outlined = '';
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  # Changes made in https://github.com/flutter/flutter/pull/73352
+  - title: "Migrate to 'TextButton.icon'"
+    date: 2021-01-08
+    element:
+      uris: [ '$importUri' ]
+      constructor: 'icon'
+      inClass: 'FlatButton'
+    changes:
+      - kind: 'removeParameter'
+        name: 'onHighlightChanged'
+      - kind: 'removeParameter'
+        name: 'textTheme'
+      - kind: 'removeParameter'
+        name: 'highlightColor'
+      - kind: 'removeParameter'
+        name: 'colorBrightness'
+      - kind: 'replacedBy'
+        newElement:
+          uris: [ '$importUri' ]
+          constructor: 'icon'
+          inClass: 'TextButton'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  FlatButton.icon(
+    key: UniqueKey(),
+    icon: Icon(Icons.ten_k_outlined),
+    label: Text('FlatButton'),
+    onPressed: (){},
+    onLongPress: (){},
+    clipBehavior: Clip.hardEdge,
+    focusNode: FocusNode(),
+    autofocus: true,
+    onHighlightChanged: (_) {},
+    textTheme: ButtonTextTheme(),
+    highlightColor: Colors.blue,
+    colorBrightness: Brightness.dark,
+  );
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  TextButton.icon(
+    key: UniqueKey(),
+    icon: Icon(Icons.ten_k_outlined),
+    label: Text('FlatButton'),
+    onPressed: (){},
+    onLongPress: (){},
+    clipBehavior: Clip.hardEdge,
+    focusNode: FocusNode(),
+    autofocus: true,
+  );
+}
+''');
+  }
+
   Future<void>
       test_material_InputDecoration_defaultConstructor_matchFirstCase_deprecated() async {
     setPackageContent('''

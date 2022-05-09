@@ -66,7 +66,6 @@ namespace dart {
 #define Z (T->zone())
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, verify_handles);
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
@@ -95,6 +94,8 @@ Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
 Dart_Handle Api::empty_string_handle_ = NULL;
+Dart_Handle Api::no_callbacks_error_handle_ = NULL;
+Dart_Handle Api::unwind_in_progress_error_handle_ = NULL;
 
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
@@ -370,10 +371,6 @@ ObjectPtr Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate() != NULL);
-  ASSERT(!FLAG_verify_handles || thread->IsValidLocalHandle(object) ||
-         thread->isolate()->group()->api_state()->IsActivePersistentHandle(
-             reinterpret_cast<Dart_PersistentHandle>(object)) ||
-         Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::ptr_offset() == 0 &&
          PersistentHandle::ptr_offset() == 0 && LocalHandle::ptr_offset() == 0);
 #endif
@@ -478,23 +475,6 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
   return Api::NewHandle(T, error.ptr());
 }
 
-Dart_Handle Api::AcquiredError(IsolateGroup* isolate_group) {
-  ApiState* state = isolate_group->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* acquired_error_handle = state->AcquiredError();
-  return reinterpret_cast<Dart_Handle>(acquired_error_handle);
-}
-
-Dart_Handle Api::UnwindInProgressError() {
-  Thread* T = Thread::Current();
-  CHECK_API_SCOPE(T);
-  TransitionToVM transition(T);
-  HANDLESCOPE(T);
-  const String& message = String::Handle(
-      Z, String::New("No api calls are allowed while unwind is in progress"));
-  return Api::NewHandle(T, UnwindError::New(message));
-}
-
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   Thread* thread = Thread::Current();
@@ -551,6 +531,14 @@ void Api::InitHandles() {
 
   ASSERT(empty_string_handle_ == NULL);
   empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().ptr());
+
+  ASSERT(no_callbacks_error_handle_ == NULL);
+  no_callbacks_error_handle_ =
+      InitNewReadOnlyApiHandle(Object::no_callbacks_error().ptr());
+
+  ASSERT(unwind_in_progress_error_handle_ == NULL);
+  unwind_in_progress_error_handle_ =
+      InitNewReadOnlyApiHandle(Object::unwind_in_progress_error().ptr());
 }
 
 void Api::Cleanup() {
@@ -558,6 +546,8 @@ void Api::Cleanup() {
   false_handle_ = NULL;
   null_handle_ = NULL;
   empty_string_handle_ = NULL;
+  no_callbacks_error_handle_ = NULL;
+  unwind_in_progress_error_handle_ = NULL;
 }
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
@@ -1124,9 +1114,10 @@ Dart_NewFinalizableHandle(Dart_Handle object,
 
 DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
                                          intptr_t external_size) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
@@ -1150,24 +1141,26 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActivePersistentHandle(object));
-  PersistentHandle* ref = PersistentHandle::Cast(object);
-  ASSERT(!state->IsProtectedHandle(ref));
-  if (!state->IsProtectedHandle(ref)) {
+  ASSERT(!Api::IsProtectedHandle(object));
+  if (!Api::IsProtectedHandle(object)) {
+    PersistentHandle* ref = PersistentHandle::Cast(object);
     state->FreePersistentHandle(ref);
   }
 }
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
@@ -1211,14 +1204,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::Init(
-      params->vm_snapshot_data, params->vm_snapshot_instructions,
-      params->create_group, params->initialize_isolate,
-      params->shutdown_isolate, params->cleanup_isolate, params->cleanup_group,
-      params->thread_exit, params->file_open, params->file_read,
-      params->file_write, params->file_close, params->entropy_source,
-      params->get_service_assets, params->start_kernel_isolate,
-      params->code_observer, params->post_task, params->post_task_data);
+  return Dart::Init(params);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -1816,17 +1802,6 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   return Api::NewHandle(T, I->sticky_error());
 }
 
-DART_EXPORT void Dart_HintFreed(intptr_t size) {
-  if (size < 0) {
-    FATAL1("%s requires a non-negative size", CURRENT_FUNC);
-  }
-  Thread* T = Thread::Current();
-  CHECK_ISOLATE(T->isolate());
-  API_TIMELINE_BEGIN_END(T);
-  TransitionNativeToVM transition(T);
-  T->heap()->HintFreed(size);
-}
-
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
@@ -1837,7 +1812,16 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
 
 DART_EXPORT void Dart_NotifyLowMemory() {
   API_TIMELINE_BEGIN_END(Thread::Current());
-  Isolate::NotifyLowMemory();
+  SemiSpace::ClearCache();
+  Zone::ClearCache();
+
+  // For each isolate's global variables, we might also clear:
+  //  - RegExp backtracking stack (both bytecode and compiled versions)
+  //  - String -> RegExp cache
+  //  - BigInt division/remainder cache
+  //  - double.toString cache
+  // But cache invalidation code might be larger than the expected size of some
+  // caches.
 }
 
 DART_EXPORT void Dart_ExitIsolate() {
@@ -1877,7 +1861,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   NoBackgroundCompilerScope no_bg_compiler(T);
 
 #if defined(DEBUG)
-  T->isolate_group()->heap()->CollectAllGarbage();
+  T->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   {
     HeapIterationScope iteration(T);
     CheckFunctionTypesVisitor check_canonical(T);
@@ -4149,10 +4133,22 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     }
   }
   if (FLAG_verify_acquired_data) {
-    if (external) {
-      ASSERT(!T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
-    } else {
-      ASSERT(T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    {
+      NoSafepointScope no_safepoint(T);
+      bool sweep_in_progress;
+      {
+        PageSpace* old_space = T->heap()->old_space();
+        MonitorLocker ml(old_space->tasks_lock());
+        sweep_in_progress = (old_space->phase() == PageSpace::kSweepingLarge) ||
+                            (old_space->phase() == PageSpace::kSweepingRegular);
+      }
+      if (!sweep_in_progress) {
+        if (external) {
+          ASSERT(!T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+        } else {
+          ASSERT(T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+        }
+      }
     }
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
     WeakTable* table = I->group()->api_state()->acquired_table();
@@ -4180,8 +4176,6 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
       !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
-  T->DecrementNoSafepointScopeDepth();
-  END_NO_CALLBACK_SCOPE(T);
   if (FLAG_verify_acquired_data) {
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
     WeakTable* table = I->group()->api_state()->acquired_table();
@@ -4193,6 +4187,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     table->SetValue(obj.ptr(), 0);  // Delete entry from table.
     delete ad;
   }
+  T->DecrementNoSafepointScopeDepth();
+  END_NO_CALLBACK_SCOPE(T);
   return Api::Success();
 }
 
@@ -6076,7 +6072,7 @@ Dart_CompileToKernel(const char* script_uri,
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, NULL,
       incremental_compile, snapshot_compile, package_config, NULL, NULL,
-      verbosity);
+      FLAG_sound_null_safety, verbosity);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     Dart_KernelCompilationResult accept_result =
         KernelIsolate::AcceptCompilation();
@@ -6087,6 +6083,34 @@ Dart_CompileToKernel(const char* script_uri,
           accept_result.error);
     }
   }
+#endif
+  return result;
+}
+
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernelWithGivenNullsafety(
+    const char* script_uri,
+    const uint8_t* platform_kernel,
+    intptr_t platform_kernel_size,
+    bool snapshot_compile,
+    const char* package_config,
+    bool null_safety,
+    Dart_KernelCompilationVerbosityLevel verbosity) {
+  API_TIMELINE_DURATION(Thread::Current());
+
+  Dart_KernelCompilationResult result = {};
+#if defined(DART_PRECOMPILED_RUNTIME)
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
+#else
+  intptr_t null_safety_option =
+      null_safety ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+  result = KernelIsolate::CompileToKernel(
+      script_uri, platform_kernel, platform_kernel_size,
+      /*source_files_count=*/0, /*source_files=*/nullptr,
+      /*incremental_compile=*/false, snapshot_compile, package_config,
+      /*multiroot_filepaths=*/nullptr, /*multiroot_scheme=*/nullptr,
+      null_safety_option, verbosity);
 #endif
   return result;
 }
@@ -6970,7 +6994,7 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime() {
 }
 
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(DART_PRECOMPILER)
   Profiler::DumpStackTrace(context);
 #endif
 }

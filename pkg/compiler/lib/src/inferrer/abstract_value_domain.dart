@@ -632,8 +632,8 @@ abstract class AbstractValueDomain {
   String getCompactText(AbstractValue value);
 
   /// Deserializes an [AbstractValue] for this domain from [source].
-  AbstractValue readAbstractValueFromDataSource(DataSource source);
+  AbstractValue readAbstractValueFromDataSource(DataSourceReader source);
 
   /// Serializes this [value] for this domain to [sink].
-  void writeAbstractValueToDataSink(DataSink sink, AbstractValue value);
+  void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue value);
 }

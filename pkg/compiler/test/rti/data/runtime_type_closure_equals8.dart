@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class1<S> {
   Class1();
@@ -15,7 +15,7 @@ class Class1<S> {
   /*member: Class1.method1b:*/
   T method1b<T>() => null;
 
-  /*spec.member: Class1.method2:direct,explicit=[method2.T*],needsArgs*/
+  /*spec.member: Class1.method2:explicit=[method2.T*],needsArgs,test*/
   T method2<T>(T t, String s) => t;
 }
 
@@ -26,7 +26,7 @@ class Class2<T> {
 main() {
   var c = new Class1<int>();
 
-  Expect.isTrue(c.method1a.runtimeType == c.method1b.runtimeType);
-  Expect.isFalse(c.method1a.runtimeType == c.method2.runtimeType);
+  makeLive(c.method1a.runtimeType == c.method1b.runtimeType);
+  makeLive(c.method1a.runtimeType == c.method2.runtimeType);
   new Class2<int>();
 }

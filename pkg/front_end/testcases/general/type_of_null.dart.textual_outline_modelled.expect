@@ -1,5 +1,5 @@
-// @dart = 2.9
 Null foo() => null;
-T map<T>(T Function() f1, T Function() f2) {}
+T map<T>(T Function() f1, T Function() f2) => throw '';
 id<T>(T t) => t;
 main() {}
+test() {}

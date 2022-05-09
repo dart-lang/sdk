@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class A<T> extends T {}
 
 abstract class B<T> extends T {

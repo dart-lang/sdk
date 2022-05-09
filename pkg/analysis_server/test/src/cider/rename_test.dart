@@ -27,8 +27,8 @@ class CiderRenameComputerTest extends CiderServiceTest {
     BazelMockPackages.instance.addFlutter(resourceProvider);
   }
 
-  void test_canRename_class() {
-    var refactor = _compute(r'''
+  void test_canRename_class() async {
+    var refactor = await _compute(r'''
 class ^Old {}
 }
 ''');
@@ -37,8 +37,8 @@ class ^Old {}
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_field() {
-    var refactor = _compute(r'''
+  void test_canRename_field() async {
+    var refactor = await _compute(r'''
 class A {
  int ^bar;
  void foo() {
@@ -51,8 +51,20 @@ class A {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_function() {
-    var refactor = _compute(r'''
+  void test_canRename_field_static_private() async {
+    var refactor = await _compute(r'''
+class A{
+  static const ^_val = 1234;
+}
+''');
+
+    expect(refactor, isNotNull);
+    expect(refactor!.refactoringElement.element.name, '_val');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
+  }
+
+  void test_canRename_function() async {
+    var refactor = await _compute(r'''
 void ^foo() {
 }
 ''');
@@ -61,8 +73,8 @@ void ^foo() {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_label() {
-    var refactor = _compute(r'''
+  void test_canRename_label() async {
+    var refactor = await _compute(r'''
 main() {
   myLabel:
   while (true) {
@@ -77,8 +89,8 @@ main() {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_local() {
-    var refactor = _compute(r'''
+  void test_canRename_local() async {
+    var refactor = await _compute(r'''
 void foo() {
   var ^a = 0; var b = a + 1;
 }
@@ -88,8 +100,8 @@ void foo() {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_method() {
-    var refactor = _compute(r'''
+  void test_canRename_method() async {
+    var refactor = await _compute(r'''
 extension E on int {
   void ^foo() {}
 }
@@ -99,8 +111,8 @@ extension E on int {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_operator() {
-    var refactor = _compute(r'''
+  void test_canRename_operator() async {
+    var refactor = await _compute(r'''
 class A{
   A operator ^+(A other) => this;
 }
@@ -109,8 +121,8 @@ class A{
     expect(refactor, isNull);
   }
 
-  void test_canRename_parameter() {
-    var refactor = _compute(r'''
+  void test_canRename_parameter() async {
+    var refactor = await _compute(r'''
 void foo(int ^bar) {
   var a = bar + 1;
 }
@@ -121,8 +133,8 @@ void foo(int ^bar) {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_checkName_class() {
-    var result = _checkName(r'''
+  void test_checkName_class() async {
+    var result = await _checkName(r'''
 class ^Old {}
 ''', 'New');
 
@@ -130,8 +142,8 @@ class ^Old {}
     expect(result.oldName, 'Old');
   }
 
-  void test_checkName_function() {
-    var result = _checkName(r'''
+  void test_checkName_function() async {
+    var result = await _checkName(r'''
 int ^foo() => 2;
 ''', 'bar');
 
@@ -139,8 +151,8 @@ int ^foo() => 2;
     expect(result.oldName, 'foo');
   }
 
-  void test_checkName_local() {
-    var result = _checkName(r'''
+  void test_checkName_local() async {
+    var result = await _checkName(r'''
 void foo() {
   var ^a = 0; var b = a + 1;
 }
@@ -150,8 +162,8 @@ void foo() {
     expect(result.oldName, 'a');
   }
 
-  void test_checkName_local_invalid() {
-    var result = _checkName(r'''
+  void test_checkName_local_invalid() async {
+    var result = await _checkName(r'''
 void foo() {
   var ^a = 0; var b = a + 1;
 }
@@ -161,8 +173,8 @@ void foo() {
     expect(result.oldName, 'a');
   }
 
-  void test_checkName_parameter() {
-    var result = _checkName(r'''
+  void test_checkName_parameter() async {
+    var result = await _checkName(r'''
 void foo(String ^a) {
   var b = a + 1;
 }
@@ -172,8 +184,8 @@ void foo(String ^a) {
     expect(result.oldName, 'a');
   }
 
-  void test_checkName_topLevelVariable() {
-    var result = _checkName(r'''
+  void test_checkName_topLevelVariable() async {
+    var result = await _checkName(r'''
 var ^foo;
 ''', 'bar');
 
@@ -181,8 +193,8 @@ var ^foo;
     expect(result.oldName, 'foo');
   }
 
-  void test_checkName_TypeAlias() {
-    var result = _checkName(r'''
+  void test_checkName_TypeAlias() async {
+    var result = await _checkName(r'''
 typedef ^Foo = void Function();
 ''', 'Bar');
 
@@ -190,8 +202,8 @@ typedef ^Foo = void Function();
     expect(result.oldName, 'Foo');
   }
 
-  void test_rename_class() {
-    var result = _rename(r'''
+  void test_rename_class() async {
+    var result = await _rename(r'''
 class ^Old implements Other {
   Old() {}
   Old.named() {}
@@ -222,8 +234,8 @@ void f() {
     ]);
   }
 
-  void test_rename_class_flutterWidget() {
-    var result = _rename(r'''
+  void test_rename_class_flutterWidget() async {
+    var result = await _rename(r'''
 import 'package:flutter/material.dart';
 
 class ^TestPage extends StatefulWidget {
@@ -256,8 +268,44 @@ class TestPageState extends State<TestPage> {
     ]);
   }
 
-  void test_rename_function() {
-    var result = _rename(r'''
+  void test_rename_field() async {
+    var result = await _rename(r'''
+class A{
+  int get ^x => 5;
+}
+
+void foo() {
+  var m = A().x;
+}
+''', 'y');
+
+    expect(result, isNotNull);
+    expect(result!.matches, [
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(2, 11), CharacterLocation(6, 15)]),
+    ]);
+  }
+
+  void test_rename_field_static_private() async {
+    var result = await _rename(r'''
+class A{
+  static const ^_val = 1234;
+}
+
+void foo() {
+  print(A._val);
+}
+''', '_newVal');
+
+    expect(result, isNotNull);
+    expect(result!.matches, [
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(2, 16), CharacterLocation(6, 11)]),
+    ]);
+  }
+
+  void test_rename_function() async {
+    var result = await _rename(r'''
 test() {}
 ^foo() {}
 void f() {
@@ -276,12 +324,12 @@ void f() {
     ]);
   }
 
-  void test_rename_function_imported() {
-    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+  void test_rename_function_imported() async {
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
 foo() {}
 ''');
-    fileResolver.resolve(path: a.path);
-    var result = _rename(r'''
+    await fileResolver.resolve2(path: a.path);
+    var result = await _rename(r'''
 import 'a.dart';
 void f() {
   ^foo();
@@ -297,8 +345,8 @@ void f() {
     ]);
   }
 
-  void test_rename_local() {
-    var result = _rename(r'''
+  void test_rename_local() async {
+    var result = await _rename(r'''
 void foo() {
   var ^a = 0; var b = a + 1;
 }
@@ -311,8 +359,31 @@ void foo() {
             [CharacterLocation(2, 7), CharacterLocation(2, 22)]));
   }
 
-  void test_rename_parameter() {
-    var result = _rename(r'''
+  void test_rename_method_imported() async {
+    var a = newFile2('/workspace/dart/test/lib/a.dart', r'''
+class A {
+  foo() {}
+}
+''');
+    await fileResolver.resolve2(path: a.path);
+    var result = await _rename(r'''
+import 'a.dart';
+void f() {
+  var a = A().^foo();
+}
+''', 'bar');
+    expect(result!.matches.length, 2);
+    expect(result.matches, [
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/a.dart'), [
+        CharacterLocation(2, 3),
+      ]),
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(3, 15)])
+    ]);
+  }
+
+  void test_rename_parameter() async {
+    var result = await _rename(r'''
 void foo(String ^a) {
   var b = a + 1;
 }
@@ -321,8 +392,8 @@ void foo(String ^a) {
     expect(result.checkName.oldName, 'a');
   }
 
-  void test_rename_propertyAccessor() {
-    var result = _rename(r'''
+  void test_rename_propertyAccessor() async {
+    var result = await _rename(r'''
 get foo {}
 set foo(x) {}
 void f() {
@@ -341,8 +412,8 @@ void f() {
     ]);
   }
 
-  void test_typeAlias_functionType() {
-    var result = _rename(r'''
+  void test_rename_typeAlias_functionType() async {
+    var result = await _rename(r'''
 typedef ^F = void Function();
 void f(F a) {}
 ''', 'bar');
@@ -353,45 +424,42 @@ void f(F a) {}
     ]);
   }
 
-  CheckNameResponse? _checkName(String content, String newName) {
+  Future<CheckNameResponse?> _checkName(String content, String newName) async {
     _updateFile(content);
 
-    return CiderRenameComputer(
+    var canRename = await CiderRenameComputer(
       fileResolver,
-    )
-        .canRename(
-          convertPath(testPath),
-          _correctionContext.line,
-          _correctionContext.character,
-        )
-        ?.checkNewName(newName);
+    ).canRename2(
+      convertPath(testPath),
+      _correctionContext.line,
+      _correctionContext.character,
+    );
+    return canRename?.checkNewName(newName);
   }
 
-  CanRenameResponse? _compute(String content) {
+  Future<CanRenameResponse?> _compute(String content) async {
     _updateFile(content);
 
     return CiderRenameComputer(
       fileResolver,
-    ).canRename(
+    ).canRename2(
       convertPath(testPath),
       _correctionContext.line,
       _correctionContext.character,
     );
   }
 
-  RenameResponse? _rename(String content, String newName) {
+  Future<RenameResponse?> _rename(String content, String newName) async {
     _updateFile(content);
 
-    return CiderRenameComputer(
+    var canRename = await CiderRenameComputer(
       fileResolver,
-    )
-        .canRename(
-          convertPath(testPath),
-          _correctionContext.line,
-          _correctionContext.character,
-        )
-        ?.checkNewName(newName)
-        ?.computeRenameRanges();
+    ).canRename2(
+      convertPath(testPath),
+      _correctionContext.line,
+      _correctionContext.character,
+    );
+    return canRename?.checkNewName(newName)?.computeRenameRanges2();
   }
 
   void _updateFile(String content) {
@@ -403,7 +471,7 @@ void f(F a) {}
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile(testPath, content: content);
+    newFile2(testPath, content);
 
     _correctionContext = _CorrectionContext(
       content,

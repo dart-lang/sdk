@@ -45,7 +45,7 @@ main() async {
     final component = loadComponentFromBinary(dillFile);
     final IOSink sink = new File(unlinkedDillFile).openWrite();
     final printer = new BinaryPrinter(sink,
-        libraryFilter: (lib) => lib.importUri.scheme != 'dart');
+        libraryFilter: (lib) => !lib.importUri.isScheme('dart'));
     printer.writeComponentFile(component);
     await sink.close();
 
@@ -54,7 +54,7 @@ main() async {
     final unlinkedComponent = loadComponentFromBinary(unlinkedDillFile);
     final coreLibraryCount = unlinkedComponent.libraries
         .where(
-            (lib) => lib.importUri.scheme == 'dart' && lib.members.isNotEmpty)
+            (lib) => lib.importUri.isScheme('dart') && lib.members.isNotEmpty)
         .length;
     Expect.equals(0, coreLibraryCount);
 

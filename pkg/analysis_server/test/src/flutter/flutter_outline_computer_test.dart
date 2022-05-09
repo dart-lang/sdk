@@ -234,7 +234,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_blockBody() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -270,7 +270,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_expressionBody() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -386,6 +386,35 @@ class MyWidget extends StatelessWidget {
     expect(container.codeLength, 15);
   }
 
+  Future<void> test_enum() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+enum E {
+  v;
+  Widget build(BuildContext context) {
+    return const Text('A');
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) E
+  (D) v
+  (D) build
+    Text
+''');
+    var E = unitOutline.children![0];
+    var build = E.children![1];
+    {
+      var textOutline = build.children![0];
+      var text = "const Text('A')";
+      var offset = testCode.indexOf(text);
+      expect(textOutline.offset, offset);
+      expect(textOutline.length, text.length);
+    }
+  }
+
   Future<void> test_genericLabel_invocation() async {
     var unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
@@ -442,8 +471,48 @@ class WidgetFactory {
     }
   }
 
+  Future<void> test_namedArgument_anywhere() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+import 'package:flutter/widgets.dart';
+
+class WidgetA extends StatelessWidget {
+  final Widget top;
+  final Widget bottom;
+  final Widget left;
+  final Widget right;
+
+  WidgetA(this.top, this.bottom, {this.left, this.right});
+}
+''');
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'a.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new WidgetA(
+      const Container(),
+      left: const Text('left'),
+      const Flex(),
+      right: const Text('right'),
+    );
+  }
+}
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    WidgetA
+      Container
+      left: Text
+      Flex
+      right: Text
+''');
+  }
+
   Future<void> test_parentAssociationLabel() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile2('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -515,9 +584,9 @@ class MyWidget extends StatelessWidget {
 
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
-    newFile(testPath, content: code);
+    newFile2(testPath, code);
     resolveResult =
-        await session.getResolvedUnit(testPath) as ResolvedUnitResult;
+        await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
     computer = FlutterOutlineComputer(resolveResult);
     return computer.compute();
   }

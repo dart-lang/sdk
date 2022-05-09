@@ -201,7 +201,7 @@ intptr_t DeoptContext::DestStackAdjustment() const {
 
 intptr_t DeoptContext::GetSourceFp() const {
   return source_frame_[source_frame_size_ - 1 - num_args_ -
-                       kParamEndSlotFromFp];
+                       kParamEndSlotFromFp + kSavedCallerFpSlotFromFp];
 }
 
 intptr_t DeoptContext::GetSourcePp() const {

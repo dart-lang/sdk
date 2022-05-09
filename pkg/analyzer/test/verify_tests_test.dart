@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
+import 'package:path/path.dart' as package_path;
 
 main() {
   var provider = PhysicalResourceProvider.INSTANCE;
@@ -16,12 +17,21 @@ main() {
 }
 
 class _VerifyTests extends VerifyTests {
-  _VerifyTests(String testDirPath, {List<String>? excludedPaths})
-      : super(testDirPath, excludedPaths: excludedPaths);
+  _VerifyTests(String testDirPath) : super(testDirPath);
 
   @override
   bool isExpensive(Resource resource) =>
       resource.shortName.endsWith('_integration_test.dart');
+
+  @override
+  bool isOkAsAdditionalTestAllImport(Folder folder, String uri) {
+    // This is not really a test, but a helper to update expectations.
+    if (package_path.url.basename(uri) == 'node_text_expectations.dart') {
+      return true;
+    }
+
+    return super.isOkAsAdditionalTestAllImport(folder, uri);
+  }
 
   @override
   bool isOkForTestAllToBeMissing(Folder folder) =>

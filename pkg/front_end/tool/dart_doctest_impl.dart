@@ -321,7 +321,6 @@ class DartDocTest {
     options.target = target;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (message.codeName == "InferredPackageUri") return;
       _print(message.plainTextFormatted.first);
       if (message.severity == Severity.error) {
         errors = true;
@@ -830,8 +829,12 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       packageLanguageVersion:
           new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
       loader: loader,
+      // TODO(jensj): Should probably set up scopes the same was as it's done
+      // (now) for expression compilation.
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
+      isUnsupported: false,
+      isAugmentation: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {
@@ -852,20 +855,32 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
         }
 
         dartDocTestLibrary.addImport(
-            null,
-            dependency.importedLibraryReference.asLibrary.importUri.toString(),
-            null,
-            dependency.name,
-            combinators,
-            dependency.isDeferred,
-            -1,
-            -1,
-            -1,
-            -1);
+            metadata: null,
+            isAugmentationImport: false,
+            uri: dependency.importedLibraryReference.asLibrary.importUri
+                .toString(),
+            configurations: null,
+            prefix: dependency.name,
+            combinators: combinators,
+            deferred: dependency.isDeferred,
+            charOffset: -1,
+            prefixCharOffset: -1,
+            uriOffset: -1,
+            importIndex: -1);
       }
 
-      dartDocTestLibrary.addImport(null, libraryBuilder.importUri.toString(),
-          null, null, null, false, -1, -1, -1, -1);
+      dartDocTestLibrary.addImport(
+          metadata: null,
+          isAugmentationImport: false,
+          uri: libraryBuilder.importUri.toString(),
+          configurations: null,
+          prefix: null,
+          combinators: null,
+          deferred: false,
+          charOffset: -1,
+          prefixCharOffset: -1,
+          uriOffset: -1,
+          importIndex: -1);
 
       dartDocTestLibrary.addImportsToScope();
     } else {
@@ -903,7 +918,8 @@ class DocTestSourceLoader extends SourceLoader {
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
-      bool? referenceIsPartOwner}) {
+      bool? referenceIsPartOwner,
+      bool isAugmentation: false}) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
@@ -920,6 +936,7 @@ class DocTestSourceLoader extends SourceLoader {
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isAugmentation: isAugmentation);
   }
 }

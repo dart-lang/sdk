@@ -21,15 +21,6 @@ git fetch origin
 git branch cl-co19-roll-co19-to-$NEW origin/main
 git checkout cl-co19-roll-co19-to-$NEW
 
-# Build a cipd package of the commit.
-BUILD_ID=$(bb add \
-              -commit https://dart.googlesource.com/co19/+/$NEW \
-              -json \
-              -p variant=legacy \
-              dart/ci/co19-roller \
-             | jq -r '.id')
-bb collect -interval 10s $BUILD_ID
-
 # Update DEPS:
 gclient setdep --var=co19_2_rev=$NEW
 

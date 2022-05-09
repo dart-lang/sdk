@@ -26,10 +26,23 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
+@Deprecated('Use link2() instead')
 LinkResult link(
   LinkedElementFactory elementFactory,
   List<LinkInputLibrary> inputLibraries,
 ) {
+  var linker = Linker(elementFactory);
+  linker.link(inputLibraries);
+  return LinkResult(
+    resolutionBytes: linker.resolutionBytes,
+  );
+}
+
+/// Note that AST units and tokens of [inputLibraries] will be damaged.
+Future<LinkResult> link2(
+  LinkedElementFactory elementFactory,
+  List<LinkInputLibrary> inputLibraries,
+) async {
   var linker = Linker(elementFactory);
   linker.link(inputLibraries);
   return LinkResult(
@@ -61,6 +74,11 @@ class Linker {
 
   Reference get rootReference => elementFactory.rootReference;
 
+  bool get _isLinkingDartCore {
+    var dartCoreUri = Uri.parse('dart:core');
+    return builders.containsKey(dartCoreUri);
+  }
+
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
   ast.AstNode? getLinkingNode(Element element) {
@@ -86,10 +104,11 @@ class Linker {
   }
 
   void _buildOutlines() {
+    _createTypeSystemIfNotLinkingDartCore();
     _computeLibraryScopes();
     _createTypeSystem();
-    _buildEnumChildren();
     _resolveTypes();
+    _buildEnumChildren();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
@@ -166,6 +185,15 @@ class Linker {
     elementFactory.createTypeProviders(coreLib, asyncLib);
 
     inheritance = InheritanceManager3();
+  }
+
+  /// To resolve macro annotations we need to access exported namespaces of
+  /// imported (and already linked) libraries. While computing it we might
+  /// need `Null` from `dart:core` (to convert null safe types to legacy).
+  void _createTypeSystemIfNotLinkingDartCore() {
+    if (!_isLinkingDartCore) {
+      _createTypeSystem();
+    }
   }
 
   void _detachNodes() {

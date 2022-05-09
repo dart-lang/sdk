@@ -4,28 +4,34 @@
 
 import 'dart:convert' show utf8;
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'templates/console_full.dart';
+import 'templates/console.dart';
 import 'templates/console_simple.dart';
-import 'templates/package_simple.dart';
+import 'templates/package.dart';
 import 'templates/server_shelf.dart';
-import 'templates/web_simple.dart';
+import 'templates/web.dart';
 
 final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
 final _nonValidSubstituteRegExp = RegExp(r'[^a-zA-Z]');
 
 final List<Generator> generators = [
-  ConsoleSimpleGenerator(),
-  ConsoleFullGenerator(),
-  PackageSimpleGenerator(),
+  ConsoleGenerator(),
+  PackageGenerator(),
   ServerShelfGenerator(),
-  WebSimpleGenerator(),
+  WebGenerator(),
+  // Deprecated generators:
+  ConsoleSimpleGenerator(),
 ];
 
-Generator getGenerator(String id) =>
-    generators.firstWhere((g) => g.id == id, orElse: () => null);
+Generator? getGenerator(String id) {
+  Generator? result;
+  result = generators.firstWhereOrNull((g) => g.id == id);
+  result ??= generators.firstWhereOrNull((g) => g.alternateId == id);
+  return result;
+}
 
 /// An abstract class which both defines a template generator and can generate a
 /// user project based on this template.
@@ -33,28 +39,32 @@ abstract class Generator implements Comparable<Generator> {
   final String id;
   final String label;
   final String description;
+  final String? alternateId;
   final List<String> categories;
+  final bool deprecated;
 
   final List<TemplateFile> files = [];
-  TemplateFile _entrypoint;
+  TemplateFile? _entrypoint;
 
   /// Lazily initialized cache for lower-case if [id].
   ///
   /// Used by [compareTo].
-  String /*?*/ _lowerCaseId;
+  String? _lowerCaseId;
 
   Generator(
     this.id,
     this.label,
     this.description, {
     this.categories = const [],
+    this.alternateId,
+    this.deprecated = false,
   });
 
   String get lowerCaseId => _lowerCaseId ??= id.toLowerCase();
 
   /// The entrypoint of the application; the main file for the project, which an
   /// IDE might open after creating the project.
-  TemplateFile get entrypoint => _entrypoint;
+  TemplateFile? get entrypoint => _entrypoint;
 
   TemplateFile addFile(String path, String contents) {
     return addTemplateFile(TemplateFile(path, contents));
@@ -67,22 +77,21 @@ abstract class Generator implements Comparable<Generator> {
   }
 
   /// Return the template file wih the given [path].
-  TemplateFile getFile(String path) =>
-      files.firstWhere((file) => file.path == path, orElse: () => null);
+  TemplateFile? getFile(String path) =>
+      files.firstWhereOrNull((file) => file.path == path);
 
   /// Set the main entrypoint of this template. This is the 'most important'
   /// file of this template. An IDE might use this information to open this file
   /// after the user's project is generated.
   void setEntrypoint(TemplateFile entrypoint) {
     if (_entrypoint != null) throw StateError('entrypoint already set');
-    if (entrypoint == null) throw StateError('entrypoint is null');
     _entrypoint = entrypoint;
   }
 
   void generate(
     String projectName,
     GeneratorTarget target, {
-    Map<String, String> additionalVars,
+    Map<String, String>? additionalVars,
   }) {
     final vars = {
       'projectName': projectName,
@@ -111,9 +120,9 @@ abstract class Generator implements Comparable<Generator> {
   /// (e.g., bin/foo.dart) **without** an extension. If null, the implicit run
   /// command will be output by default (e.g., dart run).
   String getInstallInstructions(
-    String directory,
-    String scriptPath,
-  ) {
+    String directory, {
+    String? scriptPath,
+  }) {
     final buffer = StringBuffer();
     buffer.writeln('  cd ${p.relative(directory)}');
     if (scriptPath != null) {
@@ -134,8 +143,17 @@ abstract class DefaultGenerator extends Generator {
     String id,
     String label,
     String description, {
+    String? alternateId,
     List<String> categories = const [],
-  }) : super(id, label, description, categories: categories);
+    bool deprecated = false,
+  }) : super(
+          id,
+          label,
+          description,
+          categories: categories,
+          alternateId: alternateId,
+          deprecated: deprecated,
+        );
 }
 
 /// A target for a [Generator]. This class knows how to create files given a
@@ -208,5 +226,5 @@ String substituteVars(String str, Map<String, String> vars) {
   }
 
   return str.replaceAllMapped(
-      _substituteRegExp, (match) => vars[match[1]] ?? match[0]);
+      _substituteRegExp, (match) => vars[match[1]!] ?? match[0]!);
 }

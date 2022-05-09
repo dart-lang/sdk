@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
-import 'package:meta/meta.dart';
+import 'package:cli_util/cli_logging.dart' show Progress;
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
@@ -54,7 +54,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   @override
   String get description {
-    if (log != null && log.ansi.useAnsi) {
+    if (log.ansi.useAnsi) {
       return cmdDescription
           .replaceAll('[', log.ansi.bold)
           .replaceAll(']', log.ansi.none);
@@ -64,16 +64,17 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   @override
-  FutureOr<int> run() async {
-    var dryRun = argResults['dry-run'];
-    var inTestMode = argResults['compare-to-golden'];
-    var apply = argResults['apply'];
+  Future<int> run() async {
+    final args = argResults!;
+    var dryRun = args['dry-run'];
+    var inTestMode = args['compare-to-golden'];
+    var apply = args['apply'];
     if (!apply && !dryRun && !inTestMode) {
       printUsage();
       return 0;
     }
 
-    var arguments = argResults.rest;
+    var arguments = args.rest;
     var argumentCount = arguments.length;
     if (argumentCount > 1) {
       usageException('Only one file or directory is expected.');
@@ -90,7 +91,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     var modeText = dryRun ? ' (dry run)' : '';
 
     final projectName = path.basename(dirPath);
-    var computeFixesProgress = log.progress(
+    Progress? computeFixesProgress = log.progress(
         'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
 
     var server = AnalysisServer(
@@ -101,7 +102,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       argResults: argResults,
     );
 
-    await server.start();
+    await server.start(setAnalysisRoots: false);
 
     server.onExit.then((int exitCode) {
       if (computeFixesProgress != null && exitCode != 0) {
@@ -109,6 +110,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         computeFixesProgress = null;
         io.exitCode = exitCode;
       }
+    });
+
+    server.onCrash.then((_) {
+      log.stderr('The analysis server shut down unexpectedly.');
+      log.stdout('Please report this at dartbug.com.');
+      io.exit(1);
     });
 
     Future<Map<String, BulkFix>> _applyAllEdits() async {
@@ -131,7 +138,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     await server.shutdown();
 
     if (computeFixesProgress != null) {
-      computeFixesProgress.finish(showTiming: true);
+      computeFixesProgress!.finish(showTiming: true);
       computeFixesProgress = null;
     }
 
@@ -145,7 +152,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       var fileCount = detailsMap.length;
       var fixCount = detailsMap.values
           .expand((detail) => detail.fixes)
-          .fold(0, (previousValue, fixes) => previousValue + fixes.occurrences);
+          .fold<int>(0,
+              (int previousValue, fixes) => previousValue + fixes.occurrences);
 
       if (dryRun) {
         log.stdout('');
@@ -207,7 +215,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     for (var originalFile in dartFiles) {
       var filePath = originalFile.path;
       var baseName = path.basename(filePath);
-      var expectFileName = baseName + '.expect';
+      var expectFileName = '$baseName.expect';
       var expectFilePath = path.join(path.dirname(filePath), expectFileName);
       var expectFile = expectFileMap.remove(expectFilePath);
       if (expectFile == null) {
@@ -221,7 +229,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         var actualIsOriginal = !fileContentCache.containsKey(filePath);
         var actualCode = actualIsOriginal
             ? originalFile.readAsStringSync()
-            : fileContentCache[filePath];
+            : fileContentCache[filePath]!;
         // Use a whitespace insensitive comparison.
         if (_compressWhitespace(actualCode) !=
             _compressWhitespace(expectedCode)) {
@@ -305,7 +313,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     modifiedFilePaths
         .sort((first, second) => relative(first).compareTo(relative(second)));
     for (var filePath in modifiedFilePaths) {
-      var detail = detailsMap[filePath];
+      var detail = detailsMap[filePath]!;
       log.stdout(relative(detail.path));
       final fixes = detail.fixes.toList();
       fixes.sort((a, b) => a.code.compareTo(b.code));
@@ -320,7 +328,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   /// Report that the [actualCode] produced by applying fixes to the content of
   /// [filePath] did not match the [expectedCode].
   void _reportFailure(String filePath, String actualCode, String expectedCode,
-      {@required bool actualIsOriginal}) {
+      {required bool actualIsOriginal}) {
     log.stdout('Failed when applying fixes to $filePath');
     log.stdout('Expected:');
     log.stdout(expectedCode);
