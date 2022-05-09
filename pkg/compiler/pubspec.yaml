@@ -98,9 +98,9 @@ dependency_overrides:
   protobuf:
     path: ../../third_party/pkg/protobuf/protobuf
   shelf:
-    path: ../../third_party/pkg/shelf/pkgs/shelf
+    path: ../../third_party/pkg/shelf
   shelf_static:
-    path: ../../third_party/pkg/shelf/pkgs/shelf_static
+    path: ../../third_party/pkg/shelf_static
   source_span:
     path: ../../third_party/pkg/source_span
   stack_trace:
