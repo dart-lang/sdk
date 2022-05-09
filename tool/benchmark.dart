@@ -39,7 +39,7 @@ class AllMatchesBenchmark extends BaseBenchmark {
 }
 
 class BaseBenchmark extends BenchmarkBase {
-  const BaseBenchmark(String name) : super(name);
+  const BaseBenchmark(super.name);
 
   @override
   void exercise() {

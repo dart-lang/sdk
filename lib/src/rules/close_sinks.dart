@@ -90,5 +90,5 @@ class _Visitor extends LeakDetectorProcessors {
     _isSocket: _destroyMethodName
   };
 
-  _Visitor(LintRule rule) : super(rule);
+  _Visitor(super.rule);
 }

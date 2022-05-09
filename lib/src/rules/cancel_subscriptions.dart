@@ -86,5 +86,5 @@ class _Visitor extends LeakDetectorProcessors {
     _isSubscription: _cancelMethodName
   };
 
-  _Visitor(LintRule rule) : super(rule);
+  _Visitor(super.rule);
 }

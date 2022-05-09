@@ -106,8 +106,7 @@ class _EnumVisitor extends _BaseVisitor {
 
   List<VariableDeclaration> variableDeclarations;
 
-  _EnumVisitor(ClassElement classElement, this.variableDeclarations)
-      : super(classElement);
+  _EnumVisitor(super.classElement, this.variableDeclarations);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -142,7 +141,7 @@ class _InvalidEnumException implements Exception {}
 class _NonEnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit everything except the class
   /// declaration corresponding to the given [classElement].
-  _NonEnumVisitor(ClassElement classElement) : super(classElement);
+  _NonEnumVisitor(super.classElement);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

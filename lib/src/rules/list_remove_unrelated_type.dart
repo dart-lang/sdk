@@ -138,7 +138,7 @@ class ListRemoveUnrelatedType extends LintRule {
 class _Visitor extends UnrelatedTypesProcessors {
   static final _definition = InterfaceTypeDefinition('List', 'dart.core');
 
-  _Visitor(LintRule rule, TypeSystem typeSystem) : super(rule, typeSystem);
+  _Visitor(super.rule, super.typeSystem);
 
   @override
   InterfaceTypeDefinition get definition => _definition;

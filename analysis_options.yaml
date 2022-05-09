@@ -79,4 +79,5 @@ linter:
     - use_late_for_private_fields_and_variables
     - use_setters_to_change_properties
     - use_string_buffers
+    - use_super_parameters
     - use_to_and_as_if_applicable

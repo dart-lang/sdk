@@ -127,21 +127,13 @@ void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
 }
 
 class DetailedReporter extends SimpleFormatter {
-  DetailedReporter(
-      Iterable<AnalysisErrorInfo> errors, LintFilter? filter, IOSink out,
-      {int? fileCount,
-      int? elapsedMs,
-      String? fileRoot,
-      bool showStatistics = false,
-      bool machineOutput = false,
-      bool quiet = false})
-      : super(errors, filter, out,
-            fileCount: fileCount,
-            fileRoot: fileRoot,
-            elapsedMs: elapsedMs,
-            showStatistics: showStatistics,
-            machineOutput: machineOutput,
-            quiet: quiet);
+  DetailedReporter(super.errors, super.filter, super.out,
+      {super.fileCount,
+      super.elapsedMs,
+      super.fileRoot,
+      super.showStatistics,
+      super.machineOutput,
+      super.quiet});
 
   @override
   void writeLint(AnalysisError error, {int? offset, int? line, int? column}) {

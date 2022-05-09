@@ -181,7 +181,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
 class _UnnecessaryGetterOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessaryGetterOverrideVisitor(LintRule rule) : super(rule);
+  _UnnecessaryGetterOverrideVisitor(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(MethodDeclaration node) =>
@@ -197,7 +197,7 @@ class _UnnecessaryGetterOverrideVisitor
 
 class _UnnecessaryMethodOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessaryMethodOverrideVisitor(LintRule rule) : super(rule);
+  _UnnecessaryMethodOverrideVisitor(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(node) =>
@@ -217,7 +217,7 @@ class _UnnecessaryMethodOverrideVisitor
 
 class _UnnecessaryOperatorOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessaryOperatorOverrideVisitor(LintRule rule) : super(rule);
+  _UnnecessaryOperatorOverrideVisitor(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(node) =>
@@ -255,7 +255,7 @@ class _UnnecessaryOperatorOverrideVisitor
 
 class _UnnecessarySetterOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessarySetterOverrideVisitor(LintRule rule) : super(rule);
+  _UnnecessarySetterOverrideVisitor(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(node) =>
