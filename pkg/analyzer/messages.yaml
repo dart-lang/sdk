@@ -22122,7 +22122,7 @@ StaticWarningCode:
       1: the non-null-aware operator that can replace the invalid operator
   INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE:
     sharedName: INVALID_NULL_AWARE_OPERATOR
-    problemMessage: "The operation is defined in an extension on nullable type, so the null-aware operator '{0}' is unnecessary."
+    problemMessage: "The member is defined in an extension on a nullable type, so the null-aware operator '{0}' is unnecessary."
     correctionMessage: "Try replacing the operator '{0}' with '{1}'."
     hasPublishedDocs: false
     comment: |-

@@ -4455,7 +4455,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForUnnecessaryNullAware(Expression target, Token operator,
-      [Element? targetEnclosingElement]) {
+      [Element? memberEnclosingElement]) {
     if (!_isNonNullableByDefault) {
       return;
     }
@@ -4525,8 +4525,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var onExtensionExtendingNullableType =
-        targetEnclosingElement is ExtensionElement &&
-            typeSystem.isNullable(targetEnclosingElement.extendedType);
+        memberEnclosingElement is ExtensionElement &&
+            typeSystem.isNullable(memberEnclosingElement.extendedType);
 
     if (onExtensionExtendingNullableType ||
         typeSystem.isStrictlyNonNullable(targetType)) {

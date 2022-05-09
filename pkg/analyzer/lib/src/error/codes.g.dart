@@ -18226,7 +18226,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE =
       StaticWarningCode(
     'INVALID_NULL_AWARE_OPERATOR',
-    "The operation is defined in an extension on nullable type, so the "
+    "The member is defined in an extension on a nullable type, so the "
         "null-aware operator '{0}' is unnecessary.",
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_ON_EXTENSION_ON_NULLABLE_TYPE',
