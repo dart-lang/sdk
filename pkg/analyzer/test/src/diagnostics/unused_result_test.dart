@@ -59,6 +59,90 @@ A createA() {
     ]);
   }
 
+  test_callable() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+
+  @useResult
+  int call() => 1;
+}
+
+void f(A a) {
+  a();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 96, 1,
+          text: "The value of 'a' should be used."),
+    ]);
+  }
+
+  test_callable_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B b() => B();
+}
+class B {
+  @useResult
+  int call(int i) => i;
+}
+
+void f(A a) {
+  a.b()(5);
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 130, 1,
+          text: "The value of 'b' should be used."),
+    ]);
+  }
+
+  test_callable_propertyAccess() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B get b => B();
+}
+class B {
+  @useResult
+  int call() => 1;
+}
+
+void f(A a) {
+  a.b();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 127, 1,
+          text: "The value of 'b' should be used."),
+    ]);
+  }
+
+  test_callable_recursive() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B call(List l) => B();
+}
+class B {
+  C call() => C();
+}
+class C {
+  @useResult
+  int call(String s) => 1;
+}
+void f(A a) {
+  a([])()('');
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 170, 1,
+          text: "The value of 'a' should be used."),
+    ]);
+  }
+
   test_field_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -948,7 +1032,8 @@ void main() {
   A().foo();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 98, 3),
+      error(HintCode.UNUSED_RESULT, 98, 3,
+          text: "The value of 'foo' should be used."),
     ]);
   }
 
@@ -959,16 +1044,16 @@ import 'package:meta/meta.dart';
 class C {
   @useResult
   C m1() => throw '';
-  
+
   C m2() => throw '';
-  
+
   void m3() {
     m2()..m1();
   }
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 131, 2,
-          messageContains: ["'m1' should be used."]),
+      error(HintCode.UNUSED_RESULT, 127, 2,
+          text: "The value of 'm1' should be used."),
     ]);
   }
 
