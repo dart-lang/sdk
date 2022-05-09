@@ -71,7 +71,5 @@ void main() {
     } finally {
       proc.kill();
     }
-    // TODO(dantup): Unskip this test once DevTools has rolled into
-    //   the SDK so that contains the (newly-added) base href tag.
-  }, timeout: const Timeout.factor(10), skip: true);
+  }, timeout: const Timeout.factor(10));
 }
