@@ -1,4 +1,5 @@
 file:OWNERS_INFRA
+file:OWNERS_ECOSYSTEM
 
 # Groups administrate themselves.
 per-file OWNERS_ANALYZER=file:OWNERS_ANALYZER
