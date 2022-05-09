@@ -146,9 +146,24 @@ class FileSystemStateTest with ResourceProviderMixin {
       'bbb': [getFolder('/bbb/lib')],
     };
 
+    var packages = Packages({
+      'aaa': Package(
+        name: 'aaa',
+        rootFolder: newFolder('/packages/aaa'),
+        libFolder: newFolder('/packages/aaa/lib'),
+        languageVersion: null,
+      ),
+      'bbb': Package(
+        name: 'bbb',
+        rootFolder: newFolder('/packages/bbb'),
+        libFolder: newFolder('/packages/bbb/lib'),
+        languageVersion: null,
+      ),
+    });
+
     var workspace = BasicWorkspace.find(
       resourceProvider,
-      packageMap,
+      packages,
       convertPath('/test'),
     );
 

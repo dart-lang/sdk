@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -661,8 +662,7 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   // TODO(brianwilkerson) Implement this by looking in the BUILD file for 'deps'
   //  lists.
-  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
-      <String, List<Folder>>{};
+  Packages packagesAvailableTo(String libraryPath) => Packages.empty;
 
   @override
   bool sourceIsInPublicApi(Source source) {
