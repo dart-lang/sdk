@@ -1688,6 +1688,10 @@ abstract class HttpClient {
   void set badCertificateCallback(
       bool Function(X509Certificate cert, String host, int port)? callback);
 
+  /// Sets the server name used for SSL/TLS secure connections.
+  /// By default the Host in the URI is used.
+  void set serverName(String serverName);
+
   /// Sets a callback that will be called when new TLS keys are exchanged with
   /// the server. It will receive one line of text in
   /// [NSS Key Log Format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format)

@@ -2445,7 +2445,7 @@ class _ConnectionTarget {
         connectionTask = cf(uri, host, port);
       }
     } else {
-      connectionTask = (isSecure && proxy.isDirect
+      connectionTask = (isSecure && proxy.isDirect && client._serverName.isEmpty
           ? SecureSocket.startConnect(host, port,
               context: context,
               onBadCertificate: callback,
@@ -2460,8 +2460,16 @@ class _ConnectionTarget {
       if (connectionTimeout != null) {
         socketFuture = socketFuture.timeout(connectionTimeout);
       }
-      return socketFuture.then((socket) {
+      return socketFuture.then((socket) async {
         _connecting--;
+        if(client._serverName.isNotEmpty && isSecure && proxy.isDirect){
+          socket = await SecureSocket.secure(
+              socket,
+              host: client._serverName,
+              context: context,
+              onBadCertificate: callback,
+              keyLog: client._keyLog);
+        }
         if (socket.address.type != InternetAddressType.unix) {
           socket.setOption(SocketOption.tcpNoDelay, true);
         }
@@ -2528,6 +2536,7 @@ class _HttpClient implements HttpClient {
   String Function(Uri)? _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
   BadCertificateCallback? _badCertificateCallback;
+  String _serverName = "";
   Function(String line)? _keyLog;
 
   Duration get idleTimeout => _idleTimeout;
@@ -2556,6 +2565,10 @@ class _HttpClient implements HttpClient {
   set badCertificateCallback(
       bool Function(X509Certificate cert, String host, int port)? callback) {
     _badCertificateCallback = callback;
+  }
+
+  set serverName(String serverName){
+    _serverName = serverName;
   }
 
   void set keyLog(Function(String line)? callback) {
