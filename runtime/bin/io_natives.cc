@@ -153,6 +153,7 @@ namespace bin {
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
+  V(Socket_Fatal, 1)                                                           \
   V(Socket_GetFD, 1)                                                           \
   V(Socket_GetOption, 3)                                                       \
   V(Socket_GetRawOption, 4)                                                    \
