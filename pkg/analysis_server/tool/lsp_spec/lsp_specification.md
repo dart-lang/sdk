@@ -22,13 +22,13 @@ Distributed under the following terms:
 
 ---
 title: Specification
-shortTitle: 3.16 - Upcoming
+shortTitle: 3.16 (Current)
 layout: specifications
 sectionid: specification-3-16
 toc: specification-3-16-toc
+fullTitle: Language Server Protocol Specification - 3.16
 index: 2
 ---
-# Language Server Protocol Specification - 3.16
 
 This document describes the 3.16.x version of the language server protocol. An implementation for node of the 3.16.x version of the protocol can be found [here](https://github.com/Microsoft/vscode-languageserver-node).
 
@@ -211,20 +211,26 @@ export namespace ErrorCodes {
 	 * are left in the range.
 	 *
 	 * @since 3.16.0
-	*/
+	 */
 	export const jsonrpcReservedErrorRangeStart: integer = -32099;
-	/** @deprecated use  jsonrpcReservedErrorRangeStart */
+	/** @deprecated use jsonrpcReservedErrorRangeStart */
 	export const serverErrorStart: integer = jsonrpcReservedErrorRangeStart;
 
+	/**
+	 * Error code indicating that a server received a notification or
+	 * request before the server has received the `initialize` request.
+	 */
 	export const ServerNotInitialized: integer = -32002;
 	export const UnknownErrorCode: integer = -32001;
 
 	/**
-	 * This is the start range of JSON RPC reserved error codes.
+	 * This is the end range of JSON RPC reserved error codes.
 	 * It doesn't denote a real error code.
-	*/
+	 *
+	 * @since 3.16.0
+	 */
 	export const jsonrpcReservedErrorRangeEnd = -32000;
-	/** @deprecated use  jsonrpcReservedErrorRangeEnd */
+	/** @deprecated use jsonrpcReservedErrorRangeEnd */
 	export const serverErrorEnd: integer = jsonrpcReservedErrorRangeEnd;
 
 	/**
@@ -267,7 +273,7 @@ interface NotificationMessage extends Message {
 
 #### <a href="#dollarRequests" name="dollarRequests" class="anchor"> $ Notifications and Requests </a>
 
-Notification and requests whose methods start with '\$/' are messages which are protocol implementation dependent and might not be implementable in all clients or servers. For example if the server implementation uses a single threaded synchronous programming language then there is little a server can do to react to a `$/cancelRequest` notification. If a server or client receives notifications starting with '\$/' it is free to ignore the notification. If a server or client receives a requests starting with '\$/' it must error the request with error code `MethodNotFound` (e.g. `-32601`).
+Notification and requests whose methods start with '\$/' are messages which are protocol implementation dependent and might not be implementable in all clients or servers. For example if the server implementation uses a single threaded synchronous programming language then there is little a server can do to react to a `$/cancelRequest` notification. If a server or client receives notifications starting with '\$/' it is free to ignore the notification. If a server or client receives a request starting with '\$/' it must error the request with error code `MethodNotFound` (e.g. `-32601`).
 
 #### <a href="#cancelRequest" name="cancelRequest" class="anchor"> Cancellation Support (:arrow_right: :arrow_left:)</a>
 
@@ -330,7 +336,7 @@ The protocol currently assumes that one server serves one tool. There is current
 
 #### <a href="#uri" name="uri" class="anchor"> URI </a>
 
-URI's are transferred as strings. The URI's format is defined in [http://tools.ietf.org/html/rfc3986](http://tools.ietf.org/html/rfc3986)
+URI's are transferred as strings. The URI's format is defined in [https://tools.ietf.org/html/rfc3986](https://tools.ietf.org/html/rfc3986)
 
 ```
   foo://example.com:8042/over/there?name=ferret#nose
@@ -404,6 +410,12 @@ The following features from the [ECMAScript 2020](https://tc39.es/ecma262/#sec-r
 
 The only regular expression flag that a client needs to support is 'i' to specify a case insensitive search.
 
+### <a href="#enumerations" name="enumerations" class="anchor"> Enumerations </a>
+
+The protocol supports two kind of enumerations: (a) integer based enumerations and (b) strings based enumerations. Integer based enumerations usually start with `1`. The onces that don't are historical and they were kept to stay backwards compatible. If appropriate the value set of an enumeration is announced by the defining side (e.g. client or server) and transmitted to the other side during the initialize handshake. An example is the `CompletionItemKind` enumeration. It is announced by the client using the `textDocument.completion.completionItemKind` client property.
+
+To support the evolution of enumerations the using side of an enumeration shouldn't fail on a enumeration value it doesn't know. It should simply ignore it as a value it can use and try to do its best to preserve the value on round trips. Lets look at the `CompletionItemKind` enumeration as an example again: if in a future version of the specification an additional completion item kind with the value `n` gets added and announced by a client a (older) server not knowing about the value should not fail but simply ignore the value as a usable item kind.
+
 #### <a href="#textDocuments" name="textDocuments" class="anchor"> Text Documents </a>
 
 The current protocol is tailored for textual documents whose content can be represented as a string. There is currently no support for binary documents. A position inside a document (see Position definition below) is expressed as a zero-based line and character offset. The offsets are based on a UTF-16 string representation. So a string of the form `a𐐀b` the character offset of the character `a` is 0, the character offset of `𐐀` is 1 and the character offset of b is 3 since `𐐀` is represented using two code units in UTF-16. To ensure that both client and server split the string into the same line representation the protocol specifies the following end-of-line sequences: '\n', '\r\n' and '\r'.
@@ -416,7 +428,7 @@ export const EOL: string[] = ['\n', '\r\n', '\r'];
 
 #### <a href="#position" name="position" class="anchor"> Position </a>
 
-Position in a text document expressed as zero-based line and zero-based character offset. A position is between two characters like an 'insert' cursor in a editor. Special values like for example `-1` to denote the end of a line are not supported.
+Position in a text document expressed as zero-based line and zero-based character offset. A position is between two characters like an 'insert' cursor in an editor. Special values like for example `-1` to denote the end of a line are not supported.
 
 ```typescript
 interface Position {
@@ -500,7 +512,7 @@ interface LocationLink {
 
 	/**
 	 * The range that should be selected and revealed when this link is being
-	 * followed, e.g the name of a function. Must be contained by the
+	 * followed, e.g the name of a function. Must be contained by the the
 	 * `targetRange`. See also `DocumentSymbol#range`
 	 */
 	targetSelectionRange: Range;
@@ -601,19 +613,19 @@ export type DiagnosticSeverity = 1 | 2 | 3 | 4;
  * @since 3.15.0
  */
 export namespace DiagnosticTag {
-    /**
-     * Unused or unnecessary code.
-     *
-     * Clients are allowed to render diagnostics with this tag faded out
+	/**
+	 * Unused or unnecessary code.
+	 *
+	 * Clients are allowed to render diagnostics with this tag faded out
 	 * instead of having an error squiggle.
-     */
-    export const Unnecessary: 1 = 1;
-    /**
-     * Deprecated or obsolete code.
-     *
-     * Clients are allowed to rendered diagnostics with this tag strike through.
-     */
-    export const Deprecated: 2 = 2;
+	 */
+	export const Unnecessary: 1 = 1;
+	/**
+	 * Deprecated or obsolete code.
+	 *
+	 * Clients are allowed to rendered diagnostics with this tag strike through.
+	 */
+	export const Deprecated: 2 = 2;
 }
 
 export type DiagnosticTag = 1 | 2;
@@ -678,7 +690,7 @@ interface Command {
 }
 ```
 
-#### <a href="#textEdit" name="textEdit" class="anchor"> TextEdit  & AnnotatedTextEdit </a>
+#### <a href="#textEdit" name="textEdit" class="anchor"> TextEdit & AnnotatedTextEdit </a>
 
 > New in version 3.16: Support for `AnnotatedTextEdit`.
 
@@ -737,7 +749,7 @@ Usually clients provide options to group the changes along the annotations they 
  * An identifier referring to a change annotation managed by a workspace
  * edit.
  *
- * @since 3.16.0.
+ * @since 3.16.0
  */
 export type ChangeAnnotationIdentifier = string;
 
@@ -745,7 +757,7 @@ export type ChangeAnnotationIdentifier = string;
 /**
  * A special text edit with an additional change annotation.
  *
- * @since 3.16.0.
+ * @since 3.16.0
  */
 export interface AnnotatedTextEdit extends TextEdit {
 	/**
@@ -927,6 +939,9 @@ export interface DeleteFile {
 
 A workspace edit represents changes to many resources managed in the workspace. The edit should either provide `changes` or `documentChanges`. If the client can handle versioned document edits and if `documentChanges` are present, the latter are preferred over `changes`.
 
+ Since version 3.13.0 a workspace edit can contain resource operations (create, delete or rename files and folders) as well. If resource operations are present clients need to execute the operations in the order in which they are provided. So a workspace edit for example can consist of the following two changes: (1) create file a.txt and (2) a text document edit which insert text into file a.txt. An invalid sequence (e.g. (1) delete file a.txt and (2) insert text into file a.txt) will cause failure of the operation. How the client recovers from the failure is described by the client capability: `workspace.workspaceEdit.failureHandling`
+
+
 ```typescript
 export interface WorkspaceEdit {
 	/**
@@ -966,7 +981,7 @@ export interface WorkspaceEdit {
 	 */
 	changeAnnotations?: {
 		[id: string /* ChangeAnnotationIdentifier */]: ChangeAnnotation;
-	}
+	};
 }
 ```
 
@@ -976,7 +991,7 @@ export interface WorkspaceEdit {
 
 
 The capabilities of a workspace edit has evolved over the time. Clients can describe their support using the following client capability:
-
+_Client Capability_:
 * property path (optional): `workspace.workspaceEdit`
 * property type: `WorkspaceEditClientCapabilities` defined as follows:
 
@@ -1020,12 +1035,12 @@ export interface WorkspaceEditClientCapabilities {
 	 * @since 3.16.0
 	 */
 	changeAnnotationSupport?: {
-        /**
-         * Whether the client groups edits with equal labels into tree nodes,
-         * for instance all edits labelled with "Changes in Strings" would
-         * be a tree node.
-         */
-        groupsOnLabel?: boolean;
+		/**
+		 * Whether the client groups edits with equal labels into tree nodes,
+		 * for instance all edits labelled with "Changes in Strings" would
+		 * be a tree node.
+		 */
+		groupsOnLabel?: boolean;
 	};
 }
 
@@ -1271,8 +1286,8 @@ export interface DocumentFilter {
 	 * - `*` to match one or more characters in a path segment
 	 * - `?` to match on one character in a path segment
 	 * - `**` to match any number of path segments, including none
-	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-	 *   and JavaScript files)
+	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+	 *   matches all TypeScript and JavaScript files)
 	 * - `[]` to declare a range of characters to match in a path segment
 	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
 	 * - `[!...]` to negate a range of characters to match in a path segment
@@ -1360,14 +1375,14 @@ export type MarkupKind = 'plaintext' | 'markdown';
  * JavaScript / TypeScript:
  * ```typescript
  * let markdown: MarkdownContent = {
- *  kind: MarkupKind.Markdown,
- *	value: [
- *		'# Header',
- *		'Some text',
- *		'```typescript',
- *		'someCode();',
- *		'```'
- *	].join('\n')
+ * 	kind: MarkupKind.Markdown,
+ * 	value: [
+ * 		'# Header',
+ * 		'Some text',
+ * 		'```typescript',
+ * 		'someCode();',
+ * 		'```'
+ * 	].join('\n')
  * };
  * ```
  *
@@ -1389,7 +1404,7 @@ export interface MarkupContent {
 
 In addition clients should signal the markdown parser they are using via the client capability `general.markdown` introduced in version 3.16.0 defined as follows:
 
- ```typescript
+```typescript
 /**
  * Client capabilities specific to the used markdown parser.
  *
@@ -1406,7 +1421,7 @@ export interface MarkdownClientCapabilities {
 	 */
 	version?: string;
 }
- ```
+```
 
 Known markdown parsers used by clients right now are:
 
@@ -1477,7 +1492,7 @@ export interface WorkDoneProgressReport {
 
 	/**
 	 * Controls enablement state of a cancel button. This property is only valid
-	 *  if a cancel button got requested in the `WorkDoneProgressStart` payload.
+	 * if a cancel button got requested in the `WorkDoneProgressBegin` payload.
 	 *
 	 * Clients that don't support cancellation or don't support control the
 	 * button's enablement state are allowed to ignore the setting.
@@ -1613,7 +1628,7 @@ To keep the protocol backwards compatible servers are only allowed to use `windo
 		 * `window/workDoneProgress/create` request.
 		 */
 		workDoneProgress?: boolean;
-	}
+	};
 ```
 
 #### <a href="#partialResults" name="partialResults" class="anchor"> Partial Result Progress </a>
@@ -1670,7 +1685,7 @@ A `TraceValue` represents the level of verbosity with which the server systemati
 The initial trace value is set by the client at initialization and can be modified later using the [$/setTrace](#setTrace) notification.
 
 ```typescript
-export type TraceValue = 'off' | 'message' | 'verbose'
+export type TraceValue = 'off' | 'messages' | 'verbose';
 ```
 
 ### Actual Protocol
@@ -1888,14 +1903,14 @@ export interface TextDocumentClientCapabilities {
 	/**
 	 * Capabilities specific to the `textDocument/formatting` request.
 	 */
-	formatting?: DocumentFormattingClientCapabilities
+	formatting?: DocumentFormattingClientCapabilities;
 
 	/**
 	 * Capabilities specific to the `textDocument/rangeFormatting` request.
 	 */
 	rangeFormatting?: DocumentRangeFormattingClientCapabilities;
 
-	/** request.
+	/**
 	 * Capabilities specific to the `textDocument/onTypeFormatting` request.
 	 */
 	onTypeFormatting?: DocumentOnTypeFormattingClientCapabilities;
@@ -2070,7 +2085,7 @@ interface ClientCapabilities {
 			 * The client has support for sending willDeleteFiles requests.
 			 */
 			willDelete?: boolean;
-		}
+		};
 	};
 
 	/**
@@ -2104,7 +2119,7 @@ interface ClientCapabilities {
 		 * @since 3.16.0
 		 */
 		showDocument?: ShowDocumentClientCapabilities;
-	}
+	};
 
 	/**
 	 * General client capabilities.
@@ -2125,7 +2140,7 @@ interface ClientCapabilities {
 		 * @since 3.16.0
 		 */
 		markdown?: MarkdownClientCapabilities;
-	}
+	};
 
 	/**
 	 * Experimental client capabilities.
@@ -2362,7 +2377,7 @@ interface ServerCapabilities {
 	 *
 	 * @since 3.16.0
 	 */
-    monikerProvider?: boolean | MonikerOptions | MonikerRegistrationOptions;
+	monikerProvider?: boolean | MonikerOptions | MonikerRegistrationOptions;
 
 	/**
 	 * The server provides workspace symbol support.
@@ -2419,8 +2434,8 @@ interface ServerCapabilities {
 			 * requests.
 			 */
 			willDelete?: FileOperationRegistrationOptions;
-		}
-	}
+		};
+	};
 
 	/**
 	 * Experimental server capabilities.
@@ -2444,7 +2459,9 @@ interface InitializedParams {
 
 #### <a href="#shutdown" name="shutdown" class="anchor">Shutdown Request (:leftwards_arrow_with_hook:)</a>
 
-The shutdown request is sent from the client to the server. It asks the server to shut down, but to not exit (otherwise the response might not be delivered correctly to the client). There is a separate exit notification that asks the server to exit. Clients must not send any notifications other than `exit` or requests to a server to which they have sent a shutdown request. If a server receives requests after a shutdown request those requests should error with `InvalidRequest`.
+The shutdown request is sent from the client to the server. It asks the server to shut down, but to not exit (otherwise the response might not be delivered correctly to the client). There is a separate exit notification that asks the server to exit. Clients must not send any notifications other than `exit` or requests to a server to which they have sent a shutdown request. Clients should also wait with sending the `exit` notification until they have received a response from the `shutdown` request.
+
+If a server receives requests after a shutdown request those requests should error with `InvalidRequest`.
 
 _Request_:
 * method: 'shutdown'
@@ -2468,7 +2485,7 @@ _Notification_:
 A notification to log the trace of the server's execution.
 The amount and content of these notifications depends on the current `trace` configuration.
 If `trace` is `'off'`, the server should not send any `logTrace` notification.
-If `trace` is `'message'`, the server should not add the `'verbose'` field in the `LogTraceParams`.
+If `trace` is `'messages'`, the server should not add the `'verbose'` field in the `LogTraceParams`.
 
 `$/logTrace` should be used for systematic trace reporting. For single debugging messages, the server should send [`window/logMessage`](#window_logMessage) notifications.
 
@@ -2578,7 +2595,7 @@ export interface ShowMessageRequestClientCapabilities {
 		 * request's response.
 		 */
 		additionalPropertiesSupport?: boolean;
-	}
+	};
 }
 ```
 
@@ -2961,7 +2978,11 @@ export interface WorkspaceFolder {
 
 > *Since version 3.6.0*
 
-The `workspace/didChangeWorkspaceFolders` notification is sent from the client to the server to inform the server about workspace folder configuration changes. The notification is sent by default if both _client capability_ `workspace.workspaceFolders` and the _server capability_ `workspace.workspaceFolders.supported` are true; or if the server has registered itself to receive this notification. To register for the `workspace/didChangeWorkspaceFolders` send a `client/registerCapability` request from the server to the client. The registration parameter must have a `registrations` item of the following form, where `id` is a unique id used to unregister the capability (the example uses a UUID):
+> *Correction in 3.16.0*
+
+The spec stated that the notification is sent by default if both _client capability_ `workspace.workspaceFolders` and the _server capability_ `workspace.workspaceFolders.supported` are true. This was incorrect and the correct way is to use the `changeNotification` property defined above which was introduced in 3.6.0 as well.
+
+The `workspace/didChangeWorkspaceFolders` notification is sent from the client to the server to inform the server about workspace folder configuration changes. The notification is sent automatically if the servers signals interest in it using the server capability `workspace.workspaceFolders.changeNotification` or if the server has registered itself to receive this notification. To register for the `workspace/didChangeWorkspaceFolders` send a `client/registerCapability` request from the server to the client. The registration parameter must have a `registrations` item of the following form, where `id` is a unique id used to unregister the capability (the example uses a UUID):
 ```ts
 {
 	id: "28c6150c-bd7b-11e7-abc4-cec278b6b50a",
@@ -3105,14 +3126,14 @@ export interface DidChangeWatchedFilesRegistrationOptions {
 
 export interface FileSystemWatcher {
 	/**
-	 * The  glob pattern to watch.
+	 * The glob pattern to watch.
 	 *
 	 * Glob patterns can have the following syntax:
 	 * - `*` to match one or more characters in a path segment
 	 * - `?` to match on one character in a path segment
 	 * - `**` to match any number of path segments, including none
-	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-	 *   and JavaScript files)
+	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+	 *   matches all TypeScript and JavaScript files)
 	 * - `[]` to declare a range of characters to match in a path segment
 	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
 	 * - `[!...]` to negate a range of characters to match in a path segment
@@ -3227,7 +3248,7 @@ interface WorkspaceSymbolClientCapabilities {
 		 * the initial version of the protocol.
 		 */
 		valueSet?: SymbolKind[];
-	}
+	};
 
 	/**
 	 * The client supports tags on `SymbolInformation`.
@@ -3239,8 +3260,8 @@ interface WorkspaceSymbolClientCapabilities {
 		/**
 		 * The tags supported by the client.
 		 */
-		valueSet: SymbolTag[]
-	}
+		valueSet: SymbolTag[];
+	};
 }
 ```
 
@@ -3309,7 +3330,7 @@ export interface ExecuteCommandOptions extends WorkDoneProgressOptions {
 	/**
 	 * The commands to be executed on the server
 	 */
-	commands: string[]
+	commands: string[];
 }
 ```
 
@@ -3323,7 +3344,7 @@ export interface ExecuteCommandRegistrationOptions
 }
 ```
 
-_Request:_
+_Request_:
 * method: 'workspace/executeCommand'
 * params: `ExecuteCommandParams` defined as follows:
 
@@ -3397,7 +3418,7 @@ export interface ApplyWorkspaceEditResponse {
 	/**
 	 * Depending on the client's failure handling strategy `failedChange`
 	 * might contain the index of the change that failed. This property is
-	 * only available if the client signals a `failureHandlingStrategy`
+	 * only available if the client signals a `failureHandling` strategy
 	 * in its client capabilities.
 	 */
 	failedChange?: uinteger;
@@ -3407,7 +3428,7 @@ export interface ApplyWorkspaceEditResponse {
 
 #### <a href="#workspace_willCreateFiles" name="workspace_willCreateFiles" class="anchor">WillCreateFiles Request (:leftwards_arrow_with_hook:)</a>
 
-The will create files request is sent from the client to the server before files are actually created as long as the creation is triggered from within the client. The request can return a WorkspaceEdit which will be applied to workspace before the files are created. Please note that clients might drop results if computing the edit took too long or if a server constantly fails on this request. This is done to keep creates fast and reliable.
+The will create files request is sent from the client to the server before files are actually created as long as the creation is triggered from within the client either by a user action or by applying a workspace edit. The request can return a WorkspaceEdit which will be applied to workspace before the files are created. Please note that clients might drop results if computing the edit took too long or if a server constantly fails on this request. This is done to keep creates fast and reliable.
 
 _Client Capability_:
 * property name (optional): `workspace.fileOperations.willCreate`
@@ -3477,8 +3498,8 @@ interface FileOperationPattern {
 	 * - `*` to match one or more characters in a path segment
 	 * - `?` to match on one character in a path segment
 	 * - `**` to match any number of path segments, including none
-	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-	 *   and JavaScript files)
+	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+	 *   matches all TypeScript and JavaScript files)
 	 * - `[]` to declare a range of characters to match in a path segment
 	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
 	 * - `[!...]` to negate a range of characters to match in a path segment
@@ -3582,7 +3603,7 @@ _Notification_:
 
 #### <a href="#workspace_willRenameFiles" name="workspace_willRenameFiles" class="anchor">WillRenameFiles Request (:leftwards_arrow_with_hook:)</a>
 
-The will rename files request is sent from the client to the server before files are actually renamed as long as the rename is triggered from within the client. The request can return a WorkspaceEdit which will be applied to workspace before the files are renamed. Please note that clients might drop results if computing the edit took too long or if a server constantly fails on this request. This is done to keep renames fast and reliable.
+The will rename files request is sent from the client to the server before files are actually renamed as long as the rename is triggered from within the client either by a user action or by applying a workspace edit. The request can return a WorkspaceEdit which will be applied to workspace before the files are renamed. Please note that clients might drop results if computing the edit took too long or if a server constantly fails on this request. This is done to keep renames fast and reliable.
 
 _Client Capability_:
 * property name (optional): `workspace.fileOperations.willRename`
@@ -3662,7 +3683,7 @@ _Notification_:
 
 #### <a href="#workspace_willDeleteFiles" name="workspace_willDeleteFiles" class="anchor">WillDeleteFiles Request (:leftwards_arrow_with_hook:)</a>
 
-The will delete files request is sent from the client to the server before files are actually deleted as long as the deletion is triggered from within the client. The request can return a WorkspaceEdit which will be applied to workspace before the files are deleted. Please note that clients might drop results if computing the edit took too long or if a server constantly fails on this request. This is done to keep deletes fast and reliable.
+The will delete files request is sent from the client to the server before files are actually deleted as long as the deletion is triggered from within the client either by a user action or by applying a workspace edit. The request can return a WorkspaceEdit which will be applied to workspace before the files are deleted. Please note that clients might drop results if computing the edit took too long or if a server constantly fails on this request. This is done to keep deletes fast and reliable.
 
 _Client Capability_:
 * property name (optional): `workspace.fileOperations.willDelete`
@@ -3794,7 +3815,7 @@ export interface TextDocumentSyncOptions {
 
 The document open notification is sent from the client to the server to signal newly opened text documents. The document's content is now managed by the client and the server must not try to read the document's content using the document's Uri. Open in this sense means it is managed by the client. It doesn't necessarily mean that its content is presented in an editor. An open notification must not be sent more than once without a corresponding close notification send before. This means open and close notification must be balanced and the max open count for a particular textDocument is one. Note that a server's ability to fulfill requests is independent of whether a text document is open or closed.
 
-The `DidOpenTextDocumentParams` contain the language id the document is associated with. If the language Id of a document changes, the client needs to send a `textDocument/didClose` to the server followed by a `textDocument/didOpen` with the new language id if the server handles the new language id as well.
+The `DidOpenTextDocumentParams` contain the language id the document is associated with. If the language id of a document changes, the client needs to send a `textDocument/didClose` to the server followed by a `textDocument/didOpen` with the new language id if the server handles the new language id as well.
 
 _Client Capability_:
 See general synchronization [client capabilities](#textDocument_synchronization_cc).
@@ -3819,7 +3840,7 @@ interface DidOpenTextDocumentParams {
 
 #### <a href="#textDocument_didChange" name="textDocument_didChange" class="anchor">DidChangeTextDocument Notification (:arrow_right:)</a>
 
-The document change notification is sent from the client to the server to signal changes to a text document. Before a client can change a text document it must claim ownership of its content using the `textDocument/didOpen` notification. In 2.0 the shape of the params has changed to include proper version numbers and language ids.
+The document change notification is sent from the client to the server to signal changes to a text document. Before a client can change a text document it must claim ownership of its content using the `textDocument/didOpen` notification. In 2.0 the shape of the params has changed to include proper version numbers.
 
 _Client Capability_:
 See general synchronization [client capabilities](#textDocument_synchronization_cc).
@@ -3899,7 +3920,7 @@ export type TextDocumentContentChangeEvent = {
 	 * The new text of the whole document.
 	 */
 	text: string;
-}
+};
 ```
 
 #### <a href="#textDocument_willSave" name="textDocument_willSave" class="anchor">WillSaveTextDocument Notification (:arrow_right:)</a>
@@ -3988,7 +4009,7 @@ _Request_:
 * params: `WillSaveTextDocumentParams`
 
 _Response_:
-* result:`TextEdit[]` \| `null`
+* result:[`TextEdit[]`](#textEdit) \| `null`
 * error: code and message set in case an exception happens during the `willSaveWaitUntil` request.
 
 #### <a href="#textDocument_didSave" name="textDocument_didSave" class="anchor">DidSaveTextDocument Notification (:arrow_right:)</a>
@@ -4170,7 +4191,7 @@ See also the [Diagnostic](#diagnostic) section.
 
 _Client Capability_:
 * property name (optional): `textDocument.publishDiagnostics`
-* property type `PublishDiagnosticsClientCapabilities` defined as follows:
+* property type: `PublishDiagnosticsClientCapabilities` defined as follows:
 
 ```typescript
 export interface PublishDiagnosticsClientCapabilities {
@@ -4235,7 +4256,7 @@ interface PublishDiagnosticsParams {
 	 *
 	 * @since 3.15.0
 	 */
-	version?: uinteger;
+	version?: integer;
 
 	/**
 	 * An array of diagnostic information items.
@@ -4278,10 +4299,10 @@ export interface CompletionClientCapabilities {
 		/**
 		 * Client supports commit characters on a completion item.
 		 */
-		commitCharactersSupport?: boolean
+		commitCharactersSupport?: boolean;
 
 		/**
-		 * Client supports the follow content formats for the documentation
+		 * Client supports the following content formats for the documentation
 		 * property. The order describes the preferred format of the client.
 		 */
 		documentationFormat?: MarkupKind[];
@@ -4308,8 +4329,8 @@ export interface CompletionClientCapabilities {
 			/**
 			 * The tags supported by the client.
 			 */
-			valueSet: CompletionItemTag[]
-		}
+			valueSet: CompletionItemTag[];
+		};
 
 		/**
 		 * Client supports insert replace edit to control different behavior if
@@ -4322,7 +4343,7 @@ export interface CompletionClientCapabilities {
 		/**
 		 * Indicates which properties a client can resolve lazily on a
 		 * completion item. Before version 3.16.0 only the predefined properties
-		 * `documentation` and `details` could be resolved lazily.
+		 * `documentation` and `detail` could be resolved lazily.
 		 *
 		 * @since 3.16.0
 		 */
@@ -4336,13 +4357,13 @@ export interface CompletionClientCapabilities {
 		/**
 		 * The client supports the `insertTextMode` property on
 		 * a completion item to override the whitespace handling mode
-		 * as defined by the client (see `insertTextMode`).
+		 * as defined by the client.
 		 *
 		 * @since 3.16.0
 		 */
 		insertTextModeSupport?: {
 			valueSet: InsertTextMode[];
-		}
+		};
 	};
 
 	completionItemKind?: {
@@ -4487,8 +4508,11 @@ _Response_:
  */
 export interface CompletionList {
 	/**
-	 * This list it not complete. Further typing should result in recomputing
+	 * This list is not complete. Further typing should result in recomputing
 	 * this list.
+	 *
+	 * Recomputed lists have all their items replaced (not appended) in the
+	 * incomplete completion sessions.
 	 */
 	isIncomplete: boolean;
 
@@ -4639,19 +4663,22 @@ export interface CompletionItem {
 
 	/**
 	 * A string that should be used when comparing this item
-	 * with other items. When `falsy` the label is used.
+	 * with other items. When `falsy` the label is used
+	 * as the sort text for this item.
 	 */
 	sortText?: string;
 
 	/**
 	 * A string that should be used when filtering a set of
-	 * completion items. When `falsy` the label is used.
+	 * completion items. When `falsy` the label is used as the
+	 * filter text for this item.
 	 */
 	filterText?: string;
 
 	/**
 	 * A string that should be inserted into a document when selecting
-	 * this completion. When `falsy` the label is used.
+	 * this completion. When `falsy` the label is used as the insert text
+	 * for this item.
 	 *
 	 * The `insertText` is subject to interpretation by the client side.
 	 * Some tools might not take the string literally. For example
@@ -4672,8 +4699,7 @@ export interface CompletionItem {
 
 	/**
 	 * How whitespace and indentation is handled during completion
-	 * item insertion. If not provided the client's default value depends on
-	 * the `textDocument.completion.insertTextMode` client capability.
+	 * item insertion. If not provided the client's default value is used.
 	 *
 	 * @since 3.16.0
 	 */
@@ -4690,7 +4716,7 @@ export interface CompletionItem {
 	 * item. One is to insert a completion text and the other is to replace an
 	 * existing text with a completion text. Since this can usually not be
 	 * predetermined by a server it can report both ranges. Clients need to
-	 * signal support for `InsertReplaceEdits` via the
+	 * signal support for `InsertReplaceEdit`s via the
 	 * `textDocument.completion.insertReplaceSupport` client capability
 	 * property.
 	 *
@@ -4735,7 +4761,7 @@ export interface CompletionItem {
 	 * A data entry field that is preserved on a completion item between
 	 * a completion and a completion resolve request.
 	 */
-	data?: any
+	data?: any;
 }
 
 /**
@@ -4769,7 +4795,7 @@ export namespace CompletionItemKind {
 	export const TypeParameter = 25;
 }
 ```
-* partial result: `CompletionItem[]`  or `CompletionList` followed by `CompletionItem[]`. If the first provided result item is of type `CompletionList` subsequent partial results of `CompletionItem[]` add to the `items` property of the `CompletionList`.
+* partial result: `CompletionItem[]` or `CompletionList` followed by `CompletionItem[]`. If the first provided result item is of type `CompletionList` subsequent partial results of `CompletionItem[]` add to the `items` property of the `CompletionList`.
 * error: code and message set in case an exception happens during the completion request.
 
 Completion items support snippets (see `InsertTextFormat.Snippet`). The snippet format is as follows:
@@ -4882,7 +4908,7 @@ export interface HoverClientCapabilities {
 	dynamicRegistration?: boolean;
 
 	/**
-	 * Client supports the follow content formats if the content
+	 * Client supports the following content formats if the content
 	 * property refers to a `literal of type MarkupContent`.
 	 * The order describes the preferred format of the client.
 	 */
@@ -4982,7 +5008,7 @@ export interface SignatureHelpClientCapabilities {
 	 */
 	signatureInformation?: {
 		/**
-		 * Client supports the follow content formats for the documentation
+		 * Client supports the following content formats for the documentation
 		 * property. The order describes the preferred format of the client.
 		 */
 		documentationFormat?: MarkupKind[];
@@ -5149,8 +5175,8 @@ export interface SignatureHelp {
 
 	/**
 	 * The active signature. If omitted or the value lies outside the
-	 * range of `signatures` the value defaults to zero or is ignore if
-	 * the `SignatureHelp` as no signatures.
+	 * range of `signatures` the value defaults to zero or is ignored if
+	 * the `SignatureHelp` has no signatures.
 	 *
 	 * Whenever possible implementors should make an active decision about
 	 * the active signature and shouldn't rely on a default value.
@@ -5275,7 +5301,7 @@ export interface DeclarationOptions extends WorkDoneProgressOptions {
 _Registration Options_: `DeclarationRegistrationOptions` defined as follows:
 ```typescript
 export interface DeclarationRegistrationOptions extends DeclarationOptions,
-	TextDocumentRegistrationOptions, StaticRegistrationOptions  {
+	TextDocumentRegistrationOptions, StaticRegistrationOptions {
 }
 ```
 
@@ -5515,7 +5541,7 @@ _Request_:
 ```typescript
 export interface ReferenceParams extends TextDocumentPositionParams,
 	WorkDoneProgressParams, PartialResultParams {
-	context: ReferenceContext
+	context: ReferenceContext;
 }
 
 export interface ReferenceContext {
@@ -5660,7 +5686,7 @@ export interface DocumentSymbolClientCapabilities {
 		 * the initial version of the protocol.
 		 */
 		valueSet?: SymbolKind[];
-	}
+	};
 
 	/**
 	 * The client supports hierarchical document symbols.
@@ -5678,8 +5704,8 @@ export interface DocumentSymbolClientCapabilities {
 		/**
 		 * The tags supported by the client.
 		 */
-		valueSet: SymbolTag[]
-	}
+		valueSet: SymbolTag[];
+	};
 
 	/**
 	 * The client supports an additional label presented in the UI when
@@ -5767,7 +5793,7 @@ export namespace SymbolKind {
 /**
  * Symbol tags are extra annotations that tweak the rendering of a symbol.
  *
- * @since 3.16
+ * @since 3.16.0
  */
 export namespace SymbolTag {
 
@@ -5855,7 +5881,7 @@ export interface SymbolInformation {
 	kind: SymbolKind;
 
 	/**
-	 * Tags for this completion item.
+	 * Tags for this symbol.
 	 *
 	 * @since 3.16.0
 	 */
@@ -5976,12 +6002,12 @@ export interface CodeActionClientCapabilities {
 	resolveSupport?: {
 		/**
 		 * The properties that a client can resolve lazily.
-		*/
+		 */
 		properties: string[];
 	};
 
 	/**
-	 * Whether th client honors the change annotations in
+	 * Whether the client honors the change annotations in
 	 * text edits and resource operations returned via the
 	 * `CodeAction#edit` property by for example presenting
 	 * the workspace edit in the user interface and asking
@@ -6250,7 +6276,7 @@ export interface CodeAction {
 	 *
 	 * @since 3.16.0
 	 */
-	data?: any
+	data?: any;
 }
 ```
 * partial result: `(Command | CodeAction)[]`
@@ -6266,7 +6292,7 @@ the `edit` property of a code action to avoid its unnecessary computation during
 Consider the clients announces the `edit` property as a property that can be resolved lazy using the client capability
 
 ```typescript
-textDocument.codeAction.resolveSupport = { properties: ['edit']};
+textDocument.codeAction.resolveSupport = { properties: ['edit'] };
 ```
 
 then a code action
@@ -6369,7 +6395,7 @@ interface CodeLens {
 	 * A data entry field that is preserved on a code lens item between
 	 * a code lens and a code lens resolve request.
 	 */
-	data?: any
+	data?: any;
 }
 ```
 * partial result: `CodeLens[]`
@@ -6682,7 +6708,7 @@ interface ColorPresentation {
 	label: string;
 	/**
 	 * An [edit](#TextEdit) which is applied to a document when selecting
-	 * this presentation for the color.  When `falsy` the
+	 * this presentation for the color. When `falsy` the
 	 * [label](#ColorPresentation.label) is used.
 	 */
 	textEdit?: TextEdit;
@@ -6791,7 +6817,7 @@ interface FormattingOptions {
 ```
 
 _Response_:
-* result: [`TextEdit[]`](#textedit) \| `null` describing the modification to the document to be formatted.
+* result: [`TextEdit[]`](#textEdit) \| `null` describing the modification to the document to be formatted.
 * error: code and message set in case an exception happens during the formatting request.
 
 #### <a href="#textDocument_rangeFormatting" name="textDocument_rangeFormatting" class="anchor">Document Range Formatting Request (:leftwards_arrow_with_hook:)</a>
@@ -6852,7 +6878,7 @@ interface DocumentRangeFormattingParams extends WorkDoneProgressParams {
 ```
 
 _Response_:
-* result: [`TextEdit[]`](#textedit) \| `null` describing the modification to the document to be formatted.
+* result: [`TextEdit[]`](#textEdit) \| `null` describing the modification to the document to be formatted.
 * error: code and message set in case an exception happens during the range formatting request.
 
 #### <a href="#textDocument_onTypeFormatting" name="textDocument_onTypeFormatting" class="anchor">Document on Type Formatting Request (:leftwards_arrow_with_hook:)</a>
@@ -6916,7 +6942,7 @@ interface DocumentOnTypeFormattingParams extends TextDocumentPositionParams {
 ```
 
 _Response_:
-* result: [`TextEdit[]`](#textedit) \| `null` describing the modification to the document.
+* result: [`TextEdit[]`](#textEdit) \| `null` describing the modification to the document.
 * error: code and message set in case an exception happens during the range formatting request.
 
 #### <a href="#textDocument_rename" name="textDocument_rename" class="anchor">Rename Request (:leftwards_arrow_with_hook:)</a>
@@ -6945,7 +6971,7 @@ export interface RenameClientCapabilities {
 	 * Client supports testing for validity of rename operations
 	 * before execution.
 	 *
-	 * @since version 3.12.0
+	 * @since 3.12.0
 	 */
 	prepareSupport?: boolean;
 
@@ -6956,12 +6982,12 @@ export interface RenameClientCapabilities {
 	 * The value indicates the default behavior used by the
 	 * client.
 	 *
-	 * @since version 3.16.0
+	 * @since 3.16.0
 	 */
 	prepareSupportDefaultBehavior?: PrepareSupportDefaultBehavior;
 
 	/**
-	 * Whether th client honors the change annotations in
+	 * Whether the client honors the change annotations in
 	 * text edits and resource operations returned via the
 	 * rename request's workspace edit by for example presenting
 	 * the workspace edit in the user interface and asking
@@ -7173,7 +7199,7 @@ export interface FoldingRange {
 
 The selection range request is sent from the client to the server to return suggested selection ranges at an array of given positions. A selection range is a range around the cursor position which the user might be interested in selecting.
 
-A selection range in the return array is for the position in the provided parameters at the same index. Therefore positions[i] must be contained in result[i].range.
+A selection range in the return array is for the position in the provided parameters at the same index. Therefore positions[i] must be contained in result[i].range. To allow for results where some positions have selection ranges and others do not, result[i].range is allowed to be the empty range at positions[i].
 
 Typically, but not necessary, selection ranges correspond to the nodes of the syntax tree.
 
@@ -7236,15 +7262,15 @@ _Response_:
 
 ```typescript
 export interface SelectionRange {
-    /**
-     * The [range](#Range) of this selection range.
-     */
-    range: Range;
-    /**
-     * The parent selection range containing this range. Therefore
+	/**
+	 * The [range](#Range) of this selection range.
+	 */
+	range: Range;
+	/**
+	 * The parent selection range containing this range. Therefore
 	 * `parent.range` must contain `this.range`.
-     */
-    parent?: SelectionRange;
+	 */
+	parent?: SelectionRange;
 }
 ```
 
@@ -7536,7 +7562,9 @@ There are different ways how the position of a token can be expressed in a file.
 - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`. We currently ask that `tokenType` < 65536.
 - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
 
-Whether a token can span multiple lines is defined by the client capability `multilineTokenSupport`. The client capability `overlappingTokenSupport` defines whether tokens can overlap each other.
+Whether a token can span multiple lines is defined by the client capability `multilineTokenSupport`. If multiline tokens are not supported and a tokens length takes it past the end of the line, it should be treated as if the token ends at the end of the line and will not wrap onto the next line.
+
+The client capability `overlappingTokenSupport` defines whether tokens can overlap each other.
 
 Lets look at a concrete example which uses single line tokens without overlaps for encoding a file with 3 tokens in a number array. We start with absolute positions to demonstrate how they can easily be transformed into relative positions:
 
@@ -7599,6 +7627,8 @@ Running the same transformations as above will result in the following number ar
 
 The delta is now expressed on these number arrays without any form of interpretation what these numbers mean. This is comparable to the text document edits send from the server to the client to modify the content of a file. Those are character based and don't make any assumption about the meaning of the characters. So `[  2,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0 ]` can be transformed into `[  3,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0]` using the following edit description: `{ start:  0, deleteCount: 1, data: [3] }` which tells the client to simply replace the first number (e.g. `2`) in the array with `3`.
 
+Semantic token edits behave conceptually like [text edits](#textEditArray) on documents: if an edit description consists of n edits all n edits are based on the same state Sm of the number array. They will move the number array from state Sm to Sm+1. A client applying the edits must not assume that they are sorted. An easy algorithm to apply them to the number array is to sort the edits and apply them from the back to the front of the number array.
+
 
 _Client Capability_:
 
@@ -7643,10 +7673,10 @@ interface SemanticTokensClientCapabilities {
 			/**
 			 * The client will send the `textDocument/semanticTokens/full/delta`
 			 * request if the server provides a corresponding handler.
-			*/
-			delta?: boolean
-		}
-	}
+			 */
+			delta?: boolean;
+		};
+	};
 
 	/**
 	 * The token types that the client supports.
@@ -7704,7 +7734,7 @@ export interface SemanticTokensOptions extends WorkDoneProgressOptions {
 		 * The server supports deltas for full documents.
 		 */
 		delta?: boolean;
-	}
+	};
 }
 ```
 
@@ -7826,7 +7856,7 @@ export interface SemanticTokensEdit {
 
 ```typescript
 export interface SemanticTokensDeltaPartialResult {
-	edits: SemanticTokensEdit[]
+	edits: SemanticTokensEdit[];
 }
 ```
 
@@ -7834,7 +7864,10 @@ export interface SemanticTokensDeltaPartialResult {
 
 **Requesting semantic tokens for a range**
 
-When a user opens a file it can be beneficial to only compute the semantic tokens for the visible range (faster rendering of the tokens in the user interface). If a server can compute these tokens faster than for the whole file it can provide a handler for the `textDocument/semanticTokens/range` request to handle this case special. Please note that if a client also announces that it will send the `textDocument/semanticTokens/range` server should implement this request as well to allow for flicker free scrolling and semantic coloring of a minimap.
+There are two uses cases where it can be beneficial to only compute semantic tokens for a visible range:
+
+- for faster rendering of the tokens in the user interface when a user opens a file. In this use cases servers should also implement the `textDocument/semanticTokens/full` request as well to allow for flicker free scrolling and semantic coloring of a minimap.
+- if computing semantic tokens for a full document is too expensive servers can only provide a range call. In this case the client might not render a minimap correctly or might even decide to not show any semantic tokens at all.
 
 _Request_:
 
@@ -7858,7 +7891,7 @@ export interface SemanticTokensRangeParams extends WorkDoneProgressParams,
 
 _Response_:
 
-* result: `SemanticTokens | null` where `SemanticTokensDelta`
+* result: `SemanticTokens | null`
 * partial result: `SemanticTokensPartialResult`
 * error: code and message set in case an exception happens during the 'textDocument/semanticTokens/range' request
 
@@ -7999,7 +8032,7 @@ interface MonikerClientCapabilities {
 _Server Capability_:
 
 * property name (optional): `monikerProvider`
-* property type: `boolean | MonikerOptions | MonikerRegistrationOptions`  is defined as follows:
+* property type: `boolean | MonikerOptions | MonikerRegistrationOptions` is defined as follows:
 
 ```typescript
 export interface MonikerOptions extends WorkDoneProgressOptions {
@@ -8035,8 +8068,8 @@ _Response_:
 
 ```typescript
 /**
-  * Moniker uniqueness level to define scope of the moniker.
-  */
+ * Moniker uniqueness level to define scope of the moniker.
+ */
 export enum UniquenessLevel {
 	/**
 	 * The moniker is only unique inside a document
@@ -8116,16 +8149,19 @@ export interface Moniker {
 
 Server implementations of this method should ensure that the moniker calculation matches to those used in the corresponding LSIF implementation to ensure symbols can be associated correctly across IDE sessions and LSIF indexes.
 
-### Implementation considerations
+### <a href="#implementationConsiderations" name="implementationConsiderations" class="anchor">Implementation Considerations</a>
 
 Language servers usually run in a separate process and client communicate with them in an asynchronous fashion. Additionally clients usually allow users to interact with the source code even if request results are pending. We recommend the following implementation pattern to avoid that clients apply outdated response results:
 
-- if a client sends a request to the server and the client state changes in a way that the result will be invalid it should cancel the server request and ignore the result. If necessary it can resend the request to receive an up to date result.
-- if a server detects a state change that invalidates the result of a request in execution the server can error these requests with `ContentModified`. If clients receive a `ContentModified` error, it generally should not show it in the UI for the end-user. Clients can resend the request if appropriate.
+- if a client sends a request to the server and the client state changes in a way that it invalidates the response it should do the following:
+  - cancel the server request and ignore the result if the result is not useful for the client anymore. If necessary the client should resend the request.
+  - keep the request running if the client can still make use of the result by for example transforming it to a new result by applying the state change to the result.
+- servers should therefore not decide by themselves to cancel requests simply due to that fact that a state change notification is detected in the queue. As said the result could still be useful for the client.
+- if a server detects an internal state change (for example a project context changed) that invalidates the result of a request in execution the server can error these requests with `ContentModified`. If clients receive a `ContentModified` error, it generally should not show it in the UI for the end-user. Clients can resend the request if they know how to do so. It should be noted that for all position based requests it might be especially hard for clients to re-craft a request.
 - if servers end up in an inconsistent state they should log this to the client using the `window/logMessage` request. If they can't recover from this the best they can do right now is to exit themselves. We are considering an [extension to the protocol](https://github.com/Microsoft/language-server-protocol/issues/646) that allows servers to request a restart on the client side.
 - if a client notices that a server exits unexpectedly, it should try to restart the server. However clients should be careful not to restart a crashing server endlessly. VS Code, for example, doesn't restart a server which has crashed 5 times in the last 180 seconds.
 
-Servers usually support different communication channels (e.g. stdio, pipes, ...). To easy the usage of servers in different clients it is highly recommended that a server implementation supports the following command line arguments to pick the communication channel:
+Servers usually support different communication channels (e.g. stdio, pipes, ...). To ease the usage of servers in different clients it is highly recommended that a server implementation supports the following command line arguments to pick the communication channel:
 
 - **stdio**: uses stdio as the communication channel.
 - **pipe**: use pipes (Windows) or socket files (Linux, Mac) as the communication channel. The pipe / socket file name is passed as the next arg or with `--pipe=`.

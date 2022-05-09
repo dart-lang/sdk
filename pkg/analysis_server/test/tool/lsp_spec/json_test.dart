@@ -180,7 +180,8 @@ void main() {
       // Value whether expected to parse
       const testTraceValues = {
         'off': true,
-        'message': true,
+        'message': false,
+        'messages': true,
         'verbose': true,
         null: true,
         'invalid': false,

@@ -23,13 +23,19 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      AnalyzerStatusParams.canParse, AnalyzerStatusParams.fromJson);
+    AnalyzerStatusParams.canParse,
+    AnalyzerStatusParams.fromJson,
+  );
 
-  AnalyzerStatusParams({required this.isAnalyzing});
+  AnalyzerStatusParams({
+    required this.isAnalyzing,
+  });
   static AnalyzerStatusParams fromJson(Map<String, Object?> json) {
     final isAnalyzingJson = json['isAnalyzing'];
     final isAnalyzing = isAnalyzingJson as bool;
-    return AnalyzerStatusParams(isAnalyzing: isAnalyzing);
+    return AnalyzerStatusParams(
+      isAnalyzing: isAnalyzing,
+    );
   }
 
   final bool isAnalyzing;
@@ -84,16 +90,24 @@ class AnalyzerStatusParams implements ToJsonable {
 }
 
 class ClosingLabel implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ClosingLabel.canParse,
+    ClosingLabel.fromJson,
+  );
 
-  ClosingLabel({required this.range, required this.label});
+  ClosingLabel({
+    required this.range,
+    required this.label,
+  });
   static ClosingLabel fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final labelJson = json['label'];
     final label = labelJson as String;
-    return ClosingLabel(range: range, label: label);
+    return ClosingLabel(
+      range: range,
+      label: label,
+    );
   }
 
   final String label;
@@ -160,7 +174,10 @@ class ClosingLabel implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, label);
+  int get hashCode => Object.hash(
+        range,
+        label,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -168,8 +185,9 @@ class ClosingLabel implements ToJsonable {
 
 class CompletionItemResolutionInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionItemResolutionInfo.canParse,
-      CompletionItemResolutionInfo.fromJson);
+    CompletionItemResolutionInfo.canParse,
+    CompletionItemResolutionInfo.fromJson,
+  );
 
   static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
     if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
@@ -215,13 +233,19 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
 class DartDiagnosticServer implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
+    DartDiagnosticServer.canParse,
+    DartDiagnosticServer.fromJson,
+  );
 
-  DartDiagnosticServer({required this.port});
+  DartDiagnosticServer({
+    required this.port,
+  });
   static DartDiagnosticServer fromJson(Map<String, Object?> json) {
     final portJson = json['port'];
     final port = portJson as int;
-    return DartDiagnosticServer(port: port);
+    return DartDiagnosticServer(
+      port: port,
+    );
   }
 
   final int port;
@@ -278,17 +302,19 @@ class DartDiagnosticServer implements ToJsonable {
 class DartSuggestionSetCompletionItemResolutionInfo
     implements CompletionItemResolutionInfo, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DartSuggestionSetCompletionItemResolutionInfo.canParse,
-      DartSuggestionSetCompletionItemResolutionInfo.fromJson);
+    DartSuggestionSetCompletionItemResolutionInfo.canParse,
+    DartSuggestionSetCompletionItemResolutionInfo.fromJson,
+  );
 
-  DartSuggestionSetCompletionItemResolutionInfo(
-      {required this.file,
-      required this.offset,
-      required this.libId,
-      required this.displayUri,
-      required this.rOffset,
-      required this.iLength,
-      required this.rLength});
+  DartSuggestionSetCompletionItemResolutionInfo({
+    required this.file,
+    required this.offset,
+    required this.libId,
+    required this.displayUri,
+    required this.rOffset,
+    required this.iLength,
+    required this.rLength,
+  });
   static DartSuggestionSetCompletionItemResolutionInfo fromJson(
       Map<String, Object?> json) {
     final fileJson = json['file'];
@@ -306,13 +332,14 @@ class DartSuggestionSetCompletionItemResolutionInfo
     final rLengthJson = json['rLength'];
     final rLength = rLengthJson as int;
     return DartSuggestionSetCompletionItemResolutionInfo(
-        file: file,
-        offset: offset,
-        libId: libId,
-        displayUri: displayUri,
-        rOffset: rOffset,
-        iLength: iLength,
-        rLength: rLength);
+      file: file,
+      offset: offset,
+      libId: libId,
+      displayUri: displayUri,
+      rOffset: rOffset,
+      iLength: iLength,
+      rLength: rLength,
+    );
   }
 
   final String displayUri;
@@ -488,23 +515,34 @@ class DartSuggestionSetCompletionItemResolutionInfo
   }
 
   @override
-  int get hashCode =>
-      Object.hash(file, offset, libId, displayUri, rOffset, iLength, rLength);
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        libId,
+        displayUri,
+        rOffset,
+        iLength,
+        rLength,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class Element implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Element.canParse, Element.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Element.canParse,
+    Element.fromJson,
+  );
 
-  Element(
-      {this.range,
-      required this.name,
-      required this.kind,
-      this.parameters,
-      this.typeParameters,
-      this.returnType});
+  Element({
+    this.range,
+    required this.name,
+    required this.kind,
+    this.parameters,
+    this.typeParameters,
+    this.returnType,
+  });
   static Element fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = rangeJson != null
@@ -521,12 +559,13 @@ class Element implements ToJsonable {
     final returnTypeJson = json['returnType'];
     final returnType = returnTypeJson as String?;
     return Element(
-        range: range,
-        name: name,
-        kind: kind,
-        parameters: parameters,
-        typeParameters: typeParameters,
-        returnType: returnType);
+      range: range,
+      name: name,
+      kind: kind,
+      parameters: parameters,
+      typeParameters: typeParameters,
+      returnType: returnType,
+    );
   }
 
   final String kind;
@@ -655,27 +694,36 @@ class Element implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(range, name, kind, parameters, typeParameters, returnType);
+  int get hashCode => Object.hash(
+        range,
+        name,
+        kind,
+        parameters,
+        typeParameters,
+        returnType,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class FlutterOutline implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FlutterOutline.canParse, FlutterOutline.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FlutterOutline.canParse,
+    FlutterOutline.fromJson,
+  );
 
-  FlutterOutline(
-      {required this.kind,
-      this.label,
-      this.className,
-      this.variableName,
-      this.attributes,
-      this.dartElement,
-      required this.range,
-      required this.codeRange,
-      this.children});
+  FlutterOutline({
+    required this.kind,
+    this.label,
+    this.className,
+    this.variableName,
+    this.attributes,
+    this.dartElement,
+    required this.range,
+    required this.codeRange,
+    this.children,
+  });
   static FlutterOutline fromJson(Map<String, Object?> json) {
     final kindJson = json['kind'];
     final kind = kindJson as String;
@@ -703,15 +751,16 @@ class FlutterOutline implements ToJsonable {
         ?.map((item) => FlutterOutline.fromJson(item as Map<String, Object?>))
         .toList();
     return FlutterOutline(
-        kind: kind,
-        label: label,
-        className: className,
-        variableName: variableName,
-        attributes: attributes,
-        dartElement: dartElement,
-        range: range,
-        codeRange: codeRange,
-        children: children);
+      kind: kind,
+      label: label,
+      className: className,
+      variableName: variableName,
+      attributes: attributes,
+      dartElement: dartElement,
+      range: range,
+      codeRange: codeRange,
+      children: children,
+    );
   }
 
   final List<FlutterOutlineAttribute>? attributes;
@@ -904,15 +953,16 @@ class FlutterOutline implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      kind,
-      label,
-      className,
-      variableName,
-      lspHashCode(attributes),
-      dartElement,
-      range,
-      codeRange,
-      lspHashCode(children));
+        kind,
+        label,
+        className,
+        variableName,
+        lspHashCode(attributes),
+        dartElement,
+        range,
+        codeRange,
+        lspHashCode(children),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -920,10 +970,15 @@ class FlutterOutline implements ToJsonable {
 
 class FlutterOutlineAttribute implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FlutterOutlineAttribute.canParse, FlutterOutlineAttribute.fromJson);
+    FlutterOutlineAttribute.canParse,
+    FlutterOutlineAttribute.fromJson,
+  );
 
-  FlutterOutlineAttribute(
-      {required this.name, required this.label, this.valueRange});
+  FlutterOutlineAttribute({
+    required this.name,
+    required this.label,
+    this.valueRange,
+  });
   static FlutterOutlineAttribute fromJson(Map<String, Object?> json) {
     final nameJson = json['name'];
     final name = nameJson as String;
@@ -934,7 +989,10 @@ class FlutterOutlineAttribute implements ToJsonable {
         ? Range.fromJson(valueRangeJson as Map<String, Object?>)
         : null;
     return FlutterOutlineAttribute(
-        name: name, label: label, valueRange: valueRange);
+      name: name,
+      label: label,
+      valueRange: valueRange,
+    );
   }
 
   final String label;
@@ -1019,20 +1077,28 @@ class FlutterOutlineAttribute implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(name, label, valueRange);
+  int get hashCode => Object.hash(
+        name,
+        label,
+        valueRange,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class Outline implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Outline.canParse, Outline.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Outline.canParse,
+    Outline.fromJson,
+  );
 
-  Outline(
-      {required this.element,
-      required this.range,
-      required this.codeRange,
-      this.children});
+  Outline({
+    required this.element,
+    required this.range,
+    required this.codeRange,
+    this.children,
+  });
   static Outline fromJson(Map<String, Object?> json) {
     final elementJson = json['element'];
     final element = Element.fromJson(elementJson as Map<String, Object?>);
@@ -1045,10 +1111,11 @@ class Outline implements ToJsonable {
         ?.map((item) => Outline.fromJson(item as Map<String, Object?>))
         .toList();
     return Outline(
-        element: element,
-        range: range,
-        codeRange: codeRange,
-        children: children);
+      element: element,
+      range: range,
+      codeRange: codeRange,
+      children: children,
+    );
   }
 
   final List<Outline>? children;
@@ -1157,8 +1224,12 @@ class Outline implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(element, range, codeRange, lspHashCode(children));
+  int get hashCode => Object.hash(
+        element,
+        range,
+        codeRange,
+        lspHashCode(children),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1167,15 +1238,20 @@ class Outline implements ToJsonable {
 class PubPackageCompletionItemResolutionInfo
     implements CompletionItemResolutionInfo, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PubPackageCompletionItemResolutionInfo.canParse,
-      PubPackageCompletionItemResolutionInfo.fromJson);
+    PubPackageCompletionItemResolutionInfo.canParse,
+    PubPackageCompletionItemResolutionInfo.fromJson,
+  );
 
-  PubPackageCompletionItemResolutionInfo({required this.packageName});
+  PubPackageCompletionItemResolutionInfo({
+    required this.packageName,
+  });
   static PubPackageCompletionItemResolutionInfo fromJson(
       Map<String, Object?> json) {
     final packageNameJson = json['packageName'];
     final packageName = packageNameJson as String;
-    return PubPackageCompletionItemResolutionInfo(packageName: packageName);
+    return PubPackageCompletionItemResolutionInfo(
+      packageName: packageName,
+    );
   }
 
   final String packageName;
@@ -1232,9 +1308,14 @@ class PubPackageCompletionItemResolutionInfo
 
 class PublishClosingLabelsParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
+    PublishClosingLabelsParams.canParse,
+    PublishClosingLabelsParams.fromJson,
+  );
 
-  PublishClosingLabelsParams({required this.uri, required this.labels});
+  PublishClosingLabelsParams({
+    required this.uri,
+    required this.labels,
+  });
   static PublishClosingLabelsParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
@@ -1242,7 +1323,10 @@ class PublishClosingLabelsParams implements ToJsonable {
     final labels = (labelsJson as List<Object?>)
         .map((item) => ClosingLabel.fromJson(item as Map<String, Object?>))
         .toList();
-    return PublishClosingLabelsParams(uri: uri, labels: labels);
+    return PublishClosingLabelsParams(
+      uri: uri,
+      labels: labels,
+    );
   }
 
   final List<ClosingLabel> labels;
@@ -1314,7 +1398,10 @@ class PublishClosingLabelsParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, lspHashCode(labels));
+  int get hashCode => Object.hash(
+        uri,
+        lspHashCode(labels),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1322,17 +1409,24 @@ class PublishClosingLabelsParams implements ToJsonable {
 
 class PublishFlutterOutlineParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PublishFlutterOutlineParams.canParse,
-      PublishFlutterOutlineParams.fromJson);
+    PublishFlutterOutlineParams.canParse,
+    PublishFlutterOutlineParams.fromJson,
+  );
 
-  PublishFlutterOutlineParams({required this.uri, required this.outline});
+  PublishFlutterOutlineParams({
+    required this.uri,
+    required this.outline,
+  });
   static PublishFlutterOutlineParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
     final outlineJson = json['outline'];
     final outline =
         FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
-    return PublishFlutterOutlineParams(uri: uri, outline: outline);
+    return PublishFlutterOutlineParams(
+      uri: uri,
+      outline: outline,
+    );
   }
 
   final FlutterOutline outline;
@@ -1400,7 +1494,10 @@ class PublishFlutterOutlineParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, outline);
+  int get hashCode => Object.hash(
+        uri,
+        outline,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1408,15 +1505,23 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
 class PublishOutlineParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PublishOutlineParams.canParse, PublishOutlineParams.fromJson);
+    PublishOutlineParams.canParse,
+    PublishOutlineParams.fromJson,
+  );
 
-  PublishOutlineParams({required this.uri, required this.outline});
+  PublishOutlineParams({
+    required this.uri,
+    required this.outline,
+  });
   static PublishOutlineParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
     final outlineJson = json['outline'];
     final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
-    return PublishOutlineParams(uri: uri, outline: outline);
+    return PublishOutlineParams(
+      uri: uri,
+      outline: outline,
+    );
   }
 
   final Outline outline;
@@ -1484,20 +1589,26 @@ class PublishOutlineParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, outline);
+  int get hashCode => Object.hash(
+        uri,
+        outline,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class SnippetTextEdit implements TextEdit, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SnippetTextEdit.canParse, SnippetTextEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SnippetTextEdit.canParse,
+    SnippetTextEdit.fromJson,
+  );
 
-  SnippetTextEdit(
-      {required this.insertTextFormat,
-      required this.range,
-      required this.newText});
+  SnippetTextEdit({
+    required this.insertTextFormat,
+    required this.range,
+    required this.newText,
+  });
   static SnippetTextEdit fromJson(Map<String, Object?> json) {
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat =
@@ -1507,7 +1618,10 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
     return SnippetTextEdit(
-        insertTextFormat: insertTextFormat, range: range, newText: newText);
+      insertTextFormat: insertTextFormat,
+      range: range,
+      newText: newText,
+    );
   }
 
   final InsertTextFormat insertTextFormat;
@@ -1602,7 +1716,11 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(insertTextFormat, range, newText);
+  int get hashCode => Object.hash(
+        insertTextFormat,
+        range,
+        newText,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1610,15 +1728,23 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
 
 class ValidateRefactorResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ValidateRefactorResult.canParse, ValidateRefactorResult.fromJson);
+    ValidateRefactorResult.canParse,
+    ValidateRefactorResult.fromJson,
+  );
 
-  ValidateRefactorResult({required this.valid, this.message});
+  ValidateRefactorResult({
+    required this.valid,
+    this.message,
+  });
   static ValidateRefactorResult fromJson(Map<String, Object?> json) {
     final validJson = json['valid'];
     final valid = validJson as bool;
     final messageJson = json['message'];
     final message = messageJson as String?;
-    return ValidateRefactorResult(valid: valid, message: message);
+    return ValidateRefactorResult(
+      valid: valid,
+      message: message,
+    );
   }
 
   final String? message;
@@ -1680,7 +1806,10 @@ class ValidateRefactorResult implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(valid, message);
+  int get hashCode => Object.hash(
+        valid,
+        message,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());

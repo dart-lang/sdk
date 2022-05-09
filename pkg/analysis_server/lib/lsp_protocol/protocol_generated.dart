@@ -22,13 +22,18 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
 /// A special text edit with an additional change annotation.
-///  @since 3.16.0.
+///  @since 3.16.0
 class AnnotatedTextEdit implements TextEdit, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(AnnotatedTextEdit.canParse, AnnotatedTextEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    AnnotatedTextEdit.canParse,
+    AnnotatedTextEdit.fromJson,
+  );
 
-  AnnotatedTextEdit(
-      {required this.annotationId, required this.range, required this.newText});
+  AnnotatedTextEdit({
+    required this.annotationId,
+    required this.range,
+    required this.newText,
+  });
   static AnnotatedTextEdit fromJson(Map<String, Object?> json) {
     final annotationIdJson = json['annotationId'];
     final annotationId = annotationIdJson as String;
@@ -37,7 +42,10 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
     return AnnotatedTextEdit(
-        annotationId: annotationId, range: range, newText: newText);
+      annotationId: annotationId,
+      range: range,
+      newText: newText,
+    );
   }
 
   /// The actual annotation identifier.
@@ -133,7 +141,11 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(annotationId, range, newText);
+  int get hashCode => Object.hash(
+        annotationId,
+        range,
+        newText,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -141,15 +153,23 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
 
 class ApplyWorkspaceEditParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
+    ApplyWorkspaceEditParams.canParse,
+    ApplyWorkspaceEditParams.fromJson,
+  );
 
-  ApplyWorkspaceEditParams({this.label, required this.edit});
+  ApplyWorkspaceEditParams({
+    this.label,
+    required this.edit,
+  });
   static ApplyWorkspaceEditParams fromJson(Map<String, Object?> json) {
     final labelJson = json['label'];
     final label = labelJson as String?;
     final editJson = json['edit'];
     final edit = WorkspaceEdit.fromJson(editJson as Map<String, Object?>);
-    return ApplyWorkspaceEditParams(label: label, edit: edit);
+    return ApplyWorkspaceEditParams(
+      label: label,
+      edit: edit,
+    );
   }
 
   /// The edits to apply.
@@ -215,7 +235,10 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(label, edit);
+  int get hashCode => Object.hash(
+        label,
+        edit,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -223,10 +246,15 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
 class ApplyWorkspaceEditResponse implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
+    ApplyWorkspaceEditResponse.canParse,
+    ApplyWorkspaceEditResponse.fromJson,
+  );
 
-  ApplyWorkspaceEditResponse(
-      {required this.applied, this.failureReason, this.failedChange});
+  ApplyWorkspaceEditResponse({
+    required this.applied,
+    this.failureReason,
+    this.failedChange,
+  });
   static ApplyWorkspaceEditResponse fromJson(Map<String, Object?> json) {
     final appliedJson = json['applied'];
     final applied = appliedJson as bool;
@@ -235,9 +263,10 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
     final failedChangeJson = json['failedChange'];
     final failedChange = failedChangeJson as int?;
     return ApplyWorkspaceEditResponse(
-        applied: applied,
-        failureReason: failureReason,
-        failedChange: failedChange);
+      applied: applied,
+      failureReason: failureReason,
+      failedChange: failedChange,
+    );
   }
 
   /// Indicates whether the edit was applied or not.
@@ -245,7 +274,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
   /// Depending on the client's failure handling strategy `failedChange` might
   /// contain the index of the change that failed. This property is only
-  /// available if the client signals a `failureHandlingStrategy` in its client
+  /// available if the client signals a `failureHandling` strategy in its client
   /// capabilities.
   final int? failedChange;
 
@@ -326,7 +355,11 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(applied, failureReason, failedChange);
+  int get hashCode => Object.hash(
+        applied,
+        failureReason,
+        failedChange,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -334,15 +367,19 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
 class CallHierarchyClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyClientCapabilities.canParse,
-      CallHierarchyClientCapabilities.fromJson);
+    CallHierarchyClientCapabilities.canParse,
+    CallHierarchyClientCapabilities.fromJson,
+  );
 
-  CallHierarchyClientCapabilities({this.dynamicRegistration});
+  CallHierarchyClientCapabilities({
+    this.dynamicRegistration,
+  });
   static CallHierarchyClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return CallHierarchyClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -396,9 +433,14 @@ class CallHierarchyClientCapabilities implements ToJsonable {
 
 class CallHierarchyIncomingCall implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyIncomingCall.canParse, CallHierarchyIncomingCall.fromJson);
+    CallHierarchyIncomingCall.canParse,
+    CallHierarchyIncomingCall.fromJson,
+  );
 
-  CallHierarchyIncomingCall({required this.from, required this.fromRanges});
+  CallHierarchyIncomingCall({
+    required this.from,
+    required this.fromRanges,
+  });
   static CallHierarchyIncomingCall fromJson(Map<String, Object?> json) {
     final fromJson = json['from'];
     final from = CallHierarchyItem.fromJson(fromJson as Map<String, Object?>);
@@ -406,7 +448,10 @@ class CallHierarchyIncomingCall implements ToJsonable {
     final fromRanges = (fromRangesJson as List<Object?>)
         .map((item) => Range.fromJson(item as Map<String, Object?>))
         .toList();
-    return CallHierarchyIncomingCall(from: from, fromRanges: fromRanges);
+    return CallHierarchyIncomingCall(
+      from: from,
+      fromRanges: fromRanges,
+    );
   }
 
   /// The item that makes the call.
@@ -482,7 +527,10 @@ class CallHierarchyIncomingCall implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(from, lspHashCode(fromRanges));
+  int get hashCode => Object.hash(
+        from,
+        lspHashCode(fromRanges),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -491,11 +539,15 @@ class CallHierarchyIncomingCall implements ToJsonable {
 class CallHierarchyIncomingCallsParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyIncomingCallsParams.canParse,
-      CallHierarchyIncomingCallsParams.fromJson);
+    CallHierarchyIncomingCallsParams.canParse,
+    CallHierarchyIncomingCallsParams.fromJson,
+  );
 
-  CallHierarchyIncomingCallsParams(
-      {required this.item, this.workDoneToken, this.partialResultToken});
+  CallHierarchyIncomingCallsParams({
+    required this.item,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static CallHierarchyIncomingCallsParams fromJson(Map<String, Object?> json) {
     final itemJson = json['item'];
     final item = CallHierarchyItem.fromJson(itemJson as Map<String, Object?>);
@@ -516,9 +568,10 @@ class CallHierarchyIncomingCallsParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CallHierarchyIncomingCallsParams(
-        item: item,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      item: item,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   final CallHierarchyItem item;
@@ -604,25 +657,32 @@ class CallHierarchyIncomingCallsParams
   }
 
   @override
-  int get hashCode => Object.hash(item, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        item,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class CallHierarchyItem implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CallHierarchyItem.canParse, CallHierarchyItem.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CallHierarchyItem.canParse,
+    CallHierarchyItem.fromJson,
+  );
 
-  CallHierarchyItem(
-      {required this.name,
-      required this.kind,
-      this.tags,
-      this.detail,
-      required this.uri,
-      required this.range,
-      required this.selectionRange,
-      this.data});
+  CallHierarchyItem({
+    required this.name,
+    required this.kind,
+    this.tags,
+    this.detail,
+    required this.uri,
+    required this.range,
+    required this.selectionRange,
+    this.data,
+  });
   static CallHierarchyItem fromJson(Map<String, Object?> json) {
     final nameJson = json['name'];
     final name = nameJson as String;
@@ -644,14 +704,15 @@ class CallHierarchyItem implements ToJsonable {
     final dataJson = json['data'];
     final data = dataJson;
     return CallHierarchyItem(
-        name: name,
-        kind: kind,
-        tags: tags,
-        detail: detail,
-        uri: uri,
-        range: range,
-        selectionRange: selectionRange,
-        data: data);
+      name: name,
+      kind: kind,
+      tags: tags,
+      detail: detail,
+      uri: uri,
+      range: range,
+      selectionRange: selectionRange,
+      data: data,
+    );
   }
 
   /// A data entry field that is preserved between a call hierarchy prepare and
@@ -840,7 +901,15 @@ class CallHierarchyItem implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      name, kind, lspHashCode(tags), detail, uri, range, selectionRange, data);
+        name,
+        kind,
+        lspHashCode(tags),
+        detail,
+        uri,
+        range,
+        selectionRange,
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -848,16 +917,22 @@ class CallHierarchyItem implements ToJsonable {
 
 class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyOptions.canParse, CallHierarchyOptions.fromJson);
+    CallHierarchyOptions.canParse,
+    CallHierarchyOptions.fromJson,
+  );
 
-  CallHierarchyOptions({this.workDoneProgress});
+  CallHierarchyOptions({
+    this.workDoneProgress,
+  });
   static CallHierarchyOptions fromJson(Map<String, Object?> json) {
     if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CallHierarchyRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return CallHierarchyOptions(workDoneProgress: workDoneProgress);
+    return CallHierarchyOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -907,9 +982,14 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class CallHierarchyOutgoingCall implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyOutgoingCall.canParse, CallHierarchyOutgoingCall.fromJson);
+    CallHierarchyOutgoingCall.canParse,
+    CallHierarchyOutgoingCall.fromJson,
+  );
 
-  CallHierarchyOutgoingCall({required this.to, required this.fromRanges});
+  CallHierarchyOutgoingCall({
+    required this.to,
+    required this.fromRanges,
+  });
   static CallHierarchyOutgoingCall fromJson(Map<String, Object?> json) {
     final toJson = json['to'];
     final to = CallHierarchyItem.fromJson(toJson as Map<String, Object?>);
@@ -917,7 +997,10 @@ class CallHierarchyOutgoingCall implements ToJsonable {
     final fromRanges = (fromRangesJson as List<Object?>)
         .map((item) => Range.fromJson(item as Map<String, Object?>))
         .toList();
-    return CallHierarchyOutgoingCall(to: to, fromRanges: fromRanges);
+    return CallHierarchyOutgoingCall(
+      to: to,
+      fromRanges: fromRanges,
+    );
   }
 
   /// The range at which this item is called. This is the range relative to the
@@ -993,7 +1076,10 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(to, lspHashCode(fromRanges));
+  int get hashCode => Object.hash(
+        to,
+        lspHashCode(fromRanges),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1002,11 +1088,15 @@ class CallHierarchyOutgoingCall implements ToJsonable {
 class CallHierarchyOutgoingCallsParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyOutgoingCallsParams.canParse,
-      CallHierarchyOutgoingCallsParams.fromJson);
+    CallHierarchyOutgoingCallsParams.canParse,
+    CallHierarchyOutgoingCallsParams.fromJson,
+  );
 
-  CallHierarchyOutgoingCallsParams(
-      {required this.item, this.workDoneToken, this.partialResultToken});
+  CallHierarchyOutgoingCallsParams({
+    required this.item,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static CallHierarchyOutgoingCallsParams fromJson(Map<String, Object?> json) {
     final itemJson = json['item'];
     final item = CallHierarchyItem.fromJson(itemJson as Map<String, Object?>);
@@ -1027,9 +1117,10 @@ class CallHierarchyOutgoingCallsParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CallHierarchyOutgoingCallsParams(
-        item: item,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      item: item,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   final CallHierarchyItem item;
@@ -1115,7 +1206,11 @@ class CallHierarchyOutgoingCallsParams
   }
 
   @override
-  int get hashCode => Object.hash(item, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        item,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1124,10 +1219,15 @@ class CallHierarchyOutgoingCallsParams
 class CallHierarchyPrepareParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyPrepareParams.canParse, CallHierarchyPrepareParams.fromJson);
+    CallHierarchyPrepareParams.canParse,
+    CallHierarchyPrepareParams.fromJson,
+  );
 
-  CallHierarchyPrepareParams(
-      {required this.textDocument, required this.position, this.workDoneToken});
+  CallHierarchyPrepareParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+  });
   static CallHierarchyPrepareParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -1143,9 +1243,10 @@ class CallHierarchyPrepareParams
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return CallHierarchyPrepareParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The position inside the text document.
@@ -1236,7 +1337,11 @@ class CallHierarchyPrepareParams
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, position, workDoneToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1249,11 +1354,15 @@ class CallHierarchyRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CallHierarchyRegistrationOptions.canParse,
-      CallHierarchyRegistrationOptions.fromJson);
+    CallHierarchyRegistrationOptions.canParse,
+    CallHierarchyRegistrationOptions.fromJson,
+  );
 
-  CallHierarchyRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress, this.id});
+  CallHierarchyRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+    this.id,
+  });
   static CallHierarchyRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -1264,9 +1373,10 @@ class CallHierarchyRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return CallHierarchyRegistrationOptions(
-        documentSelector: documentSelector,
-        workDoneProgress: workDoneProgress,
-        id: id);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -1350,18 +1460,25 @@ class CallHierarchyRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress, id);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class CancelParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CancelParams.canParse,
+    CancelParams.fromJson,
+  );
 
-  CancelParams({required this.id});
+  CancelParams({
+    required this.id,
+  });
   static CancelParams fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson is int
@@ -1369,7 +1486,9 @@ class CancelParams implements ToJsonable {
         : (idJson is String
             ? Either2<int, String>.t2(idJson)
             : (throw '''$idJson was not one of (int, String)'''));
-    return CancelParams(id: id);
+    return CancelParams(
+      id: id,
+    );
   }
 
   /// The request id to cancel.
@@ -1426,11 +1545,16 @@ class CancelParams implements ToJsonable {
 /// Additional information that describes document changes.
 ///  @since 3.16.0
 class ChangeAnnotation implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ChangeAnnotation.canParse, ChangeAnnotation.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ChangeAnnotation.canParse,
+    ChangeAnnotation.fromJson,
+  );
 
-  ChangeAnnotation(
-      {required this.label, this.needsConfirmation, this.description});
+  ChangeAnnotation({
+    required this.label,
+    this.needsConfirmation,
+    this.description,
+  });
   static ChangeAnnotation fromJson(Map<String, Object?> json) {
     final labelJson = json['label'];
     final label = labelJson as String;
@@ -1439,9 +1563,10 @@ class ChangeAnnotation implements ToJsonable {
     final descriptionJson = json['description'];
     final description = descriptionJson as String?;
     return ChangeAnnotation(
-        label: label,
-        needsConfirmation: needsConfirmation,
-        description: description);
+      label: label,
+      needsConfirmation: needsConfirmation,
+      description: description,
+    );
   }
 
   /// A human-readable string which is rendered less prominent in the user
@@ -1527,22 +1652,29 @@ class ChangeAnnotation implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(label, needsConfirmation, description);
+  int get hashCode => Object.hash(
+        label,
+        needsConfirmation,
+        description,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class ClientCapabilities implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ClientCapabilities.canParse, ClientCapabilities.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ClientCapabilities.canParse,
+    ClientCapabilities.fromJson,
+  );
 
-  ClientCapabilities(
-      {this.workspace,
-      this.textDocument,
-      this.window,
-      this.general,
-      this.experimental});
+  ClientCapabilities({
+    this.workspace,
+    this.textDocument,
+    this.window,
+    this.general,
+    this.experimental,
+  });
   static ClientCapabilities fromJson(Map<String, Object?> json) {
     final workspaceJson = json['workspace'];
     final workspace = workspaceJson != null
@@ -1566,11 +1698,12 @@ class ClientCapabilities implements ToJsonable {
     final experimentalJson = json['experimental'];
     final experimental = experimentalJson;
     return ClientCapabilities(
-        workspace: workspace,
-        textDocument: textDocument,
-        window: window,
-        general: general,
-        experimental: experimental);
+      workspace: workspace,
+      textDocument: textDocument,
+      window: window,
+      general: general,
+      experimental: experimental,
+    );
   }
 
   /// Experimental client capabilities.
@@ -1679,8 +1812,13 @@ class ClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(workspace, textDocument, window, general, experimental);
+  int get hashCode => Object.hash(
+        workspace,
+        textDocument,
+        window,
+        general,
+        experimental,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1688,17 +1826,19 @@ class ClientCapabilities implements ToJsonable {
 
 class ClientCapabilitiesFileOperations implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ClientCapabilitiesFileOperations.canParse,
-      ClientCapabilitiesFileOperations.fromJson);
+    ClientCapabilitiesFileOperations.canParse,
+    ClientCapabilitiesFileOperations.fromJson,
+  );
 
-  ClientCapabilitiesFileOperations(
-      {this.dynamicRegistration,
-      this.didCreate,
-      this.willCreate,
-      this.didRename,
-      this.willRename,
-      this.didDelete,
-      this.willDelete});
+  ClientCapabilitiesFileOperations({
+    this.dynamicRegistration,
+    this.didCreate,
+    this.willCreate,
+    this.didRename,
+    this.willRename,
+    this.didDelete,
+    this.willDelete,
+  });
   static ClientCapabilitiesFileOperations fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -1715,13 +1855,14 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
     final willDeleteJson = json['willDelete'];
     final willDelete = willDeleteJson as bool?;
     return ClientCapabilitiesFileOperations(
-        dynamicRegistration: dynamicRegistration,
-        didCreate: didCreate,
-        willCreate: willCreate,
-        didRename: didRename,
-        willRename: willRename,
-        didDelete: didDelete,
-        willDelete: willDelete);
+      dynamicRegistration: dynamicRegistration,
+      didCreate: didCreate,
+      willCreate: willCreate,
+      didRename: didRename,
+      willRename: willRename,
+      didDelete: didDelete,
+      willDelete: willDelete,
+    );
   }
 
   /// The client has support for sending didCreateFiles notifications.
@@ -1868,8 +2009,15 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, didCreate, willCreate,
-      didRename, willRename, didDelete, willDelete);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        didCreate,
+        willCreate,
+        didRename,
+        willRename,
+        didDelete,
+        willDelete,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1877,9 +2025,14 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
 
 class ClientCapabilitiesGeneral implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ClientCapabilitiesGeneral.canParse, ClientCapabilitiesGeneral.fromJson);
+    ClientCapabilitiesGeneral.canParse,
+    ClientCapabilitiesGeneral.fromJson,
+  );
 
-  ClientCapabilitiesGeneral({this.regularExpressions, this.markdown});
+  ClientCapabilitiesGeneral({
+    this.regularExpressions,
+    this.markdown,
+  });
   static ClientCapabilitiesGeneral fromJson(Map<String, Object?> json) {
     final regularExpressionsJson = json['regularExpressions'];
     final regularExpressions = regularExpressionsJson != null
@@ -1892,7 +2045,9 @@ class ClientCapabilitiesGeneral implements ToJsonable {
             markdownJson as Map<String, Object?>)
         : null;
     return ClientCapabilitiesGeneral(
-        regularExpressions: regularExpressions, markdown: markdown);
+      regularExpressions: regularExpressions,
+      markdown: markdown,
+    );
   }
 
   /// Client capabilities specific to the client's markdown parser.
@@ -1959,7 +2114,10 @@ class ClientCapabilitiesGeneral implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(regularExpressions, markdown);
+  int get hashCode => Object.hash(
+        regularExpressions,
+        markdown,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1967,10 +2125,15 @@ class ClientCapabilitiesGeneral implements ToJsonable {
 
 class ClientCapabilitiesWindow implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ClientCapabilitiesWindow.canParse, ClientCapabilitiesWindow.fromJson);
+    ClientCapabilitiesWindow.canParse,
+    ClientCapabilitiesWindow.fromJson,
+  );
 
-  ClientCapabilitiesWindow(
-      {this.workDoneProgress, this.showMessage, this.showDocument});
+  ClientCapabilitiesWindow({
+    this.workDoneProgress,
+    this.showMessage,
+    this.showDocument,
+  });
   static ClientCapabilitiesWindow fromJson(Map<String, Object?> json) {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -1985,9 +2148,10 @@ class ClientCapabilitiesWindow implements ToJsonable {
             showDocumentJson as Map<String, Object?>)
         : null;
     return ClientCapabilitiesWindow(
-        workDoneProgress: workDoneProgress,
-        showMessage: showMessage,
-        showDocument: showDocument);
+      workDoneProgress: workDoneProgress,
+      showMessage: showMessage,
+      showDocument: showDocument,
+    );
   }
 
   /// Client capabilities for the show document request.
@@ -2076,7 +2240,11 @@ class ClientCapabilitiesWindow implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(workDoneProgress, showMessage, showDocument);
+  int get hashCode => Object.hash(
+        workDoneProgress,
+        showMessage,
+        showDocument,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -2084,21 +2252,23 @@ class ClientCapabilitiesWindow implements ToJsonable {
 
 class ClientCapabilitiesWorkspace implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ClientCapabilitiesWorkspace.canParse,
-      ClientCapabilitiesWorkspace.fromJson);
+    ClientCapabilitiesWorkspace.canParse,
+    ClientCapabilitiesWorkspace.fromJson,
+  );
 
-  ClientCapabilitiesWorkspace(
-      {this.applyEdit,
-      this.workspaceEdit,
-      this.didChangeConfiguration,
-      this.didChangeWatchedFiles,
-      this.symbol,
-      this.executeCommand,
-      this.workspaceFolders,
-      this.configuration,
-      this.semanticTokens,
-      this.codeLens,
-      this.fileOperations});
+  ClientCapabilitiesWorkspace({
+    this.applyEdit,
+    this.workspaceEdit,
+    this.didChangeConfiguration,
+    this.didChangeWatchedFiles,
+    this.symbol,
+    this.executeCommand,
+    this.workspaceFolders,
+    this.configuration,
+    this.semanticTokens,
+    this.codeLens,
+    this.fileOperations,
+  });
   static ClientCapabilitiesWorkspace fromJson(Map<String, Object?> json) {
     final applyEditJson = json['applyEdit'];
     final applyEdit = applyEditJson as bool?;
@@ -2147,17 +2317,18 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
             fileOperationsJson as Map<String, Object?>)
         : null;
     return ClientCapabilitiesWorkspace(
-        applyEdit: applyEdit,
-        workspaceEdit: workspaceEdit,
-        didChangeConfiguration: didChangeConfiguration,
-        didChangeWatchedFiles: didChangeWatchedFiles,
-        symbol: symbol,
-        executeCommand: executeCommand,
-        workspaceFolders: workspaceFolders,
-        configuration: configuration,
-        semanticTokens: semanticTokens,
-        codeLens: codeLens,
-        fileOperations: fileOperations);
+      applyEdit: applyEdit,
+      workspaceEdit: workspaceEdit,
+      didChangeConfiguration: didChangeConfiguration,
+      didChangeWatchedFiles: didChangeWatchedFiles,
+      symbol: symbol,
+      executeCommand: executeCommand,
+      workspaceFolders: workspaceFolders,
+      configuration: configuration,
+      semanticTokens: semanticTokens,
+      codeLens: codeLens,
+      fileOperations: fileOperations,
+    );
   }
 
   /// The client supports applying batch edits to the workspace by supporting
@@ -2404,17 +2575,18 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      applyEdit,
-      workspaceEdit,
-      didChangeConfiguration,
-      didChangeWatchedFiles,
-      symbol,
-      executeCommand,
-      workspaceFolders,
-      configuration,
-      semanticTokens,
-      codeLens,
-      fileOperations);
+        applyEdit,
+        workspaceEdit,
+        didChangeConfiguration,
+        didChangeWatchedFiles,
+        symbol,
+        executeCommand,
+        workspaceFolders,
+        configuration,
+        semanticTokens,
+        codeLens,
+        fileOperations,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -2426,18 +2598,21 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
 /// A CodeAction must set either `edit` and/or a `command`. If both are
 /// supplied, the `edit` is applied first, then the `command` is executed.
 class CodeAction implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeAction.canParse,
+    CodeAction.fromJson,
+  );
 
-  CodeAction(
-      {required this.title,
-      this.kind,
-      this.diagnostics,
-      this.isPreferred,
-      this.disabled,
-      this.edit,
-      this.command,
-      this.data});
+  CodeAction({
+    required this.title,
+    this.kind,
+    this.diagnostics,
+    this.isPreferred,
+    this.disabled,
+    this.edit,
+    this.command,
+    this.data,
+  });
   static CodeAction fromJson(Map<String, Object?> json) {
     final titleJson = json['title'];
     final title = titleJson as String;
@@ -2465,14 +2640,15 @@ class CodeAction implements ToJsonable {
     final dataJson = json['data'];
     final data = dataJson;
     return CodeAction(
-        title: title,
-        kind: kind,
-        diagnostics: diagnostics,
-        isPreferred: isPreferred,
-        disabled: disabled,
-        edit: edit,
-        command: command,
-        data: data);
+      title: title,
+      kind: kind,
+      diagnostics: diagnostics,
+      isPreferred: isPreferred,
+      disabled: disabled,
+      edit: edit,
+      command: command,
+      data: data,
+    );
   }
 
   /// A command this code action executes. If a code action provides an edit and
@@ -2662,8 +2838,16 @@ class CodeAction implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(title, kind, lspHashCode(diagnostics),
-      isPreferred, disabled, edit, command, data);
+  int get hashCode => Object.hash(
+        title,
+        kind,
+        lspHashCode(diagnostics),
+        isPreferred,
+        disabled,
+        edit,
+        command,
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -2671,17 +2855,19 @@ class CodeAction implements ToJsonable {
 
 class CodeActionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeActionClientCapabilities.canParse,
-      CodeActionClientCapabilities.fromJson);
+    CodeActionClientCapabilities.canParse,
+    CodeActionClientCapabilities.fromJson,
+  );
 
-  CodeActionClientCapabilities(
-      {this.dynamicRegistration,
-      this.codeActionLiteralSupport,
-      this.isPreferredSupport,
-      this.disabledSupport,
-      this.dataSupport,
-      this.resolveSupport,
-      this.honorsChangeAnnotations});
+  CodeActionClientCapabilities({
+    this.dynamicRegistration,
+    this.codeActionLiteralSupport,
+    this.isPreferredSupport,
+    this.disabledSupport,
+    this.dataSupport,
+    this.resolveSupport,
+    this.honorsChangeAnnotations,
+  });
   static CodeActionClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -2704,13 +2890,14 @@ class CodeActionClientCapabilities implements ToJsonable {
     final honorsChangeAnnotationsJson = json['honorsChangeAnnotations'];
     final honorsChangeAnnotations = honorsChangeAnnotationsJson as bool?;
     return CodeActionClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        codeActionLiteralSupport: codeActionLiteralSupport,
-        isPreferredSupport: isPreferredSupport,
-        disabledSupport: disabledSupport,
-        dataSupport: dataSupport,
-        resolveSupport: resolveSupport,
-        honorsChangeAnnotations: honorsChangeAnnotations);
+      dynamicRegistration: dynamicRegistration,
+      codeActionLiteralSupport: codeActionLiteralSupport,
+      isPreferredSupport: isPreferredSupport,
+      disabledSupport: disabledSupport,
+      dataSupport: dataSupport,
+      resolveSupport: resolveSupport,
+      honorsChangeAnnotations: honorsChangeAnnotations,
+    );
   }
 
   /// The client supports code action literals as a valid response of the
@@ -2731,9 +2918,9 @@ class CodeActionClientCapabilities implements ToJsonable {
   /// Whether code action supports dynamic registration.
   final bool? dynamicRegistration;
 
-  /// Whether th client honors the change annotations in text edits and resource
-  /// operations returned via the `CodeAction#edit` property by for example
-  /// presenting the workspace edit in the user interface and asking for
+  /// Whether the client honors the change annotations in text edits and
+  /// resource operations returned via the `CodeAction#edit` property by for
+  /// example presenting the workspace edit in the user interface and asking for
   /// confirmation.
   ///  @since 3.16.0
   final bool? honorsChangeAnnotations;
@@ -2877,13 +3064,14 @@ class CodeActionClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      dynamicRegistration,
-      codeActionLiteralSupport,
-      isPreferredSupport,
-      disabledSupport,
-      dataSupport,
-      resolveSupport,
-      honorsChangeAnnotations);
+        dynamicRegistration,
+        codeActionLiteralSupport,
+        isPreferredSupport,
+        disabledSupport,
+        dataSupport,
+        resolveSupport,
+        honorsChangeAnnotations,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -2891,17 +3079,22 @@ class CodeActionClientCapabilities implements ToJsonable {
 
 class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeActionClientCapabilitiesCodeActionKind.canParse,
-      CodeActionClientCapabilitiesCodeActionKind.fromJson);
+    CodeActionClientCapabilitiesCodeActionKind.canParse,
+    CodeActionClientCapabilitiesCodeActionKind.fromJson,
+  );
 
-  CodeActionClientCapabilitiesCodeActionKind({required this.valueSet});
+  CodeActionClientCapabilitiesCodeActionKind({
+    required this.valueSet,
+  });
   static CodeActionClientCapabilitiesCodeActionKind fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
         .map((item) => CodeActionKind.fromJson(item as String))
         .toList();
-    return CodeActionClientCapabilitiesCodeActionKind(valueSet: valueSet);
+    return CodeActionClientCapabilitiesCodeActionKind(
+      valueSet: valueSet,
+    );
   }
 
   /// The code action kind values the client supports. When this property exists
@@ -2966,18 +3159,21 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
 class CodeActionClientCapabilitiesCodeActionLiteralSupport
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse,
-      CodeActionClientCapabilitiesCodeActionLiteralSupport.fromJson);
+    CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse,
+    CodeActionClientCapabilitiesCodeActionLiteralSupport.fromJson,
+  );
 
-  CodeActionClientCapabilitiesCodeActionLiteralSupport(
-      {required this.codeActionKind});
+  CodeActionClientCapabilitiesCodeActionLiteralSupport({
+    required this.codeActionKind,
+  });
   static CodeActionClientCapabilitiesCodeActionLiteralSupport fromJson(
       Map<String, Object?> json) {
     final codeActionKindJson = json['codeActionKind'];
     final codeActionKind = CodeActionClientCapabilitiesCodeActionKind.fromJson(
         codeActionKindJson as Map<String, Object?>);
     return CodeActionClientCapabilitiesCodeActionLiteralSupport(
-        codeActionKind: codeActionKind);
+      codeActionKind: codeActionKind,
+    );
   }
 
   /// The code action kind is supported with the following value set.
@@ -3038,17 +3234,22 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
 
 class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeActionClientCapabilitiesResolveSupport.canParse,
-      CodeActionClientCapabilitiesResolveSupport.fromJson);
+    CodeActionClientCapabilitiesResolveSupport.canParse,
+    CodeActionClientCapabilitiesResolveSupport.fromJson,
+  );
 
-  CodeActionClientCapabilitiesResolveSupport({required this.properties});
+  CodeActionClientCapabilitiesResolveSupport({
+    required this.properties,
+  });
   static CodeActionClientCapabilitiesResolveSupport fromJson(
       Map<String, Object?> json) {
     final propertiesJson = json['properties'];
     final properties = (propertiesJson as List<Object?>)
         .map((item) => item as String)
         .toList();
-    return CodeActionClientCapabilitiesResolveSupport(properties: properties);
+    return CodeActionClientCapabilitiesResolveSupport(
+      properties: properties,
+    );
   }
 
   /// The properties that a client can resolve lazily.
@@ -3110,10 +3311,15 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
 /// Contains additional diagnostic information about the context in which a code
 /// action is run.
 class CodeActionContext implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeActionContext.canParse,
+    CodeActionContext.fromJson,
+  );
 
-  CodeActionContext({required this.diagnostics, this.only});
+  CodeActionContext({
+    required this.diagnostics,
+    this.only,
+  });
   static CodeActionContext fromJson(Map<String, Object?> json) {
     final diagnosticsJson = json['diagnostics'];
     final diagnostics = (diagnosticsJson as List<Object?>)
@@ -3123,7 +3329,10 @@ class CodeActionContext implements ToJsonable {
     final only = (onlyJson as List<Object?>?)
         ?.map((item) => CodeActionKind.fromJson(item as String))
         .toList();
-    return CodeActionContext(diagnostics: diagnostics, only: only);
+    return CodeActionContext(
+      diagnostics: diagnostics,
+      only: only,
+    );
   }
 
   /// An array of diagnostics known on the client side overlapping the range
@@ -3204,21 +3413,30 @@ class CodeActionContext implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(diagnostics), lspHashCode(only));
+  int get hashCode => Object.hash(
+        lspHashCode(diagnostics),
+        lspHashCode(only),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class CodeActionDisabled implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeActionDisabled.canParse, CodeActionDisabled.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeActionDisabled.canParse,
+    CodeActionDisabled.fromJson,
+  );
 
-  CodeActionDisabled({required this.reason});
+  CodeActionDisabled({
+    required this.reason,
+  });
   static CodeActionDisabled fromJson(Map<String, Object?> json) {
     final reasonJson = json['reason'];
     final reason = reasonJson as String;
-    return CodeActionDisabled(reason: reason);
+    return CodeActionDisabled(
+      reason: reason,
+    );
   }
 
   /// Human readable description of why the code action is currently disabled.
@@ -3348,11 +3566,16 @@ class CodeActionKind {
 }
 
 class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeActionOptions.canParse, CodeActionOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeActionOptions.canParse,
+    CodeActionOptions.fromJson,
+  );
 
-  CodeActionOptions(
-      {this.codeActionKinds, this.resolveProvider, this.workDoneProgress});
+  CodeActionOptions({
+    this.codeActionKinds,
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static CodeActionOptions fromJson(Map<String, Object?> json) {
     if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CodeActionRegistrationOptions.fromJson(json);
@@ -3366,9 +3589,10 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return CodeActionOptions(
-        codeActionKinds: codeActionKinds,
-        resolveProvider: resolveProvider,
-        workDoneProgress: workDoneProgress);
+      codeActionKinds: codeActionKinds,
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// CodeActionKinds that this server may return.
@@ -3454,7 +3678,10 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(codeActionKinds), resolveProvider, workDoneProgress);
+        lspHashCode(codeActionKinds),
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -3463,15 +3690,18 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
 /// Params for the CodeActionRequest
 class CodeActionParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeActionParams.canParse, CodeActionParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeActionParams.canParse,
+    CodeActionParams.fromJson,
+  );
 
-  CodeActionParams(
-      {required this.textDocument,
-      required this.range,
-      required this.context,
-      this.workDoneToken,
-      this.partialResultToken});
+  CodeActionParams({
+    required this.textDocument,
+    required this.range,
+    required this.context,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static CodeActionParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -3498,11 +3728,12 @@ class CodeActionParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CodeActionParams(
-        textDocument: textDocument,
-        range: range,
-        context: context,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      range: range,
+      context: context,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// Context carrying additional information.
@@ -3635,7 +3866,12 @@ class CodeActionParams
 
   @override
   int get hashCode => Object.hash(
-      textDocument, range, context, workDoneToken, partialResultToken);
+        textDocument,
+        range,
+        context,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -3644,14 +3880,16 @@ class CodeActionParams
 class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeActionRegistrationOptions.canParse,
-      CodeActionRegistrationOptions.fromJson);
+    CodeActionRegistrationOptions.canParse,
+    CodeActionRegistrationOptions.fromJson,
+  );
 
-  CodeActionRegistrationOptions(
-      {this.documentSelector,
-      this.codeActionKinds,
-      this.resolveProvider,
-      this.workDoneProgress});
+  CodeActionRegistrationOptions({
+    this.documentSelector,
+    this.codeActionKinds,
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static CodeActionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -3666,10 +3904,11 @@ class CodeActionRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return CodeActionRegistrationOptions(
-        documentSelector: documentSelector,
-        codeActionKinds: codeActionKinds,
-        resolveProvider: resolveProvider,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      codeActionKinds: codeActionKinds,
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// CodeActionKinds that this server may return.
@@ -3779,8 +4018,12 @@ class CodeActionRegistrationOptions
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(documentSelector),
-      lspHashCode(codeActionKinds), resolveProvider, workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        lspHashCode(codeActionKinds),
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -3789,14 +4032,20 @@ class CodeActionRegistrationOptions
 /// Structure to capture a description for an error code.
 ///  @since 3.16.0
 class CodeDescription implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeDescription.canParse, CodeDescription.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeDescription.canParse,
+    CodeDescription.fromJson,
+  );
 
-  CodeDescription({required this.href});
+  CodeDescription({
+    required this.href,
+  });
   static CodeDescription fromJson(Map<String, Object?> json) {
     final hrefJson = json['href'];
     final href = hrefJson as String;
-    return CodeDescription(href: href);
+    return CodeDescription(
+      href: href,
+    );
   }
 
   /// An URI to open with more information about the diagnostic error.
@@ -3857,10 +4106,16 @@ class CodeDescription implements ToJsonable {
 /// performance reasons the creation of a code lens and resolving should be done
 /// in two stages.
 class CodeLens implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeLens.canParse,
+    CodeLens.fromJson,
+  );
 
-  CodeLens({required this.range, this.command, this.data});
+  CodeLens({
+    required this.range,
+    this.command,
+    this.data,
+  });
   static CodeLens fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
@@ -3870,7 +4125,11 @@ class CodeLens implements ToJsonable {
         : null;
     final dataJson = json['data'];
     final data = dataJson;
-    return CodeLens(range: range, command: command, data: data);
+    return CodeLens(
+      range: range,
+      command: command,
+      data: data,
+    );
   }
 
   /// The command this code lens represents.
@@ -3945,7 +4204,11 @@ class CodeLens implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, command, data);
+  int get hashCode => Object.hash(
+        range,
+        command,
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -3953,13 +4216,19 @@ class CodeLens implements ToJsonable {
 
 class CodeLensClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeLensClientCapabilities.canParse, CodeLensClientCapabilities.fromJson);
+    CodeLensClientCapabilities.canParse,
+    CodeLensClientCapabilities.fromJson,
+  );
 
-  CodeLensClientCapabilities({this.dynamicRegistration});
+  CodeLensClientCapabilities({
+    this.dynamicRegistration,
+  });
   static CodeLensClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
-    return CodeLensClientCapabilities(dynamicRegistration: dynamicRegistration);
+    return CodeLensClientCapabilities(
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether code lens supports dynamic registration.
@@ -4009,10 +4278,15 @@ class CodeLensClientCapabilities implements ToJsonable {
 }
 
 class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeLensOptions.canParse,
+    CodeLensOptions.fromJson,
+  );
 
-  CodeLensOptions({this.resolveProvider, this.workDoneProgress});
+  CodeLensOptions({
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static CodeLensOptions fromJson(Map<String, Object?> json) {
     if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CodeLensRegistrationOptions.fromJson(json);
@@ -4022,7 +4296,9 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return CodeLensOptions(
-        resolveProvider: resolveProvider, workDoneProgress: workDoneProgress);
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// Code lens has a resolve provider as well.
@@ -4080,7 +4356,10 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(resolveProvider, workDoneProgress);
+  int get hashCode => Object.hash(
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -4088,13 +4367,16 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class CodeLensParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CodeLensParams.canParse,
+    CodeLensParams.fromJson,
+  );
 
-  CodeLensParams(
-      {required this.textDocument,
-      this.workDoneToken,
-      this.partialResultToken});
+  CodeLensParams({
+    required this.textDocument,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static CodeLensParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -4116,9 +4398,10 @@ class CodeLensParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CodeLensParams(
-        textDocument: textDocument,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -4204,8 +4487,11 @@ class CodeLensParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -4214,11 +4500,15 @@ class CodeLensParams
 class CodeLensRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeLensOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeLensRegistrationOptions.canParse,
-      CodeLensRegistrationOptions.fromJson);
+    CodeLensRegistrationOptions.canParse,
+    CodeLensRegistrationOptions.fromJson,
+  );
 
-  CodeLensRegistrationOptions(
-      {this.documentSelector, this.resolveProvider, this.workDoneProgress});
+  CodeLensRegistrationOptions({
+    this.documentSelector,
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static CodeLensRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -4229,9 +4519,10 @@ class CodeLensRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return CodeLensRegistrationOptions(
-        documentSelector: documentSelector,
-        resolveProvider: resolveProvider,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -4315,7 +4606,10 @@ class CodeLensRegistrationOptions
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(documentSelector), resolveProvider, workDoneProgress);
+        lspHashCode(documentSelector),
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -4323,15 +4617,20 @@ class CodeLensRegistrationOptions
 
 class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CodeLensWorkspaceClientCapabilities.canParse,
-      CodeLensWorkspaceClientCapabilities.fromJson);
+    CodeLensWorkspaceClientCapabilities.canParse,
+    CodeLensWorkspaceClientCapabilities.fromJson,
+  );
 
-  CodeLensWorkspaceClientCapabilities({this.refreshSupport});
+  CodeLensWorkspaceClientCapabilities({
+    this.refreshSupport,
+  });
   static CodeLensWorkspaceClientCapabilities fromJson(
       Map<String, Object?> json) {
     final refreshSupportJson = json['refreshSupport'];
     final refreshSupport = refreshSupportJson as bool?;
-    return CodeLensWorkspaceClientCapabilities(refreshSupport: refreshSupport);
+    return CodeLensWorkspaceClientCapabilities(
+      refreshSupport: refreshSupport,
+    );
   }
 
   /// Whether the client implementation supports a refresh request sent from the
@@ -4389,13 +4688,17 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
 
 /// Represents a color in RGBA space.
 class Color implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Color.canParse, Color.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Color.canParse,
+    Color.fromJson,
+  );
 
-  Color(
-      {required this.red,
-      required this.green,
-      required this.blue,
-      required this.alpha});
+  Color({
+    required this.red,
+    required this.green,
+    required this.blue,
+    required this.alpha,
+  });
   static Color fromJson(Map<String, Object?> json) {
     final redJson = json['red'];
     final red = redJson as num;
@@ -4405,7 +4708,12 @@ class Color implements ToJsonable {
     final blue = blueJson as num;
     final alphaJson = json['alpha'];
     final alpha = alphaJson as num;
-    return Color(red: red, green: green, blue: blue, alpha: alpha);
+    return Color(
+      red: red,
+      green: green,
+      blue: blue,
+      alpha: alpha,
+    );
   }
 
   /// The alpha component of this color in the range [0-1].
@@ -4523,23 +4831,36 @@ class Color implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(red, green, blue, alpha);
+  int get hashCode => Object.hash(
+        red,
+        green,
+        blue,
+        alpha,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class ColorInformation implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ColorInformation.canParse,
+    ColorInformation.fromJson,
+  );
 
-  ColorInformation({required this.range, required this.color});
+  ColorInformation({
+    required this.range,
+    required this.color,
+  });
   static ColorInformation fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final colorJson = json['color'];
     final color = Color.fromJson(colorJson as Map<String, Object?>);
-    return ColorInformation(range: range, color: color);
+    return ColorInformation(
+      range: range,
+      color: color,
+    );
   }
 
   /// The actual color value for this color range.
@@ -4609,18 +4930,26 @@ class ColorInformation implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, color);
+  int get hashCode => Object.hash(
+        range,
+        color,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class ColorPresentation implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ColorPresentation.canParse, ColorPresentation.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ColorPresentation.canParse,
+    ColorPresentation.fromJson,
+  );
 
-  ColorPresentation(
-      {required this.label, this.textEdit, this.additionalTextEdits});
+  ColorPresentation({
+    required this.label,
+    this.textEdit,
+    this.additionalTextEdits,
+  });
   static ColorPresentation fromJson(Map<String, Object?> json) {
     final labelJson = json['label'];
     final label = labelJson as String;
@@ -4633,9 +4962,10 @@ class ColorPresentation implements ToJsonable {
         ?.map((item) => TextEdit.fromJson(item as Map<String, Object?>))
         .toList();
     return ColorPresentation(
-        label: label,
-        textEdit: textEdit,
-        additionalTextEdits: additionalTextEdits);
+      label: label,
+      textEdit: textEdit,
+      additionalTextEdits: additionalTextEdits,
+    );
   }
 
   /// An optional array of additional text edits ([TextEdit]) that are applied
@@ -4649,7 +4979,7 @@ class ColorPresentation implements ToJsonable {
   final String label;
 
   /// An edit ([TextEdit]) which is applied to a document when selecting this
-  /// presentation for the color.  When `falsy` the
+  /// presentation for the color. When `falsy` the
   /// [label](#ColorPresentation.label) is used.
   final TextEdit? textEdit;
 
@@ -4729,8 +5059,11 @@ class ColorPresentation implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(label, textEdit, lspHashCode(additionalTextEdits));
+  int get hashCode => Object.hash(
+        label,
+        textEdit,
+        lspHashCode(additionalTextEdits),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -4739,14 +5072,17 @@ class ColorPresentation implements ToJsonable {
 class ColorPresentationParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ColorPresentationParams.canParse, ColorPresentationParams.fromJson);
+    ColorPresentationParams.canParse,
+    ColorPresentationParams.fromJson,
+  );
 
-  ColorPresentationParams(
-      {required this.textDocument,
-      required this.color,
-      required this.range,
-      this.workDoneToken,
-      this.partialResultToken});
+  ColorPresentationParams({
+    required this.textDocument,
+    required this.color,
+    required this.range,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static ColorPresentationParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -4772,11 +5108,12 @@ class ColorPresentationParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return ColorPresentationParams(
-        textDocument: textDocument,
-        color: color,
-        range: range,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      color: color,
+      range: range,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// The color information to request presentations for.
@@ -4910,16 +5247,28 @@ class ColorPresentationParams
 
   @override
   int get hashCode => Object.hash(
-      textDocument, color, range, workDoneToken, partialResultToken);
+        textDocument,
+        color,
+        range,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class Command implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Command.canParse,
+    Command.fromJson,
+  );
 
-  Command({required this.title, required this.command, this.arguments});
+  Command({
+    required this.title,
+    required this.command,
+    this.arguments,
+  });
   static Command fromJson(Map<String, Object?> json) {
     final titleJson = json['title'];
     final title = titleJson as String;
@@ -4928,7 +5277,11 @@ class Command implements ToJsonable {
     final argumentsJson = json['arguments'];
     final arguments =
         (argumentsJson as List<Object?>?)?.map((item) => item).toList();
-    return Command(title: title, command: command, arguments: arguments);
+    return Command(
+      title: title,
+      command: command,
+      arguments: arguments,
+    );
   }
 
   /// Arguments that the command handler should be invoked with.
@@ -5020,7 +5373,11 @@ class Command implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(title, command, lspHashCode(arguments));
+  int get hashCode => Object.hash(
+        title,
+        command,
+        lspHashCode(arguments),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -5028,14 +5385,16 @@ class Command implements ToJsonable {
 
 class CompletionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionClientCapabilities.canParse,
-      CompletionClientCapabilities.fromJson);
+    CompletionClientCapabilities.canParse,
+    CompletionClientCapabilities.fromJson,
+  );
 
-  CompletionClientCapabilities(
-      {this.dynamicRegistration,
-      this.completionItem,
-      this.completionItemKind,
-      this.contextSupport});
+  CompletionClientCapabilities({
+    this.dynamicRegistration,
+    this.completionItem,
+    this.completionItemKind,
+    this.contextSupport,
+  });
   static CompletionClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -5052,10 +5411,11 @@ class CompletionClientCapabilities implements ToJsonable {
     final contextSupportJson = json['contextSupport'];
     final contextSupport = contextSupportJson as bool?;
     return CompletionClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        completionItem: completionItem,
-        completionItemKind: completionItemKind,
-        contextSupport: contextSupport);
+      dynamicRegistration: dynamicRegistration,
+      completionItem: completionItem,
+      completionItemKind: completionItemKind,
+      contextSupport: contextSupport,
+    );
   }
 
   /// The client supports the following `CompletionItem` specific capabilities.
@@ -5156,7 +5516,11 @@ class CompletionClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      dynamicRegistration, completionItem, completionItemKind, contextSupport);
+        dynamicRegistration,
+        completionItem,
+        completionItemKind,
+        contextSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -5164,19 +5528,21 @@ class CompletionClientCapabilities implements ToJsonable {
 
 class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionClientCapabilitiesCompletionItem.canParse,
-      CompletionClientCapabilitiesCompletionItem.fromJson);
+    CompletionClientCapabilitiesCompletionItem.canParse,
+    CompletionClientCapabilitiesCompletionItem.fromJson,
+  );
 
-  CompletionClientCapabilitiesCompletionItem(
-      {this.snippetSupport,
-      this.commitCharactersSupport,
-      this.documentationFormat,
-      this.deprecatedSupport,
-      this.preselectSupport,
-      this.tagSupport,
-      this.insertReplaceSupport,
-      this.resolveSupport,
-      this.insertTextModeSupport});
+  CompletionClientCapabilitiesCompletionItem({
+    this.snippetSupport,
+    this.commitCharactersSupport,
+    this.documentationFormat,
+    this.deprecatedSupport,
+    this.preselectSupport,
+    this.tagSupport,
+    this.insertReplaceSupport,
+    this.resolveSupport,
+    this.insertTextModeSupport,
+  });
   static CompletionClientCapabilitiesCompletionItem fromJson(
       Map<String, Object?> json) {
     final snippetSupportJson = json['snippetSupport'];
@@ -5209,15 +5575,16 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
             insertTextModeSupportJson as Map<String, Object?>)
         : null;
     return CompletionClientCapabilitiesCompletionItem(
-        snippetSupport: snippetSupport,
-        commitCharactersSupport: commitCharactersSupport,
-        documentationFormat: documentationFormat,
-        deprecatedSupport: deprecatedSupport,
-        preselectSupport: preselectSupport,
-        tagSupport: tagSupport,
-        insertReplaceSupport: insertReplaceSupport,
-        resolveSupport: resolveSupport,
-        insertTextModeSupport: insertTextModeSupport);
+      snippetSupport: snippetSupport,
+      commitCharactersSupport: commitCharactersSupport,
+      documentationFormat: documentationFormat,
+      deprecatedSupport: deprecatedSupport,
+      preselectSupport: preselectSupport,
+      tagSupport: tagSupport,
+      insertReplaceSupport: insertReplaceSupport,
+      resolveSupport: resolveSupport,
+      insertTextModeSupport: insertTextModeSupport,
+    );
   }
 
   /// Client supports commit characters on a completion item.
@@ -5226,8 +5593,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// Client supports the deprecated property on a completion item.
   final bool? deprecatedSupport;
 
-  /// Client supports the follow content formats for the documentation property.
-  /// The order describes the preferred format of the client.
+  /// Client supports the following content formats for the documentation
+  /// property. The order describes the preferred format of the client.
   final List<MarkupKind>? documentationFormat;
 
   /// Client supports insert replace edit to control different behavior if a
@@ -5236,8 +5603,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   final bool? insertReplaceSupport;
 
   /// The client supports the `insertTextMode` property on a completion item to
-  /// override the whitespace handling mode as defined by the client (see
-  /// `insertTextMode`).
+  /// override the whitespace handling mode as defined by the client.
   ///  @since 3.16.0
   final CompletionClientCapabilitiesInsertTextModeSupport?
       insertTextModeSupport;
@@ -5247,7 +5613,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
 
   /// Indicates which properties a client can resolve lazily on a completion
   /// item. Before version 3.16.0 only the predefined properties `documentation`
-  /// and `details` could be resolved lazily.
+  /// and `detail` could be resolved lazily.
   ///  @since 3.16.0
   final CompletionClientCapabilitiesResolveSupport? resolveSupport;
 
@@ -5433,15 +5799,16 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      snippetSupport,
-      commitCharactersSupport,
-      lspHashCode(documentationFormat),
-      deprecatedSupport,
-      preselectSupport,
-      tagSupport,
-      insertReplaceSupport,
-      resolveSupport,
-      insertTextModeSupport);
+        snippetSupport,
+        commitCharactersSupport,
+        lspHashCode(documentationFormat),
+        deprecatedSupport,
+        preselectSupport,
+        tagSupport,
+        insertReplaceSupport,
+        resolveSupport,
+        insertTextModeSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -5449,17 +5816,22 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
 
 class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionClientCapabilitiesCompletionItemKind.canParse,
-      CompletionClientCapabilitiesCompletionItemKind.fromJson);
+    CompletionClientCapabilitiesCompletionItemKind.canParse,
+    CompletionClientCapabilitiesCompletionItemKind.fromJson,
+  );
 
-  CompletionClientCapabilitiesCompletionItemKind({this.valueSet});
+  CompletionClientCapabilitiesCompletionItemKind({
+    this.valueSet,
+  });
   static CompletionClientCapabilitiesCompletionItemKind fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>?)
         ?.map((item) => CompletionItemKind.fromJson(item as int))
         .toList();
-    return CompletionClientCapabilitiesCompletionItemKind(valueSet: valueSet);
+    return CompletionClientCapabilitiesCompletionItemKind(
+      valueSet: valueSet,
+    );
   }
 
   /// The completion item kind values the client supports. When this property
@@ -5522,10 +5894,13 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
 
 class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionClientCapabilitiesInsertTextModeSupport.canParse,
-      CompletionClientCapabilitiesInsertTextModeSupport.fromJson);
+    CompletionClientCapabilitiesInsertTextModeSupport.canParse,
+    CompletionClientCapabilitiesInsertTextModeSupport.fromJson,
+  );
 
-  CompletionClientCapabilitiesInsertTextModeSupport({required this.valueSet});
+  CompletionClientCapabilitiesInsertTextModeSupport({
+    required this.valueSet,
+  });
   static CompletionClientCapabilitiesInsertTextModeSupport fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
@@ -5533,7 +5908,8 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
         .map((item) => InsertTextMode.fromJson(item as int))
         .toList();
     return CompletionClientCapabilitiesInsertTextModeSupport(
-        valueSet: valueSet);
+      valueSet: valueSet,
+    );
   }
 
   final List<InsertTextMode> valueSet;
@@ -5595,17 +5971,22 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
 
 class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionClientCapabilitiesResolveSupport.canParse,
-      CompletionClientCapabilitiesResolveSupport.fromJson);
+    CompletionClientCapabilitiesResolveSupport.canParse,
+    CompletionClientCapabilitiesResolveSupport.fromJson,
+  );
 
-  CompletionClientCapabilitiesResolveSupport({required this.properties});
+  CompletionClientCapabilitiesResolveSupport({
+    required this.properties,
+  });
   static CompletionClientCapabilitiesResolveSupport fromJson(
       Map<String, Object?> json) {
     final propertiesJson = json['properties'];
     final properties = (propertiesJson as List<Object?>)
         .map((item) => item as String)
         .toList();
-    return CompletionClientCapabilitiesResolveSupport(properties: properties);
+    return CompletionClientCapabilitiesResolveSupport(
+      properties: properties,
+    );
   }
 
   /// The properties that a client can resolve lazily.
@@ -5666,17 +6047,22 @@ class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
 
 class CompletionClientCapabilitiesTagSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionClientCapabilitiesTagSupport.canParse,
-      CompletionClientCapabilitiesTagSupport.fromJson);
+    CompletionClientCapabilitiesTagSupport.canParse,
+    CompletionClientCapabilitiesTagSupport.fromJson,
+  );
 
-  CompletionClientCapabilitiesTagSupport({required this.valueSet});
+  CompletionClientCapabilitiesTagSupport({
+    required this.valueSet,
+  });
   static CompletionClientCapabilitiesTagSupport fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
         .map((item) => CompletionItemTag.fromJson(item as int))
         .toList();
-    return CompletionClientCapabilitiesTagSupport(valueSet: valueSet);
+    return CompletionClientCapabilitiesTagSupport(
+      valueSet: valueSet,
+    );
   }
 
   /// The tags supported by the client.
@@ -5739,17 +6125,24 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
 /// Contains additional information about the context in which a completion
 /// request is triggered.
 class CompletionContext implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CompletionContext.canParse,
+    CompletionContext.fromJson,
+  );
 
-  CompletionContext({required this.triggerKind, this.triggerCharacter});
+  CompletionContext({
+    required this.triggerKind,
+    this.triggerCharacter,
+  });
   static CompletionContext fromJson(Map<String, Object?> json) {
     final triggerKindJson = json['triggerKind'];
     final triggerKind = CompletionTriggerKind.fromJson(triggerKindJson as int);
     final triggerCharacterJson = json['triggerCharacter'];
     final triggerCharacter = triggerCharacterJson as String?;
     return CompletionContext(
-        triggerKind: triggerKind, triggerCharacter: triggerCharacter);
+      triggerKind: triggerKind,
+      triggerCharacter: triggerCharacter,
+    );
   }
 
   /// The trigger character (a single character) that has trigger code complete.
@@ -5816,34 +6209,40 @@ class CompletionContext implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(triggerKind, triggerCharacter);
+  int get hashCode => Object.hash(
+        triggerKind,
+        triggerCharacter,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class CompletionItem implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CompletionItem.canParse,
+    CompletionItem.fromJson,
+  );
 
-  CompletionItem(
-      {required this.label,
-      this.kind,
-      this.tags,
-      this.detail,
-      this.documentation,
-      this.deprecated,
-      this.preselect,
-      this.sortText,
-      this.filterText,
-      this.insertText,
-      this.insertTextFormat,
-      this.insertTextMode,
-      this.textEdit,
-      this.additionalTextEdits,
-      this.commitCharacters,
-      this.command,
-      this.data});
+  CompletionItem({
+    required this.label,
+    this.kind,
+    this.tags,
+    this.detail,
+    this.documentation,
+    this.deprecated,
+    this.preselect,
+    this.sortText,
+    this.filterText,
+    this.insertText,
+    this.insertTextFormat,
+    this.insertTextMode,
+    this.textEdit,
+    this.additionalTextEdits,
+    this.commitCharacters,
+    this.command,
+    this.data,
+  });
   static CompletionItem fromJson(Map<String, Object?> json) {
     final labelJson = json['label'];
     final label = labelJson as String;
@@ -5912,23 +6311,24 @@ class CompletionItem implements ToJsonable {
             dataJson as Map<String, Object?>)
         : null;
     return CompletionItem(
-        label: label,
-        kind: kind,
-        tags: tags,
-        detail: detail,
-        documentation: documentation,
-        deprecated: deprecated,
-        preselect: preselect,
-        sortText: sortText,
-        filterText: filterText,
-        insertText: insertText,
-        insertTextFormat: insertTextFormat,
-        insertTextMode: insertTextMode,
-        textEdit: textEdit,
-        additionalTextEdits: additionalTextEdits,
-        commitCharacters: commitCharacters,
-        command: command,
-        data: data);
+      label: label,
+      kind: kind,
+      tags: tags,
+      detail: detail,
+      documentation: documentation,
+      deprecated: deprecated,
+      preselect: preselect,
+      sortText: sortText,
+      filterText: filterText,
+      insertText: insertText,
+      insertTextFormat: insertTextFormat,
+      insertTextMode: insertTextMode,
+      textEdit: textEdit,
+      additionalTextEdits: additionalTextEdits,
+      commitCharacters: commitCharacters,
+      command: command,
+      data: data,
+    );
   }
 
   /// An optional array of additional text edits that are applied when selecting
@@ -5967,11 +6367,12 @@ class CompletionItem implements ToJsonable {
   final Either2<String, MarkupContent>? documentation;
 
   /// A string that should be used when filtering a set of completion items.
-  /// When `falsy` the label is used.
+  /// When `falsy` the label is used as the filter text for this item.
   final String? filterText;
 
   /// A string that should be inserted into a document when selecting this
-  /// completion. When `falsy` the label is used.
+  /// completion. When `falsy` the label is used as the insert text for this
+  /// item.
   ///
   /// The `insertText` is subject to interpretation by the client side. Some
   /// tools might not take the string literally. For example VS Code when code
@@ -5987,8 +6388,7 @@ class CompletionItem implements ToJsonable {
   final InsertTextFormat? insertTextFormat;
 
   /// How whitespace and indentation is handled during completion item
-  /// insertion. If not provided the client's default value depends on the
-  /// `textDocument.completion.insertTextMode` client capability.
+  /// insertion. If not provided the client's default value is used.
   ///  @since 3.16.0
   final InsertTextMode? insertTextMode;
 
@@ -6009,7 +6409,7 @@ class CompletionItem implements ToJsonable {
   final bool? preselect;
 
   /// A string that should be used when comparing this item with other items.
-  /// When `falsy` the label is used.
+  /// When `falsy` the label is used as the sort text for this item.
   final String? sortText;
 
   /// Tags for this completion item.
@@ -6026,7 +6426,7 @@ class CompletionItem implements ToJsonable {
   /// item. One is to insert a completion text and the other is to replace an
   /// existing text with a completion text. Since this can usually not be
   /// predetermined by a server it can report both ranges. Clients need to
-  /// signal support for `InsertReplaceEdits` via the
+  /// signal support for `InsertReplaceEdit`s via the
   /// `textDocument.completion.insertReplaceSupport` client capability property.
   ///
   /// *Note 1:* The text edit's range as well as both ranges from an insert
@@ -6327,23 +6727,24 @@ class CompletionItem implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      label,
-      kind,
-      lspHashCode(tags),
-      detail,
-      documentation,
-      deprecated,
-      preselect,
-      sortText,
-      filterText,
-      insertText,
-      insertTextFormat,
-      insertTextMode,
-      textEdit,
-      lspHashCode(additionalTextEdits),
-      lspHashCode(commitCharacters),
-      command,
-      data);
+        label,
+        kind,
+        lspHashCode(tags),
+        detail,
+        documentation,
+        deprecated,
+        preselect,
+        sortText,
+        filterText,
+        insertText,
+        insertTextFormat,
+        insertTextMode,
+        textEdit,
+        lspHashCode(additionalTextEdits),
+        lspHashCode(commitCharacters),
+        command,
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -6427,10 +6828,15 @@ class CompletionItemTag {
 /// Represents a collection of completion items ([CompletionItem]) to be
 /// presented in the editor.
 class CompletionList implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CompletionList.canParse,
+    CompletionList.fromJson,
+  );
 
-  CompletionList({required this.isIncomplete, required this.items});
+  CompletionList({
+    required this.isIncomplete,
+    required this.items,
+  });
   static CompletionList fromJson(Map<String, Object?> json) {
     final isIncompleteJson = json['isIncomplete'];
     final isIncomplete = isIncompleteJson as bool;
@@ -6438,11 +6844,17 @@ class CompletionList implements ToJsonable {
     final items = (itemsJson as List<Object?>)
         .map((item) => CompletionItem.fromJson(item as Map<String, Object?>))
         .toList();
-    return CompletionList(isIncomplete: isIncomplete, items: items);
+    return CompletionList(
+      isIncomplete: isIncomplete,
+      items: items,
+    );
   }
 
-  /// This list it not complete. Further typing should result in recomputing
+  /// This list is not complete. Further typing should result in recomputing
   /// this list.
+  ///
+  /// Recomputed lists have all their items replaced (not appended) in the
+  /// incomplete completion sessions.
   final bool isIncomplete;
 
   /// The completion items.
@@ -6514,7 +6926,10 @@ class CompletionList implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(isIncomplete, lspHashCode(items));
+  int get hashCode => Object.hash(
+        isIncomplete,
+        lspHashCode(items),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -6522,14 +6937,17 @@ class CompletionList implements ToJsonable {
 
 /// Completion options.
 class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CompletionOptions.canParse, CompletionOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CompletionOptions.canParse,
+    CompletionOptions.fromJson,
+  );
 
-  CompletionOptions(
-      {this.triggerCharacters,
-      this.allCommitCharacters,
-      this.resolveProvider,
-      this.workDoneProgress});
+  CompletionOptions({
+    this.triggerCharacters,
+    this.allCommitCharacters,
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static CompletionOptions fromJson(Map<String, Object?> json) {
     if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CompletionRegistrationOptions.fromJson(json);
@@ -6547,10 +6965,11 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return CompletionOptions(
-        triggerCharacters: triggerCharacters,
-        allCommitCharacters: allCommitCharacters,
-        resolveProvider: resolveProvider,
-        workDoneProgress: workDoneProgress);
+      triggerCharacters: triggerCharacters,
+      allCommitCharacters: allCommitCharacters,
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// The list of all possible characters that commit a completion. This field
@@ -6665,8 +7084,12 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(triggerCharacters),
-      lspHashCode(allCommitCharacters), resolveProvider, workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(triggerCharacters),
+        lspHashCode(allCommitCharacters),
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -6678,15 +7101,18 @@ class CompletionParams
         WorkDoneProgressParams,
         PartialResultParams,
         ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CompletionParams.canParse, CompletionParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CompletionParams.canParse,
+    CompletionParams.fromJson,
+  );
 
-  CompletionParams(
-      {this.context,
-      required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  CompletionParams({
+    this.context,
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static CompletionParams fromJson(Map<String, Object?> json) {
     final contextJson = json['context'];
     final context = contextJson != null
@@ -6714,11 +7140,12 @@ class CompletionParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CompletionParams(
-        context: context,
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      context: context,
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// The completion context. This is only available if the client specifies to
@@ -6847,7 +7274,12 @@ class CompletionParams
 
   @override
   int get hashCode => Object.hash(
-      context, textDocument, position, workDoneToken, partialResultToken);
+        context,
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -6856,15 +7288,17 @@ class CompletionParams
 class CompletionRegistrationOptions
     implements TextDocumentRegistrationOptions, CompletionOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      CompletionRegistrationOptions.canParse,
-      CompletionRegistrationOptions.fromJson);
+    CompletionRegistrationOptions.canParse,
+    CompletionRegistrationOptions.fromJson,
+  );
 
-  CompletionRegistrationOptions(
-      {this.documentSelector,
-      this.triggerCharacters,
-      this.allCommitCharacters,
-      this.resolveProvider,
-      this.workDoneProgress});
+  CompletionRegistrationOptions({
+    this.documentSelector,
+    this.triggerCharacters,
+    this.allCommitCharacters,
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static CompletionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -6883,11 +7317,12 @@ class CompletionRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return CompletionRegistrationOptions(
-        documentSelector: documentSelector,
-        triggerCharacters: triggerCharacters,
-        allCommitCharacters: allCommitCharacters,
-        resolveProvider: resolveProvider,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      triggerCharacters: triggerCharacters,
+      allCommitCharacters: allCommitCharacters,
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// The list of all possible characters that commit a completion. This field
@@ -7028,11 +7463,12 @@ class CompletionRegistrationOptions
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(documentSelector),
-      lspHashCode(triggerCharacters),
-      lspHashCode(allCommitCharacters),
-      resolveProvider,
-      workDoneProgress);
+        lspHashCode(documentSelector),
+        lspHashCode(triggerCharacters),
+        lspHashCode(allCommitCharacters),
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -7079,16 +7515,24 @@ class CompletionTriggerKind {
 }
 
 class ConfigurationItem implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ConfigurationItem.canParse, ConfigurationItem.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ConfigurationItem.canParse,
+    ConfigurationItem.fromJson,
+  );
 
-  ConfigurationItem({this.scopeUri, this.section});
+  ConfigurationItem({
+    this.scopeUri,
+    this.section,
+  });
   static ConfigurationItem fromJson(Map<String, Object?> json) {
     final scopeUriJson = json['scopeUri'];
     final scopeUri = scopeUriJson as String?;
     final sectionJson = json['section'];
     final section = sectionJson as String?;
-    return ConfigurationItem(scopeUri: scopeUri, section: section);
+    return ConfigurationItem(
+      scopeUri: scopeUri,
+      section: section,
+    );
   }
 
   /// The scope to get the configuration section for.
@@ -7146,7 +7590,10 @@ class ConfigurationItem implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(scopeUri, section);
+  int get hashCode => Object.hash(
+        scopeUri,
+        section,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -7154,15 +7601,21 @@ class ConfigurationItem implements ToJsonable {
 
 class ConfigurationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ConfigurationParams.canParse, ConfigurationParams.fromJson);
+    ConfigurationParams.canParse,
+    ConfigurationParams.fromJson,
+  );
 
-  ConfigurationParams({required this.items});
+  ConfigurationParams({
+    required this.items,
+  });
   static ConfigurationParams fromJson(Map<String, Object?> json) {
     final itemsJson = json['items'];
     final items = (itemsJson as List<Object?>)
         .map((item) => ConfigurationItem.fromJson(item as Map<String, Object?>))
         .toList();
-    return ConfigurationParams(items: items);
+    return ConfigurationParams(
+      items: items,
+    );
   }
 
   final List<ConfigurationItem> items;
@@ -7222,14 +7675,17 @@ class ConfigurationParams implements ToJsonable {
 
 /// Create file operation
 class CreateFile implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CreateFile.canParse,
+    CreateFile.fromJson,
+  );
 
-  CreateFile(
-      {this.kind = 'create',
-      required this.uri,
-      this.options,
-      this.annotationId}) {
+  CreateFile({
+    this.kind = 'create',
+    required this.uri,
+    this.options,
+    this.annotationId,
+  }) {
     if (kind != 'create') {
       throw 'kind may only be the literal \'create\'';
     }
@@ -7246,7 +7702,11 @@ class CreateFile implements ToJsonable {
     final annotationIdJson = json['annotationId'];
     final annotationId = annotationIdJson as String?;
     return CreateFile(
-        kind: kind, uri: uri, options: options, annotationId: annotationId);
+      kind: kind,
+      uri: uri,
+      options: options,
+      annotationId: annotationId,
+    );
   }
 
   /// An optional annotation identifer describing the operation.
@@ -7354,7 +7814,12 @@ class CreateFile implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(kind, uri, options, annotationId);
+  int get hashCode => Object.hash(
+        kind,
+        uri,
+        options,
+        annotationId,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -7362,17 +7827,24 @@ class CreateFile implements ToJsonable {
 
 /// Options to create a file.
 class CreateFileOptions implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CreateFileOptions.canParse, CreateFileOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CreateFileOptions.canParse,
+    CreateFileOptions.fromJson,
+  );
 
-  CreateFileOptions({this.overwrite, this.ignoreIfExists});
+  CreateFileOptions({
+    this.overwrite,
+    this.ignoreIfExists,
+  });
   static CreateFileOptions fromJson(Map<String, Object?> json) {
     final overwriteJson = json['overwrite'];
     final overwrite = overwriteJson as bool?;
     final ignoreIfExistsJson = json['ignoreIfExists'];
     final ignoreIfExists = ignoreIfExistsJson as bool?;
     return CreateFileOptions(
-        overwrite: overwrite, ignoreIfExists: ignoreIfExists);
+      overwrite: overwrite,
+      ignoreIfExists: ignoreIfExists,
+    );
   }
 
   /// Ignore if exists.
@@ -7432,7 +7904,10 @@ class CreateFileOptions implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(overwrite, ignoreIfExists);
+  int get hashCode => Object.hash(
+        overwrite,
+        ignoreIfExists,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -7442,16 +7917,22 @@ class CreateFileOptions implements ToJsonable {
 /// files.
 ///  @since 3.16.0
 class CreateFilesParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(CreateFilesParams.canParse, CreateFilesParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    CreateFilesParams.canParse,
+    CreateFilesParams.fromJson,
+  );
 
-  CreateFilesParams({required this.files});
+  CreateFilesParams({
+    required this.files,
+  });
   static CreateFilesParams fromJson(Map<String, Object?> json) {
     final filesJson = json['files'];
     final files = (filesJson as List<Object?>)
         .map((item) => FileCreate.fromJson(item as Map<String, Object?>))
         .toList();
-    return CreateFilesParams(files: files);
+    return CreateFilesParams(
+      files: files,
+    );
   }
 
   /// An array of all files/folders created in this operation.
@@ -7510,17 +7991,23 @@ class CreateFilesParams implements ToJsonable {
 
 class DeclarationClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DeclarationClientCapabilities.canParse,
-      DeclarationClientCapabilities.fromJson);
+    DeclarationClientCapabilities.canParse,
+    DeclarationClientCapabilities.fromJson,
+  );
 
-  DeclarationClientCapabilities({this.dynamicRegistration, this.linkSupport});
+  DeclarationClientCapabilities({
+    this.dynamicRegistration,
+    this.linkSupport,
+  });
   static DeclarationClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     final linkSupportJson = json['linkSupport'];
     final linkSupport = linkSupportJson as bool?;
     return DeclarationClientCapabilities(
-        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
+      dynamicRegistration: dynamicRegistration,
+      linkSupport: linkSupport,
+    );
   }
 
   /// Whether declaration supports dynamic registration. If this is set to
@@ -7583,24 +8070,33 @@ class DeclarationClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, linkSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        linkSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DeclarationOptions.canParse, DeclarationOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DeclarationOptions.canParse,
+    DeclarationOptions.fromJson,
+  );
 
-  DeclarationOptions({this.workDoneProgress});
+  DeclarationOptions({
+    this.workDoneProgress,
+  });
   static DeclarationOptions fromJson(Map<String, Object?> json) {
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return DeclarationOptions(workDoneProgress: workDoneProgress);
+    return DeclarationOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -7654,14 +8150,17 @@ class DeclarationParams
         WorkDoneProgressParams,
         PartialResultParams,
         ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DeclarationParams.canParse, DeclarationParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DeclarationParams.canParse,
+    DeclarationParams.fromJson,
+  );
 
-  DeclarationParams(
-      {required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  DeclarationParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static DeclarationParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -7685,10 +8184,11 @@ class DeclarationParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DeclarationParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -7797,8 +8297,12 @@ class DeclarationParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, position, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -7811,11 +8315,15 @@ class DeclarationRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DeclarationRegistrationOptions.canParse,
-      DeclarationRegistrationOptions.fromJson);
+    DeclarationRegistrationOptions.canParse,
+    DeclarationRegistrationOptions.fromJson,
+  );
 
-  DeclarationRegistrationOptions(
-      {this.workDoneProgress, this.documentSelector, this.id});
+  DeclarationRegistrationOptions({
+    this.workDoneProgress,
+    this.documentSelector,
+    this.id,
+  });
   static DeclarationRegistrationOptions fromJson(Map<String, Object?> json) {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -7826,9 +8334,10 @@ class DeclarationRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return DeclarationRegistrationOptions(
-        workDoneProgress: workDoneProgress,
-        documentSelector: documentSelector,
-        id: id);
+      workDoneProgress: workDoneProgress,
+      documentSelector: documentSelector,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -7912,8 +8421,11 @@ class DeclarationRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(workDoneProgress, lspHashCode(documentSelector), id);
+  int get hashCode => Object.hash(
+        workDoneProgress,
+        lspHashCode(documentSelector),
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -7921,17 +8433,23 @@ class DeclarationRegistrationOptions
 
 class DefinitionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DefinitionClientCapabilities.canParse,
-      DefinitionClientCapabilities.fromJson);
+    DefinitionClientCapabilities.canParse,
+    DefinitionClientCapabilities.fromJson,
+  );
 
-  DefinitionClientCapabilities({this.dynamicRegistration, this.linkSupport});
+  DefinitionClientCapabilities({
+    this.dynamicRegistration,
+    this.linkSupport,
+  });
   static DefinitionClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     final linkSupportJson = json['linkSupport'];
     final linkSupport = linkSupportJson as bool?;
     return DefinitionClientCapabilities(
-        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
+      dynamicRegistration: dynamicRegistration,
+      linkSupport: linkSupport,
+    );
   }
 
   /// Whether definition supports dynamic registration.
@@ -7993,24 +8511,33 @@ class DefinitionClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, linkSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        linkSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DefinitionOptions.canParse, DefinitionOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DefinitionOptions.canParse,
+    DefinitionOptions.fromJson,
+  );
 
-  DefinitionOptions({this.workDoneProgress});
+  DefinitionOptions({
+    this.workDoneProgress,
+  });
   static DefinitionOptions fromJson(Map<String, Object?> json) {
     if (DefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DefinitionRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return DefinitionOptions(workDoneProgress: workDoneProgress);
+    return DefinitionOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -8063,14 +8590,17 @@ class DefinitionParams
         WorkDoneProgressParams,
         PartialResultParams,
         ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DefinitionParams.canParse, DefinitionParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DefinitionParams.canParse,
+    DefinitionParams.fromJson,
+  );
 
-  DefinitionParams(
-      {required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  DefinitionParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static DefinitionParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -8094,10 +8624,11 @@ class DefinitionParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DefinitionParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -8206,8 +8737,12 @@ class DefinitionParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, position, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -8216,10 +8751,14 @@ class DefinitionParams
 class DefinitionRegistrationOptions
     implements TextDocumentRegistrationOptions, DefinitionOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DefinitionRegistrationOptions.canParse,
-      DefinitionRegistrationOptions.fromJson);
+    DefinitionRegistrationOptions.canParse,
+    DefinitionRegistrationOptions.fromJson,
+  );
 
-  DefinitionRegistrationOptions({this.documentSelector, this.workDoneProgress});
+  DefinitionRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static DefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -8228,7 +8767,9 @@ class DefinitionRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DefinitionRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -8294,8 +8835,10 @@ class DefinitionRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -8303,14 +8846,17 @@ class DefinitionRegistrationOptions
 
 /// Delete file operation
 class DeleteFile implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DeleteFile.canParse,
+    DeleteFile.fromJson,
+  );
 
-  DeleteFile(
-      {this.kind = 'delete',
-      required this.uri,
-      this.options,
-      this.annotationId}) {
+  DeleteFile({
+    this.kind = 'delete',
+    required this.uri,
+    this.options,
+    this.annotationId,
+  }) {
     if (kind != 'delete') {
       throw 'kind may only be the literal \'delete\'';
     }
@@ -8327,7 +8873,11 @@ class DeleteFile implements ToJsonable {
     final annotationIdJson = json['annotationId'];
     final annotationId = annotationIdJson as String?;
     return DeleteFile(
-        kind: kind, uri: uri, options: options, annotationId: annotationId);
+      kind: kind,
+      uri: uri,
+      options: options,
+      annotationId: annotationId,
+    );
   }
 
   /// An optional annotation identifer describing the operation.
@@ -8435,7 +8985,12 @@ class DeleteFile implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(kind, uri, options, annotationId);
+  int get hashCode => Object.hash(
+        kind,
+        uri,
+        options,
+        annotationId,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -8443,17 +8998,24 @@ class DeleteFile implements ToJsonable {
 
 /// Delete file options
 class DeleteFileOptions implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DeleteFileOptions.canParse,
+    DeleteFileOptions.fromJson,
+  );
 
-  DeleteFileOptions({this.recursive, this.ignoreIfNotExists});
+  DeleteFileOptions({
+    this.recursive,
+    this.ignoreIfNotExists,
+  });
   static DeleteFileOptions fromJson(Map<String, Object?> json) {
     final recursiveJson = json['recursive'];
     final recursive = recursiveJson as bool?;
     final ignoreIfNotExistsJson = json['ignoreIfNotExists'];
     final ignoreIfNotExists = ignoreIfNotExistsJson as bool?;
     return DeleteFileOptions(
-        recursive: recursive, ignoreIfNotExists: ignoreIfNotExists);
+      recursive: recursive,
+      ignoreIfNotExists: ignoreIfNotExists,
+    );
   }
 
   /// Ignore the operation if the file doesn't exist.
@@ -8513,7 +9075,10 @@ class DeleteFileOptions implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(recursive, ignoreIfNotExists);
+  int get hashCode => Object.hash(
+        recursive,
+        ignoreIfNotExists,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -8523,16 +9088,22 @@ class DeleteFileOptions implements ToJsonable {
 /// files.
 ///  @since 3.16.0
 class DeleteFilesParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DeleteFilesParams.canParse, DeleteFilesParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DeleteFilesParams.canParse,
+    DeleteFilesParams.fromJson,
+  );
 
-  DeleteFilesParams({required this.files});
+  DeleteFilesParams({
+    required this.files,
+  });
   static DeleteFilesParams fromJson(Map<String, Object?> json) {
     final filesJson = json['files'];
     final files = (filesJson as List<Object?>)
         .map((item) => FileDelete.fromJson(item as Map<String, Object?>))
         .toList();
-    return DeleteFilesParams(files: files);
+    return DeleteFilesParams(
+      files: files,
+    );
   }
 
   /// An array of all files/folders deleted in this operation.
@@ -8590,19 +9161,22 @@ class DeleteFilesParams implements ToJsonable {
 }
 
 class Diagnostic implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Diagnostic.canParse,
+    Diagnostic.fromJson,
+  );
 
-  Diagnostic(
-      {required this.range,
-      this.severity,
-      this.code,
-      this.codeDescription,
-      this.source,
-      required this.message,
-      this.tags,
-      this.relatedInformation,
-      this.data});
+  Diagnostic({
+    required this.range,
+    this.severity,
+    this.code,
+    this.codeDescription,
+    this.source,
+    required this.message,
+    this.tags,
+    this.relatedInformation,
+    this.data,
+  });
   static Diagnostic fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
@@ -8632,15 +9206,16 @@ class Diagnostic implements ToJsonable {
     final dataJson = json['data'];
     final data = dataJson;
     return Diagnostic(
-        range: range,
-        severity: severity,
-        code: code,
-        codeDescription: codeDescription,
-        source: source,
-        message: message,
-        tags: tags,
-        relatedInformation: relatedInformation,
-        data: data);
+      range: range,
+      severity: severity,
+      code: code,
+      codeDescription: codeDescription,
+      source: source,
+      message: message,
+      tags: tags,
+      relatedInformation: relatedInformation,
+      data: data,
+    );
   }
 
   /// The diagnostic's code, which might appear in the user interface.
@@ -8846,15 +9421,16 @@ class Diagnostic implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      range,
-      severity,
-      code,
-      codeDescription,
-      source,
-      message,
-      lspHashCode(tags),
-      lspHashCode(relatedInformation),
-      data);
+        range,
+        severity,
+        code,
+        codeDescription,
+        source,
+        message,
+        lspHashCode(tags),
+        lspHashCode(relatedInformation),
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -8865,16 +9441,23 @@ class Diagnostic implements ToJsonable {
 /// diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DiagnosticRelatedInformation.canParse,
-      DiagnosticRelatedInformation.fromJson);
+    DiagnosticRelatedInformation.canParse,
+    DiagnosticRelatedInformation.fromJson,
+  );
 
-  DiagnosticRelatedInformation({required this.location, required this.message});
+  DiagnosticRelatedInformation({
+    required this.location,
+    required this.message,
+  });
   static DiagnosticRelatedInformation fromJson(Map<String, Object?> json) {
     final locationJson = json['location'];
     final location = Location.fromJson(locationJson as Map<String, Object?>);
     final messageJson = json['message'];
     final message = messageJson as String;
-    return DiagnosticRelatedInformation(location: location, message: message);
+    return DiagnosticRelatedInformation(
+      location: location,
+      message: message,
+    );
   }
 
   /// The location of this related diagnostic information.
@@ -8945,7 +9528,10 @@ class DiagnosticRelatedInformation implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(location, message);
+  int get hashCode => Object.hash(
+        location,
+        message,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -9020,16 +9606,20 @@ class DiagnosticTag {
 
 class DidChangeConfigurationClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeConfigurationClientCapabilities.canParse,
-      DidChangeConfigurationClientCapabilities.fromJson);
+    DidChangeConfigurationClientCapabilities.canParse,
+    DidChangeConfigurationClientCapabilities.fromJson,
+  );
 
-  DidChangeConfigurationClientCapabilities({this.dynamicRegistration});
+  DidChangeConfigurationClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DidChangeConfigurationClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DidChangeConfigurationClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Did change configuration notification supports dynamic registration.
@@ -9081,14 +9671,19 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
 
 class DidChangeConfigurationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeConfigurationParams.canParse,
-      DidChangeConfigurationParams.fromJson);
+    DidChangeConfigurationParams.canParse,
+    DidChangeConfigurationParams.fromJson,
+  );
 
-  DidChangeConfigurationParams({this.settings});
+  DidChangeConfigurationParams({
+    this.settings,
+  });
   static DidChangeConfigurationParams fromJson(Map<String, Object?> json) {
     final settingsJson = json['settings'];
     final settings = settingsJson;
-    return DidChangeConfigurationParams(settings: settings);
+    return DidChangeConfigurationParams(
+      settings: settings,
+    );
   }
 
   /// The actual changed settings
@@ -9127,11 +9722,14 @@ class DidChangeConfigurationParams implements ToJsonable {
 
 class DidChangeTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeTextDocumentParams.canParse,
-      DidChangeTextDocumentParams.fromJson);
+    DidChangeTextDocumentParams.canParse,
+    DidChangeTextDocumentParams.fromJson,
+  );
 
-  DidChangeTextDocumentParams(
-      {required this.textDocument, required this.contentChanges});
+  DidChangeTextDocumentParams({
+    required this.textDocument,
+    required this.contentChanges,
+  });
   static DidChangeTextDocumentParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = VersionedTextDocumentIdentifier.fromJson(
@@ -9150,7 +9748,9 @@ class DidChangeTextDocumentParams implements ToJsonable {
                 : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
         .toList();
     return DidChangeTextDocumentParams(
-        textDocument: textDocument, contentChanges: contentChanges);
+      textDocument: textDocument,
+      contentChanges: contentChanges,
+    );
   }
 
   /// The actual content changes. The content changes describe single state
@@ -9254,7 +9854,10 @@ class DidChangeTextDocumentParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, lspHashCode(contentChanges));
+  int get hashCode => Object.hash(
+        textDocument,
+        lspHashCode(contentChanges),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -9262,16 +9865,20 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
 class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeWatchedFilesClientCapabilities.canParse,
-      DidChangeWatchedFilesClientCapabilities.fromJson);
+    DidChangeWatchedFilesClientCapabilities.canParse,
+    DidChangeWatchedFilesClientCapabilities.fromJson,
+  );
 
-  DidChangeWatchedFilesClientCapabilities({this.dynamicRegistration});
+  DidChangeWatchedFilesClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DidChangeWatchedFilesClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DidChangeWatchedFilesClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Did change watched files notification supports dynamic registration.
@@ -9325,16 +9932,21 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
 
 class DidChangeWatchedFilesParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeWatchedFilesParams.canParse,
-      DidChangeWatchedFilesParams.fromJson);
+    DidChangeWatchedFilesParams.canParse,
+    DidChangeWatchedFilesParams.fromJson,
+  );
 
-  DidChangeWatchedFilesParams({required this.changes});
+  DidChangeWatchedFilesParams({
+    required this.changes,
+  });
   static DidChangeWatchedFilesParams fromJson(Map<String, Object?> json) {
     final changesJson = json['changes'];
     final changes = (changesJson as List<Object?>)
         .map((item) => FileEvent.fromJson(item as Map<String, Object?>))
         .toList();
-    return DidChangeWatchedFilesParams(changes: changes);
+    return DidChangeWatchedFilesParams(
+      changes: changes,
+    );
   }
 
   /// The actual file events.
@@ -9395,17 +10007,22 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 /// Describe options to be used when registering for file system change events.
 class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeWatchedFilesRegistrationOptions.canParse,
-      DidChangeWatchedFilesRegistrationOptions.fromJson);
+    DidChangeWatchedFilesRegistrationOptions.canParse,
+    DidChangeWatchedFilesRegistrationOptions.fromJson,
+  );
 
-  DidChangeWatchedFilesRegistrationOptions({required this.watchers});
+  DidChangeWatchedFilesRegistrationOptions({
+    required this.watchers,
+  });
   static DidChangeWatchedFilesRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final watchersJson = json['watchers'];
     final watchers = (watchersJson as List<Object?>)
         .map((item) => FileSystemWatcher.fromJson(item as Map<String, Object?>))
         .toList();
-    return DidChangeWatchedFilesRegistrationOptions(watchers: watchers);
+    return DidChangeWatchedFilesRegistrationOptions(
+      watchers: watchers,
+    );
   }
 
   /// The watchers to register.
@@ -9467,15 +10084,20 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
 class DidChangeWorkspaceFoldersParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidChangeWorkspaceFoldersParams.canParse,
-      DidChangeWorkspaceFoldersParams.fromJson);
+    DidChangeWorkspaceFoldersParams.canParse,
+    DidChangeWorkspaceFoldersParams.fromJson,
+  );
 
-  DidChangeWorkspaceFoldersParams({required this.event});
+  DidChangeWorkspaceFoldersParams({
+    required this.event,
+  });
   static DidChangeWorkspaceFoldersParams fromJson(Map<String, Object?> json) {
     final eventJson = json['event'];
     final event =
         WorkspaceFoldersChangeEvent.fromJson(eventJson as Map<String, Object?>);
-    return DidChangeWorkspaceFoldersParams(event: event);
+    return DidChangeWorkspaceFoldersParams(
+      event: event,
+    );
   }
 
   /// The actual workspace folder change event.
@@ -9532,14 +10154,20 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 
 class DidCloseTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
+    DidCloseTextDocumentParams.canParse,
+    DidCloseTextDocumentParams.fromJson,
+  );
 
-  DidCloseTextDocumentParams({required this.textDocument});
+  DidCloseTextDocumentParams({
+    required this.textDocument,
+  });
   static DidCloseTextDocumentParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
-    return DidCloseTextDocumentParams(textDocument: textDocument);
+    return DidCloseTextDocumentParams(
+      textDocument: textDocument,
+    );
   }
 
   /// The document that was closed.
@@ -9596,14 +10224,20 @@ class DidCloseTextDocumentParams implements ToJsonable {
 
 class DidOpenTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
+    DidOpenTextDocumentParams.canParse,
+    DidOpenTextDocumentParams.fromJson,
+  );
 
-  DidOpenTextDocumentParams({required this.textDocument});
+  DidOpenTextDocumentParams({
+    required this.textDocument,
+  });
   static DidOpenTextDocumentParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument =
         TextDocumentItem.fromJson(textDocumentJson as Map<String, Object?>);
-    return DidOpenTextDocumentParams(textDocument: textDocument);
+    return DidOpenTextDocumentParams(
+      textDocument: textDocument,
+    );
   }
 
   /// The document that was opened.
@@ -9660,16 +10294,24 @@ class DidOpenTextDocumentParams implements ToJsonable {
 
 class DidSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
+    DidSaveTextDocumentParams.canParse,
+    DidSaveTextDocumentParams.fromJson,
+  );
 
-  DidSaveTextDocumentParams({required this.textDocument, this.text});
+  DidSaveTextDocumentParams({
+    required this.textDocument,
+    this.text,
+  });
   static DidSaveTextDocumentParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final textJson = json['text'];
     final text = textJson as String?;
-    return DidSaveTextDocumentParams(textDocument: textDocument, text: text);
+    return DidSaveTextDocumentParams(
+      textDocument: textDocument,
+      text: text,
+    );
   }
 
   /// Optional the content when saved. Depends on the includeText value when the
@@ -9735,7 +10377,10 @@ class DidSaveTextDocumentParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, text);
+  int get hashCode => Object.hash(
+        textDocument,
+        text,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -9743,15 +10388,19 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
 class DocumentColorClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentColorClientCapabilities.canParse,
-      DocumentColorClientCapabilities.fromJson);
+    DocumentColorClientCapabilities.canParse,
+    DocumentColorClientCapabilities.fromJson,
+  );
 
-  DocumentColorClientCapabilities({this.dynamicRegistration});
+  DocumentColorClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DocumentColorClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentColorClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether document color supports dynamic registration.
@@ -9802,16 +10451,22 @@ class DocumentColorClientCapabilities implements ToJsonable {
 
 class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentColorOptions.canParse, DocumentColorOptions.fromJson);
+    DocumentColorOptions.canParse,
+    DocumentColorOptions.fromJson,
+  );
 
-  DocumentColorOptions({this.workDoneProgress});
+  DocumentColorOptions({
+    this.workDoneProgress,
+  });
   static DocumentColorOptions fromJson(Map<String, Object?> json) {
     if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return DocumentColorOptions(workDoneProgress: workDoneProgress);
+    return DocumentColorOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -9862,12 +10517,15 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
 class DocumentColorParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentColorParams.canParse, DocumentColorParams.fromJson);
+    DocumentColorParams.canParse,
+    DocumentColorParams.fromJson,
+  );
 
-  DocumentColorParams(
-      {required this.textDocument,
-      this.workDoneToken,
-      this.partialResultToken});
+  DocumentColorParams({
+    required this.textDocument,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static DocumentColorParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -9889,9 +10547,10 @@ class DocumentColorParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentColorParams(
-        textDocument: textDocument,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -9978,8 +10637,11 @@ class DocumentColorParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -9992,11 +10654,15 @@ class DocumentColorRegistrationOptions
         DocumentColorOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentColorRegistrationOptions.canParse,
-      DocumentColorRegistrationOptions.fromJson);
+    DocumentColorRegistrationOptions.canParse,
+    DocumentColorRegistrationOptions.fromJson,
+  );
 
-  DocumentColorRegistrationOptions(
-      {this.documentSelector, this.id, this.workDoneProgress});
+  DocumentColorRegistrationOptions({
+    this.documentSelector,
+    this.id,
+    this.workDoneProgress,
+  });
   static DocumentColorRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -10007,9 +10673,10 @@ class DocumentColorRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentColorRegistrationOptions(
-        documentSelector: documentSelector,
-        id: id,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      id: id,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -10093,18 +10760,27 @@ class DocumentColorRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), id, workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        id,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class DocumentFilter implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DocumentFilter.canParse,
+    DocumentFilter.fromJson,
+  );
 
-  DocumentFilter({this.language, this.scheme, this.pattern});
+  DocumentFilter({
+    this.language,
+    this.scheme,
+    this.pattern,
+  });
   static DocumentFilter fromJson(Map<String, Object?> json) {
     final languageJson = json['language'];
     final language = languageJson as String?;
@@ -10112,7 +10788,11 @@ class DocumentFilter implements ToJsonable {
     final scheme = schemeJson as String?;
     final patternJson = json['pattern'];
     final pattern = patternJson as String?;
-    return DocumentFilter(language: language, scheme: scheme, pattern: pattern);
+    return DocumentFilter(
+      language: language,
+      scheme: scheme,
+      pattern: pattern,
+    );
   }
 
   /// A language id, like `typescript`.
@@ -10124,8 +10804,8 @@ class DocumentFilter implements ToJsonable {
   /// - `*` to match one or more characters in a path segment
   /// - `?` to match on one character in a path segment
   /// - `**` to match any number of path segments, including none
-  /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-  ///   and JavaScript files)
+  /// - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+  ///   matches all TypeScript and JavaScript files)
   /// - `[]` to declare a range of characters to match in a path segment
   ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
   /// - `[!...]` to negate a range of characters to match in a path segment
@@ -10201,7 +10881,11 @@ class DocumentFilter implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(language, scheme, pattern);
+  int get hashCode => Object.hash(
+        language,
+        scheme,
+        pattern,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -10209,16 +10893,20 @@ class DocumentFilter implements ToJsonable {
 
 class DocumentFormattingClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentFormattingClientCapabilities.canParse,
-      DocumentFormattingClientCapabilities.fromJson);
+    DocumentFormattingClientCapabilities.canParse,
+    DocumentFormattingClientCapabilities.fromJson,
+  );
 
-  DocumentFormattingClientCapabilities({this.dynamicRegistration});
+  DocumentFormattingClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DocumentFormattingClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentFormattingClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether formatting supports dynamic registration.
@@ -10270,9 +10958,13 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
 
 class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentFormattingOptions.canParse, DocumentFormattingOptions.fromJson);
+    DocumentFormattingOptions.canParse,
+    DocumentFormattingOptions.fromJson,
+  );
 
-  DocumentFormattingOptions({this.workDoneProgress});
+  DocumentFormattingOptions({
+    this.workDoneProgress,
+  });
   static DocumentFormattingOptions fromJson(Map<String, Object?> json) {
     if (DocumentFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -10280,7 +10972,9 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return DocumentFormattingOptions(workDoneProgress: workDoneProgress);
+    return DocumentFormattingOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -10330,10 +11024,15 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentFormattingParams.canParse, DocumentFormattingParams.fromJson);
+    DocumentFormattingParams.canParse,
+    DocumentFormattingParams.fromJson,
+  );
 
-  DocumentFormattingParams(
-      {required this.textDocument, required this.options, this.workDoneToken});
+  DocumentFormattingParams({
+    required this.textDocument,
+    required this.options,
+    this.workDoneToken,
+  });
   static DocumentFormattingParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -10350,9 +11049,10 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return DocumentFormattingParams(
-        textDocument: textDocument,
-        options: options,
-        workDoneToken: workDoneToken);
+      textDocument: textDocument,
+      options: options,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The format options.
@@ -10443,7 +11143,11 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, options, workDoneToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        options,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -10455,11 +11159,14 @@ class DocumentFormattingRegistrationOptions
         DocumentFormattingOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentFormattingRegistrationOptions.canParse,
-      DocumentFormattingRegistrationOptions.fromJson);
+    DocumentFormattingRegistrationOptions.canParse,
+    DocumentFormattingRegistrationOptions.fromJson,
+  );
 
-  DocumentFormattingRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress});
+  DocumentFormattingRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static DocumentFormattingRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
@@ -10469,7 +11176,9 @@ class DocumentFormattingRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentFormattingRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -10536,8 +11245,10 @@ class DocumentFormattingRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -10547,10 +11258,15 @@ class DocumentFormattingRegistrationOptions
 /// special attention. Usually a document highlight is visualized by changing
 /// the background color of its range.
 class DocumentHighlight implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DocumentHighlight.canParse,
+    DocumentHighlight.fromJson,
+  );
 
-  DocumentHighlight({required this.range, this.kind});
+  DocumentHighlight({
+    required this.range,
+    this.kind,
+  });
   static DocumentHighlight fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
@@ -10558,7 +11274,10 @@ class DocumentHighlight implements ToJsonable {
     final kind = kindJson != null
         ? DocumentHighlightKind.fromJson(kindJson as int)
         : null;
-    return DocumentHighlight(range: range, kind: kind);
+    return DocumentHighlight(
+      range: range,
+      kind: kind,
+    );
   }
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
@@ -10622,7 +11341,10 @@ class DocumentHighlight implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, kind);
+  int get hashCode => Object.hash(
+        range,
+        kind,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -10630,16 +11352,20 @@ class DocumentHighlight implements ToJsonable {
 
 class DocumentHighlightClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentHighlightClientCapabilities.canParse,
-      DocumentHighlightClientCapabilities.fromJson);
+    DocumentHighlightClientCapabilities.canParse,
+    DocumentHighlightClientCapabilities.fromJson,
+  );
 
-  DocumentHighlightClientCapabilities({this.dynamicRegistration});
+  DocumentHighlightClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DocumentHighlightClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentHighlightClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether document highlight supports dynamic registration.
@@ -10723,9 +11449,13 @@ class DocumentHighlightKind {
 
 class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentHighlightOptions.canParse, DocumentHighlightOptions.fromJson);
+    DocumentHighlightOptions.canParse,
+    DocumentHighlightOptions.fromJson,
+  );
 
-  DocumentHighlightOptions({this.workDoneProgress});
+  DocumentHighlightOptions({
+    this.workDoneProgress,
+  });
   static DocumentHighlightOptions fromJson(Map<String, Object?> json) {
     if (DocumentHighlightRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -10733,7 +11463,9 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return DocumentHighlightOptions(workDoneProgress: workDoneProgress);
+    return DocumentHighlightOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -10788,13 +11520,16 @@ class DocumentHighlightParams
         PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentHighlightParams.canParse, DocumentHighlightParams.fromJson);
+    DocumentHighlightParams.canParse,
+    DocumentHighlightParams.fromJson,
+  );
 
-  DocumentHighlightParams(
-      {required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  DocumentHighlightParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static DocumentHighlightParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -10818,10 +11553,11 @@ class DocumentHighlightParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentHighlightParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -10931,8 +11667,12 @@ class DocumentHighlightParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, position, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -10944,11 +11684,14 @@ class DocumentHighlightRegistrationOptions
         DocumentHighlightOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentHighlightRegistrationOptions.canParse,
-      DocumentHighlightRegistrationOptions.fromJson);
+    DocumentHighlightRegistrationOptions.canParse,
+    DocumentHighlightRegistrationOptions.fromJson,
+  );
 
-  DocumentHighlightRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress});
+  DocumentHighlightRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static DocumentHighlightRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
@@ -10958,7 +11701,9 @@ class DocumentHighlightRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentHighlightRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -11025,8 +11770,10 @@ class DocumentHighlightRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11035,10 +11782,17 @@ class DocumentHighlightRegistrationOptions
 /// A document link is a range in a text document that links to an internal or
 /// external resource, like another text document or a web site.
 class DocumentLink implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DocumentLink.canParse,
+    DocumentLink.fromJson,
+  );
 
-  DocumentLink({required this.range, this.target, this.tooltip, this.data});
+  DocumentLink({
+    required this.range,
+    this.target,
+    this.tooltip,
+    this.data,
+  });
   static DocumentLink fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
@@ -11049,7 +11803,11 @@ class DocumentLink implements ToJsonable {
     final dataJson = json['data'];
     final data = dataJson;
     return DocumentLink(
-        range: range, target: target, tooltip: tooltip, data: data);
+      range: range,
+      target: target,
+      tooltip: tooltip,
+      data: data,
+    );
   }
 
   /// A data entry field that is preserved on a document link between a
@@ -11146,7 +11904,12 @@ class DocumentLink implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, target, tooltip, data);
+  int get hashCode => Object.hash(
+        range,
+        target,
+        tooltip,
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11154,19 +11917,23 @@ class DocumentLink implements ToJsonable {
 
 class DocumentLinkClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentLinkClientCapabilities.canParse,
-      DocumentLinkClientCapabilities.fromJson);
+    DocumentLinkClientCapabilities.canParse,
+    DocumentLinkClientCapabilities.fromJson,
+  );
 
-  DocumentLinkClientCapabilities(
-      {this.dynamicRegistration, this.tooltipSupport});
+  DocumentLinkClientCapabilities({
+    this.dynamicRegistration,
+    this.tooltipSupport,
+  });
   static DocumentLinkClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     final tooltipSupportJson = json['tooltipSupport'];
     final tooltipSupport = tooltipSupportJson as bool?;
     return DocumentLinkClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        tooltipSupport: tooltipSupport);
+      dynamicRegistration: dynamicRegistration,
+      tooltipSupport: tooltipSupport,
+    );
   }
 
   /// Whether document link supports dynamic registration.
@@ -11228,7 +11995,10 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, tooltipSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        tooltipSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11236,9 +12006,14 @@ class DocumentLinkClientCapabilities implements ToJsonable {
 
 class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentLinkOptions.canParse, DocumentLinkOptions.fromJson);
+    DocumentLinkOptions.canParse,
+    DocumentLinkOptions.fromJson,
+  );
 
-  DocumentLinkOptions({this.resolveProvider, this.workDoneProgress});
+  DocumentLinkOptions({
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static DocumentLinkOptions fromJson(Map<String, Object?> json) {
     if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentLinkRegistrationOptions.fromJson(json);
@@ -11248,7 +12023,9 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentLinkOptions(
-        resolveProvider: resolveProvider, workDoneProgress: workDoneProgress);
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// Document links have a resolve provider as well.
@@ -11307,7 +12084,10 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(resolveProvider, workDoneProgress);
+  int get hashCode => Object.hash(
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11315,13 +12095,16 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class DocumentLinkParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DocumentLinkParams.canParse,
+    DocumentLinkParams.fromJson,
+  );
 
-  DocumentLinkParams(
-      {required this.textDocument,
-      this.workDoneToken,
-      this.partialResultToken});
+  DocumentLinkParams({
+    required this.textDocument,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static DocumentLinkParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -11343,9 +12126,10 @@ class DocumentLinkParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentLinkParams(
-        textDocument: textDocument,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -11432,8 +12216,11 @@ class DocumentLinkParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11445,11 +12232,15 @@ class DocumentLinkRegistrationOptions
         DocumentLinkOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentLinkRegistrationOptions.canParse,
-      DocumentLinkRegistrationOptions.fromJson);
+    DocumentLinkRegistrationOptions.canParse,
+    DocumentLinkRegistrationOptions.fromJson,
+  );
 
-  DocumentLinkRegistrationOptions(
-      {this.documentSelector, this.resolveProvider, this.workDoneProgress});
+  DocumentLinkRegistrationOptions({
+    this.documentSelector,
+    this.resolveProvider,
+    this.workDoneProgress,
+  });
   static DocumentLinkRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -11460,9 +12251,10 @@ class DocumentLinkRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentLinkRegistrationOptions(
-        documentSelector: documentSelector,
-        resolveProvider: resolveProvider,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      resolveProvider: resolveProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -11546,7 +12338,10 @@ class DocumentLinkRegistrationOptions
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(documentSelector), resolveProvider, workDoneProgress);
+        lspHashCode(documentSelector),
+        resolveProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11554,16 +12349,20 @@ class DocumentLinkRegistrationOptions
 
 class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentOnTypeFormattingClientCapabilities.canParse,
-      DocumentOnTypeFormattingClientCapabilities.fromJson);
+    DocumentOnTypeFormattingClientCapabilities.canParse,
+    DocumentOnTypeFormattingClientCapabilities.fromJson,
+  );
 
-  DocumentOnTypeFormattingClientCapabilities({this.dynamicRegistration});
+  DocumentOnTypeFormattingClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DocumentOnTypeFormattingClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentOnTypeFormattingClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether on type formatting supports dynamic registration.
@@ -11615,11 +12414,14 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
 
 class DocumentOnTypeFormattingOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentOnTypeFormattingOptions.canParse,
-      DocumentOnTypeFormattingOptions.fromJson);
+    DocumentOnTypeFormattingOptions.canParse,
+    DocumentOnTypeFormattingOptions.fromJson,
+  );
 
-  DocumentOnTypeFormattingOptions(
-      {required this.firstTriggerCharacter, this.moreTriggerCharacter});
+  DocumentOnTypeFormattingOptions({
+    required this.firstTriggerCharacter,
+    this.moreTriggerCharacter,
+  });
   static DocumentOnTypeFormattingOptions fromJson(Map<String, Object?> json) {
     if (DocumentOnTypeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -11632,8 +12434,9 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
         ?.map((item) => item as String)
         .toList();
     return DocumentOnTypeFormattingOptions(
-        firstTriggerCharacter: firstTriggerCharacter,
-        moreTriggerCharacter: moreTriggerCharacter);
+      firstTriggerCharacter: firstTriggerCharacter,
+      moreTriggerCharacter: moreTriggerCharacter,
+    );
   }
 
   /// A character on which formatting should be triggered, like `}`.
@@ -11703,8 +12506,10 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(firstTriggerCharacter, lspHashCode(moreTriggerCharacter));
+  int get hashCode => Object.hash(
+        firstTriggerCharacter,
+        lspHashCode(moreTriggerCharacter),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11713,14 +12518,16 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 class DocumentOnTypeFormattingParams
     implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentOnTypeFormattingParams.canParse,
-      DocumentOnTypeFormattingParams.fromJson);
+    DocumentOnTypeFormattingParams.canParse,
+    DocumentOnTypeFormattingParams.fromJson,
+  );
 
-  DocumentOnTypeFormattingParams(
-      {required this.ch,
-      required this.options,
-      required this.textDocument,
-      required this.position});
+  DocumentOnTypeFormattingParams({
+    required this.ch,
+    required this.options,
+    required this.textDocument,
+    required this.position,
+  });
   static DocumentOnTypeFormattingParams fromJson(Map<String, Object?> json) {
     final chJson = json['ch'];
     final ch = chJson as String;
@@ -11733,10 +12540,11 @@ class DocumentOnTypeFormattingParams
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     return DocumentOnTypeFormattingParams(
-        ch: ch,
-        options: options,
-        textDocument: textDocument,
-        position: position);
+      ch: ch,
+      options: options,
+      textDocument: textDocument,
+      position: position,
+    );
   }
 
   /// The character that has been typed.
@@ -11855,7 +12663,12 @@ class DocumentOnTypeFormattingParams
   }
 
   @override
-  int get hashCode => Object.hash(ch, options, textDocument, position);
+  int get hashCode => Object.hash(
+        ch,
+        options,
+        textDocument,
+        position,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11867,13 +12680,15 @@ class DocumentOnTypeFormattingRegistrationOptions
         DocumentOnTypeFormattingOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentOnTypeFormattingRegistrationOptions.canParse,
-      DocumentOnTypeFormattingRegistrationOptions.fromJson);
+    DocumentOnTypeFormattingRegistrationOptions.canParse,
+    DocumentOnTypeFormattingRegistrationOptions.fromJson,
+  );
 
-  DocumentOnTypeFormattingRegistrationOptions(
-      {this.documentSelector,
-      required this.firstTriggerCharacter,
-      this.moreTriggerCharacter});
+  DocumentOnTypeFormattingRegistrationOptions({
+    this.documentSelector,
+    required this.firstTriggerCharacter,
+    this.moreTriggerCharacter,
+  });
   static DocumentOnTypeFormattingRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
@@ -11887,9 +12702,10 @@ class DocumentOnTypeFormattingRegistrationOptions
         ?.map((item) => item as String)
         .toList();
     return DocumentOnTypeFormattingRegistrationOptions(
-        documentSelector: documentSelector,
-        firstTriggerCharacter: firstTriggerCharacter,
-        moreTriggerCharacter: moreTriggerCharacter);
+      documentSelector: documentSelector,
+      firstTriggerCharacter: firstTriggerCharacter,
+      moreTriggerCharacter: moreTriggerCharacter,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -11984,8 +12800,11 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(documentSelector),
-      firstTriggerCharacter, lspHashCode(moreTriggerCharacter));
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        firstTriggerCharacter,
+        lspHashCode(moreTriggerCharacter),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -11993,16 +12812,20 @@ class DocumentOnTypeFormattingRegistrationOptions
 
 class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentRangeFormattingClientCapabilities.canParse,
-      DocumentRangeFormattingClientCapabilities.fromJson);
+    DocumentRangeFormattingClientCapabilities.canParse,
+    DocumentRangeFormattingClientCapabilities.fromJson,
+  );
 
-  DocumentRangeFormattingClientCapabilities({this.dynamicRegistration});
+  DocumentRangeFormattingClientCapabilities({
+    this.dynamicRegistration,
+  });
   static DocumentRangeFormattingClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentRangeFormattingClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether formatting supports dynamic registration.
@@ -12055,10 +12878,13 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
 class DocumentRangeFormattingOptions
     implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentRangeFormattingOptions.canParse,
-      DocumentRangeFormattingOptions.fromJson);
+    DocumentRangeFormattingOptions.canParse,
+    DocumentRangeFormattingOptions.fromJson,
+  );
 
-  DocumentRangeFormattingOptions({this.workDoneProgress});
+  DocumentRangeFormattingOptions({
+    this.workDoneProgress,
+  });
   static DocumentRangeFormattingOptions fromJson(Map<String, Object?> json) {
     if (DocumentRangeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -12066,7 +12892,9 @@ class DocumentRangeFormattingOptions
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return DocumentRangeFormattingOptions(workDoneProgress: workDoneProgress);
+    return DocumentRangeFormattingOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -12117,14 +12945,16 @@ class DocumentRangeFormattingOptions
 class DocumentRangeFormattingParams
     implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentRangeFormattingParams.canParse,
-      DocumentRangeFormattingParams.fromJson);
+    DocumentRangeFormattingParams.canParse,
+    DocumentRangeFormattingParams.fromJson,
+  );
 
-  DocumentRangeFormattingParams(
-      {required this.textDocument,
-      required this.range,
-      required this.options,
-      this.workDoneToken});
+  DocumentRangeFormattingParams({
+    required this.textDocument,
+    required this.range,
+    required this.options,
+    this.workDoneToken,
+  });
   static DocumentRangeFormattingParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -12143,10 +12973,11 @@ class DocumentRangeFormattingParams
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return DocumentRangeFormattingParams(
-        textDocument: textDocument,
-        range: range,
-        options: options,
-        workDoneToken: workDoneToken);
+      textDocument: textDocument,
+      range: range,
+      options: options,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The format options
@@ -12260,7 +13091,12 @@ class DocumentRangeFormattingParams
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, range, options, workDoneToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        range,
+        options,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -12272,11 +13108,14 @@ class DocumentRangeFormattingRegistrationOptions
         DocumentRangeFormattingOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentRangeFormattingRegistrationOptions.canParse,
-      DocumentRangeFormattingRegistrationOptions.fromJson);
+    DocumentRangeFormattingRegistrationOptions.canParse,
+    DocumentRangeFormattingRegistrationOptions.fromJson,
+  );
 
-  DocumentRangeFormattingRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress});
+  DocumentRangeFormattingRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static DocumentRangeFormattingRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
@@ -12286,7 +13125,9 @@ class DocumentRangeFormattingRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentRangeFormattingRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -12353,8 +13194,10 @@ class DocumentRangeFormattingRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -12365,18 +13208,21 @@ class DocumentRangeFormattingRegistrationOptions
 /// have two ranges: one that encloses its definition and one that points to its
 /// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    DocumentSymbol.canParse,
+    DocumentSymbol.fromJson,
+  );
 
-  DocumentSymbol(
-      {required this.name,
-      this.detail,
-      required this.kind,
-      this.tags,
-      this.deprecated,
-      required this.range,
-      required this.selectionRange,
-      this.children});
+  DocumentSymbol({
+    required this.name,
+    this.detail,
+    required this.kind,
+    this.tags,
+    this.deprecated,
+    required this.range,
+    required this.selectionRange,
+    this.children,
+  });
   static DocumentSymbol fromJson(Map<String, Object?> json) {
     final nameJson = json['name'];
     final name = nameJson as String;
@@ -12400,14 +13246,15 @@ class DocumentSymbol implements ToJsonable {
         ?.map((item) => DocumentSymbol.fromJson(item as Map<String, Object?>))
         .toList();
     return DocumentSymbol(
-        name: name,
-        detail: detail,
-        kind: kind,
-        tags: tags,
-        deprecated: deprecated,
-        range: range,
-        selectionRange: selectionRange,
-        children: children);
+      name: name,
+      detail: detail,
+      kind: kind,
+      tags: tags,
+      deprecated: deprecated,
+      range: range,
+      selectionRange: selectionRange,
+      children: children,
+    );
   }
 
   /// Children of this symbol, e.g. properties of a class.
@@ -12607,8 +13454,16 @@ class DocumentSymbol implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(name, detail, kind, lspHashCode(tags),
-      deprecated, range, selectionRange, lspHashCode(children));
+  int get hashCode => Object.hash(
+        name,
+        detail,
+        kind,
+        lspHashCode(tags),
+        deprecated,
+        range,
+        selectionRange,
+        lspHashCode(children),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -12616,15 +13471,17 @@ class DocumentSymbol implements ToJsonable {
 
 class DocumentSymbolClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentSymbolClientCapabilities.canParse,
-      DocumentSymbolClientCapabilities.fromJson);
+    DocumentSymbolClientCapabilities.canParse,
+    DocumentSymbolClientCapabilities.fromJson,
+  );
 
-  DocumentSymbolClientCapabilities(
-      {this.dynamicRegistration,
-      this.symbolKind,
-      this.hierarchicalDocumentSymbolSupport,
-      this.tagSupport,
-      this.labelSupport});
+  DocumentSymbolClientCapabilities({
+    this.dynamicRegistration,
+    this.symbolKind,
+    this.hierarchicalDocumentSymbolSupport,
+    this.tagSupport,
+    this.labelSupport,
+  });
   static DocumentSymbolClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -12645,11 +13502,12 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
     final labelSupportJson = json['labelSupport'];
     final labelSupport = labelSupportJson as bool?;
     return DocumentSymbolClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        symbolKind: symbolKind,
-        hierarchicalDocumentSymbolSupport: hierarchicalDocumentSymbolSupport,
-        tagSupport: tagSupport,
-        labelSupport: labelSupport);
+      dynamicRegistration: dynamicRegistration,
+      symbolKind: symbolKind,
+      hierarchicalDocumentSymbolSupport: hierarchicalDocumentSymbolSupport,
+      tagSupport: tagSupport,
+      labelSupport: labelSupport,
+    );
   }
 
   /// Whether document symbol supports dynamic registration.
@@ -12777,8 +13635,13 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, symbolKind,
-      hierarchicalDocumentSymbolSupport, tagSupport, labelSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        symbolKind,
+        hierarchicalDocumentSymbolSupport,
+        tagSupport,
+        labelSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -12786,17 +13649,22 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
 
 class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentSymbolClientCapabilitiesSymbolKind.canParse,
-      DocumentSymbolClientCapabilitiesSymbolKind.fromJson);
+    DocumentSymbolClientCapabilitiesSymbolKind.canParse,
+    DocumentSymbolClientCapabilitiesSymbolKind.fromJson,
+  );
 
-  DocumentSymbolClientCapabilitiesSymbolKind({this.valueSet});
+  DocumentSymbolClientCapabilitiesSymbolKind({
+    this.valueSet,
+  });
   static DocumentSymbolClientCapabilitiesSymbolKind fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>?)
         ?.map((item) => SymbolKind.fromJson(item as int))
         .toList();
-    return DocumentSymbolClientCapabilitiesSymbolKind(valueSet: valueSet);
+    return DocumentSymbolClientCapabilitiesSymbolKind(
+      valueSet: valueSet,
+    );
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -12858,17 +13726,22 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
 
 class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentSymbolClientCapabilitiesTagSupport.canParse,
-      DocumentSymbolClientCapabilitiesTagSupport.fromJson);
+    DocumentSymbolClientCapabilitiesTagSupport.canParse,
+    DocumentSymbolClientCapabilitiesTagSupport.fromJson,
+  );
 
-  DocumentSymbolClientCapabilitiesTagSupport({required this.valueSet});
+  DocumentSymbolClientCapabilitiesTagSupport({
+    required this.valueSet,
+  });
   static DocumentSymbolClientCapabilitiesTagSupport fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
         .map((item) => SymbolTag.fromJson(item as int))
         .toList();
-    return DocumentSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
+    return DocumentSymbolClientCapabilitiesTagSupport(
+      valueSet: valueSet,
+    );
   }
 
   /// The tags supported by the client.
@@ -12929,9 +13802,14 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
 class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentSymbolOptions.canParse, DocumentSymbolOptions.fromJson);
+    DocumentSymbolOptions.canParse,
+    DocumentSymbolOptions.fromJson,
+  );
 
-  DocumentSymbolOptions({this.label, this.workDoneProgress});
+  DocumentSymbolOptions({
+    this.label,
+    this.workDoneProgress,
+  });
   static DocumentSymbolOptions fromJson(Map<String, Object?> json) {
     if (DocumentSymbolRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentSymbolRegistrationOptions.fromJson(json);
@@ -12941,7 +13819,9 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentSymbolOptions(
-        label: label, workDoneProgress: workDoneProgress);
+      label: label,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A human-readable string that is shown when multiple outlines trees are
@@ -13002,7 +13882,10 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(label, workDoneProgress);
+  int get hashCode => Object.hash(
+        label,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13011,12 +13894,15 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 class DocumentSymbolParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentSymbolParams.canParse, DocumentSymbolParams.fromJson);
+    DocumentSymbolParams.canParse,
+    DocumentSymbolParams.fromJson,
+  );
 
-  DocumentSymbolParams(
-      {required this.textDocument,
-      this.workDoneToken,
-      this.partialResultToken});
+  DocumentSymbolParams({
+    required this.textDocument,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static DocumentSymbolParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -13038,9 +13924,10 @@ class DocumentSymbolParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentSymbolParams(
-        textDocument: textDocument,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -13127,8 +14014,11 @@ class DocumentSymbolParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13140,11 +14030,15 @@ class DocumentSymbolRegistrationOptions
         DocumentSymbolOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      DocumentSymbolRegistrationOptions.canParse,
-      DocumentSymbolRegistrationOptions.fromJson);
+    DocumentSymbolRegistrationOptions.canParse,
+    DocumentSymbolRegistrationOptions.fromJson,
+  );
 
-  DocumentSymbolRegistrationOptions(
-      {this.documentSelector, this.label, this.workDoneProgress});
+  DocumentSymbolRegistrationOptions({
+    this.documentSelector,
+    this.label,
+    this.workDoneProgress,
+  });
   static DocumentSymbolRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -13155,9 +14049,10 @@ class DocumentSymbolRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentSymbolRegistrationOptions(
-        documentSelector: documentSelector,
-        label: label,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      label: label,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -13242,8 +14137,11 @@ class DocumentSymbolRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), label, workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        label,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13272,11 +14170,15 @@ class ErrorCodes {
   /// `ServerNotInitialized` and the `UnknownErrorCode` are left in the range.
   ///  @since 3.16.0
   static const jsonrpcReservedErrorRangeStart = ErrorCodes(-32099);
+
+  /// Error code indicating that a server received a notification or request
+  /// before the server has received the `initialize` request.
   static const ServerNotInitialized = ErrorCodes(-32002);
   static const UnknownErrorCode = ErrorCodes(-32001);
 
-  /// This is the start range of JSON RPC reserved error codes. It doesn't
-  /// denote a real error code.
+  /// This is the end range of JSON RPC reserved error codes. It doesn't denote
+  /// a real error code.
+  ///  @since 3.16.0
   static const jsonrpcReservedErrorRangeEnd = ErrorCodes(-32000);
 
   /// This is the start range of LSP reserved error codes. It doesn't denote a
@@ -13304,15 +14206,19 @@ class ErrorCodes {
 
 class ExecuteCommandClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ExecuteCommandClientCapabilities.canParse,
-      ExecuteCommandClientCapabilities.fromJson);
+    ExecuteCommandClientCapabilities.canParse,
+    ExecuteCommandClientCapabilities.fromJson,
+  );
 
-  ExecuteCommandClientCapabilities({this.dynamicRegistration});
+  ExecuteCommandClientCapabilities({
+    this.dynamicRegistration,
+  });
   static ExecuteCommandClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return ExecuteCommandClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Execute command supports dynamic registration.
@@ -13363,9 +14269,14 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
 
 class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
+    ExecuteCommandOptions.canParse,
+    ExecuteCommandOptions.fromJson,
+  );
 
-  ExecuteCommandOptions({required this.commands, this.workDoneProgress});
+  ExecuteCommandOptions({
+    required this.commands,
+    this.workDoneProgress,
+  });
   static ExecuteCommandOptions fromJson(Map<String, Object?> json) {
     if (ExecuteCommandRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ExecuteCommandRegistrationOptions.fromJson(json);
@@ -13376,7 +14287,9 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return ExecuteCommandOptions(
-        commands: commands, workDoneProgress: workDoneProgress);
+      commands: commands,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// The commands to be executed on the server
@@ -13443,7 +14356,10 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(commands), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(commands),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13451,10 +14367,15 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ExecuteCommandParams.canParse, ExecuteCommandParams.fromJson);
+    ExecuteCommandParams.canParse,
+    ExecuteCommandParams.fromJson,
+  );
 
-  ExecuteCommandParams(
-      {required this.command, this.arguments, this.workDoneToken});
+  ExecuteCommandParams({
+    required this.command,
+    this.arguments,
+    this.workDoneToken,
+  });
   static ExecuteCommandParams fromJson(Map<String, Object?> json) {
     final commandJson = json['command'];
     final command = commandJson as String;
@@ -13470,7 +14391,10 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return ExecuteCommandParams(
-        command: command, arguments: arguments, workDoneToken: workDoneToken);
+      command: command,
+      arguments: arguments,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// Arguments that the command should be invoked with.
@@ -13558,8 +14482,11 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(command, lspHashCode(arguments), workDoneToken);
+  int get hashCode => Object.hash(
+        command,
+        lspHashCode(arguments),
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13569,11 +14496,14 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
 class ExecuteCommandRegistrationOptions
     implements ExecuteCommandOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ExecuteCommandRegistrationOptions.canParse,
-      ExecuteCommandRegistrationOptions.fromJson);
+    ExecuteCommandRegistrationOptions.canParse,
+    ExecuteCommandRegistrationOptions.fromJson,
+  );
 
-  ExecuteCommandRegistrationOptions(
-      {required this.commands, this.workDoneProgress});
+  ExecuteCommandRegistrationOptions({
+    required this.commands,
+    this.workDoneProgress,
+  });
   static ExecuteCommandRegistrationOptions fromJson(Map<String, Object?> json) {
     final commandsJson = json['commands'];
     final commands =
@@ -13581,7 +14511,9 @@ class ExecuteCommandRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return ExecuteCommandRegistrationOptions(
-        commands: commands, workDoneProgress: workDoneProgress);
+      commands: commands,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// The commands to be executed on the server
@@ -13648,7 +14580,10 @@ class ExecuteCommandRegistrationOptions
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(commands), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(commands),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13735,14 +14670,20 @@ class FileChangeType {
 /// Represents information on a file/folder create.
 ///  @since 3.16.0
 class FileCreate implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FileCreate.canParse, FileCreate.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FileCreate.canParse,
+    FileCreate.fromJson,
+  );
 
-  FileCreate({required this.uri});
+  FileCreate({
+    required this.uri,
+  });
   static FileCreate fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
-    return FileCreate(uri: uri);
+    return FileCreate(
+      uri: uri,
+    );
   }
 
   /// A file:// URI for the location of the file/folder being created.
@@ -13799,14 +14740,20 @@ class FileCreate implements ToJsonable {
 /// Represents information on a file/folder delete.
 ///  @since 3.16.0
 class FileDelete implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FileDelete.canParse, FileDelete.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FileDelete.canParse,
+    FileDelete.fromJson,
+  );
 
-  FileDelete({required this.uri});
+  FileDelete({
+    required this.uri,
+  });
   static FileDelete fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
-    return FileDelete(uri: uri);
+    return FileDelete(
+      uri: uri,
+    );
   }
 
   /// A file:// URI for the location of the file/folder being deleted.
@@ -13862,16 +14809,24 @@ class FileDelete implements ToJsonable {
 
 /// An event describing a file change.
 class FileEvent implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FileEvent.canParse,
+    FileEvent.fromJson,
+  );
 
-  FileEvent({required this.uri, required this.type});
+  FileEvent({
+    required this.uri,
+    required this.type,
+  });
   static FileEvent fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
     final typeJson = json['type'];
     final type = typeJson as int;
-    return FileEvent(uri: uri, type: type);
+    return FileEvent(
+      uri: uri,
+      type: type,
+    );
   }
 
   /// The change type.
@@ -13941,7 +14896,10 @@ class FileEvent implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, type);
+  int get hashCode => Object.hash(
+        uri,
+        type,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -13952,16 +14910,24 @@ class FileEvent implements ToJsonable {
 ///  @since 3.16.0
 class FileOperationFilter implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FileOperationFilter.canParse, FileOperationFilter.fromJson);
+    FileOperationFilter.canParse,
+    FileOperationFilter.fromJson,
+  );
 
-  FileOperationFilter({this.scheme, required this.pattern});
+  FileOperationFilter({
+    this.scheme,
+    required this.pattern,
+  });
   static FileOperationFilter fromJson(Map<String, Object?> json) {
     final schemeJson = json['scheme'];
     final scheme = schemeJson as String?;
     final patternJson = json['pattern'];
     final pattern =
         FileOperationPattern.fromJson(patternJson as Map<String, Object?>);
-    return FileOperationFilter(scheme: scheme, pattern: pattern);
+    return FileOperationFilter(
+      scheme: scheme,
+      pattern: pattern,
+    );
   }
 
   /// The actual file operation pattern.
@@ -14026,7 +14992,10 @@ class FileOperationFilter implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(scheme, pattern);
+  int get hashCode => Object.hash(
+        scheme,
+        pattern,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -14037,9 +15006,15 @@ class FileOperationFilter implements ToJsonable {
 ///  @since 3.16.0
 class FileOperationPattern implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FileOperationPattern.canParse, FileOperationPattern.fromJson);
+    FileOperationPattern.canParse,
+    FileOperationPattern.fromJson,
+  );
 
-  FileOperationPattern({required this.glob, this.matches, this.options});
+  FileOperationPattern({
+    required this.glob,
+    this.matches,
+    this.options,
+  });
   static FileOperationPattern fromJson(Map<String, Object?> json) {
     final globJson = json['glob'];
     final glob = globJson as String;
@@ -14052,15 +15027,19 @@ class FileOperationPattern implements ToJsonable {
         ? FileOperationPatternOptions.fromJson(
             optionsJson as Map<String, Object?>)
         : null;
-    return FileOperationPattern(glob: glob, matches: matches, options: options);
+    return FileOperationPattern(
+      glob: glob,
+      matches: matches,
+      options: options,
+    );
   }
 
   /// The glob pattern to match. Glob patterns can have the following syntax:
   /// - `*` to match one or more characters in a path segment
   /// - `?` to match on one character in a path segment
   /// - `**` to match any number of path segments, including none
-  /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-  ///   and JavaScript files)
+  /// - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+  ///   matches all TypeScript and JavaScript files)
   /// - `[]` to declare a range of characters to match in a path segment
   ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
   /// - `[!...]` to negate a range of characters to match in a path segment
@@ -14150,7 +15129,11 @@ class FileOperationPattern implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(glob, matches, options);
+  int get hashCode => Object.hash(
+        glob,
+        matches,
+        options,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -14190,14 +15173,19 @@ class FileOperationPatternKind {
 ///  @since 3.16.0
 class FileOperationPatternOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FileOperationPatternOptions.canParse,
-      FileOperationPatternOptions.fromJson);
+    FileOperationPatternOptions.canParse,
+    FileOperationPatternOptions.fromJson,
+  );
 
-  FileOperationPatternOptions({this.ignoreCase});
+  FileOperationPatternOptions({
+    this.ignoreCase,
+  });
   static FileOperationPatternOptions fromJson(Map<String, Object?> json) {
     final ignoreCaseJson = json['ignoreCase'];
     final ignoreCase = ignoreCaseJson as bool?;
-    return FileOperationPatternOptions(ignoreCase: ignoreCase);
+    return FileOperationPatternOptions(
+      ignoreCase: ignoreCase,
+    );
   }
 
   /// The pattern should be matched ignoring casing.
@@ -14250,17 +15238,22 @@ class FileOperationPatternOptions implements ToJsonable {
 ///  @since 3.16.0
 class FileOperationRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FileOperationRegistrationOptions.canParse,
-      FileOperationRegistrationOptions.fromJson);
+    FileOperationRegistrationOptions.canParse,
+    FileOperationRegistrationOptions.fromJson,
+  );
 
-  FileOperationRegistrationOptions({required this.filters});
+  FileOperationRegistrationOptions({
+    required this.filters,
+  });
   static FileOperationRegistrationOptions fromJson(Map<String, Object?> json) {
     final filtersJson = json['filters'];
     final filters = (filtersJson as List<Object?>)
         .map((item) =>
             FileOperationFilter.fromJson(item as Map<String, Object?>))
         .toList();
-    return FileOperationRegistrationOptions(filters: filters);
+    return FileOperationRegistrationOptions(
+      filters: filters,
+    );
   }
 
   /// The actual filters.
@@ -14322,16 +15315,24 @@ class FileOperationRegistrationOptions implements ToJsonable {
 /// Represents information on a file/folder rename.
 ///  @since 3.16.0
 class FileRename implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FileRename.canParse, FileRename.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FileRename.canParse,
+    FileRename.fromJson,
+  );
 
-  FileRename({required this.oldUri, required this.newUri});
+  FileRename({
+    required this.oldUri,
+    required this.newUri,
+  });
   static FileRename fromJson(Map<String, Object?> json) {
     final oldUriJson = json['oldUri'];
     final oldUri = oldUriJson as String;
     final newUriJson = json['newUri'];
     final newUri = newUriJson as String;
-    return FileRename(oldUri: oldUri, newUri: newUri);
+    return FileRename(
+      oldUri: oldUri,
+      newUri: newUri,
+    );
   }
 
   /// A file:// URI for the new location of the file/folder being renamed.
@@ -14401,33 +15402,44 @@ class FileRename implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(oldUri, newUri);
+  int get hashCode => Object.hash(
+        oldUri,
+        newUri,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class FileSystemWatcher implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FileSystemWatcher.canParse,
+    FileSystemWatcher.fromJson,
+  );
 
-  FileSystemWatcher({required this.globPattern, this.kind});
+  FileSystemWatcher({
+    required this.globPattern,
+    this.kind,
+  });
   static FileSystemWatcher fromJson(Map<String, Object?> json) {
     final globPatternJson = json['globPattern'];
     final globPattern = globPatternJson as String;
     final kindJson = json['kind'];
     final kind = kindJson != null ? WatchKind.fromJson(kindJson as int) : null;
-    return FileSystemWatcher(globPattern: globPattern, kind: kind);
+    return FileSystemWatcher(
+      globPattern: globPattern,
+      kind: kind,
+    );
   }
 
-  /// The  glob pattern to watch.
+  /// The glob pattern to watch.
   ///
   /// Glob patterns can have the following syntax:
   /// - `*` to match one or more characters in a path segment
   /// - `?` to match on one character in a path segment
   /// - `**` to match any number of path segments, including none
-  /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-  ///   and JavaScript files)
+  /// - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+  ///   matches all TypeScript and JavaScript files)
   /// - `[]` to declare a range of characters to match in a path segment
   ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
   /// - `[!...]` to negate a range of characters to match in a path segment
@@ -14494,7 +15506,10 @@ class FileSystemWatcher implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(globPattern, kind);
+  int get hashCode => Object.hash(
+        globPattern,
+        kind,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -14504,15 +15519,18 @@ class FileSystemWatcher implements ToJsonable {
 /// than zero and smaller than the number of lines in the document. Clients are
 /// free to ignore invalid ranges.
 class FoldingRange implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FoldingRange.canParse,
+    FoldingRange.fromJson,
+  );
 
-  FoldingRange(
-      {required this.startLine,
-      this.startCharacter,
-      required this.endLine,
-      this.endCharacter,
-      this.kind});
+  FoldingRange({
+    required this.startLine,
+    this.startCharacter,
+    required this.endLine,
+    this.endCharacter,
+    this.kind,
+  });
   static FoldingRange fromJson(Map<String, Object?> json) {
     final startLineJson = json['startLine'];
     final startLine = startLineJson as int;
@@ -14526,11 +15544,12 @@ class FoldingRange implements ToJsonable {
     final kind =
         kindJson != null ? FoldingRangeKind.fromJson(kindJson as String) : null;
     return FoldingRange(
-        startLine: startLine,
-        startCharacter: startCharacter,
-        endLine: endLine,
-        endCharacter: endCharacter,
-        kind: kind);
+      startLine: startLine,
+      startCharacter: startCharacter,
+      endLine: endLine,
+      endCharacter: endCharacter,
+      kind: kind,
+    );
   }
 
   /// The zero-based character offset before the folded range ends. If not
@@ -14662,8 +15681,13 @@ class FoldingRange implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(startLine, startCharacter, endLine, endCharacter, kind);
+  int get hashCode => Object.hash(
+        startLine,
+        startCharacter,
+        endLine,
+        endCharacter,
+        kind,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -14671,11 +15695,15 @@ class FoldingRange implements ToJsonable {
 
 class FoldingRangeClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FoldingRangeClientCapabilities.canParse,
-      FoldingRangeClientCapabilities.fromJson);
+    FoldingRangeClientCapabilities.canParse,
+    FoldingRangeClientCapabilities.fromJson,
+  );
 
-  FoldingRangeClientCapabilities(
-      {this.dynamicRegistration, this.rangeLimit, this.lineFoldingOnly});
+  FoldingRangeClientCapabilities({
+    this.dynamicRegistration,
+    this.rangeLimit,
+    this.lineFoldingOnly,
+  });
   static FoldingRangeClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -14684,9 +15712,10 @@ class FoldingRangeClientCapabilities implements ToJsonable {
     final lineFoldingOnlyJson = json['lineFoldingOnly'];
     final lineFoldingOnly = lineFoldingOnlyJson as bool?;
     return FoldingRangeClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        rangeLimit: rangeLimit,
-        lineFoldingOnly: lineFoldingOnly);
+      dynamicRegistration: dynamicRegistration,
+      rangeLimit: rangeLimit,
+      lineFoldingOnly: lineFoldingOnly,
+    );
   }
 
   /// Whether implementation supports dynamic registration for folding range
@@ -14771,8 +15800,11 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(dynamicRegistration, rangeLimit, lineFoldingOnly);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        rangeLimit,
+        lineFoldingOnly,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -14811,16 +15843,22 @@ class FoldingRangeKind {
 
 class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FoldingRangeOptions.canParse, FoldingRangeOptions.fromJson);
+    FoldingRangeOptions.canParse,
+    FoldingRangeOptions.fromJson,
+  );
 
-  FoldingRangeOptions({this.workDoneProgress});
+  FoldingRangeOptions({
+    this.workDoneProgress,
+  });
   static FoldingRangeOptions fromJson(Map<String, Object?> json) {
     if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return FoldingRangeRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return FoldingRangeOptions(workDoneProgress: workDoneProgress);
+    return FoldingRangeOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -14870,13 +15908,16 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class FoldingRangeParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FoldingRangeParams.canParse,
+    FoldingRangeParams.fromJson,
+  );
 
-  FoldingRangeParams(
-      {required this.textDocument,
-      this.workDoneToken,
-      this.partialResultToken});
+  FoldingRangeParams({
+    required this.textDocument,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static FoldingRangeParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -14898,9 +15939,10 @@ class FoldingRangeParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return FoldingRangeParams(
-        textDocument: textDocument,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -14987,8 +16029,11 @@ class FoldingRangeParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15001,11 +16046,15 @@ class FoldingRangeRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      FoldingRangeRegistrationOptions.canParse,
-      FoldingRangeRegistrationOptions.fromJson);
+    FoldingRangeRegistrationOptions.canParse,
+    FoldingRangeRegistrationOptions.fromJson,
+  );
 
-  FoldingRangeRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress, this.id});
+  FoldingRangeRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+    this.id,
+  });
   static FoldingRangeRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -15016,9 +16065,10 @@ class FoldingRangeRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return FoldingRangeRegistrationOptions(
-        documentSelector: documentSelector,
-        workDoneProgress: workDoneProgress,
-        id: id);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -15102,8 +16152,11 @@ class FoldingRangeRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress, id);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15111,15 +16164,18 @@ class FoldingRangeRegistrationOptions
 
 /// Value-object describing what options formatting should use.
 class FormattingOptions implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(FormattingOptions.canParse, FormattingOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    FormattingOptions.canParse,
+    FormattingOptions.fromJson,
+  );
 
-  FormattingOptions(
-      {required this.tabSize,
-      required this.insertSpaces,
-      this.trimTrailingWhitespace,
-      this.insertFinalNewline,
-      this.trimFinalNewlines});
+  FormattingOptions({
+    required this.tabSize,
+    required this.insertSpaces,
+    this.trimTrailingWhitespace,
+    this.insertFinalNewline,
+    this.trimFinalNewlines,
+  });
   static FormattingOptions fromJson(Map<String, Object?> json) {
     final tabSizeJson = json['tabSize'];
     final tabSize = tabSizeJson as int;
@@ -15132,11 +16188,12 @@ class FormattingOptions implements ToJsonable {
     final trimFinalNewlinesJson = json['trimFinalNewlines'];
     final trimFinalNewlines = trimFinalNewlinesJson as bool?;
     return FormattingOptions(
-        tabSize: tabSize,
-        insertSpaces: insertSpaces,
-        trimTrailingWhitespace: trimTrailingWhitespace,
-        insertFinalNewline: insertFinalNewline,
-        trimFinalNewlines: trimFinalNewlines);
+      tabSize: tabSize,
+      insertSpaces: insertSpaces,
+      trimTrailingWhitespace: trimTrailingWhitespace,
+      insertFinalNewline: insertFinalNewline,
+      trimFinalNewlines: trimFinalNewlines,
+    );
   }
 
   /// Insert a newline character at the end of the file if one does not exist.
@@ -15263,8 +16320,13 @@ class FormattingOptions implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(tabSize, insertSpaces, trimTrailingWhitespace,
-      insertFinalNewline, trimFinalNewlines);
+  int get hashCode => Object.hash(
+        tabSize,
+        insertSpaces,
+        trimTrailingWhitespace,
+        insertFinalNewline,
+        trimFinalNewlines,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15272,9 +16334,15 @@ class FormattingOptions implements ToJsonable {
 
 /// The result of a hover request.
 class Hover implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Hover.canParse,
+    Hover.fromJson,
+  );
 
-  Hover({required this.contents, this.range});
+  Hover({
+    required this.contents,
+    this.range,
+  });
   static Hover fromJson(Map<String, Object?> json) {
     final contentsJson = json['contents'];
     final contents = contentsJson is String
@@ -15287,7 +16355,10 @@ class Hover implements ToJsonable {
     final range = rangeJson != null
         ? Range.fromJson(rangeJson as Map<String, Object?>)
         : null;
-    return Hover(contents: contents, range: range);
+    return Hover(
+      contents: contents,
+      range: range,
+    );
   }
 
   /// The hover's content
@@ -15354,7 +16425,10 @@ class Hover implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(contents, range);
+  int get hashCode => Object.hash(
+        contents,
+        range,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15362,9 +16436,14 @@ class Hover implements ToJsonable {
 
 class HoverClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      HoverClientCapabilities.canParse, HoverClientCapabilities.fromJson);
+    HoverClientCapabilities.canParse,
+    HoverClientCapabilities.fromJson,
+  );
 
-  HoverClientCapabilities({this.dynamicRegistration, this.contentFormat});
+  HoverClientCapabilities({
+    this.dynamicRegistration,
+    this.contentFormat,
+  });
   static HoverClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -15373,12 +16452,14 @@ class HoverClientCapabilities implements ToJsonable {
         ?.map((item) => MarkupKind.fromJson(item as String))
         .toList();
     return HoverClientCapabilities(
-        dynamicRegistration: dynamicRegistration, contentFormat: contentFormat);
+      dynamicRegistration: dynamicRegistration,
+      contentFormat: contentFormat,
+    );
   }
 
-  /// Client supports the follow content formats if the content property refers
-  /// to a `literal of type MarkupContent`. The order describes the preferred
-  /// format of the client.
+  /// Client supports the following content formats if the content property
+  /// refers to a `literal of type MarkupContent`. The order describes the
+  /// preferred format of the client.
   final List<MarkupKind>? contentFormat;
 
   /// Whether hover supports dynamic registration.
@@ -15441,25 +16522,33 @@ class HoverClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(dynamicRegistration, lspHashCode(contentFormat));
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        lspHashCode(contentFormat),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(HoverOptions.canParse, HoverOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    HoverOptions.canParse,
+    HoverOptions.fromJson,
+  );
 
-  HoverOptions({this.workDoneProgress});
+  HoverOptions({
+    this.workDoneProgress,
+  });
   static HoverOptions fromJson(Map<String, Object?> json) {
     if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return HoverRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return HoverOptions(workDoneProgress: workDoneProgress);
+    return HoverOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -15508,11 +16597,16 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class HoverParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(HoverParams.canParse, HoverParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    HoverParams.canParse,
+    HoverParams.fromJson,
+  );
 
-  HoverParams(
-      {required this.textDocument, required this.position, this.workDoneToken});
+  HoverParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+  });
   static HoverParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -15528,9 +16622,10 @@ class HoverParams
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return HoverParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The position inside the text document.
@@ -15620,7 +16715,11 @@ class HoverParams
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, position, workDoneToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15629,9 +16728,14 @@ class HoverParams
 class HoverRegistrationOptions
     implements TextDocumentRegistrationOptions, HoverOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      HoverRegistrationOptions.canParse, HoverRegistrationOptions.fromJson);
+    HoverRegistrationOptions.canParse,
+    HoverRegistrationOptions.fromJson,
+  );
 
-  HoverRegistrationOptions({this.documentSelector, this.workDoneProgress});
+  HoverRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static HoverRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -15640,7 +16744,9 @@ class HoverRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return HoverRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -15706,8 +16812,10 @@ class HoverRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15715,18 +16823,23 @@ class HoverRegistrationOptions
 
 class ImplementationClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ImplementationClientCapabilities.canParse,
-      ImplementationClientCapabilities.fromJson);
+    ImplementationClientCapabilities.canParse,
+    ImplementationClientCapabilities.fromJson,
+  );
 
-  ImplementationClientCapabilities(
-      {this.dynamicRegistration, this.linkSupport});
+  ImplementationClientCapabilities({
+    this.dynamicRegistration,
+    this.linkSupport,
+  });
   static ImplementationClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     final linkSupportJson = json['linkSupport'];
     final linkSupport = linkSupportJson as bool?;
     return ImplementationClientCapabilities(
-        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
+      dynamicRegistration: dynamicRegistration,
+      linkSupport: linkSupport,
+    );
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -15790,7 +16903,10 @@ class ImplementationClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, linkSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        linkSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -15798,16 +16914,22 @@ class ImplementationClientCapabilities implements ToJsonable {
 
 class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ImplementationOptions.canParse, ImplementationOptions.fromJson);
+    ImplementationOptions.canParse,
+    ImplementationOptions.fromJson,
+  );
 
-  ImplementationOptions({this.workDoneProgress});
+  ImplementationOptions({
+    this.workDoneProgress,
+  });
   static ImplementationOptions fromJson(Map<String, Object?> json) {
     if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ImplementationRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return ImplementationOptions(workDoneProgress: workDoneProgress);
+    return ImplementationOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -15862,13 +16984,16 @@ class ImplementationParams
         PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ImplementationParams.canParse, ImplementationParams.fromJson);
+    ImplementationParams.canParse,
+    ImplementationParams.fromJson,
+  );
 
-  ImplementationParams(
-      {required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  ImplementationParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static ImplementationParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -15892,10 +17017,11 @@ class ImplementationParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return ImplementationParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -16005,8 +17131,12 @@ class ImplementationParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, position, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -16019,11 +17149,15 @@ class ImplementationRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ImplementationRegistrationOptions.canParse,
-      ImplementationRegistrationOptions.fromJson);
+    ImplementationRegistrationOptions.canParse,
+    ImplementationRegistrationOptions.fromJson,
+  );
 
-  ImplementationRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress, this.id});
+  ImplementationRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+    this.id,
+  });
   static ImplementationRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -16034,9 +17168,10 @@ class ImplementationRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return ImplementationRegistrationOptions(
-        documentSelector: documentSelector,
-        workDoneProgress: workDoneProgress,
-        id: id);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -16120,28 +17255,34 @@ class ImplementationRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress, id);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class InitializeParams implements WorkDoneProgressParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(InitializeParams.canParse, InitializeParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    InitializeParams.canParse,
+    InitializeParams.fromJson,
+  );
 
-  InitializeParams(
-      {this.processId,
-      this.clientInfo,
-      this.locale,
-      this.rootPath,
-      this.rootUri,
-      this.initializationOptions,
-      required this.capabilities,
-      this.trace,
-      this.workspaceFolders,
-      this.workDoneToken});
+  InitializeParams({
+    this.processId,
+    this.clientInfo,
+    this.locale,
+    this.rootPath,
+    this.rootUri,
+    this.initializationOptions,
+    required this.capabilities,
+    this.trace,
+    this.workspaceFolders,
+    this.workDoneToken,
+  });
   static InitializeParams fromJson(Map<String, Object?> json) {
     final processIdJson = json['processId'];
     final processId = processIdJson as int?;
@@ -16162,9 +17303,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     final capabilities =
         ClientCapabilities.fromJson(capabilitiesJson as Map<String, Object?>);
     final traceJson = json['trace'];
-    final trace = const {null, 'off', 'message', 'verbose'}.contains(traceJson)
+    final trace = const {null, 'off', 'messages', 'verbose'}.contains(traceJson)
         ? traceJson as String?
-        : throw '''$traceJson was not one of (null, 'off', 'message', 'verbose')''';
+        : throw '''$traceJson was not one of (null, 'off', 'messages', 'verbose')''';
     final workspaceFoldersJson = json['workspaceFolders'];
     final workspaceFolders = (workspaceFoldersJson as List<Object?>?)
         ?.map((item) => WorkspaceFolder.fromJson(item as Map<String, Object?>))
@@ -16178,16 +17319,17 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return InitializeParams(
-        processId: processId,
-        clientInfo: clientInfo,
-        locale: locale,
-        rootPath: rootPath,
-        rootUri: rootUri,
-        initializationOptions: initializationOptions,
-        capabilities: capabilities,
-        trace: trace,
-        workspaceFolders: workspaceFolders,
-        workDoneToken: workDoneToken);
+      processId: processId,
+      clientInfo: clientInfo,
+      locale: locale,
+      rootPath: rootPath,
+      rootUri: rootUri,
+      initializationOptions: initializationOptions,
+      capabilities: capabilities,
+      trace: trace,
+      workspaceFolders: workspaceFolders,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The capabilities provided by the client (editor or tool)
@@ -16349,9 +17491,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final trace = obj['trace'];
         if (trace != null &&
-            !((trace == 'off' || trace == 'message' || trace == 'verbose'))) {
+            !((trace == 'off' || trace == 'messages' || trace == 'verbose'))) {
           reporter.reportError(
-              'must be one of the literals \'off\', \'message\', \'verbose\'');
+              'must be one of the literals \'off\', \'messages\', \'verbose\'');
           return false;
         }
       } finally {
@@ -16409,16 +17551,17 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      processId,
-      clientInfo,
-      locale,
-      rootPath,
-      rootUri,
-      initializationOptions,
-      capabilities,
-      trace,
-      lspHashCode(workspaceFolders),
-      workDoneToken);
+        processId,
+        clientInfo,
+        locale,
+        rootPath,
+        rootUri,
+        initializationOptions,
+        capabilities,
+        trace,
+        lspHashCode(workspaceFolders),
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -16426,15 +17569,23 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
 
 class InitializeParamsClientInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      InitializeParamsClientInfo.canParse, InitializeParamsClientInfo.fromJson);
+    InitializeParamsClientInfo.canParse,
+    InitializeParamsClientInfo.fromJson,
+  );
 
-  InitializeParamsClientInfo({required this.name, this.version});
+  InitializeParamsClientInfo({
+    required this.name,
+    this.version,
+  });
   static InitializeParamsClientInfo fromJson(Map<String, Object?> json) {
     final nameJson = json['name'];
     final name = nameJson as String;
     final versionJson = json['version'];
     final version = versionJson as String?;
-    return InitializeParamsClientInfo(name: name, version: version);
+    return InitializeParamsClientInfo(
+      name: name,
+      version: version,
+    );
   }
 
   /// The name of the client as defined by the client.
@@ -16499,17 +17650,25 @@ class InitializeParamsClientInfo implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(name, version);
+  int get hashCode => Object.hash(
+        name,
+        version,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class InitializeResult implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    InitializeResult.canParse,
+    InitializeResult.fromJson,
+  );
 
-  InitializeResult({required this.capabilities, this.serverInfo});
+  InitializeResult({
+    required this.capabilities,
+    this.serverInfo,
+  });
   static InitializeResult fromJson(Map<String, Object?> json) {
     final capabilitiesJson = json['capabilities'];
     final capabilities =
@@ -16519,7 +17678,10 @@ class InitializeResult implements ToJsonable {
         ? InitializeResultServerInfo.fromJson(
             serverInfoJson as Map<String, Object?>)
         : null;
-    return InitializeResult(capabilities: capabilities, serverInfo: serverInfo);
+    return InitializeResult(
+      capabilities: capabilities,
+      serverInfo: serverInfo,
+    );
   }
 
   /// The capabilities the language server provides.
@@ -16587,7 +17749,10 @@ class InitializeResult implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(capabilities, serverInfo);
+  int get hashCode => Object.hash(
+        capabilities,
+        serverInfo,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -16595,15 +17760,23 @@ class InitializeResult implements ToJsonable {
 
 class InitializeResultServerInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      InitializeResultServerInfo.canParse, InitializeResultServerInfo.fromJson);
+    InitializeResultServerInfo.canParse,
+    InitializeResultServerInfo.fromJson,
+  );
 
-  InitializeResultServerInfo({required this.name, this.version});
+  InitializeResultServerInfo({
+    required this.name,
+    this.version,
+  });
   static InitializeResultServerInfo fromJson(Map<String, Object?> json) {
     final nameJson = json['name'];
     final name = nameJson as String;
     final versionJson = json['version'];
     final version = versionJson as String?;
-    return InitializeResultServerInfo(name: name, version: version);
+    return InitializeResultServerInfo(
+      name: name,
+      version: version,
+    );
   }
 
   /// The name of the server as defined by the server.
@@ -16668,15 +17841,20 @@ class InitializeResultServerInfo implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(name, version);
+  int get hashCode => Object.hash(
+        name,
+        version,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class InitializedParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(InitializedParams.canParse, InitializedParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    InitializedParams.canParse,
+    InitializedParams.fromJson,
+  );
 
   static InitializedParams fromJson(Map<String, Object?> json) {
     return InitializedParams();
@@ -16714,11 +17892,16 @@ class InitializedParams implements ToJsonable {
 /// A special text edit to provide an insert and a replace operation.
 ///  @since 3.16.0
 class InsertReplaceEdit implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(InsertReplaceEdit.canParse, InsertReplaceEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    InsertReplaceEdit.canParse,
+    InsertReplaceEdit.fromJson,
+  );
 
-  InsertReplaceEdit(
-      {required this.newText, required this.insert, required this.replace});
+  InsertReplaceEdit({
+    required this.newText,
+    required this.insert,
+    required this.replace,
+  });
   static InsertReplaceEdit fromJson(Map<String, Object?> json) {
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
@@ -16727,7 +17910,10 @@ class InsertReplaceEdit implements ToJsonable {
     final replaceJson = json['replace'];
     final replace = Range.fromJson(replaceJson as Map<String, Object?>);
     return InsertReplaceEdit(
-        newText: newText, insert: insert, replace: replace);
+      newText: newText,
+      insert: insert,
+      replace: replace,
+    );
   }
 
   /// The range if the insert is requested
@@ -16822,7 +18008,11 @@ class InsertReplaceEdit implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(newText, insert, replace);
+  int get hashCode => Object.hash(
+        newText,
+        insert,
+        replace,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -16906,16 +18096,20 @@ class InsertTextMode {
 
 class LinkedEditingRangeClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      LinkedEditingRangeClientCapabilities.canParse,
-      LinkedEditingRangeClientCapabilities.fromJson);
+    LinkedEditingRangeClientCapabilities.canParse,
+    LinkedEditingRangeClientCapabilities.fromJson,
+  );
 
-  LinkedEditingRangeClientCapabilities({this.dynamicRegistration});
+  LinkedEditingRangeClientCapabilities({
+    this.dynamicRegistration,
+  });
   static LinkedEditingRangeClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return LinkedEditingRangeClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -16970,9 +18164,13 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
 
 class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      LinkedEditingRangeOptions.canParse, LinkedEditingRangeOptions.fromJson);
+    LinkedEditingRangeOptions.canParse,
+    LinkedEditingRangeOptions.fromJson,
+  );
 
-  LinkedEditingRangeOptions({this.workDoneProgress});
+  LinkedEditingRangeOptions({
+    this.workDoneProgress,
+  });
   static LinkedEditingRangeOptions fromJson(Map<String, Object?> json) {
     if (LinkedEditingRangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -16980,7 +18178,9 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return LinkedEditingRangeOptions(workDoneProgress: workDoneProgress);
+    return LinkedEditingRangeOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -17031,10 +18231,15 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 class LinkedEditingRangeParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      LinkedEditingRangeParams.canParse, LinkedEditingRangeParams.fromJson);
+    LinkedEditingRangeParams.canParse,
+    LinkedEditingRangeParams.fromJson,
+  );
 
-  LinkedEditingRangeParams(
-      {required this.textDocument, required this.position, this.workDoneToken});
+  LinkedEditingRangeParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+  });
   static LinkedEditingRangeParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -17050,9 +18255,10 @@ class LinkedEditingRangeParams
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return LinkedEditingRangeParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The position inside the text document.
@@ -17143,7 +18349,11 @@ class LinkedEditingRangeParams
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, position, workDoneToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -17156,11 +18366,15 @@ class LinkedEditingRangeRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      LinkedEditingRangeRegistrationOptions.canParse,
-      LinkedEditingRangeRegistrationOptions.fromJson);
+    LinkedEditingRangeRegistrationOptions.canParse,
+    LinkedEditingRangeRegistrationOptions.fromJson,
+  );
 
-  LinkedEditingRangeRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress, this.id});
+  LinkedEditingRangeRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+    this.id,
+  });
   static LinkedEditingRangeRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
@@ -17172,9 +18386,10 @@ class LinkedEditingRangeRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return LinkedEditingRangeRegistrationOptions(
-        documentSelector: documentSelector,
-        workDoneProgress: workDoneProgress,
-        id: id);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -17259,8 +18474,11 @@ class LinkedEditingRangeRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress, id);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -17268,9 +18486,14 @@ class LinkedEditingRangeRegistrationOptions
 
 class LinkedEditingRanges implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      LinkedEditingRanges.canParse, LinkedEditingRanges.fromJson);
+    LinkedEditingRanges.canParse,
+    LinkedEditingRanges.fromJson,
+  );
 
-  LinkedEditingRanges({required this.ranges, this.wordPattern});
+  LinkedEditingRanges({
+    required this.ranges,
+    this.wordPattern,
+  });
   static LinkedEditingRanges fromJson(Map<String, Object?> json) {
     final rangesJson = json['ranges'];
     final ranges = (rangesJson as List<Object?>)
@@ -17278,7 +18501,10 @@ class LinkedEditingRanges implements ToJsonable {
         .toList();
     final wordPatternJson = json['wordPattern'];
     final wordPattern = wordPatternJson as String?;
-    return LinkedEditingRanges(ranges: ranges, wordPattern: wordPattern);
+    return LinkedEditingRanges(
+      ranges: ranges,
+      wordPattern: wordPattern,
+    );
   }
 
   /// A list of ranges that can be renamed together. The ranges must have
@@ -17350,23 +18576,34 @@ class LinkedEditingRanges implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(ranges), wordPattern);
+  int get hashCode => Object.hash(
+        lspHashCode(ranges),
+        wordPattern,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class Location implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(Location.canParse, Location.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Location.canParse,
+    Location.fromJson,
+  );
 
-  Location({required this.uri, required this.range});
+  Location({
+    required this.uri,
+    required this.range,
+  });
   static Location fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return Location(uri: uri, range: range);
+    return Location(
+      uri: uri,
+      range: range,
+    );
   }
 
   final Range range;
@@ -17433,21 +18670,27 @@ class Location implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, range);
+  int get hashCode => Object.hash(
+        uri,
+        range,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class LocationLink implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    LocationLink.canParse,
+    LocationLink.fromJson,
+  );
 
-  LocationLink(
-      {this.originSelectionRange,
-      required this.targetUri,
-      required this.targetRange,
-      required this.targetSelectionRange});
+  LocationLink({
+    this.originSelectionRange,
+    required this.targetUri,
+    required this.targetRange,
+    required this.targetSelectionRange,
+  });
   static LocationLink fromJson(Map<String, Object?> json) {
     final originSelectionRangeJson = json['originSelectionRange'];
     final originSelectionRange = originSelectionRangeJson != null
@@ -17461,10 +18704,11 @@ class LocationLink implements ToJsonable {
     final targetSelectionRange =
         Range.fromJson(targetSelectionRangeJson as Map<String, Object?>);
     return LocationLink(
-        originSelectionRange: originSelectionRange,
-        targetUri: targetUri,
-        targetRange: targetRange,
-        targetSelectionRange: targetSelectionRange);
+      originSelectionRange: originSelectionRange,
+      targetUri: targetUri,
+      targetRange: targetRange,
+      targetSelectionRange: targetSelectionRange,
+    );
   }
 
   /// Span of the origin of this link.
@@ -17480,7 +18724,7 @@ class LocationLink implements ToJsonable {
   final Range targetRange;
 
   /// The range that should be selected and revealed when this link is being
-  /// followed, e.g the name of a function. Must be contained by the
+  /// followed, e.g the name of a function. Must be contained by the the
   /// `targetRange`. See also `DocumentSymbol#range`
   final Range targetSelectionRange;
 
@@ -17586,23 +18830,35 @@ class LocationLink implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      originSelectionRange, targetUri, targetRange, targetSelectionRange);
+        originSelectionRange,
+        targetUri,
+        targetRange,
+        targetSelectionRange,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class LogMessageParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    LogMessageParams.canParse,
+    LogMessageParams.fromJson,
+  );
 
-  LogMessageParams({required this.type, required this.message});
+  LogMessageParams({
+    required this.type,
+    required this.message,
+  });
   static LogMessageParams fromJson(Map<String, Object?> json) {
     final typeJson = json['type'];
     final type = MessageType.fromJson(typeJson as int);
     final messageJson = json['message'];
     final message = messageJson as String;
-    return LogMessageParams(type: type, message: message);
+    return LogMessageParams(
+      type: type,
+      message: message,
+    );
   }
 
   /// The actual message
@@ -17672,23 +18928,34 @@ class LogMessageParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(type, message);
+  int get hashCode => Object.hash(
+        type,
+        message,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class LogTraceParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(LogTraceParams.canParse, LogTraceParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    LogTraceParams.canParse,
+    LogTraceParams.fromJson,
+  );
 
-  LogTraceParams({required this.message, this.verbose});
+  LogTraceParams({
+    required this.message,
+    this.verbose,
+  });
   static LogTraceParams fromJson(Map<String, Object?> json) {
     final messageJson = json['message'];
     final message = messageJson as String;
     final verboseJson = json['verbose'];
     final verbose = verboseJson as String?;
-    return LogTraceParams(message: message, verbose: verbose);
+    return LogTraceParams(
+      message: message,
+      verbose: verbose,
+    );
   }
 
   /// The message to be logged.
@@ -17753,7 +19020,10 @@ class LogTraceParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(message, verbose);
+  int get hashCode => Object.hash(
+        message,
+        verbose,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -17763,15 +19033,23 @@ class LogTraceParams implements ToJsonable {
 ///  @since 3.16.0
 class MarkdownClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      MarkdownClientCapabilities.canParse, MarkdownClientCapabilities.fromJson);
+    MarkdownClientCapabilities.canParse,
+    MarkdownClientCapabilities.fromJson,
+  );
 
-  MarkdownClientCapabilities({required this.parser, this.version});
+  MarkdownClientCapabilities({
+    required this.parser,
+    this.version,
+  });
   static MarkdownClientCapabilities fromJson(Map<String, Object?> json) {
     final parserJson = json['parser'];
     final parser = parserJson as String;
     final versionJson = json['version'];
     final version = versionJson as String?;
-    return MarkdownClientCapabilities(parser: parser, version: version);
+    return MarkdownClientCapabilities(
+      parser: parser,
+      version: version,
+    );
   }
 
   /// The name of the parser.
@@ -17836,7 +19114,10 @@ class MarkdownClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(parser, version);
+  int get hashCode => Object.hash(
+        parser,
+        version,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -17851,8 +19132,7 @@ class MarkdownClientCapabilities implements ToJsonable {
 ///
 /// Here is an example how such a string can be constructed using JavaScript /
 /// TypeScript: ```typescript let markdown: MarkdownContent = {
-///
-/// kind: MarkupKind.Markdown,
+/// 	kind: MarkupKind.Markdown,
 /// 	value: [
 /// 		'# Header',
 /// 		'Some text',
@@ -17864,16 +19144,24 @@ class MarkdownClientCapabilities implements ToJsonable {
 /// *Please Note* that clients might sanitize the return markdown. A client
 /// could decide to remove HTML from the markdown to avoid script execution.
 class MarkupContent implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    MarkupContent.canParse,
+    MarkupContent.fromJson,
+  );
 
-  MarkupContent({required this.kind, required this.value});
+  MarkupContent({
+    required this.kind,
+    required this.value,
+  });
   static MarkupContent fromJson(Map<String, Object?> json) {
     final kindJson = json['kind'];
     final kind = MarkupKind.fromJson(kindJson as String);
     final valueJson = json['value'];
     final value = valueJson as String;
-    return MarkupContent(kind: kind, value: value);
+    return MarkupContent(
+      kind: kind,
+      value: value,
+    );
   }
 
   /// The type of the Markup
@@ -17943,7 +19231,10 @@ class MarkupContent implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(kind, value);
+  int get hashCode => Object.hash(
+        kind,
+        value,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -17987,9 +19278,15 @@ class MarkupKind {
 }
 
 class Message implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Message.canParse,
+    Message.fromJson,
+  );
 
-  Message({required this.jsonrpc, this.clientRequestTime});
+  Message({
+    required this.jsonrpc,
+    this.clientRequestTime,
+  });
   static Message fromJson(Map<String, Object?> json) {
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       return RequestMessage.fromJson(json);
@@ -18004,7 +19301,10 @@ class Message implements ToJsonable {
     final jsonrpc = jsonrpcJson as String;
     final clientRequestTimeJson = json['clientRequestTime'];
     final clientRequestTime = clientRequestTimeJson as int?;
-    return Message(jsonrpc: jsonrpc, clientRequestTime: clientRequestTime);
+    return Message(
+      jsonrpc: jsonrpc,
+      clientRequestTime: clientRequestTime,
+    );
   }
 
   final int? clientRequestTime;
@@ -18067,21 +19367,30 @@ class Message implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(jsonrpc, clientRequestTime);
+  int get hashCode => Object.hash(
+        jsonrpc,
+        clientRequestTime,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class MessageActionItem implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    MessageActionItem.canParse,
+    MessageActionItem.fromJson,
+  );
 
-  MessageActionItem({required this.title});
+  MessageActionItem({
+    required this.title,
+  });
   static MessageActionItem fromJson(Map<String, Object?> json) {
     final titleJson = json['title'];
     final title = titleJson as String;
-    return MessageActionItem(title: title);
+    return MessageActionItem(
+      title: title,
+    );
   }
 
   /// A short title like 'Retry', 'Open Log' etc.
@@ -18443,13 +19752,17 @@ class Method {
 
 /// Moniker definition to match LSIF 0.5 moniker definition.
 class Moniker implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Moniker.canParse, Moniker.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Moniker.canParse,
+    Moniker.fromJson,
+  );
 
-  Moniker(
-      {required this.scheme,
-      required this.identifier,
-      required this.unique,
-      this.kind});
+  Moniker({
+    required this.scheme,
+    required this.identifier,
+    required this.unique,
+    this.kind,
+  });
   static Moniker fromJson(Map<String, Object?> json) {
     final schemeJson = json['scheme'];
     final scheme = schemeJson as String;
@@ -18461,7 +19774,11 @@ class Moniker implements ToJsonable {
     final kind =
         kindJson != null ? MonikerKind.fromJson(kindJson as String) : null;
     return Moniker(
-        scheme: scheme, identifier: identifier, unique: unique, kind: kind);
+      scheme: scheme,
+      identifier: identifier,
+      unique: unique,
+      kind: kind,
+    );
   }
 
   /// The identifier of the moniker. The value is opaque in LSIF however schema
@@ -18574,7 +19891,12 @@ class Moniker implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(scheme, identifier, unique, kind);
+  int get hashCode => Object.hash(
+        scheme,
+        identifier,
+        unique,
+        kind,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -18582,13 +19904,19 @@ class Moniker implements ToJsonable {
 
 class MonikerClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      MonikerClientCapabilities.canParse, MonikerClientCapabilities.fromJson);
+    MonikerClientCapabilities.canParse,
+    MonikerClientCapabilities.fromJson,
+  );
 
-  MonikerClientCapabilities({this.dynamicRegistration});
+  MonikerClientCapabilities({
+    this.dynamicRegistration,
+  });
   static MonikerClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
-    return MonikerClientCapabilities(dynamicRegistration: dynamicRegistration);
+    return MonikerClientCapabilities(
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -18673,17 +20001,23 @@ class MonikerKind {
 }
 
 class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(MonikerOptions.canParse, MonikerOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    MonikerOptions.canParse,
+    MonikerOptions.fromJson,
+  );
 
-  MonikerOptions({this.workDoneProgress});
+  MonikerOptions({
+    this.workDoneProgress,
+  });
   static MonikerOptions fromJson(Map<String, Object?> json) {
     if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return MonikerRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return MonikerOptions(workDoneProgress: workDoneProgress);
+    return MonikerOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -18736,14 +20070,17 @@ class MonikerParams
         WorkDoneProgressParams,
         PartialResultParams,
         ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(MonikerParams.canParse, MonikerParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    MonikerParams.canParse,
+    MonikerParams.fromJson,
+  );
 
-  MonikerParams(
-      {required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  MonikerParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static MonikerParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -18767,10 +20104,11 @@ class MonikerParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return MonikerParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -18879,8 +20217,12 @@ class MonikerParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, position, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -18889,9 +20231,14 @@ class MonikerParams
 class MonikerRegistrationOptions
     implements TextDocumentRegistrationOptions, MonikerOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      MonikerRegistrationOptions.canParse, MonikerRegistrationOptions.fromJson);
+    MonikerRegistrationOptions.canParse,
+    MonikerRegistrationOptions.fromJson,
+  );
 
-  MonikerRegistrationOptions({this.documentSelector, this.workDoneProgress});
+  MonikerRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static MonikerRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -18900,7 +20247,9 @@ class MonikerRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return MonikerRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -18966,8 +20315,10 @@ class MonikerRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -18975,13 +20326,16 @@ class MonikerRegistrationOptions
 
 class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      NotificationMessage.canParse, NotificationMessage.fromJson);
+    NotificationMessage.canParse,
+    NotificationMessage.fromJson,
+  );
 
-  NotificationMessage(
-      {required this.method,
-      this.params,
-      required this.jsonrpc,
-      this.clientRequestTime});
+  NotificationMessage({
+    required this.method,
+    this.params,
+    required this.jsonrpc,
+    this.clientRequestTime,
+  });
   static NotificationMessage fromJson(Map<String, Object?> json) {
     final methodJson = json['method'];
     final method = Method.fromJson(methodJson as String);
@@ -18992,10 +20346,11 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     final clientRequestTimeJson = json['clientRequestTime'];
     final clientRequestTime = clientRequestTimeJson as int?;
     return NotificationMessage(
-        method: method,
-        params: params,
-        jsonrpc: jsonrpc,
-        clientRequestTime: clientRequestTime);
+      method: method,
+      params: params,
+      jsonrpc: jsonrpc,
+      clientRequestTime: clientRequestTime,
+    );
   }
 
   final int? clientRequestTime;
@@ -19089,7 +20444,12 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(method, params, jsonrpc, clientRequestTime);
+  int get hashCode => Object.hash(
+        method,
+        params,
+        jsonrpc,
+        clientRequestTime,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19098,17 +20458,24 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 class OptionalVersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      OptionalVersionedTextDocumentIdentifier.canParse,
-      OptionalVersionedTextDocumentIdentifier.fromJson);
+    OptionalVersionedTextDocumentIdentifier.canParse,
+    OptionalVersionedTextDocumentIdentifier.fromJson,
+  );
 
-  OptionalVersionedTextDocumentIdentifier({this.version, required this.uri});
+  OptionalVersionedTextDocumentIdentifier({
+    this.version,
+    required this.uri,
+  });
   static OptionalVersionedTextDocumentIdentifier fromJson(
       Map<String, Object?> json) {
     final versionJson = json['version'];
     final version = versionJson as int?;
     final uriJson = json['uri'];
     final uri = uriJson as String;
-    return OptionalVersionedTextDocumentIdentifier(version: version, uri: uri);
+    return OptionalVersionedTextDocumentIdentifier(
+      version: version,
+      uri: uri,
+    );
   }
 
   /// The text document's URI.
@@ -19184,7 +20551,10 @@ class OptionalVersionedTextDocumentIdentifier
   }
 
   @override
-  int get hashCode => Object.hash(version, uri);
+  int get hashCode => Object.hash(
+        version,
+        uri,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19194,9 +20564,14 @@ class OptionalVersionedTextDocumentIdentifier
 /// and a doc-comment.
 class ParameterInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ParameterInformation.canParse, ParameterInformation.fromJson);
+    ParameterInformation.canParse,
+    ParameterInformation.fromJson,
+  );
 
-  ParameterInformation({required this.label, this.documentation});
+  ParameterInformation({
+    required this.label,
+    this.documentation,
+  });
   static ParameterInformation fromJson(Map<String, Object?> json) {
     final labelJson = json['label'];
     final label = labelJson as String;
@@ -19209,7 +20584,10 @@ class ParameterInformation implements ToJsonable {
                 ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
                     documentationJson as Map<String, Object?>))
                 : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
-    return ParameterInformation(label: label, documentation: documentation);
+    return ParameterInformation(
+      label: label,
+      documentation: documentation,
+    );
   }
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
@@ -19289,7 +20667,10 @@ class ParameterInformation implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(label, documentation);
+  int get hashCode => Object.hash(
+        label,
+        documentation,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19297,9 +20678,13 @@ class ParameterInformation implements ToJsonable {
 
 class PartialResultParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PartialResultParams.canParse, PartialResultParams.fromJson);
+    PartialResultParams.canParse,
+    PartialResultParams.fromJson,
+  );
 
-  PartialResultParams({this.partialResultToken});
+  PartialResultParams({
+    this.partialResultToken,
+  });
   static PartialResultParams fromJson(Map<String, Object?> json) {
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
@@ -19375,7 +20760,9 @@ class PartialResultParams implements ToJsonable {
             : (partialResultTokenJson is String
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
-    return PartialResultParams(partialResultToken: partialResultToken);
+    return PartialResultParams(
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -19427,16 +20814,24 @@ class PartialResultParams implements ToJsonable {
 }
 
 class Position implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(Position.canParse, Position.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Position.canParse,
+    Position.fromJson,
+  );
 
-  Position({required this.line, required this.character});
+  Position({
+    required this.line,
+    required this.character,
+  });
   static Position fromJson(Map<String, Object?> json) {
     final lineJson = json['line'];
     final line = lineJson as int;
     final characterJson = json['character'];
     final character = characterJson as int;
-    return Position(line: line, character: character);
+    return Position(
+      line: line,
+      character: character,
+    );
   }
 
   /// Character offset on a line in a document (zero-based). Assuming that the
@@ -19511,7 +20906,10 @@ class Position implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(line, character);
+  int get hashCode => Object.hash(
+        line,
+        character,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19519,16 +20917,24 @@ class Position implements ToJsonable {
 
 class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PrepareRenameParams.canParse, PrepareRenameParams.fromJson);
+    PrepareRenameParams.canParse,
+    PrepareRenameParams.fromJson,
+  );
 
-  PrepareRenameParams({required this.textDocument, required this.position});
+  PrepareRenameParams({
+    required this.textDocument,
+    required this.position,
+  });
   static PrepareRenameParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
-    return PrepareRenameParams(textDocument: textDocument, position: position);
+    return PrepareRenameParams(
+      textDocument: textDocument,
+      position: position,
+    );
   }
 
   /// The position inside the text document.
@@ -19601,7 +21007,10 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, position);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19634,10 +21043,15 @@ class PrepareSupportDefaultBehavior {
 }
 
 class ProgressParams<T> implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ProgressParams.canParse, ProgressParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ProgressParams.canParse,
+    ProgressParams.fromJson,
+  );
 
-  ProgressParams({required this.token, this.value});
+  ProgressParams({
+    required this.token,
+    this.value,
+  });
   static ProgressParams<T> fromJson<T>(Map<String, Object?> json) {
     final tokenJson = json['token'];
     final token = tokenJson is int
@@ -19647,7 +21061,10 @@ class ProgressParams<T> implements ToJsonable {
             : (throw '''$tokenJson was not one of (int, String)'''));
     final valueJson = json['value'];
     final value = valueJson;
-    return ProgressParams<T>(token: token, value: value);
+    return ProgressParams<T>(
+      token: token,
+      value: value,
+    );
   }
 
   /// The progress token provided by the client or server.
@@ -19699,7 +21116,10 @@ class ProgressParams<T> implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(token, value);
+  int get hashCode => Object.hash(
+        token,
+        value,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19707,15 +21127,17 @@ class ProgressParams<T> implements ToJsonable {
 
 class PublishDiagnosticsClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PublishDiagnosticsClientCapabilities.canParse,
-      PublishDiagnosticsClientCapabilities.fromJson);
+    PublishDiagnosticsClientCapabilities.canParse,
+    PublishDiagnosticsClientCapabilities.fromJson,
+  );
 
-  PublishDiagnosticsClientCapabilities(
-      {this.relatedInformation,
-      this.tagSupport,
-      this.versionSupport,
-      this.codeDescriptionSupport,
-      this.dataSupport});
+  PublishDiagnosticsClientCapabilities({
+    this.relatedInformation,
+    this.tagSupport,
+    this.versionSupport,
+    this.codeDescriptionSupport,
+    this.dataSupport,
+  });
   static PublishDiagnosticsClientCapabilities fromJson(
       Map<String, Object?> json) {
     final relatedInformationJson = json['relatedInformation'];
@@ -19732,11 +21154,12 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
     final dataSupportJson = json['dataSupport'];
     final dataSupport = dataSupportJson as bool?;
     return PublishDiagnosticsClientCapabilities(
-        relatedInformation: relatedInformation,
-        tagSupport: tagSupport,
-        versionSupport: versionSupport,
-        codeDescriptionSupport: codeDescriptionSupport,
-        dataSupport: dataSupport);
+      relatedInformation: relatedInformation,
+      tagSupport: tagSupport,
+      versionSupport: versionSupport,
+      codeDescriptionSupport: codeDescriptionSupport,
+      dataSupport: dataSupport,
+    );
   }
 
   /// Client supports a codeDescription property
@@ -19861,8 +21284,13 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(relatedInformation, tagSupport,
-      versionSupport, codeDescriptionSupport, dataSupport);
+  int get hashCode => Object.hash(
+        relatedInformation,
+        tagSupport,
+        versionSupport,
+        codeDescriptionSupport,
+        dataSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -19870,17 +21298,22 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
 
 class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PublishDiagnosticsClientCapabilitiesTagSupport.canParse,
-      PublishDiagnosticsClientCapabilitiesTagSupport.fromJson);
+    PublishDiagnosticsClientCapabilitiesTagSupport.canParse,
+    PublishDiagnosticsClientCapabilitiesTagSupport.fromJson,
+  );
 
-  PublishDiagnosticsClientCapabilitiesTagSupport({required this.valueSet});
+  PublishDiagnosticsClientCapabilitiesTagSupport({
+    required this.valueSet,
+  });
   static PublishDiagnosticsClientCapabilitiesTagSupport fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
         .map((item) => DiagnosticTag.fromJson(item as int))
         .toList();
-    return PublishDiagnosticsClientCapabilitiesTagSupport(valueSet: valueSet);
+    return PublishDiagnosticsClientCapabilitiesTagSupport(
+      valueSet: valueSet,
+    );
   }
 
   /// The tags supported by the client.
@@ -19942,10 +21375,15 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
 
 class PublishDiagnosticsParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      PublishDiagnosticsParams.canParse, PublishDiagnosticsParams.fromJson);
+    PublishDiagnosticsParams.canParse,
+    PublishDiagnosticsParams.fromJson,
+  );
 
-  PublishDiagnosticsParams(
-      {required this.uri, this.version, required this.diagnostics});
+  PublishDiagnosticsParams({
+    required this.uri,
+    this.version,
+    required this.diagnostics,
+  });
   static PublishDiagnosticsParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
@@ -19956,7 +21394,10 @@ class PublishDiagnosticsParams implements ToJsonable {
         .map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
         .toList();
     return PublishDiagnosticsParams(
-        uri: uri, version: version, diagnostics: diagnostics);
+      uri: uri,
+      version: version,
+      diagnostics: diagnostics,
+    );
   }
 
   /// An array of diagnostic information items.
@@ -20051,22 +21492,35 @@ class PublishDiagnosticsParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, version, lspHashCode(diagnostics));
+  int get hashCode => Object.hash(
+        uri,
+        version,
+        lspHashCode(diagnostics),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class Range implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Range.canParse,
+    Range.fromJson,
+  );
 
-  Range({required this.start, required this.end});
+  Range({
+    required this.start,
+    required this.end,
+  });
   static Range fromJson(Map<String, Object?> json) {
     final startJson = json['start'];
     final start = Position.fromJson(startJson as Map<String, Object?>);
     final endJson = json['end'];
     final end = Position.fromJson(endJson as Map<String, Object?>);
-    return Range(start: start, end: end);
+    return Range(
+      start: start,
+      end: end,
+    );
   }
 
   /// The range's end position.
@@ -20136,7 +21590,10 @@ class Range implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(start, end);
+  int get hashCode => Object.hash(
+        start,
+        end,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -20144,15 +21601,23 @@ class Range implements ToJsonable {
 
 class RangeAndPlaceholder implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
+    RangeAndPlaceholder.canParse,
+    RangeAndPlaceholder.fromJson,
+  );
 
-  RangeAndPlaceholder({required this.range, required this.placeholder});
+  RangeAndPlaceholder({
+    required this.range,
+    required this.placeholder,
+  });
   static RangeAndPlaceholder fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final placeholderJson = json['placeholder'];
     final placeholder = placeholderJson as String;
-    return RangeAndPlaceholder(range: range, placeholder: placeholder);
+    return RangeAndPlaceholder(
+      range: range,
+      placeholder: placeholder,
+    );
   }
 
   final String placeholder;
@@ -20220,7 +21685,10 @@ class RangeAndPlaceholder implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, placeholder);
+  int get hashCode => Object.hash(
+        range,
+        placeholder,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -20228,15 +21696,19 @@ class RangeAndPlaceholder implements ToJsonable {
 
 class ReferenceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ReferenceClientCapabilities.canParse,
-      ReferenceClientCapabilities.fromJson);
+    ReferenceClientCapabilities.canParse,
+    ReferenceClientCapabilities.fromJson,
+  );
 
-  ReferenceClientCapabilities({this.dynamicRegistration});
+  ReferenceClientCapabilities({
+    this.dynamicRegistration,
+  });
   static ReferenceClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return ReferenceClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether references supports dynamic registration.
@@ -20286,14 +21758,20 @@ class ReferenceClientCapabilities implements ToJsonable {
 }
 
 class ReferenceContext implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ReferenceContext.canParse,
+    ReferenceContext.fromJson,
+  );
 
-  ReferenceContext({required this.includeDeclaration});
+  ReferenceContext({
+    required this.includeDeclaration,
+  });
   static ReferenceContext fromJson(Map<String, Object?> json) {
     final includeDeclarationJson = json['includeDeclaration'];
     final includeDeclaration = includeDeclarationJson as bool;
-    return ReferenceContext(includeDeclaration: includeDeclaration);
+    return ReferenceContext(
+      includeDeclaration: includeDeclaration,
+    );
   }
 
   /// Include the declaration of the current symbol.
@@ -20348,17 +21826,23 @@ class ReferenceContext implements ToJsonable {
 }
 
 class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ReferenceOptions.canParse, ReferenceOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ReferenceOptions.canParse,
+    ReferenceOptions.fromJson,
+  );
 
-  ReferenceOptions({this.workDoneProgress});
+  ReferenceOptions({
+    this.workDoneProgress,
+  });
   static ReferenceOptions fromJson(Map<String, Object?> json) {
     if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ReferenceRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return ReferenceOptions(workDoneProgress: workDoneProgress);
+    return ReferenceOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -20411,15 +21895,18 @@ class ReferenceParams
         WorkDoneProgressParams,
         PartialResultParams,
         ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ReferenceParams.canParse,
+    ReferenceParams.fromJson,
+  );
 
-  ReferenceParams(
-      {required this.context,
-      required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  ReferenceParams({
+    required this.context,
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static ReferenceParams fromJson(Map<String, Object?> json) {
     final contextJson = json['context'];
     final context =
@@ -20446,11 +21933,12 @@ class ReferenceParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return ReferenceParams(
-        context: context,
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      context: context,
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   final ReferenceContext context;
@@ -20582,7 +22070,12 @@ class ReferenceParams
 
   @override
   int get hashCode => Object.hash(
-      context, textDocument, position, workDoneToken, partialResultToken);
+        context,
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -20591,10 +22084,14 @@ class ReferenceParams
 class ReferenceRegistrationOptions
     implements TextDocumentRegistrationOptions, ReferenceOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ReferenceRegistrationOptions.canParse,
-      ReferenceRegistrationOptions.fromJson);
+    ReferenceRegistrationOptions.canParse,
+    ReferenceRegistrationOptions.fromJson,
+  );
 
-  ReferenceRegistrationOptions({this.documentSelector, this.workDoneProgress});
+  ReferenceRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+  });
   static ReferenceRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -20603,7 +22100,9 @@ class ReferenceRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return ReferenceRegistrationOptions(
-        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -20669,8 +22168,10 @@ class ReferenceRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -20678,10 +22179,16 @@ class ReferenceRegistrationOptions
 
 /// General parameters to register for a capability.
 class Registration implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(Registration.canParse, Registration.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Registration.canParse,
+    Registration.fromJson,
+  );
 
-  Registration({required this.id, required this.method, this.registerOptions});
+  Registration({
+    required this.id,
+    required this.method,
+    this.registerOptions,
+  });
   static Registration fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson as String;
@@ -20690,7 +22197,10 @@ class Registration implements ToJsonable {
     final registerOptionsJson = json['registerOptions'];
     final registerOptions = registerOptionsJson;
     return Registration(
-        id: id, method: method, registerOptions: registerOptions);
+      id: id,
+      method: method,
+      registerOptions: registerOptions,
+    );
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -20770,23 +22280,33 @@ class Registration implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(id, method, registerOptions);
+  int get hashCode => Object.hash(
+        id,
+        method,
+        registerOptions,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class RegistrationParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RegistrationParams.canParse,
+    RegistrationParams.fromJson,
+  );
 
-  RegistrationParams({required this.registrations});
+  RegistrationParams({
+    required this.registrations,
+  });
   static RegistrationParams fromJson(Map<String, Object?> json) {
     final registrationsJson = json['registrations'];
     final registrations = (registrationsJson as List<Object?>)
         .map((item) => Registration.fromJson(item as Map<String, Object?>))
         .toList();
-    return RegistrationParams(registrations: registrations);
+    return RegistrationParams(
+      registrations: registrations,
+    );
   }
 
   final List<Registration> registrations;
@@ -20848,10 +22368,14 @@ class RegistrationParams implements ToJsonable {
 /// Client capabilities specific to regular expressions.
 class RegularExpressionsClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      RegularExpressionsClientCapabilities.canParse,
-      RegularExpressionsClientCapabilities.fromJson);
+    RegularExpressionsClientCapabilities.canParse,
+    RegularExpressionsClientCapabilities.fromJson,
+  );
 
-  RegularExpressionsClientCapabilities({required this.engine, this.version});
+  RegularExpressionsClientCapabilities({
+    required this.engine,
+    this.version,
+  });
   static RegularExpressionsClientCapabilities fromJson(
       Map<String, Object?> json) {
     final engineJson = json['engine'];
@@ -20859,7 +22383,9 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
     final versionJson = json['version'];
     final version = versionJson as String?;
     return RegularExpressionsClientCapabilities(
-        engine: engine, version: version);
+      engine: engine,
+      version: version,
+    );
   }
 
   /// The engine's name.
@@ -20925,7 +22451,10 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(engine, version);
+  int get hashCode => Object.hash(
+        engine,
+        version,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -20933,13 +22462,16 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
 
 class RenameClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      RenameClientCapabilities.canParse, RenameClientCapabilities.fromJson);
+    RenameClientCapabilities.canParse,
+    RenameClientCapabilities.fromJson,
+  );
 
-  RenameClientCapabilities(
-      {this.dynamicRegistration,
-      this.prepareSupport,
-      this.prepareSupportDefaultBehavior,
-      this.honorsChangeAnnotations});
+  RenameClientCapabilities({
+    this.dynamicRegistration,
+    this.prepareSupport,
+    this.prepareSupportDefaultBehavior,
+    this.honorsChangeAnnotations,
+  });
   static RenameClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -20955,32 +22487,33 @@ class RenameClientCapabilities implements ToJsonable {
     final honorsChangeAnnotationsJson = json['honorsChangeAnnotations'];
     final honorsChangeAnnotations = honorsChangeAnnotationsJson as bool?;
     return RenameClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        prepareSupport: prepareSupport,
-        prepareSupportDefaultBehavior: prepareSupportDefaultBehavior,
-        honorsChangeAnnotations: honorsChangeAnnotations);
+      dynamicRegistration: dynamicRegistration,
+      prepareSupport: prepareSupport,
+      prepareSupportDefaultBehavior: prepareSupportDefaultBehavior,
+      honorsChangeAnnotations: honorsChangeAnnotations,
+    );
   }
 
   /// Whether rename supports dynamic registration.
   final bool? dynamicRegistration;
 
-  /// Whether th client honors the change annotations in text edits and resource
-  /// operations returned via the rename request's workspace edit by for example
-  /// presenting the workspace edit in the user interface and asking for
-  /// confirmation.
+  /// Whether the client honors the change annotations in text edits and
+  /// resource operations returned via the rename request's workspace edit by
+  /// for example presenting the workspace edit in the user interface and asking
+  /// for confirmation.
   ///  @since 3.16.0
   final bool? honorsChangeAnnotations;
 
   /// Client supports testing for validity of rename operations before
   /// execution.
-  ///  @since version 3.12.0
+  ///  @since 3.12.0
   final bool? prepareSupport;
 
   /// Client supports the default behavior result (`{ defaultBehavior: boolean
   /// }`).
   ///
   /// The value indicates the default behavior used by the client.
-  ///  @since version 3.16.0
+  ///  @since 3.16.0
   final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
   Map<String, Object?> toJson() {
@@ -21069,8 +22602,12 @@ class RenameClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, prepareSupport,
-      prepareSupportDefaultBehavior, honorsChangeAnnotations);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        prepareSupport,
+        prepareSupportDefaultBehavior,
+        honorsChangeAnnotations,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21078,15 +22615,18 @@ class RenameClientCapabilities implements ToJsonable {
 
 /// Rename file operation
 class RenameFile implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RenameFile.canParse,
+    RenameFile.fromJson,
+  );
 
-  RenameFile(
-      {this.kind = 'rename',
-      required this.oldUri,
-      required this.newUri,
-      this.options,
-      this.annotationId}) {
+  RenameFile({
+    this.kind = 'rename',
+    required this.oldUri,
+    required this.newUri,
+    this.options,
+    this.annotationId,
+  }) {
     if (kind != 'rename') {
       throw 'kind may only be the literal \'rename\'';
     }
@@ -21105,11 +22645,12 @@ class RenameFile implements ToJsonable {
     final annotationIdJson = json['annotationId'];
     final annotationId = annotationIdJson as String?;
     return RenameFile(
-        kind: kind,
-        oldUri: oldUri,
-        newUri: newUri,
-        options: options,
-        annotationId: annotationId);
+      kind: kind,
+      oldUri: oldUri,
+      newUri: newUri,
+      options: options,
+      annotationId: annotationId,
+    );
   }
 
   /// An optional annotation identifer describing the operation.
@@ -21240,7 +22781,13 @@ class RenameFile implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(kind, oldUri, newUri, options, annotationId);
+  int get hashCode => Object.hash(
+        kind,
+        oldUri,
+        newUri,
+        options,
+        annotationId,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21248,17 +22795,24 @@ class RenameFile implements ToJsonable {
 
 /// Rename file options
 class RenameFileOptions implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RenameFileOptions.canParse, RenameFileOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RenameFileOptions.canParse,
+    RenameFileOptions.fromJson,
+  );
 
-  RenameFileOptions({this.overwrite, this.ignoreIfExists});
+  RenameFileOptions({
+    this.overwrite,
+    this.ignoreIfExists,
+  });
   static RenameFileOptions fromJson(Map<String, Object?> json) {
     final overwriteJson = json['overwrite'];
     final overwrite = overwriteJson as bool?;
     final ignoreIfExistsJson = json['ignoreIfExists'];
     final ignoreIfExists = ignoreIfExistsJson as bool?;
     return RenameFileOptions(
-        overwrite: overwrite, ignoreIfExists: ignoreIfExists);
+      overwrite: overwrite,
+      ignoreIfExists: ignoreIfExists,
+    );
   }
 
   /// Ignores if target exists.
@@ -21318,7 +22872,10 @@ class RenameFileOptions implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(overwrite, ignoreIfExists);
+  int get hashCode => Object.hash(
+        overwrite,
+        ignoreIfExists,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21328,16 +22885,22 @@ class RenameFileOptions implements ToJsonable {
 /// files.
 ///  @since 3.16.0
 class RenameFilesParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RenameFilesParams.canParse, RenameFilesParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RenameFilesParams.canParse,
+    RenameFilesParams.fromJson,
+  );
 
-  RenameFilesParams({required this.files});
+  RenameFilesParams({
+    required this.files,
+  });
   static RenameFilesParams fromJson(Map<String, Object?> json) {
     final filesJson = json['files'];
     final files = (filesJson as List<Object?>)
         .map((item) => FileRename.fromJson(item as Map<String, Object?>))
         .toList();
-    return RenameFilesParams(files: files);
+    return RenameFilesParams(
+      files: files,
+    );
   }
 
   /// An array of all files/folders renamed in this operation. When a folder is
@@ -21396,10 +22959,15 @@ class RenameFilesParams implements ToJsonable {
 }
 
 class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RenameOptions.canParse,
+    RenameOptions.fromJson,
+  );
 
-  RenameOptions({this.prepareProvider, this.workDoneProgress});
+  RenameOptions({
+    this.prepareProvider,
+    this.workDoneProgress,
+  });
   static RenameOptions fromJson(Map<String, Object?> json) {
     if (RenameRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return RenameRegistrationOptions.fromJson(json);
@@ -21409,7 +22977,9 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return RenameOptions(
-        prepareProvider: prepareProvider, workDoneProgress: workDoneProgress);
+      prepareProvider: prepareProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// Renames should be checked and tested before being executed.
@@ -21467,7 +23037,10 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(prepareProvider, workDoneProgress);
+  int get hashCode => Object.hash(
+        prepareProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21475,14 +23048,17 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class RenameParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RenameParams.canParse,
+    RenameParams.fromJson,
+  );
 
-  RenameParams(
-      {required this.newName,
-      required this.textDocument,
-      required this.position,
-      this.workDoneToken});
+  RenameParams({
+    required this.newName,
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+  });
   static RenameParams fromJson(Map<String, Object?> json) {
     final newNameJson = json['newName'];
     final newName = newNameJson as String;
@@ -21500,10 +23076,11 @@ class RenameParams
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return RenameParams(
-        newName: newName,
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken);
+      newName: newName,
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The new name of the symbol. If the given name is not valid the request
@@ -21617,8 +23194,12 @@ class RenameParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(newName, textDocument, position, workDoneToken);
+  int get hashCode => Object.hash(
+        newName,
+        textDocument,
+        position,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21627,10 +23208,15 @@ class RenameParams
 class RenameRegistrationOptions
     implements TextDocumentRegistrationOptions, RenameOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      RenameRegistrationOptions.canParse, RenameRegistrationOptions.fromJson);
+    RenameRegistrationOptions.canParse,
+    RenameRegistrationOptions.fromJson,
+  );
 
-  RenameRegistrationOptions(
-      {this.documentSelector, this.prepareProvider, this.workDoneProgress});
+  RenameRegistrationOptions({
+    this.documentSelector,
+    this.prepareProvider,
+    this.workDoneProgress,
+  });
   static RenameRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -21641,9 +23227,10 @@ class RenameRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return RenameRegistrationOptions(
-        documentSelector: documentSelector,
-        prepareProvider: prepareProvider,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      prepareProvider: prepareProvider,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -21727,22 +23314,28 @@ class RenameRegistrationOptions
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(documentSelector), prepareProvider, workDoneProgress);
+        lspHashCode(documentSelector),
+        prepareProvider,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class RequestMessage implements Message, IncomingMessage, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    RequestMessage.canParse,
+    RequestMessage.fromJson,
+  );
 
-  RequestMessage(
-      {required this.id,
-      required this.method,
-      this.params,
-      required this.jsonrpc,
-      this.clientRequestTime});
+  RequestMessage({
+    required this.id,
+    required this.method,
+    this.params,
+    required this.jsonrpc,
+    this.clientRequestTime,
+  });
   static RequestMessage fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson is int
@@ -21759,11 +23352,12 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
     final clientRequestTimeJson = json['clientRequestTime'];
     final clientRequestTime = clientRequestTimeJson as int?;
     return RequestMessage(
-        id: id,
-        method: method,
-        params: params,
-        jsonrpc: jsonrpc,
-        clientRequestTime: clientRequestTime);
+      id: id,
+      method: method,
+      params: params,
+      jsonrpc: jsonrpc,
+      clientRequestTime: clientRequestTime,
+    );
   }
 
   final int? clientRequestTime;
@@ -21879,8 +23473,13 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, method, params, jsonrpc, clientRequestTime);
+  int get hashCode => Object.hash(
+        id,
+        method,
+        params,
+        jsonrpc,
+        clientRequestTime,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21924,10 +23523,16 @@ class ResourceOperationKind {
 }
 
 class ResponseError implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ResponseError.canParse,
+    ResponseError.fromJson,
+  );
 
-  ResponseError({required this.code, required this.message, this.data});
+  ResponseError({
+    required this.code,
+    required this.message,
+    this.data,
+  });
   static ResponseError fromJson(Map<String, Object?> json) {
     final codeJson = json['code'];
     final code = ErrorCodes.fromJson(codeJson as int);
@@ -21935,7 +23540,11 @@ class ResponseError implements ToJsonable {
     final message = messageJson as String;
     final dataJson = json['data'];
     final data = dataJson as String?;
-    return ResponseError(code: code, message: message, data: data);
+    return ResponseError(
+      code: code,
+      message: message,
+      data: data,
+    );
   }
 
   /// A number indicating the error type that occurred.
@@ -22025,22 +23634,29 @@ class ResponseError implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(code, message, data);
+  int get hashCode => Object.hash(
+        code,
+        message,
+        data,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class ResponseMessage implements Message, ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ResponseMessage.canParse,
+    ResponseMessage.fromJson,
+  );
 
-  ResponseMessage(
-      {this.id,
-      this.result,
-      this.error,
-      required this.jsonrpc,
-      this.clientRequestTime});
+  ResponseMessage({
+    this.id,
+    this.result,
+    this.error,
+    required this.jsonrpc,
+    this.clientRequestTime,
+  });
   static ResponseMessage fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson == null
@@ -22061,11 +23677,12 @@ class ResponseMessage implements Message, ToJsonable {
     final clientRequestTimeJson = json['clientRequestTime'];
     final clientRequestTime = clientRequestTimeJson as int?;
     return ResponseMessage(
-        id: id,
-        result: result,
-        error: error,
-        jsonrpc: jsonrpc,
-        clientRequestTime: clientRequestTime);
+      id: id,
+      result: result,
+      error: error,
+      jsonrpc: jsonrpc,
+      clientRequestTime: clientRequestTime,
+    );
   }
 
   final int? clientRequestTime;
@@ -22173,22 +23790,33 @@ class ResponseMessage implements Message, ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, result, error, jsonrpc, clientRequestTime);
+  int get hashCode => Object.hash(
+        id,
+        result,
+        error,
+        jsonrpc,
+        clientRequestTime,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class SaveOptions implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SaveOptions.canParse,
+    SaveOptions.fromJson,
+  );
 
-  SaveOptions({this.includeText});
+  SaveOptions({
+    this.includeText,
+  });
   static SaveOptions fromJson(Map<String, Object?> json) {
     final includeTextJson = json['includeText'];
     final includeText = includeTextJson as bool?;
-    return SaveOptions(includeText: includeText);
+    return SaveOptions(
+      includeText: includeText,
+    );
   }
 
   /// The client is supposed to include the content on save.
@@ -22237,10 +23865,15 @@ class SaveOptions implements ToJsonable {
 }
 
 class SelectionRange implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SelectionRange.canParse, SelectionRange.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SelectionRange.canParse,
+    SelectionRange.fromJson,
+  );
 
-  SelectionRange({required this.range, this.parent});
+  SelectionRange({
+    required this.range,
+    this.parent,
+  });
   static SelectionRange fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
@@ -22248,7 +23881,10 @@ class SelectionRange implements ToJsonable {
     final parent = parentJson != null
         ? SelectionRange.fromJson(parentJson as Map<String, Object?>)
         : null;
-    return SelectionRange(range: range, parent: parent);
+    return SelectionRange(
+      range: range,
+      parent: parent,
+    );
   }
 
   /// The parent selection range containing this range. Therefore `parent.range`
@@ -22313,7 +23949,10 @@ class SelectionRange implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, parent);
+  int get hashCode => Object.hash(
+        range,
+        parent,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -22321,15 +23960,19 @@ class SelectionRange implements ToJsonable {
 
 class SelectionRangeClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SelectionRangeClientCapabilities.canParse,
-      SelectionRangeClientCapabilities.fromJson);
+    SelectionRangeClientCapabilities.canParse,
+    SelectionRangeClientCapabilities.fromJson,
+  );
 
-  SelectionRangeClientCapabilities({this.dynamicRegistration});
+  SelectionRangeClientCapabilities({
+    this.dynamicRegistration,
+  });
   static SelectionRangeClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     return SelectionRangeClientCapabilities(
-        dynamicRegistration: dynamicRegistration);
+      dynamicRegistration: dynamicRegistration,
+    );
   }
 
   /// Whether implementation supports dynamic registration for selection range
@@ -22383,16 +24026,22 @@ class SelectionRangeClientCapabilities implements ToJsonable {
 
 class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SelectionRangeOptions.canParse, SelectionRangeOptions.fromJson);
+    SelectionRangeOptions.canParse,
+    SelectionRangeOptions.fromJson,
+  );
 
-  SelectionRangeOptions({this.workDoneProgress});
+  SelectionRangeOptions({
+    this.workDoneProgress,
+  });
   static SelectionRangeOptions fromJson(Map<String, Object?> json) {
     if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return SelectionRangeOptions(workDoneProgress: workDoneProgress);
+    return SelectionRangeOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -22443,13 +24092,16 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 class SelectionRangeParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SelectionRangeParams.canParse, SelectionRangeParams.fromJson);
+    SelectionRangeParams.canParse,
+    SelectionRangeParams.fromJson,
+  );
 
-  SelectionRangeParams(
-      {required this.textDocument,
-      required this.positions,
-      this.workDoneToken,
-      this.partialResultToken});
+  SelectionRangeParams({
+    required this.textDocument,
+    required this.positions,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static SelectionRangeParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -22475,10 +24127,11 @@ class SelectionRangeParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SelectionRangeParams(
-        textDocument: textDocument,
-        positions: positions,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      positions: positions,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -22591,7 +24244,11 @@ class SelectionRangeParams
 
   @override
   int get hashCode => Object.hash(
-      textDocument, lspHashCode(positions), workDoneToken, partialResultToken);
+        textDocument,
+        lspHashCode(positions),
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -22604,11 +24261,15 @@ class SelectionRangeRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SelectionRangeRegistrationOptions.canParse,
-      SelectionRangeRegistrationOptions.fromJson);
+    SelectionRangeRegistrationOptions.canParse,
+    SelectionRangeRegistrationOptions.fromJson,
+  );
 
-  SelectionRangeRegistrationOptions(
-      {this.workDoneProgress, this.documentSelector, this.id});
+  SelectionRangeRegistrationOptions({
+    this.workDoneProgress,
+    this.documentSelector,
+    this.id,
+  });
   static SelectionRangeRegistrationOptions fromJson(Map<String, Object?> json) {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -22619,9 +24280,10 @@ class SelectionRangeRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return SelectionRangeRegistrationOptions(
-        workDoneProgress: workDoneProgress,
-        documentSelector: documentSelector,
-        id: id);
+      workDoneProgress: workDoneProgress,
+      documentSelector: documentSelector,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -22705,8 +24367,11 @@ class SelectionRangeRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(workDoneProgress, lspHashCode(documentSelector), id);
+  int get hashCode => Object.hash(
+        workDoneProgress,
+        lspHashCode(documentSelector),
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -22793,17 +24458,25 @@ class SemanticTokenTypes {
 }
 
 class SemanticTokens implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SemanticTokens.canParse, SemanticTokens.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SemanticTokens.canParse,
+    SemanticTokens.fromJson,
+  );
 
-  SemanticTokens({this.resultId, required this.data});
+  SemanticTokens({
+    this.resultId,
+    required this.data,
+  });
   static SemanticTokens fromJson(Map<String, Object?> json) {
     final resultIdJson = json['resultId'];
     final resultId = resultIdJson as String?;
     final dataJson = json['data'];
     final data =
         (dataJson as List<Object?>).map((item) => item as int).toList();
-    return SemanticTokens(resultId: resultId, data: data);
+    return SemanticTokens(
+      resultId: resultId,
+      data: data,
+    );
   }
 
   /// The actual tokens.
@@ -22872,7 +24545,10 @@ class SemanticTokens implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(resultId, lspHashCode(data));
+  int get hashCode => Object.hash(
+        resultId,
+        lspHashCode(data),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -22880,17 +24556,19 @@ class SemanticTokens implements ToJsonable {
 
 class SemanticTokensClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensClientCapabilities.canParse,
-      SemanticTokensClientCapabilities.fromJson);
+    SemanticTokensClientCapabilities.canParse,
+    SemanticTokensClientCapabilities.fromJson,
+  );
 
-  SemanticTokensClientCapabilities(
-      {this.dynamicRegistration,
-      required this.requests,
-      required this.tokenTypes,
-      required this.tokenModifiers,
-      required this.formats,
-      this.overlappingTokenSupport,
-      this.multilineTokenSupport});
+  SemanticTokensClientCapabilities({
+    this.dynamicRegistration,
+    required this.requests,
+    required this.tokenTypes,
+    required this.tokenModifiers,
+    required this.formats,
+    this.overlappingTokenSupport,
+    this.multilineTokenSupport,
+  });
   static SemanticTokensClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -22914,13 +24592,14 @@ class SemanticTokensClientCapabilities implements ToJsonable {
     final multilineTokenSupportJson = json['multilineTokenSupport'];
     final multilineTokenSupport = multilineTokenSupportJson as bool?;
     return SemanticTokensClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        requests: requests,
-        tokenTypes: tokenTypes,
-        tokenModifiers: tokenModifiers,
-        formats: formats,
-        overlappingTokenSupport: overlappingTokenSupport,
-        multilineTokenSupport: multilineTokenSupport);
+      dynamicRegistration: dynamicRegistration,
+      requests: requests,
+      tokenTypes: tokenTypes,
+      tokenModifiers: tokenModifiers,
+      formats: formats,
+      overlappingTokenSupport: overlappingTokenSupport,
+      multilineTokenSupport: multilineTokenSupport,
+    );
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -23110,13 +24789,14 @@ class SemanticTokensClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      dynamicRegistration,
-      requests,
-      lspHashCode(tokenTypes),
-      lspHashCode(tokenModifiers),
-      lspHashCode(formats),
-      overlappingTokenSupport,
-      multilineTokenSupport);
+        dynamicRegistration,
+        requests,
+        lspHashCode(tokenTypes),
+        lspHashCode(tokenModifiers),
+        lspHashCode(formats),
+        overlappingTokenSupport,
+        multilineTokenSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -23124,15 +24804,20 @@ class SemanticTokensClientCapabilities implements ToJsonable {
 
 class SemanticTokensClientCapabilitiesFull implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensClientCapabilitiesFull.canParse,
-      SemanticTokensClientCapabilitiesFull.fromJson);
+    SemanticTokensClientCapabilitiesFull.canParse,
+    SemanticTokensClientCapabilitiesFull.fromJson,
+  );
 
-  SemanticTokensClientCapabilitiesFull({this.delta});
+  SemanticTokensClientCapabilitiesFull({
+    this.delta,
+  });
   static SemanticTokensClientCapabilitiesFull fromJson(
       Map<String, Object?> json) {
     final deltaJson = json['delta'];
     final delta = deltaJson as bool?;
-    return SemanticTokensClientCapabilitiesFull(delta: delta);
+    return SemanticTokensClientCapabilitiesFull(
+      delta: delta,
+    );
   }
 
   /// The client will send the `textDocument/semanticTokens/full/delta` request
@@ -23185,8 +24870,9 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
 
 class SemanticTokensClientCapabilitiesRange implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensClientCapabilitiesRange.canParse,
-      SemanticTokensClientCapabilitiesRange.fromJson);
+    SemanticTokensClientCapabilitiesRange.canParse,
+    SemanticTokensClientCapabilitiesRange.fromJson,
+  );
 
   static SemanticTokensClientCapabilitiesRange fromJson(
       Map<String, Object?> json) {
@@ -23226,10 +24912,14 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
 
 class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensClientCapabilitiesRequests.canParse,
-      SemanticTokensClientCapabilitiesRequests.fromJson);
+    SemanticTokensClientCapabilitiesRequests.canParse,
+    SemanticTokensClientCapabilitiesRequests.fromJson,
+  );
 
-  SemanticTokensClientCapabilitiesRequests({this.range, this.full});
+  SemanticTokensClientCapabilitiesRequests({
+    this.range,
+    this.full,
+  });
   static SemanticTokensClientCapabilitiesRequests fromJson(
       Map<String, Object?> json) {
     final rangeJson = json['range'];
@@ -23254,7 +24944,10 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
                     SemanticTokensClientCapabilitiesFull.fromJson(
                         fullJson as Map<String, Object?>))
                 : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesFull)''')));
-    return SemanticTokensClientCapabilitiesRequests(range: range, full: full);
+    return SemanticTokensClientCapabilitiesRequests(
+      range: range,
+      full: full,
+    );
   }
 
   /// The client will send the `textDocument/semanticTokens/full` request if the
@@ -23324,7 +25017,10 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, full);
+  int get hashCode => Object.hash(
+        range,
+        full,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -23332,9 +25028,14 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
 
 class SemanticTokensDelta implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensDelta.canParse, SemanticTokensDelta.fromJson);
+    SemanticTokensDelta.canParse,
+    SemanticTokensDelta.fromJson,
+  );
 
-  SemanticTokensDelta({this.resultId, required this.edits});
+  SemanticTokensDelta({
+    this.resultId,
+    required this.edits,
+  });
   static SemanticTokensDelta fromJson(Map<String, Object?> json) {
     final resultIdJson = json['resultId'];
     final resultId = resultIdJson as String?;
@@ -23343,7 +25044,10 @@ class SemanticTokensDelta implements ToJsonable {
         .map(
             (item) => SemanticTokensEdit.fromJson(item as Map<String, Object?>))
         .toList();
-    return SemanticTokensDelta(resultId: resultId, edits: edits);
+    return SemanticTokensDelta(
+      resultId: resultId,
+      edits: edits,
+    );
   }
 
   /// The semantic token edits to transform a previous result into a new result.
@@ -23411,7 +25115,10 @@ class SemanticTokensDelta implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(resultId, lspHashCode(edits));
+  int get hashCode => Object.hash(
+        resultId,
+        lspHashCode(edits),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -23420,13 +25127,16 @@ class SemanticTokensDelta implements ToJsonable {
 class SemanticTokensDeltaParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensDeltaParams.canParse, SemanticTokensDeltaParams.fromJson);
+    SemanticTokensDeltaParams.canParse,
+    SemanticTokensDeltaParams.fromJson,
+  );
 
-  SemanticTokensDeltaParams(
-      {required this.textDocument,
-      required this.previousResultId,
-      this.workDoneToken,
-      this.partialResultToken});
+  SemanticTokensDeltaParams({
+    required this.textDocument,
+    required this.previousResultId,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static SemanticTokensDeltaParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -23450,10 +25160,11 @@ class SemanticTokensDeltaParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SemanticTokensDeltaParams(
-        textDocument: textDocument,
-        previousResultId: previousResultId,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      previousResultId: previousResultId,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -23565,7 +25276,11 @@ class SemanticTokensDeltaParams
 
   @override
   int get hashCode => Object.hash(
-      textDocument, previousResultId, workDoneToken, partialResultToken);
+        textDocument,
+        previousResultId,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -23573,17 +25288,22 @@ class SemanticTokensDeltaParams
 
 class SemanticTokensDeltaPartialResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensDeltaPartialResult.canParse,
-      SemanticTokensDeltaPartialResult.fromJson);
+    SemanticTokensDeltaPartialResult.canParse,
+    SemanticTokensDeltaPartialResult.fromJson,
+  );
 
-  SemanticTokensDeltaPartialResult({required this.edits});
+  SemanticTokensDeltaPartialResult({
+    required this.edits,
+  });
   static SemanticTokensDeltaPartialResult fromJson(Map<String, Object?> json) {
     final editsJson = json['edits'];
     final edits = (editsJson as List<Object?>)
         .map(
             (item) => SemanticTokensEdit.fromJson(item as Map<String, Object?>))
         .toList();
-    return SemanticTokensDeltaPartialResult(edits: edits);
+    return SemanticTokensDeltaPartialResult(
+      edits: edits,
+    );
   }
 
   final List<SemanticTokensEdit> edits;
@@ -23642,11 +25362,16 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
 }
 
 class SemanticTokensEdit implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SemanticTokensEdit.canParse, SemanticTokensEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SemanticTokensEdit.canParse,
+    SemanticTokensEdit.fromJson,
+  );
 
-  SemanticTokensEdit(
-      {required this.start, required this.deleteCount, this.data});
+  SemanticTokensEdit({
+    required this.start,
+    required this.deleteCount,
+    this.data,
+  });
   static SemanticTokensEdit fromJson(Map<String, Object?> json) {
     final startJson = json['start'];
     final start = startJson as int;
@@ -23656,7 +25381,10 @@ class SemanticTokensEdit implements ToJsonable {
     final data =
         (dataJson as List<Object?>?)?.map((item) => item as int).toList();
     return SemanticTokensEdit(
-        start: start, deleteCount: deleteCount, data: data);
+      start: start,
+      deleteCount: deleteCount,
+      data: data,
+    );
   }
 
   /// The elements to insert.
@@ -23747,7 +25475,11 @@ class SemanticTokensEdit implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(start, deleteCount, lspHashCode(data));
+  int get hashCode => Object.hash(
+        start,
+        deleteCount,
+        lspHashCode(data),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -23755,10 +25487,14 @@ class SemanticTokensEdit implements ToJsonable {
 
 class SemanticTokensLegend implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensLegend.canParse, SemanticTokensLegend.fromJson);
+    SemanticTokensLegend.canParse,
+    SemanticTokensLegend.fromJson,
+  );
 
-  SemanticTokensLegend(
-      {required this.tokenTypes, required this.tokenModifiers});
+  SemanticTokensLegend({
+    required this.tokenTypes,
+    required this.tokenModifiers,
+  });
   static SemanticTokensLegend fromJson(Map<String, Object?> json) {
     final tokenTypesJson = json['tokenTypes'];
     final tokenTypes = (tokenTypesJson as List<Object?>)
@@ -23769,7 +25505,9 @@ class SemanticTokensLegend implements ToJsonable {
         .map((item) => item as String)
         .toList();
     return SemanticTokensLegend(
-        tokenTypes: tokenTypes, tokenModifiers: tokenModifiers);
+      tokenTypes: tokenTypes,
+      tokenModifiers: tokenModifiers,
+    );
   }
 
   /// The token modifiers a server uses.
@@ -23846,8 +25584,10 @@ class SemanticTokensLegend implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(tokenTypes), lspHashCode(tokenModifiers));
+  int get hashCode => Object.hash(
+        lspHashCode(tokenTypes),
+        lspHashCode(tokenModifiers),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -23855,10 +25595,16 @@ class SemanticTokensLegend implements ToJsonable {
 
 class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensOptions.canParse, SemanticTokensOptions.fromJson);
+    SemanticTokensOptions.canParse,
+    SemanticTokensOptions.fromJson,
+  );
 
-  SemanticTokensOptions(
-      {required this.legend, this.range, this.full, this.workDoneProgress});
+  SemanticTokensOptions({
+    required this.legend,
+    this.range,
+    this.full,
+    this.workDoneProgress,
+  });
   static SemanticTokensOptions fromJson(Map<String, Object?> json) {
     if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRegistrationOptions.fromJson(json);
@@ -23890,10 +25636,11 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return SemanticTokensOptions(
-        legend: legend,
-        range: range,
-        full: full,
-        workDoneProgress: workDoneProgress);
+      legend: legend,
+      range: range,
+      full: full,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// Server supports providing semantic tokens for a full document.
@@ -23999,7 +25746,12 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(legend, range, full, workDoneProgress);
+  int get hashCode => Object.hash(
+        legend,
+        range,
+        full,
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -24007,13 +25759,19 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class SemanticTokensOptionsFull implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensOptionsFull.canParse, SemanticTokensOptionsFull.fromJson);
+    SemanticTokensOptionsFull.canParse,
+    SemanticTokensOptionsFull.fromJson,
+  );
 
-  SemanticTokensOptionsFull({this.delta});
+  SemanticTokensOptionsFull({
+    this.delta,
+  });
   static SemanticTokensOptionsFull fromJson(Map<String, Object?> json) {
     final deltaJson = json['delta'];
     final delta = deltaJson as bool?;
-    return SemanticTokensOptionsFull(delta: delta);
+    return SemanticTokensOptionsFull(
+      delta: delta,
+    );
   }
 
   /// The server supports deltas for full documents.
@@ -24064,7 +25822,9 @@ class SemanticTokensOptionsFull implements ToJsonable {
 
 class SemanticTokensOptionsRange implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensOptionsRange.canParse, SemanticTokensOptionsRange.fromJson);
+    SemanticTokensOptionsRange.canParse,
+    SemanticTokensOptionsRange.fromJson,
+  );
 
   static SemanticTokensOptionsRange fromJson(Map<String, Object?> json) {
     return SemanticTokensOptionsRange();
@@ -24103,12 +25863,15 @@ class SemanticTokensOptionsRange implements ToJsonable {
 class SemanticTokensParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensParams.canParse, SemanticTokensParams.fromJson);
+    SemanticTokensParams.canParse,
+    SemanticTokensParams.fromJson,
+  );
 
-  SemanticTokensParams(
-      {required this.textDocument,
-      this.workDoneToken,
-      this.partialResultToken});
+  SemanticTokensParams({
+    required this.textDocument,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static SemanticTokensParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -24130,9 +25893,10 @@ class SemanticTokensParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SemanticTokensParams(
-        textDocument: textDocument,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -24219,8 +25983,11 @@ class SemanticTokensParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -24228,15 +25995,20 @@ class SemanticTokensParams
 
 class SemanticTokensPartialResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensPartialResult.canParse,
-      SemanticTokensPartialResult.fromJson);
+    SemanticTokensPartialResult.canParse,
+    SemanticTokensPartialResult.fromJson,
+  );
 
-  SemanticTokensPartialResult({required this.data});
+  SemanticTokensPartialResult({
+    required this.data,
+  });
   static SemanticTokensPartialResult fromJson(Map<String, Object?> json) {
     final dataJson = json['data'];
     final data =
         (dataJson as List<Object?>).map((item) => item as int).toList();
-    return SemanticTokensPartialResult(data: data);
+    return SemanticTokensPartialResult(
+      data: data,
+    );
   }
 
   final List<int> data;
@@ -24293,13 +26065,16 @@ class SemanticTokensPartialResult implements ToJsonable {
 class SemanticTokensRangeParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensRangeParams.canParse, SemanticTokensRangeParams.fromJson);
+    SemanticTokensRangeParams.canParse,
+    SemanticTokensRangeParams.fromJson,
+  );
 
-  SemanticTokensRangeParams(
-      {required this.textDocument,
-      required this.range,
-      this.workDoneToken,
-      this.partialResultToken});
+  SemanticTokensRangeParams({
+    required this.textDocument,
+    required this.range,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static SemanticTokensRangeParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -24323,10 +26098,11 @@ class SemanticTokensRangeParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SemanticTokensRangeParams(
-        textDocument: textDocument,
-        range: range,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      range: range,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -24436,8 +26212,12 @@ class SemanticTokensRangeParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, range, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        range,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -24450,16 +26230,18 @@ class SemanticTokensRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensRegistrationOptions.canParse,
-      SemanticTokensRegistrationOptions.fromJson);
+    SemanticTokensRegistrationOptions.canParse,
+    SemanticTokensRegistrationOptions.fromJson,
+  );
 
-  SemanticTokensRegistrationOptions(
-      {this.documentSelector,
-      required this.legend,
-      this.range,
-      this.full,
-      this.workDoneProgress,
-      this.id});
+  SemanticTokensRegistrationOptions({
+    this.documentSelector,
+    required this.legend,
+    this.range,
+    this.full,
+    this.workDoneProgress,
+    this.id,
+  });
   static SemanticTokensRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -24494,12 +26276,13 @@ class SemanticTokensRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return SemanticTokensRegistrationOptions(
-        documentSelector: documentSelector,
-        legend: legend,
-        range: range,
-        full: full,
-        workDoneProgress: workDoneProgress,
-        id: id);
+      documentSelector: documentSelector,
+      legend: legend,
+      range: range,
+      full: full,
+      workDoneProgress: workDoneProgress,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -24648,7 +26431,13 @@ class SemanticTokensRegistrationOptions
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(documentSelector), legend, range, full, workDoneProgress, id);
+        lspHashCode(documentSelector),
+        legend,
+        range,
+        full,
+        workDoneProgress,
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -24656,16 +26445,20 @@ class SemanticTokensRegistrationOptions
 
 class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SemanticTokensWorkspaceClientCapabilities.canParse,
-      SemanticTokensWorkspaceClientCapabilities.fromJson);
+    SemanticTokensWorkspaceClientCapabilities.canParse,
+    SemanticTokensWorkspaceClientCapabilities.fromJson,
+  );
 
-  SemanticTokensWorkspaceClientCapabilities({this.refreshSupport});
+  SemanticTokensWorkspaceClientCapabilities({
+    this.refreshSupport,
+  });
   static SemanticTokensWorkspaceClientCapabilities fromJson(
       Map<String, Object?> json) {
     final refreshSupportJson = json['refreshSupport'];
     final refreshSupport = refreshSupportJson as bool?;
     return SemanticTokensWorkspaceClientCapabilities(
-        refreshSupport: refreshSupport);
+      refreshSupport: refreshSupport,
+    );
   }
 
   /// Whether the client implementation supports a refresh request sent from the
@@ -24722,39 +26515,42 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
 }
 
 class ServerCapabilities implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ServerCapabilities.canParse, ServerCapabilities.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ServerCapabilities.canParse,
+    ServerCapabilities.fromJson,
+  );
 
-  ServerCapabilities(
-      {this.textDocumentSync,
-      this.completionProvider,
-      this.hoverProvider,
-      this.signatureHelpProvider,
-      this.declarationProvider,
-      this.definitionProvider,
-      this.typeDefinitionProvider,
-      this.implementationProvider,
-      this.referencesProvider,
-      this.documentHighlightProvider,
-      this.documentSymbolProvider,
-      this.codeActionProvider,
-      this.codeLensProvider,
-      this.documentLinkProvider,
-      this.colorProvider,
-      this.documentFormattingProvider,
-      this.documentRangeFormattingProvider,
-      this.documentOnTypeFormattingProvider,
-      this.renameProvider,
-      this.foldingRangeProvider,
-      this.executeCommandProvider,
-      this.selectionRangeProvider,
-      this.linkedEditingRangeProvider,
-      this.callHierarchyProvider,
-      this.semanticTokensProvider,
-      this.monikerProvider,
-      this.workspaceSymbolProvider,
-      this.workspace,
-      this.experimental});
+  ServerCapabilities({
+    this.textDocumentSync,
+    this.completionProvider,
+    this.hoverProvider,
+    this.signatureHelpProvider,
+    this.declarationProvider,
+    this.definitionProvider,
+    this.typeDefinitionProvider,
+    this.implementationProvider,
+    this.referencesProvider,
+    this.documentHighlightProvider,
+    this.documentSymbolProvider,
+    this.codeActionProvider,
+    this.codeLensProvider,
+    this.documentLinkProvider,
+    this.colorProvider,
+    this.documentFormattingProvider,
+    this.documentRangeFormattingProvider,
+    this.documentOnTypeFormattingProvider,
+    this.renameProvider,
+    this.foldingRangeProvider,
+    this.executeCommandProvider,
+    this.selectionRangeProvider,
+    this.linkedEditingRangeProvider,
+    this.callHierarchyProvider,
+    this.semanticTokensProvider,
+    this.monikerProvider,
+    this.workspaceSymbolProvider,
+    this.workspace,
+    this.experimental,
+  });
   static ServerCapabilities fromJson(Map<String, Object?> json) {
     final textDocumentSyncJson = json['textDocumentSync'];
     final textDocumentSync = textDocumentSyncJson == null
@@ -25087,35 +26883,36 @@ class ServerCapabilities implements ToJsonable {
     final experimentalJson = json['experimental'];
     final experimental = experimentalJson;
     return ServerCapabilities(
-        textDocumentSync: textDocumentSync,
-        completionProvider: completionProvider,
-        hoverProvider: hoverProvider,
-        signatureHelpProvider: signatureHelpProvider,
-        declarationProvider: declarationProvider,
-        definitionProvider: definitionProvider,
-        typeDefinitionProvider: typeDefinitionProvider,
-        implementationProvider: implementationProvider,
-        referencesProvider: referencesProvider,
-        documentHighlightProvider: documentHighlightProvider,
-        documentSymbolProvider: documentSymbolProvider,
-        codeActionProvider: codeActionProvider,
-        codeLensProvider: codeLensProvider,
-        documentLinkProvider: documentLinkProvider,
-        colorProvider: colorProvider,
-        documentFormattingProvider: documentFormattingProvider,
-        documentRangeFormattingProvider: documentRangeFormattingProvider,
-        documentOnTypeFormattingProvider: documentOnTypeFormattingProvider,
-        renameProvider: renameProvider,
-        foldingRangeProvider: foldingRangeProvider,
-        executeCommandProvider: executeCommandProvider,
-        selectionRangeProvider: selectionRangeProvider,
-        linkedEditingRangeProvider: linkedEditingRangeProvider,
-        callHierarchyProvider: callHierarchyProvider,
-        semanticTokensProvider: semanticTokensProvider,
-        monikerProvider: monikerProvider,
-        workspaceSymbolProvider: workspaceSymbolProvider,
-        workspace: workspace,
-        experimental: experimental);
+      textDocumentSync: textDocumentSync,
+      completionProvider: completionProvider,
+      hoverProvider: hoverProvider,
+      signatureHelpProvider: signatureHelpProvider,
+      declarationProvider: declarationProvider,
+      definitionProvider: definitionProvider,
+      typeDefinitionProvider: typeDefinitionProvider,
+      implementationProvider: implementationProvider,
+      referencesProvider: referencesProvider,
+      documentHighlightProvider: documentHighlightProvider,
+      documentSymbolProvider: documentSymbolProvider,
+      codeActionProvider: codeActionProvider,
+      codeLensProvider: codeLensProvider,
+      documentLinkProvider: documentLinkProvider,
+      colorProvider: colorProvider,
+      documentFormattingProvider: documentFormattingProvider,
+      documentRangeFormattingProvider: documentRangeFormattingProvider,
+      documentOnTypeFormattingProvider: documentOnTypeFormattingProvider,
+      renameProvider: renameProvider,
+      foldingRangeProvider: foldingRangeProvider,
+      executeCommandProvider: executeCommandProvider,
+      selectionRangeProvider: selectionRangeProvider,
+      linkedEditingRangeProvider: linkedEditingRangeProvider,
+      callHierarchyProvider: callHierarchyProvider,
+      semanticTokensProvider: semanticTokensProvider,
+      monikerProvider: monikerProvider,
+      workspaceSymbolProvider: workspaceSymbolProvider,
+      workspace: workspace,
+      experimental: experimental,
+    );
   }
 
   /// The server provides call hierarchy support.
@@ -25790,7 +27587,7 @@ class ServerCapabilities implements ToJsonable {
         monikerProvider,
         workspaceSymbolProvider,
         workspace,
-        experimental
+        experimental,
       ]);
 
   @override
@@ -25799,16 +27596,18 @@ class ServerCapabilities implements ToJsonable {
 
 class ServerCapabilitiesFileOperations implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ServerCapabilitiesFileOperations.canParse,
-      ServerCapabilitiesFileOperations.fromJson);
+    ServerCapabilitiesFileOperations.canParse,
+    ServerCapabilitiesFileOperations.fromJson,
+  );
 
-  ServerCapabilitiesFileOperations(
-      {this.didCreate,
-      this.willCreate,
-      this.didRename,
-      this.willRename,
-      this.didDelete,
-      this.willDelete});
+  ServerCapabilitiesFileOperations({
+    this.didCreate,
+    this.willCreate,
+    this.didRename,
+    this.willRename,
+    this.didDelete,
+    this.willDelete,
+  });
   static ServerCapabilitiesFileOperations fromJson(Map<String, Object?> json) {
     final didCreateJson = json['didCreate'];
     final didCreate = didCreateJson != null
@@ -25841,12 +27640,13 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
             willDeleteJson as Map<String, Object?>)
         : null;
     return ServerCapabilitiesFileOperations(
-        didCreate: didCreate,
-        willCreate: willCreate,
-        didRename: didRename,
-        willRename: willRename,
-        didDelete: didDelete,
-        willDelete: willDelete);
+      didCreate: didCreate,
+      willCreate: willCreate,
+      didRename: didRename,
+      willRename: willRename,
+      didDelete: didDelete,
+      willDelete: willDelete,
+    );
   }
 
   /// The server is interested in receiving didCreateFiles notifications.
@@ -25991,7 +27791,13 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      didCreate, willCreate, didRename, willRename, didDelete, willDelete);
+        didCreate,
+        willCreate,
+        didRename,
+        willRename,
+        didDelete,
+        willDelete,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -25999,10 +27805,14 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
 
 class ServerCapabilitiesWorkspace implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ServerCapabilitiesWorkspace.canParse,
-      ServerCapabilitiesWorkspace.fromJson);
+    ServerCapabilitiesWorkspace.canParse,
+    ServerCapabilitiesWorkspace.fromJson,
+  );
 
-  ServerCapabilitiesWorkspace({this.workspaceFolders, this.fileOperations});
+  ServerCapabilitiesWorkspace({
+    this.workspaceFolders,
+    this.fileOperations,
+  });
   static ServerCapabilitiesWorkspace fromJson(Map<String, Object?> json) {
     final workspaceFoldersJson = json['workspaceFolders'];
     final workspaceFolders = workspaceFoldersJson != null
@@ -26015,7 +27825,9 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
             fileOperationsJson as Map<String, Object?>)
         : null;
     return ServerCapabilitiesWorkspace(
-        workspaceFolders: workspaceFolders, fileOperations: fileOperations);
+      workspaceFolders: workspaceFolders,
+      fileOperations: fileOperations,
+    );
   }
 
   /// The server is interested in file notifications/requests.
@@ -26084,23 +27896,32 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(workspaceFolders, fileOperations);
+  int get hashCode => Object.hash(
+        workspaceFolders,
+        fileOperations,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class SetTraceParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SetTraceParams.canParse, SetTraceParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SetTraceParams.canParse,
+    SetTraceParams.fromJson,
+  );
 
-  SetTraceParams({required this.value});
+  SetTraceParams({
+    required this.value,
+  });
   static SetTraceParams fromJson(Map<String, Object?> json) {
     final valueJson = json['value'];
-    final value = const {'off', 'message', 'verbose'}.contains(valueJson)
+    final value = const {'off', 'messages', 'verbose'}.contains(valueJson)
         ? valueJson as String
-        : throw '''$valueJson was not one of ('off', 'message', 'verbose')''';
-    return SetTraceParams(value: value);
+        : throw '''$valueJson was not one of ('off', 'messages', 'verbose')''';
+    return SetTraceParams(
+      value: value,
+    );
   }
 
   /// The new value that should be assigned to the trace setting.
@@ -26125,9 +27946,9 @@ class SetTraceParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((value == 'off' || value == 'message' || value == 'verbose'))) {
+        if (!((value == 'off' || value == 'messages' || value == 'verbose'))) {
           reporter.reportError(
-              'must be one of the literals \'off\', \'message\', \'verbose\'');
+              'must be one of the literals \'off\', \'messages\', \'verbose\'');
           return false;
         }
       } finally {
@@ -26159,14 +27980,19 @@ class SetTraceParams implements ToJsonable {
 ///  @since 3.16.0
 class ShowDocumentClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ShowDocumentClientCapabilities.canParse,
-      ShowDocumentClientCapabilities.fromJson);
+    ShowDocumentClientCapabilities.canParse,
+    ShowDocumentClientCapabilities.fromJson,
+  );
 
-  ShowDocumentClientCapabilities({required this.support});
+  ShowDocumentClientCapabilities({
+    required this.support,
+  });
   static ShowDocumentClientCapabilities fromJson(Map<String, Object?> json) {
     final supportJson = json['support'];
     final support = supportJson as bool;
-    return ShowDocumentClientCapabilities(support: support);
+    return ShowDocumentClientCapabilities(
+      support: support,
+    );
   }
 
   /// The client has support for the show document request.
@@ -26224,11 +28050,17 @@ class ShowDocumentClientCapabilities implements ToJsonable {
 /// Params to show a document.
 ///  @since 3.16.0
 class ShowDocumentParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ShowDocumentParams.canParse, ShowDocumentParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ShowDocumentParams.canParse,
+    ShowDocumentParams.fromJson,
+  );
 
-  ShowDocumentParams(
-      {required this.uri, this.external, this.takeFocus, this.selection});
+  ShowDocumentParams({
+    required this.uri,
+    this.external,
+    this.takeFocus,
+    this.selection,
+  });
   static ShowDocumentParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
@@ -26241,10 +28073,11 @@ class ShowDocumentParams implements ToJsonable {
         ? Range.fromJson(selectionJson as Map<String, Object?>)
         : null;
     return ShowDocumentParams(
-        uri: uri,
-        external: external,
-        takeFocus: takeFocus,
-        selection: selection);
+      uri: uri,
+      external: external,
+      takeFocus: takeFocus,
+      selection: selection,
+    );
   }
 
   /// Indicates to show the resource in an external program. To show for example
@@ -26351,7 +28184,12 @@ class ShowDocumentParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, external, takeFocus, selection);
+  int get hashCode => Object.hash(
+        uri,
+        external,
+        takeFocus,
+        selection,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -26360,14 +28198,20 @@ class ShowDocumentParams implements ToJsonable {
 /// The result of an show document request.
 ///  @since 3.16.0
 class ShowDocumentResult implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ShowDocumentResult.canParse, ShowDocumentResult.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ShowDocumentResult.canParse,
+    ShowDocumentResult.fromJson,
+  );
 
-  ShowDocumentResult({required this.success});
+  ShowDocumentResult({
+    required this.success,
+  });
   static ShowDocumentResult fromJson(Map<String, Object?> json) {
     final successJson = json['success'];
     final success = successJson as bool;
-    return ShowDocumentResult(success: success);
+    return ShowDocumentResult(
+      success: success,
+    );
   }
 
   /// A boolean indicating if the show was successful.
@@ -26423,16 +28267,24 @@ class ShowDocumentResult implements ToJsonable {
 }
 
 class ShowMessageParams implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    ShowMessageParams.canParse,
+    ShowMessageParams.fromJson,
+  );
 
-  ShowMessageParams({required this.type, required this.message});
+  ShowMessageParams({
+    required this.type,
+    required this.message,
+  });
   static ShowMessageParams fromJson(Map<String, Object?> json) {
     final typeJson = json['type'];
     final type = MessageType.fromJson(typeJson as int);
     final messageJson = json['message'];
     final message = messageJson as String;
-    return ShowMessageParams(type: type, message: message);
+    return ShowMessageParams(
+      type: type,
+      message: message,
+    );
   }
 
   /// The actual message.
@@ -26502,7 +28354,10 @@ class ShowMessageParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(type, message);
+  int get hashCode => Object.hash(
+        type,
+        message,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -26511,10 +28366,13 @@ class ShowMessageParams implements ToJsonable {
 /// Show message request client capabilities
 class ShowMessageRequestClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ShowMessageRequestClientCapabilities.canParse,
-      ShowMessageRequestClientCapabilities.fromJson);
+    ShowMessageRequestClientCapabilities.canParse,
+    ShowMessageRequestClientCapabilities.fromJson,
+  );
 
-  ShowMessageRequestClientCapabilities({this.messageActionItem});
+  ShowMessageRequestClientCapabilities({
+    this.messageActionItem,
+  });
   static ShowMessageRequestClientCapabilities fromJson(
       Map<String, Object?> json) {
     final messageActionItemJson = json['messageActionItem'];
@@ -26523,7 +28381,8 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
             messageActionItemJson as Map<String, Object?>)
         : null;
     return ShowMessageRequestClientCapabilities(
-        messageActionItem: messageActionItem);
+      messageActionItem: messageActionItem,
+    );
   }
 
   /// Capabilities specific to the `MessageActionItem` type.
@@ -26580,18 +28439,21 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
 class ShowMessageRequestClientCapabilitiesMessageActionItem
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ShowMessageRequestClientCapabilitiesMessageActionItem.canParse,
-      ShowMessageRequestClientCapabilitiesMessageActionItem.fromJson);
+    ShowMessageRequestClientCapabilitiesMessageActionItem.canParse,
+    ShowMessageRequestClientCapabilitiesMessageActionItem.fromJson,
+  );
 
-  ShowMessageRequestClientCapabilitiesMessageActionItem(
-      {this.additionalPropertiesSupport});
+  ShowMessageRequestClientCapabilitiesMessageActionItem({
+    this.additionalPropertiesSupport,
+  });
   static ShowMessageRequestClientCapabilitiesMessageActionItem fromJson(
       Map<String, Object?> json) {
     final additionalPropertiesSupportJson = json['additionalPropertiesSupport'];
     final additionalPropertiesSupport =
         additionalPropertiesSupportJson as bool?;
     return ShowMessageRequestClientCapabilitiesMessageActionItem(
-        additionalPropertiesSupport: additionalPropertiesSupport);
+      additionalPropertiesSupport: additionalPropertiesSupport,
+    );
   }
 
   /// Whether the client supports additional attributes which are preserved and
@@ -26647,10 +28509,15 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
 
 class ShowMessageRequestParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      ShowMessageRequestParams.canParse, ShowMessageRequestParams.fromJson);
+    ShowMessageRequestParams.canParse,
+    ShowMessageRequestParams.fromJson,
+  );
 
-  ShowMessageRequestParams(
-      {required this.type, required this.message, this.actions});
+  ShowMessageRequestParams({
+    required this.type,
+    required this.message,
+    this.actions,
+  });
   static ShowMessageRequestParams fromJson(Map<String, Object?> json) {
     final typeJson = json['type'];
     final type = MessageType.fromJson(typeJson as int);
@@ -26662,7 +28529,10 @@ class ShowMessageRequestParams implements ToJsonable {
             (item) => MessageActionItem.fromJson(item as Map<String, Object?>))
         .toList();
     return ShowMessageRequestParams(
-        type: type, message: message, actions: actions);
+      type: type,
+      message: message,
+      actions: actions,
+    );
   }
 
   /// The message action items to present.
@@ -26756,7 +28626,11 @@ class ShowMessageRequestParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(type, message, lspHashCode(actions));
+  int get hashCode => Object.hash(
+        type,
+        message,
+        lspHashCode(actions),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -26765,11 +28639,16 @@ class ShowMessageRequestParams implements ToJsonable {
 /// Signature help represents the signature of something callable. There can be
 /// multiple signature but only one active and only one active parameter.
 class SignatureHelp implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SignatureHelp.canParse,
+    SignatureHelp.fromJson,
+  );
 
-  SignatureHelp(
-      {required this.signatures, this.activeSignature, this.activeParameter});
+  SignatureHelp({
+    required this.signatures,
+    this.activeSignature,
+    this.activeParameter,
+  });
   static SignatureHelp fromJson(Map<String, Object?> json) {
     final signaturesJson = json['signatures'];
     final signatures = (signaturesJson as List<Object?>)
@@ -26781,9 +28660,10 @@ class SignatureHelp implements ToJsonable {
     final activeParameterJson = json['activeParameter'];
     final activeParameter = activeParameterJson as int?;
     return SignatureHelp(
-        signatures: signatures,
-        activeSignature: activeSignature,
-        activeParameter: activeParameter);
+      signatures: signatures,
+      activeSignature: activeSignature,
+      activeParameter: activeParameter,
+    );
   }
 
   /// The active parameter of the active signature. If omitted or the value lies
@@ -26795,8 +28675,8 @@ class SignatureHelp implements ToJsonable {
   final int? activeParameter;
 
   /// The active signature. If omitted or the value lies outside the range of
-  /// `signatures` the value defaults to zero or is ignore if the
-  /// `SignatureHelp` as no signatures.
+  /// `signatures` the value defaults to zero or is ignored if the
+  /// `SignatureHelp` has no signatures.
   ///
   /// Whenever possible implementors should make an active decision about the
   /// active signature and shouldn't rely on a default value.
@@ -26883,8 +28763,11 @@ class SignatureHelp implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(signatures), activeSignature, activeParameter);
+  int get hashCode => Object.hash(
+        lspHashCode(signatures),
+        activeSignature,
+        activeParameter,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -26892,13 +28775,15 @@ class SignatureHelp implements ToJsonable {
 
 class SignatureHelpClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpClientCapabilities.canParse,
-      SignatureHelpClientCapabilities.fromJson);
+    SignatureHelpClientCapabilities.canParse,
+    SignatureHelpClientCapabilities.fromJson,
+  );
 
-  SignatureHelpClientCapabilities(
-      {this.dynamicRegistration,
-      this.signatureInformation,
-      this.contextSupport});
+  SignatureHelpClientCapabilities({
+    this.dynamicRegistration,
+    this.signatureInformation,
+    this.contextSupport,
+  });
   static SignatureHelpClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -26910,9 +28795,10 @@ class SignatureHelpClientCapabilities implements ToJsonable {
     final contextSupportJson = json['contextSupport'];
     final contextSupport = contextSupportJson as bool?;
     return SignatureHelpClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        signatureInformation: signatureInformation,
-        contextSupport: contextSupport);
+      dynamicRegistration: dynamicRegistration,
+      signatureInformation: signatureInformation,
+      contextSupport: contextSupport,
+    );
   }
 
   /// The client supports to send additional context information for a
@@ -26999,8 +28885,11 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(dynamicRegistration, signatureInformation, contextSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        signatureInformation,
+        contextSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27009,17 +28898,20 @@ class SignatureHelpClientCapabilities implements ToJsonable {
 class SignatureHelpClientCapabilitiesParameterInformation
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpClientCapabilitiesParameterInformation.canParse,
-      SignatureHelpClientCapabilitiesParameterInformation.fromJson);
+    SignatureHelpClientCapabilitiesParameterInformation.canParse,
+    SignatureHelpClientCapabilitiesParameterInformation.fromJson,
+  );
 
-  SignatureHelpClientCapabilitiesParameterInformation(
-      {this.labelOffsetSupport});
+  SignatureHelpClientCapabilitiesParameterInformation({
+    this.labelOffsetSupport,
+  });
   static SignatureHelpClientCapabilitiesParameterInformation fromJson(
       Map<String, Object?> json) {
     final labelOffsetSupportJson = json['labelOffsetSupport'];
     final labelOffsetSupport = labelOffsetSupportJson as bool?;
     return SignatureHelpClientCapabilitiesParameterInformation(
-        labelOffsetSupport: labelOffsetSupport);
+      labelOffsetSupport: labelOffsetSupport,
+    );
   }
 
   /// The client supports processing label offsets instead of a simple label
@@ -27075,13 +28967,15 @@ class SignatureHelpClientCapabilitiesParameterInformation
 class SignatureHelpClientCapabilitiesSignatureInformation
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpClientCapabilitiesSignatureInformation.canParse,
-      SignatureHelpClientCapabilitiesSignatureInformation.fromJson);
+    SignatureHelpClientCapabilitiesSignatureInformation.canParse,
+    SignatureHelpClientCapabilitiesSignatureInformation.fromJson,
+  );
 
-  SignatureHelpClientCapabilitiesSignatureInformation(
-      {this.documentationFormat,
-      this.parameterInformation,
-      this.activeParameterSupport});
+  SignatureHelpClientCapabilitiesSignatureInformation({
+    this.documentationFormat,
+    this.parameterInformation,
+    this.activeParameterSupport,
+  });
   static SignatureHelpClientCapabilitiesSignatureInformation fromJson(
       Map<String, Object?> json) {
     final documentationFormatJson = json['documentationFormat'];
@@ -27096,9 +28990,10 @@ class SignatureHelpClientCapabilitiesSignatureInformation
     final activeParameterSupportJson = json['activeParameterSupport'];
     final activeParameterSupport = activeParameterSupportJson as bool?;
     return SignatureHelpClientCapabilitiesSignatureInformation(
-        documentationFormat: documentationFormat,
-        parameterInformation: parameterInformation,
-        activeParameterSupport: activeParameterSupport);
+      documentationFormat: documentationFormat,
+      parameterInformation: parameterInformation,
+      activeParameterSupport: activeParameterSupport,
+    );
   }
 
   /// The client supports the `activeParameter` property on
@@ -27106,8 +29001,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   ///  @since 3.16.0
   final bool? activeParameterSupport;
 
-  /// Client supports the follow content formats for the documentation property.
-  /// The order describes the preferred format of the client.
+  /// Client supports the following content formats for the documentation
+  /// property. The order describes the preferred format of the client.
   final List<MarkupKind>? documentationFormat;
 
   /// Client capabilities specific to parameter information.
@@ -27191,8 +29086,11 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(documentationFormat),
-      parameterInformation, activeParameterSupport);
+  int get hashCode => Object.hash(
+        lspHashCode(documentationFormat),
+        parameterInformation,
+        activeParameterSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27203,13 +29101,16 @@ class SignatureHelpClientCapabilitiesSignatureInformation
 ///  @since 3.15.0
 class SignatureHelpContext implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpContext.canParse, SignatureHelpContext.fromJson);
+    SignatureHelpContext.canParse,
+    SignatureHelpContext.fromJson,
+  );
 
-  SignatureHelpContext(
-      {required this.triggerKind,
-      this.triggerCharacter,
-      required this.isRetrigger,
-      this.activeSignatureHelp});
+  SignatureHelpContext({
+    required this.triggerKind,
+    this.triggerCharacter,
+    required this.isRetrigger,
+    this.activeSignatureHelp,
+  });
   static SignatureHelpContext fromJson(Map<String, Object?> json) {
     final triggerKindJson = json['triggerKind'];
     final triggerKind =
@@ -27224,10 +29125,11 @@ class SignatureHelpContext implements ToJsonable {
             activeSignatureHelpJson as Map<String, Object?>)
         : null;
     return SignatureHelpContext(
-        triggerKind: triggerKind,
-        triggerCharacter: triggerCharacter,
-        isRetrigger: isRetrigger,
-        activeSignatureHelp: activeSignatureHelp);
+      triggerKind: triggerKind,
+      triggerCharacter: triggerCharacter,
+      isRetrigger: isRetrigger,
+      activeSignatureHelp: activeSignatureHelp,
+    );
   }
 
   /// The currently active `SignatureHelp`.
@@ -27346,7 +29248,11 @@ class SignatureHelpContext implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      triggerKind, triggerCharacter, isRetrigger, activeSignatureHelp);
+        triggerKind,
+        triggerCharacter,
+        isRetrigger,
+        activeSignatureHelp,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27354,12 +29260,15 @@ class SignatureHelpContext implements ToJsonable {
 
 class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpOptions.canParse, SignatureHelpOptions.fromJson);
+    SignatureHelpOptions.canParse,
+    SignatureHelpOptions.fromJson,
+  );
 
-  SignatureHelpOptions(
-      {this.triggerCharacters,
-      this.retriggerCharacters,
-      this.workDoneProgress});
+  SignatureHelpOptions({
+    this.triggerCharacters,
+    this.retriggerCharacters,
+    this.workDoneProgress,
+  });
   static SignatureHelpOptions fromJson(Map<String, Object?> json) {
     if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SignatureHelpRegistrationOptions.fromJson(json);
@@ -27375,9 +29284,10 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return SignatureHelpOptions(
-        triggerCharacters: triggerCharacters,
-        retriggerCharacters: retriggerCharacters,
-        workDoneProgress: workDoneProgress);
+      triggerCharacters: triggerCharacters,
+      retriggerCharacters: retriggerCharacters,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// List of characters that re-trigger signature help.
@@ -27463,8 +29373,11 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(triggerCharacters),
-      lspHashCode(retriggerCharacters), workDoneProgress);
+  int get hashCode => Object.hash(
+        lspHashCode(triggerCharacters),
+        lspHashCode(retriggerCharacters),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27473,13 +29386,16 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
 class SignatureHelpParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpParams.canParse, SignatureHelpParams.fromJson);
+    SignatureHelpParams.canParse,
+    SignatureHelpParams.fromJson,
+  );
 
-  SignatureHelpParams(
-      {this.context,
-      required this.textDocument,
-      required this.position,
-      this.workDoneToken});
+  SignatureHelpParams({
+    this.context,
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+  });
   static SignatureHelpParams fromJson(Map<String, Object?> json) {
     final contextJson = json['context'];
     final context = contextJson != null
@@ -27499,10 +29415,11 @@ class SignatureHelpParams
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return SignatureHelpParams(
-        context: context,
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken);
+      context: context,
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// The signature help context. This is only available if the client specifies
@@ -27614,8 +29531,12 @@ class SignatureHelpParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(context, textDocument, position, workDoneToken);
+  int get hashCode => Object.hash(
+        context,
+        textDocument,
+        position,
+        workDoneToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27627,14 +29548,16 @@ class SignatureHelpRegistrationOptions
         SignatureHelpOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureHelpRegistrationOptions.canParse,
-      SignatureHelpRegistrationOptions.fromJson);
+    SignatureHelpRegistrationOptions.canParse,
+    SignatureHelpRegistrationOptions.fromJson,
+  );
 
-  SignatureHelpRegistrationOptions(
-      {this.documentSelector,
-      this.triggerCharacters,
-      this.retriggerCharacters,
-      this.workDoneProgress});
+  SignatureHelpRegistrationOptions({
+    this.documentSelector,
+    this.triggerCharacters,
+    this.retriggerCharacters,
+    this.workDoneProgress,
+  });
   static SignatureHelpRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -27651,10 +29574,11 @@ class SignatureHelpRegistrationOptions
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return SignatureHelpRegistrationOptions(
-        documentSelector: documentSelector,
-        triggerCharacters: triggerCharacters,
-        retriggerCharacters: retriggerCharacters,
-        workDoneProgress: workDoneProgress);
+      documentSelector: documentSelector,
+      triggerCharacters: triggerCharacters,
+      retriggerCharacters: retriggerCharacters,
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -27765,10 +29689,11 @@ class SignatureHelpRegistrationOptions
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(documentSelector),
-      lspHashCode(triggerCharacters),
-      lspHashCode(retriggerCharacters),
-      workDoneProgress);
+        lspHashCode(documentSelector),
+        lspHashCode(triggerCharacters),
+        lspHashCode(retriggerCharacters),
+        workDoneProgress,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27812,13 +29737,16 @@ class SignatureHelpTriggerKind {
 /// label, like a function-name, a doc-comment, and a set of parameters.
 class SignatureInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      SignatureInformation.canParse, SignatureInformation.fromJson);
+    SignatureInformation.canParse,
+    SignatureInformation.fromJson,
+  );
 
-  SignatureInformation(
-      {required this.label,
-      this.documentation,
-      this.parameters,
-      this.activeParameter});
+  SignatureInformation({
+    required this.label,
+    this.documentation,
+    this.parameters,
+    this.activeParameter,
+  });
   static SignatureInformation fromJson(Map<String, Object?> json) {
     final labelJson = json['label'];
     final label = labelJson as String;
@@ -27839,10 +29767,11 @@ class SignatureInformation implements ToJsonable {
     final activeParameterJson = json['activeParameter'];
     final activeParameter = activeParameterJson as int?;
     return SignatureInformation(
-        label: label,
-        documentation: documentation,
-        parameters: parameters,
-        activeParameter: activeParameter);
+      label: label,
+      documentation: documentation,
+      parameters: parameters,
+      activeParameter: activeParameter,
+    );
   }
 
   /// The index of the active parameter.
@@ -27956,7 +29885,11 @@ class SignatureInformation implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      label, documentation, lspHashCode(parameters), activeParameter);
+        label,
+        documentation,
+        lspHashCode(parameters),
+        activeParameter,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27965,9 +29898,13 @@ class SignatureInformation implements ToJsonable {
 /// Static registration options to be returned in the initialize request.
 class StaticRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      StaticRegistrationOptions.canParse, StaticRegistrationOptions.fromJson);
+    StaticRegistrationOptions.canParse,
+    StaticRegistrationOptions.fromJson,
+  );
 
-  StaticRegistrationOptions({this.id});
+  StaticRegistrationOptions({
+    this.id,
+  });
   static StaticRegistrationOptions fromJson(Map<String, Object?> json) {
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
@@ -27999,7 +29936,9 @@ class StaticRegistrationOptions implements ToJsonable {
     }
     final idJson = json['id'];
     final id = idJson as String?;
-    return StaticRegistrationOptions(id: id);
+    return StaticRegistrationOptions(
+      id: id,
+    );
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -28052,16 +29991,19 @@ class StaticRegistrationOptions implements ToJsonable {
 /// Represents information about programming constructs like variables, classes,
 /// interfaces etc.
 class SymbolInformation implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(SymbolInformation.canParse, SymbolInformation.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    SymbolInformation.canParse,
+    SymbolInformation.fromJson,
+  );
 
-  SymbolInformation(
-      {required this.name,
-      required this.kind,
-      this.tags,
-      this.deprecated,
-      required this.location,
-      this.containerName});
+  SymbolInformation({
+    required this.name,
+    required this.kind,
+    this.tags,
+    this.deprecated,
+    required this.location,
+    this.containerName,
+  });
   static SymbolInformation fromJson(Map<String, Object?> json) {
     final nameJson = json['name'];
     final name = nameJson as String;
@@ -28078,12 +30020,13 @@ class SymbolInformation implements ToJsonable {
     final containerNameJson = json['containerName'];
     final containerName = containerNameJson as String?;
     return SymbolInformation(
-        name: name,
-        kind: kind,
-        tags: tags,
-        deprecated: deprecated,
-        location: location,
-        containerName: containerName);
+      name: name,
+      kind: kind,
+      tags: tags,
+      deprecated: deprecated,
+      location: location,
+      containerName: containerName,
+    );
   }
 
   /// The name of the symbol containing this symbol. This information is for
@@ -28113,7 +30056,7 @@ class SymbolInformation implements ToJsonable {
   /// The name of this symbol.
   final String name;
 
-  /// Tags for this completion item.
+  /// Tags for this symbol.
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
@@ -28245,7 +30188,13 @@ class SymbolInformation implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      name, kind, lspHashCode(tags), deprecated, location, containerName);
+        name,
+        kind,
+        lspHashCode(tags),
+        deprecated,
+        location,
+        containerName,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -28301,7 +30250,7 @@ class SymbolKind {
 }
 
 /// Symbol tags are extra annotations that tweak the rendering of a symbol.
-///  @since 3.16
+///  @since 3.16.0
 class SymbolTag {
   const SymbolTag(this._value);
   const SymbolTag.fromJson(this._value);
@@ -28331,11 +30280,14 @@ class SymbolTag {
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentChangeRegistrationOptions.canParse,
-      TextDocumentChangeRegistrationOptions.fromJson);
+    TextDocumentChangeRegistrationOptions.canParse,
+    TextDocumentChangeRegistrationOptions.fromJson,
+  );
 
-  TextDocumentChangeRegistrationOptions(
-      {required this.syncKind, this.documentSelector});
+  TextDocumentChangeRegistrationOptions({
+    required this.syncKind,
+    this.documentSelector,
+  });
   static TextDocumentChangeRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final syncKindJson = json['syncKind'];
@@ -28345,7 +30297,9 @@ class TextDocumentChangeRegistrationOptions
         ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
         .toList();
     return TextDocumentChangeRegistrationOptions(
-        syncKind: syncKind, documentSelector: documentSelector);
+      syncKind: syncKind,
+      documentSelector: documentSelector,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -28421,7 +30375,10 @@ class TextDocumentChangeRegistrationOptions
   }
 
   @override
-  int get hashCode => Object.hash(syncKind, lspHashCode(documentSelector));
+  int get hashCode => Object.hash(
+        syncKind,
+        lspHashCode(documentSelector),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -28430,36 +30387,38 @@ class TextDocumentChangeRegistrationOptions
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentClientCapabilities.canParse,
-      TextDocumentClientCapabilities.fromJson);
+    TextDocumentClientCapabilities.canParse,
+    TextDocumentClientCapabilities.fromJson,
+  );
 
-  TextDocumentClientCapabilities(
-      {this.synchronization,
-      this.completion,
-      this.hover,
-      this.signatureHelp,
-      this.declaration,
-      this.definition,
-      this.typeDefinition,
-      this.implementation,
-      this.references,
-      this.documentHighlight,
-      this.documentSymbol,
-      this.codeAction,
-      this.codeLens,
-      this.documentLink,
-      this.colorProvider,
-      this.formatting,
-      this.rangeFormatting,
-      this.onTypeFormatting,
-      this.rename,
-      this.publishDiagnostics,
-      this.foldingRange,
-      this.selectionRange,
-      this.linkedEditingRange,
-      this.callHierarchy,
-      this.semanticTokens,
-      this.moniker});
+  TextDocumentClientCapabilities({
+    this.synchronization,
+    this.completion,
+    this.hover,
+    this.signatureHelp,
+    this.declaration,
+    this.definition,
+    this.typeDefinition,
+    this.implementation,
+    this.references,
+    this.documentHighlight,
+    this.documentSymbol,
+    this.codeAction,
+    this.codeLens,
+    this.documentLink,
+    this.colorProvider,
+    this.formatting,
+    this.rangeFormatting,
+    this.onTypeFormatting,
+    this.rename,
+    this.publishDiagnostics,
+    this.foldingRange,
+    this.selectionRange,
+    this.linkedEditingRange,
+    this.callHierarchy,
+    this.semanticTokens,
+    this.moniker,
+  });
   static TextDocumentClientCapabilities fromJson(Map<String, Object?> json) {
     final synchronizationJson = json['synchronization'];
     final synchronization = synchronizationJson != null
@@ -28590,32 +30549,33 @@ class TextDocumentClientCapabilities implements ToJsonable {
             monikerJson as Map<String, Object?>)
         : null;
     return TextDocumentClientCapabilities(
-        synchronization: synchronization,
-        completion: completion,
-        hover: hover,
-        signatureHelp: signatureHelp,
-        declaration: declaration,
-        definition: definition,
-        typeDefinition: typeDefinition,
-        implementation: implementation,
-        references: references,
-        documentHighlight: documentHighlight,
-        documentSymbol: documentSymbol,
-        codeAction: codeAction,
-        codeLens: codeLens,
-        documentLink: documentLink,
-        colorProvider: colorProvider,
-        formatting: formatting,
-        rangeFormatting: rangeFormatting,
-        onTypeFormatting: onTypeFormatting,
-        rename: rename,
-        publishDiagnostics: publishDiagnostics,
-        foldingRange: foldingRange,
-        selectionRange: selectionRange,
-        linkedEditingRange: linkedEditingRange,
-        callHierarchy: callHierarchy,
-        semanticTokens: semanticTokens,
-        moniker: moniker);
+      synchronization: synchronization,
+      completion: completion,
+      hover: hover,
+      signatureHelp: signatureHelp,
+      declaration: declaration,
+      definition: definition,
+      typeDefinition: typeDefinition,
+      implementation: implementation,
+      references: references,
+      documentHighlight: documentHighlight,
+      documentSymbol: documentSymbol,
+      codeAction: codeAction,
+      codeLens: codeLens,
+      documentLink: documentLink,
+      colorProvider: colorProvider,
+      formatting: formatting,
+      rangeFormatting: rangeFormatting,
+      onTypeFormatting: onTypeFormatting,
+      rename: rename,
+      publishDiagnostics: publishDiagnostics,
+      foldingRange: foldingRange,
+      selectionRange: selectionRange,
+      linkedEditingRange: linkedEditingRange,
+      callHierarchy: callHierarchy,
+      semanticTokens: semanticTokens,
+      moniker: moniker,
+    );
   }
 
   /// Capabilities specific to the various call hierarchy requests.
@@ -28674,8 +30634,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final MonikerClientCapabilities? moniker;
 
-  /// request. Capabilities specific to the `textDocument/onTypeFormatting`
-  /// request.
+  /// Capabilities specific to the `textDocument/onTypeFormatting` request.
   final DocumentOnTypeFormattingClientCapabilities? onTypeFormatting;
 
   /// Capabilities specific to the `textDocument/publishDiagnostics`
@@ -29181,7 +31140,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
         linkedEditingRange,
         callHierarchy,
         semanticTokens,
-        moniker
+        moniker,
       ]);
 
   @override
@@ -29190,11 +31149,15 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
 class TextDocumentContentChangeEvent1 implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentContentChangeEvent1.canParse,
-      TextDocumentContentChangeEvent1.fromJson);
+    TextDocumentContentChangeEvent1.canParse,
+    TextDocumentContentChangeEvent1.fromJson,
+  );
 
-  TextDocumentContentChangeEvent1(
-      {required this.range, this.rangeLength, required this.text});
+  TextDocumentContentChangeEvent1({
+    required this.range,
+    this.rangeLength,
+    required this.text,
+  });
   static TextDocumentContentChangeEvent1 fromJson(Map<String, Object?> json) {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
@@ -29203,7 +31166,10 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
     final textJson = json['text'];
     final text = textJson as String;
     return TextDocumentContentChangeEvent1(
-        range: range, rangeLength: rangeLength, text: text);
+      range: range,
+      rangeLength: rangeLength,
+      text: text,
+    );
   }
 
   /// The range of the document that changed.
@@ -29294,7 +31260,11 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, rangeLength, text);
+  int get hashCode => Object.hash(
+        range,
+        rangeLength,
+        text,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -29302,14 +31272,19 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
 class TextDocumentContentChangeEvent2 implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentContentChangeEvent2.canParse,
-      TextDocumentContentChangeEvent2.fromJson);
+    TextDocumentContentChangeEvent2.canParse,
+    TextDocumentContentChangeEvent2.fromJson,
+  );
 
-  TextDocumentContentChangeEvent2({required this.text});
+  TextDocumentContentChangeEvent2({
+    required this.text,
+  });
   static TextDocumentContentChangeEvent2 fromJson(Map<String, Object?> json) {
     final textJson = json['text'];
     final text = textJson as String;
-    return TextDocumentContentChangeEvent2(text: text);
+    return TextDocumentContentChangeEvent2(
+      text: text,
+    );
   }
 
   /// The new text of the whole document.
@@ -29365,10 +31340,15 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
 }
 
 class TextDocumentEdit implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    TextDocumentEdit.canParse,
+    TextDocumentEdit.fromJson,
+  );
 
-  TextDocumentEdit({required this.textDocument, required this.edits});
+  TextDocumentEdit({
+    required this.textDocument,
+    required this.edits,
+  });
   static TextDocumentEdit fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = OptionalVersionedTextDocumentIdentifier.fromJson(
@@ -29386,7 +31366,10 @@ class TextDocumentEdit implements ToJsonable {
                         TextEdit.fromJson(item as Map<String, Object?>))
                     : (throw '''$item was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
         .toList();
-    return TextDocumentEdit(textDocument: textDocument, edits: edits);
+    return TextDocumentEdit(
+      textDocument: textDocument,
+      edits: edits,
+    );
   }
 
   /// The edits to be applied.
@@ -29472,7 +31455,10 @@ class TextDocumentEdit implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, lspHashCode(edits));
+  int get hashCode => Object.hash(
+        textDocument,
+        lspHashCode(edits),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -29480,9 +31466,13 @@ class TextDocumentEdit implements ToJsonable {
 
 class TextDocumentIdentifier implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
+    TextDocumentIdentifier.canParse,
+    TextDocumentIdentifier.fromJson,
+  );
 
-  TextDocumentIdentifier({required this.uri});
+  TextDocumentIdentifier({
+    required this.uri,
+  });
   static TextDocumentIdentifier fromJson(Map<String, Object?> json) {
     if (VersionedTextDocumentIdentifier.canParse(json, nullLspJsonReporter)) {
       return VersionedTextDocumentIdentifier.fromJson(json);
@@ -29493,7 +31483,9 @@ class TextDocumentIdentifier implements ToJsonable {
     }
     final uriJson = json['uri'];
     final uri = uriJson as String;
-    return TextDocumentIdentifier(uri: uri);
+    return TextDocumentIdentifier(
+      uri: uri,
+    );
   }
 
   /// The text document's URI.
@@ -29549,14 +31541,17 @@ class TextDocumentIdentifier implements ToJsonable {
 }
 
 class TextDocumentItem implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(TextDocumentItem.canParse, TextDocumentItem.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    TextDocumentItem.canParse,
+    TextDocumentItem.fromJson,
+  );
 
-  TextDocumentItem(
-      {required this.uri,
-      required this.languageId,
-      required this.version,
-      required this.text});
+  TextDocumentItem({
+    required this.uri,
+    required this.languageId,
+    required this.version,
+    required this.text,
+  });
   static TextDocumentItem fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
@@ -29567,7 +31562,11 @@ class TextDocumentItem implements ToJsonable {
     final textJson = json['text'];
     final text = textJson as String;
     return TextDocumentItem(
-        uri: uri, languageId: languageId, version: version, text: text);
+      uri: uri,
+      languageId: languageId,
+      version: version,
+      text: text,
+    );
   }
 
   /// The text document's language identifier.
@@ -29686,7 +31685,12 @@ class TextDocumentItem implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, languageId, version, text);
+  int get hashCode => Object.hash(
+        uri,
+        languageId,
+        version,
+        text,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -29694,10 +31698,14 @@ class TextDocumentItem implements ToJsonable {
 
 class TextDocumentPositionParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentPositionParams.canParse, TextDocumentPositionParams.fromJson);
+    TextDocumentPositionParams.canParse,
+    TextDocumentPositionParams.fromJson,
+  );
 
-  TextDocumentPositionParams(
-      {required this.textDocument, required this.position});
+  TextDocumentPositionParams({
+    required this.textDocument,
+    required this.position,
+  });
   static TextDocumentPositionParams fromJson(Map<String, Object?> json) {
     if (CompletionParams.canParse(json, nullLspJsonReporter)) {
       return CompletionParams.fromJson(json);
@@ -29750,7 +31758,9 @@ class TextDocumentPositionParams implements ToJsonable {
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     return TextDocumentPositionParams(
-        textDocument: textDocument, position: position);
+      textDocument: textDocument,
+      position: position,
+    );
   }
 
   /// The position inside the text document.
@@ -29823,7 +31833,10 @@ class TextDocumentPositionParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, position);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -29832,10 +31845,13 @@ class TextDocumentPositionParams implements ToJsonable {
 /// General text document registration options.
 class TextDocumentRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentRegistrationOptions.canParse,
-      TextDocumentRegistrationOptions.fromJson);
+    TextDocumentRegistrationOptions.canParse,
+    TextDocumentRegistrationOptions.fromJson,
+  );
 
-  TextDocumentRegistrationOptions({this.documentSelector});
+  TextDocumentRegistrationOptions({
+    this.documentSelector,
+  });
   static TextDocumentRegistrationOptions fromJson(Map<String, Object?> json) {
     if (TextDocumentChangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -29926,7 +31942,9 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     final documentSelector = (documentSelectorJson as List<Object?>?)
         ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
         .toList();
-    return TextDocumentRegistrationOptions(documentSelector: documentSelector);
+    return TextDocumentRegistrationOptions(
+      documentSelector: documentSelector,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -30019,11 +32037,14 @@ class TextDocumentSaveReason {
 class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentSaveRegistrationOptions.canParse,
-      TextDocumentSaveRegistrationOptions.fromJson);
+    TextDocumentSaveRegistrationOptions.canParse,
+    TextDocumentSaveRegistrationOptions.fromJson,
+  );
 
-  TextDocumentSaveRegistrationOptions(
-      {this.includeText, this.documentSelector});
+  TextDocumentSaveRegistrationOptions({
+    this.includeText,
+    this.documentSelector,
+  });
   static TextDocumentSaveRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final includeTextJson = json['includeText'];
@@ -30033,7 +32054,9 @@ class TextDocumentSaveRegistrationOptions
         ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
         .toList();
     return TextDocumentSaveRegistrationOptions(
-        includeText: includeText, documentSelector: documentSelector);
+      includeText: includeText,
+      documentSelector: documentSelector,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -30102,7 +32125,10 @@ class TextDocumentSaveRegistrationOptions
   }
 
   @override
-  int get hashCode => Object.hash(includeText, lspHashCode(documentSelector));
+  int get hashCode => Object.hash(
+        includeText,
+        lspHashCode(documentSelector),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -30110,14 +32136,16 @@ class TextDocumentSaveRegistrationOptions
 
 class TextDocumentSyncClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentSyncClientCapabilities.canParse,
-      TextDocumentSyncClientCapabilities.fromJson);
+    TextDocumentSyncClientCapabilities.canParse,
+    TextDocumentSyncClientCapabilities.fromJson,
+  );
 
-  TextDocumentSyncClientCapabilities(
-      {this.dynamicRegistration,
-      this.willSave,
-      this.willSaveWaitUntil,
-      this.didSave});
+  TextDocumentSyncClientCapabilities({
+    this.dynamicRegistration,
+    this.willSave,
+    this.willSaveWaitUntil,
+    this.didSave,
+  });
   static TextDocumentSyncClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
@@ -30129,10 +32157,11 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
     final didSaveJson = json['didSave'];
     final didSave = didSaveJson as bool?;
     return TextDocumentSyncClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        willSave: willSave,
-        willSaveWaitUntil: willSaveWaitUntil,
-        didSave: didSave);
+      dynamicRegistration: dynamicRegistration,
+      willSave: willSave,
+      willSaveWaitUntil: willSaveWaitUntil,
+      didSave: didSave,
+    );
   }
 
   /// The client supports did save notifications.
@@ -30230,8 +32259,12 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(dynamicRegistration, willSave, willSaveWaitUntil, didSave);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        willSave,
+        willSaveWaitUntil,
+        didSave,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -30272,14 +32305,17 @@ class TextDocumentSyncKind {
 
 class TextDocumentSyncOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TextDocumentSyncOptions.canParse, TextDocumentSyncOptions.fromJson);
+    TextDocumentSyncOptions.canParse,
+    TextDocumentSyncOptions.fromJson,
+  );
 
-  TextDocumentSyncOptions(
-      {this.openClose,
-      this.change,
-      this.willSave,
-      this.willSaveWaitUntil,
-      this.save});
+  TextDocumentSyncOptions({
+    this.openClose,
+    this.change,
+    this.willSave,
+    this.willSaveWaitUntil,
+    this.save,
+  });
   static TextDocumentSyncOptions fromJson(Map<String, Object?> json) {
     final openCloseJson = json['openClose'];
     final openClose = openCloseJson as bool?;
@@ -30301,11 +32337,12 @@ class TextDocumentSyncOptions implements ToJsonable {
                     SaveOptions.fromJson(saveJson as Map<String, Object?>))
                 : (throw '''$saveJson was not one of (bool, SaveOptions)''')));
     return TextDocumentSyncOptions(
-        openClose: openClose,
-        change: change,
-        willSave: willSave,
-        willSaveWaitUntil: willSaveWaitUntil,
-        save: save);
+      openClose: openClose,
+      change: change,
+      willSave: willSave,
+      willSaveWaitUntil: willSaveWaitUntil,
+      save: save,
+    );
   }
 
   /// Change notifications are sent to the server. See
@@ -30426,18 +32463,28 @@ class TextDocumentSyncOptions implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(openClose, change, willSave, willSaveWaitUntil, save);
+  int get hashCode => Object.hash(
+        openClose,
+        change,
+        willSave,
+        willSaveWaitUntil,
+        save,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class TextEdit implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    TextEdit.canParse,
+    TextEdit.fromJson,
+  );
 
-  TextEdit({required this.range, required this.newText});
+  TextEdit({
+    required this.range,
+    required this.newText,
+  });
   static TextEdit fromJson(Map<String, Object?> json) {
     if (AnnotatedTextEdit.canParse(json, nullLspJsonReporter)) {
       return AnnotatedTextEdit.fromJson(json);
@@ -30449,7 +32496,10 @@ class TextEdit implements ToJsonable {
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
-    return TextEdit(range: range, newText: newText);
+    return TextEdit(
+      range: range,
+      newText: newText,
+    );
   }
 
   /// The string to be inserted. For delete operations use an empty string.
@@ -30520,7 +32570,10 @@ class TextEdit implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(range, newText);
+  int get hashCode => Object.hash(
+        range,
+        newText,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -30551,18 +32604,23 @@ class TokenFormat {
 
 class TypeDefinitionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TypeDefinitionClientCapabilities.canParse,
-      TypeDefinitionClientCapabilities.fromJson);
+    TypeDefinitionClientCapabilities.canParse,
+    TypeDefinitionClientCapabilities.fromJson,
+  );
 
-  TypeDefinitionClientCapabilities(
-      {this.dynamicRegistration, this.linkSupport});
+  TypeDefinitionClientCapabilities({
+    this.dynamicRegistration,
+    this.linkSupport,
+  });
   static TypeDefinitionClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
     final linkSupportJson = json['linkSupport'];
     final linkSupport = linkSupportJson as bool?;
     return TypeDefinitionClientCapabilities(
-        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
+      dynamicRegistration: dynamicRegistration,
+      linkSupport: linkSupport,
+    );
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -30626,7 +32684,10 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, linkSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        linkSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -30634,16 +32695,22 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
 
 class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TypeDefinitionOptions.canParse, TypeDefinitionOptions.fromJson);
+    TypeDefinitionOptions.canParse,
+    TypeDefinitionOptions.fromJson,
+  );
 
-  TypeDefinitionOptions({this.workDoneProgress});
+  TypeDefinitionOptions({
+    this.workDoneProgress,
+  });
   static TypeDefinitionOptions fromJson(Map<String, Object?> json) {
     if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionRegistrationOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return TypeDefinitionOptions(workDoneProgress: workDoneProgress);
+    return TypeDefinitionOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -30698,13 +32765,16 @@ class TypeDefinitionParams
         PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TypeDefinitionParams.canParse, TypeDefinitionParams.fromJson);
+    TypeDefinitionParams.canParse,
+    TypeDefinitionParams.fromJson,
+  );
 
-  TypeDefinitionParams(
-      {required this.textDocument,
-      required this.position,
-      this.workDoneToken,
-      this.partialResultToken});
+  TypeDefinitionParams({
+    required this.textDocument,
+    required this.position,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static TypeDefinitionParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -30728,10 +32798,11 @@ class TypeDefinitionParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return TypeDefinitionParams(
-        textDocument: textDocument,
-        position: position,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      textDocument: textDocument,
+      position: position,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -30841,8 +32912,12 @@ class TypeDefinitionParams
   }
 
   @override
-  int get hashCode =>
-      Object.hash(textDocument, position, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        textDocument,
+        position,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -30855,11 +32930,15 @@ class TypeDefinitionRegistrationOptions
         StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      TypeDefinitionRegistrationOptions.canParse,
-      TypeDefinitionRegistrationOptions.fromJson);
+    TypeDefinitionRegistrationOptions.canParse,
+    TypeDefinitionRegistrationOptions.fromJson,
+  );
 
-  TypeDefinitionRegistrationOptions(
-      {this.documentSelector, this.workDoneProgress, this.id});
+  TypeDefinitionRegistrationOptions({
+    this.documentSelector,
+    this.workDoneProgress,
+    this.id,
+  });
   static TypeDefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -30870,9 +32949,10 @@ class TypeDefinitionRegistrationOptions
     final idJson = json['id'];
     final id = idJson as String?;
     return TypeDefinitionRegistrationOptions(
-        documentSelector: documentSelector,
-        workDoneProgress: workDoneProgress,
-        id: id);
+      documentSelector: documentSelector,
+      workDoneProgress: workDoneProgress,
+      id: id,
+    );
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -30956,8 +33036,11 @@ class TypeDefinitionRegistrationOptions
   }
 
   @override
-  int get hashCode =>
-      Object.hash(lspHashCode(documentSelector), workDoneProgress, id);
+  int get hashCode => Object.hash(
+        lspHashCode(documentSelector),
+        workDoneProgress,
+        id,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31002,16 +33085,24 @@ class UniquenessLevel {
 
 /// General parameters to unregister a capability.
 class Unregistration implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    Unregistration.canParse,
+    Unregistration.fromJson,
+  );
 
-  Unregistration({required this.id, required this.method});
+  Unregistration({
+    required this.id,
+    required this.method,
+  });
   static Unregistration fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
     final id = idJson as String;
     final methodJson = json['method'];
     final method = methodJson as String;
-    return Unregistration(id: id, method: method);
+    return Unregistration(
+      id: id,
+      method: method,
+    );
   }
 
   /// The id used to unregister the request or notification. Usually an id
@@ -31082,7 +33173,10 @@ class Unregistration implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(id, method);
+  int get hashCode => Object.hash(
+        id,
+        method,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31090,15 +33184,21 @@ class Unregistration implements ToJsonable {
 
 class UnregistrationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      UnregistrationParams.canParse, UnregistrationParams.fromJson);
+    UnregistrationParams.canParse,
+    UnregistrationParams.fromJson,
+  );
 
-  UnregistrationParams({required this.unregisterations});
+  UnregistrationParams({
+    required this.unregisterations,
+  });
   static UnregistrationParams fromJson(Map<String, Object?> json) {
     final unregisterationsJson = json['unregisterations'];
     final unregisterations = (unregisterationsJson as List<Object?>)
         .map((item) => Unregistration.fromJson(item as Map<String, Object?>))
         .toList();
-    return UnregistrationParams(unregisterations: unregisterations);
+    return UnregistrationParams(
+      unregisterations: unregisterations,
+    );
   }
 
   /// This should correctly be named `unregistrations`. However changing this //
@@ -31163,16 +33263,23 @@ class UnregistrationParams implements ToJsonable {
 class VersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      VersionedTextDocumentIdentifier.canParse,
-      VersionedTextDocumentIdentifier.fromJson);
+    VersionedTextDocumentIdentifier.canParse,
+    VersionedTextDocumentIdentifier.fromJson,
+  );
 
-  VersionedTextDocumentIdentifier({required this.version, required this.uri});
+  VersionedTextDocumentIdentifier({
+    required this.version,
+    required this.uri,
+  });
   static VersionedTextDocumentIdentifier fromJson(Map<String, Object?> json) {
     final versionJson = json['version'];
     final version = versionJson as int;
     final uriJson = json['uri'];
     final uri = uriJson as String;
-    return VersionedTextDocumentIdentifier(version: version, uri: uri);
+    return VersionedTextDocumentIdentifier(
+      version: version,
+      uri: uri,
+    );
   }
 
   /// The text document's URI.
@@ -31246,7 +33353,10 @@ class VersionedTextDocumentIdentifier
   }
 
   @override
-  int get hashCode => Object.hash(version, uri);
+  int get hashCode => Object.hash(
+        version,
+        uri,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31285,10 +33395,14 @@ class WatchKind {
 /// The parameters send in a will save text document notification.
 class WillSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WillSaveTextDocumentParams.canParse, WillSaveTextDocumentParams.fromJson);
+    WillSaveTextDocumentParams.canParse,
+    WillSaveTextDocumentParams.fromJson,
+  );
 
-  WillSaveTextDocumentParams(
-      {required this.textDocument, required this.reason});
+  WillSaveTextDocumentParams({
+    required this.textDocument,
+    required this.reason,
+  });
   static WillSaveTextDocumentParams fromJson(Map<String, Object?> json) {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
@@ -31296,7 +33410,9 @@ class WillSaveTextDocumentParams implements ToJsonable {
     final reasonJson = json['reason'];
     final reason = TextDocumentSaveReason.fromJson(reasonJson as int);
     return WillSaveTextDocumentParams(
-        textDocument: textDocument, reason: reason);
+      textDocument: textDocument,
+      reason: reason,
+    );
   }
 
   /// The 'TextDocumentSaveReason'.
@@ -31369,7 +33485,10 @@ class WillSaveTextDocumentParams implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(textDocument, reason);
+  int get hashCode => Object.hash(
+        textDocument,
+        reason,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31377,14 +33496,17 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
 class WorkDoneProgressBegin implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressBegin.canParse, WorkDoneProgressBegin.fromJson);
+    WorkDoneProgressBegin.canParse,
+    WorkDoneProgressBegin.fromJson,
+  );
 
-  WorkDoneProgressBegin(
-      {this.kind = 'begin',
-      required this.title,
-      this.cancellable,
-      this.message,
-      this.percentage}) {
+  WorkDoneProgressBegin({
+    this.kind = 'begin',
+    required this.title,
+    this.cancellable,
+    this.message,
+    this.percentage,
+  }) {
     if (kind != 'begin') {
       throw 'kind may only be the literal \'begin\'';
     }
@@ -31401,11 +33523,12 @@ class WorkDoneProgressBegin implements ToJsonable {
     final percentageJson = json['percentage'];
     final percentage = percentageJson as int?;
     return WorkDoneProgressBegin(
-        kind: kind,
-        title: title,
-        cancellable: cancellable,
-        message: message,
-        percentage: percentage);
+      kind: kind,
+      title: title,
+      cancellable: cancellable,
+      message: message,
+      percentage: percentage,
+    );
   }
 
   /// Controls if a cancel button should show to allow the user to cancel the
@@ -31541,8 +33664,13 @@ class WorkDoneProgressBegin implements ToJsonable {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(kind, title, cancellable, message, percentage);
+  int get hashCode => Object.hash(
+        kind,
+        title,
+        cancellable,
+        message,
+        percentage,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31550,10 +33678,13 @@ class WorkDoneProgressBegin implements ToJsonable {
 
 class WorkDoneProgressCancelParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressCancelParams.canParse,
-      WorkDoneProgressCancelParams.fromJson);
+    WorkDoneProgressCancelParams.canParse,
+    WorkDoneProgressCancelParams.fromJson,
+  );
 
-  WorkDoneProgressCancelParams({required this.token});
+  WorkDoneProgressCancelParams({
+    required this.token,
+  });
   static WorkDoneProgressCancelParams fromJson(Map<String, Object?> json) {
     final tokenJson = json['token'];
     final token = tokenJson is int
@@ -31561,7 +33692,9 @@ class WorkDoneProgressCancelParams implements ToJsonable {
         : (tokenJson is String
             ? Either2<int, String>.t2(tokenJson)
             : (throw '''$tokenJson was not one of (int, String)'''));
-    return WorkDoneProgressCancelParams(token: token);
+    return WorkDoneProgressCancelParams(
+      token: token,
+    );
   }
 
   /// The token to be used to report progress.
@@ -31618,10 +33751,13 @@ class WorkDoneProgressCancelParams implements ToJsonable {
 
 class WorkDoneProgressCreateParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressCreateParams.canParse,
-      WorkDoneProgressCreateParams.fromJson);
+    WorkDoneProgressCreateParams.canParse,
+    WorkDoneProgressCreateParams.fromJson,
+  );
 
-  WorkDoneProgressCreateParams({required this.token});
+  WorkDoneProgressCreateParams({
+    required this.token,
+  });
   static WorkDoneProgressCreateParams fromJson(Map<String, Object?> json) {
     final tokenJson = json['token'];
     final token = tokenJson is int
@@ -31629,7 +33765,9 @@ class WorkDoneProgressCreateParams implements ToJsonable {
         : (tokenJson is String
             ? Either2<int, String>.t2(tokenJson)
             : (throw '''$tokenJson was not one of (int, String)'''));
-    return WorkDoneProgressCreateParams(token: token);
+    return WorkDoneProgressCreateParams(
+      token: token,
+    );
   }
 
   /// The token to be used to report progress.
@@ -31686,9 +33824,14 @@ class WorkDoneProgressCreateParams implements ToJsonable {
 
 class WorkDoneProgressEnd implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressEnd.canParse, WorkDoneProgressEnd.fromJson);
+    WorkDoneProgressEnd.canParse,
+    WorkDoneProgressEnd.fromJson,
+  );
 
-  WorkDoneProgressEnd({this.kind = 'end', this.message}) {
+  WorkDoneProgressEnd({
+    this.kind = 'end',
+    this.message,
+  }) {
     if (kind != 'end') {
       throw 'kind may only be the literal \'end\'';
     }
@@ -31698,7 +33841,10 @@ class WorkDoneProgressEnd implements ToJsonable {
     final kind = kindJson as String;
     final messageJson = json['message'];
     final message = messageJson as String?;
-    return WorkDoneProgressEnd(kind: kind, message: message);
+    return WorkDoneProgressEnd(
+      kind: kind,
+      message: message,
+    );
   }
 
   final String kind;
@@ -31763,7 +33909,10 @@ class WorkDoneProgressEnd implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(kind, message);
+  int get hashCode => Object.hash(
+        kind,
+        message,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31771,9 +33920,13 @@ class WorkDoneProgressEnd implements ToJsonable {
 
 class WorkDoneProgressOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressOptions.canParse, WorkDoneProgressOptions.fromJson);
+    WorkDoneProgressOptions.canParse,
+    WorkDoneProgressOptions.fromJson,
+  );
 
-  WorkDoneProgressOptions({this.workDoneProgress});
+  WorkDoneProgressOptions({
+    this.workDoneProgress,
+  });
   static WorkDoneProgressOptions fromJson(Map<String, Object?> json) {
     if (WorkspaceSymbolOptions.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolOptions.fromJson(json);
@@ -31852,7 +34005,9 @@ class WorkDoneProgressOptions implements ToJsonable {
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return WorkDoneProgressOptions(workDoneProgress: workDoneProgress);
+    return WorkDoneProgressOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -31902,9 +34057,13 @@ class WorkDoneProgressOptions implements ToJsonable {
 
 class WorkDoneProgressParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressParams.canParse, WorkDoneProgressParams.fromJson);
+    WorkDoneProgressParams.canParse,
+    WorkDoneProgressParams.fromJson,
+  );
 
-  WorkDoneProgressParams({this.workDoneToken});
+  WorkDoneProgressParams({
+    this.workDoneToken,
+  });
   static WorkDoneProgressParams fromJson(Map<String, Object?> json) {
     if (InitializeParams.canParse(json, nullLspJsonReporter)) {
       return InitializeParams.fromJson(json);
@@ -32007,7 +34166,9 @@ class WorkDoneProgressParams implements ToJsonable {
             : (workDoneTokenJson is String
                 ? Either2<int, String>.t2(workDoneTokenJson)
                 : (throw '''$workDoneTokenJson was not one of (int, String)''')));
-    return WorkDoneProgressParams(workDoneToken: workDoneToken);
+    return WorkDoneProgressParams(
+      workDoneToken: workDoneToken,
+    );
   }
 
   /// An optional token that a server can use to report work done progress.
@@ -32059,10 +34220,16 @@ class WorkDoneProgressParams implements ToJsonable {
 
 class WorkDoneProgressReport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkDoneProgressReport.canParse, WorkDoneProgressReport.fromJson);
+    WorkDoneProgressReport.canParse,
+    WorkDoneProgressReport.fromJson,
+  );
 
-  WorkDoneProgressReport(
-      {this.kind = 'report', this.cancellable, this.message, this.percentage}) {
+  WorkDoneProgressReport({
+    this.kind = 'report',
+    this.cancellable,
+    this.message,
+    this.percentage,
+  }) {
     if (kind != 'report') {
       throw 'kind may only be the literal \'report\'';
     }
@@ -32077,15 +34244,15 @@ class WorkDoneProgressReport implements ToJsonable {
     final percentageJson = json['percentage'];
     final percentage = percentageJson as int?;
     return WorkDoneProgressReport(
-        kind: kind,
-        cancellable: cancellable,
-        message: message,
-        percentage: percentage);
+      kind: kind,
+      cancellable: cancellable,
+      message: message,
+      percentage: percentage,
+    );
   }
 
   /// Controls enablement state of a cancel button. This property is only valid
-  ///
-  /// if a cancel button got requested in the `WorkDoneProgressStart` payload.
+  /// if a cancel button got requested in the `WorkDoneProgressBegin` payload.
   ///
   /// Clients that don't support cancellation or don't support control the
   /// button's enablement state are allowed to ignore the setting.
@@ -32193,17 +34360,28 @@ class WorkDoneProgressReport implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(kind, cancellable, message, percentage);
+  int get hashCode => Object.hash(
+        kind,
+        cancellable,
+        message,
+        percentage,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
 }
 
 class WorkspaceEdit implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    WorkspaceEdit.canParse,
+    WorkspaceEdit.fromJson,
+  );
 
-  WorkspaceEdit({this.changes, this.documentChanges, this.changeAnnotations});
+  WorkspaceEdit({
+    this.changes,
+    this.documentChanges,
+    this.changeAnnotations,
+  });
   static WorkspaceEdit fromJson(Map<String, Object?> json) {
     final changesJson = json['changes'];
     final changes = (changesJson as Map<Object, Object?>?)?.map((key, value) =>
@@ -32236,9 +34414,10 @@ class WorkspaceEdit implements ToJsonable {
         ?.map((key, value) => MapEntry(key as String,
             ChangeAnnotation.fromJson(value as Map<String, Object?>)));
     return WorkspaceEdit(
-        changes: changes,
-        documentChanges: documentChanges,
-        changeAnnotations: changeAnnotations);
+      changes: changes,
+      documentChanges: documentChanges,
+      changeAnnotations: changeAnnotations,
+    );
   }
 
   /// A map of change annotations that can be referenced in `AnnotatedTextEdit`s
@@ -32361,7 +34540,10 @@ class WorkspaceEdit implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      lspHashCode(changes), documentChanges, lspHashCode(changeAnnotations));
+        lspHashCode(changes),
+        documentChanges,
+        lspHashCode(changeAnnotations),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -32369,15 +34551,17 @@ class WorkspaceEdit implements ToJsonable {
 
 class WorkspaceEditClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceEditClientCapabilities.canParse,
-      WorkspaceEditClientCapabilities.fromJson);
+    WorkspaceEditClientCapabilities.canParse,
+    WorkspaceEditClientCapabilities.fromJson,
+  );
 
-  WorkspaceEditClientCapabilities(
-      {this.documentChanges,
-      this.resourceOperations,
-      this.failureHandling,
-      this.normalizesLineEndings,
-      this.changeAnnotationSupport});
+  WorkspaceEditClientCapabilities({
+    this.documentChanges,
+    this.resourceOperations,
+    this.failureHandling,
+    this.normalizesLineEndings,
+    this.changeAnnotationSupport,
+  });
   static WorkspaceEditClientCapabilities fromJson(Map<String, Object?> json) {
     final documentChangesJson = json['documentChanges'];
     final documentChanges = documentChangesJson as bool?;
@@ -32397,11 +34581,12 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
             changeAnnotationSupportJson as Map<String, Object?>)
         : null;
     return WorkspaceEditClientCapabilities(
-        documentChanges: documentChanges,
-        resourceOperations: resourceOperations,
-        failureHandling: failureHandling,
-        normalizesLineEndings: normalizesLineEndings,
-        changeAnnotationSupport: changeAnnotationSupport);
+      documentChanges: documentChanges,
+      resourceOperations: resourceOperations,
+      failureHandling: failureHandling,
+      normalizesLineEndings: normalizesLineEndings,
+      changeAnnotationSupport: changeAnnotationSupport,
+    );
   }
 
   /// Whether the client in general supports change annotations on text edits,
@@ -32533,11 +34718,12 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-      documentChanges,
-      lspHashCode(resourceOperations),
-      failureHandling,
-      normalizesLineEndings,
-      changeAnnotationSupport);
+        documentChanges,
+        lspHashCode(resourceOperations),
+        failureHandling,
+        normalizesLineEndings,
+        changeAnnotationSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -32546,16 +34732,20 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
 class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceEditClientCapabilitiesChangeAnnotationSupport.canParse,
-      WorkspaceEditClientCapabilitiesChangeAnnotationSupport.fromJson);
+    WorkspaceEditClientCapabilitiesChangeAnnotationSupport.canParse,
+    WorkspaceEditClientCapabilitiesChangeAnnotationSupport.fromJson,
+  );
 
-  WorkspaceEditClientCapabilitiesChangeAnnotationSupport({this.groupsOnLabel});
+  WorkspaceEditClientCapabilitiesChangeAnnotationSupport({
+    this.groupsOnLabel,
+  });
   static WorkspaceEditClientCapabilitiesChangeAnnotationSupport fromJson(
       Map<String, Object?> json) {
     final groupsOnLabelJson = json['groupsOnLabel'];
     final groupsOnLabel = groupsOnLabelJson as bool?;
     return WorkspaceEditClientCapabilitiesChangeAnnotationSupport(
-        groupsOnLabel: groupsOnLabel);
+      groupsOnLabel: groupsOnLabel,
+    );
   }
 
   /// Whether the client groups edits with equal labels into tree nodes, for
@@ -32609,16 +34799,24 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
 }
 
 class WorkspaceFolder implements ToJsonable {
-  static const jsonHandler =
-      LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
+  static const jsonHandler = LspJsonHandler(
+    WorkspaceFolder.canParse,
+    WorkspaceFolder.fromJson,
+  );
 
-  WorkspaceFolder({required this.uri, required this.name});
+  WorkspaceFolder({
+    required this.uri,
+    required this.name,
+  });
   static WorkspaceFolder fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = uriJson as String;
     final nameJson = json['name'];
     final name = nameJson as String;
-    return WorkspaceFolder(uri: uri, name: name);
+    return WorkspaceFolder(
+      uri: uri,
+      name: name,
+    );
   }
 
   /// The name of the workspace folder. Used to refer to this workspace folder
@@ -32689,7 +34887,10 @@ class WorkspaceFolder implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(uri, name);
+  int get hashCode => Object.hash(
+        uri,
+        name,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -32698,10 +34899,14 @@ class WorkspaceFolder implements ToJsonable {
 /// The workspace folder change event.
 class WorkspaceFoldersChangeEvent implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceFoldersChangeEvent.canParse,
-      WorkspaceFoldersChangeEvent.fromJson);
+    WorkspaceFoldersChangeEvent.canParse,
+    WorkspaceFoldersChangeEvent.fromJson,
+  );
 
-  WorkspaceFoldersChangeEvent({required this.added, required this.removed});
+  WorkspaceFoldersChangeEvent({
+    required this.added,
+    required this.removed,
+  });
   static WorkspaceFoldersChangeEvent fromJson(Map<String, Object?> json) {
     final addedJson = json['added'];
     final added = (addedJson as List<Object?>)
@@ -32711,7 +34916,10 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
     final removed = (removedJson as List<Object?>)
         .map((item) => WorkspaceFolder.fromJson(item as Map<String, Object?>))
         .toList();
-    return WorkspaceFoldersChangeEvent(added: added, removed: removed);
+    return WorkspaceFoldersChangeEvent(
+      added: added,
+      removed: removed,
+    );
   }
 
   /// The array of added workspace folders
@@ -32790,7 +34998,10 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(lspHashCode(added), lspHashCode(removed));
+  int get hashCode => Object.hash(
+        lspHashCode(added),
+        lspHashCode(removed),
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -32798,11 +35009,14 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
 class WorkspaceFoldersServerCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceFoldersServerCapabilities.canParse,
-      WorkspaceFoldersServerCapabilities.fromJson);
+    WorkspaceFoldersServerCapabilities.canParse,
+    WorkspaceFoldersServerCapabilities.fromJson,
+  );
 
-  WorkspaceFoldersServerCapabilities(
-      {this.supported, this.changeNotifications});
+  WorkspaceFoldersServerCapabilities({
+    this.supported,
+    this.changeNotifications,
+  });
   static WorkspaceFoldersServerCapabilities fromJson(
       Map<String, Object?> json) {
     final supportedJson = json['supported'];
@@ -32816,7 +35030,9 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
                 ? Either2<String, bool>.t2(changeNotificationsJson)
                 : (throw '''$changeNotificationsJson was not one of (String, bool)''')));
     return WorkspaceFoldersServerCapabilities(
-        supported: supported, changeNotifications: changeNotifications);
+      supported: supported,
+      changeNotifications: changeNotifications,
+    );
   }
 
   /// Whether the server wants to receive workspace folder change notifications.
@@ -32884,7 +35100,10 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(supported, changeNotifications);
+  int get hashCode => Object.hash(
+        supported,
+        changeNotifications,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -32892,11 +35111,15 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
 
 class WorkspaceSymbolClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceSymbolClientCapabilities.canParse,
-      WorkspaceSymbolClientCapabilities.fromJson);
+    WorkspaceSymbolClientCapabilities.canParse,
+    WorkspaceSymbolClientCapabilities.fromJson,
+  );
 
-  WorkspaceSymbolClientCapabilities(
-      {this.dynamicRegistration, this.symbolKind, this.tagSupport});
+  WorkspaceSymbolClientCapabilities({
+    this.dynamicRegistration,
+    this.symbolKind,
+    this.tagSupport,
+  });
   static WorkspaceSymbolClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
@@ -32911,9 +35134,10 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
             tagSupportJson as Map<String, Object?>)
         : null;
     return WorkspaceSymbolClientCapabilities(
-        dynamicRegistration: dynamicRegistration,
-        symbolKind: symbolKind,
-        tagSupport: tagSupport);
+      dynamicRegistration: dynamicRegistration,
+      symbolKind: symbolKind,
+      tagSupport: tagSupport,
+    );
   }
 
   /// Symbol request supports dynamic registration.
@@ -33000,7 +35224,11 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   }
 
   @override
-  int get hashCode => Object.hash(dynamicRegistration, symbolKind, tagSupport);
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        symbolKind,
+        tagSupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -33008,17 +35236,22 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
 
 class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceSymbolClientCapabilitiesSymbolKind.canParse,
-      WorkspaceSymbolClientCapabilitiesSymbolKind.fromJson);
+    WorkspaceSymbolClientCapabilitiesSymbolKind.canParse,
+    WorkspaceSymbolClientCapabilitiesSymbolKind.fromJson,
+  );
 
-  WorkspaceSymbolClientCapabilitiesSymbolKind({this.valueSet});
+  WorkspaceSymbolClientCapabilitiesSymbolKind({
+    this.valueSet,
+  });
   static WorkspaceSymbolClientCapabilitiesSymbolKind fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>?)
         ?.map((item) => SymbolKind.fromJson(item as int))
         .toList();
-    return WorkspaceSymbolClientCapabilitiesSymbolKind(valueSet: valueSet);
+    return WorkspaceSymbolClientCapabilitiesSymbolKind(
+      valueSet: valueSet,
+    );
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -33080,17 +35313,22 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
 
 class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceSymbolClientCapabilitiesTagSupport.canParse,
-      WorkspaceSymbolClientCapabilitiesTagSupport.fromJson);
+    WorkspaceSymbolClientCapabilitiesTagSupport.canParse,
+    WorkspaceSymbolClientCapabilitiesTagSupport.fromJson,
+  );
 
-  WorkspaceSymbolClientCapabilitiesTagSupport({required this.valueSet});
+  WorkspaceSymbolClientCapabilitiesTagSupport({
+    required this.valueSet,
+  });
   static WorkspaceSymbolClientCapabilitiesTagSupport fromJson(
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
         .map((item) => SymbolTag.fromJson(item as int))
         .toList();
-    return WorkspaceSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
+    return WorkspaceSymbolClientCapabilitiesTagSupport(
+      valueSet: valueSet,
+    );
   }
 
   /// The tags supported by the client.
@@ -33151,9 +35389,13 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
 class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceSymbolOptions.canParse, WorkspaceSymbolOptions.fromJson);
+    WorkspaceSymbolOptions.canParse,
+    WorkspaceSymbolOptions.fromJson,
+  );
 
-  WorkspaceSymbolOptions({this.workDoneProgress});
+  WorkspaceSymbolOptions({
+    this.workDoneProgress,
+  });
   static WorkspaceSymbolOptions fromJson(Map<String, Object?> json) {
     if (WorkspaceSymbolRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -33161,7 +35403,9 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
-    return WorkspaceSymbolOptions(workDoneProgress: workDoneProgress);
+    return WorkspaceSymbolOptions(
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
@@ -33213,10 +35457,15 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 class WorkspaceSymbolParams
     implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceSymbolParams.canParse, WorkspaceSymbolParams.fromJson);
+    WorkspaceSymbolParams.canParse,
+    WorkspaceSymbolParams.fromJson,
+  );
 
-  WorkspaceSymbolParams(
-      {required this.query, this.workDoneToken, this.partialResultToken});
+  WorkspaceSymbolParams({
+    required this.query,
+    this.workDoneToken,
+    this.partialResultToken,
+  });
   static WorkspaceSymbolParams fromJson(Map<String, Object?> json) {
     final queryJson = json['query'];
     final query = queryJson as String;
@@ -33237,9 +35486,10 @@ class WorkspaceSymbolParams
                 ? Either2<int, String>.t2(partialResultTokenJson)
                 : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return WorkspaceSymbolParams(
-        query: query,
-        workDoneToken: workDoneToken,
-        partialResultToken: partialResultToken);
+      query: query,
+      workDoneToken: workDoneToken,
+      partialResultToken: partialResultToken,
+    );
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -33327,7 +35577,11 @@ class WorkspaceSymbolParams
   }
 
   @override
-  int get hashCode => Object.hash(query, workDoneToken, partialResultToken);
+  int get hashCode => Object.hash(
+        query,
+        workDoneToken,
+        partialResultToken,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -33336,16 +35590,20 @@ class WorkspaceSymbolParams
 class WorkspaceSymbolRegistrationOptions
     implements WorkspaceSymbolOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-      WorkspaceSymbolRegistrationOptions.canParse,
-      WorkspaceSymbolRegistrationOptions.fromJson);
+    WorkspaceSymbolRegistrationOptions.canParse,
+    WorkspaceSymbolRegistrationOptions.fromJson,
+  );
 
-  WorkspaceSymbolRegistrationOptions({this.workDoneProgress});
+  WorkspaceSymbolRegistrationOptions({
+    this.workDoneProgress,
+  });
   static WorkspaceSymbolRegistrationOptions fromJson(
       Map<String, Object?> json) {
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return WorkspaceSymbolRegistrationOptions(
-        workDoneProgress: workDoneProgress);
+      workDoneProgress: workDoneProgress,
+    );
   }
 
   final bool? workDoneProgress;
