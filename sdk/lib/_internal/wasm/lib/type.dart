@@ -9,20 +9,28 @@
 
 // TODO(joshualitt): Once we have RTI fully working, we'd like to explore
 // implementing [isSubtype] using inheritance.
+// TODO(joshualitt): We can cache the results of a number of functions in this
+// file:
+//   * [_Type.asNonNullable]
+//   * [_FutureOrType.asFuture].
 abstract class _Type implements Type {
-  const _Type();
+  final bool isNullable;
+
+  const _Type(this.isNullable);
 
   bool _testID(int value) => ClassID.getID(this) == value;
   bool get isNever => _testID(ClassID.cidNeverType);
   bool get isDynamic => _testID(ClassID.cidDynamicType);
   bool get isVoid => _testID(ClassID.cidVoidType);
+  bool get isNull => _testID(ClassID.cidNullType);
   bool get isFutureOr => _testID(ClassID.cidFutureOrType);
   bool get isInterface => _testID(ClassID.cidInterfaceType);
   bool get isFunction => _testID(ClassID.cidFunctionType);
-  bool get isGenericFunctionType => _testID(ClassID.cidGenericFunctionType);
-  bool get isNullable => false;
+  bool get isGenericFunction => _testID(ClassID.cidGenericFunctionType);
 
   T as<T>() => unsafeCast<T>(this);
+
+  _Type get asNonNullable;
 
   @override
   bool operator ==(Object other) => ClassID.getID(this) == ClassID.getID(other);
@@ -33,49 +41,107 @@ abstract class _Type implements Type {
 
 @pragma("wasm:entry-point")
 class _NeverType extends _Type {
+  const _NeverType() : super(false);
+
+  @override
+  _Type get asNonNullable => this;
+
   @override
   String toString() => 'Never';
 }
 
 @pragma("wasm:entry-point")
 class _DynamicType extends _Type {
+  const _DynamicType() : super(true);
+
+  @override
+  _Type get asNonNullable => throw '`dynamic` type is always nullable.';
+
   @override
   String toString() => 'dynamic';
 }
 
 @pragma("wasm:entry-point")
 class _VoidType extends _Type {
+  const _VoidType() : super(true);
+
+  @override
+  _Type get asNonNullable => throw '`void` type is always nullable.';
+
   @override
   String toString() => 'void';
 }
 
 @pragma("wasm:entry-point")
 class _NullType extends _Type {
+  const _NullType() : super(true);
+
+  @override
+  _Type get asNonNullable => const _NeverType();
+
   @override
   String toString() => 'Null';
 }
 
 @pragma("wasm:entry-point")
 class _FutureOrType extends _Type {
-  // TODO(joshualitt): Implement.
+  final _Type typeArgument;
+
+  @pragma("wasm:entry-point")
+  const _FutureOrType(bool isNullable, this.typeArgument) : super(isNullable);
+
+  _InterfaceType get asFuture =>
+      _InterfaceType(ClassID.cidFuture, isNullable, [typeArgument]);
+
   @override
-  String toString() => 'FutureOr';
+  _Type get asNonNullable {
+    if (!isNullable) return this;
+    if (!typeArgument.isNullable) return _FutureOrType(false, typeArgument);
+    throw '`$this` cannot be non nullable.';
+  }
+
+  @override
+  bool operator ==(Object o) {
+    if (!(super == o)) return false;
+    _FutureOrType other = unsafeCast<_FutureOrType>(o);
+    if (isNullable != other.isNullable) return false;
+    return typeArgument == other.typeArgument;
+  }
+
+  @override
+  int get hashCode {
+    int hash = super.hashCode;
+    hash = mix64(hash ^ (isNullable ? 1 : 0));
+    return mix64(hash ^ typeArgument.hashCode);
+  }
+
+  @override
+  String toString() {
+    StringBuffer s = StringBuffer();
+    s.write("FutureOr");
+    s.write("<");
+    s.write(typeArgument);
+    s.write(">");
+    if (isNullable) s.write("?");
+    return s.toString();
+  }
 }
 
 class _InterfaceType extends _Type {
   final int classId;
-  final bool declaredNullable;
   final List<_Type> typeArguments;
 
   @pragma("wasm:entry-point")
-  const _InterfaceType(this.classId, this.declaredNullable,
-      [this.typeArguments = const []]);
+  const _InterfaceType(this.classId, bool isNullable,
+      [this.typeArguments = const []])
+      : super(isNullable);
 
-  bool get isNullable => declaredNullable;
+  @override
+  _Type get asNonNullable => _InterfaceType(classId, false, typeArguments);
 
   @override
   bool operator ==(Object o) {
-    if (!(super == (o))) return false;
+    if (!(super == o)) return false;
     _InterfaceType other = unsafeCast<_InterfaceType>(o);
     if (classId != other.classId) return false;
     if (isNullable != other.isNullable) return false;
@@ -115,16 +181,26 @@ class _InterfaceType extends _Type {
   }
 }
 
+// TODO(joshualitt): Implement.
 @pragma("wasm:entry-point")
 class _FunctionType extends _Type {
-  // TODO(joshualitt): Implement.
+  const _FunctionType(bool isNullable) : super(isNullable);
+
+  @override
+  _Type get asNonNullable => throw 'unimplemented';
+
   @override
   String toString() => 'FunctionType';
 }
 
+// TODO(joshualitt): Implement.
 @pragma("wasm:entry-point")
 class _GenericFunctionType extends _FunctionType {
-  // TODO(joshualitt): Implement.
+  const _GenericFunctionType(bool isNullable) : super(isNullable);
+
+  @override
+  _Type get asNonNullable => throw 'unimplemented';
+
   @override
   String toString() => 'GenericFunctionType';
 }
@@ -141,10 +217,12 @@ class _TypeUniverse {
     return _TypeUniverse._(_getSubtypeMap());
   }
 
-  bool isObjectQuestionType(_Type t) {
+  bool isObjectQuestionType(_Type t) => isObjectType(t) && t.isNullable;
+
+  bool isObjectType(_Type t) {
     if (!t.isInterface) return false;
     _InterfaceType type = t.as<_InterfaceType>();
-    return type.classId == ClassID.cidObject && type.isNullable;
+    return type.classId == ClassID.cidObject;
   }
 
   bool isTopType(_Type type) {
@@ -189,22 +267,64 @@ class _TypeUniverse {
     // Left Bottom:
     if (isBottomType(s)) return true;
 
-    // TODO(joshualitt): Implement missing cases.
-    // Left type variable bound 1:
+    // Left Type Variable Bound 1:
+    // TODO(joshualitt): Implement.
+
     // Left Null:
+    // TODO(joshualitt): Combine with 'Right Null', and this can just be:
+    // `if (s.isNullable && !t.isNullable) return false`
+    if (s.isNull) {
+      return t.isNullable;
+    }
+
     // Right Object:
-    // Left FuturOr:
+    if (isObjectType(t)) {
+      return !s.isNullable;
+    }
+
+    // Left FutureOr:
+    if (s.isFutureOr) {
+      _FutureOrType sFutureOr = s.as<_FutureOrType>();
+      if (!isSubtype(sFutureOr.typeArgument, t)) {
+        return false;
+      }
+      return _isSubtype(sFutureOr.asFuture, t);
+    }
+
     // Left Nullable:
-    // Do we need to handle at runtime
-    //   Type Variable Reflexivity 1 && 2
-    //   Right Promoted Variable
+    if (s.isNullable) {
+      return t.isNullable && isSubtype(s.asNonNullable, t);
+    }
+
+    // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
+    // elided.
+    // Type Variable Reflexivity 2 does not apply at runtime.
+    // Right Promoted Variable does not apply at runtime.
+
     // Right FutureOr:
+    if (t.isFutureOr) {
+      _FutureOrType tFutureOr = t.as<_FutureOrType>();
+      if (isSubtype(s, tFutureOr.typeArgument)) {
+        return true;
+      }
+      return isSubtype(s, tFutureOr.asFuture);
+    }
+
     // Right Nullable:
-    // Do we need to handle at runtime:
-    //   Left Promoted Variable
+    if (t.isNullable) {
+      return isSubtype(s, const _NullType()) || isSubtype(s, t.asNonNullable);
+    }
+
+    // Left Promoted Variable does not apply at runtime.
+
     // Left Type Variable Bound 2:
+    // TODO(joshualitt): Implement case.
+
     // Function Type / Function:
+    // TODO(joshualitt): Implement case.
+
     // Positional Function Types + Named Function Types:
+    // TODO(joshualitt): Implement case.
 
     // Interface Compositionality + Super-Interface:
     if (s.isInterface &&

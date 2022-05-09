@@ -13,11 +13,16 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// Helper class for building runtime types.
 class Types {
   final Translator translator;
+  late final typeClassInfo = translator.classInfo[translator.typeClass]!;
 
   Types(this.translator);
 
   Iterable<Class> _getConcreteSubtypes(Class cls) =>
       translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
+
+  w.ValueType get nullableTypeType => typeClassInfo.nullableType;
+
+  w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
 
   /// Build a [Map<int, List<int>>] to store subtype information.
   Map<int, List<int>> _buildSubtypeMap() {
@@ -63,6 +68,7 @@ class Types {
         type is NeverType ||
         type is NullType ||
         type is FunctionType ||
+        type is FutureOrType && _isTypeConstant(type.typeArgument) ||
         type is InterfaceType && type.typeArguments.every(_isTypeConstant);
   }
 
@@ -72,7 +78,13 @@ class Types {
     } else if (type is VoidType) {
       return translator.voidTypeClass;
     } else if (type is NeverType) {
-      return translator.neverTypeClass;
+      // For runtime types with sound null safety, `Never?` is the same as
+      // `Null`.
+      if (type.nullability == Nullability.nullable) {
+        return translator.nullTypeClass;
+      } else {
+        return translator.neverTypeClass;
+      }
     } else if (type is NullType) {
       return translator.nullTypeClass;
     } else if (type is FutureOrType) {
@@ -89,77 +101,100 @@ class Types {
     throw "Unexpected DartType: $type";
   }
 
+  void _makeInterfaceType(CodeGenerator codeGen, ClassInfo info,
+      InterfaceType type, TreeNode node) {
+    w.Instructions b = codeGen.b;
+    ClassInfo typeInfo = translator.classInfo[type.classNode]!;
+    w.ValueType typeListExpectedType =
+        info.struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
+    encodeNullability(b, type);
+    b.i64_const(typeInfo.classId);
+    w.DefinedFunction function = codeGen.function;
+    w.ValueType listType = codeGen.makeList(
+        type.typeArguments.map((t) => TypeLiteral(t)).toList(),
+        translator.fixedLengthListClass,
+        InterfaceType(translator.typeClass, Nullability.nonNullable),
+        node);
+    translator.convertType(function, listType, typeListExpectedType);
+  }
+
+  void _makeFutureOrType(
+      CodeGenerator codeGen, FutureOrType type, TreeNode node) {
+    w.Instructions b = codeGen.b;
+    w.DefinedFunction function = codeGen.function;
+
+    // We canonicalize `FutureOr<T?>` to `FutureOr<T?>?`. However, we have to
+    // take special care to handle the case where we have
+    // undetermined nullability. To handle this, we emit the type argument, and
+    // read back its nullability at runtime.
+    if (type.nullability == Nullability.undetermined) {
+      w.ValueType typeArgumentType = makeType(codeGen, type.typeArgument, node);
+      w.Local typeArgumentTemporary = codeGen.addLocal(typeArgumentType);
+      b.local_tee(typeArgumentTemporary);
+      b.struct_get(typeClassInfo.struct, FieldIndex.typeIsNullable);
+      b.local_get(typeArgumentTemporary);
+      translator.convertType(function, typeArgumentType, nonNullableTypeType);
+    } else {
+      encodeNullability(b, type);
+      makeType(codeGen, type.typeArgument, node);
+    }
+  }
+
   /// Makes a `_Type` object on the stack.
   /// TODO(joshualitt): Refactor this logic to remove the dependency on
   /// CodeGenerator.
   w.ValueType makeType(CodeGenerator codeGen, DartType type, TreeNode node) {
-    w.ValueType typeType =
-        translator.classInfo[translator.typeClass]!.nullableType;
     w.Instructions b = codeGen.b;
     if (_isTypeConstant(type)) {
       translator.constants.instantiateConstant(
-          codeGen.function, b, TypeLiteralConstant(type), typeType);
-      return typeType;
+          codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
+      return nonNullableTypeType;
     }
+    // All of the singleton types represented by canonical objects should be
+    // created const.
+    assert(type is TypeParameterType ||
+        type is InterfaceType ||
+        type is FutureOrType ||
+        type is FunctionType);
     if (type is TypeParameterType) {
       if (type.parameter.parent is FunctionNode) {
         // Type argument to function
         w.Local? local = codeGen.typeLocals[type.parameter];
         if (local != null) {
           b.local_get(local);
-          return local.type;
+          translator.convertType(
+              codeGen.function, local.type, nonNullableTypeType);
+          return nonNullableTypeType;
         } else {
-          codeGen.unimplemented(
-              node, "Type parameter access inside lambda", [typeType]);
-          return typeType;
+          codeGen.unimplemented(node, "Type parameter access inside lambda",
+              [nonNullableTypeType]);
+          return nonNullableTypeType;
         }
       }
       // Type argument of class
       Class cls = type.parameter.parent as Class;
       ClassInfo info = translator.classInfo[cls]!;
       int fieldIndex = translator.typeParameterIndex[type.parameter]!;
-      w.ValueType thisType = codeGen.visitThis(info.nullableType);
-      translator.convertType(codeGen.function, thisType, info.nullableType);
+      w.ValueType thisType = codeGen.visitThis(info.nonNullableType);
+      translator.convertType(codeGen.function, thisType, info.nonNullableType);
       b.struct_get(info.struct, fieldIndex);
-      return typeType;
+      b.ref_as_non_null();
+      return nonNullableTypeType;
     }
     ClassInfo info = translator.classInfo[classForType(type)]!;
     translator.functions.allocateClass(info.classId);
-    if (type is! InterfaceType) {
-      if (type is FutureOrType || type is FunctionType) {
-        // TODO(joshualitt): Finish RTI.
-        print("Not implemented: RTI ${type}");
-      }
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      translator.struct_new(b, info);
-      return info.nonNullableType;
-    }
-    ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-    w.ValueType typeListExpectedType =
-        info.struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    b.i64_const(typeInfo.classId);
-    b.i32_const(isNullable(type) ? 1 : 0);
-    w.DefinedFunction function = codeGen.function;
-    if (type.typeArguments.isEmpty) {
-      b.global_get(translator.constants.emptyTypeList);
-      translator.convertType(function,
-          translator.constants.emptyTypeList.type.type, typeListExpectedType);
-    } else if (type.typeArguments.every(_isTypeConstant)) {
-      ListConstant typeArgs = ListConstant(
-          InterfaceType(translator.typeClass, Nullability.nonNullable),
-          type.typeArguments.map((t) => TypeLiteralConstant(t)).toList());
-      translator.constants
-          .instantiateConstant(function, b, typeArgs, typeListExpectedType);
+    if (type is InterfaceType) {
+      _makeInterfaceType(codeGen, info, type, node);
+    } else if (type is FutureOrType) {
+      _makeFutureOrType(codeGen, type, node);
+    } else if (type is FunctionType) {
+      // TODO(joshualitt): Finish RTI.
+      print("Not implemented: RTI ${type}");
+      encodeNullability(b, type);
     } else {
-      w.ValueType listType = codeGen.makeList(
-          type.typeArguments.map((t) => TypeLiteral(t)).toList(),
-          translator.fixedLengthListClass,
-          InterfaceType(translator.typeClass, Nullability.nonNullable),
-          node);
-      translator.convertType(function, listType, typeListExpectedType);
+      throw '`$type` should have already been handled.';
     }
     translator.struct_new(b, info);
     return info.nonNullableType;
@@ -236,16 +271,20 @@ class Types {
     if (isPotentiallyNullable) {
       b.br(resultLabel!);
       b.end(); // nullLabel
-      b.i32_const(isNullable(type) ? 1 : 0);
+      encodeNullability(b, type);
       b.end(); // resultLabel
     }
   }
 
-  bool isNullable(InterfaceType type) {
-    Nullability nullability = type.declaredNullability;
-    // TODO(joshualitt): Enable assert when spurious 'legacy' values are fixed.
-    // assert(nullability == Nullability.nonNullable ||
-    //    nullability == Nullability.nullable);
+  /// Returns true if a given type is nullable, and false otherwise. This
+  /// function should not be used on [DartType]s with undetermined nullability.
+  bool isNullable(DartType type) {
+    Nullability nullability = type.nullability;
+    assert(nullability == Nullability.nullable ||
+        nullability == Nullability.nonNullable);
     return nullability == Nullability.nullable ? true : false;
   }
+
+  void encodeNullability(w.Instructions b, DartType type) =>
+      b.i32_const(isNullable(type) ? 1 : 0);
 }

@@ -44,6 +44,7 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
+        'dart:async',
         'dart:ffi',
         'dart:_internal',
         'dart:typed_data',
