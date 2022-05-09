@@ -172,7 +172,8 @@ class TestConfiguration {
 
   String get packages {
     // If the .packages file path wasn't given, find it.
-    _packages ??= Repository.uri.resolve('.packages').toFilePath();
+    _packages ??=
+        Repository.uri.resolve('.dart_tool/package_config.json').toFilePath();
 
     return _packages;
   }
