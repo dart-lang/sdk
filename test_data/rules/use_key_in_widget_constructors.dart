@@ -22,3 +22,8 @@ class MyWidget extends StatelessWidget {
   MyWidget.redirect() : this.withKey(key: Key('')); // OK
   MyWidget.superCall() : super(key: Key('')); // OK
 }
+
+class ConstWidget extends StatelessWidget {
+  const ConstWidget(); // LINT [9:11]
+  const ConstWidget.named(); // LINT [21:5]
+}

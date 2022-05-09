@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
           return false;
         })) {
-      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+      rule.reportLint(node.name ?? node.returnType);
     }
     super.visitConstructorDeclaration(node);
   }
