@@ -21,6 +21,7 @@ import 'package:analyzer/dart/analysis/session.dart'
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart' show groupBy;
@@ -118,7 +119,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         return endOffset.mapResult((endOffset) {
           final offset = startOffset;
           final length = endOffset - startOffset;
-          return _getCodeActions(
+          return message.performance.runAsync(
+            'getCodeActions',
+            (performance) => _getCodeActions(
+              performance,
               shouldIncludeKind,
               supportsLiteralCodeActions,
               supportsApplyEdit,
@@ -127,7 +131,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               params.range,
               offset,
               length,
-              unit);
+              unit,
+            ),
+          );
         });
       });
     });
@@ -298,6 +304,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
+    OperationPerformanceImpl performance,
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
@@ -309,14 +316,26 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ResolvedUnitResult unit,
   ) async {
     final results = await Future.wait([
-      _getSourceActions(shouldIncludeKind, supportsLiterals,
-          supportsWorkspaceApplyEdit, path),
-      _getAssistActions(shouldIncludeKind, supportsLiterals, path, range,
-          offset, length, unit),
-      _getRefactorActions(
-          shouldIncludeKind, supportsLiterals, path, offset, length, unit),
-      _getFixActions(shouldIncludeKind, supportsLiterals, path, offset,
-          supportedDiagnosticTags, range, unit),
+      performance.runAsync(
+        '_getSourceActions',
+        (_) => _getSourceActions(shouldIncludeKind, supportsLiterals,
+            supportsWorkspaceApplyEdit, path),
+      ),
+      performance.runAsync(
+        '_getAssistActions',
+        (_) => _getAssistActions(shouldIncludeKind, supportsLiterals, path,
+            range, offset, length, unit),
+      ),
+      performance.runAsync(
+        '_getRefactorActions',
+        (_) => _getRefactorActions(
+            shouldIncludeKind, supportsLiterals, path, offset, length, unit),
+      ),
+      performance.runAsync(
+        '_getFixActions',
+        (_) => _getFixActions(shouldIncludeKind, supportsLiterals, path, offset,
+            supportedDiagnosticTags, range, unit),
+      ),
     ]);
     final flatResults = results.expand((x) => x).toList();
 
@@ -343,15 +362,15 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final pluginFuture = _getPluginFixActions(unit, offset);
 
     try {
+      var workspace = DartChangeWorkspace(
+        await server.currentSessions,
+      );
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
         var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine < range.start.line || errorLine > range.end.line) {
           continue;
         }
-        var workspace = DartChangeWorkspace(
-          await server.currentSessions,
-        );
         var context = DartFixContextImpl(
             server.instrumentationService, workspace, unit, error);
         final fixes = await fixContributor.computeFixes(context);
