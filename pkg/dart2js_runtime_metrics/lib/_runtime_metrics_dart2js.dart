@@ -2,4 +2,5 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'dart:_dart2js_runtime_metrics' show runtimeMetrics;
+export 'package:dart2js_runtime_metrics/runtime_metrics.dart'
+    show runtimeMetrics;
