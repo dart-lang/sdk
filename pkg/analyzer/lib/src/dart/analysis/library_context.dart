@@ -26,6 +26,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:path/src/context.dart';
 
 /// Context information necessary to analyze one or more libraries within an
@@ -203,8 +204,12 @@ class LibraryContext {
 
         LinkResult linkResult;
         try {
-          linkResult = await link(elementFactory, inputLibraries,
-              macroExecutor: macroExecutor);
+          linkResult = await link2(
+            elementFactory: elementFactory,
+            performance: OperationPerformanceImpl('link'),
+            inputLibraries: inputLibraries,
+            macroExecutor: macroExecutor,
+          );
           librariesLinked += cycle.libraries.length;
         } catch (exception, stackTrace) {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);

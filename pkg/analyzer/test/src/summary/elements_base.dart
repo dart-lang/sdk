@@ -31,6 +31,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
@@ -103,7 +104,11 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       Reference.root(),
     );
 
-    var sdkLinkResult = await link(elementFactory, inputLibraries);
+    var sdkLinkResult = await link2(
+      elementFactory: elementFactory,
+      inputLibraries: inputLibraries,
+      performance: OperationPerformanceImpl('link'),
+    );
 
     return _sdkBundle = _SdkBundle(
       resolutionBytes: sdkLinkResult.resolutionBytes,
@@ -128,75 +133,99 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     bool dumpSummaries = false,
     List<Set<String>>? preBuildSequence,
   }) async {
-    _buildSourceFactory();
+    final performance = OperationPerformanceImpl('<root>');
+    final result = await performance.runAsync(
+      'buildLibrary',
+      (performance) async {
+        _buildSourceFactory();
 
-    var testFile = newFile(testFilePath, text);
-    var testUri = sourceFactory.pathToUri(testFile.path)!;
-    var testSource = sourceFactory.forUri2(testUri)!;
+        var testFile = newFile(testFilePath, text);
+        var testUri = sourceFactory.pathToUri(testFile.path)!;
+        var testSource = sourceFactory.forUri2(testUri)!;
 
-    var inputLibraries = <LinkInputLibrary>[];
-    _addNonDartLibraries({}, inputLibraries, testSource);
+        var inputLibraries = <LinkInputLibrary>[];
+        _addNonDartLibraries({}, inputLibraries, testSource);
 
-    var unitsInformativeBytes = <Uri, Uint8List>{};
-    for (var inputLibrary in inputLibraries) {
-      for (var inputUnit in inputLibrary.units) {
-        var informativeBytes = writeUnitInformative(inputUnit.unit);
-        unitsInformativeBytes[inputUnit.uri] = informativeBytes;
-      }
-    }
+        var unitsInformativeBytes = <Uri, Uint8List>{};
+        for (var inputLibrary in inputLibraries) {
+          for (var inputUnit in inputLibrary.units) {
+            var informativeBytes = writeUnitInformative(inputUnit.unit);
+            unitsInformativeBytes[inputUnit.uri] = informativeBytes;
+          }
+        }
 
-    var analysisContext = AnalysisContextImpl(
-      SynchronousSession(
-        AnalysisOptionsImpl()..contextFeatures = featureSet,
-        declaredVariables,
-      ),
-      sourceFactory,
+        var analysisContext = AnalysisContextImpl(
+          SynchronousSession(
+            AnalysisOptionsImpl()..contextFeatures = featureSet,
+            declaredVariables,
+          ),
+          sourceFactory,
+        );
+
+        var elementFactory = LinkedElementFactory(
+          analysisContext,
+          _AnalysisSessionForLinking(),
+          Reference.root(),
+        );
+        elementFactory.addBundle(
+          BundleReader(
+            elementFactory: elementFactory,
+            unitsInformativeBytes: {},
+            resolutionBytes: (await sdkBundle).resolutionBytes,
+          ),
+        );
+
+        await performance.runAsync(
+          'linkConfiguredLibraries',
+          (performance) async {
+            await _linkConfiguredLibraries(
+              elementFactory,
+              inputLibraries,
+              preBuildSequence,
+              performance,
+            );
+          },
+        );
+
+        var linkResult = await performance.runAsync(
+          'link',
+          (performance) async {
+            return await link2(
+              elementFactory: elementFactory,
+              inputLibraries: inputLibraries,
+              macroExecutor: _macroExecutor,
+              performance: performance,
+            );
+          },
+        );
+
+        for (var macroUnit in linkResult.macroGeneratedUnits) {
+          var informativeBytes = writeUnitInformative(macroUnit.unit);
+          unitsInformativeBytes[macroUnit.uri] = informativeBytes;
+        }
+
+        if (!keepLinkingLibraries) {
+          elementFactory.removeBundle(
+            inputLibraries.map((e) => e.uriStr).toSet(),
+          );
+          elementFactory.addBundle(
+            BundleReader(
+              elementFactory: elementFactory,
+              unitsInformativeBytes: unitsInformativeBytes,
+              resolutionBytes: linkResult.resolutionBytes,
+            ),
+          );
+        }
+
+        return elementFactory.libraryOfUri2('$testUri');
+      },
     );
 
-    var elementFactory = LinkedElementFactory(
-      analysisContext,
-      _AnalysisSessionForLinking(),
-      Reference.root(),
-    );
-    elementFactory.addBundle(
-      BundleReader(
-        elementFactory: elementFactory,
-        unitsInformativeBytes: {},
-        resolutionBytes: (await sdkBundle).resolutionBytes,
-      ),
-    );
+    // final performanceBuffer = StringBuffer();
+    // performance.children.single.write(buffer: performanceBuffer);
+    // print(performanceBuffer);
 
-    await _linkConfiguredLibraries(
-      elementFactory,
-      inputLibraries,
-      preBuildSequence,
-    );
-
-    var linkResult = await link(
-      elementFactory,
-      inputLibraries,
-      macroExecutor: _macroExecutor,
-    );
-
-    for (var macroUnit in linkResult.macroGeneratedUnits) {
-      var informativeBytes = writeUnitInformative(macroUnit.unit);
-      unitsInformativeBytes[macroUnit.uri] = informativeBytes;
-    }
-
-    if (!keepLinkingLibraries) {
-      elementFactory.removeBundle(
-        inputLibraries.map((e) => e.uriStr).toSet(),
-      );
-      elementFactory.addBundle(
-        BundleReader(
-          elementFactory: elementFactory,
-          unitsInformativeBytes: unitsInformativeBytes,
-          resolutionBytes: linkResult.resolutionBytes,
-        ),
-      );
-    }
-
-    return elementFactory.libraryOfUri2('$testUri');
+    return result;
   }
 
   @mustCallSuper
@@ -366,6 +395,7 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     LinkedElementFactory elementFactory,
     List<LinkInputLibrary> inputLibraries,
     List<Set<String>>? uriStrSetList,
+    OperationPerformanceImpl performance,
   ) async {
     if (uriStrSetList == null) {
       return;
@@ -381,13 +411,19 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
         }
       }
 
-      await link(
-        elementFactory,
-        cycleInputLibraries,
-        macroExecutor: _macroExecutor,
-      );
+      await performance.runAsync('link', (performance) async {
+        await link2(
+          elementFactory: elementFactory,
+          inputLibraries: cycleInputLibraries,
+          macroExecutor: _macroExecutor,
+          performance: performance,
+        );
+        performance.collapse();
+      });
 
-      await _buildMacroLibraries(elementFactory, macroLibraries);
+      await performance.runAsync('buildMacroLibraries', (_) async {
+        await _buildMacroLibraries(elementFactory, macroLibraries);
+      });
 
       // Remove libraries that we just linked.
       cycleInputLibraries.forEach(inputLibraries.remove);

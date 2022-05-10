@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class LibraryMacroApplier {
   final MultiMacroExecutor macroExecutor;
@@ -47,7 +48,9 @@ class LibraryMacroApplier {
   Linker get _linker => libraryBuilder.linker;
 
   /// Fill [_targets]s with macro applications.
-  Future<void> buildApplications() async {
+  Future<void> buildApplications({
+    required OperationPerformanceImpl performance,
+  }) async {
     final collector = _MacroTargetElementCollector();
     libraryBuilder.element.accept(collector);
 
@@ -55,11 +58,17 @@ class LibraryMacroApplier {
       final targetNode = _linker.elementNodes[targetElement];
       // TODO(scheglov) support other declarations
       if (targetNode is ClassDeclaration) {
-        await _buildApplications(
-          targetElement,
-          targetNode.metadata,
-          macro.DeclarationKind.clazz,
-          () => declarationBuilder.fromNode.classDeclaration(targetNode),
+        await performance.runAsync(
+          'forClassDeclaration',
+          (performance) async {
+            await _buildApplications(
+              targetElement,
+              targetNode.metadata,
+              macro.DeclarationKind.clazz,
+              () => declarationBuilder.fromNode.classDeclaration(targetNode),
+              performance: performance,
+            );
+          },
         );
       }
     }
@@ -117,8 +126,9 @@ class LibraryMacroApplier {
     MacroTargetElement targetElement,
     List<Annotation> annotations,
     macro.DeclarationKind declarationKind,
-    macro.DeclarationImpl Function() getDeclaration,
-  ) async {
+    macro.DeclarationImpl Function() getDeclaration, {
+    required OperationPerformanceImpl performance,
+  }) async {
     final applications = <_MacroApplication>[];
 
     for (var i = 0; i < annotations.length; i++) {
@@ -136,12 +146,14 @@ class LibraryMacroApplier {
                 annotationIndex: i,
                 node: argumentsNode,
               );
-              return await macroExecutor.instantiate(
-                libraryUri: macroClass.librarySource.uri,
-                className: macroClass.name,
-                constructorName: constructorName,
-                arguments: arguments,
-              );
+              return await performance.runAsync('instantiate', (_) {
+                return macroExecutor.instantiate(
+                  libraryUri: macroClass.librarySource.uri,
+                  className: macroClass.name,
+                  constructorName: constructorName,
+                  arguments: arguments,
+                );
+              });
             },
             annotationIndex: i,
             onError: (error) {

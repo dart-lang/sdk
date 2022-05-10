@@ -24,6 +24,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class ImplicitEnumNodes {
   final EnumElementImpl element;
@@ -275,14 +276,30 @@ class LibraryBuilder {
     ];
   }
 
-  Future<void> executeMacroTypesPhase() async {
+  Future<void> executeMacroTypesPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
     final macroApplier = _macroApplier;
     if (macroApplier == null) {
       return;
     }
 
-    await macroApplier.buildApplications();
-    var augmentationLibrary = await macroApplier.executeTypesPhase();
+    await performance.runAsync(
+      'buildApplications',
+      (performance) async {
+        await macroApplier.buildApplications(
+          performance: performance,
+        );
+      },
+    );
+
+    final augmentationLibrary = await performance.runAsync(
+      'executeTypesPhase',
+      (performance) async {
+        return await macroApplier.executeTypesPhase();
+      },
+    );
+
     if (augmentationLibrary == null) {
       return;
     }
