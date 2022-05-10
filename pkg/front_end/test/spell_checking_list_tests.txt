@@ -444,6 +444,7 @@ noted
 nottest
 null'ed
 numerator
+nums
 ob
 obool
 observable

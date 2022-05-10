@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method testProductOfNums(core::List<core::num> values) → dynamic
+  ;
+static method main() → dynamic
+  ;
