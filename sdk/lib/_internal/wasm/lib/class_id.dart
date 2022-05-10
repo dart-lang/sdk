@@ -16,6 +16,8 @@ class ClassID {
   external static int get cidUint8ArrayView;
   @pragma("wasm:class-id", "dart.core#Object")
   external static int get cidObject;
+  @pragma("wasm:class-id", "dart.async#Future")
+  external static int get cidFuture;
 
   // Class IDs for RTI Types.
   @pragma("wasm:class-id", "dart.core#_NeverType")

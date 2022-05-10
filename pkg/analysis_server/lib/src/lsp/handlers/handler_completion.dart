@@ -110,7 +110,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     CompletionPerformance? completionPerformance;
     if (fileExtension == '.dart' && !unit.isError) {
       final result = unit.result;
-      var performance = OperationPerformanceImpl('<root>');
+      var performance = message.performance;
       serverResultsFuture = performance.runAsync(
         'request',
         (performance) async {

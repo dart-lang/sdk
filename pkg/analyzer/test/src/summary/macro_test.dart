@@ -71,7 +71,15 @@ class MacroElementsTest extends ElementsBaseTest {
         .readAsStringSync();
   }
 
+  Set<String> get _macroApiSet {
+    return {
+      'package:_fe_analyzer_shared/src/macros/api.dart',
+    };
+  }
+
+  @override
   Future<void> setUp() async {
+    await super.setUp();
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
@@ -101,6 +109,7 @@ import 'a.dart';
 @myMacro
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -161,6 +170,7 @@ import 'a.dart';
 @myMacro
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -219,6 +229,7 @@ import 'a.dart' as prefix;
 @prefix.myMacro
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -287,6 +298,7 @@ import 'a.dart' as prefix;
 @prefix.myMacro
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -351,6 +363,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -412,6 +425,7 @@ import 'a.dart';
 @MyMacro.named()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -478,6 +492,7 @@ import 'a.dart' as prefix;
 @prefix.MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -546,6 +561,7 @@ import 'a.dart' as prefix;
 @prefix.MyMacro.named()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -856,6 +872,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -907,6 +924,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -965,6 +983,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1018,6 +1037,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1071,6 +1091,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1129,6 +1150,7 @@ import 'a.dart';
 @myMacro
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1572,6 +1594,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1601,6 +1624,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1630,6 +1654,7 @@ import 'a.dart';
 @MyMacro()
 class A {}
 ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/a.dart'}
     ]);
 
@@ -1774,6 +1799,7 @@ import 'arguments_text.dart';
 ${usingGetter ? '@argumentsTextMacro' : '@ArgumentsTextMacro$argumentsCode'}
 class A {}
     ''', preBuildSequence: [
+      _macroApiSet,
       {'package:test/arguments_text.dart'}
     ]);
 
@@ -1837,6 +1863,7 @@ import 'declaration_text.dart';
 @DeclarationTextMacro()
 $declarationCode
 ''', preBuildSequence: [
+      _macroApiSet,
       {
         'package:test/introspect_shared.dart',
         'package:test/declaration_text.dart',
@@ -1872,6 +1899,7 @@ $declarationCode
 import 'introspect_declarations_phase.dart';
 $declarationCode
 ''', preBuildSequence: [
+      _macroApiSet,
       {
         'package:test/introspect_shared.dart',
         'package:test/introspect_declarations_phase.dart',

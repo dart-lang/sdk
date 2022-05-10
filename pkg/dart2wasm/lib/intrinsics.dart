@@ -985,11 +985,11 @@ class Intrinsifier {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
+      // Runtime types are never nullable.
+      b.i32_const(0);
       b.local_get(receiver);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.i64_extend_i32_u();
-      // Runtime types are never nullable.
-      b.i32_const(0);
       // TODO(askesc): Type arguments
       b.global_get(translator.constants.emptyTypeList);
       translator.convertType(function,

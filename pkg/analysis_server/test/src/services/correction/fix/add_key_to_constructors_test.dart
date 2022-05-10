@@ -181,4 +181,133 @@ class MyWidget extends StatelessWidget {
 }
 ''', errorFilter: (error) => error.errorCode is LintCode);
   }
+
+  Future<void> test_initializer_final_constant() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final t = const Text('');
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final t = const Text('');
+
+  const MyWidget({Key? key}) : super(key: key);
+}
+''',
+        //TODO(asashour) there should be no other errors
+        errorFilter: (error) => error.errorCode is LintCode);
+  }
+
+  Future<void> test_initializer_final_not_constant() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final c = Container();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final c = Container();
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_not_final_constant() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  var t = const Text('');
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  var t = const Text('');
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''',
+        //TODO(asashour) there should be no other errors
+        errorFilter: (error) => error.errorCode is LintCode);
+  }
+
+  Future<void> test_initializer_not_final_not_constant() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  var c = Container();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  var c = Container();
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_static() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  static Text t = const Text('');
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  static Text t = const Text('');
+
+  const MyWidget({Key? key}) : super(key: key);
+}
+''',
+        //TODO(asashour) there should be no other errors
+        errorFilter: (error) => error.errorCode is LintCode);
+  }
+
+  Future<void> test_super_not_constant() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class ParentWidget extends StatelessWidget {
+  final c = Container();
+
+  ParentWidget({Key? key}) : super(key: key);
+}
+
+class MyWidget extends ParentWidget {
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class ParentWidget extends StatelessWidget {
+  final c = Container();
+
+  ParentWidget({Key? key}) : super(key: key);
+}
+
+class MyWidget extends ParentWidget {
+  MyWidget({Key? key}) : super(key: key);
+}
+''', errorFilter: (error) => error.errorCode is LintCode);
+  }
 }

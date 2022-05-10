@@ -10,7 +10,6 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Information about a Gn workspace.
@@ -31,17 +30,23 @@ class GnWorkspace extends Workspace {
   @override
   final String root;
 
-  /// The map from a package name to the list of its `lib/` folders.
-  final Map<String, List<Folder>> _packageMap;
+  /// Information about packages available in the workspace.
+  final Packages packages;
 
-  GnWorkspace._(this.provider, this.root, this._packageMap);
+  GnWorkspace._(this.provider, this.root, this.packages);
 
-  @visibleForTesting
-  Map<String, List<Folder>> get packageMap => _packageMap;
+  /// TODO(scheglov) Finish switching to [packages].
+  Map<String, List<Folder>> get packageMap {
+    var packageMap = <String, List<Folder>>{};
+    for (var package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
+    }
+    return packageMap;
+  }
 
   @override
   UriResolver get packageUriResolver =>
-      PackageMapUriResolver(provider, _packageMap);
+      PackageMapUriResolver(provider, packageMap);
 
   @override
   SourceFactory createSourceFactory(
@@ -113,15 +118,15 @@ class GnWorkspace extends Workspace {
           return null;
         }
 
-        var packageMap = <String, List<Folder>>{};
+        var packageMap = <String, Package>{};
         for (var packagesFile in packagesFiles) {
           var packages = parsePackagesFile(provider, packagesFile);
           for (var package in packages.packages) {
-            packageMap[package.name] = [package.libFolder];
+            packageMap[package.name] = package;
           }
         }
 
-        return GnWorkspace._(provider, root, packageMap);
+        return GnWorkspace._(provider, root, Packages(packageMap));
       }
     }
     return null;
@@ -229,8 +234,7 @@ class GnWorkspacePackage extends WorkspacePackage {
   }
 
   @override
-  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
-      workspace.packageMap;
+  Packages packagesAvailableTo(String libraryPath) => workspace.packages;
 
   @override
   bool sourceIsInPublicApi(Source source) {

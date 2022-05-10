@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,6 +43,15 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    _writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+    );
+  }
+
   test_class_abstract() async {
     var library = await buildLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -38096,5 +38106,21 @@ library
 
     var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
+  }
+
+  void _writeTestPackageConfig(PackageConfigFileBuilder config) {
+    config = config.copy();
+
+    config.add(
+      name: 'test',
+      rootPath: testPackageRootPath,
+    );
+
+    newPackageConfigJsonFile(
+      testPackageRootPath,
+      config.toContent(
+        toUriStr: toUriStr,
+      ),
+    );
   }
 }

@@ -701,17 +701,40 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
+        types.encodeNullability(b, type);
         b.i64_const(typeInfo.classId);
-        b.i32_const(types.isNullable(type) ? 1 : 0);
         constants.instantiateConstant(
             function, b, typeArgs, typeListExpectedType);
         translator.struct_new(b, info);
       });
-    } else {
-      // TODO(joshualitt): Real implementation for complex types.
+    } else if (type is FutureOrType) {
+      TypeLiteralConstant typeArgument = TypeLiteralConstant(type.typeArgument);
+      ensureConstant(typeArgument);
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
+        types.encodeNullability(b, type);
+        constants.instantiateConstant(
+            function, b, typeArgument, types.nonNullableTypeType);
+        translator.struct_new(b, info);
+      });
+    } else if (type is FunctionType) {
+      // TODO(joshualitt): Real implementation for function types.
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        types.encodeNullability(b, type);
+        translator.struct_new(b, info);
+      });
+    } else {
+      assert(type is VoidType ||
+          type is NeverType ||
+          type is NullType ||
+          type is DynamicType);
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        types.encodeNullability(b, type);
         translator.struct_new(b, info);
       });
     }

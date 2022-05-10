@@ -350,31 +350,32 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       try {
         if (message is ResponseMessage) {
           handleClientResponse(message);
-        } else if (message is RequestMessage) {
+        } else if (message is IncomingMessage) {
+          final incomingMessage = message as IncomingMessage;
+
           // Record performance information for the request.
           final performance = OperationPerformanceImpl('<root>');
           await performance.runAsync('request', (performance) async {
             final requestPerformance = RequestPerformance(
-              operation: message.method.toString(),
+              operation: incomingMessage.method.toString(),
               performance: performance,
-              requestLatency: message.timeSinceRequest,
+              requestLatency: incomingMessage.timeSinceRequest,
             );
             recentPerformance.requests.add(requestPerformance);
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
+
+            final messageInfo = MessageInfo(
+              performance: performance,
+              timeSinceRequest: incomingMessage.timeSinceRequest,
+            );
+
+            if (message is RequestMessage) {
+              await _handleRequestMessage(message, messageInfo);
+            } else if (message is NotificationMessage) {
+              await _handleNotificationMessage(message, messageInfo);
             } else {
-              channel.sendResponse(ResponseMessage(
-                  id: message.id,
-                  result: result.result,
-                  jsonrpc: jsonRpcVersion));
+              showErrorMessageToUser('Unknown incoming message type');
             }
           });
-        } else if (message is NotificationMessage) {
-          final result = await messageHandler.handleMessage(message);
-          if (result.isError) {
-            sendErrorResponse(message, result.error);
-          }
         } else {
           showErrorMessageToUser('Unknown message type');
         }
@@ -781,6 +782,32 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       ...packages,
       ...additionalFiles,
     ];
+  }
+
+  Future<void> _handleNotificationMessage(
+    NotificationMessage message,
+    MessageInfo messageInfo,
+  ) async {
+    final result = await messageHandler.handleMessage(message, messageInfo);
+    if (result.isError) {
+      sendErrorResponse(message, result.error);
+    }
+  }
+
+  Future<void> _handleRequestMessage(
+    RequestMessage message,
+    MessageInfo messageInfo,
+  ) async {
+    final result = await messageHandler.handleMessage(message, messageInfo);
+    if (result.isError) {
+      sendErrorResponse(message, result.error);
+    } else {
+      channel.sendResponse(ResponseMessage(
+        id: message.id,
+        result: result.result,
+        jsonrpc: jsonRpcVersion,
+      ));
+    }
   }
 
   void _onPluginsChanged() {

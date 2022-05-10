@@ -19,9 +19,9 @@ class BasicWorkspace extends SimpleWorkspace {
 
   BasicWorkspace._(
     ResourceProvider provider,
-    Map<String, List<Folder>> packageMap,
+    Packages packages,
     String root,
-  ) : super(provider, packageMap, root) {
+  ) : super(provider, packages, root) {
     _theOnlyPackage = BasicWorkspacePackage(root, this);
   }
 
@@ -42,14 +42,14 @@ class BasicWorkspace extends SimpleWorkspace {
   /// (or [path]'s parent if [path] points to a file).
   static BasicWorkspace find(
     ResourceProvider provider,
-    Map<String, List<Folder>> packageMap,
+    Packages packages,
     String path,
   ) {
     Resource resource = provider.getResource(path);
     if (resource is File) {
       path = resource.parent.path;
     }
-    return BasicWorkspace._(provider, packageMap, path);
+    return BasicWorkspace._(provider, packages, path);
   }
 }
 
@@ -79,8 +79,7 @@ class BasicWorkspacePackage extends WorkspacePackage {
   }
 
   @override
-  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
-      workspace.packageMap;
+  Packages packagesAvailableTo(String libraryPath) => workspace.packages;
 
   @override
   bool sourceIsInPublicApi(Source source) {

@@ -35,7 +35,12 @@ class AddKeyToConstructors extends CorrectionProducer {
         return;
       }
       var className = node.name;
-      var canBeConst = _canBeConst(parent.declaredElement);
+      var constructors = parent.declaredElement?.supertype?.constructors;
+      if (constructors == null) {
+        return;
+      }
+
+      var canBeConst = _canBeConst(parent, constructors);
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(targetLocation.offset, (builder) {
           builder.write(targetLocation.prefix);
@@ -94,16 +99,28 @@ class AddKeyToConstructors extends CorrectionProducer {
     }
   }
 
-  /// Return `true` if the [classElement] can be instantiated as a `const`.
-  bool _canBeConst(ClassElement? classElement) {
-    var currentClass = classElement;
-    while (currentClass != null && !currentClass.isDartCoreObject) {
-      for (var field in currentClass.fields) {
-        if (!field.isSynthetic && !field.isFinal) {
+  /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
+  bool _canBeConst(ClassDeclaration classDeclaration,
+      List<ConstructorElement> constructors) {
+    for (var constructor in constructors) {
+      if (constructor.isDefaultConstructor && !constructor.isConst) {
+        return false;
+      }
+    }
+
+    for (var member in classDeclaration.members) {
+      if (member is FieldDeclaration && !member.isStatic) {
+        if (!member.fields.isFinal) {
           return false;
         }
+        for (var variableDeclaration in member.fields.variables) {
+          var initializer = variableDeclaration.initializer;
+          if (initializer is InstanceCreationExpression &&
+              !initializer.isConst) {
+            return false;
+          }
+        }
       }
-      currentClass = currentClass.supertype?.element;
     }
     return true;
   }

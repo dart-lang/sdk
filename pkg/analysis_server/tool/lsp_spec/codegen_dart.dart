@@ -38,7 +38,12 @@ bool enumClassAllowsAnyValue(String name) {
 String generateDartForTypes(List<AstNode> types) {
   final buffer = IndentableStringBuffer();
   _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
+  final stopwatch = Stopwatch()..start();
   final formattedCode = _formatCode(buffer.toString());
+  stopwatch.stop();
+  if (stopwatch.elapsed.inSeconds > 10) {
+    print('WARN: Formatting took ${stopwatch.elapsed} (${types.length} types)');
+  }
   return '${formattedCode.trim()}\n'; // Ensure a single trailing newline.
 }
 
@@ -310,8 +315,8 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
       final requiredKeyword = isRequired ? 'required' : '';
       final valueCode =
           isLiteral ? ' = ${(field.type as LiteralType).literal}' : '';
-      return '$requiredKeyword this.${field.name}$valueCode';
-    }).join(', '))
+      return '$requiredKeyword this.${field.name}$valueCode, ';
+    }).join())
     ..write('})');
   final fieldsWithValidation =
       allFields.where((f) => f.type is LiteralType).toList();
@@ -642,7 +647,7 @@ void _writeFromJsonConstructor(
   }
   buffer
     ..writeIndented('return ${interface.nameWithTypeArgs}(')
-    ..write(allFields.map((field) => '${field.name}: ${field.name}').join(', '))
+    ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
     ..writeln(');')
     ..outdent()
     ..writeIndented('}');
@@ -663,10 +668,10 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     endWith = ';';
   } else if (fields.length > 20) {
     buffer.write('Object.hashAll([');
-    endWith = ']);';
+    endWith = ',]);';
   } else {
     buffer.write('Object.hash(');
-    endWith = ');';
+    endWith = ',);';
   }
 
   buffer.writeAll(
@@ -729,7 +734,7 @@ void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented('static const jsonHandler = ')
     ..write('LspJsonHandler(')
-    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
+    ..write('${interface.name}.canParse, ${interface.name}.fromJson,')
     ..writeln(');')
     ..writeln();
 }

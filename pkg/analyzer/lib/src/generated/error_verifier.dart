@@ -793,6 +793,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
+    _checkUseVerifier.checkFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
 

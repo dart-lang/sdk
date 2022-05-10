@@ -21,6 +21,7 @@ import 'package:analyzer/dart/analysis/session.dart'
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart' show groupBy;
@@ -86,6 +87,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     final unit = await path.mapResult(requireResolvedUnit);
 
+    /// Whether a fix of kind [kind] should be included in the results.
+    ///
+    /// Unlike [shouldIncludeAnyOfKind], this function is called with a more
+    /// specific action kind and answers the question "Should we include this
+    /// specific fix kind?".
     bool shouldIncludeKind(CodeActionKind? kind) {
       /// Checks whether the kind matches the [wanted] kind.
       ///
@@ -94,7 +100,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       ///  - refactor.foobar - not included
       ///  - refactor.foo.bar - included
       bool isMatch(CodeActionKind wanted) =>
-          kind == wanted || kind.toString().startsWith('${wanted.toString()}.');
+          kind == wanted || kind.toString().startsWith('$wanted.');
 
       // If the client wants only a specific set, use only that filter.
       final only = params.context.only;
@@ -111,6 +117,30 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return true;
     }
 
+    /// Whether any fixes of kind [kind] should be included in the results.
+    ///
+    /// Unlike [shouldIncludeKind], this function is called with a more general
+    /// action kind and answers the question "Should we include any actions of
+    /// kind CodeActionKind.Source?".
+    bool shouldIncludeAnyOfKind(CodeActionKind? kind) {
+      /// Checks whether the kind matches the [wanted] kind.
+      ///
+      /// If `kind` is `refactor.foo` then for these `wanted` values:
+      ///  - wanted=refactor.foo - true
+      ///  - wanted=refactor.foo.bar - true
+      ///  - wanted=refactor - false
+      ///  - wanted=refactor.bar - false
+      bool isMatch(CodeActionKind wanted) =>
+          kind == wanted || wanted.toString().startsWith('$kind.');
+
+      final only = params.context.only;
+      if (only != null) {
+        return only.any(isMatch);
+      }
+
+      return true;
+    }
+
     return unit.mapResult((unit) {
       final startOffset = toOffset(unit.lineInfo, params.range.start);
       final endOffset = toOffset(unit.lineInfo, params.range.end);
@@ -118,8 +148,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         return endOffset.mapResult((endOffset) {
           final offset = startOffset;
           final length = endOffset - startOffset;
-          return _getCodeActions(
+          return message.performance.runAsync(
+            'getCodeActions',
+            (performance) => _getCodeActions(
+              performance,
               shouldIncludeKind,
+              shouldIncludeAnyOfKind,
               supportsLiteralCodeActions,
               supportsApplyEdit,
               supportedDiagnosticTags,
@@ -127,7 +161,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               params.range,
               offset,
               length,
-              unit);
+              unit,
+            ),
+          );
         });
       });
     });
@@ -298,7 +334,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
+    OperationPerformanceImpl performance,
     bool Function(CodeActionKind?) shouldIncludeKind,
+    bool Function(CodeActionKind?) shouldIncludeAnyOfKind,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
     Set<DiagnosticTag> supportedDiagnosticTags,
@@ -309,14 +347,31 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ResolvedUnitResult unit,
   ) async {
     final results = await Future.wait([
-      _getSourceActions(shouldIncludeKind, supportsLiterals,
-          supportsWorkspaceApplyEdit, path),
-      _getAssistActions(shouldIncludeKind, supportsLiterals, path, range,
-          offset, length, unit),
-      _getRefactorActions(
-          shouldIncludeKind, supportsLiterals, path, offset, length, unit),
-      _getFixActions(shouldIncludeKind, supportsLiterals, path, offset,
-          supportedDiagnosticTags, range, unit),
+      if (shouldIncludeAnyOfKind(CodeActionKind.Source))
+        performance.runAsync(
+          '_getSourceActions',
+          (_) => _getSourceActions(shouldIncludeKind, supportsLiterals,
+              supportsWorkspaceApplyEdit, path),
+        ),
+      // Assists go under the Refactor CodeActionKind so check that here.
+      if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
+        performance.runAsync(
+          '_getAssistActions',
+          (_) => _getAssistActions(shouldIncludeKind, supportsLiterals, path,
+              range, offset, length, unit),
+        ),
+      if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
+        performance.runAsync(
+          '_getRefactorActions',
+          (_) => _getRefactorActions(
+              shouldIncludeKind, supportsLiterals, path, offset, length, unit),
+        ),
+      if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
+        performance.runAsync(
+          '_getFixActions',
+          (_) => _getFixActions(shouldIncludeKind, supportsLiterals, path,
+              offset, supportedDiagnosticTags, range, unit),
+        ),
     ]);
     final flatResults = results.expand((x) => x).toList();
 
@@ -343,15 +398,15 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final pluginFuture = _getPluginFixActions(unit, offset);
 
     try {
+      var workspace = DartChangeWorkspace(
+        await server.currentSessions,
+      );
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
         var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine < range.start.line || errorLine > range.end.line) {
           continue;
         }
-        var workspace = DartChangeWorkspace(
-          await server.currentSessions,
-        );
         var context = DartFixContextImpl(
             server.instrumentationService, workspace, unit, error);
         final fixes = await fixContributor.computeFixes(context);

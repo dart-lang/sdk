@@ -11,6 +11,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -61,16 +62,6 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       root: sdkRoot,
     );
     sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-
-    sourceFactory = SourceFactory([
-      DartUriResolver(sdk),
-      PackageMapUriResolver(resourceProvider, {
-        'test': [
-          getFolder('/home/test/lib'),
-        ],
-      }),
-      ResourceUriResolver(resourceProvider),
-    ]);
   }
 
   /// We need to test both cases - when we keep linking libraries (happens for
@@ -137,6 +128,8 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
     bool dumpSummaries = false,
     List<Set<String>>? preBuildSequence,
   }) async {
+    _buildSourceFactory();
+
     var testFile = newFile(testFilePath, text);
     var testUri = sourceFactory.pathToUri(testFile.path)!;
     var testSource = sourceFactory.forUri2(testUri)!;
@@ -205,6 +198,9 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
 
     return elementFactory.libraryOfUri2('$testUri');
   }
+
+  @mustCallSuper
+  Future<void> setUp() async {}
 
   @mustCallSuper
   Future<void> tearDown() async {
@@ -342,6 +338,25 @@ abstract class ElementsBaseTest with ResourceProviderMixin {
       var element = elementFactory.libraryOfUri2(uriStr);
       element.bundleMacroExecutor = bundleMacroExecutor;
     }
+  }
+
+  void _buildSourceFactory() {
+    final packages = parsePackageConfigJsonFile(
+      resourceProvider,
+      getFile('$testPackageRootPath/.dart_tool/package_config.json'),
+    );
+
+    // TODO(scheglov) Can we use Packages instead?
+    final packageMap = <String, List<Folder>>{};
+    for (final package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
+    }
+
+    sourceFactory = SourceFactory([
+      DartUriResolver(sdk),
+      PackageMapUriResolver(resourceProvider, packageMap),
+      ResourceUriResolver(resourceProvider),
+    ]);
   }
 
   /// If there are any libraries in the [uriStrSetList], link these subsets

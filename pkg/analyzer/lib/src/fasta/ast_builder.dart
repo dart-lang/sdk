@@ -244,14 +244,10 @@ class AstBuilder extends StackListener {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            macroToken,
-            macroToken);
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.macros,
+          startToken: macroToken,
+        );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
       }
@@ -399,14 +395,10 @@ class AstBuilder extends StackListener {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            macroToken,
-            macroToken);
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.macros,
+          startToken: macroToken,
+        );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
       }
@@ -765,14 +757,9 @@ class AstBuilder extends StackListener {
         ),
       );
       if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
-        var feature = ExperimentalFeatures.triple_shift;
-        handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          operatorToken,
-          operatorToken,
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.triple_shift,
+          startToken: operatorToken,
         );
       }
     }
@@ -1320,25 +1307,18 @@ class AstBuilder extends StackListener {
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
       Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
     if (typeKeyword != null && !enableExtensionTypes) {
-      var feature = ExperimentalFeatures.extension_types;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          typeKeyword,
-          typeKeyword);
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.extension_types,
+        startToken: typeKeyword,
+      );
     }
 
-    if ((showKeyword != null || hideKeyword != null) && !enableExtensionTypes) {
-      var feature = ExperimentalFeatures.extension_types;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          (showKeyword ?? hideKeyword)!,
-          (showKeyword ?? hideKeyword)!);
+    final showOrHideKeyword = showKeyword ?? hideKeyword;
+    if (showOrHideKeyword != null && !enableExtensionTypes) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.extension_types,
+        startToken: showOrHideKeyword,
+      );
     }
 
     ShowClause? showClause = pop(NullValue.ShowClause) as ShowClause?;
@@ -1533,14 +1513,9 @@ class AstBuilder extends StackListener {
     debugEvent("FormalParameter");
 
     if (superKeyword != null && !enableSuperParameters) {
-      var feature = ExperimentalFeatures.super_parameters;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        superKeyword,
-        superKeyword,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.super_parameters,
+        startToken: superKeyword,
       );
     }
 
@@ -1551,8 +1526,11 @@ class AstBuilder extends StackListener {
     var keyword = modifiers?.finalConstOrVarKeyword;
     var covariantKeyword = modifiers?.covariantKeyword;
     var requiredKeyword = modifiers?.requiredToken;
-    if (!enableNonNullable) {
-      reportNonNullableModifierError(requiredKeyword);
+    if (!enableNonNullable && requiredKeyword != null) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.non_nullable,
+        startToken: requiredKeyword,
+      );
     }
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata,
@@ -1845,14 +1823,10 @@ class AstBuilder extends StackListener {
 
     if (!enableMacros) {
       if (augmentToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            augmentToken,
-            augmentToken);
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.macros,
+          startToken: augmentToken,
+        );
         // Pretend that 'augment' didn't occur while this feature is incomplete.
         augmentToken = null;
       }
@@ -2050,14 +2024,9 @@ class AstBuilder extends StackListener {
     var typeArguments = pop() as TypeArgumentList?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
-      var feature = Feature.generic_metadata;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        typeArguments.beginToken,
-        typeArguments.beginToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.generic_metadata,
+        startToken: typeArguments.beginToken,
       );
     }
     var name = pop() as Identifier;
@@ -2510,14 +2479,9 @@ class AstBuilder extends StackListener {
       var metadata = pop() as List<Annotation>?;
       var comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
-        var feature = Feature.nonfunction_type_aliases;
-        handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          equals,
-          equals,
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.nonfunction_type_aliases,
+          startToken: equals,
         );
       }
       declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
@@ -2670,14 +2634,9 @@ class AstBuilder extends StackListener {
       ),
     );
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
-      var feature = ExperimentalFeatures.triple_shift;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        token,
-        token,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.triple_shift,
+        startToken: token,
       );
     }
   }
@@ -2921,14 +2880,9 @@ class AstBuilder extends StackListener {
       Token token = tmpArguments != null
           ? tmpArguments.argumentList.beginToken
           : tmpConstructor!.beginToken;
-      var feature = ExperimentalFeatures.enhanced_enums;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        token,
-        token,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.enhanced_enums,
+        startToken: token,
       );
     }
 
@@ -2977,14 +2931,9 @@ class AstBuilder extends StackListener {
     }
 
     if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
-      var feature = ExperimentalFeatures.enhanced_enums;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        elementsEndToken,
-        elementsEndToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.enhanced_enums,
+        startToken: elementsEndToken,
       );
     }
   }
@@ -3011,14 +2960,9 @@ class AstBuilder extends StackListener {
           : implementsClause != null
               ? implementsClause.implementsKeyword
               : typeParameters!.beginToken;
-      var feature = ExperimentalFeatures.enhanced_enums;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        token,
-        token,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.enhanced_enums,
+        startToken: token,
       );
     }
 
@@ -3691,14 +3635,10 @@ class AstBuilder extends StackListener {
   @override
   void handleNewAsIdentifier(Token token) {
     if (!enableConstructorTearoffs) {
-      var feature = ExperimentalFeatures.constructor_tearoffs;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          token,
-          token);
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.constructor_tearoffs,
+        startToken: token,
+      );
     }
   }
 
@@ -3730,7 +3670,10 @@ class AstBuilder extends StackListener {
   void handleNonNullAssertExpression(Token bang) {
     debugEvent('NonNullAssertExpression');
     if (!enableNonNullable) {
-      reportNonNullAssertExpressionNotEnabled(bang);
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.non_nullable,
+        startToken: bang,
+      );
     } else {
       push(ast.postfixExpression(pop() as Expression, bang));
     }
@@ -3945,14 +3888,9 @@ class AstBuilder extends StackListener {
       push(ast.spreadElement(
           spreadOperator: spreadToken, expression: expression));
     } else {
-      var feature = Feature.spread_collections;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        spreadToken,
-        spreadToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.spread_collections,
+        startToken: spreadToken,
       );
       push(_invalidCollectionElement);
     }
@@ -4029,14 +3967,10 @@ class AstBuilder extends StackListener {
     var typeArguments = pop() as TypeArgumentList;
     var receiver = pop() as Expression;
     if (!enableConstructorTearoffs) {
-      var feature = ExperimentalFeatures.constructor_tearoffs;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        typeArguments.leftBracket,
-        typeArguments.rightBracket,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.constructor_tearoffs,
+        startToken: typeArguments.leftBracket,
+        endToken: typeArguments.rightBracket,
       );
     }
     push(ast.functionReference(
@@ -4212,14 +4146,9 @@ class AstBuilder extends StackListener {
         body: entry as CollectionElement,
       ));
     } else {
-      var feature = Feature.control_flow_collections;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        forToken,
-        forToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.control_flow_collections,
+        startToken: forToken,
       );
       push(_invalidCollectionElement);
     }
@@ -4245,14 +4174,9 @@ class AstBuilder extends StackListener {
         elseElement: elseElement,
       ));
     } else {
-      var feature = ExperimentalFeatures.control_flow_collections;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        ifToken,
-        ifToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.control_flow_collections,
+        startToken: ifToken,
       );
       push(_invalidCollectionElement);
     }
@@ -4261,14 +4185,9 @@ class AstBuilder extends StackListener {
   void reportErrorIfNullableType(Token? questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
-      var feature = ExperimentalFeatures.non_nullable;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        questionMark,
-        questionMark,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.non_nullable,
+        startToken: questionMark,
       );
     }
   }
@@ -4279,32 +4198,6 @@ class AstBuilder extends StackListener {
       handleRecoverableError(messageMissingAssignableSelector,
           expression.beginToken, expression.endToken);
     }
-  }
-
-  void reportNonNullableModifierError(Token? modifierToken) {
-    if (modifierToken != null) {
-      var feature = ExperimentalFeatures.non_nullable;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        modifierToken,
-        modifierToken,
-      );
-    }
-  }
-
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    var feature = ExperimentalFeatures.non_nullable;
-    handleRecoverableError(
-      templateExperimentNotEnabled.withArguments(
-        feature.enableString,
-        _versionAsString(feature.releaseVersion!),
-      ),
-      bang,
-      bang,
-    );
   }
 
   Comment? _findComment(List<Annotation>? metadata, Token tokenAfterMetadata) {
@@ -4361,6 +4254,23 @@ class AstBuilder extends StackListener {
   VariableDeclaration _makeVariableDeclaration(
       SimpleIdentifier name, Token? equals, Expression? initializer) {
     return ast.variableDeclaration(name, equals, initializer);
+  }
+
+  void _reportFeatureNotEnabled({
+    required ExperimentalFeature feature,
+    required Token startToken,
+    Token? endToken,
+  }) {
+    final requiredVersion =
+        feature.releaseVersion ?? ExperimentStatus.currentVersion;
+    handleRecoverableError(
+      templateExperimentNotEnabled.withArguments(
+        feature.enableString,
+        _versionAsString(requiredVersion),
+      ),
+      startToken,
+      endToken ?? startToken,
+    );
   }
 
   ArgumentListImpl _syntheticArgumentList(Token precedingToken) {
