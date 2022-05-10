@@ -23,6 +23,8 @@ dev_dependencies:
     path: ../build_integration
   compiler:
     path: ../compiler
+  dart2wasm:
+    path: ../dart2wasm
   dart_style: ^2.0.0
   dev_compiler:
     path: ../dev_compiler

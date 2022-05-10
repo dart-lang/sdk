@@ -3026,7 +3026,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime"
+            "runtime",
+            "dart2wasm"
           ]
         },
         {
