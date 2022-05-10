@@ -1,2 +1,13 @@
-bar:pkg/bar/
-foo:pkg/foo/
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "pkg/foo/"
+    },
+    {
+      "name": "bar",
+      "rootUri": "pkg/bar/"
+    }
+  ]
+}
