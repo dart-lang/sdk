@@ -874,6 +874,7 @@ class Assembler : public AssemblerBase {
                       double value,
                       Register scratch,
                       Condition cond = AL);
+  void LoadQImmediate(QRegister dd, simd128_value_t value);
 
   void MarkExceptionHandler(Label* label);
 
@@ -985,7 +986,6 @@ class Assembler : public AssemblerBase {
                                Register scratch,
                                bool can_be_null = false) override;
 
-  intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadFromOffset(Register reg,
                       const Address& address,

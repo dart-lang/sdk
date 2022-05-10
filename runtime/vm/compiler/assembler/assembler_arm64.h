@@ -2041,7 +2041,6 @@ class Assembler : public AssemblerBase {
   compiler::LRState lr_state() const { return lr_state_; }
   void set_lr_state(compiler::LRState state) { lr_state_ = state; }
 
-  intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
@@ -2057,6 +2056,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, int64_t imm);
 
   void LoadDImmediate(VRegister reg, double immd);
+  void LoadQImmediate(VRegister reg, simd128_value_t immq);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.

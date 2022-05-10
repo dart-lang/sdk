@@ -1541,10 +1541,6 @@ void Assembler::Drop(intptr_t stack_elements) {
   }
 }
 
-intptr_t Assembler::FindImmediate(int32_t imm) {
-  return object_pool_builder().FindImmediate(imm);
-}
-
 // Uses a code sequence that can easily be decoded.
 void Assembler::LoadWordFromPoolIndex(Register rd,
                                       intptr_t index,
@@ -2840,7 +2836,15 @@ void Assembler::LoadDImmediate(DRegister dd,
                                Condition cond) {
   ASSERT(scratch != PC);
   ASSERT(scratch != IP);
-  if (!vmovd(dd, value, cond)) {
+  if (vmovd(dd, value, cond)) return;
+
+  int64_t imm64 = bit_cast<int64_t, double>(value);
+  if (constant_pool_allowed()) {
+    intptr_t index = object_pool_builder().FindImmediate64(imm64);
+    intptr_t offset =
+        target::ObjectPool::element_offset(index) - kHeapObjectTag;
+    LoadDFromOffset(dd, PP, offset, cond);
+  } else {
     // A scratch register and IP are needed to load an arbitrary double.
     ASSERT(scratch != kNoRegister);
     int64_t imm64 = bit_cast<int64_t, double>(value);
@@ -2848,6 +2852,13 @@ void Assembler::LoadDImmediate(DRegister dd,
     LoadImmediate(scratch, Utils::High32Bits(imm64), cond);
     vmovdrr(dd, IP, scratch, cond);
   }
+}
+
+void Assembler::LoadQImmediate(QRegister qd, simd128_value_t value) {
+  ASSERT(constant_pool_allowed());
+  intptr_t index = object_pool_builder().FindImmediate128(value);
+  intptr_t offset = target::ObjectPool::element_offset(index) - kHeapObjectTag;
+  LoadMultipleDFromOffset(EvenDRegisterOf(qd), 2, PP, offset);
 }
 
 void Assembler::LoadFromOffset(Register reg,

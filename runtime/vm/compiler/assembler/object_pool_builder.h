@@ -37,6 +37,13 @@ struct ObjectPoolBuilderEntry {
     // values which become known only at run time.
     kSwitchableCallMissEntryPoint,
     kMegamorphicCallEntryPoint,
+
+  // Used only during object pool building to find duplicates. Become multiple
+  // kImmediate in the final pool.
+#if defined(TARGET_ARCH_IS_32_BIT)
+    kImmediate64,
+#endif
+    kImmediate128,
   };
 
   using TypeBits = BitField<uint8_t, EntryType, 0, 7>;
@@ -46,7 +53,7 @@ struct ObjectPoolBuilderEntry {
     return TypeBits::encode(type) | PatchableBit::encode(patchable);
   }
 
-  ObjectPoolBuilderEntry() : raw_value_(), entry_bits_(0), equivalence_() {}
+  ObjectPoolBuilderEntry() : imm128_(), entry_bits_(0), equivalence_() {}
   ObjectPoolBuilderEntry(const Object* obj, Patchability patchable)
       : ObjectPoolBuilderEntry(obj, obj, patchable) {}
   ObjectPoolBuilderEntry(const Object* obj,
@@ -56,7 +63,19 @@ struct ObjectPoolBuilderEntry {
         entry_bits_(EncodeTraits(kTaggedObject, patchable)),
         equivalence_(eqv) {}
   ObjectPoolBuilderEntry(uword value, EntryType info, Patchability patchable)
-      : raw_value_(value),
+      : imm_(value),
+        entry_bits_(EncodeTraits(info, patchable)),
+        equivalence_() {}
+#if defined(ARCH_IS_32_BIT)
+  ObjectPoolBuilderEntry(uint64_t value, EntryType info, Patchability patchable)
+      : imm64_(value),
+        entry_bits_(EncodeTraits(info, patchable)),
+        equivalence_() {}
+#endif
+  ObjectPoolBuilderEntry(simd128_value_t value,
+                         EntryType info,
+                         Patchability patchable)
+      : imm128_(value),
         entry_bits_(EncodeTraits(info, patchable)),
         equivalence_() {}
 
@@ -66,7 +85,9 @@ struct ObjectPoolBuilderEntry {
 
   union {
     const Object* obj_;
-    uword raw_value_;
+    uword imm_;
+    uint64_t imm64_;
+    simd128_value_t imm128_;
   };
   uint8_t entry_bits_;
   const Object* equivalence_;
@@ -93,8 +114,14 @@ class ObjIndexPair {
     if (key.type() == ObjectPoolBuilderEntry::kTaggedObject) {
       key_.obj_ = key.obj_;
       key_.equivalence_ = key.equivalence_;
+    } else if (key.type() == ObjectPoolBuilderEntry::kImmediate128) {
+      key_.imm128_ = key.imm128_;
+#if defined(TARGET_ARCH_IS_32_BIT)
+    } else if (key.type() == ObjectPoolBuilderEntry::kImmediate64) {
+      key_.imm64_ = key.imm64_;
+#endif
     } else {
-      key_.raw_value_ = key.raw_value_;
+      key_.imm_ = key.imm_;
     }
   }
 
@@ -110,7 +137,18 @@ class ObjIndexPair {
       return IsSameObject(*kv.key_.obj_, *key.obj_) &&
              IsSameObject(*kv.key_.equivalence_, *key.equivalence_);
     }
-    return kv.key_.raw_value_ == key.raw_value_;
+    if (kv.key_.type() == ObjectPoolBuilderEntry::kImmediate128) {
+      return (kv.key_.imm128_.int_storage[0] == key.imm128_.int_storage[0]) &&
+             (kv.key_.imm128_.int_storage[1] == key.imm128_.int_storage[1]) &&
+             (kv.key_.imm128_.int_storage[2] == key.imm128_.int_storage[2]) &&
+             (kv.key_.imm128_.int_storage[3] == key.imm128_.int_storage[3]);
+    }
+#if defined(TARGET_ARCH_IS_32_BIT)
+    if (kv.key_.type() == ObjectPoolBuilderEntry::kImmediate64) {
+      return kv.key_.imm64_ == key.imm64_;
+    }
+#endif
+    return kv.key_.imm_ == key.imm_;
   }
 
  private:
@@ -157,12 +195,16 @@ class ObjectPoolBuilder : public ValueObject {
                      ObjectPoolBuilderEntry::Patchability patchable =
                          ObjectPoolBuilderEntry::kNotPatchable);
   intptr_t AddImmediate(uword imm);
+  intptr_t AddImmediate64(uint64_t imm);
+  intptr_t AddImmediate128(simd128_value_t imm);
 
   intptr_t FindObject(const Object& obj,
                       ObjectPoolBuilderEntry::Patchability patchable =
                           ObjectPoolBuilderEntry::kNotPatchable);
   intptr_t FindObject(const Object& obj, const Object& equivalence);
   intptr_t FindImmediate(uword imm);
+  intptr_t FindImmediate64(uint64_t imm);
+  intptr_t FindImmediate128(simd128_value_t imm);
   intptr_t FindNativeFunction(const ExternalLabel* label,
                               ObjectPoolBuilderEntry::Patchability patchable);
 

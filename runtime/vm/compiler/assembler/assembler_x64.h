@@ -781,6 +781,7 @@ class Assembler : public AssemblerBase {
     LoadImmediate(reg, Immediate(immediate));
   }
   void LoadDImmediate(FpuRegister dst, double immediate);
+  void LoadQImmediate(FpuRegister dst, simd128_value_t immediate);
 
   void LoadIsolate(Register dst);
   void LoadIsolateGroup(Register dst);
@@ -1316,7 +1317,6 @@ class Assembler : public AssemblerBase {
  private:
   bool constant_pool_allowed_;
 
-  intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
   void LoadWordFromPoolIndex(Register dst, intptr_t index);
