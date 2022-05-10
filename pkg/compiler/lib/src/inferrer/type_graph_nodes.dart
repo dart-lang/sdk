@@ -20,7 +20,7 @@ import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'locals_handler.dart' show ArgumentsTypes;
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'type_system.dart';
 
 /// Common class for all nodes in the graph. The current nodes are:

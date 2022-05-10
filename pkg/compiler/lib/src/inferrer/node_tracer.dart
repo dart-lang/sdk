@@ -11,7 +11,7 @@ import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the

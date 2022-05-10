@@ -19,7 +19,7 @@ import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
 import '../world.dart' show JClosedWorld;
 
-import 'builder_kernel.dart';
+import 'builder.dart';
 import 'nodes.dart';
 import 'types.dart';
 

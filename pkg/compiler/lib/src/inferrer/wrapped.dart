@@ -4,17 +4,17 @@
 
 // @dart = 2.10
 
-import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
-import '../../elements/entities.dart';
-import '../../elements/names.dart';
-import '../../elements/types.dart' show DartType;
-import '../../ir/static_type.dart';
-import '../../serialization/serialization.dart';
-import '../../universe/selector.dart';
-import '../../universe/world_builder.dart';
-import '../../universe/use.dart';
-import '../../world.dart';
-import '../abstract_value_domain.dart';
+import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
+import '../elements/entities.dart';
+import '../elements/names.dart';
+import '../elements/types.dart' show DartType;
+import '../ir/static_type.dart';
+import '../serialization/serialization.dart';
+import '../universe/selector.dart';
+import '../universe/world_builder.dart';
+import '../universe/use.dart';
+import '../world.dart';
+import 'abstract_value_domain.dart';
 
 class WrappedAbstractValue implements AbstractValue {
   final AbstractValue _abstractValue;

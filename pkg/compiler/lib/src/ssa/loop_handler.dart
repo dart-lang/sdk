@@ -11,7 +11,7 @@ import '../elements/jumps.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
-import 'builder_kernel.dart';
+import 'builder.dart';
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';

@@ -48,7 +48,7 @@ import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../ssa/builder_kernel.dart';
+import '../ssa/builder.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';

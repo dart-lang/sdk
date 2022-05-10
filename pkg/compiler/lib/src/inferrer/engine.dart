@@ -30,7 +30,7 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
 import 'abstract_value_domain.dart';
-import 'builder_kernel.dart';
+import 'builder.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
 import 'locals_handler.dart';
