@@ -33,6 +33,9 @@ void main(List<String> args) {
     platform('tools/package_deps'),
   ];
 
+  // Remove the package at the top-level of the package:file monorepo.
+  packageDirs.remove(platform('third_party/pkg/file'));
+
   var cfePackageDirs = [
     platform('pkg/front_end/testcases'),
   ];
@@ -72,6 +75,27 @@ void main(List<String> args) {
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
+
+  // Remove any packages with identical names.
+  final uniqueNames = packages.map((p) => p.name).toSet();
+
+  var hasDuplicatePackages = false;
+
+  for (var name in uniqueNames) {
+    var matches = packages.where((p) => p.name == name).toList();
+    if (matches.length > 1) {
+      print('Duplicates found for package:$name');
+      for (var package in matches) {
+        print('  ${package.rootUri}');
+      }
+
+      hasDuplicatePackages = true;
+    }
+  }
+
+  if (hasDuplicatePackages) {
+    exit(1);
+  }
 
   var configFile = File(join(repoRoot, '.dart_tool', 'package_config.json'));
   var packageConfig = PackageConfig(

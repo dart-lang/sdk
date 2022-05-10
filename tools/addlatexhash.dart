@@ -514,8 +514,7 @@ addHashMarks(lines, hashEvents, listSink) {
       var start = hashEvent.startLineNumber;
       var end = hashEvent.endLineNumber;
       final hashValue = computeHashString(lines, start + 1, end, listSink);
-      lines[start] =
-          lines[start].replaceAll(latexArgumentRE, "{" + hashValue + "}");
+      lines[start] = lines[start].replaceAll(latexArgumentRE, "{$hashValue}");
       listSink.write("  $hashValue\n");
     } else if (hashEvent is HashLabelEvent) {
       listSink.write("${hashEvent.labelText}\n");
@@ -553,9 +552,9 @@ main([args]) {
       inDartCode = false;
     }
     if (inDartCode) {
-      normalizedLines.add(sispNormalize(line + "\n"));
+      normalizedLines.add(sispNormalize("$line\n"));
     } else {
-      normalizedLines.add(normalize(line + "\n"));
+      normalizedLines.add(normalize("$line\n"));
     }
   }
 

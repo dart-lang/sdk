@@ -9433,6 +9433,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(1, _, Float32x4Abs, (Float32x4), Float32x4)                                \
   M(1, _, Float64x2Abs, (Float64x2), Float64x2)                                \
   M(3, _, Float32x4Clamp, (Float32x4, Float32x4, Float32x4), Float32x4)        \
+  M(3, _, Float64x2Clamp, (Float64x2, Float64x2, Float64x2), Float64x2)        \
   M(1, _, Float64x2GetX, (Float64x2), Double)                                  \
   M(1, _, Float64x2GetY, (Float64x2), Double)                                  \
   M(2, _, Float64x2WithX, (Float64x2, Double), Float64x2)                      \

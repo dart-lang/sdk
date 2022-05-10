@@ -1131,6 +1131,7 @@ class ImpactData {
         source.readListOrNull(() => source.readIntegerValue())?.toSet();
     _runtimeTypeUses =
         source.readListOrNull(() => _RuntimeTypeUse.fromDataSource(source));
+    _forInData = source.readListOrNull(() => _ForInData.fromDataSource(source));
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
     _constructorNodes =
@@ -1215,6 +1216,8 @@ class ImpactData {
     sink.writeList(_doubleLiterals, sink.writeDoubleValue, allowNull: true);
     sink.writeList(_intLiterals, sink.writeIntegerValue, allowNull: true);
     sink.writeList(_runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink),
+        allowNull: true);
+    sink.writeList(_forInData, (_ForInData o) => o.toDataSink(sink),
         allowNull: true);
 
     sink.writeMemberNodes(_constructorNodes, allowNull: true);
@@ -2115,6 +2118,8 @@ class _RuntimeTypeUse {
 }
 
 class _ForInData {
+  static const String tag = '_ForInData';
+
   final ir.DartType iterableType;
   final ir.DartType iteratorType;
   final ClassRelation iteratorClassRelation;
@@ -2122,4 +2127,24 @@ class _ForInData {
 
   _ForInData(this.iterableType, this.iteratorType, this.iteratorClassRelation,
       {this.isAsync});
+
+  factory _ForInData.fromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    ir.DartType iterableType = source.readDartTypeNode();
+    ir.DartType iteratorType = source.readDartTypeNode();
+    ClassRelation iteratorClassRelation = source.readEnum(ClassRelation.values);
+    bool isAsync = source.readBool();
+    source.end(tag);
+    return _ForInData(iterableType, iteratorType, iteratorClassRelation,
+        isAsync: isAsync);
+  }
+
+  void toDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeDartTypeNode(iteratorType);
+    sink.writeDartTypeNode(iteratorType);
+    sink.writeEnum(iteratorClassRelation);
+    sink.writeBool(isAsync);
+    sink.end(tag);
+  }
 }
