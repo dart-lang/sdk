@@ -110,7 +110,7 @@ vars = {
   "dartdoc_rev": "334072b0cad436c05f6bcecf8a1a59f2f0809b84",
   "devtools_rev": "3c16b8d73120e46958982d94215d499793b972eb",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
-  "file_rev": "1ebc38852ffed24b564910317982298b56c2cedd",
+  "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
   "fixnum_rev": "3bfc2ed1eea7e7acb79ad4f17392f92c816fc5ce",
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",

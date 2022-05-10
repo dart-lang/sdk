@@ -288,7 +288,13 @@ class Package implements Comparable<Package> {
         continue;
       }
 
-      ResolvedDep resolvedDep = sdkDeps.resolve(dep.name)!;
+      ResolvedDep? resolvedDep = sdkDeps.resolve(dep.name);
+      if (resolvedDep == null) {
+        out('  Unresolved reference: package:${dep.name}');
+        fail = true;
+        continue;
+      }
+
       if (resolvedDep.isMonoRepoPackage) {
         continue;
       }
@@ -478,6 +484,8 @@ class SdkDeps {
     _findPackages(Directory('pkg'));
     _findPackages(Directory(path.join('third_party', 'devtools')));
     _findPackages(Directory(path.join('third_party', 'pkg')));
+    _findPackages(
+        Directory(path.join('third_party', 'pkg', 'file', 'packages')));
     _findPackages(Directory(path.join('third_party', 'pkg_tested')));
 
     if (verbose) {
