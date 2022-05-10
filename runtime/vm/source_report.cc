@@ -29,6 +29,21 @@ SourceReport::SourceReport(intptr_t report_set,
     : report_set_(report_set),
       compile_mode_(compile_mode),
       report_lines_(report_lines),
+      library_filters_(GrowableObjectArray::Handle()),
+      thread_(NULL),
+      script_(NULL),
+      start_pos_(TokenPosition::kMinSource),
+      end_pos_(TokenPosition::kMaxSource),
+      next_script_index_(0) {}
+
+SourceReport::SourceReport(intptr_t report_set,
+                           const GrowableObjectArray& library_filters,
+                           CompileMode compile_mode,
+                           bool report_lines)
+    : report_set_(report_set),
+      compile_mode_(compile_mode),
+      report_lines_(report_lines),
+      library_filters_(library_filters),
       thread_(NULL),
       script_(NULL),
       start_pos_(TokenPosition::kMinSource),
@@ -169,7 +184,8 @@ bool SourceReport::ShouldSkipField(const Field& field) {
   return false;
 }
 
-intptr_t SourceReport::GetScriptIndex(const Script& script) {
+intptr_t SourceReport::GetScriptIndex(const Script& script,
+                                      bool bypass_filters) {
   ScriptTableEntry wrapper;
   const String& url = String::Handle(zone(), script.url());
   wrapper.key = &url;
@@ -177,6 +193,9 @@ intptr_t SourceReport::GetScriptIndex(const Script& script) {
   ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
   if (pair != NULL) {
     return pair->index;
+  }
+  if (!library_filters_.IsNull() && !bypass_filters) {
+    return -1;
   }
   ScriptTableEntry* tmp = new ScriptTableEntry();
   tmp->key = &url;
@@ -493,6 +512,11 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   const TokenPosition begin_pos = func.token_pos();
   const TokenPosition end_pos = func.end_token_pos();
 
+  const intptr_t script_index = GetScriptIndex(script);
+  if (script_index < 0) {
+    return;
+  }
+
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   if (code.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
@@ -501,7 +525,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       if (!err.IsNull()) {
         // Emit an uncompiled range for this function with error information.
         JSONObject range(jsarr);
-        range.AddProperty("scriptIndex", GetScriptIndex(script));
+        range.AddProperty("scriptIndex", script_index);
         range.AddProperty("startPos", begin_pos);
         range.AddProperty("endPos", end_pos);
         range.AddProperty("compiled", false);
@@ -512,7 +536,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
     } else {
       // This function has not been compiled yet.
       JSONObject range(jsarr);
-      range.AddProperty("scriptIndex", GetScriptIndex(script));
+      range.AddProperty("scriptIndex", script_index);
       range.AddProperty("startPos", begin_pos);
       range.AddProperty("endPos", end_pos);
       range.AddProperty("compiled", false);
@@ -527,7 +551,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   if (!func.IsAsyncFunction() && !func.IsAsyncGenerator() &&
       !func.IsSyncGenerator()) {
     JSONObject range(jsarr);
-    range.AddProperty("scriptIndex", GetScriptIndex(script));
+    range.AddProperty("scriptIndex", script_index);
     range.AddProperty("startPos", begin_pos);
     range.AddProperty("endPos", end_pos);
     range.AddProperty("compiled", true);
@@ -577,7 +601,11 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           // Emit an uncompiled range for this class with error information.
           JSONObject range(jsarr);
           script = cls.script();
-          range.AddProperty("scriptIndex", GetScriptIndex(script));
+          const intptr_t script_index = GetScriptIndex(script);
+          if (script_index < 0) {
+            continue;
+          }
+          range.AddProperty("scriptIndex", script_index);
           range.AddProperty("startPos", cls.token_pos());
           range.AddProperty("endPos", cls.end_token_pos());
           range.AddProperty("compiled", false);
@@ -590,7 +618,11 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);
         script = cls.script();
-        range.AddProperty("scriptIndex", GetScriptIndex(script));
+        const intptr_t script_index = GetScriptIndex(script);
+        if (script_index < 0) {
+          continue;
+        }
+        range.AddProperty("scriptIndex", script_index);
         range.AddProperty("startPos", cls.token_pos());
         range.AddProperty("endPos", cls.end_token_pos());
         range.AddProperty("compiled", false);
@@ -626,6 +658,19 @@ void SourceReport::VisitClosures(JSONArray* jsarr) {
   });
 }
 
+bool SourceReport::LibraryMatchesFilters(const Library& lib) {
+  const String& url = String::Handle(zone(), lib.url());
+  String& filter = String::Handle(zone());
+  const intptr_t num_filters = library_filters_.Length();
+  for (intptr_t i = 0; i < num_filters; ++i) {
+    filter ^= library_filters_.At(i);
+    if (url.StartsWith(filter)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void SourceReport::PrintJSON(JSONStream* js,
                              const Script& script,
                              TokenPosition start_pos,
@@ -640,9 +685,25 @@ void SourceReport::PrintJSON(JSONStream* js,
     const GrowableObjectArray& libs = GrowableObjectArray::Handle(
         zone(), thread()->isolate_group()->object_store()->libraries());
 
-    // We only visit the libraries which actually load the specified script.
     Library& lib = Library::Handle(zone());
-    for (int i = 0; i < libs.Length(); i++) {
+    if (!library_filters_.IsNull()) {
+      // If we have library filters, pre-fill GetScriptIndex with all the
+      // scripts from the libraries that pass the filters. Later calls to
+      // GetScriptIndex will ignore any scripts that are missing.
+      for (intptr_t i = 0; i < libs.Length(); i++) {
+        lib ^= libs.At(i);
+        if (LibraryMatchesFilters(lib)) {
+          Script& script = Script::Handle(zone());
+          const Array& scripts = Array::Handle(zone(), lib.LoadedScripts());
+          for (intptr_t j = 0; j < scripts.Length(); j++) {
+            script ^= scripts.At(j);
+            GetScriptIndex(script, true /* bypass_filters */);
+          }
+        }
+      }
+    }
+    // We only visit the libraries which actually load the specified script.
+    for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       if (script.IsNull() || ScriptIsLoadedByLibrary(script, lib)) {
         VisitLibrary(&ranges, lib);
@@ -737,11 +798,15 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
           continue;
         }
         scriptRef ^= constructor.script();
+        const intptr_t script_index = GetScriptIndex(scriptRef);
+        if (script_index < 0) {
+          continue;
+        }
         code ^= constructor.unoptimized_code();
         const TokenPosition begin_pos = constructor.token_pos();
         const TokenPosition end_pos = constructor.end_token_pos();
         JSONObject range(ranges);
-        range.AddProperty("scriptIndex", GetScriptIndex(scriptRef));
+        range.AddProperty("scriptIndex", script_index);
         range.AddProperty("compiled",
                           !code.IsNull());  // Does this make a difference?
         range.AddProperty("startPos", begin_pos);
