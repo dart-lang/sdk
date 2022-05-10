@@ -4722,6 +4722,12 @@ DEFINE_EMIT(
   UNIMPLEMENTED();
 }
 
+DEFINE_EMIT(
+    Float64x2Clamp,
+    (FRegister result, FRegister value, FRegister lower, FRegister upper)) {
+  UNIMPLEMENTED();
+}
+
 DEFINE_EMIT(Float32x4With,
             (FRegister result, FRegister replacement, FRegister value)) {
   UNIMPLEMENTED();
@@ -4821,6 +4827,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   ____(SimdZero)                                                               \
   CASE(Float32x4Clamp)                                                         \
   ____(Float32x4Clamp)                                                         \
+  CASE(Float64x2Clamp)                                                         \
+  ____(Float64x2Clamp)                                                         \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \

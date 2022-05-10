@@ -185,6 +185,7 @@ namespace dart {
   V(_Float64x2, get:y, Float64x2GetY, 0x27cae053)                              \
   V(_Float64x2, unary-, Float64x2Negate, 0x958a0d28)                           \
   V(_Float64x2, abs, Float64x2Abs, 0x9a24c75e)                                 \
+  V(_Float64x2, clamp, Float64x2Clamp, 0xfddc1533)                             \
   V(_Float64x2, sqrt, Float64x2Sqrt, 0x93d543c8)                               \
   V(_Float64x2, get:signMask, Float64x2GetSignMask, 0x7c6b11ea)                \
   V(_Float64x2, scale, Float64x2Scale, 0x52959118)                             \

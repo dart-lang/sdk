@@ -4427,6 +4427,13 @@ DEFINE_EMIT(
   __ vmaxs(result, result, lower);
 }
 
+DEFINE_EMIT(
+    Float64x2Clamp,
+    (VRegister result, VRegister value, VRegister lower, VRegister upper)) {
+  __ vmind(result, value, upper);
+  __ vmaxd(result, result, lower);
+}
+
 DEFINE_EMIT(Float32x4With,
             (VRegister result, VRegister replacement, VRegister value)) {
   __ fcvtsd(VTMP, replacement);
@@ -4619,6 +4626,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   ____(SimdZero)                                                               \
   CASE(Float32x4Clamp)                                                         \
   ____(Float32x4Clamp)                                                         \
+  CASE(Float64x2Clamp)                                                         \
+  ____(Float64x2Clamp)                                                         \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \
