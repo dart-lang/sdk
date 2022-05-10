@@ -1,0 +1,38 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../aot_snapshot.gni")
+import("../compile_platform.gni")
+
+sdk_root = "../../sdk"
+
+aot_snapshot("dart2wasm_snapshot") {
+  main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
+  name = "dart2wasm"
+}
+
+aot_snapshot("dart2wasm_asserts_snapshot") {
+  main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
+  name = "dart2wasm_asserts"
+  gen_kernel_args = [ "--enable-asserts" ]
+  gen_snapshot_args = [ "--enable-asserts" ]
+}
+
+compile_platform("compile_dart2wasm_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+  outputs = [
+    "$root_out_dir/dart2wasm_platform.dill",
+    "$root_out_dir/dart2wasm_outline.dill",
+  ]
+
+  args = [
+    "--target=dart2wasm",
+    "--no-defines",
+    "dart:core",
+    "--nnbd-strong",
+  ]
+}

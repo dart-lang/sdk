@@ -1,0 +1,118 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../build/dart/dart_action.gni")
+import("../sdk_args.gni")
+
+_dart_root = get_path_info("..", "abspath")
+
+template("aot_snapshot") {
+  assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  gen_kernel_args = []
+  if (defined(invoker.gen_kernel_args)) {
+    gen_kernel_args = invoker.gen_kernel_args
+  }
+  gen_snapshot_args = []
+  if (defined(invoker.gen_snapshot_args)) {
+    gen_snapshot_args = invoker.gen_snapshot_args
+  }
+  main_dart = invoker.main_dart
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  extra_deps = []
+  if (defined(invoker.deps)) {
+    extra_deps += invoker.deps
+  }
+  extra_inputs = [ main_dart ]
+  if (defined(invoker.inputs)) {
+    extra_inputs += invoker.inputs
+  }
+  if (defined(invoker.dot_packages)) {
+    dot_packages = invoker.dot_packages
+  } else {
+    dot_packages = rebase_path("$_dart_root/.dart_tool/package_config.json")
+  }
+  output = "$root_out_dir/$name.snapshot"
+  if (defined(invoker.output)) {
+    output = invoker.output
+  }
+
+  dill = "$target_gen_dir/$name.dart.dill"
+
+  # Build the kernel file using the prebuilt VM to speed up the debug and
+  # simulator builds.
+  prebuilt_dart_action(target_name + "_dill") {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
+    deps = extra_deps + [
+             "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
+             "$_dart_root/runtime/vm:vm_platform",
+             "$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
+           ]
+    gen_kernel_kernel =
+        get_label_info("$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
+                       "target_gen_dir") + "/bootstrap_gen_kernel.dill"
+    platform_dill = "$root_out_dir/vm_platform_strong.dill"
+
+    inputs = extra_inputs + [
+               gen_kernel_kernel,
+               platform_dill,
+               main_dart,
+               dot_packages,
+             ]
+    output = dill
+    outputs = [ output ]
+
+    depfile = "$output.d"
+
+    vm_args = [
+      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
+      "-Dsdk_hash=$sdk_hash",
+    ]
+
+    script = gen_kernel_kernel
+
+    args = [
+      "--packages=" + rebase_path(dot_packages),
+      "--platform=" + rebase_path(platform_dill),
+      "--aot",
+      "--output=" + rebase_path(output, root_build_dir),
+      "--depfile=" + rebase_path(depfile),
+
+      # Ensure the compiled appliation (e.g. kernel-service, frontend-server,
+      # ...) will use this SDK hash when consuming/producing kernel.
+      #
+      # (Instead of ensuring every user of the "application_snapshot" /
+      # "kernel_snapshot" passes this if needed, we always pass it)
+      "-Dsdk_hash=$sdk_hash",
+    ]
+    args += gen_kernel_args
+    args += [ rebase_path(main_dart) ]
+  }
+
+  # Create a snapshot from kernel built above.
+  gen_snapshot_action(target_name) {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
+    deps = extra_deps + [ ":${target_name}_dill" ]
+
+    inputs = extra_inputs
+
+    outputs = [ output ]
+
+    abs_output = rebase_path(output)
+
+    vm_args = [
+                "--deterministic",
+                "--snapshot-kind=app-aot-elf",
+                "--elf=$abs_output",
+              ] + gen_snapshot_args
+
+    args = [ rebase_path(dill) ]
+  }
+}

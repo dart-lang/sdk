@@ -4,7 +4,6 @@
   ],
   "filesets": {
     "analyzer_unit_tests": [
-      ".packages",
       ".dart_tool/package_config.json",
       "pkg/",
       "third_party/pkg/",
@@ -14,7 +13,6 @@
       "xcodebuild/ReleaseX64/dart-sdk/"
     ],
     "web_platform": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
@@ -60,7 +58,6 @@
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_nnbd": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
@@ -98,7 +95,6 @@
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_hostasserts": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart",
       "out/ReleaseIA32/dart2js_platform.dill",
@@ -149,7 +145,6 @@
       "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "web_platform_hostasserts_nnbd": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -186,7 +181,6 @@
       "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "dart2wasm_hostasserts": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "pkg/",
@@ -219,7 +213,6 @@
       "xcodebuild/ReleaseX64/dart"
     ],
     "front-end": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
@@ -284,8 +277,7 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
-      ".dart_tool/package_config.json",
-      ".packages"
+      ".dart_tool/package_config.json"
     ],
     "vm-kernel": [
       "benchmarks/",
@@ -356,7 +348,6 @@
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json",
-      ".packages",
       ".vpython"
     ]
   },
@@ -3026,7 +3017,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime"
+            "runtime",
+            "dart2wasm"
           ]
         },
         {

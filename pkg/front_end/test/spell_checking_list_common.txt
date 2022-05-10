@@ -723,6 +723,7 @@ cycles
 cyclic
 dart
 dart2js
+dart2wasm
 dartdevc
 data
 date
@@ -3339,6 +3340,7 @@ warn
 warning
 warnings
 was
+wasm
 wasn't
 way
 ways

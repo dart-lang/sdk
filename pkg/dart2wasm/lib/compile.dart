@@ -33,6 +33,7 @@ import 'package:dart2wasm/translator.dart';
 Future<Uint8List?> compileToModule(
     Uri mainUri,
     Uri sdkRoot,
+    Uri? platformDill,
     TranslatorOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
@@ -46,12 +47,17 @@ Future<Uint8List?> compileToModule(
   Target target = WasmTarget();
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
-    ..compileSdk = true
     ..sdkRoot = sdkRoot
     ..environmentDefines = {}
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
     ..nnbdMode = NnbdMode.Strong;
+
+  if (platformDill != null) {
+    compilerOptions.sdkSummary = platformDill;
+  } else {
+    compilerOptions.compileSdk = true;
+  }
 
   CompilerResult? compilerResult =
       await kernelForProgram(mainUri, compilerOptions);
