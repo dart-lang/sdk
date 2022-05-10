@@ -2169,7 +2169,7 @@ void f() {
     // Execute the associated command (which will handle edits in other files).
     ApplyWorkspaceEditParams? editParams;
     final commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(resolved.command!),
@@ -2177,7 +2177,7 @@ void f() {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(applied: true);
+        return ApplyWorkspaceEditResult(applied: true);
       },
     );
     // Successful edits return an empty success() response.

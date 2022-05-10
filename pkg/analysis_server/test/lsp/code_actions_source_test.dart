@@ -322,14 +322,14 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     );
 
     final commandResponse = handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command),
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
       // document.
-      handler: (edit) => ApplyWorkspaceEditResponse(
+      handler: (edit) => ApplyWorkspaceEditResult(
           applied: false, failureReason: 'Document changed'),
     );
 

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 
@@ -40,12 +39,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     // `window/showMessage`.
     _serverToClient.stream.listen((message) {
       if (message is lsp.NotificationMessage &&
-          message.method == Method.window_showMessage) {
+          message.method == lsp.Method.window_showMessage) {
         final params = message.params;
         if (params is lsp.ShowMessageParams) {
-          if (params.type == MessageType.Error) {
+          if (params.type == lsp.MessageType.Error) {
             shownErrors.add(params);
-          } else if (params.type == MessageType.Warning) {
+          } else if (params.type == lsp.MessageType.Warning) {
             shownWarnings.add(params);
           }
         }
@@ -170,13 +169,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   }) async {
     final response = await _serverToClient.stream.firstWhere((message) =>
         (message is lsp.ResponseMessage && message.id == request.id) ||
-        (throwOnError &&
-            message is lsp.NotificationMessage &&
-            message.method == Method.window_showMessage &&
-            lsp.ShowMessageParams.fromJson(
-                        message.params as Map<String, Object?>)
-                    .type ==
-                MessageType.Error));
+        (throwOnError && _isShowErrorMessageNotification(message)));
 
     if (response is lsp.ResponseMessage) {
       return response;
@@ -194,5 +187,20 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
     return constructor(
         jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>);
+  }
+
+  /// Checks whether [message] is a `window/showMessage` notification with a
+  /// type of [lsp.MessageType.Error].
+  bool _isShowErrorMessageNotification(lsp.Message message) {
+    if (message is! lsp.NotificationMessage) {
+      return false;
+    }
+    if (message.method != lsp.Method.window_showMessage) {
+      return false;
+    }
+    final params = lsp.ShowMessageParams.fromJson(
+      message.params as Map<String, Object?>,
+    );
+    return params.type == lsp.MessageType.Error;
   }
 }
