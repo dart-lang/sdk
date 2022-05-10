@@ -175,15 +175,26 @@ class AddKeyToConstructors extends CorrectionProducer {
           argument is NamedExpression && argument.name.label.name == 'key');
       if (existing == null) {
         // There is no 'key' argument, so add it.
-        if (arguments.isEmpty) {
-          builder.addSimpleInsertion(
-              argumentList.leftParenthesis.end, 'key: key');
-        } else {
-          // This case should never happen because 'key' is the only parameter
-          // in the constructors for both `StatelessWidget` and `StatefulWidget`.
-          builder.addSimpleInsertion(
-              argumentList.leftParenthesis.end, 'key: key, ');
-        }
+        var namedArguments = arguments.whereType<NamedExpression>();
+        var firstNamed = namedArguments.firstOrNull;
+        var token = firstNamed?.beginToken ?? argumentList.endToken;
+        var comma = token.previous?.type == TokenType.COMMA;
+
+        builder.addInsertion(token.offset, (builder) {
+          if (arguments.length != namedArguments.length) {
+            // there are unnamed arguments
+            if (!comma) {
+              builder.write(',');
+            }
+            builder.write(' ');
+          }
+          builder.write('key: key');
+          if (firstNamed != null) {
+            builder.write(', ');
+          } else if (comma) {
+            builder.write(',');
+          }
+        });
       } else {
         // There is an existing 'key' argument, so we leave it alone.
       }

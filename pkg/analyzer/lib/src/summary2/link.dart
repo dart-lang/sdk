@@ -25,15 +25,35 @@ import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
+@Deprecated('Use link2() instead')
 Future<LinkResult> link(
   LinkedElementFactory elementFactory,
   List<LinkInputLibrary> inputLibraries, {
   macro.MultiMacroExecutor? macroExecutor,
+  OperationPerformanceImpl? performance,
 }) async {
-  var linker = Linker(elementFactory, macroExecutor);
-  await linker.link(inputLibraries);
+  return await link2(
+    elementFactory: elementFactory,
+    inputLibraries: inputLibraries,
+    performance: OperationPerformanceImpl('<root>'),
+  );
+}
+
+/// Note that AST units and tokens of [inputLibraries] will be damaged.
+Future<LinkResult> link2({
+  required LinkedElementFactory elementFactory,
+  required OperationPerformanceImpl performance,
+  required List<LinkInputLibrary> inputLibraries,
+  macro.MultiMacroExecutor? macroExecutor,
+}) async {
+  final linker = Linker(elementFactory, macroExecutor);
+  await linker.link(
+    performance: performance,
+    inputLibraries: inputLibraries,
+  );
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
     macroGeneratedUnits: linker.macroGeneratedUnits,
@@ -79,12 +99,18 @@ class Linker {
     return elementNodes[element];
   }
 
-  Future<void> link(List<LinkInputLibrary> inputLibraries) async {
+  Future<void> link({
+    required OperationPerformanceImpl performance,
+    required List<LinkInputLibrary> inputLibraries,
+  }) async {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
 
-    await _buildOutlines();
+    await _buildOutlines(
+      performance: performance,
+    );
+
     _writeLibraries();
   }
 
@@ -94,13 +120,31 @@ class Linker {
     }
   }
 
-  Future<void> _buildOutlines() async {
+  Future<void> _buildOutlines({
+    required OperationPerformanceImpl performance,
+  }) async {
     _createTypeSystemIfNotLinkingDartCore();
-    await _computeLibraryScopes();
+
+    await performance.runAsync(
+      'computeLibraryScopes',
+      (performance) async {
+        await _computeLibraryScopes(
+          performance: performance,
+        );
+      },
+    );
+
     _createTypeSystem();
     _resolveTypes();
     _buildEnumChildren();
-    await _executeMacroDeclarationsPhase();
+
+    await performance.runAsync(
+      'executeMacroDeclarationsPhase',
+      (_) async {
+        await _executeMacroDeclarationsPhase();
+      },
+    );
+
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
@@ -117,14 +161,23 @@ class Linker {
     }
   }
 
-  Future<void> _computeLibraryScopes() async {
+  Future<void> _computeLibraryScopes({
+    required OperationPerformanceImpl performance,
+  }) async {
     for (var library in builders.values) {
       library.buildElements();
     }
 
-    for (var library in builders.values) {
-      await library.executeMacroTypesPhase();
-    }
+    await performance.runAsync(
+      'executeMacroTypesPhase',
+      (performance) async {
+        for (var library in builders.values) {
+          await library.executeMacroTypesPhase(
+            performance: performance,
+          );
+        }
+      },
+    );
 
     macroDeclarationBuilder.transferToElements();
 

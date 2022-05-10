@@ -67,9 +67,11 @@ ARCH_FAMILY = {
     'arm': 'arm',
     'arm64': 'arm',
     'arm_x64': 'arm',
+    'arm_arm64': 'arm',
     'simarm': 'ia32',
     'simarm64': 'ia32',
     'simarm_x64': 'ia32',
+    'simarm_arm64': 'arm',
     'x64c': 'ia32',
     'arm64c': 'arm',
     'simarm64c': 'ia32',
@@ -149,27 +151,44 @@ def GuessOS():
     return None
 
 
+# Runs true if the currently executing python interpreter is running under
+# Rosetta. I.e., python3 is an x64 executable and we're on an arm64 Mac.
+def IsRosetta():
+    if platform.system() == 'Darwin':
+        p = subprocess.Popen(['sysctl', '-in', 'sysctl.proc_translated'],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+        output, _ = p.communicate()
+        return output.decode('utf-8').strip() == '1'
+    return False
+
+
+# Returns the architectures that can run on the current machine.
+def HostArchitectures():
+    m = platform.machine()
+    if platform.system() == 'Darwin':
+        if m == 'arm64' or IsRosetta():
+            # ARM64 Macs also support X64.
+            return ['arm64', 'x64']
+        if m == 'x86_64':
+            # X64 Macs no longer support IA32.
+            return ['x64']
+    else:
+        if m in ['aarch64', 'arm64', 'arm64e']:
+            return ['arm64']
+        if m in ['armv7l']:
+            return ['arm']
+        if m in ['i386', 'i686', 'ia32', 'x86']:
+            return ['x86', 'ia32']
+        if m in ['x64', 'x86-64', 'x86_64', 'AMD64']:
+            return ['x64', 'x86', 'ia32']
+    raise Exception('Failed to determine host architectures for %s %s',
+                    platform.machine(), platform.system())
+
+
 # Try to guess the host architecture.
 def GuessArchitecture():
-    os_id = platform.machine()
-    if os_id.startswith('aarch64') or os_id == 'arm64':
-        return 'arm64'
-    elif os_id.startswith('arm'):
-        return 'arm'
-    elif '64' in os_id:
-        return 'x64'
-    elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):
-        return 'ia32'
-    elif os_id == 'i86pc':
-        return 'ia32'
-
-    guess_os = GuessOS()
-    print('Warning: Guessing architecture {} based on os {}\n'.format(
-        os_id, guess_os))
-    if guess_os == 'win32':
-        return 'ia32'
-    return None
-
+    return HostArchitectures()[0]
 
 # Try to guess the number of cpus on this machine.
 def GuessCpus():
@@ -242,9 +261,13 @@ def ListDartArgCallback(option, value, parser):
 
 
 def IsCrossBuild(target_os, arch):
-    host_arch = GuessArchitecture()
-    return ((GetArchFamily(host_arch) != GetArchFamily(arch)) or
-            (target_os != GuessOS()))
+    if (target_os not in [None, 'host']) and (target_os != GuessOS()):
+        return True
+    if arch.startswith('sim'):
+        return False
+    if arch in HostArchitectures():
+        return False
+    return True
 
 
 def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
@@ -253,9 +276,8 @@ def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
                                arch.upper())
 
     # Ask for a cross build if the host and target architectures don't match.
-    host_arch = GuessArchitecture()
     cross_build = ''
-    if GetArchFamily(host_arch) != GetArchFamily(arch):
+    if IsCrossBuild(conf_os, arch):
         cross_build = 'X'
     return '{}{}{}{}'.format(GetBuildMode(mode), GetBuildSanitizer(sanitizer),
                              cross_build, arch.upper())

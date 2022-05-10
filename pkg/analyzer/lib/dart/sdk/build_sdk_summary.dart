@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -106,7 +107,11 @@ class _Builder {
       Reference.root(),
     );
 
-    var linkResult = await link(elementFactory, inputLibraries);
+    var linkResult = await link2(
+      elementFactory: elementFactory,
+      inputLibraries: inputLibraries,
+      performance: OperationPerformanceImpl('link'),
+    );
 
     var bundleBuilder = PackageBundleBuilder();
     for (var library in inputLibraries) {

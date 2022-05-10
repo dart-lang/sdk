@@ -105,6 +105,12 @@ class OperationPerformanceImpl implements OperationPerformance {
     );
   }
 
+  /// Collapse any children into this operation, making [elapsedSelf] equal
+  /// to [elapsed].
+  void collapse() {
+    _children.clear();
+  }
+
   @override
   OperationPerformanceImpl? getChild(String name) {
     return _children.firstWhereOrNull(

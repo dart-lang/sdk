@@ -26,6 +26,9 @@ if (is_android) {
   # architecture, which is different than the names GN uses.
   if (host_cpu == "x64" || host_cpu == "x86") {
     android_host_arch = "x86_64"
+  } else if (host_cpu == "arm64") {
+    # Run existing Android toolchain via Rosetta.
+    android_host_arch = "x86_64"
   } else {
     assert(false, "Need Android toolchain support for your build CPU arch.")
   }

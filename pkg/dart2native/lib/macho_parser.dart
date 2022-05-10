@@ -261,9 +261,9 @@ class MachOFile {
     }
 
     // Write all of the commands.
-    commands.forEach((command) {
+    for (var command in commands) {
       writeLoadCommandToStream(command, stream);
-    });
+    }
 
     // Pad the header according to the offset.
     final int paddingAmount = headerMaxOffset - stream.positionSync();

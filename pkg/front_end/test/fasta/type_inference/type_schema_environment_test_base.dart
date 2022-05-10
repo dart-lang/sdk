@@ -156,10 +156,9 @@ abstract class TypeSchemaEnvironmentTestBase {
           ? null
           : functionTypeNode.positionalParameters;
 
-      List<DartType> inferredTypeNodes;
+      List<DartType>? inferredTypeNodes;
       if (inferredTypesFromDownwardPhase == null) {
-        inferredTypeNodes = new List<DartType>.generate(
-            typeParameterNodesToInfer.length, (_) => new UnknownType());
+        inferredTypeNodes = null;
       } else {
         inferredTypeNodes = parseTypes(inferredTypesFromDownwardPhase);
       }
@@ -171,12 +170,12 @@ abstract class TypeSchemaEnvironmentTestBase {
               returnContextTypeNode,
               testLibrary);
       if (formalTypeNodes == null) {
-        typeSchemaEnvironment.partialInfer(gatherer, typeParameterNodesToInfer,
-            inferredTypeNodes, testLibrary);
+        inferredTypeNodes = typeSchemaEnvironment.partialInfer(gatherer,
+            typeParameterNodesToInfer, inferredTypeNodes, testLibrary);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!);
-        typeSchemaEnvironment.upwardsInfer(gatherer, typeParameterNodesToInfer,
-            inferredTypeNodes, testLibrary);
+        inferredTypeNodes = typeSchemaEnvironment.upwardsInfer(gatherer,
+            typeParameterNodesToInfer, inferredTypeNodes!, testLibrary);
       }
 
       assert(
@@ -204,18 +203,15 @@ abstract class TypeSchemaEnvironmentTestBase {
       TypeConstraint typeConstraint = parseConstraint(constraints);
       DartType expectedTypeNode = parseType(expected);
       TypeParameter typeParameterNode = typeParameterNodes.single;
-      List<DartType> inferredTypeNodes = <DartType>[
-        inferredTypeFromDownwardPhase == null
-            ? new UnknownType()
-            : parseType(inferredTypeFromDownwardPhase)
-      ];
+      List<DartType>? inferredTypeNodes = inferredTypeFromDownwardPhase == null
+          ? null
+          : <DartType>[parseType(inferredTypeFromDownwardPhase)];
 
-      typeSchemaEnvironment.inferTypeFromConstraints(
-          {typeParameterNode: typeConstraint},
-          [typeParameterNode],
-          inferredTypeNodes,
-          testLibrary,
-          downwardsInferPhase: downwardsInferPhase);
+      inferredTypeNodes = typeSchemaEnvironment.inferTypeFromConstraints({
+        typeParameterNode: typeConstraint
+      }, [
+        typeParameterNode
+      ], inferredTypeNodes, testLibrary, partial: downwardsInferPhase);
 
       expect(inferredTypeNodes.single, expectedTypeNode);
     });

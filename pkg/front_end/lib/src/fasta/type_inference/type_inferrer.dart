@@ -128,6 +128,8 @@ List<_ParamInfo> _computeUndeferredParamInfo(List<DartType> formalTypes,
     for (_DeferredParamInfo functionLiteral in deferredFunctionLiterals)
       functionLiteral.evaluationOrderIndex
   };
+  assert(evaluationOrderIndicesAlreadyCovered
+      .every((i) => 0 <= i && i < formalTypes.length));
   return [
     for (int i = 0; i < formalTypes.length; i++)
       if (!evaluationOrderIndicesAlreadyCovered.contains(i))
@@ -976,7 +978,7 @@ class TypeInferrerImpl implements TypeInferrer {
         typeSchemaEnvironment.setupGenericTypeInference(
             null, typeParameters, null, libraryBuilder.library);
     gatherer.constrainArguments([onType], [receiverType]);
-    typeSchemaEnvironment.upwardsInfer(
+    inferredTypes = typeSchemaEnvironment.upwardsInfer(
         gatherer, typeParameters, inferredTypes, libraryBuilder.library);
     return inferredTypes;
   }
@@ -2376,8 +2378,6 @@ class TypeInferrerImpl implements TypeInferrer {
                     : coreTypes.objectLegacyRawType)
             .substituteType(typeContext);
       }
-      inferredTypes = new List<DartType>.filled(
-          calleeTypeParameters.length, const UnknownType());
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           isNonNullableByDefault
               ? calleeType.returnType
@@ -2385,8 +2385,8 @@ class TypeInferrerImpl implements TypeInferrer {
           calleeTypeParameters,
           typeContext,
           libraryBuilder.library);
-      typeSchemaEnvironment.partialInfer(gatherer, calleeTypeParameters,
-          inferredTypes, libraryBuilder.library);
+      inferredTypes = typeSchemaEnvironment.partialInfer(
+          gatherer, calleeTypeParameters, null, libraryBuilder.library);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -2527,7 +2527,9 @@ class TypeInferrerImpl implements TypeInferrer {
             argumentExpression: argumentExpression,
             unparenthesizedExpression: unparenthesizedExpression,
             isNamed: !isExpression,
-            evaluationOrderIndex: evaluationOrderIndex,
+            evaluationOrderIndex: isImplicitExtensionMember
+                ? evaluationOrderIndex - 1
+                : evaluationOrderIndex,
             index: index));
         // We don't have `identical` info yet, so fill it in with `null` for
         // now.  Later, when we visit the function literal, we'll replace it.
@@ -2575,8 +2577,8 @@ class TypeInferrerImpl implements TypeInferrer {
                   : const [])
           .planReconciliationStages()) {
         if (gatherer != null && !isFirstStage) {
-          typeSchemaEnvironment.partialInfer(gatherer, calleeTypeParameters,
-              inferredTypes!, libraryBuilder.library);
+          inferredTypes = typeSchemaEnvironment.partialInfer(gatherer,
+              calleeTypeParameters, inferredTypes, libraryBuilder.library);
           substitution =
               Substitution.fromPairs(calleeTypeParameters, inferredTypes);
         }
@@ -2702,8 +2704,8 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (inferenceNeeded) {
-      typeSchemaEnvironment.upwardsInfer(gatherer!, calleeTypeParameters,
-          inferredTypes!, libraryBuilder.library);
+      inferredTypes = typeSchemaEnvironment.upwardsInfer(gatherer!,
+          calleeTypeParameters, inferredTypes!, libraryBuilder.library);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -4251,7 +4253,7 @@ class TypeInferrerImpl implements TypeInferrer {
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(instantiatedType,
                 typeParameters, context, libraryBuilder.library);
-        typeSchemaEnvironment.upwardsInfer(
+        inferredTypes = typeSchemaEnvironment.upwardsInfer(
             gatherer, typeParameters, inferredTypes, libraryBuilder.library);
         Substitution substitution =
             Substitution.fromPairs(typeParameters, inferredTypes);

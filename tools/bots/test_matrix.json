@@ -3402,6 +3402,15 @@
           ]
         },
         {
+          "name": "analyze pkg/dart2native",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/dart2native"
+          ]
+        },
+        {
           "name": "analyze pkg/dartdev",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [

@@ -2030,23 +2030,15 @@ class InferenceVisitor
     }
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      inferredTypes = [const UnknownType()];
       gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           listType,
           listClass.typeParameters,
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.partialInfer(
-          gatherer,
-          listClass.typeParameters,
-          inferredTypes,
-          inferrer.libraryBuilder.library);
+      inferredTypes = inferrer.typeSchemaEnvironment.partialInfer(gatherer,
+          listClass.typeParameters, null, inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
-      if (inferrer.dataForTesting != null) {
-        inferrer.dataForTesting!.typeInferenceResult
-            .inferredTypeArguments[node] = inferredTypes;
-      }
     } else {
       inferredTypeArgument = node.typeArgument;
     }
@@ -2068,11 +2060,15 @@ class InferenceVisitor
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      inferrer.typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = inferrer.typeSchemaEnvironment.upwardsInfer(
           gatherer,
           listClass.typeParameters,
           inferredTypes!,
           inferrer.libraryBuilder.library);
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting!.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
       inferredTypeArgument = inferredTypes[0];
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,
@@ -2715,24 +2711,16 @@ class InferenceVisitor
     }
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      inferredTypes = [noInferredType, noInferredType];
       gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           mapType,
           mapClass.typeParameters,
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.partialInfer(
-          gatherer,
-          mapClass.typeParameters,
-          inferredTypes,
-          inferrer.libraryBuilder.library);
+      inferredTypes = inferrer.typeSchemaEnvironment.partialInfer(gatherer,
+          mapClass.typeParameters, null, inferrer.libraryBuilder.library);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
-      if (inferrer.dataForTesting != null) {
-        inferrer.dataForTesting!.typeInferenceResult
-            .inferredTypeArguments[node] = inferredTypes;
-      }
     } else {
       inferredKeyType = node.keyType;
       inferredValueType = node.valueType;
@@ -2796,7 +2784,6 @@ class InferenceVisitor
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
-        List<DartType> inferredTypesForSet = <DartType>[noInferredType];
         // Note: we don't use the previously created gatherer because it was set
         // up presuming that the literal would be a map; we now know that it
         // needs to be a set.
@@ -2807,13 +2794,11 @@ class InferenceVisitor
                 typeContext,
                 inferrer.libraryBuilder.library,
                 isConst: node.isConst);
-        inferrer.typeSchemaEnvironment.partialInfer(
-            gatherer,
-            inferrer.coreTypes.setClass.typeParameters,
-            inferredTypesForSet,
-            inferrer.libraryBuilder.library);
+        List<DartType> inferredTypesForSet = inferrer.typeSchemaEnvironment
+            .partialInfer(gatherer, inferrer.coreTypes.setClass.typeParameters,
+                null, inferrer.libraryBuilder.library);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet!);
-        inferrer.typeSchemaEnvironment.upwardsInfer(
+        inferredTypesForSet = inferrer.typeSchemaEnvironment.upwardsInfer(
             gatherer,
             inferrer.coreTypes.setClass.typeParameters,
             inferredTypesForSet,
@@ -2864,11 +2849,15 @@ class InferenceVisitor
             replacement);
       }
       gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      inferrer.typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = inferrer.typeSchemaEnvironment.upwardsInfer(
           gatherer,
           mapClass.typeParameters,
           inferredTypes!,
           inferrer.libraryBuilder.library);
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting!.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       inferrer.instrumentation?.record(
@@ -5985,23 +5974,15 @@ class InferenceVisitor
     }
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      inferredTypes = [const UnknownType()];
       gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           setType,
           setClass.typeParameters,
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.partialInfer(
-          gatherer,
-          setClass.typeParameters,
-          inferredTypes,
-          inferrer.libraryBuilder.library);
+      inferredTypes = inferrer.typeSchemaEnvironment.partialInfer(gatherer,
+          setClass.typeParameters, null, inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
-      if (inferrer.dataForTesting != null) {
-        inferrer.dataForTesting!.typeInferenceResult
-            .inferredTypeArguments[node] = inferredTypes;
-      }
     } else {
       inferredTypeArgument = node.typeArgument;
     }
@@ -6023,11 +6004,15 @@ class InferenceVisitor
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      inferrer.typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = inferrer.typeSchemaEnvironment.upwardsInfer(
           gatherer,
           setClass.typeParameters,
           inferredTypes!,
           inferrer.libraryBuilder.library);
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting!.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
       inferredTypeArgument = inferredTypes[0];
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,

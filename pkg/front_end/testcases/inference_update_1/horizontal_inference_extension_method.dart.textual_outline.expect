@@ -1,0 +1,68 @@
+testLaterUnnamedParameter(int i) {}
+testLaterUnnamedParameterDependsOnNamedParameter(int i) {}
+testEarlierUnnamedParameter(int i) {}
+testLaterNamedParameter(int i) {}
+testEarlierNamedParameter(int i) {}
+testEarlierNamedParameterDependsOnUnnamedParameter(int i) {}
+testPropagateToReturnType(int i) {}
+testClosureAsParameterType(int i) {}
+testPropagateToEarlierClosure(int i) {}
+testPropagateToLaterClosure(int i) {}
+testLongDependencyChain(int i) {}
+testDependencyCycle(int i) {}
+testPropagateFromContravariantReturnType(int i) {}
+testPropagateToContravariantParameterType(int i) {}
+testReturnTypeRefersToMultipleTypeVars(int i) {}
+testUnnecessaryDueToNoDependency(int i) {}
+testUnnecessaryDueToExplicitParameterTypeNamed(int i) {}
+testParenthesized(int i) {}
+testParenthesizedNamed(int i) {}
+testParenthesizedTwice(int i) {}
+testParenthesizedTwiceNamed(int i) {}
+
+extension on int {
+  T _laterUnnamedParameter<T>(T x, void Function(T) y) => throw '';
+  void _laterUnnamedParameterDependsOnNamedParameter<T>(void Function(T) x,
+          {required T a}) =>
+      throw '';
+  void _earlierUnnamedParameter<T>(void Function(T) x, T y) => throw '';
+  void _laterNamedParameter<T>({required T a, required void Function(T) b}) =>
+      throw '';
+  void _earlierNamedParameter<T>({required void Function(T) a, required T b}) =>
+      throw '';
+  void _earlierNamedParameterDependsOnUnnamedParameter<T>(T b,
+          {required void Function(T) a}) =>
+      throw '';
+  U _propagateToReturnType<T, U>(T x, U Function(T) y) => throw '';
+  U _closureAsParameterType<T, U>(T x, U Function(T) y) => throw '';
+  U _propagateToEarlierClosure<T, U>(U Function(T) x, T Function() y) =>
+      throw '';
+  U _propagateToLaterClosure<T, U>(T Function() x, U Function(T) y) => throw '';
+  V _longDependencyChain<T, U, V>(
+          T Function() x, U Function(T) y, V Function(U) z) =>
+      throw '';
+  Map<T, U> _dependencyCycle<T, U>(T Function(U) x, U Function(T) y) =>
+      throw '';
+  U _propagateFromContravariantReturnType<T, U>(
+          void Function(T) Function() x, U Function(T) y) =>
+      throw '';
+  U _propagateToContravariantParameterType<T, U>(
+          T Function() x, U Function(void Function(T)) y) =>
+      throw '';
+  void _returnTypeRefersToMultipleTypeVars<T, U>(
+          Map<T, U> Function() x, void Function(T) y, void Function(U) z) =>
+      throw '';
+  T _unnecessaryDueToNoDependency<T>(T Function() x, T y) => throw '';
+  T _unnecessaryDueToExplicitParameterTypeNamed<T>(
+          T x, T Function({required T x, required int y}) y) =>
+      throw '';
+  void _parenthesized<T>(T x, void Function(T) y) => throw '';
+  void _parenthesizedNamed<T>({required T a, required void Function(T) b}) =>
+      throw '';
+  void _parenthesizedTwice<T>(T x, void Function(T) y) => throw '';
+  void _parenthesizedTwiceNamed<T>(
+          {required T a, required void Function(T) b}) =>
+      throw '';
+}
+
+main() {}

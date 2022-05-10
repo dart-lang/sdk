@@ -13,6 +13,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddKeyToConstructorsTest);
+    defineReflectiveTests(
+        AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest);
   });
 }
 
@@ -169,17 +171,91 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-class MyWidget extends StatelessWidget {
+class A extends StatelessWidget {
+  const A({required this.text, Key? key}) : super(key: key);
+
+  final String text;
+}
+
+class MyWidget extends A {
   MyWidget() : super(text: '');
 }
 ''');
     await assertHasFix('''
 import 'package:flutter/material.dart';
 
-class MyWidget extends StatelessWidget {
+class A extends StatelessWidget {
+  const A({required this.text, Key? key}) : super(key: key);
+
+  final String text;
+}
+
+class MyWidget extends A {
   MyWidget({Key? key}) : super(key: key, text: '');
 }
 ''', errorFilter: (error) => error.errorCode is LintCode);
+  }
+
+  Future<void>
+      test_constructor_noParameters_withSuper_nonEmpty_tailingComma() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A({required this.text, Key? key}) : super(key: key);
+
+  final String text;
+}
+
+class MyWidget extends A {
+  MyWidget() : super(text: '',);
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A({required this.text, Key? key}) : super(key: key);
+
+  final String text;
+}
+
+class MyWidget extends A {
+  MyWidget({Key? key}) : super(key: key, text: '',);
+}
+''', errorFilter: (error) => error.errorCode is LintCode);
+  }
+
+  Future<void>
+      test_constructor_noParameters_withSuper_nonNamed_trailingComma() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A(this.widget, {Key? key}) : super(key: key);
+
+  final Widget widget;
+}
+
+class B extends A {
+  B() : super(const Text(''),);
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A(this.widget, {Key? key}) : super(key: key);
+
+  final Widget widget;
+}
+
+class B extends A {
+  B({Key? key}) : super(const Text(''), key: key,);
+}
+''',
+        //TODO(asashour) there should be no other errors
+        errorFilter: (error) => error.errorCode is LintCode);
   }
 
   Future<void> test_initializer_final_constant() async {
@@ -309,5 +385,57 @@ class MyWidget extends ParentWidget {
   MyWidget({Key? key}) : super(key: key);
 }
 ''', errorFilter: (error) => error.errorCode is LintCode);
+  }
+}
+
+@reflectiveTest
+class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
+    extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+
+  @override
+  String get lintCode => LintNames.use_key_in_widget_constructors;
+
+  @override
+  String get testPackageLanguageVersion => '2.16';
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
+  Future<void> test_constructor_noParameters_withSuper_nonEmpty() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A(this.widget, {Key? key}) : super(key: key);
+
+  final Widget widget;
+}
+
+class B extends A {
+  B() : super(const Text(''));
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A(this.widget, {Key? key}) : super(key: key);
+
+  final Widget widget;
+}
+
+class B extends A {
+  B({Key? key}) : super(const Text(''), key: key);
+}
+''',
+        //TODO(asashour) there should be no other errors
+        errorFilter: (error) => error.errorCode is LintCode);
   }
 }
