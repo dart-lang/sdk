@@ -22,7 +22,8 @@ main() {
             new Dart2jsTarget('dart2js', new TargetFlags()),
             sdkLibrariesSpecificationUri,
             [], // additionalDills
-            Uri.base.resolve('.packages'), // packagesFileUri
+            Uri.base
+                .resolve('.dart_tool/package_config.json'), // packagesFileUri
             explicitExperimentalFlags: experimentalFlags,
             verify: true);
     ir.Component component = await fe.compile(

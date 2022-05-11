@@ -138,7 +138,8 @@ Future<void> run(Uri benchmarkInput, String name) async {
 
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
-        ..packagesFileUri = Uri.base.resolve(".packages")));
+        ..packagesFileUri =
+            Uri.base.resolve(".dart_tool/package_config.json")));
   await context.runInContext<void>((_) async {
     DillTarget target = new DillTarget(
         ticker,

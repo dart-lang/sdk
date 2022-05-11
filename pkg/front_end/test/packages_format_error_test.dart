@@ -26,7 +26,7 @@ import 'package:front_end/src/fasta/messages.dart'
 void main() {
   Uri root = Uri.parse("org-dartlang-test:///");
   MemoryFileSystem fs = new MemoryFileSystem(root);
-  Uri packages = root.resolve(".packages");
+  Uri packages = root.resolve(".dart_tool/package_config.json");
   fs.entityForUri(packages).writeAsStringSync("bad\n");
   List<DiagnosticMessage> messages = <DiagnosticMessage>[];
   CompilerContext c = new CompilerContext(new ProcessedOptions(

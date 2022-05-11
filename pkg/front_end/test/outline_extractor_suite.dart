@@ -100,7 +100,7 @@ class OutlineExtractorStep
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
-    Uri? packages = description.uri.resolve(".packages");
+    Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }
@@ -142,7 +142,7 @@ class CompileAndCompareStep
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
-    Uri? packages = description.uri.resolve(".packages");
+    Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }

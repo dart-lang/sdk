@@ -28,7 +28,7 @@ main() {
     var options = CompilerOptions()
       ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
       ..nnbdMode = NnbdMode.Strong
-      ..packagesFileUri = Uri.base.resolve('.packages')
+      ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
       ..additionalDills = <Uri>[
         computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
       ]
