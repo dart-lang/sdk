@@ -1826,7 +1826,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (condition.isConstant()) {
       HConstant constant = condition;
-      if (constant.constant.isTrue) {
+      if (constant.constant is TrueConstantValue) {
         generateStatements(info.thenGraph);
       } else {
         generateStatements(info.elseGraph);
@@ -2491,10 +2491,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateConstant(node.constant, node.sourceInformation);
 
     _registry.registerConstantUse(ConstantUse.literal(node.constant));
-    if (node.constant.isType) {
-      TypeConstantValue typeConstant = node.constant;
-      _registry.registerTypeUse(
-          TypeUse.constTypeLiteral(typeConstant.representedType));
+    ConstantValue constant = node.constant;
+    if (constant is TypeConstantValue) {
+      _registry
+          .registerTypeUse(TypeUse.constTypeLiteral(constant.representedType));
     }
   }
 

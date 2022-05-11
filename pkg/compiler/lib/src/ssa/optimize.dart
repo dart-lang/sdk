@@ -460,7 +460,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.isLateSentinel(_abstractValueDomain).isDefinitelyFalse) {
       ConstantValue value =
           _abstractValueDomain.getPrimitiveValue(node.instructionType);
-      if (value.isBool) {
+      if (value is BoolConstantValue) {
         return value;
       }
       // TODO(het): consider supporting other values (short strings?)
@@ -562,9 +562,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
     if (input is HConstant) {
-      HConstant constant = input;
-      bool isTrue = constant.constant.isTrue;
-      return _graph.addConstantBool(!isTrue, _closedWorld);
+      return _graph.addConstantBool(
+          input.constant is! TrueConstantValue, _closedWorld);
     } else if (input is HNot) {
       return input.inputs[0];
     }
@@ -1059,7 +1058,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     if (index.isConstant()) {
       HConstant constantInstruction = index;
-      assert(!constantInstruction.constant.isInt);
+      assert(constantInstruction.constant is! IntConstantValue);
       if (!constant_system.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
@@ -1146,7 +1145,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction compareConstant(HConstant constant, HInstruction input) {
-      if (constant.constant.isTrue) {
+      if (constant.constant is TrueConstantValue) {
         return input;
       } else {
         return HNot(input, _abstractValueDomain.boolType);
@@ -1428,10 +1427,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // field.
     if (receiver is HConstant) {
       ConstantValue constant = receiver.constant;
-      if (constant.isConstructedObject) {
-        ConstructedConstantValue constructedConstant = constant;
-        Map<FieldEntity, ConstantValue> fields = constructedConstant.fields;
-        ConstantValue value = fields[node.element];
+      if (constant is ConstructedConstantValue) {
+        ConstantValue value = constant.fields[node.element];
         if (value != null) {
           return _graph.addConstant(value, _closedWorld);
         }
@@ -1735,7 +1732,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
           HConstant constant = firstArgument;
-          if (constant.constant.isTrue) return constant;
+          if (constant.constant is TrueConstantValue) return constant;
         }
       }
     } else if (commonElements.isCheckInt(element)) {
@@ -1765,8 +1762,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInstruction argument = node.inputs[0];
         if (argument is HConstant) {
           ConstantValue constant = argument.constant;
-          if (constant.isBool) {
-            bool value = constant.isTrue;
+          if (constant is BoolConstantValue) {
+            bool value = constant is TrueConstantValue;
             if (element == commonElements.assertTest) {
               // `assertTest(argument)` effectively negates the argument.
               return _graph.addConstantBool(!value, _closedWorld);
@@ -1882,8 +1879,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction tryConstant() {
       if (!input.isConstant()) return null;
       HConstant constant = input;
-      if (!constant.constant.isPrimitive) return null;
-      PrimitiveConstantValue value = constant.constant;
+      ConstantValue value = constant.constant;
       if (value is IntConstantValue) {
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
@@ -2477,8 +2473,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            bool isTrue = condition.constant.isTrue;
-            successor = isTrue ? current.thenBlock : current.elseBlock;
+            successor = condition.constant is TrueConstantValue
+                ? current.thenBlock
+                : current.elseBlock;
             assert(!analyzer.isDeadBlock(successor));
           }
         }

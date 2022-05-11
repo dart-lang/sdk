@@ -611,7 +611,7 @@ class Namer extends ModularNamer {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
-    assert(!constant.isFunction);
+    assert(constant is! FunctionConstantValue);
     jsAst.Name result = _constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
@@ -1707,7 +1707,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitBool(BoolConstantValue constant, [_]) {
-    add(constant.isTrue ? 'true' : 'false');
+    add(constant is TrueConstantValue ? 'true' : 'false');
   }
 
   @override
@@ -1882,7 +1882,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitBool(BoolConstantValue constant, [_]) {
-    return constant.isTrue ? 2 : 3;
+    return constant is TrueConstantValue ? 2 : 3;
   }
 
   @override

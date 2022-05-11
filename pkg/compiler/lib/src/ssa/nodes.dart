@@ -2946,26 +2946,27 @@ class HConstant extends HInstruction {
   @override
   bool isConstant() => true;
   @override
-  bool isConstantBoolean() => constant.isBool;
+  bool isConstantBoolean() => constant is BoolConstantValue;
   @override
-  bool isConstantNull() => constant.isNull;
+  bool isConstantNull() => constant is NullConstantValue;
   @override
-  bool isConstantNumber() => constant.isNum;
+  bool isConstantNumber() => constant is NumConstantValue;
   @override
-  bool isConstantInteger() => constant.isInt;
+  bool isConstantInteger() => constant is IntConstantValue;
   @override
-  bool isConstantString() => constant.isString;
+  bool isConstantString() => constant is StringConstantValue;
   @override
-  bool isConstantList() => constant.isList;
+  bool isConstantList() => constant is ListConstantValue;
   @override
-  bool isConstantMap() => constant.isMap;
+  bool isConstantMap() => constant is MapConstantValue;
   @override
-  bool isConstantFalse() => constant.isFalse;
+  bool isConstantFalse() => constant is FalseConstantValue;
   @override
-  bool isConstantTrue() => constant.isTrue;
+  bool isConstantTrue() => constant is TrueConstantValue;
 
   @override
-  bool isInterceptor(JClosedWorld closedWorld) => constant.isInterceptor;
+  bool isInterceptor(JClosedWorld closedWorld) =>
+      constant is InterceptorConstantValue;
 
   // Maybe avoid this if the literal is big?
   @override

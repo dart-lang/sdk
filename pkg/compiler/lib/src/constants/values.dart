@@ -74,28 +74,7 @@ abstract class ConstantValue {
   /// `true` if this is a valid constant value.
   bool get isConstant => true;
 
-  // TODO(48974): Clean up all these predicate getters.
-  bool get isNull => false;
-  bool get isBool => false;
-  bool get isTrue => false;
-  bool get isFalse => false;
-  bool get isInt => false;
-  bool get isDouble => false;
-  bool get isNum => false;
-  bool get isString => false;
-  bool get isList => false;
-  bool get isSet => false;
-  bool get isMap => false;
-  bool get isConstructedObject => false;
-  bool get isFunction => false;
-
-  /// Returns true if the constant is null, a bool, a number or a string.
-  bool get isPrimitive => false;
-
   /// Returns true if the constant is a list, a map or a constructed object.
-  bool get isObject => false;
-  bool get isType => false;
-  bool get isInterceptor => false;
   bool get isDummy => false;
 
   bool get isNaN => false;
@@ -144,9 +123,6 @@ class FunctionConstantValue extends ConstantValue {
   FunctionConstantValue(this.element, this.type);
 
   @override
-  bool get isFunction => true;
-
-  @override
   bool operator ==(var other) {
     if (other is! FunctionConstantValue) return false;
     return identical(other.element, element);
@@ -186,9 +162,6 @@ abstract class PrimitiveConstantValue extends ConstantValue {
   const PrimitiveConstantValue();
 
   @override
-  bool get isPrimitive => true;
-
-  @override
   bool operator ==(var other) {
     // Making this method abstract does not give us an error.
     throw UnsupportedError('PrimitiveConstant.==');
@@ -209,9 +182,6 @@ class NullConstantValue extends PrimitiveConstantValue {
   const factory NullConstantValue() = NullConstantValue._internal;
 
   const NullConstantValue._internal();
-
-  @override
-  bool get isNull => true;
 
   @override
   DartType getType(CommonElements types) => types.nullType;
@@ -239,9 +209,6 @@ class NullConstantValue extends PrimitiveConstantValue {
 abstract class NumConstantValue extends PrimitiveConstantValue {
   double get doubleValue;
 
-  @override
-  bool get isNum => true;
-
   const NumConstantValue();
 }
 
@@ -267,9 +234,6 @@ class IntConstantValue extends NumConstantValue {
   }
 
   const IntConstantValue._internal(this.intValue);
-
-  @override
-  bool get isInt => true;
 
   bool isUInt31() => intValue.toUnsigned(31) == intValue;
 
@@ -334,9 +298,6 @@ class DoubleConstantValue extends NumConstantValue {
   const DoubleConstantValue._internal(this.doubleValue);
 
   @override
-  bool get isDouble => true;
-
-  @override
   bool get isNaN => doubleValue.isNaN;
 
   // We need to check for the negative sign since -0.0 == 0.0.
@@ -396,9 +357,6 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
 
   const BoolConstantValue._internal();
 
-  @override
-  bool get isBool => true;
-
   bool get boolValue;
 
   @override
@@ -423,9 +381,6 @@ class TrueConstantValue extends BoolConstantValue {
   const TrueConstantValue._internal() : super._internal();
 
   @override
-  bool get isTrue => true;
-
-  @override
   bool get boolValue => true;
 
   @override
@@ -447,9 +402,6 @@ class FalseConstantValue extends BoolConstantValue {
   factory FalseConstantValue() => const FalseConstantValue._internal();
 
   const FalseConstantValue._internal() : super._internal();
-
-  @override
-  bool get isFalse => true;
 
   @override
   bool get boolValue => false;
@@ -479,9 +431,6 @@ class StringConstantValue extends PrimitiveConstantValue {
   StringConstantValue(String value)
       : this.stringValue = value,
         this.hashCode = value.hashCode;
-
-  @override
-  bool get isString => true;
 
   @override
   DartType getType(CommonElements types) => types.stringType;
@@ -520,9 +469,6 @@ abstract class ObjectConstantValue extends ConstantValue {
   ObjectConstantValue(this.type);
 
   @override
-  bool get isObject => true;
-
-  @override
   DartType getType(CommonElements types) => type;
 
   void _unparseTypeArguments(DartTypes? dartTypes, StringBuffer sb) {
@@ -539,9 +485,6 @@ class TypeConstantValue extends ObjectConstantValue {
   final DartType representedType;
 
   TypeConstantValue(this.representedType, InterfaceType type) : super(type);
-
-  @override
-  bool get isType => true;
 
   @override
   bool operator ==(other) {
@@ -578,9 +521,6 @@ class ListConstantValue extends ObjectConstantValue {
       : this.entries = entries,
         hashCode = Hashing.listHash(entries, Hashing.objectHash(type)),
         super(type);
-
-  @override
-  bool get isList => true;
 
   @override
   bool operator ==(var other) {
@@ -644,9 +584,6 @@ abstract class SetConstantValue extends ObjectConstantValue {
       : values = values,
         hashCode = Hashing.listHash(values, Hashing.objectHash(type)),
         super(type);
-
-  @override
-  bool get isSet => true;
 
   @override
   bool operator ==(var other) {
@@ -715,9 +652,6 @@ abstract class MapConstantValue extends ObjectConstantValue {
         super(type) {
     assert(keys.length == values.length);
   }
-
-  @override
-  bool get isMap => true;
 
   @override
   bool operator ==(var other) {
@@ -793,9 +727,6 @@ class InterceptorConstantValue extends ConstantValue {
   final ClassEntity cls;
 
   InterceptorConstantValue(this.cls);
-
-  @override
-  bool get isInterceptor => true;
 
   @override
   bool operator ==(other) {
@@ -981,9 +912,6 @@ class ConstructedConstantValue extends ObjectConstantValue {
     assert(!fields.containsKey(null));
     assert(!fields.containsValue(null));
   }
-
-  @override
-  bool get isConstructedObject => true;
 
   @override
   bool operator ==(var otherVar) {

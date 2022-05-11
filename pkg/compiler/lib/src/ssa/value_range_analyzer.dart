@@ -127,55 +127,71 @@ class IntValue extends Value {
   const IntValue(this.value, info) : super(info);
 
   @override
-  Value operator +(dynamic other) {
+  Value operator +(Value other) {
     if (other.isZero) return this;
-    if (other is! IntValue) return other + this;
-    dynamic constant = constant_system.add.fold(
-        constant_system.createInt(value),
-        constant_system.createInt(other.value));
-    if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.intValue);
+    if (other is IntValue) {
+      ConstantValue constant = constant_system.add.fold(
+          constant_system.createInt(value),
+          constant_system.createInt(other.value));
+      if (constant is IntConstantValue) {
+        return info.newIntValue(constant.intValue);
+      }
+      return const UnknownValue();
+    }
+    return other + this;
   }
 
   @override
-  Value operator -(dynamic other) {
+  Value operator -(Value other) {
     if (other.isZero) return this;
-    if (other is! IntValue) return -other + this;
-    dynamic constant = constant_system.subtract.fold(
-        constant_system.createInt(value),
-        constant_system.createInt(other.value));
-    if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.intValue);
+    if (other is IntValue) {
+      ConstantValue constant = constant_system.subtract.fold(
+          constant_system.createInt(value),
+          constant_system.createInt(other.value));
+      if (constant is IntConstantValue) {
+        return info.newIntValue(constant.intValue);
+      }
+      return const UnknownValue();
+    }
+    return -other + this;
   }
 
   @override
   Value operator -() {
     if (isZero) return this;
-    dynamic constant =
+    ConstantValue constant =
         constant_system.negate.fold(constant_system.createInt(value));
-    if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.intValue);
+    if (constant is IntConstantValue) {
+      return info.newIntValue(constant.intValue);
+    }
+    return const UnknownValue();
   }
 
   @override
-  Value operator &(dynamic other) {
-    if (other is! IntValue) return const UnknownValue();
-    dynamic constant = constant_system.bitAnd.fold(
-        constant_system.createInt(value),
-        constant_system.createInt(other.value));
-    return info.newIntValue(constant.intValue);
+  Value operator &(Value other) {
+    if (other is IntValue) {
+      IntConstantValue constant = constant_system.bitAnd.fold(
+          constant_system.createInt(value),
+          constant_system.createInt(other.value));
+      return info.newIntValue(constant.intValue);
+    }
+    return const UnknownValue();
   }
 
   @override
-  Value min(dynamic other) {
-    if (other is! IntValue) return other.min(this);
-    return this.value < other.value ? this : other;
+  Value min(Value other) {
+    if (other is IntValue) {
+      return this.value < other.value ? this : other;
+    }
+    return other.min(this);
   }
 
   @override
-  Value max(dynamic other) {
-    if (other is! IntValue) return other.max(this);
-    return this.value < other.value ? other : this;
+  Value max(Value other) {
+    if (other is IntValue) {
+      return this.value < other.value ? other : this;
+    }
+    return other.max(this);
   }
 
   @override
@@ -1082,67 +1098,69 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   @override
   Range visitConditionalBranch(HConditionalBranch branch) {
-    dynamic condition = branch.condition;
+    HInstruction condition = branch.condition;
     // TODO(ngeoffray): Handle complex conditions.
-    if (condition is! HRelational) return info.newUnboundRange();
-    if (condition is HIdentity) return info.newUnboundRange();
-    HInstruction right = condition.right;
-    HInstruction left = condition.left;
-    if (left.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
+    if (condition is HRelational) {
+      if (condition is HIdentity) return info.newUnboundRange();
+      HInstruction right = condition.right;
+      HInstruction left = condition.left;
+      if (left.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
+        return info.newUnboundRange();
+      }
+      if (right.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
+        return info.newUnboundRange();
+      }
+
+      Range rightRange = ranges[right];
+      Range leftRange = ranges[left];
+      constant_system.Operation operation = condition.operation();
+      constant_system.Operation mirrorOp = flipOperation(operation);
+      // Only update the true branch if this block is the only
+      // predecessor.
+      if (branch.trueBranch.predecessors.length == 1) {
+        assert(branch.trueBranch.predecessors[0] == branch.block);
+        // Update the true branch to use narrower ranges for [left] and
+        // [right].
+        Range range = computeConstrainedRange(operation, leftRange, rightRange);
+        if (leftRange != range) {
+          HInstruction instruction =
+              createRangeConversion(branch.trueBranch.first, left);
+          ranges[instruction] = range;
+        }
+
+        range = computeConstrainedRange(mirrorOp, rightRange, leftRange);
+        if (rightRange != range) {
+          HInstruction instruction =
+              createRangeConversion(branch.trueBranch.first, right);
+          ranges[instruction] = range;
+        }
+      }
+
+      // Only update the false branch if this block is the only
+      // predecessor.
+      if (branch.falseBranch.predecessors.length == 1) {
+        assert(branch.falseBranch.predecessors[0] == branch.block);
+        constant_system.Operation reverse = negateOperation(operation);
+        constant_system.Operation reversedMirror = flipOperation(reverse);
+        // Update the false branch to use narrower ranges for [left] and
+        // [right].
+        Range range = computeConstrainedRange(reverse, leftRange, rightRange);
+        if (leftRange != range) {
+          HInstruction instruction =
+              createRangeConversion(branch.falseBranch.first, left);
+          ranges[instruction] = range;
+        }
+
+        range = computeConstrainedRange(reversedMirror, rightRange, leftRange);
+        if (rightRange != range) {
+          HInstruction instruction =
+              createRangeConversion(branch.falseBranch.first, right);
+          ranges[instruction] = range;
+        }
+      }
+
       return info.newUnboundRange();
     }
-    if (right.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
-      return info.newUnboundRange();
-    }
-
-    Range rightRange = ranges[right];
-    Range leftRange = ranges[left];
-    constant_system.Operation operation = condition.operation();
-    constant_system.Operation mirrorOp = flipOperation(operation);
-    // Only update the true branch if this block is the only
-    // predecessor.
-    if (branch.trueBranch.predecessors.length == 1) {
-      assert(branch.trueBranch.predecessors[0] == branch.block);
-      // Update the true branch to use narrower ranges for [left] and
-      // [right].
-      Range range = computeConstrainedRange(operation, leftRange, rightRange);
-      if (leftRange != range) {
-        HInstruction instruction =
-            createRangeConversion(branch.trueBranch.first, left);
-        ranges[instruction] = range;
-      }
-
-      range = computeConstrainedRange(mirrorOp, rightRange, leftRange);
-      if (rightRange != range) {
-        HInstruction instruction =
-            createRangeConversion(branch.trueBranch.first, right);
-        ranges[instruction] = range;
-      }
-    }
-
-    // Only update the false branch if this block is the only
-    // predecessor.
-    if (branch.falseBranch.predecessors.length == 1) {
-      assert(branch.falseBranch.predecessors[0] == branch.block);
-      constant_system.Operation reverse = negateOperation(operation);
-      constant_system.Operation reversedMirror = flipOperation(reverse);
-      // Update the false branch to use narrower ranges for [left] and
-      // [right].
-      Range range = computeConstrainedRange(reverse, leftRange, rightRange);
-      if (leftRange != range) {
-        HInstruction instruction =
-            createRangeConversion(branch.falseBranch.first, left);
-        ranges[instruction] = range;
-      }
-
-      range = computeConstrainedRange(reversedMirror, rightRange, leftRange);
-      if (rightRange != range) {
-        HInstruction instruction =
-            createRangeConversion(branch.falseBranch.first, right);
-        ranges[instruction] = range;
-      }
-    }
-
     return info.newUnboundRange();
   }
 

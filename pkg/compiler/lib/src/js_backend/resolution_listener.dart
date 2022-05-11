@@ -208,16 +208,14 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     DartType type = constant.getType(_commonElements);
     _computeImpactForInstantiatedConstantType(type, impactBuilder);
 
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
+    if (constant is FunctionConstantValue) {
       impactBuilder
-          .registerStaticUse(StaticUse.staticTearOff(function.element));
-    } else if (constant.isInterceptor) {
+          .registerStaticUse(StaticUse.staticTearOff(constant.element));
+    } else if (constant is InterceptorConstantValue) {
       // An interceptor constant references the class's prototype chain.
-      InterceptorConstantValue interceptor = constant;
-      InterfaceType type = _elementEnvironment.getThisType(interceptor.cls);
+      InterfaceType type = _elementEnvironment.getThisType(constant.cls);
       _computeImpactForInstantiatedConstantType(type, impactBuilder);
-    } else if (constant.isType) {
+    } else if (constant is TypeConstantValue) {
       FunctionEntity helper = _commonElements.createRuntimeType;
       impactBuilder.registerStaticUse(StaticUse.staticInvoke(
           helper, helper.parameterStructure.callStructure));

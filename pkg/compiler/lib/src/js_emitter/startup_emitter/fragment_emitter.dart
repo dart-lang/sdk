@@ -1571,7 +1571,7 @@ class FragmentEmitter {
       ]);
       _dumpInfoTask.registerConstantAst(constant.value, assignment);
       assignments.add(assignment);
-      if (constant.value.isList) hasList = true;
+      if (constant.value is ListConstantValue) hasList = true;
     }
     if (hasList) {
       assignments.insert(

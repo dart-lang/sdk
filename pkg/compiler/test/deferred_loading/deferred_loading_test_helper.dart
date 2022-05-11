@@ -289,7 +289,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
     if (node is ir.Field && node.isConst) {
       ir.Expression initializer = node.initializer;
       ConstantValue constant = _elementMap.getConstantValue(node, initializer);
-      if (!constant.isPrimitive) {
+      if (constant is! PrimitiveConstantValue) {
         SourceSpan span = computeSourceSpanFromTreeNode(initializer);
         if (initializer is ir.ConstructorInvocation) {
           // Adjust the source-span to match the AST-based location. The kernel FE
@@ -321,7 +321,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   @override
   visitConstantExpression(ir.ConstantExpression node) {
     ConstantValue constant = _elementMap.getConstantValue(null, node);
-    if (!constant.isPrimitive) {
+    if (constant is! PrimitiveConstantValue) {
       _constants.add('${constant.toStructuredText(_elementMap.types)}='
           '${outputUnitString(_data.outputUnitForConstant(constant))}');
     }

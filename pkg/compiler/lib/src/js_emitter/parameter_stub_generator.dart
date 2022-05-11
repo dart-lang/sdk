@@ -158,7 +158,7 @@ class ParameterStubGenerator {
             targetArguments[count] =
                 _emitter.constantReference(NullConstantValue());
           } else {
-            if (!value.isNull) {
+            if (value is! NullConstantValue) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;

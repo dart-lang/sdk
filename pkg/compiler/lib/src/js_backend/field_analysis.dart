@@ -371,10 +371,10 @@ class JFieldAnalysis {
               assert(value != null);
               if (!memberUsage.hasWrite && canBeElided(kField)) {
                 isEffectivelyConstant = true;
-              } else if (value.isNull ||
-                  value.isInt ||
-                  value.isBool ||
-                  value.isString ||
+              } else if (value is NullConstantValue ||
+                  value is IntConstantValue ||
+                  value is BoolConstantValue ||
+                  value is StringConstantValue ||
                   value is LateSentinelConstantValue) {
                 // TODO(johnniwinther,sra): Support non-primitive constants in
                 // allocators when it does cause allocators to deoptimized

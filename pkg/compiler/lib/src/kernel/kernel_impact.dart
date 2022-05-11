@@ -852,7 +852,7 @@ class KernelImpactConverter implements ImpactRegistry {
         } else if (type == commonElements.functionType) {
           reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
               MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
-        } else if (value.isObject &&
+        } else if (value is ObjectConstantValue &&
             type != commonElements.typeLiteralType &&
             overridesEquals(type)) {
           reporter.reportErrorMessage(
