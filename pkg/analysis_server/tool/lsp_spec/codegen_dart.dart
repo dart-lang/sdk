@@ -101,13 +101,16 @@ List<Field> _getAllFields(Interface? interface) {
   if (interface == null) {
     return [];
   }
-  return interface.members
+
+  final allFields = interface.members
       .whereType<Field>()
       .followedBy(interface.baseTypes
           // This cast is safe because base types are always real types.
           .map((type) => _getAllFields(_interfaces[(type as Type).name]))
           .expand((ts) => ts))
       .toList();
+
+  return _getSortedUnique(allFields);
 }
 
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.

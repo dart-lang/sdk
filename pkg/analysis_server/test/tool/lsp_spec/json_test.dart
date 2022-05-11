@@ -23,7 +23,7 @@ void main() {
           method: Method.shutdown,
           jsonrpc: 'test');
       final output = json.encode(message.toJson());
-      expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
+      expect(output, equals('{"id":1,"jsonrpc":"test","method":"shutdown"}'));
     });
 
     test('returns correct output for union types containing interface types',
@@ -34,7 +34,7 @@ void main() {
       expect(
           output,
           equals(
-              '{"uri":"!uri","languageId":"!language","version":1,"text":"!text"}'));
+              '{"languageId":"!language","text":"!text","uri":"!uri","version":1}'));
     });
 
     test('returns correct output for types with lists', () {
@@ -54,26 +54,26 @@ void main() {
       );
       final output = json.encode(codeAction.toJson());
       final expected = '''{
-        "range":{
-            "start":{"line":1,"character":1},
-            "end":{"line":2,"character":2}
-        },
-        "severity":1,
         "code":"test_err",
-        "source":"/tmp/source.dart",
         "message":"err!!",
+        "range":{
+            "end":{"character":2,"line":2},
+            "start":{"character":1,"line":1}
+        },
         "relatedInformation":[
             {
               "location":{
-                  "uri":"y-uri",
                   "range":{
-                    "start":{"line":1,"character":1},
-                    "end":{"line":2,"character":2}
-                  }
+                    "end":{"character":2,"line":2},
+                    "start":{"character":1,"line":1}
+                  },
+                  "uri":"y-uri"
               },
               "message":"message"
             }
-        ]
+        ],
+        "severity":1,
+        "source":"/tmp/source.dart"
       }'''
           .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
@@ -101,11 +101,11 @@ void main() {
           kind: FoldingRangeKind.Comment);
       final output = json.encode(foldingRange.toJson());
       final expected = '''{
-        "startLine":1,
-        "startCharacter":2,
-        "endLine":3,
         "endCharacter":4,
-        "kind":"comment"
+        "endLine":3,
+        "kind":"comment",
+        "startCharacter":2,
+        "startLine":1
       }'''
           .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
@@ -253,9 +253,12 @@ void main() {
     test('canParse records nested undefined fields', () {
       final reporter = LspJsonReporter('params');
       expect(
-          CompletionParams.canParse(
-              {'textDocument': <String, dynamic>{}}, reporter),
-          isFalse);
+        CompletionParams.canParse({
+          'position': {'line': 1, 'character': 1},
+          'textDocument': <String, dynamic>{},
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
           equals('params.textDocument.uri must not be undefined'));
@@ -264,10 +267,12 @@ void main() {
     test('canParse records nested null fields', () {
       final reporter = LspJsonReporter('params');
       expect(
-          CompletionParams.canParse({
-            'textDocument': {'uri': null}
-          }, reporter),
-          isFalse);
+        CompletionParams.canParse({
+          'position': {'line': 1, 'character': 1},
+          'textDocument': {'uri': null},
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
           equals('params.textDocument.uri must not be null'));
@@ -276,10 +281,12 @@ void main() {
     test('canParse records nested fields of the wrong type', () {
       final reporter = LspJsonReporter('params');
       expect(
-          CompletionParams.canParse({
-            'textDocument': {'uri': 1}
-          }, reporter),
-          isFalse);
+        CompletionParams.canParse({
+          'position': {'line': 1, 'character': 1},
+          'textDocument': {'uri': 1},
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
           equals('params.textDocument.uri must be of type String'));
@@ -290,10 +297,11 @@ void main() {
         () {
       final reporter = LspJsonReporter('params');
       expect(
-          WorkspaceEdit.canParse({
-            'documentChanges': {'uri': 1}
-          }, reporter),
-          isFalse);
+        WorkspaceEdit.canParse({
+          'documentChanges': {'uri': 1}
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(
           reporter.errors.first,

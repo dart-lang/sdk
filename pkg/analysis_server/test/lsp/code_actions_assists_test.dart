@@ -130,6 +130,9 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
         "textDocument": {
           "uri": "${mainFileUri.toString()}"
         },
+        "context": {
+          "diagnostics": []
+        },
         "range": {
           "start": {
             "line": 3,
