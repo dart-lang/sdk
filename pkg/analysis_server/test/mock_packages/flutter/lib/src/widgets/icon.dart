@@ -5,17 +5,17 @@
 import 'framework.dart';
 
 class Icon extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
 
   const Icon(
     this.icon, {
-    Key key,
+    Key? key,
   }) : super(key: key);
 }
 
 class IconData {
   final int codePoint;
-  final String fontFamily;
+  final String? fontFamily;
 
   const IconData(
     this.codePoint, {

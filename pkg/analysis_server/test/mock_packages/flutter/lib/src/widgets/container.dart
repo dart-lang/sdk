@@ -7,7 +7,7 @@ import 'package:flutter/painting.dart';
 import 'framework.dart';
 
 class Container extends StatelessWidget {
-  final Widget child;
+  final Widget? child;
 
   /// Align the [child] within the container.
   ///
@@ -23,14 +23,14 @@ class Container extends StatelessWidget {
   ///    specify an [AlignmentGeometry].
   ///  * [AlignmentDirectional], like [Alignment] for specifying alignments
   ///    relative to text direction.
-  final AlignmentGeometry alignment;
+  final AlignmentGeometry? alignment;
 
   /// Empty space to inscribe inside the [decoration]. The [child], if any, is
   /// placed inside this padding.
   ///
   /// This padding is in addition to any padding inherent in the [decoration];
   /// see [Decoration.padding].
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
 
   /// The decoration to paint behind the [child].
   ///
@@ -40,23 +40,23 @@ class Container extends StatelessWidget {
   ///
   /// The [child] is not clipped to the decoration. To clip a child to the shape
   /// of a particular [ShapeDecoration], consider using a [ClipPath] widget.
-  final Decoration decoration;
+  final Decoration? decoration;
 
   /// The decoration to paint in front of the [child].
-  final Decoration foregroundDecoration;
+  final Decoration? foregroundDecoration;
 
   /// Empty space to surround the [decoration] and [child].
-  final EdgeInsetsGeometry margin;
+  final EdgeInsetsGeometry? margin;
 
   Container({
-    Key key,
+    Key? key,
     this.alignment,
     this.padding,
-    Color color,
-    Decoration decoration,
+    Color? color,
+    Decoration? decoration,
     this.foregroundDecoration,
-    double width,
-    double height,
+    double? width,
+    double? height,
     this.margin,
     this.child,
   })  : decoration = decoration,

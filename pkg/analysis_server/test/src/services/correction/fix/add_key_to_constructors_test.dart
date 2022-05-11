@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -211,7 +210,7 @@ class A extends StatelessWidget {
 class MyWidget extends A {
   MyWidget({super.key}) : super(text: '');
 }
-''', errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void>
@@ -241,7 +240,7 @@ class A extends StatelessWidget {
 class MyWidget extends A {
   MyWidget({super.key}) : super(text: '',);
 }
-''', errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void>
@@ -271,9 +270,7 @@ class A extends StatelessWidget {
 class B extends A {
   B({super.key}) : super(const Text(''),);
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_initializer_final_constant() async {
@@ -292,9 +289,7 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({super.key});
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_initializer_final_not_constant() async {
@@ -332,9 +327,7 @@ class MyWidget extends StatelessWidget {
 
   MyWidget({super.key});
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_initializer_not_final_not_constant() async {
@@ -372,9 +365,7 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({super.key});
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_super_not_constant() async {
@@ -402,7 +393,7 @@ class ParentWidget extends StatelessWidget {
 class MyWidget extends ParentWidget {
   MyWidget({super.key});
 }
-''', errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 }
 
@@ -452,9 +443,7 @@ class A extends StatelessWidget {
 class B extends A {
   B({Key? key}) : super(const Text(''), key: key);
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 }
 
@@ -637,7 +626,7 @@ class A extends StatelessWidget {
 class MyWidget extends A {
   MyWidget({Key? key}) : super(key: key, text: '');
 }
-''', errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void>
@@ -667,7 +656,7 @@ class A extends StatelessWidget {
 class MyWidget extends A {
   MyWidget({Key? key}) : super(key: key, text: '',);
 }
-''', errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void>
@@ -697,9 +686,7 @@ class A extends StatelessWidget {
 class B extends A {
   B({Key? key}) : super(const Text(''), key: key,);
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_initializer_final_constant() async {
@@ -718,9 +705,7 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({Key? key}) : super(key: key);
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_initializer_final_not_constant() async {
@@ -758,9 +743,7 @@ class MyWidget extends StatelessWidget {
 
   MyWidget({Key? key}) : super(key: key);
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_initializer_not_final_not_constant() async {
@@ -798,9 +781,7 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({Key? key}) : super(key: key);
 }
-''',
-        //TODO(asashour) there should be no other errors
-        errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 
   Future<void> test_super_not_constant() async {
@@ -828,6 +809,6 @@ class ParentWidget extends StatelessWidget {
 class MyWidget extends ParentWidget {
   MyWidget({Key? key}) : super(key: key);
 }
-''', errorFilter: (error) => error.errorCode is LintCode);
+''');
   }
 }
