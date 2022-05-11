@@ -231,12 +231,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
           return false;  // Being used as argument register A5.
         }
         intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-        if (!pool.IsNull() && (index < pool.Length()) &&
-            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+        return ObjectAtPoolIndex(code, index, obj);
       } else if (instr.rs1p() == THR) {
         return Thread::ObjectAtOffset(offset, obj);
       }
@@ -255,12 +250,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
           return false;  // Being used as argument register A5.
         }
         intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-        if (!pool.IsNull() && (index < pool.Length()) &&
-            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+        return ObjectAtPoolIndex(code, index, obj);
       } else if (instr.rs1() == THR) {
         return Thread::ObjectAtOffset(offset, obj);
       }
