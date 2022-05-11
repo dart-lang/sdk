@@ -20,6 +20,7 @@ void main(List<String> args) {
     ...listSubdirectories(platform('third_party/pkg')),
     ...listSubdirectories(platform('third_party/pkg/file/packages')),
     ...listSubdirectories(platform('third_party/pkg/test/pkgs')),
+    ...listSubdirectories(platform('third_party/pkg/shelf/pkgs')),
     platform('pkg/vm_service/test/test_package'),
     platform('runtime/observatory_2'),
     platform(
@@ -35,6 +36,12 @@ void main(List<String> args) {
 
   // Remove the package at the top-level of the package:file monorepo.
   packageDirs.remove(platform('third_party/pkg/file'));
+
+  // Temporarily ignored copies of shelf mono repo package
+  packageDirs.remove(platform('third_party/pkg/shelf_packages_handler'));
+  packageDirs.remove(platform('third_party/pkg/shelf_proxy'));
+  packageDirs.remove(platform('third_party/pkg/shelf_static'));
+  packageDirs.remove(platform('third_party/pkg/shelf_web_socket'));
 
   var cfePackageDirs = [
     platform('pkg/front_end/testcases'),

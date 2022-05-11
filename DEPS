@@ -144,7 +144,7 @@ vars = {
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
   "shelf_proxy_rev": "124615d0614b38814970aa9638725d9d6b435268",
-  "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
+  "shelf_rev": "6d1f24da2f85ba221dda3cfaadb4d3fc043e8eec",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
   "source_map_stack_trace_rev": "8eabd96b1811e30a11d3c54c9b4afae4fb72e98f",
