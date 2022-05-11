@@ -719,7 +719,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     String? filePath,
     String? expectedFilePath,
     bool sendRenameVersion = true,
-    ClientCapabilitiesWorkspace? workspaceCapabilities,
+    WorkspaceClientCapabilities? workspaceCapabilities,
     Map<String, String>? contents,
   }) async {
     contents ??= {};

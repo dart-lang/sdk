@@ -227,9 +227,9 @@ abstract class AbstractLspAnalysisServerTest
 mixin ClientCapabilitiesHelperMixin {
   final emptyTextDocumentClientCapabilities = TextDocumentClientCapabilities();
 
-  final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace();
+  final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities();
 
-  final emptyWindowClientCapabilities = ClientCapabilitiesWindow();
+  final emptyWindowClientCapabilities = WindowClientCapabilities();
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
@@ -240,22 +240,22 @@ mixin ClientCapabilitiesHelperMixin {
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
-  ClientCapabilitiesWindow extendWindowCapabilities(
-    ClientCapabilitiesWindow source,
+  WindowClientCapabilities extendWindowCapabilities(
+    WindowClientCapabilities source,
     Map<String, dynamic> windowCapabilities,
   ) {
     final json = source.toJson();
     mergeJson(windowCapabilities, json);
-    return ClientCapabilitiesWindow.fromJson(json);
+    return WindowClientCapabilities.fromJson(json);
   }
 
-  ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities extendWorkspaceCapabilities(
+    WorkspaceClientCapabilities source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
     final json = source.toJson();
     mergeJson(workspaceCapabilities, json);
-    return ClientCapabilitiesWorkspace.fromJson(json);
+    return WorkspaceClientCapabilities.fromJson(json);
   }
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
@@ -306,8 +306,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withAllSupportedWorkspaceDynamicRegistrations(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withAllSupportedWorkspaceDynamicRegistrations(
+    WorkspaceClientCapabilities source,
   ) {
     // This list (when combined with the textDocument list) should match all of
     // the fields listed in `ClientDynamicRegistrations.supported`.
@@ -316,8 +316,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withApplyEditSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
@@ -407,8 +407,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withConfigurationSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withConfigurationSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
@@ -434,16 +434,16 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withDidChangeConfigurationDynamicRegistration(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  ClientCapabilitiesWorkspace withDocumentChangesSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withDocumentChangesSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
@@ -471,8 +471,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withFileOperationDynamicRegistration(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withFileOperationDynamicRegistration(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'fileOperations': {'dynamicRegistration': true}
@@ -514,8 +514,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withResourceOperationKinds(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withResourceOperationKinds(
+    WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
   ) {
     return extendWorkspaceCapabilities(source, {
@@ -548,8 +548,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWindow withWorkDoneProgressSupport(
-      ClientCapabilitiesWindow source) {
+  WindowClientCapabilities withWorkDoneProgressSupport(
+      WindowClientCapabilities source) {
     return extendWindowCapabilities(source, {'workDoneProgress': true});
   }
 }
@@ -1410,8 +1410,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Uri? rootUri,
     List<Uri>? workspaceFolders,
     TextDocumentClientCapabilities? textDocumentCapabilities,
-    ClientCapabilitiesWorkspace? workspaceCapabilities,
-    ClientCapabilitiesWindow? windowCapabilities,
+    WorkspaceClientCapabilities? workspaceCapabilities,
+    WindowClientCapabilities? windowCapabilities,
     Map<String, Object?>? experimentalCapabilities,
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,

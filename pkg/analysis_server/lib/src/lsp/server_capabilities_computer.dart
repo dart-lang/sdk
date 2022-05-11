@@ -137,12 +137,12 @@ class ServerCapabilitiesComputer {
   Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
-  final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
-  final pubspecFile = DocumentFilter(
+  final dartFiles = TextDocumentFilter(language: 'dart', scheme: 'file');
+  final pubspecFile = TextDocumentFilter(
       language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
-  final analysisOptionsFile = DocumentFilter(
+  final analysisOptionsFile = TextDocumentFilter(
       language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
-  final fixDataFile = DocumentFilter(
+  final fixDataFile = TextDocumentFilter(
       language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
 
   ServerCapabilitiesComputer(this._server);
@@ -303,7 +303,7 @@ class ServerCapabilitiesComputer {
         // All published plugins use something like `*.extension` as
         // interestingFiles. Prefix a `**/` so that the glob matches nested
         // folders as well.
-        .map((glob) => DocumentFilter(scheme: 'file', pattern: '**/$glob'));
+        .map((glob) => TextDocumentFilter(scheme: 'file', pattern: '**/$glob'));
     final pluginTypesExcludingDart =
         pluginTypes.where((filter) => filter.pattern != '**/*.dart');
 

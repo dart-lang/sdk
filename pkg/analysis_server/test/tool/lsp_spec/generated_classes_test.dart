@@ -28,10 +28,12 @@ void main() {
     });
 
     test('with aliased list fields can be checked for equality', () {
-      final a = TextDocumentRegistrationOptions(
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
-      final b = TextDocumentRegistrationOptions(
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
+      final a = TextDocumentRegistrationOptions(documentSelector: [
+        TextDocumentFilter(language: 'dart', scheme: 'file')
+      ]);
+      final b = TextDocumentRegistrationOptions(documentSelector: [
+        TextDocumentFilter(language: 'dart', scheme: 'file')
+      ]);
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -84,11 +86,14 @@ void main() {
     });
 
     test('consider subclasses when checking for equality', () {
-      final a = TextDocumentRegistrationOptions(
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
+      final a = TextDocumentRegistrationOptions(documentSelector: [
+        TextDocumentFilter(language: 'dart', scheme: 'file')
+      ]);
       final b = TextDocumentSaveRegistrationOptions(
           includeText: true,
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
+          documentSelector: [
+            TextDocumentFilter(language: 'dart', scheme: 'file')
+          ]);
 
       expect(a, isNot(equals(b)));
       expect(b, isNot(equals(a)));

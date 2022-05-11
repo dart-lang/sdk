@@ -65,6 +65,41 @@ void recordTypes(List<AstNode> types) {
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
 }
 
+/// Renames types that may have been generated with bad names.
+Iterable<AstNode> renameTypes(List<AstNode> types) sync* {
+  const renames = {
+    // TODO(dantup): These entries can be removed after the
+    //   the migration to JSON meta_model.
+    'ClientCapabilitiesWindow': 'WindowClientCapabilities',
+    'ClientCapabilitiesWorkspace': 'WorkspaceClientCapabilities',
+    'DocumentFilter': 'TextDocumentFilter',
+  };
+
+  for (final type in types) {
+    if (type is Interface) {
+      final newName = renames[type.name];
+      if (newName != null) {
+        // Replace with renamed interface.
+        yield Interface(
+          type.commentNode,
+          Token.identifier(newName),
+          type.typeArgs,
+          type.baseTypes,
+          type.members,
+        );
+        // Plus a TypeAlias for the old name.
+        yield TypeAlias(
+          type.commentNode,
+          Token.identifier(type.name),
+          Type.identifier(newName),
+        );
+        continue;
+      }
+    }
+    yield type;
+  }
+}
+
 TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
   if (type is Type) {
     // The LSP spec contains type aliases for `integer` and `uinteger` that map
@@ -156,6 +191,7 @@ bool _isSimpleType(TypeBase type) {
 }
 
 bool _isSpecType(TypeBase type) {
+  type = resolveTypeAlias(type);
   return type is Type &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));

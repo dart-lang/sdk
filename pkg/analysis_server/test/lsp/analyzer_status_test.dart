@@ -33,7 +33,7 @@ class AnalyzerCustomStatusTest extends AnalyzerStatusTest {
 abstract class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
   bool get progressSupport;
 
-  ClientCapabilitiesWindow get _windowCapabilities => progressSupport
+  WindowClientCapabilities get _windowCapabilities => progressSupport
       ? withWorkDoneProgressSupport(emptyWindowClientCapabilities)
       : emptyWindowClientCapabilities;
 
