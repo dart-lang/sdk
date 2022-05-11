@@ -82,7 +82,7 @@ void defineCreateTests() {
 
       print('$templateId: running the following commands:');
       for (final command in runCommands) {
-        print('  $e');
+        print('  $command');
       }
 
       final isServerTemplate = templateGenerator.categories.contains('server');
