@@ -305,8 +305,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Works for FFI call arguments, and FFI callback return values.
   Fragment FfiConvertPrimitiveToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index,
-      LocalVariable* api_local_scope);
+      intptr_t arg_index);
 
   // Pops an unboxed native value, and pushes a Dart object, according to the
   // semantics of FFI argument translation.
@@ -388,7 +387,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ExitHandleScope();
 
   // Leaves a `LocalHandle` on the stack.
-  Fragment AllocateHandle(LocalVariable* api_local_scope);
+  Fragment AllocateHandle();
 
   // Loads a tagged value from an untagged base + offset from outside the heap.
   Fragment RawLoadField(int32_t offset);
@@ -399,7 +398,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment RawStoreField(int32_t offset);
 
   // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.
-  Fragment WrapHandle(LocalVariable* api_local_scope);
+  Fragment WrapHandle();
 
   // Unwraps a `LocalHandle` from the stack and leaves the object on the stack.
   Fragment UnwrapHandle();

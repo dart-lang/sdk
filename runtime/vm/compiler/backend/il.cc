@@ -6506,6 +6506,11 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
+    // All input handles are passed as Tagged values on the stack to
+    // FfiCallInstr, which passes "handles", i.e. pointers, to these.
+    if (marshaller_.IsHandle(marshaller_.ArgumentIndex(idx))) {
+      return kTagged;
+    }
     return marshaller_.RepInFfiCall(idx);
   } else if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
@@ -6621,6 +6626,28 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
         // http://dartbug.com/45055), which means all incomming arguments
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
+      }
+
+      // Handles are passed into FfiCalls as Tagged values on the stack, and
+      // then we pass pointers to these handles to the native function here.
+      if (marshaller_.IsHandle(arg_index)) {
+        ASSERT(compiler::target::LocalHandle::ptr_offset() == 0);
+        ASSERT(compiler::target::LocalHandle::InstanceSize() ==
+               compiler::target::kWordSize);
+        ASSERT(num_defs == 1);
+        ASSERT(origin.IsStackSlot());
+        if (def_target.IsRegisters()) {
+          __ AddImmediate(def_target.AsLocation().reg(), origin.base_reg(),
+                          origin.stack_index() * compiler::target::kWordSize);
+        } else {
+          ASSERT(def_target.IsStack());
+          const auto& target_stack = def_target.AsStack();
+          __ AddImmediate(temp0, origin.base_reg(),
+                          origin.stack_index() * compiler::target::kWordSize);
+          __ StoreToOffset(temp0,
+                           compiler::Address(target_stack.base_register(),
+                                             target_stack.offset_in_bytes()));
+        }
       } else {
 #if defined(INCLUDE_IL_PRINTER)
         __ Comment("def_target %s <- origin %s %s", def_target.ToCString(),

@@ -411,6 +411,7 @@
   SIZEOF(Library, InstanceSize, UntaggedLibrary)                               \
   SIZEOF(LibraryPrefix, InstanceSize, UntaggedLibraryPrefix)                   \
   SIZEOF(LinkedHashBase, InstanceSize, UntaggedLinkedHashBase)                 \
+  SIZEOF(LocalHandle, InstanceSize, LocalHandle)                               \
   SIZEOF(MegamorphicCache, InstanceSize, UntaggedMegamorphicCache)             \
   SIZEOF(Mint, InstanceSize, UntaggedMint)                                     \
   SIZEOF(MirrorReference, InstanceSize, UntaggedMirrorReference)               \
