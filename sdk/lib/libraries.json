@@ -433,6 +433,9 @@
       "_native_typed_data": {
         "uri": "_internal/js_dev_runtime/private/native_typed_data.dart"
       },
+      "_dart2js_runtime_metrics": {
+        "uri": "_internal/js_dev_runtime/private/runtime_metrics.dart"
+      },
       "async": {
         "uri": "async/async.dart",
         "patches": "_internal/js_dev_runtime/patch/async_patch.dart"
