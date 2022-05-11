@@ -3409,6 +3409,25 @@ ASSEMBLER_TEST_RUN(Vcgtqs, test) {
   }
 }
 
+// Verify that vmins(-0.0, 0.0) = -0.0
+ASSEMBLER_TEST_GENERATE(Vminqs_zero, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ veorq(Q1, Q1, Q1);
+    __ vnegqs(Q2, Q1);
+    __ vminqs(Q0, Q1, Q2);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vminqs_zero, test) {
+  EXPECT(test != NULL);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    float res = EXECUTE_TEST_CODE_FLOAT(Tst, test->entry());
+    EXPECT_EQ(true, signbit(res) && (res == 0.0));
+  }
+}
+
 ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
@@ -3438,6 +3457,25 @@ ASSEMBLER_TEST_RUN(Vminqs, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
+ASSEMBLER_TEST_GENERATE(Vmaxqs_zero, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ veorq(Q1, Q1, Q1);
+    __ vnegqs(Q2, Q1);
+    __ vmaxqs(Q0, Q2, Q1);
+  }
+  __ Ret();
+}
+
+// Verify that vmaxqs(-0.0, 0.0) = 0.0
+ASSEMBLER_TEST_RUN(Vmaxqs_zero, test) {
+  EXPECT(test != NULL);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    float res = EXECUTE_TEST_CODE_FLOAT(Tst, test->entry());
+    EXPECT_EQ(true, !signbit(res) && (res == 0.0));
   }
 }
 

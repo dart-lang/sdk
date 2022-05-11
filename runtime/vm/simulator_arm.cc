@@ -2893,6 +2893,22 @@ static void simd_value_swap(simd_value_t* s1,
   s2->data_[i2].u = tmp;
 }
 
+static float vminf(float f1, float f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    return signbit(f1) ? f1 : f2;
+  }
+  return f1 > f2 ? f2 : f1;
+}
+
+static float vmaxf(float f1, float f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    return signbit(f1) ? f2 : f1;
+  }
+  return f1 < f2 ? f2 : f1;
+}
+
 void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
   ASSERT(instr->ConditionField() == kSpecialCondition);
 
@@ -3118,13 +3134,13 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vminqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = fminf(s8n.data_[i].f, s8m.data_[i].f);
+        s8d.data_[i].f = vminf(s8n.data_[i].f, s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vmaxqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = fmaxf(s8n.data_[i].f, s8m.data_[i].f);
+        s8d.data_[i].f = vmaxf(s8n.data_[i].f, s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
