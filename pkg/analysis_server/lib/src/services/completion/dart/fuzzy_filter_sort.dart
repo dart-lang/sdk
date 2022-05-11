@@ -17,7 +17,7 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
   var matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
 
   double score(CompletionSuggestionBuilder suggestion) {
-    var textToMatch = suggestion.completion;
+    var textToMatch = suggestion.textToMatch;
 
     if (suggestion.kind == CompletionSuggestionKind.KEYWORD ||
         suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {

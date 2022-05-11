@@ -154,6 +154,14 @@ extension CompletionSuggestionExtension
   }
 
   @useResult
+  CheckTarget<String?> get displayText {
+    return nest(
+      value.suggestion.displayText,
+      (selected) => 'has displayText ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
   CheckTarget<String?> get docComplete {
     return nest(
       value.suggestion.docComplete,
@@ -398,6 +406,18 @@ extension CompletionSuggestionsExtension
     return nest(
       result,
       (selected) => 'named arguments ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get overrides {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.OVERRIDE)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'overrides ${valueStr(selected)}',
     );
   }
 
