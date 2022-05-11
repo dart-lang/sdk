@@ -31,11 +31,11 @@ Set<Uri> libUris = {};
 Future<void> main(List<String> args) async {
   api.CompilerOptions compilerOptions = getOptions();
 
-  Uri dotPackagesUri = repoDir.resolve(".packages");
-  if (!new File.fromUri(dotPackagesUri).existsSync()) {
+  Uri packageConfigUri = repoDir.resolve(".dart_tool/package_config.json");
+  if (!new File.fromUri(packageConfigUri).existsSync()) {
     throw "Couldn't find .packages";
   }
-  compilerOptions.packagesFileUri = dotPackagesUri;
+  compilerOptions.packagesFileUri = packageConfigUri;
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 

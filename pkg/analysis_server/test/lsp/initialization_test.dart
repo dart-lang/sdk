@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
@@ -321,12 +320,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
     initResult.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
@@ -492,8 +491,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             .registrations;
 
     final documentFilterSql =
-        DocumentFilter(scheme: 'file', pattern: '**/*.sql');
-    final documentFilterDart = DocumentFilter(language: 'dart', scheme: 'file');
+        TextDocumentFilter(scheme: 'file', pattern: '**/*.sql');
+    final documentFilterDart =
+        TextDocumentFilter(language: 'dart', scheme: 'file');
 
     expect(
       registrations,
@@ -697,13 +697,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
     result.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
   }
 

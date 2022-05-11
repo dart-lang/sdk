@@ -62,7 +62,7 @@ Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
 Uri computePackageConfig() {
   String? path = Platform.packageConfig;
   if (path != null) return Uri.base.resolve(path);
-  return Uri.base.resolve(".packages");
+  return Uri.base.resolve(".dart_tool/package_config.json");
 }
 
 // TODO(eernst): Use `bool.hasEnvironment` below when possible;

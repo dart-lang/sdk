@@ -96,17 +96,17 @@ class ClosingLabel implements ToJsonable {
   );
 
   ClosingLabel({
-    required this.range,
     required this.label,
+    required this.range,
   });
   static ClosingLabel fromJson(Map<String, Object?> json) {
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final labelJson = json['label'];
     final label = labelJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     return ClosingLabel(
-      range: range,
       label: label,
+      range: range,
     );
   }
 
@@ -115,31 +115,13 @@ class ClosingLabel implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['range'] = range.toJson();
     __result['label'] = label;
+    __result['range'] = range.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(range, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
@@ -158,6 +140,24 @@ class ClosingLabel implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final range = obj['range'];
+        if (range == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(range, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type ClosingLabel');
@@ -168,15 +168,15 @@ class ClosingLabel implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is ClosingLabel && other.runtimeType == ClosingLabel) {
-      return range == other.range && label == other.label && true;
+      return label == other.label && range == other.range && true;
     }
     return false;
   }
 
   @override
   int get hashCode => Object.hash(
-        range,
         label,
+        range,
       );
 
   @override
@@ -307,38 +307,38 @@ class DartSuggestionSetCompletionItemResolutionInfo
   );
 
   DartSuggestionSetCompletionItemResolutionInfo({
-    required this.file,
-    required this.offset,
-    required this.libId,
     required this.displayUri,
-    required this.rOffset,
+    required this.file,
     required this.iLength,
+    required this.libId,
+    required this.offset,
     required this.rLength,
+    required this.rOffset,
   });
   static DartSuggestionSetCompletionItemResolutionInfo fromJson(
       Map<String, Object?> json) {
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final offsetJson = json['offset'];
-    final offset = offsetJson as int;
-    final libIdJson = json['libId'];
-    final libId = libIdJson as int;
     final displayUriJson = json['displayUri'];
     final displayUri = displayUriJson as String;
-    final rOffsetJson = json['rOffset'];
-    final rOffset = rOffsetJson as int;
+    final fileJson = json['file'];
+    final file = fileJson as String;
     final iLengthJson = json['iLength'];
     final iLength = iLengthJson as int;
+    final libIdJson = json['libId'];
+    final libId = libIdJson as int;
+    final offsetJson = json['offset'];
+    final offset = offsetJson as int;
     final rLengthJson = json['rLength'];
     final rLength = rLengthJson as int;
+    final rOffsetJson = json['rOffset'];
+    final rOffset = rOffsetJson as int;
     return DartSuggestionSetCompletionItemResolutionInfo(
-      file: file,
-      offset: offset,
-      libId: libId,
       displayUri: displayUri,
-      rOffset: rOffset,
+      file: file,
       iLength: iLength,
+      libId: libId,
+      offset: offset,
       rLength: rLength,
+      rOffset: rOffset,
     );
   }
 
@@ -352,18 +352,36 @@ class DartSuggestionSetCompletionItemResolutionInfo
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['file'] = file;
-    __result['offset'] = offset;
-    __result['libId'] = libId;
     __result['displayUri'] = displayUri;
-    __result['rOffset'] = rOffset;
+    __result['file'] = file;
     __result['iLength'] = iLength;
+    __result['libId'] = libId;
+    __result['offset'] = offset;
     __result['rLength'] = rLength;
+    __result['rOffset'] = rOffset;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      reporter.push('displayUri');
+      try {
+        if (!obj.containsKey('displayUri')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final displayUri = obj['displayUri'];
+        if (displayUri == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(displayUri is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       reporter.push('file');
       try {
         if (!obj.containsKey('file')) {
@@ -382,18 +400,18 @@ class DartSuggestionSetCompletionItemResolutionInfo
       } finally {
         reporter.pop();
       }
-      reporter.push('offset');
+      reporter.push('iLength');
       try {
-        if (!obj.containsKey('offset')) {
+        if (!obj.containsKey('iLength')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        final offset = obj['offset'];
-        if (offset == null) {
+        final iLength = obj['iLength'];
+        if (iLength == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(offset is int)) {
+        if (!(iLength is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -418,54 +436,18 @@ class DartSuggestionSetCompletionItemResolutionInfo
       } finally {
         reporter.pop();
       }
-      reporter.push('displayUri');
+      reporter.push('offset');
       try {
-        if (!obj.containsKey('displayUri')) {
+        if (!obj.containsKey('offset')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        final displayUri = obj['displayUri'];
-        if (displayUri == null) {
+        final offset = obj['offset'];
+        if (offset == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(displayUri is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('rOffset');
-      try {
-        if (!obj.containsKey('rOffset')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final rOffset = obj['rOffset'];
-        if (rOffset == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(rOffset is int)) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('iLength');
-      try {
-        if (!obj.containsKey('iLength')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final iLength = obj['iLength'];
-        if (iLength == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(iLength is int)) {
+        if (!(offset is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -490,6 +472,24 @@ class DartSuggestionSetCompletionItemResolutionInfo
       } finally {
         reporter.pop();
       }
+      reporter.push('rOffset');
+      try {
+        if (!obj.containsKey('rOffset')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final rOffset = obj['rOffset'];
+        if (rOffset == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(rOffset is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError(
@@ -502,13 +502,13 @@ class DartSuggestionSetCompletionItemResolutionInfo
   bool operator ==(Object other) {
     if (other is DartSuggestionSetCompletionItemResolutionInfo &&
         other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo) {
-      return file == other.file &&
-          offset == other.offset &&
-          libId == other.libId &&
-          displayUri == other.displayUri &&
-          rOffset == other.rOffset &&
+      return displayUri == other.displayUri &&
+          file == other.file &&
           iLength == other.iLength &&
+          libId == other.libId &&
+          offset == other.offset &&
           rLength == other.rLength &&
+          rOffset == other.rOffset &&
           true;
     }
     return false;
@@ -516,13 +516,13 @@ class DartSuggestionSetCompletionItemResolutionInfo
 
   @override
   int get hashCode => Object.hash(
-        file,
-        offset,
-        libId,
         displayUri,
-        rOffset,
+        file,
         iLength,
+        libId,
+        offset,
         rLength,
+        rOffset,
       );
 
   @override
@@ -536,35 +536,35 @@ class Element implements ToJsonable {
   );
 
   Element({
-    this.range,
-    required this.name,
     required this.kind,
+    required this.name,
     this.parameters,
-    this.typeParameters,
+    this.range,
     this.returnType,
+    this.typeParameters,
   });
   static Element fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final parametersJson = json['parameters'];
+    final parameters = parametersJson as String?;
     final rangeJson = json['range'];
     final range = rangeJson != null
         ? Range.fromJson(rangeJson as Map<String, Object?>)
         : null;
-    final nameJson = json['name'];
-    final name = nameJson as String;
-    final kindJson = json['kind'];
-    final kind = kindJson as String;
-    final parametersJson = json['parameters'];
-    final parameters = parametersJson as String?;
-    final typeParametersJson = json['typeParameters'];
-    final typeParameters = typeParametersJson as String?;
     final returnTypeJson = json['returnType'];
     final returnType = returnTypeJson as String?;
+    final typeParametersJson = json['typeParameters'];
+    final typeParameters = typeParametersJson as String?;
     return Element(
-      range: range,
-      name: name,
       kind: kind,
+      name: name,
       parameters: parameters,
-      typeParameters: typeParameters,
+      range: range,
       returnType: returnType,
+      typeParameters: typeParameters,
     );
   }
 
@@ -577,30 +577,38 @@ class Element implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    if (range != null) {
-      __result['range'] = range?.toJson();
-    }
-    __result['name'] = name;
     __result['kind'] = kind;
+    __result['name'] = name;
     if (parameters != null) {
       __result['parameters'] = parameters;
     }
-    if (typeParameters != null) {
-      __result['typeParameters'] = typeParameters;
+    if (range != null) {
+      __result['range'] = range?.toJson();
     }
     if (returnType != null) {
       __result['returnType'] = returnType;
+    }
+    if (typeParameters != null) {
+      __result['typeParameters'] = typeParameters;
     }
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('range');
+      reporter.push('kind');
       try {
-        final range = obj['range'];
-        if (range != null && !(Range.canParse(range, reporter))) {
-          reporter.reportError('must be of type Range');
+        if (!obj.containsKey('kind')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final kind = obj['kind'];
+        if (kind == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(kind is String)) {
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -624,28 +632,30 @@ class Element implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('kind');
+      reporter.push('parameters');
       try {
-        if (!obj.containsKey('kind')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final kind = obj['kind'];
-        if (kind == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(kind is String)) {
+        final parameters = obj['parameters'];
+        if (parameters != null && !(parameters is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
       } finally {
         reporter.pop();
       }
-      reporter.push('parameters');
+      reporter.push('range');
       try {
-        final parameters = obj['parameters'];
-        if (parameters != null && !(parameters is String)) {
+        final range = obj['range'];
+        if (range != null && !(Range.canParse(range, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('returnType');
+      try {
+        final returnType = obj['returnType'];
+        if (returnType != null && !(returnType is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -662,16 +672,6 @@ class Element implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('returnType');
-      try {
-        final returnType = obj['returnType'];
-        if (returnType != null && !(returnType is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type Element');
@@ -682,12 +682,12 @@ class Element implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is Element && other.runtimeType == Element) {
-      return range == other.range &&
+      return kind == other.kind &&
           name == other.name &&
-          kind == other.kind &&
           parameters == other.parameters &&
-          typeParameters == other.typeParameters &&
+          range == other.range &&
           returnType == other.returnType &&
+          typeParameters == other.typeParameters &&
           true;
     }
     return false;
@@ -695,12 +695,12 @@ class Element implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-        range,
-        name,
         kind,
+        name,
         parameters,
-        typeParameters,
+        range,
         returnType,
+        typeParameters,
       );
 
   @override
@@ -714,52 +714,52 @@ class FlutterOutline implements ToJsonable {
   );
 
   FlutterOutline({
+    this.attributes,
+    this.children,
+    this.className,
+    required this.codeRange,
+    this.dartElement,
     required this.kind,
     this.label,
-    this.className,
-    this.variableName,
-    this.attributes,
-    this.dartElement,
     required this.range,
-    required this.codeRange,
-    this.children,
+    this.variableName,
   });
   static FlutterOutline fromJson(Map<String, Object?> json) {
-    final kindJson = json['kind'];
-    final kind = kindJson as String;
-    final labelJson = json['label'];
-    final label = labelJson as String?;
-    final classNameJson = json['className'];
-    final className = classNameJson as String?;
-    final variableNameJson = json['variableName'];
-    final variableName = variableNameJson as String?;
     final attributesJson = json['attributes'];
     final attributes = (attributesJson as List<Object?>?)
         ?.map((item) =>
             FlutterOutlineAttribute.fromJson(item as Map<String, Object?>))
         .toList();
-    final dartElementJson = json['dartElement'];
-    final dartElement = dartElementJson != null
-        ? Element.fromJson(dartElementJson as Map<String, Object?>)
-        : null;
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    final codeRangeJson = json['codeRange'];
-    final codeRange = Range.fromJson(codeRangeJson as Map<String, Object?>);
     final childrenJson = json['children'];
     final children = (childrenJson as List<Object?>?)
         ?.map((item) => FlutterOutline.fromJson(item as Map<String, Object?>))
         .toList();
+    final classNameJson = json['className'];
+    final className = classNameJson as String?;
+    final codeRangeJson = json['codeRange'];
+    final codeRange = Range.fromJson(codeRangeJson as Map<String, Object?>);
+    final dartElementJson = json['dartElement'];
+    final dartElement = dartElementJson != null
+        ? Element.fromJson(dartElementJson as Map<String, Object?>)
+        : null;
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final labelJson = json['label'];
+    final label = labelJson as String?;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final variableNameJson = json['variableName'];
+    final variableName = variableNameJson as String?;
     return FlutterOutline(
+      attributes: attributes,
+      children: children,
+      className: className,
+      codeRange: codeRange,
+      dartElement: dartElement,
       kind: kind,
       label: label,
-      className: className,
-      variableName: variableName,
-      attributes: attributes,
-      dartElement: dartElement,
       range: range,
-      codeRange: codeRange,
-      children: children,
+      variableName: variableName,
     );
   }
 
@@ -775,33 +775,97 @@ class FlutterOutline implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['kind'] = kind;
-    if (label != null) {
-      __result['label'] = label;
-    }
-    if (className != null) {
-      __result['className'] = className;
-    }
-    if (variableName != null) {
-      __result['variableName'] = variableName;
-    }
     if (attributes != null) {
       __result['attributes'] =
           attributes?.map((item) => item.toJson()).toList();
     }
+    if (children != null) {
+      __result['children'] = children?.map((item) => item.toJson()).toList();
+    }
+    if (className != null) {
+      __result['className'] = className;
+    }
+    __result['codeRange'] = codeRange.toJson();
     if (dartElement != null) {
       __result['dartElement'] = dartElement?.toJson();
     }
+    __result['kind'] = kind;
+    if (label != null) {
+      __result['label'] = label;
+    }
     __result['range'] = range.toJson();
-    __result['codeRange'] = codeRange.toJson();
-    if (children != null) {
-      __result['children'] = children?.map((item) => item.toJson()).toList();
+    if (variableName != null) {
+      __result['variableName'] = variableName;
     }
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      reporter.push('attributes');
+      try {
+        final attributes = obj['attributes'];
+        if (attributes != null &&
+            !((attributes is List<Object?> &&
+                (attributes.every((item) =>
+                    FlutterOutlineAttribute.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<FlutterOutlineAttribute>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('children');
+      try {
+        final children = obj['children'];
+        if (children != null &&
+            !((children is List<Object?> &&
+                (children.every(
+                    (item) => FlutterOutline.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<FlutterOutline>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('className');
+      try {
+        final className = obj['className'];
+        if (className != null && !(className is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('codeRange');
+      try {
+        if (!obj.containsKey('codeRange')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final codeRange = obj['codeRange'];
+        if (codeRange == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(codeRange, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('dartElement');
+      try {
+        final dartElement = obj['dartElement'];
+        if (dartElement != null && !(Element.canParse(dartElement, reporter))) {
+          reporter.reportError('must be of type Element');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
@@ -830,49 +894,6 @@ class FlutterOutline implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('className');
-      try {
-        final className = obj['className'];
-        if (className != null && !(className is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('variableName');
-      try {
-        final variableName = obj['variableName'];
-        if (variableName != null && !(variableName is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('attributes');
-      try {
-        final attributes = obj['attributes'];
-        if (attributes != null &&
-            !((attributes is List<Object?> &&
-                (attributes.every((item) =>
-                    FlutterOutlineAttribute.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<FlutterOutlineAttribute>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('dartElement');
-      try {
-        final dartElement = obj['dartElement'];
-        if (dartElement != null && !(Element.canParse(dartElement, reporter))) {
-          reporter.reportError('must be of type Element');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
@@ -891,32 +912,11 @@ class FlutterOutline implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('codeRange');
+      reporter.push('variableName');
       try {
-        if (!obj.containsKey('codeRange')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final codeRange = obj['codeRange'];
-        if (codeRange == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(codeRange, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('children');
-      try {
-        final children = obj['children'];
-        if (children != null &&
-            !((children is List<Object?> &&
-                (children.every(
-                    (item) => FlutterOutline.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<FlutterOutline>');
+        final variableName = obj['variableName'];
+        if (variableName != null && !(variableName is String)) {
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -932,20 +932,20 @@ class FlutterOutline implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is FlutterOutline && other.runtimeType == FlutterOutline) {
-      return kind == other.kind &&
-          label == other.label &&
-          className == other.className &&
-          variableName == other.variableName &&
-          listEqual(
+      return listEqual(
               attributes,
               other.attributes,
               (FlutterOutlineAttribute a, FlutterOutlineAttribute b) =>
                   a == b) &&
-          dartElement == other.dartElement &&
-          range == other.range &&
-          codeRange == other.codeRange &&
           listEqual(children, other.children,
               (FlutterOutline a, FlutterOutline b) => a == b) &&
+          className == other.className &&
+          codeRange == other.codeRange &&
+          dartElement == other.dartElement &&
+          kind == other.kind &&
+          label == other.label &&
+          range == other.range &&
+          variableName == other.variableName &&
           true;
     }
     return false;
@@ -953,15 +953,15 @@ class FlutterOutline implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
+        lspHashCode(attributes),
+        lspHashCode(children),
+        className,
+        codeRange,
+        dartElement,
         kind,
         label,
-        className,
-        variableName,
-        lspHashCode(attributes),
-        dartElement,
         range,
-        codeRange,
-        lspHashCode(children),
+        variableName,
       );
 
   @override
@@ -975,22 +975,22 @@ class FlutterOutlineAttribute implements ToJsonable {
   );
 
   FlutterOutlineAttribute({
-    required this.name,
     required this.label,
+    required this.name,
     this.valueRange,
   });
   static FlutterOutlineAttribute fromJson(Map<String, Object?> json) {
-    final nameJson = json['name'];
-    final name = nameJson as String;
     final labelJson = json['label'];
     final label = labelJson as String;
+    final nameJson = json['name'];
+    final name = nameJson as String;
     final valueRangeJson = json['valueRange'];
     final valueRange = valueRangeJson != null
         ? Range.fromJson(valueRangeJson as Map<String, Object?>)
         : null;
     return FlutterOutlineAttribute(
-      name: name,
       label: label,
+      name: name,
       valueRange: valueRange,
     );
   }
@@ -1001,8 +1001,8 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['name'] = name;
     __result['label'] = label;
+    __result['name'] = name;
     if (valueRange != null) {
       __result['valueRange'] = valueRange?.toJson();
     }
@@ -1011,24 +1011,6 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('name');
-      try {
-        if (!obj.containsKey('name')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final name = obj['name'];
-        if (name == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(name is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
@@ -1041,6 +1023,24 @@ class FlutterOutlineAttribute implements ToJsonable {
           return false;
         }
         if (!(label is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('name');
+      try {
+        if (!obj.containsKey('name')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final name = obj['name'];
+        if (name == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1068,8 +1068,8 @@ class FlutterOutlineAttribute implements ToJsonable {
   bool operator ==(Object other) {
     if (other is FlutterOutlineAttribute &&
         other.runtimeType == FlutterOutlineAttribute) {
-      return name == other.name &&
-          label == other.label &&
+      return label == other.label &&
+          name == other.name &&
           valueRange == other.valueRange &&
           true;
     }
@@ -1078,8 +1078,8 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
-        name,
         label,
+        name,
         valueRange,
       );
 
@@ -1094,27 +1094,27 @@ class Outline implements ToJsonable {
   );
 
   Outline({
+    this.children,
+    required this.codeRange,
     required this.element,
     required this.range,
-    required this.codeRange,
-    this.children,
   });
   static Outline fromJson(Map<String, Object?> json) {
-    final elementJson = json['element'];
-    final element = Element.fromJson(elementJson as Map<String, Object?>);
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    final codeRangeJson = json['codeRange'];
-    final codeRange = Range.fromJson(codeRangeJson as Map<String, Object?>);
     final childrenJson = json['children'];
     final children = (childrenJson as List<Object?>?)
         ?.map((item) => Outline.fromJson(item as Map<String, Object?>))
         .toList();
+    final codeRangeJson = json['codeRange'];
+    final codeRange = Range.fromJson(codeRangeJson as Map<String, Object?>);
+    final elementJson = json['element'];
+    final element = Element.fromJson(elementJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     return Outline(
+      children: children,
+      codeRange: codeRange,
       element: element,
       range: range,
-      codeRange: codeRange,
-      children: children,
     );
   }
 
@@ -1125,17 +1125,48 @@ class Outline implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['element'] = element.toJson();
-    __result['range'] = range.toJson();
-    __result['codeRange'] = codeRange.toJson();
     if (children != null) {
       __result['children'] = children?.map((item) => item.toJson()).toList();
     }
+    __result['codeRange'] = codeRange.toJson();
+    __result['element'] = element.toJson();
+    __result['range'] = range.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      reporter.push('children');
+      try {
+        final children = obj['children'];
+        if (children != null &&
+            !((children is List<Object?> &&
+                (children
+                    .every((item) => Outline.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<Outline>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('codeRange');
+      try {
+        if (!obj.containsKey('codeRange')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final codeRange = obj['codeRange'];
+        if (codeRange == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(codeRange, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       reporter.push('element');
       try {
         if (!obj.containsKey('element')) {
@@ -1172,37 +1203,6 @@ class Outline implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('codeRange');
-      try {
-        if (!obj.containsKey('codeRange')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final codeRange = obj['codeRange'];
-        if (codeRange == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(codeRange, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('children');
-      try {
-        final children = obj['children'];
-        if (children != null &&
-            !((children is List<Object?> &&
-                (children
-                    .every((item) => Outline.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<Outline>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type Outline');
@@ -1213,11 +1213,11 @@ class Outline implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is Outline && other.runtimeType == Outline) {
-      return element == other.element &&
-          range == other.range &&
-          codeRange == other.codeRange &&
-          listEqual(
+      return listEqual(
               children, other.children, (Outline a, Outline b) => a == b) &&
+          codeRange == other.codeRange &&
+          element == other.element &&
+          range == other.range &&
           true;
     }
     return false;
@@ -1225,10 +1225,10 @@ class Outline implements ToJsonable {
 
   @override
   int get hashCode => Object.hash(
+        lspHashCode(children),
+        codeRange,
         element,
         range,
-        codeRange,
-        lspHashCode(children),
       );
 
   @override
@@ -1313,19 +1313,19 @@ class PublishClosingLabelsParams implements ToJsonable {
   );
 
   PublishClosingLabelsParams({
-    required this.uri,
     required this.labels,
+    required this.uri,
   });
   static PublishClosingLabelsParams fromJson(Map<String, Object?> json) {
-    final uriJson = json['uri'];
-    final uri = uriJson as String;
     final labelsJson = json['labels'];
     final labels = (labelsJson as List<Object?>)
         .map((item) => ClosingLabel.fromJson(item as Map<String, Object?>))
         .toList();
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
     return PublishClosingLabelsParams(
-      uri: uri,
       labels: labels,
+      uri: uri,
     );
   }
 
@@ -1334,31 +1334,13 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['uri'] = uri;
     __result['labels'] = labels.map((item) => item.toJson()).toList();
+    __result['uri'] = uri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('uri');
-      try {
-        if (!obj.containsKey('uri')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final uri = obj['uri'];
-        if (uri == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(uri is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       reporter.push('labels');
       try {
         if (!obj.containsKey('labels')) {
@@ -1378,69 +1360,6 @@ class PublishClosingLabelsParams implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      return true;
-    } else {
-      reporter.reportError('must be of type PublishClosingLabelsParams');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is PublishClosingLabelsParams &&
-        other.runtimeType == PublishClosingLabelsParams) {
-      return uri == other.uri &&
-          listEqual(labels, other.labels,
-              (ClosingLabel a, ClosingLabel b) => a == b) &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        uri,
-        lspHashCode(labels),
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class PublishFlutterOutlineParams implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    PublishFlutterOutlineParams.canParse,
-    PublishFlutterOutlineParams.fromJson,
-  );
-
-  PublishFlutterOutlineParams({
-    required this.uri,
-    required this.outline,
-  });
-  static PublishFlutterOutlineParams fromJson(Map<String, Object?> json) {
-    final uriJson = json['uri'];
-    final uri = uriJson as String;
-    final outlineJson = json['outline'];
-    final outline =
-        FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
-    return PublishFlutterOutlineParams(
-      uri: uri,
-      outline: outline,
-    );
-  }
-
-  final FlutterOutline outline;
-  final String uri;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    __result['outline'] = outline.toJson();
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
@@ -1459,6 +1378,69 @@ class PublishFlutterOutlineParams implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      return true;
+    } else {
+      reporter.reportError('must be of type PublishClosingLabelsParams');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is PublishClosingLabelsParams &&
+        other.runtimeType == PublishClosingLabelsParams) {
+      return listEqual(labels, other.labels,
+              (ClosingLabel a, ClosingLabel b) => a == b) &&
+          uri == other.uri &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(labels),
+        uri,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PublishFlutterOutlineParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    PublishFlutterOutlineParams.canParse,
+    PublishFlutterOutlineParams.fromJson,
+  );
+
+  PublishFlutterOutlineParams({
+    required this.outline,
+    required this.uri,
+  });
+  static PublishFlutterOutlineParams fromJson(Map<String, Object?> json) {
+    final outlineJson = json['outline'];
+    final outline =
+        FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    return PublishFlutterOutlineParams(
+      outline: outline,
+      uri: uri,
+    );
+  }
+
+  final FlutterOutline outline;
+  final String uri;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['outline'] = outline.toJson();
+    __result['uri'] = uri;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
       reporter.push('outline');
       try {
         if (!obj.containsKey('outline')) {
@@ -1477,65 +1459,6 @@ class PublishFlutterOutlineParams implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      return true;
-    } else {
-      reporter.reportError('must be of type PublishFlutterOutlineParams');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is PublishFlutterOutlineParams &&
-        other.runtimeType == PublishFlutterOutlineParams) {
-      return uri == other.uri && outline == other.outline && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        uri,
-        outline,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class PublishOutlineParams implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    PublishOutlineParams.canParse,
-    PublishOutlineParams.fromJson,
-  );
-
-  PublishOutlineParams({
-    required this.uri,
-    required this.outline,
-  });
-  static PublishOutlineParams fromJson(Map<String, Object?> json) {
-    final uriJson = json['uri'];
-    final uri = uriJson as String;
-    final outlineJson = json['outline'];
-    final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
-    return PublishOutlineParams(
-      uri: uri,
-      outline: outline,
-    );
-  }
-
-  final Outline outline;
-  final String uri;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    __result['outline'] = outline.toJson();
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
@@ -1554,6 +1477,65 @@ class PublishOutlineParams implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      return true;
+    } else {
+      reporter.reportError('must be of type PublishFlutterOutlineParams');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is PublishFlutterOutlineParams &&
+        other.runtimeType == PublishFlutterOutlineParams) {
+      return outline == other.outline && uri == other.uri && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        outline,
+        uri,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PublishOutlineParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    PublishOutlineParams.canParse,
+    PublishOutlineParams.fromJson,
+  );
+
+  PublishOutlineParams({
+    required this.outline,
+    required this.uri,
+  });
+  static PublishOutlineParams fromJson(Map<String, Object?> json) {
+    final outlineJson = json['outline'];
+    final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    return PublishOutlineParams(
+      outline: outline,
+      uri: uri,
+    );
+  }
+
+  final Outline outline;
+  final String uri;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['outline'] = outline.toJson();
+    __result['uri'] = uri;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
       reporter.push('outline');
       try {
         if (!obj.containsKey('outline')) {
@@ -1572,6 +1554,24 @@ class PublishOutlineParams implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('uri');
+      try {
+        if (!obj.containsKey('uri')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final uri = obj['uri'];
+        if (uri == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(uri is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type PublishOutlineParams');
@@ -1583,15 +1583,15 @@ class PublishOutlineParams implements ToJsonable {
   bool operator ==(Object other) {
     if (other is PublishOutlineParams &&
         other.runtimeType == PublishOutlineParams) {
-      return uri == other.uri && outline == other.outline && true;
+      return outline == other.outline && uri == other.uri && true;
     }
     return false;
   }
 
   @override
   int get hashCode => Object.hash(
-        uri,
         outline,
+        uri,
       );
 
   @override
@@ -1606,21 +1606,21 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
 
   SnippetTextEdit({
     required this.insertTextFormat,
-    required this.range,
     required this.newText,
+    required this.range,
   });
   static SnippetTextEdit fromJson(Map<String, Object?> json) {
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat =
         InsertTextFormat.fromJson(insertTextFormatJson as int);
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     return SnippetTextEdit(
       insertTextFormat: insertTextFormat,
-      range: range,
       newText: newText,
+      range: range,
     );
   }
 
@@ -1636,8 +1636,8 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
     __result['insertTextFormat'] = insertTextFormat.toJson();
-    __result['range'] = range.toJson();
     __result['newText'] = newText;
+    __result['range'] = range.toJson();
     return __result;
   }
 
@@ -1661,24 +1661,6 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(range, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       reporter.push('newText');
       try {
         if (!obj.containsKey('newText')) {
@@ -1697,6 +1679,24 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final range = obj['range'];
+        if (range == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(range, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type SnippetTextEdit');
@@ -1708,8 +1708,8 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   bool operator ==(Object other) {
     if (other is SnippetTextEdit && other.runtimeType == SnippetTextEdit) {
       return insertTextFormat == other.insertTextFormat &&
-          range == other.range &&
           newText == other.newText &&
+          range == other.range &&
           true;
     }
     return false;
@@ -1718,8 +1718,8 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   @override
   int get hashCode => Object.hash(
         insertTextFormat,
-        range,
         newText,
+        range,
       );
 
   @override
@@ -1733,17 +1733,17 @@ class ValidateRefactorResult implements ToJsonable {
   );
 
   ValidateRefactorResult({
-    required this.valid,
     this.message,
+    required this.valid,
   });
   static ValidateRefactorResult fromJson(Map<String, Object?> json) {
-    final validJson = json['valid'];
-    final valid = validJson as bool;
     final messageJson = json['message'];
     final message = messageJson as String?;
+    final validJson = json['valid'];
+    final valid = validJson as bool;
     return ValidateRefactorResult(
-      valid: valid,
       message: message,
+      valid: valid,
     );
   }
 
@@ -1752,15 +1752,25 @@ class ValidateRefactorResult implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['valid'] = valid;
     if (message != null) {
       __result['message'] = message;
     }
+    __result['valid'] = valid;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      reporter.push('message');
+      try {
+        final message = obj['message'];
+        if (message != null && !(message is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       reporter.push('valid');
       try {
         if (!obj.containsKey('valid')) {
@@ -1779,16 +1789,6 @@ class ValidateRefactorResult implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('message');
-      try {
-        final message = obj['message'];
-        if (message != null && !(message is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type ValidateRefactorResult');
@@ -1800,15 +1800,15 @@ class ValidateRefactorResult implements ToJsonable {
   bool operator ==(Object other) {
     if (other is ValidateRefactorResult &&
         other.runtimeType == ValidateRefactorResult) {
-      return valid == other.valid && message == other.message && true;
+      return message == other.message && valid == other.valid && true;
     }
     return false;
   }
 
   @override
   int get hashCode => Object.hash(
-        valid,
         message,
+        valid,
       );
 
   @override

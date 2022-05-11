@@ -304,17 +304,27 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       // PP is untagged on ARM64.
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-      const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-      if (!pool.IsNull() && (index < pool.Length()) &&
-          (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-        *obj = pool.ObjectAt(index);
-        return true;
-      }
+      return ObjectAtPoolIndex(code, index, obj);
     } else if (instr->RnField() == THR) {
       return Thread::ObjectAtOffset(offset, obj);
     }
+    if (instr->RnField() == instr->RtField()) {
+      Instr* add = Instr::At(pc - Instr::kInstrSize);
+      if (add->IsAddSubImmOp() && add->SFField() && (instr->Bit(22) == 1) &&
+          (add->RdField() == add->RtField())) {
+        offset = (add->Imm12Field() << 12) + offset;
+        if (add->RnField() == PP) {
+          // PP is untagged on ARM64.
+          ASSERT(Utils::IsAligned(offset, 8));
+          intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
+          return ObjectAtPoolIndex(code, index, obj);
+        } else if (add->RnField() == THR) {
+          return Thread::ObjectAtOffset(offset, obj);
+        }
+      }
+    }
+    // TODO(rmacnak): Loads with offsets beyond 24 bits.
   }
-  // TODO(rmacnak): Loads with offsets beyond 12 bits.
 
   if (instr->IsAddSubImmOp() && instr->SFField() &&
       (instr->RnField() == NULL_REG)) {

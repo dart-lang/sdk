@@ -2353,6 +2353,16 @@ import 'foo.dart'
             [AstTestFactory.label2("a")], AstTestFactory.returnStatement()));
   }
 
+  void test_visitLibraryAugmentationDirective() {
+    var findNode = _parseStringToFindNode(r'''
+library augment 'a.dart';
+''');
+    _assertSource(
+      "library augment 'a.dart';",
+      findNode.libraryAugmentation('library'),
+    );
+  }
+
   void test_visitLibraryDirective() {
     _assertSource("library l;", AstTestFactory.libraryDirective2("l"));
   }

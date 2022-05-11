@@ -720,6 +720,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _writeln('LibraryAugmentationDirective');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      // TODO(scheglov) Implement.
+      // _writeElement('element', node.element);
+      // _writeRaw('uriContent', node.uriContent);
+      // _writeElement('uriElement', node.uriElement);
+      // _writeSource('uriSource', node.uriSource);
+    });
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     _writeln('LibraryDirective');
     _withIndent(() {

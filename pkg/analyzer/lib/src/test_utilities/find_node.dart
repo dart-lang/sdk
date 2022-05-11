@@ -315,6 +315,10 @@ class FindNode {
     return _node(search, (n) => n is LibraryDirective);
   }
 
+  LibraryAugmentationDirective libraryAugmentation(String search) {
+    return _node(search, (n) => n is LibraryAugmentationDirective);
+  }
+
   LibraryIdentifier libraryIdentifier(String search) {
     return _node(search, (n) => n is LibraryIdentifier);
   }

@@ -6732,6 +6732,25 @@ ASSEMBLER_TEST_RUN(Vcged, test) {
       "ret\n");
 }
 
+// Verify that vmaxs(-0.0, 0.0) = 0.0
+ASSEMBLER_TEST_GENERATE(Vmaxs_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmaxs(V0, V2, V1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmaxs_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  EXPECT_EQ(true, !signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmaxs v0, v2, v1\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vmaxs, assembler) {
   __ LoadDImmediate(V0, 10.5);
   __ LoadDImmediate(V1, 10.0);
@@ -6791,6 +6810,25 @@ ASSEMBLER_TEST_RUN(Vmaxs, test) {
       "ret\n");
 }
 
+// Verify that vmaxd(-0.0, 0.0) = 0.0
+ASSEMBLER_TEST_GENERATE(Vmaxd_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmaxd(V0, V2, V1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmaxd_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  EXPECT_EQ(true, !signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmaxd v0, v2, v1\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vmaxd, assembler) {
   __ LoadDImmediate(V0, 21.0);
   __ LoadDImmediate(V1, 20.5);
@@ -6823,6 +6861,26 @@ ASSEMBLER_TEST_RUN(Vmaxd, test) {
       "vinsd v0[0], v4[0]\n"
       "vinsd v1[0], v4[1]\n"
       "faddd v0, v0, v1\n"
+      "ret\n");
+}
+
+// Verify that vmins(-0.0, 0.0) = -0.0
+ASSEMBLER_TEST_GENERATE(Vmins_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmins(V0, V1, V2);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmins_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  fprintf(stderr, "d: %f\n", d);
+  EXPECT_EQ(true, signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmins v0, v1, v2\n"
       "ret\n");
 }
 
@@ -6882,6 +6940,26 @@ ASSEMBLER_TEST_RUN(Vmins, test) {
       "faddd v0, v0, v1\n"
       "faddd v0, v0, v2\n"
       "faddd v0, v0, v3\n"
+      "ret\n");
+}
+
+// Verify that vmind(-0.0, 0.0) = -0.0
+ASSEMBLER_TEST_GENERATE(Vmind_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmind(V0, V1, V2);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmind_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  fprintf(stderr, "d: %f\n", d);
+  EXPECT_EQ(true, signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmind v0, v1, v2\n"
       "ret\n");
 }
 

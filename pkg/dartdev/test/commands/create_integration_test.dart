@@ -33,6 +33,7 @@ void defineCreateTests() {
       final p = proj!;
       final templateGenerator = getGenerator(templateId)!;
 
+      print('$templateId: creating template');
       ProcessResult createResult = await p.run([
         'create',
         '--force',
@@ -43,6 +44,7 @@ void defineCreateTests() {
       expect(createResult.exitCode, 0, reason: createResult.stderr);
 
       // Validate that the project analyzes cleanly.
+      print('$templateId: analyzing generated project');
       ProcessResult analyzeResult = await p.run(
         ['analyze', '--fatal-infos', projectName],
         workingDir: p.dir.path,
@@ -50,6 +52,7 @@ void defineCreateTests() {
       expect(analyzeResult.exitCode, 0, reason: analyzeResult.stdout);
 
       // Validate that the code is well formatted.
+      print('$templateId: checking formatting');
       ProcessResult formatResult = await p.run([
         'format',
         '--output',
@@ -77,6 +80,11 @@ void defineCreateTests() {
         return commandParts;
       }).toList();
 
+      print('$templateId: running the following commands:');
+      for (final command in runCommands) {
+        print('  $command');
+      }
+
       final isServerTemplate = templateGenerator.categories.contains('server');
       final isWebTemplate = templateGenerator.categories.contains('web');
       final workingDir = path.join(p.dirPath, projectName);
@@ -88,7 +96,7 @@ void defineCreateTests() {
         final isLastCommand = i == runCommands.length - 1;
         final command = runCommands[i];
         Process process;
-
+        print('[${i + 1} / ${runCommands.length}] Running "$command"...');
         if (isLastCommand && isWebTemplate) {
           // The web template uses `webdev` to execute, not `dart`, so don't
           // run the test through the project utility method.
@@ -148,6 +156,7 @@ void defineCreateTests() {
           // an exit code of 0.
           expect(await process.exitCode, 0);
         }
+        print('[${i + 1} / ${runCommands.length}] Done "$command".');
       }
     });
   }

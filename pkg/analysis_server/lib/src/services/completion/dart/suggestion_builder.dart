@@ -41,6 +41,9 @@ abstract class CompletionSuggestionBuilder {
   /// See [CompletionSuggestion.relevance].
   int get relevance;
 
+  /// Return the text that should be matched against the filter.
+  String get textToMatch;
+
   CompletionSuggestion build();
 }
 
@@ -80,6 +83,9 @@ class CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     }
     return key;
   }
+
+  @override
+  String get textToMatch => completion;
 
   @override
   CompletionSuggestion build() {
@@ -966,7 +972,10 @@ class SuggestionBuilder {
         displayText: displayText);
     suggestion.element = protocol.convertElement(element,
         withNullability: _isNonNullableByDefault);
-    _addSuggestion(suggestion);
+    _addSuggestion(
+      suggestion,
+      textToMatchOverride: element.displayName,
+    );
   }
 
   /// Add a suggestion for a [parameter].
@@ -1177,9 +1186,15 @@ class SuggestionBuilder {
 
   /// Add the given [suggestion] if it isn't shadowed by a previously added
   /// suggestion.
-  void _addSuggestion(protocol.CompletionSuggestion suggestion) {
+  void _addSuggestion(
+    protocol.CompletionSuggestion suggestion, {
+    String? textToMatchOverride,
+  }) {
     _addBuilder(
-      ValueCompletionSuggestionBuilder(suggestion),
+      ValueCompletionSuggestionBuilder(
+        suggestion,
+        textToMatchOverride: textToMatchOverride,
+      ),
     );
   }
 
@@ -1523,8 +1538,12 @@ abstract class SuggestionListener {
 /// [CompletionSuggestionBuilder] that is based on a [CompletionSuggestion].
 class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
   final CompletionSuggestion _suggestion;
+  final String? _textToMatchOverride;
 
-  ValueCompletionSuggestionBuilder(this._suggestion);
+  ValueCompletionSuggestionBuilder(
+    this._suggestion, {
+    String? textToMatchOverride,
+  }) : _textToMatchOverride = textToMatchOverride;
 
   @override
   String get completion => _suggestion.completion;
@@ -1537,6 +1556,9 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
 
   @override
   int get relevance => _suggestion.relevance;
+
+  @override
+  String get textToMatch => _textToMatchOverride ?? completion;
 
   @override
   CompletionSuggestion build() {

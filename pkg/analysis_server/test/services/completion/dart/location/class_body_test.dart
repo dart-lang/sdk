@@ -18,14 +18,14 @@ void main() {
 
 @reflectiveTest
 class ClassBodyTest1 extends AbstractCompletionDriverTest
-    with ClassBodyTestCases {
+    with ClassBodyTestCases, OverrideTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ClassBodyTest2 extends AbstractCompletionDriverTest
-    with ClassBodyTestCases {
+    with ClassBodyTestCases, OverrideTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -308,6 +308,79 @@ mixin M {
 ''');
       validator(_Context(isMixin: true), response);
     }
+  }
+}
+
+mixin OverrideTestCases on AbstractCompletionDriverTest {
+  Future<void> test_class_method_fromExtends() async {
+    final response = await getTestCodeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  foo^
+}
+''');
+
+    check(response).suggestions.overrides.includesAll([
+      (suggestion) => suggestion
+        ..displayText.isEqualTo('foo01() { … }')
+        ..hasSelection(offset: 60, length: 14)
+        ..completion.isEqualTo(r'''
+@override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }'''),
+    ]);
+  }
+
+  Future<void> test_class_method_fromImplements() async {
+    final response = await getTestCodeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B implements A {
+  foo^
+}
+''');
+
+    check(response).suggestions.overrides.includesAll([
+      (suggestion) => suggestion
+        ..displayText.isEqualTo('foo01() { … }')
+        ..hasSelection(offset: 55)
+        ..completion.isEqualTo(r'''
+@override
+  void foo01() {
+    // TODO: implement foo01
+  }'''),
+    ]);
+  }
+
+  Future<void> test_class_method_fromWith() async {
+    final response = await getTestCodeSuggestions('''
+mixin M {
+  void foo01() {}
+}
+
+class A with M {
+  foo^
+}
+''');
+
+    check(response).suggestions.overrides.includesAll([
+      (suggestion) => suggestion
+        ..displayText.isEqualTo('foo01() { … }')
+        ..hasSelection(offset: 60, length: 14)
+        ..completion.isEqualTo(r'''
+@override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }'''),
+    ]);
   }
 }
 

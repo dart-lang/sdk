@@ -537,7 +537,7 @@ class FastaContext extends ChainContext with MatchContext {
     UriTranslator? uriTranslator = _uriTranslators[uriConfiguration];
     if (uriTranslator == null) {
       Uri sdk = Uri.base.resolve("sdk/");
-      Uri packages = Uri.base.resolve(".packages");
+      Uri packages = Uri.base.resolve(".dart_tool/package_config.json");
       FolderOptions folderOptions = computeFolderOptions(description);
       CompilerOptions compilerOptions = new CompilerOptions()
         ..onDiagnostic = (DiagnosticMessage message) {

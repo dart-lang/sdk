@@ -195,7 +195,8 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   float _w;
   // ARM semantics are different from X86/X64 at an instruction level. Ensure
   // that we match the semantics of the architecture in the C version.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(USING_SIMULATOR)
   _x = self.x() < hi.x() ? self.x() : hi.x();
   _y = self.y() < hi.y() ? self.y() : hi.y();
   _z = self.z() < hi.z() ? self.z() : hi.z();
@@ -741,7 +742,8 @@ DEFINE_NATIVE_ENTRY(Float64x2_clamp, 0, 3) {
 
   // ARM semantics are different from X86/X64 at an instruction level. Ensure
   // that we match the semantics of the architecture in the C version.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(USING_SIMULATOR)
   _x = self.x() < hi.x() ? self.x() : hi.x();
   _y = self.y() < hi.y() ? self.y() : hi.y();
   _x = lo.x() < _x ? _x : lo.x();

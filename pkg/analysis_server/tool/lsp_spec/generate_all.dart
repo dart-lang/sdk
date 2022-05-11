@@ -29,8 +29,13 @@ Future<void> main(List<String> arguments) async {
   Directory(outFolder).createSync();
 
   // Collect definitions for types in the spec and our custom extensions.
-  final specTypes = await getSpecClasses(args);
-  final customTypes = getCustomClasses();
+  var specTypes = await getSpecClasses(args);
+  var customTypes = getCustomClasses();
+
+  // Handle some renames of types where we generate names that might not be
+  // ideal.
+  specTypes = renameTypes(specTypes).toList();
+  customTypes = renameTypes(customTypes).toList();
 
   // Record both sets of types in dictionaries for faster lookups, but also so
   // they can reference each other and we can find the definitions during

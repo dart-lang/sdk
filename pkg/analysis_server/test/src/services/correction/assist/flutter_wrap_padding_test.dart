@@ -64,10 +64,7 @@ class FakeFlutter {
     await assertNoAssist();
   }
 
-  @failingTest
   Future<void> test_inConstantContext() async {
-    // TODO(brianwilkerson) Get this test to pass again. Not clear whether it's
-    //  a problem with the test code or the mock flutter package.
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {

@@ -1249,6 +1249,25 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    LibraryAugmentationBegin data = new LibraryAugmentationBegin(
+        ParserAstType.BEGIN,
+        libraryKeyword: libraryKeyword,
+        augmentKeyword: augmentKeyword);
+    seen(data);
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    LibraryAugmentationEnd data = new LibraryAugmentationEnd(ParserAstType.END,
+        libraryKeyword: libraryKeyword,
+        augmentKeyword: augmentKeyword,
+        semicolon: semicolon);
+    seen(data);
+  }
+
+  @override
   void beginLibraryName(Token token) {
     LibraryNameBegin data =
         new LibraryNameBegin(ParserAstType.BEGIN, token: token);
@@ -4809,6 +4828,40 @@ class LabeledStatementEnd extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
+      };
+}
+
+class LibraryAugmentationBegin extends ParserAstNode {
+  final Token libraryKeyword;
+  final Token augmentKeyword;
+
+  LibraryAugmentationBegin(ParserAstType type,
+      {required this.libraryKeyword, required this.augmentKeyword})
+      : super("LibraryAugmentation", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "libraryKeyword": libraryKeyword,
+        "augmentKeyword": augmentKeyword,
+      };
+}
+
+class LibraryAugmentationEnd extends ParserAstNode {
+  final Token libraryKeyword;
+  final Token augmentKeyword;
+  final Token semicolon;
+
+  LibraryAugmentationEnd(ParserAstType type,
+      {required this.libraryKeyword,
+      required this.augmentKeyword,
+      required this.semicolon})
+      : super("LibraryAugmentation", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "libraryKeyword": libraryKeyword,
+        "augmentKeyword": augmentKeyword,
+        "semicolon": semicolon,
       };
 }
 

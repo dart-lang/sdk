@@ -356,8 +356,8 @@ interface SomeInformation {
       expect(field.type, const TypeMatcher<UnionType>());
       final union = field.type as UnionType;
       expect(union.types, hasLength(2));
-      expect(union.types[0], isSimpleType('string'));
-      expect(union.types[1], isArrayOf(isSimpleType('number')));
+      expect(union.types[0], isArrayOf(isSimpleType('number')));
+      expect(union.types[1], isSimpleType('string'));
     });
 
     test('parses an union including Object into a single type', () {

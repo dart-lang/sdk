@@ -4,9 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
@@ -229,9 +227,9 @@ abstract class AbstractLspAnalysisServerTest
 mixin ClientCapabilitiesHelperMixin {
   final emptyTextDocumentClientCapabilities = TextDocumentClientCapabilities();
 
-  final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace();
+  final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities();
 
-  final emptyWindowClientCapabilities = ClientCapabilitiesWindow();
+  final emptyWindowClientCapabilities = WindowClientCapabilities();
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
@@ -242,22 +240,22 @@ mixin ClientCapabilitiesHelperMixin {
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
-  ClientCapabilitiesWindow extendWindowCapabilities(
-    ClientCapabilitiesWindow source,
+  WindowClientCapabilities extendWindowCapabilities(
+    WindowClientCapabilities source,
     Map<String, dynamic> windowCapabilities,
   ) {
     final json = source.toJson();
     mergeJson(windowCapabilities, json);
-    return ClientCapabilitiesWindow.fromJson(json);
+    return WindowClientCapabilities.fromJson(json);
   }
 
-  ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities extendWorkspaceCapabilities(
+    WorkspaceClientCapabilities source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
     final json = source.toJson();
     mergeJson(workspaceCapabilities, json);
-    return ClientCapabilitiesWorkspace.fromJson(json);
+    return WorkspaceClientCapabilities.fromJson(json);
   }
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
@@ -308,8 +306,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withAllSupportedWorkspaceDynamicRegistrations(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withAllSupportedWorkspaceDynamicRegistrations(
+    WorkspaceClientCapabilities source,
   ) {
     // This list (when combined with the textDocument list) should match all of
     // the fields listed in `ClientDynamicRegistrations.supported`.
@@ -318,8 +316,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withApplyEditSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
@@ -409,8 +407,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withConfigurationSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withConfigurationSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
@@ -436,16 +434,16 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withDidChangeConfigurationDynamicRegistration(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  ClientCapabilitiesWorkspace withDocumentChangesSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withDocumentChangesSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
@@ -473,8 +471,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withFileOperationDynamicRegistration(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withFileOperationDynamicRegistration(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'fileOperations': {'dynamicRegistration': true}
@@ -516,8 +514,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withResourceOperationKinds(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withResourceOperationKinds(
+    WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
   ) {
     return extendWorkspaceCapabilities(source, {
@@ -550,8 +548,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWindow withWorkDoneProgressSupport(
-      ClientCapabilitiesWindow source) {
+  WindowClientCapabilities withWorkDoneProgressSupport(
+      WindowClientCapabilities source) {
     return extendWindowCapabilities(source, {'workDoneProgress': true});
   }
 }
@@ -686,8 +684,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyDocumentChanges(
     Map<String, String> fileContents,
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+    Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
+            List<TextDocumentEdit>>
         documentChanges, {
     Map<String, int>? expectedVersions,
   }) {
@@ -697,21 +695,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       expectDocumentVersions(documentChanges, expectedVersions);
     }
     documentChanges.map(
-      (edits) => applyTextDocumentEdits(fileContents, edits),
       (changes) => applyResourceChanges(fileContents, changes),
+      (edits) => applyTextDocumentEdits(fileContents, edits),
     );
   }
 
   void applyResourceChanges(
     Map<String, String> oldFileContent,
-    List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
   ) {
     for (final change in changes) {
       change.map(
-        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
         (create) => applyResourceCreate(oldFileContent, create),
-        (rename) => applyResourceRename(oldFileContent, rename),
         (delete) => throw 'applyResourceChanges:Delete not currently supported',
+        (rename) => applyResourceRename(oldFileContent, rename),
+        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
       );
     }
   }
@@ -753,7 +751,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   String applyTextEdit(String content,
-      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> change) {
+      Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> change) {
     // Both sites of the union can cast to TextEdit.
     final edit = change.map((e) => e, (e) => e, (e) => e);
     final startPos = edit.range.start;
@@ -817,7 +815,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
     for (final change in sortedChanges) {
       newContent = applyTextEdit(newContent,
-          Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(change));
+          Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t3(change));
     }
 
     return newContent;
@@ -906,28 +904,28 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Validates the document versions for a set of edits match the versions in
   /// the supplied map.
   void expectDocumentVersions(
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+    Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
+            List<TextDocumentEdit>>
         documentChanges,
     Map<String, int> expectedVersions,
   ) {
     documentChanges.map(
-      // Validate versions on simple doc edits
-      (edits) {
-        for (var edit in edits) {
-          expectDocumentVersion(edit, expectedVersions);
-        }
-      },
       // For resource changes, we only need to validate changes since
       // creates/renames/deletes do not supply versions.
       (changes) {
         for (var change in changes) {
           change.map(
-            (edit) => expectDocumentVersion(edit, expectedVersions),
             (create) => {},
-            (rename) {},
             (delete) {},
+            (rename) {},
+            (edit) => expectDocumentVersion(edit, expectedVersions),
           );
+        }
+      },
+      // Validate versions on simple doc edits
+      (edits) {
+        for (var edit in edits) {
+          expectDocumentVersion(edit, expectedVersions);
         }
       },
     );
@@ -1412,8 +1410,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Uri? rootUri,
     List<Uri>? workspaceFolders,
     TextDocumentClientCapabilities? textDocumentCapabilities,
-    ClientCapabilitiesWorkspace? workspaceCapabilities,
-    ClientCapabilitiesWindow? windowCapabilities,
+    WorkspaceClientCapabilities? workspaceCapabilities,
+    WindowClientCapabilities? windowCapabilities,
     Map<String, Object?>? experimentalCapabilities,
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
@@ -1785,22 +1783,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   /// Creates a [TextEdit] using the `insert` range of a [InsertReplaceEdit].
-  TextEdit textEditForInsert(Either2<TextEdit, InsertReplaceEdit> edit) =>
+  TextEdit textEditForInsert(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
         (e) => TextEdit(range: e.insert, newText: e.newText),
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
       );
 
   /// Creates a [TextEdit] using the `replace` range of a [InsertReplaceEdit].
-  TextEdit textEditForReplace(Either2<TextEdit, InsertReplaceEdit> edit) =>
+  TextEdit textEditForReplace(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
         (e) => TextEdit(range: e.replace, newText: e.newText),
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
       );
 
-  TextEdit toTextEdit(Either2<TextEdit, InsertReplaceEdit> edit) => edit.map(
-        (e) => e,
+  TextEdit toTextEdit(Either2<InsertReplaceEdit, TextEdit> edit) => edit.map(
         (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
+        (e) => e,
       );
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {

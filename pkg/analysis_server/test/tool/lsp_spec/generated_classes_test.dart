@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -29,10 +28,12 @@ void main() {
     });
 
     test('with aliased list fields can be checked for equality', () {
-      final a = TextDocumentRegistrationOptions(
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
-      final b = TextDocumentRegistrationOptions(
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
+      final a = TextDocumentRegistrationOptions(documentSelector: [
+        TextDocumentFilter(language: 'dart', scheme: 'file')
+      ]);
+      final b = TextDocumentRegistrationOptions(documentSelector: [
+        TextDocumentFilter(language: 'dart', scheme: 'file')
+      ]);
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -73,11 +74,11 @@ void main() {
     test('with union fields can be checked for equality', () {
       final a = SignatureInformation(
           label: 'a',
-          documentation: Either2<String, MarkupContent>.t1('a'),
+          documentation: Either2<MarkupContent, String>.t2('a'),
           parameters: []);
       final b = SignatureInformation(
           label: 'a',
-          documentation: Either2<String, MarkupContent>.t1('a'),
+          documentation: Either2<MarkupContent, String>.t2('a'),
           parameters: []);
 
       expect(a, equals(b));
@@ -85,11 +86,14 @@ void main() {
     });
 
     test('consider subclasses when checking for equality', () {
-      final a = TextDocumentRegistrationOptions(
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
+      final a = TextDocumentRegistrationOptions(documentSelector: [
+        TextDocumentFilter(language: 'dart', scheme: 'file')
+      ]);
       final b = TextDocumentSaveRegistrationOptions(
           includeText: true,
-          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
+          documentSelector: [
+            TextDocumentFilter(language: 'dart', scheme: 'file')
+          ]);
 
       expect(a, isNot(equals(b)));
       expect(b, isNot(equals(a)));

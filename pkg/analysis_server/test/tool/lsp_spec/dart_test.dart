@@ -19,7 +19,7 @@ void main() {
 
     test('handles union types', () {
       expect(_union(['string', 'int']).dartTypeWithTypeArgs,
-          equals('Either2<String, int>'));
+          equals('Either2<int, String>'));
     });
 
     test('handles arrays', () {

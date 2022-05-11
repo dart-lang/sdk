@@ -20,6 +20,7 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -7133,6 +7134,60 @@ class LabelImpl extends AstNodeImpl implements Label {
   @override
   void visitChildren(AstVisitor visitor) {
     _label.accept(visitor);
+  }
+}
+
+/// A library directive.
+///
+///    libraryAugmentationDirective ::=
+///        [metadata] 'library' 'augment' [StringLiteral] ';'
+@experimental
+class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
+    implements LibraryAugmentationDirective {
+  @override
+  Token libraryKeyword;
+
+  @override
+  Token augmentKeyword;
+
+  @override
+  Token semicolon;
+
+  LibraryAugmentationDirectiveImpl({
+    required CommentImpl? comment,
+    required List<Annotation>? metadata,
+    required this.libraryKeyword,
+    required this.augmentKeyword,
+    required StringLiteralImpl uri,
+    required this.semicolon,
+  }) : super(comment, metadata, uri);
+
+  @override
+  Token get endToken => semicolon;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
+
+  @override
+  Token get keyword => libraryKeyword;
+
+  @override
+  LibraryElement? get uriElement {
+    // TODO(scheglov) Implement it.
+    throw UnimplementedError();
+    // return element?.importedLibrary;
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('libraryKeyword', libraryKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addNode('uri', uri)
+    ..addToken('semicolon', semicolon);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitLibraryAugmentationDirective(this);
   }
 }
 

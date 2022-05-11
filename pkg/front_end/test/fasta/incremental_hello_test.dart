@@ -37,7 +37,7 @@ void diagnosticMessageHandler(DiagnosticMessage message) {
 
 Future<void> test({required bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..packagesFileUri = Uri.base.resolve(".packages")
+    ..packagesFileUri = Uri.base.resolve(".dart_tool/package_config.json")
     ..target = new VmTarget(new TargetFlags())
     ..omitPlatform = true
     ..onDiagnostic = diagnosticMessageHandler

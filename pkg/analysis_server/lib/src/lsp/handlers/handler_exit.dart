@@ -4,8 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ExitMessageHandler extends MessageHandler<void, void> {
