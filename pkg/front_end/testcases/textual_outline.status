@@ -98,6 +98,7 @@ general/issue47728_3: FormatterCrash
 general/issue47922: FormatterCrash
 general/issue48487: FormatterCrash
 general/issue48487b: FormatterCrash
+general/issue48919: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
 general/many_errors2: FormatterCrash

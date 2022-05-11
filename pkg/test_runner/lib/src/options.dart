@@ -613,7 +613,10 @@ has been specified on the command line.''',
       var value = data[name];
       if (data[name] == option.defaultValue ||
           (name == 'packages' &&
-              value == Repository.uri.resolve('.packages').toFilePath())) {
+              value ==
+                  Repository.uri
+                      .resolve('.dart_tool/package_config.json')
+                      .toFilePath())) {
         continue;
       }
 
@@ -634,8 +637,9 @@ has been specified on the command line.''',
     // Only one value in the configuration map is mutable:
     if (selectors.containsKey('observatory_ui')) {
       if (selectors.length == 1) {
-        configuration['packages'] =
-            Repository.uri.resolve('.packages').toFilePath();
+        configuration['packages'] = Repository.uri
+            .resolve('.dart_tool/package_config.json')
+            .toFilePath();
       } else {
         // Make a new configuration whose selectors map only contains
         // observatory_ui, and remove observatory_ui from the original
@@ -648,8 +652,9 @@ has been specified on the command line.''',
         selectors.remove('observatory_ui');
 
         // Set the packages flag.
-        observatoryConfiguration['packages'] =
-            Repository.uri.resolve('.packages').toFilePath();
+        observatoryConfiguration['packages'] = Repository.uri
+            .resolve('.dart_tool/package_config.json')
+            .toFilePath();
 
         return [
           ..._expandConfigurations(configuration, selectors),
