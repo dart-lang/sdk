@@ -331,6 +331,9 @@ class AstBuilder extends StackListener {
   void beginIsOperatorType(Token asOperator) {}
 
   @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {}
+
+  @override
   void beginLiteralString(Token literalString) {
     assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("beginLiteralString");
@@ -1922,6 +1925,24 @@ class AstBuilder extends StackListener {
     var statement = pop() as Statement;
     var labels = popTypedList2<Label>(labelCount);
     push(ast.labeledStatement(labels, statement));
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    final uri = pop() as StringLiteralImpl;
+    final metadata = pop() as List<Annotation>?;
+    final comment = _findComment(metadata, libraryKeyword);
+    directives.add(
+      LibraryAugmentationDirectiveImpl(
+        comment: comment,
+        metadata: metadata,
+        libraryKeyword: libraryKeyword,
+        augmentKeyword: augmentKeyword,
+        uri: uri,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -4200,7 +4221,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  Comment? _findComment(List<Annotation>? metadata, Token tokenAfterMetadata) {
+  CommentImpl? _findComment(
+      List<Annotation>? metadata, Token tokenAfterMetadata) {
     // Find the dartdoc tokens
     var dartdoc = parser.findDartDoc(tokenAfterMetadata);
     if (dartdoc == null) {

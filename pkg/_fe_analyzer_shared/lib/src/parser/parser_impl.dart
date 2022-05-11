@@ -617,12 +617,35 @@ class Parser {
         } else if (identical(value, 'library')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkLibrary(this, keyword);
-          return parseLibraryName(keyword);
+          final Token tokenAfterKeyword = keyword.next!;
+          if (tokenAfterKeyword.isIdentifier &&
+              tokenAfterKeyword.lexeme == 'augment') {
+            return parseLibraryAugmentation(keyword, tokenAfterKeyword);
+          } else {
+            return parseLibraryName(keyword);
+          }
         }
       }
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  /// ```
+  /// libraryAugmentationDirective:
+  ///   'library' 'augment' uri ';'
+  /// ;
+  /// ```
+  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    assert(optional('library', libraryKeyword));
+    assert(optional('augment', augmentKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
+    listener.beginLibraryAugmentation(libraryKeyword, augmentKeyword);
+    Token start = augmentKeyword;
+    Token token = ensureLiteralString(start);
+    Token semicolon = ensureSemicolon(token);
+    listener.endLibraryAugmentation(libraryKeyword, augmentKeyword, semicolon);
+    return semicolon;
   }
 
   /// ```

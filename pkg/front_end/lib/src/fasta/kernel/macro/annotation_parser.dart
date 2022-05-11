@@ -692,6 +692,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    _unexpected();
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    _unexpected();
+  }
+
+  @override
   void beginLibraryName(Token token) {
     _unexpected();
   }

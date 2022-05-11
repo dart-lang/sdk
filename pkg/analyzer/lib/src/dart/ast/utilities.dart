@@ -822,6 +822,18 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    final other = _other as LibraryAugmentationDirective;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.libraryKeyword, other.libraryKeyword) &&
+        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
+        isEqualNodes(node.uri, other.uri) &&
+        isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective other = _other as LibraryDirective;
     return isEqualNodes(
@@ -2500,6 +2512,13 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     }
     return visitNode(node);
+  }
+
+  @override
+  bool? visitLibraryAugmentationDirective(
+    covariant LibraryAugmentationDirectiveImpl node,
+  ) {
+    return visitUriBasedDirective(node);
   }
 
   @override
