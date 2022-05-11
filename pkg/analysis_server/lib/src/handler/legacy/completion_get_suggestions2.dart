@@ -24,7 +24,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart';
 
 /// The handler for the `completion.getSuggestions2` request.
 class CompletionGetSuggestions2Handler extends CompletionHandler
@@ -185,8 +184,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         server.recentPerformance.completion.add(completionPerformance);
 
         var analysisSession = resolvedUnit.analysisSession;
-        var enclosingNode =
-            resolvedUnit.resolvedNodes.lastOrNull ?? resolvedUnit.parsedUnit;
+        var enclosingNode = resolvedUnit.parsedUnit;
 
         var completionRequest = DartCompletionRequest(
           analysisSession: analysisSession,
