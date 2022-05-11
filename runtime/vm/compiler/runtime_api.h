@@ -667,6 +667,7 @@ class ArgumentsDescriptor : public AllStatic {
 class LocalHandle : public AllStatic {
  public:
   static word ptr_offset();
+  static word InstanceSize();
 };
 
 class Pointer : public AllStatic {

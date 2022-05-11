@@ -14871,7 +14871,11 @@ ObjectPoolPtr ObjectPool::NewFromBuilder(
     if (type == EntryType::kTaggedObject) {
       result.SetObjectAt(i, *entry.obj_);
     } else {
-      result.SetRawValueAt(i, entry.raw_value_);
+#if defined(TARGET_ARCH_IS_32_BIT)
+      ASSERT(type != EntryType::kImmediate64);
+#endif
+      ASSERT(type != EntryType::kImmediate128);
+      result.SetRawValueAt(i, entry.imm_);
     }
   }
   return result.ptr();

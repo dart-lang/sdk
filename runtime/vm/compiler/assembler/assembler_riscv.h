@@ -1160,7 +1160,6 @@ class Assembler : public MicroAssembler {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
-  intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
@@ -1180,6 +1179,7 @@ class Assembler : public MicroAssembler {
   void LoadImmediate(Register reg, intx_t imm);
 
   void LoadDImmediate(FRegister reg, double immd);
+  void LoadQImmediate(FRegister reg, simd128_value_t immq);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.

@@ -1381,17 +1381,13 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   }
 }
 
-intptr_t Assembler::FindImmediate(int64_t imm) {
-  return object_pool_builder().FindImmediate(imm);
-}
-
 void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
   if (imm.value() == 0) {
     xorl(reg, reg);
   } else if (imm.is_int32() || !constant_pool_allowed()) {
     movq(reg, imm);
   } else {
-    const intptr_t idx = FindImmediate(imm.value());
+    const intptr_t idx = object_pool_builder().FindImmediate(imm.value());
     LoadWordFromPoolIndex(reg, idx);
   }
 }
@@ -1410,10 +1406,16 @@ void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
   if (bits == 0) {
     xorps(dst, dst);
   } else {
-    intptr_t index = FindImmediate(bits);
+    intptr_t index = object_pool_builder().FindImmediate64(bits);
     LoadUnboxedDouble(
         dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
   }
+}
+
+void Assembler::LoadQImmediate(FpuRegister dst, simd128_value_t immediate) {
+  intptr_t index = object_pool_builder().FindImmediate128(immediate);
+  movups(dst, Address(PP, target::ObjectPool::element_offset(index) -
+                              kHeapObjectTag));
 }
 
 void Assembler::LoadCompressed(Register dest, const Address& slot) {

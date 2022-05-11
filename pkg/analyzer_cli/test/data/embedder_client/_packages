@@ -1,1 +1,10 @@
-sky_engine:../sky_engine/lib/
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "sky_engine",
+      "rootUri": "../sky_engine",
+      "packageUri": "lib/"
+    }
+  ]
+}

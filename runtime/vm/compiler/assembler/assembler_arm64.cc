@@ -476,10 +476,6 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
   }
 }
 
-intptr_t Assembler::FindImmediate(int64_t imm) {
-  return object_pool_builder().FindImmediate(imm);
-}
-
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
   if (!constant_pool_allowed()) {
@@ -643,7 +639,7 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
 
   // Use constant pool if allowed, unless we can load imm with 2 instructions.
   if ((w1 != 0) && constant_pool_allowed()) {
-    const intptr_t index = FindImmediate(imm);
+    const intptr_t index = object_pool_builder().FindImmediate(imm);
     LoadWordFromPoolIndex(reg, index);
     return;
   }
@@ -679,11 +675,24 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
 }
 
 void Assembler::LoadDImmediate(VRegister vd, double immd) {
-  if (!fmovdi(vd, immd)) {
-    int64_t imm = bit_cast<int64_t, double>(immd);
-    LoadImmediate(TMP, imm);
+  if (fmovdi(vd, immd)) return;
+
+  int64_t imm64 = bit_cast<int64_t, double>(immd);
+  if (constant_pool_allowed()) {
+    intptr_t index = object_pool_builder().FindImmediate64(imm64);
+    intptr_t offset = target::ObjectPool::element_offset(index);
+    LoadDFromOffset(vd, PP, offset);
+  } else {
+    LoadImmediate(TMP, imm64);
     fmovdr(vd, TMP);
   }
+}
+
+void Assembler::LoadQImmediate(VRegister vd, simd128_value_t immq) {
+  ASSERT(constant_pool_allowed());
+  intptr_t index = object_pool_builder().FindImmediate128(immq);
+  intptr_t offset = target::ObjectPool::element_offset(index);
+  LoadQFromOffset(vd, PP, offset);
 }
 
 void Assembler::Branch(const Code& target,

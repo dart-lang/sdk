@@ -13,16 +13,16 @@ import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
+import '../inferrer/engine.dart';
+import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
 import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
-import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
-import '../inferrer/inferrer_engine.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.

@@ -4007,15 +4007,10 @@ Fragment FlowGraphBuilder::ExitHandleScope() {
   return Fragment(instr);
 }
 
-Fragment FlowGraphBuilder::AllocateHandle(LocalVariable* api_local_scope) {
+Fragment FlowGraphBuilder::AllocateHandle() {
   Fragment code;
-  if (api_local_scope != nullptr) {
-    // Use the reference the scope we created in the trampoline.
-    code += LoadLocal(api_local_scope);
-  } else {
-    // Or get a reference to the top handle scope.
-    code += GetTopHandleScope();
-  }
+  // Get a reference to the top handle scope.
+  code += GetTopHandleScope();
   Value* api_local_scope_value = Pop();
   auto* instr = new (Z) AllocateHandleInstr(api_local_scope_value);
   Push(instr);
@@ -4039,10 +4034,10 @@ Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
   return code;
 }
 
-Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
+Fragment FlowGraphBuilder::WrapHandle() {
   Fragment code;
   LocalVariable* object = MakeTemporary();
-  code += AllocateHandle(api_local_scope);
+  code += AllocateHandle();
 
   code += LoadLocal(MakeTemporary());  // Duplicate handle pointer.
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
@@ -4528,8 +4523,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
 
 Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     const compiler::ffi::BaseMarshaller& marshaller,
-    intptr_t arg_index,
-    LocalVariable* api_local_scope) {
+    intptr_t arg_index) {
   ASSERT(!marshaller.IsCompound(arg_index));
 
   Fragment body;
@@ -4538,7 +4532,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     body += LoadUntagged(compiler::target::PointerBase::data_offset());
     body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
   } else if (marshaller.IsHandle(arg_index)) {
-    body += WrapHandle(api_local_scope);
+    body += WrapHandle();
   } else {
     if (marshaller.IsBool(arg_index)) {
       body += BoolToInt();
@@ -4621,16 +4615,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   Fragment body;
   intptr_t try_handler_index = -1;
-  LocalVariable* api_local_scope = nullptr;
   if (signature_contains_handles) {
     // Wrap in Try catch to transition from Native to Generated on a throw from
     // the dart_api.
     try_handler_index = AllocateTryIndex();
     body += TryCatch(try_handler_index);
     ++try_depth_;
-
+    // TODO(dartbug.com/48989): Remove scope for calls where we don't actually
+    // need it.
+    // We no longer need the scope for passing in Handle arguments, but the
+    // native function might for instance be relying on this scope for Dart API.
     body += EnterHandleScope();
-    api_local_scope = MakeTemporary("api_local_scope");
   }
 
   // Allocate typed data before FfiCall and pass it in to ffi call if needed.
@@ -4652,7 +4647,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     } else {
       body += LoadLocal(parsed_function_->ParameterVariable(
           kFirstArgumentParameterOffset + i));
-      body += FfiConvertPrimitiveToNative(marshaller, i, api_local_scope);
+      // FfiCallInstr specifies all handle locations as Stack, and will pass a
+      // pointer to the stack slot as the native handle argument.
+      // Therefore we do not need to wrap handles.
+      if (!marshaller.IsHandle(i)) {
+        body += FfiConvertPrimitiveToNative(marshaller, i);
+      }
     }
   }
 
@@ -4703,6 +4703,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   }
 
   if (signature_contains_handles) {
+    // TODO(dartbug.com/48989): Remove scope for calls where we don't actually
+    // need it.
     body += DropTempsPreserveTop(1);  // Drop api_local_scope.
     body += ExitHandleScope();
   }
@@ -4721,6 +4723,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
         CatchBlockEntry(Array::empty_array(), try_handler_index,
                         /*needs_stacktrace=*/true, /*is_synthesized=*/true);
 
+    // TODO(dartbug.com/48989): Remove scope for calls where we don't actually
+    // need it.
     // TODO(41984): If we want to pass in the handle scope, move it out
     // of the try catch.
     catch_body += ExitHandleScope();
@@ -4805,8 +4809,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     body += FfiCallbackConvertCompoundReturnToNative(
         marshaller, compiler::ffi::kResultIndex);
   } else {
-    body += FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
-                                        /*api_local_scope=*/nullptr);
+    body +=
+        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
   }
 
   body += NativeReturn(marshaller);
@@ -4830,8 +4834,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
     catch_body +=
-        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
-                                    /*api_local_scope=*/nullptr);
+        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
 
   } else if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
@@ -4853,8 +4856,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     catch_body += Constant(
         Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
     catch_body +=
-        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
-                                    /*api_local_scope=*/nullptr);
+        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
   }
 
   catch_body += NativeReturn(marshaller);

@@ -34,11 +34,11 @@ import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
-import 'inferrer/powersets/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
+import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';

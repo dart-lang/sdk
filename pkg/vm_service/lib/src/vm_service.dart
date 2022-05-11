@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.56.0';
+const String vmServiceVersion = '3.57.0';
 
 /// @optional
 const String optional = 'optional';
@@ -830,6 +830,12 @@ abstract class VmServiceInterface {
   /// numbers. If this parameter is not provided, it is considered to have the
   /// value `false`.
   ///
+  /// The `libraryFilters` parameter is intended to be used when gathering
+  /// coverage for the whole isolate. If it is provided, the `SourceReport` will
+  /// only contain results from scripts with URIs that start with one of the
+  /// filter strings. For example, pass `["package:foo/"]` to only include
+  /// scripts from the foo package.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -845,6 +851,7 @@ abstract class VmServiceInterface {
     int? endTokenPos,
     bool? forceCompile,
     bool? reportLines,
+    List<String>? libraryFilters,
   });
 
   /// The `getVersion` RPC is used to determine what version of the Service
@@ -1510,6 +1517,7 @@ class VmServerConnection {
             endTokenPos: params['endTokenPos'],
             forceCompile: params['forceCompile'],
             reportLines: params['reportLines'],
+            libraryFilters: params['libraryFilters'],
           );
           break;
         case 'getVersion':
@@ -2036,6 +2044,7 @@ class VmService implements VmServiceInterface {
     int? endTokenPos,
     bool? forceCompile,
     bool? reportLines,
+    List<String>? libraryFilters,
   }) =>
       _call('getSourceReport', {
         'isolateId': isolateId,
@@ -2045,6 +2054,7 @@ class VmService implements VmServiceInterface {
         if (endTokenPos != null) 'endTokenPos': endTokenPos,
         if (forceCompile != null) 'forceCompile': forceCompile,
         if (reportLines != null) 'reportLines': reportLines,
+        if (libraryFilters != null) 'libraryFilters': libraryFilters,
       });
 
   @override

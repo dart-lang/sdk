@@ -145,7 +145,7 @@ List<String> getSpecialBaseTypes(Interface interface) {
 
 /// Removes types that are in the spec that we don't want to emit.
 bool includeTypeDefinitionInOutput(AstNode node) {
-  // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
+  // InitializeError is not used for v3.0 (Feb 2017) and by dropping it we don't
   // have to handle any cases where both a namespace and interfaces are declared
   // with the same name.
   return node.name != 'InitializeError' &&

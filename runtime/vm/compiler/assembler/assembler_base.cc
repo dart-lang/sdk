@@ -309,11 +309,25 @@ void AssemblerBase::Stop(const char* message) {
 }
 
 uword ObjIndexPair::Hash(Key key) {
-  if (key.type() != ObjectPoolBuilderEntry::kTaggedObject) {
-    return key.raw_value_;
+  switch (key.type()) {
+    case ObjectPoolBuilderEntry::kImmediate128:
+      return key.imm128_.int_storage[0] ^ key.imm128_.int_storage[1] ^
+             key.imm128_.int_storage[2] ^ key.imm128_.int_storage[3];
+
+#if defined(TARGET_ARCH_IS_32_BIT)
+    case ObjectPoolBuilderEntry::kImmediate64:
+      return key.imm64_;
+#endif
+    case ObjectPoolBuilderEntry::kImmediate:
+    case ObjectPoolBuilderEntry::kNativeFunction:
+    case ObjectPoolBuilderEntry::kSwitchableCallMissEntryPoint:
+    case ObjectPoolBuilderEntry::kMegamorphicCallEntryPoint:
+      return key.imm_;
+    case ObjectPoolBuilderEntry::kTaggedObject:
+      return ObjectHash(*key.obj_);
   }
 
-  return ObjectHash(*key.obj_);
+  UNREACHABLE();
 }
 
 void ObjectPoolBuilder::Reset() {
@@ -342,6 +356,22 @@ intptr_t ObjectPoolBuilder::AddImmediate(uword imm) {
                              ObjectPoolBuilderEntry::kNotPatchable));
 }
 
+intptr_t ObjectPoolBuilder::AddImmediate64(uint64_t imm) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  return AddObject(
+      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate64,
+                             ObjectPoolBuilderEntry::kNotPatchable));
+#else
+  return AddImmediate(imm);
+#endif
+}
+
+intptr_t ObjectPoolBuilder::AddImmediate128(simd128_value_t imm) {
+  return AddObject(
+      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate128,
+                             ObjectPoolBuilderEntry::kNotPatchable));
+}
+
 intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
   ASSERT((entry.type() != ObjectPoolBuilderEntry::kTaggedObject) ||
          (IsNotTemporaryScopedHandle(*entry.obj_) &&
@@ -358,6 +388,38 @@ intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
       }
     }
   }
+
+#if defined(TARGET_ARCH_IS_32_BIT)
+  if (entry.type() == ObjectPoolBuilderEntry::kImmediate64) {
+    ASSERT(entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable);
+    uint64_t imm = entry.imm64_;
+    intptr_t idx = AddImmediate(Utils::Low32Bits(imm));
+    AddImmediate(Utils::High32Bits(imm));
+    object_pool_index_table_.Insert(ObjIndexPair(entry, idx));
+    return idx;
+  }
+  if (entry.type() == ObjectPoolBuilderEntry::kImmediate128) {
+    ASSERT(entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable);
+    intptr_t idx = AddImmediate(entry.imm128_.int_storage[0]);
+    AddImmediate(entry.imm128_.int_storage[1]);
+    AddImmediate(entry.imm128_.int_storage[2]);
+    AddImmediate(entry.imm128_.int_storage[3]);
+    object_pool_index_table_.Insert(ObjIndexPair(entry, idx));
+    return idx;
+  }
+#else
+  if (entry.type() == ObjectPoolBuilderEntry::kImmediate128) {
+    ASSERT(entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable);
+    uword lo64 = static_cast<uword>(entry.imm128_.int_storage[0]) |
+                 (static_cast<uword>(entry.imm128_.int_storage[1]) << 32);
+    uword hi64 = static_cast<uword>(entry.imm128_.int_storage[2]) |
+                 (static_cast<uword>(entry.imm128_.int_storage[3]) << 32);
+    intptr_t idx = AddImmediate(lo64);
+    AddImmediate(hi64);
+    object_pool_index_table_.Insert(ObjIndexPair(entry, idx));
+    return idx;
+  }
+#endif
 
   const intptr_t idx = base_index_ + object_pool_.length();
   object_pool_.Add(entry);
@@ -404,6 +466,22 @@ intptr_t ObjectPoolBuilder::FindObject(const Object& obj,
 intptr_t ObjectPoolBuilder::FindImmediate(uword imm) {
   return FindObject(
       ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate,
+                             ObjectPoolBuilderEntry::kNotPatchable));
+}
+
+intptr_t ObjectPoolBuilder::FindImmediate64(uint64_t imm) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  return FindObject(
+      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate64,
+                             ObjectPoolBuilderEntry::kNotPatchable));
+#else
+  return FindImmediate(imm);
+#endif
+}
+
+intptr_t ObjectPoolBuilder::FindImmediate128(simd128_value_t imm) {
+  return FindObject(
+      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate128,
                              ObjectPoolBuilderEntry::kNotPatchable));
 }
 

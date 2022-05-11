@@ -27,7 +27,11 @@ final _keywords = const <String, TokenType>{
 final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 
 bool isAnyType(TypeBase t) =>
-    t is Type && (t.name == 'any' || t.name == 'object');
+    t is Type &&
+    (t.name == 'any' ||
+        t.name == 'LSPAny' ||
+        t.name == 'object' ||
+        t.name == 'LSPObject');
 
 bool isLiteralType(TypeBase t) => t is LiteralType;
 
@@ -251,6 +255,8 @@ class Parser {
     if (_nodes.isEmpty) {
       while (!_isAtEnd) {
         _nodes.add(_topLevel());
+        // Consume any trailing semicolons.
+        _match([TokenType.SEMI_COLON]);
       }
     }
     return _nodes;

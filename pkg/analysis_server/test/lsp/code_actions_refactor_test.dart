@@ -192,7 +192,7 @@ void newMethod() {
         final params = ApplyWorkspaceEditParams.fromJson(
             request.params as Map<String, Object?>);
         edit = params.edit;
-        respondTo(request, ApplyWorkspaceEditResponse(applied: true));
+        respondTo(request, ApplyWorkspaceEditResult(applied: true));
       }
     });
 

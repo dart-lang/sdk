@@ -389,6 +389,15 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
     return loc.AsLocation();
   }
 
+  // Force all handles to be Stack locations.
+  // Since non-leaf calls block all registers, Any locations effectively mean
+  // Stack.
+  // TODO(dartbug.com/38985): Once we start inlining FFI trampolines, the inputs
+  // can be constants as well.
+  if (IsHandle(arg_index)) {
+    return Location::Any();
+  }
+
   if (loc.IsMultiple()) {
     const intptr_t def_index_in_arg =
         def_index_global - FirstDefinitionIndex(arg_index);

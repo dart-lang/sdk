@@ -3269,9 +3269,6 @@ void Assembler::LoadPoolPointer(Register pp) {
   set_constant_pool_allowed(pp == PP);
 }
 
-intptr_t Assembler::FindImmediate(int64_t imm) {
-  UNIMPLEMENTED();
-}
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
   if (!constant_pool_allowed()) {
@@ -3336,19 +3333,14 @@ void Assembler::LoadDImmediate(FRegister reg, double immd) {
 #endif
   } else {
     ASSERT(constant_pool_allowed());
-#if XLEN >= 64
-    intptr_t index = object_pool_builder().FindImmediate(imm);
+    intptr_t index = object_pool_builder().FindImmediate64(imm);
     intptr_t offset = target::ObjectPool::element_offset(index);
-#else
-    intptr_t lo_index =
-        object_pool_builder().AddImmediate(Utils::Low32Bits(imm));
-    intptr_t hi_index =
-        object_pool_builder().AddImmediate(Utils::High32Bits(imm));
-    ASSERT(lo_index + 1 == hi_index);
-    intptr_t offset = target::ObjectPool::element_offset(lo_index);
-#endif
     LoadDFromOffset(reg, PP, offset);
   }
+}
+
+void Assembler::LoadQImmediate(FRegister reg, simd128_value_t immq) {
+  UNREACHABLE();  // F registers cannot represent SIMD128.
 }
 
 // Load word from pool from the given offset using encoding that

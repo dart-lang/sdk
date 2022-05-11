@@ -69,7 +69,7 @@ final Uri specLicenseUri = Uri.parse(
 /// The URI of the version of the spec to generate from. This should be periodically updated as
 /// there's no longer a stable URI for the latest published version.
 final Uri specUri = Uri.parse(
-    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-16.md');
+    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/lsp/3.17/specification.md');
 
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
@@ -90,7 +90,7 @@ To regenerate the generated code, run the script in
 download the latest version of the specification before regenerating the
 code, run the same script with an argument of "--download".''',
     licenseResp.body,
-    specResp.body
+    await _fetchIncludes(specResp.body, specUri),
   ];
   await File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
 }
@@ -203,6 +203,16 @@ List<AstNode> getCustomClasses() {
   }
 
   final customTypes = <AstNode>[
+    TypeAlias(
+      null,
+      Token.identifier('LSPAny'),
+      Type.Any,
+    ),
+    TypeAlias(
+      null,
+      Token.identifier('LSPObject'),
+      Type.Any,
+    ),
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
@@ -370,7 +380,8 @@ bool shouldIncludeScriptBlock(String input) {
   // Skip over some typescript blocks that are known sample code and not part
   // of the LSP spec.
   if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];" ||
-      input.startsWith('textDocument.codeAction.resolveSupport =')) {
+      input.startsWith('textDocument.codeAction.resolveSupport =') ||
+      input.startsWith('textDocument.inlayHint.resolveSupport =')) {
     return false;
   }
 
@@ -414,5 +425,25 @@ AstNode withCustomFields(AstNode node) {
     node.typeArgs,
     node.baseTypes,
     [...node.members, ...customFields],
+  );
+}
+
+/// Fetches and in-lines any includes that appear in [spec] in the form
+/// `{% include_relative types/uri.md %}`.
+Future<String> _fetchIncludes(String spec, Uri baseUri) async {
+  final pattern = RegExp(r'{% include_relative ([\w\-.\/]+.md) %}');
+  final includeStrings = <String, String>{};
+  for (final match in pattern.allMatches(spec)) {
+    final relativeUri = match.group(1)!;
+    final fullUri = baseUri.resolve(relativeUri);
+    final response = await http.get(fullUri);
+    if (response.statusCode != 200) {
+      throw 'Faild to fetch $fullUri (${response.statusCode} ${response.reasonPhrase})';
+    }
+    includeStrings[relativeUri] = response.body;
+  }
+  return spec.replaceAllMapped(
+    pattern,
+    (match) => includeStrings[match.group(1)!]!,
   );
 }

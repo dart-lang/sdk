@@ -53,12 +53,12 @@ import '../universe/selector.dart';
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
 import '../world.dart';
+import 'branch_builder.dart';
 import 'jump_handler.dart';
-import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
-import 'ssa_branch_builder.dart';
+import 'string_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 
