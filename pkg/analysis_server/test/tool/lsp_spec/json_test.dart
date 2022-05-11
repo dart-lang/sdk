@@ -4,8 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:test/test.dart';
 

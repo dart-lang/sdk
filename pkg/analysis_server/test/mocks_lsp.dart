@@ -5,8 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 
 const _jsonEncoder = JsonEncoder.withIndent('    ');
