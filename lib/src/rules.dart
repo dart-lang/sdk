@@ -177,6 +177,7 @@ import 'rules/unnecessary_lambdas.dart';
 import 'rules/unnecessary_late.dart';
 import 'rules/unnecessary_new.dart';
 import 'rules/unnecessary_null_aware_assignments.dart';
+import 'rules/unnecessary_null_aware_operator_on_extension_on_nullable.dart';
 import 'rules/unnecessary_null_checks.dart';
 import 'rules/unnecessary_null_in_if_null_operators.dart';
 import 'rules/unnecessary_nullable_for_final_variable_declarations.dart';
@@ -391,6 +392,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UnnecessaryLambdas())
     ..register(UnnecessaryLate())
     ..register(UnnecessaryNullableForFinalVariableDeclarations())
+    ..register(UnnecessaryNullAwareOperatorOnExtensionOnNullable())
     ..register(UnnecessaryNullChecks())
     ..register(UnnecessaryOverrides())
     ..register(UnnecessaryParenthesis())
