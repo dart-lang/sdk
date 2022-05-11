@@ -23,11 +23,14 @@ class Nasty {
   const Nasty(this.n);
 
   int get hashCode {
-    while (true) {}
+    throw "Evil hashCode";
   }
 }
 
 main() {
+  // Test that when using an instance of a custom class as a key in a const Map,
+  // its hash code is computed as its identity hash, and even if the class
+  // overrides `hashCode`, that `hashCode` implementation is not called.
   final map = const {1: 42, 'foo': 499, 2: 'bar', Nasty(1): 'baz'};
   Expect.equals(42, map[getValueNonOptimized(1.0)]);
   Expect.equals(
