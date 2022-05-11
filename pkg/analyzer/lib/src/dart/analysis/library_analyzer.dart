@@ -977,6 +977,15 @@ class LibraryAnalyzer {
 
       // We have a contributor that looks at the type, but it is syntactic.
       if (parent is VariableDeclaration && parent.name == node) {
+        final parent2 = parent.parent;
+        final parent3 = parent2?.parent;
+        // `class A { foo^ }` looks like `class A { <noType> foo; }`.
+        if (parent2 is VariableDeclarationList &&
+            parent2.type == null &&
+            parent3 is FieldDeclaration &&
+            parent3.semicolon.isSynthetic) {
+          return false;
+        }
         return true;
       }
     }
