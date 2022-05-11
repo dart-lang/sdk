@@ -113,28 +113,6 @@ void main(List<String> args) {
     },
   );
   writeIfDifferent(configFile, packageConfig.generateJson('..'));
-
-  // Also generate the repo's .packages file.
-  var packagesFile = File(join(repoRoot, '.packages'));
-  var buffer = StringBuffer('''
-# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-# for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE file.
-#
-# This file is generated; do not edit. To re-generate, run:
-#   'dart tools/generate_package_config.dart'.
-
-''');
-  for (var package in packages) {
-    final name = package.name;
-    final rootUri = package.rootUri;
-    final packageUri = package.packageUri;
-
-    if (packageUri != null && packageUri != '.nonexisting') {
-      buffer.writeln('$name:${posix(rootUri)}/${posix(packageUri)}');
-    }
-  }
-  writeIfDifferent(packagesFile, buffer.toString());
 }
 
 /// Writes the given [contents] string to [file] if the contents are different
