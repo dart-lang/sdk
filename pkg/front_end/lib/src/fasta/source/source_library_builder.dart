@@ -2149,7 +2149,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       /// 1. `_Named&S&M1`
       /// 2. `_Named&S&M1&M2`
       /// 3. `Named`.
-      String runningName = extractName(supertype.name);
+      Object nameSourceForExtraction;
+      if (supertype.name == null) {
+        assert(supertype is FunctionTypeBuilder);
+
+        // Function types don't have names, and we can supply any string that
+        // doesn't have to be unique. The actual supertype of the mixin will
+        // not be built in that case.
+        nameSourceForExtraction = "";
+      } else {
+        nameSourceForExtraction = supertype.name!;
+      }
+      String runningName = extractName(nameSourceForExtraction);
 
       /// True when we're building a named mixin application. Notice that for
       /// the `Named` example above, this is only true on the last
@@ -5245,7 +5256,9 @@ Uri computeLibraryUri(Builder declaration) {
       declaration.charOffset, declaration.fileUri);
 }
 
-String extractName(name) => name is QualifiedName ? name.name : name;
+String extractName(Object name) {
+  return name is QualifiedName ? name.name : name as String;
+}
 
 class PostponedProblem {
   final Message message;
