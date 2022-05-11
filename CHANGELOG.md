@@ -7,6 +7,27 @@
 - Add `connectionState` attribute and `connectionstatechange` listener to
   `RtcPeerConnection`.
 
+### Tools
+
+#### Linter
+
+Updated the Linter to `1.23.0`, which includes changes that
+
+- fixes `no_leading_underscores_for_local_identifiers`
+  to lint local function declarations.
+- fixes `avoid_init_to_null` to correctly handle super
+  initializing defaults that are non-null.
+- updates `no_leading_underscores_for_local_identifiers`
+  to allow identifiers with just underscores.
+- fixes `flutter_style_todos` to support usernames that
+  start with a digit.
+- updates `require_trailing_commas` to handle functions
+  in asserts and multi-line strings.
+- updates `unsafe_html` to allow assignments to
+  `img.src`.
+- fixes `unnecessary_null_checks` to properly handle map
+  literal entries.
+
 ## 2.17.0
 
 ### Language
@@ -274,22 +295,8 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### Linter
 
-Updated the Linter to `1.23.0`, which includes changes that
+Updated the Linter to `1.22.0`, which includes changes that
 
-- fixes `no_leading_underscores_for_local_identifiers`
-  to lint local function declarations.
-- fixes `avoid_init_to_null` to correctly handle super
-  initializing defaults that are non-null.
-- updates `no_leading_underscores_for_local_identifiers`
-  to allow identifiers with just underscores.
-- fixes `flutter_style_todos` to support usernames that
-  start with a digit.
-- updates `require_trailing_commas` to handle functions
-  in asserts and multi-line strings.
-- updates `unsafe_html` to allow assignments to 
-  `img.src`.
-- fixes `unnecessary_null_checks` to properly handle map
-  literal entries.
 - fixes null-safe variance exceptions in `invariant_booleans`.
 - updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual
   package, not needing an explicit dependency.
