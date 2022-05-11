@@ -320,12 +320,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
     initResult.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
@@ -696,13 +696,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
     result.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
   }
 

@@ -6788,12 +6788,12 @@ class CompletionItem implements ToJsonable {
     final documentationJson = json['documentation'];
     final documentation = documentationJson == null
         ? null
-        : (documentationJson is String
-            ? Either2<String, MarkupContent>.t1(documentationJson)
-            : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
-                    documentationJson as Map<String, Object?>))
-                : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
+        : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
+            ? Either2<MarkupContent, String>.t1(MarkupContent.fromJson(
+                documentationJson as Map<String, Object?>))
+            : (documentationJson is String
+                ? Either2<MarkupContent, String>.t2(documentationJson)
+                : (throw '''$documentationJson was not one of (MarkupContent, String)''')));
     final deprecatedJson = json['deprecated'];
     final deprecated = deprecatedJson as bool?;
     final preselectJson = json['preselect'];
@@ -6815,14 +6815,14 @@ class CompletionItem implements ToJsonable {
     final textEditJson = json['textEdit'];
     final textEdit = textEditJson == null
         ? null
-        : (TextEdit.canParse(textEditJson, nullLspJsonReporter)
-            ? Either2<TextEdit, InsertReplaceEdit>.t1(
-                TextEdit.fromJson(textEditJson as Map<String, Object?>))
-            : (InsertReplaceEdit.canParse(textEditJson, nullLspJsonReporter)
-                ? Either2<TextEdit, InsertReplaceEdit>.t2(
-                    InsertReplaceEdit.fromJson(
-                        textEditJson as Map<String, Object?>))
-                : (throw '''$textEditJson was not one of (TextEdit, InsertReplaceEdit)''')));
+        : (InsertReplaceEdit.canParse(textEditJson, nullLspJsonReporter)
+            ? Either2<InsertReplaceEdit, TextEdit>.t1(
+                InsertReplaceEdit.fromJson(
+                    textEditJson as Map<String, Object?>))
+            : (TextEdit.canParse(textEditJson, nullLspJsonReporter)
+                ? Either2<InsertReplaceEdit, TextEdit>.t2(
+                    TextEdit.fromJson(textEditJson as Map<String, Object?>))
+                : (throw '''$textEditJson was not one of (InsertReplaceEdit, TextEdit)''')));
     final textEditTextJson = json['textEditText'];
     final textEditText = textEditTextJson as String?;
     final additionalTextEditsJson = json['additionalTextEdits'];
@@ -6898,7 +6898,7 @@ class CompletionItem implements ToJsonable {
   final String? detail;
 
   /// A human-readable string that represents a doc-comment.
-  final Either2<String, MarkupContent>? documentation;
+  final Either2<MarkupContent, String>? documentation;
 
   /// A string that should be used when filtering a set of completion items.
   /// When `falsy` the label is used as the filter text for this item.
@@ -6985,7 +6985,7 @@ class CompletionItem implements ToJsonable {
   /// must be a prefix of the edit's replace range, that means it must be
   /// contained and starting at the same position.
   ///  @since 3.16.0 additional type `InsertReplaceEdit`
-  final Either2<TextEdit, InsertReplaceEdit>? textEdit;
+  final Either2<InsertReplaceEdit, TextEdit>? textEdit;
 
   /// The edit text used if the completion item is part of a CompletionList and
   /// CompletionList defines an item default for the text edit range.
@@ -7127,10 +7127,10 @@ class CompletionItem implements ToJsonable {
       try {
         final documentation = obj['documentation'];
         if (documentation != null &&
-            !((documentation is String ||
-                MarkupContent.canParse(documentation, reporter)))) {
+            !((MarkupContent.canParse(documentation, reporter) ||
+                documentation is String))) {
           reporter
-              .reportError('must be of type Either2<String, MarkupContent>');
+              .reportError('must be of type Either2<MarkupContent, String>');
           return false;
         }
       } finally {
@@ -7212,10 +7212,10 @@ class CompletionItem implements ToJsonable {
       try {
         final textEdit = obj['textEdit'];
         if (textEdit != null &&
-            !((TextEdit.canParse(textEdit, reporter) ||
-                InsertReplaceEdit.canParse(textEdit, reporter)))) {
+            !((InsertReplaceEdit.canParse(textEdit, reporter) ||
+                TextEdit.canParse(textEdit, reporter)))) {
           reporter.reportError(
-              'must be of type Either2<TextEdit, InsertReplaceEdit>');
+              'must be of type Either2<InsertReplaceEdit, TextEdit>');
           return false;
         }
       } finally {
@@ -7769,15 +7769,14 @@ class CompletionListItemDefaults implements ToJsonable {
     final editRangeJson = json['editRange'];
     final editRange = editRangeJson == null
         ? null
-        : (Range.canParse(editRangeJson, nullLspJsonReporter)
-            ? Either2<Range, CompletionListEditRange>.t1(
-                Range.fromJson(editRangeJson as Map<String, Object?>))
-            : (CompletionListEditRange.canParse(
-                    editRangeJson, nullLspJsonReporter)
-                ? Either2<Range, CompletionListEditRange>.t2(
-                    CompletionListEditRange.fromJson(
-                        editRangeJson as Map<String, Object?>))
-                : (throw '''$editRangeJson was not one of (Range, CompletionListEditRange)''')));
+        : (CompletionListEditRange.canParse(editRangeJson, nullLspJsonReporter)
+            ? Either2<CompletionListEditRange, Range>.t1(
+                CompletionListEditRange.fromJson(
+                    editRangeJson as Map<String, Object?>))
+            : (Range.canParse(editRangeJson, nullLspJsonReporter)
+                ? Either2<CompletionListEditRange, Range>.t2(
+                    Range.fromJson(editRangeJson as Map<String, Object?>))
+                : (throw '''$editRangeJson was not one of (CompletionListEditRange, Range)''')));
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat = insertTextFormatJson != null
         ? InsertTextFormat.fromJson(insertTextFormatJson as int)
@@ -7800,7 +7799,7 @@ class CompletionListItemDefaults implements ToJsonable {
 
   /// A default edit range
   ///  @since 3.17.0
-  final Either2<Range, CompletionListEditRange>? editRange;
+  final Either2<CompletionListEditRange, Range>? editRange;
 
   /// A default insert text format
   ///  @since 3.17.0
@@ -7845,10 +7844,10 @@ class CompletionListItemDefaults implements ToJsonable {
       try {
         final editRange = obj['editRange'];
         if (editRange != null &&
-            !((Range.canParse(editRange, reporter) ||
-                CompletionListEditRange.canParse(editRange, reporter)))) {
+            !((CompletionListEditRange.canParse(editRange, reporter) ||
+                Range.canParse(editRange, reporter)))) {
           reporter.reportError(
-              'must be of type Either2<Range, CompletionListEditRange>');
+              'must be of type Either2<CompletionListEditRange, Range>');
           return false;
         }
       } finally {
@@ -19269,12 +19268,12 @@ class Hover implements ToJsonable {
   });
   static Hover fromJson(Map<String, Object?> json) {
     final contentsJson = json['contents'];
-    final contents = contentsJson is String
-        ? Either2<String, MarkupContent>.t1(contentsJson)
-        : (MarkupContent.canParse(contentsJson, nullLspJsonReporter)
-            ? Either2<String, MarkupContent>.t2(
-                MarkupContent.fromJson(contentsJson as Map<String, Object?>))
-            : (throw '''$contentsJson was not one of (String, MarkupContent)'''));
+    final contents = MarkupContent.canParse(contentsJson, nullLspJsonReporter)
+        ? Either2<MarkupContent, String>.t1(
+            MarkupContent.fromJson(contentsJson as Map<String, Object?>))
+        : (contentsJson is String
+            ? Either2<MarkupContent, String>.t2(contentsJson)
+            : (throw '''$contentsJson was not one of (MarkupContent, String)'''));
     final rangeJson = json['range'];
     final range = rangeJson != null
         ? Range.fromJson(rangeJson as Map<String, Object?>)
@@ -19286,7 +19285,7 @@ class Hover implements ToJsonable {
   }
 
   /// The hover's content
-  final Either2<String, MarkupContent> contents;
+  final Either2<MarkupContent, String> contents;
 
   /// An optional range is a range inside a text document that is used to
   /// visualize a hover, e.g. by changing the background color.
@@ -19314,10 +19313,10 @@ class Hover implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((contents is String ||
-            MarkupContent.canParse(contents, reporter)))) {
+        if (!((MarkupContent.canParse(contents, reporter) ||
+            contents is String))) {
           reporter
-              .reportError('must be of type Either2<String, MarkupContent>');
+              .reportError('must be of type Either2<MarkupContent, String>');
           return false;
         }
       } finally {
@@ -21019,16 +21018,16 @@ class InlayHint implements ToJsonable {
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final labelJson = json['label'];
-    final label = labelJson is String
-        ? Either2<String, List<InlayHintLabelPart>>.t1(labelJson)
-        : ((labelJson is List<Object?> &&
-                (labelJson.every((item) =>
-                    InlayHintLabelPart.canParse(item, nullLspJsonReporter))))
-            ? Either2<String, List<InlayHintLabelPart>>.t2((labelJson)
-                .map((item) =>
-                    InlayHintLabelPart.fromJson(item as Map<String, Object?>))
-                .toList())
-            : (throw '''$labelJson was not one of (String, List<InlayHintLabelPart>)'''));
+    final label = (labelJson is List<Object?> &&
+            (labelJson.every((item) =>
+                InlayHintLabelPart.canParse(item, nullLspJsonReporter))))
+        ? Either2<List<InlayHintLabelPart>, String>.t1((labelJson)
+            .map((item) =>
+                InlayHintLabelPart.fromJson(item as Map<String, Object?>))
+            .toList())
+        : (labelJson is String
+            ? Either2<List<InlayHintLabelPart>, String>.t2(labelJson)
+            : (throw '''$labelJson was not one of (List<InlayHintLabelPart>, String)'''));
     final kindJson = json['kind'];
     final kind =
         kindJson != null ? InlayHintKind.fromJson(kindJson as int) : null;
@@ -21039,12 +21038,12 @@ class InlayHint implements ToJsonable {
     final tooltipJson = json['tooltip'];
     final tooltip = tooltipJson == null
         ? null
-        : (tooltipJson is String
-            ? Either2<String, MarkupContent>.t1(tooltipJson)
-            : (MarkupContent.canParse(tooltipJson, nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(
-                    MarkupContent.fromJson(tooltipJson as Map<String, Object?>))
-                : (throw '''$tooltipJson was not one of (String, MarkupContent)''')));
+        : (MarkupContent.canParse(tooltipJson, nullLspJsonReporter)
+            ? Either2<MarkupContent, String>.t1(
+                MarkupContent.fromJson(tooltipJson as Map<String, Object?>))
+            : (tooltipJson is String
+                ? Either2<MarkupContent, String>.t2(tooltipJson)
+                : (throw '''$tooltipJson was not one of (MarkupContent, String)''')));
     final paddingLeftJson = json['paddingLeft'];
     final paddingLeft = paddingLeftJson as bool?;
     final paddingRightJson = json['paddingRight'];
@@ -21075,7 +21074,7 @@ class InlayHint implements ToJsonable {
   /// InlayHintLabelPart label parts.
   ///
   /// *Note* that neither the string nor the label part can be empty.
-  final Either2<String, List<InlayHintLabelPart>> label;
+  final Either2<List<InlayHintLabelPart>, String> label;
 
   /// Render padding before the hint.
   ///
@@ -21108,7 +21107,7 @@ class InlayHint implements ToJsonable {
   ///
   /// Depending on the client capability `inlayHint.resolveSupport` clients
   /// might resolve this property late using the resolve request.
-  final Either2<String, MarkupContent>? tooltip;
+  final Either2<MarkupContent, String>? tooltip;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -21166,12 +21165,12 @@ class InlayHint implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((label is String ||
-            (label is List<Object?> &&
-                (label.every((item) =>
-                    InlayHintLabelPart.canParse(item, reporter))))))) {
+        if (!(((label is List<Object?> &&
+                (label.every(
+                    (item) => InlayHintLabelPart.canParse(item, reporter)))) ||
+            label is String))) {
           reporter.reportError(
-              'must be of type Either2<String, List<InlayHintLabelPart>>');
+              'must be of type Either2<List<InlayHintLabelPart>, String>');
           return false;
         }
       } finally {
@@ -21204,10 +21203,10 @@ class InlayHint implements ToJsonable {
       try {
         final tooltip = obj['tooltip'];
         if (tooltip != null &&
-            !((tooltip is String ||
-                MarkupContent.canParse(tooltip, reporter)))) {
+            !((MarkupContent.canParse(tooltip, reporter) ||
+                tooltip is String))) {
           reporter
-              .reportError('must be of type Either2<String, MarkupContent>');
+              .reportError('must be of type Either2<MarkupContent, String>');
           return false;
         }
       } finally {
@@ -21495,12 +21494,12 @@ class InlayHintLabelPart implements ToJsonable {
     final tooltipJson = json['tooltip'];
     final tooltip = tooltipJson == null
         ? null
-        : (tooltipJson is String
-            ? Either2<String, MarkupContent>.t1(tooltipJson)
-            : (MarkupContent.canParse(tooltipJson, nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(
-                    MarkupContent.fromJson(tooltipJson as Map<String, Object?>))
-                : (throw '''$tooltipJson was not one of (String, MarkupContent)''')));
+        : (MarkupContent.canParse(tooltipJson, nullLspJsonReporter)
+            ? Either2<MarkupContent, String>.t1(
+                MarkupContent.fromJson(tooltipJson as Map<String, Object?>))
+            : (tooltipJson is String
+                ? Either2<MarkupContent, String>.t2(tooltipJson)
+                : (throw '''$tooltipJson was not one of (MarkupContent, String)''')));
     final locationJson = json['location'];
     final location = locationJson != null
         ? Location.fromJson(locationJson as Map<String, Object?>)
@@ -21538,7 +21537,7 @@ class InlayHintLabelPart implements ToJsonable {
   /// The tooltip text when you hover over this label part. Depending on the
   /// client capability `inlayHint.resolveSupport` clients might resolve this
   /// property late using the resolve request.
-  final Either2<String, MarkupContent>? tooltip;
+  final Either2<MarkupContent, String>? tooltip;
 
   /// The value of this label part.
   final String value;
@@ -21582,10 +21581,10 @@ class InlayHintLabelPart implements ToJsonable {
       try {
         final tooltip = obj['tooltip'];
         if (tooltip != null &&
-            !((tooltip is String ||
-                MarkupContent.canParse(tooltip, reporter)))) {
+            !((MarkupContent.canParse(tooltip, reporter) ||
+                tooltip is String))) {
           reporter
-              .reportError('must be of type Either2<String, MarkupContent>');
+              .reportError('must be of type Either2<MarkupContent, String>');
           return false;
         }
       } finally {
@@ -25808,24 +25807,21 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
   });
   static NotebookCellTextDocumentFilter fromJson(Map<String, Object?> json) {
     final notebookJson = json['notebook'];
-    final notebook = notebookJson is String
-        ? Either2<String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>>.t1(
-            notebookJson)
-        : ((NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
-                NotebookDocumentFilter2.canParse(
-                    notebookJson, nullLspJsonReporter) ||
-                NotebookDocumentFilter3.canParse(
-                    notebookJson, nullLspJsonReporter))
-            ? Either2<String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>>.t2(
-                NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
-                        NotebookDocumentFilter1.fromJson(
-                            notebookJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
-                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                            NotebookDocumentFilter2.fromJson(notebookJson as Map<String, Object?>))
-                        : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>)) : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-            : (throw '''$notebookJson was not one of (String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>)'''));
+    final notebook = (NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
+            NotebookDocumentFilter2.canParse(
+                notebookJson, nullLspJsonReporter) ||
+            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter))
+        ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
+            NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
+                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(NotebookDocumentFilter1.fromJson(
+                    notebookJson as Map<String, Object?>))
+                : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
+                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(NotebookDocumentFilter2.fromJson(
+                        notebookJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
+                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>))
+                        : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+        : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
     final languageJson = json['language'];
     final language = languageJson as String?;
     return NotebookCellTextDocumentFilter(
@@ -25844,9 +25840,9 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
   /// If a string value is provided it matches against the notebook type. '*'
   /// matches every notebook.
   final Either2<
-      String,
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
-          NotebookDocumentFilter3>> notebook;
+          NotebookDocumentFilter3>,
+      String> notebook;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -25870,12 +25866,12 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((notebook is String ||
-            (NotebookDocumentFilter1.canParse(notebook, reporter) ||
+        if (!(((NotebookDocumentFilter1.canParse(notebook, reporter) ||
                 NotebookDocumentFilter2.canParse(notebook, reporter) ||
-                NotebookDocumentFilter3.canParse(notebook, reporter))))) {
+                NotebookDocumentFilter3.canParse(notebook, reporter)) ||
+            notebook is String))) {
           reporter.reportError(
-              'must be of type Either2<String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>>');
+              'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
         }
       } finally {
@@ -27340,24 +27336,21 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
     final notebookDocumentJson = json['notebookDocument'];
     final notebookDocument = notebookDocumentJson == null
         ? null
-        : (notebookDocumentJson is String
-            ? Either2<String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>>.t1(
-                notebookDocumentJson)
-            : ((NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter) ||
-                    NotebookDocumentFilter2.canParse(
-                        notebookDocumentJson, nullLspJsonReporter) ||
-                    NotebookDocumentFilter3.canParse(
-                        notebookDocumentJson, nullLspJsonReporter))
-                ? Either2<String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>>.t2(
-                    NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
-                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
-                            NotebookDocumentFilter1.fromJson(
-                                notebookDocumentJson as Map<String, Object?>))
-                        : (NotebookDocumentFilter2.canParse(
-                                notebookDocumentJson, nullLspJsonReporter)
-                            ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
-                            : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-                : (throw '''$notebookDocumentJson was not one of (String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>)''')));
+        : ((NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter) ||
+                NotebookDocumentFilter2.canParse(
+                    notebookDocumentJson, nullLspJsonReporter) ||
+                NotebookDocumentFilter3.canParse(
+                    notebookDocumentJson, nullLspJsonReporter))
+            ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
+                NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
+                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
+                        NotebookDocumentFilter1.fromJson(
+                            notebookDocumentJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
+                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
+                            NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
+                        : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+            : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
     final cellsJson = json['cells'];
     final cells = (cellsJson as List<Object?>)
         .map((item) => NotebookDocumentSyncOptionsCells.fromJson(
@@ -27375,9 +27368,9 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
   final Either2<
-      String,
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
-          NotebookDocumentFilter3>>? notebookDocument;
+          NotebookDocumentFilter3>,
+      String>? notebookDocument;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -27394,14 +27387,14 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       try {
         final notebookDocument = obj['notebookDocument'];
         if (notebookDocument != null &&
-            !((notebookDocument is String ||
-                (NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
+            !(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
                     NotebookDocumentFilter2.canParse(
                         notebookDocument, reporter) ||
                     NotebookDocumentFilter3.canParse(
-                        notebookDocument, reporter))))) {
+                        notebookDocument, reporter)) ||
+                notebookDocument is String))) {
           reporter.reportError(
-              'must be of type Either2<String, Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>>');
+              'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
         }
       } finally {
@@ -27855,12 +27848,12 @@ class ParameterInformation implements ToJsonable {
     final documentationJson = json['documentation'];
     final documentation = documentationJson == null
         ? null
-        : (documentationJson is String
-            ? Either2<String, MarkupContent>.t1(documentationJson)
-            : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
-                    documentationJson as Map<String, Object?>))
-                : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
+        : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
+            ? Either2<MarkupContent, String>.t1(MarkupContent.fromJson(
+                documentationJson as Map<String, Object?>))
+            : (documentationJson is String
+                ? Either2<MarkupContent, String>.t2(documentationJson)
+                : (throw '''$documentationJson was not one of (MarkupContent, String)''')));
     return ParameterInformation(
       label: label,
       documentation: documentation,
@@ -27869,7 +27862,7 @@ class ParameterInformation implements ToJsonable {
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
   /// but can be omitted.
-  final Either2<String, MarkupContent>? documentation;
+  final Either2<MarkupContent, String>? documentation;
 
   /// The label of this parameter information.
   ///
@@ -27916,10 +27909,10 @@ class ParameterInformation implements ToJsonable {
       try {
         final documentation = obj['documentation'];
         if (documentation != null &&
-            !((documentation is String ||
-                MarkupContent.canParse(documentation, reporter)))) {
+            !((MarkupContent.canParse(documentation, reporter) ||
+                documentation is String))) {
           reporter
-              .reportError('must be of type Either2<String, MarkupContent>');
+              .reportError('must be of type Either2<MarkupContent, String>');
           return false;
         }
       } finally {
@@ -30268,12 +30261,12 @@ class RelativePattern implements ToJsonable {
   });
   static RelativePattern fromJson(Map<String, Object?> json) {
     final baseUriJson = json['baseUri'];
-    final baseUri = WorkspaceFolder.canParse(baseUriJson, nullLspJsonReporter)
-        ? Either2<WorkspaceFolder, String>.t1(
-            WorkspaceFolder.fromJson(baseUriJson as Map<String, Object?>))
-        : (baseUriJson is String
-            ? Either2<WorkspaceFolder, String>.t2(baseUriJson)
-            : (throw '''$baseUriJson was not one of (WorkspaceFolder, String)'''));
+    final baseUri = baseUriJson is String
+        ? Either2<String, WorkspaceFolder>.t1(baseUriJson)
+        : (WorkspaceFolder.canParse(baseUriJson, nullLspJsonReporter)
+            ? Either2<String, WorkspaceFolder>.t2(
+                WorkspaceFolder.fromJson(baseUriJson as Map<String, Object?>))
+            : (throw '''$baseUriJson was not one of (String, WorkspaceFolder)'''));
     final patternJson = json['pattern'];
     final pattern = patternJson as String;
     return RelativePattern(
@@ -30284,7 +30277,7 @@ class RelativePattern implements ToJsonable {
 
   /// A workspace folder or a base URI to which this pattern will be matched
   /// against relatively.
-  final Either2<WorkspaceFolder, String> baseUri;
+  final Either2<String, WorkspaceFolder> baseUri;
 
   /// The actual glob pattern;
   final String pattern;
@@ -30309,10 +30302,10 @@ class RelativePattern implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((WorkspaceFolder.canParse(baseUri, reporter) ||
-            baseUri is String))) {
+        if (!((baseUri is String ||
+            WorkspaceFolder.canParse(baseUri, reporter)))) {
           reporter
-              .reportError('must be of type Either2<WorkspaceFolder, String>');
+              .reportError('must be of type Either2<String, WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -34519,16 +34512,16 @@ class ServerCapabilities implements ToJsonable {
     final textDocumentSyncJson = json['textDocumentSync'];
     final textDocumentSync = textDocumentSyncJson == null
         ? null
-        : (TextDocumentSyncOptions.canParse(
+        : (TextDocumentSyncKind.canParse(
                 textDocumentSyncJson, nullLspJsonReporter)
-            ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
-                TextDocumentSyncOptions.fromJson(
-                    textDocumentSyncJson as Map<String, Object?>))
-            : (TextDocumentSyncKind.canParse(
+            ? Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t1(
+                TextDocumentSyncKind.fromJson(textDocumentSyncJson as int))
+            : (TextDocumentSyncOptions.canParse(
                     textDocumentSyncJson, nullLspJsonReporter)
-                ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t2(
-                    TextDocumentSyncKind.fromJson(textDocumentSyncJson as int))
-                : (throw '''$textDocumentSyncJson was not one of (TextDocumentSyncOptions, TextDocumentSyncKind)''')));
+                ? Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t2(
+                    TextDocumentSyncOptions.fromJson(
+                        textDocumentSyncJson as Map<String, Object?>))
+                : (throw '''$textDocumentSyncJson was not one of (TextDocumentSyncKind, TextDocumentSyncOptions)''')));
     final notebookDocumentSyncJson = json['notebookDocumentSync'];
     final notebookDocumentSync = notebookDocumentSyncJson == null
         ? null
@@ -35096,7 +35089,7 @@ class ServerCapabilities implements ToJsonable {
   /// defining each notification or for backwards compatibility the
   /// TextDocumentSyncKind number. If omitted it defaults to
   /// `TextDocumentSyncKind.None`.
-  final Either2<TextDocumentSyncOptions, TextDocumentSyncKind>?
+  final Either2<TextDocumentSyncKind, TextDocumentSyncOptions>?
       textDocumentSync;
 
   /// The server provides goto type definition support.
@@ -35244,10 +35237,11 @@ class ServerCapabilities implements ToJsonable {
       try {
         final textDocumentSync = obj['textDocumentSync'];
         if (textDocumentSync != null &&
-            !((TextDocumentSyncOptions.canParse(textDocumentSync, reporter) ||
-                TextDocumentSyncKind.canParse(textDocumentSync, reporter)))) {
+            !((TextDocumentSyncKind.canParse(textDocumentSync, reporter) ||
+                TextDocumentSyncOptions.canParse(
+                    textDocumentSync, reporter)))) {
           reporter.reportError(
-              'must be of type Either2<TextDocumentSyncOptions, TextDocumentSyncKind>');
+              'must be of type Either2<TextDocumentSyncKind, TextDocumentSyncOptions>');
           return false;
         }
       } finally {
@@ -37953,12 +37947,12 @@ class SignatureInformation implements ToJsonable {
     final documentationJson = json['documentation'];
     final documentation = documentationJson == null
         ? null
-        : (documentationJson is String
-            ? Either2<String, MarkupContent>.t1(documentationJson)
-            : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
-                    documentationJson as Map<String, Object?>))
-                : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
+        : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
+            ? Either2<MarkupContent, String>.t1(MarkupContent.fromJson(
+                documentationJson as Map<String, Object?>))
+            : (documentationJson is String
+                ? Either2<MarkupContent, String>.t2(documentationJson)
+                : (throw '''$documentationJson was not one of (MarkupContent, String)''')));
     final parametersJson = json['parameters'];
     final parameters = (parametersJson as List<Object?>?)
         ?.map((item) =>
@@ -37982,7 +37976,7 @@ class SignatureInformation implements ToJsonable {
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
   /// but can be omitted.
-  final Either2<String, MarkupContent>? documentation;
+  final Either2<MarkupContent, String>? documentation;
 
   /// The label of this signature. Will be shown in the UI.
   final String label;
@@ -38030,10 +38024,10 @@ class SignatureInformation implements ToJsonable {
       try {
         final documentation = obj['documentation'];
         if (documentation != null &&
-            !((documentation is String ||
-                MarkupContent.canParse(documentation, reporter)))) {
+            !((MarkupContent.canParse(documentation, reporter) ||
+                documentation is String))) {
           reporter
-              .reportError('must be of type Either2<String, MarkupContent>');
+              .reportError('must be of type Either2<MarkupContent, String>');
           return false;
         }
       } finally {
@@ -39683,16 +39677,16 @@ class TextDocumentEdit implements ToJsonable {
         textDocumentJson as Map<String, Object?>);
     final editsJson = json['edits'];
     final edits = (editsJson as List<Object?>)
-        .map((item) => SnippetTextEdit.canParse(item, nullLspJsonReporter)
-            ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t1(
-                SnippetTextEdit.fromJson(item as Map<String, Object?>))
-            : (AnnotatedTextEdit.canParse(item, nullLspJsonReporter)
-                ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t2(
-                    AnnotatedTextEdit.fromJson(item as Map<String, Object?>))
+        .map((item) => AnnotatedTextEdit.canParse(item, nullLspJsonReporter)
+            ? Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t1(
+                AnnotatedTextEdit.fromJson(item as Map<String, Object?>))
+            : (SnippetTextEdit.canParse(item, nullLspJsonReporter)
+                ? Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t2(
+                    SnippetTextEdit.fromJson(item as Map<String, Object?>))
                 : (TextEdit.canParse(item, nullLspJsonReporter)
-                    ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(
+                    ? Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t3(
                         TextEdit.fromJson(item as Map<String, Object?>))
-                    : (throw '''$item was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
+                    : (throw '''$item was not one of (AnnotatedTextEdit, SnippetTextEdit, TextEdit)'''))))
         .toList();
     return TextDocumentEdit(
       textDocument: textDocument,
@@ -39703,7 +39697,7 @@ class TextDocumentEdit implements ToJsonable {
   /// The edits to be applied.
   ///  @since 3.16.0 - support for AnnotatedTextEdit. This is guarded by the
   /// client capability `workspace.workspaceEdit.changeAnnotationSupport`
-  final List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>> edits;
+  final List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>> edits;
 
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
@@ -39749,11 +39743,12 @@ class TextDocumentEdit implements ToJsonable {
           return false;
         }
         if (!((edits is List<Object?> &&
-            (edits.every((item) => (SnippetTextEdit.canParse(item, reporter) ||
-                AnnotatedTextEdit.canParse(item, reporter) ||
-                TextEdit.canParse(item, reporter))))))) {
+            (edits.every((item) =>
+                (AnnotatedTextEdit.canParse(item, reporter) ||
+                    SnippetTextEdit.canParse(item, reporter) ||
+                    TextEdit.canParse(item, reporter))))))) {
           reporter.reportError(
-              'must be of type List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>');
+              'must be of type List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>');
           return false;
         }
       } finally {
@@ -39773,8 +39768,8 @@ class TextDocumentEdit implements ToJsonable {
           listEqual(
               edits,
               other.edits,
-              (Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> a,
-                      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>
+              (Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> a,
+                      Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>
                           b) =>
                   a == b) &&
           true;
@@ -44246,20 +44241,22 @@ class WorkspaceEdit implements ToJsonable {
         ? null
         : ((documentChangesJson is List<Object?> &&
                 (documentChangesJson.every((item) =>
-                    TextDocumentEdit.canParse(item, nullLspJsonReporter))))
-            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1((documentChangesJson)
-                .map((item) =>
-                    TextDocumentEdit.fromJson(item as Map<String, Object?>))
+                    (CreateFile.canParse(item, nullLspJsonReporter) ||
+                        DeleteFile.canParse(item, nullLspJsonReporter) ||
+                        RenameFile.canParse(item, nullLspJsonReporter) ||
+                        TextDocumentEdit.canParse(item, nullLspJsonReporter)))))
+            ? Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>.t1((documentChangesJson)
+                .map((item) => CreateFile.canParse(item, nullLspJsonReporter)
+                    ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t1(
+                        CreateFile.fromJson(item as Map<String, Object?>))
+                    : (DeleteFile.canParse(item, nullLspJsonReporter)
+                        ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t2(
+                            DeleteFile.fromJson(item as Map<String, Object?>))
+                        : (RenameFile.canParse(item, nullLspJsonReporter)
+                            ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(RenameFile.fromJson(item as Map<String, Object?>))
+                            : (TextDocumentEdit.canParse(item, nullLspJsonReporter) ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t4(TextDocumentEdit.fromJson(item as Map<String, Object?>)) : (throw '''$item was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)''')))))
                 .toList())
-            : ((documentChangesJson is List<Object?> &&
-                    (documentChangesJson.every((item) =>
-                        (TextDocumentEdit.canParse(item, nullLspJsonReporter) ||
-                            CreateFile.canParse(item, nullLspJsonReporter) ||
-                            RenameFile.canParse(item, nullLspJsonReporter) ||
-                            DeleteFile.canParse(item, nullLspJsonReporter)))))
-                ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(
-                    (documentChangesJson).map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(TextDocumentEdit.fromJson(item as Map<String, Object?>)) : (CreateFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(CreateFile.fromJson(item as Map<String, Object?>)) : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(RenameFile.fromJson(item as Map<String, Object?>)) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(DeleteFile.fromJson(item as Map<String, Object?>)) : (throw '''$item was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))).toList())
-                : (throw '''$documentChangesJson was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
+            : ((documentChangesJson is List<Object?> && (documentChangesJson.every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)))) ? Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>.t2((documentChangesJson).map((item) => TextDocumentEdit.fromJson(item as Map<String, Object?>)).toList()) : (throw '''$documentChangesJson was not one of (List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>)''')));
     final changeAnnotationsJson = json['changeAnnotations'];
     final changeAnnotations = (changeAnnotationsJson as Map<Object, Object?>?)
         ?.map((key, value) => MapEntry(key as String,
@@ -44295,9 +44292,9 @@ class WorkspaceEdit implements ToJsonable {
   /// If a client neither supports `documentChanges` nor
   /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
   /// using the `changes` property are supported.
-  final Either2<List<TextDocumentEdit>,
-          List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>?
-      documentChanges;
+  final Either2<
+      List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
+      List<TextDocumentEdit>>? documentChanges;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -44337,15 +44334,15 @@ class WorkspaceEdit implements ToJsonable {
         if (documentChanges != null &&
             !(((documentChanges is List<Object?> &&
                     (documentChanges.every((item) =>
-                        TextDocumentEdit.canParse(item, reporter)))) ||
+                        (CreateFile.canParse(item, reporter) ||
+                            DeleteFile.canParse(item, reporter) ||
+                            RenameFile.canParse(item, reporter) ||
+                            TextDocumentEdit.canParse(item, reporter))))) ||
                 (documentChanges is List<Object?> &&
                     (documentChanges.every((item) =>
-                        (TextDocumentEdit.canParse(item, reporter) ||
-                            CreateFile.canParse(item, reporter) ||
-                            RenameFile.canParse(item, reporter) ||
-                            DeleteFile.canParse(item, reporter)))))))) {
+                        TextDocumentEdit.canParse(item, reporter))))))) {
           reporter.reportError(
-              'must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>');
+              'must be of type Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>');
           return false;
         }
       } finally {
@@ -44875,11 +44872,11 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
     final changeNotificationsJson = json['changeNotifications'];
     final changeNotifications = changeNotificationsJson == null
         ? null
-        : (changeNotificationsJson is String
-            ? Either2<String, bool>.t1(changeNotificationsJson)
-            : (changeNotificationsJson is bool
-                ? Either2<String, bool>.t2(changeNotificationsJson)
-                : (throw '''$changeNotificationsJson was not one of (String, bool)''')));
+        : (changeNotificationsJson is bool
+            ? Either2<bool, String>.t1(changeNotificationsJson)
+            : (changeNotificationsJson is String
+                ? Either2<bool, String>.t2(changeNotificationsJson)
+                : (throw '''$changeNotificationsJson was not one of (bool, String)''')));
     return WorkspaceFoldersServerCapabilities(
       supported: supported,
       changeNotifications: changeNotifications,
@@ -44892,7 +44889,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   /// notification is registered on the client side. The ID can be used to
   /// unregister for these events using the `client/unregisterCapability`
   /// request.
-  final Either2<String, bool>? changeNotifications;
+  final Either2<bool, String>? changeNotifications;
 
   /// The server has support for workspace folders
   final bool? supported;
@@ -44924,8 +44921,8 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
       try {
         final changeNotifications = obj['changeNotifications'];
         if (changeNotifications != null &&
-            !((changeNotifications is String || changeNotifications is bool))) {
-          reporter.reportError('must be of type Either2<String, bool>');
+            !((changeNotifications is bool || changeNotifications is String))) {
+          reporter.reportError('must be of type Either2<bool, String>');
           return false;
         }
       } finally {

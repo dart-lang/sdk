@@ -84,7 +84,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
     final formats = server.clientCapabilities?.hoverContentFormats;
     return Hover(
       contents:
-          asStringOrMarkupContent(formats, content.toString().trimRight()),
+          asMarkupContentOrString(formats, content.toString().trimRight()),
       range: toRange(lineInfo, hover.offset, hover.length),
     );
   }

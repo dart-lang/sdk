@@ -72,11 +72,11 @@ void main() {
     test('with union fields can be checked for equality', () {
       final a = SignatureInformation(
           label: 'a',
-          documentation: Either2<String, MarkupContent>.t1('a'),
+          documentation: Either2<MarkupContent, String>.t2('a'),
           parameters: []);
       final b = SignatureInformation(
           label: 'a',
-          documentation: Either2<String, MarkupContent>.t1('a'),
+          documentation: Either2<MarkupContent, String>.t2('a'),
           parameters: []);
 
       expect(a, equals(b));

@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:analysis_server/src/utilities/strings.dart' show capitalize;
+import 'package:collection/collection.dart';
 
 import 'codegen_dart.dart';
 import 'typescript.dart';
@@ -1011,7 +1012,11 @@ abstract class TypeBase {
 class UnionType extends TypeBase {
   final List<TypeBase> types;
 
-  UnionType(this.types);
+  UnionType(this.types) {
+    // Ensure types are always sorted alphabetically to simplify sharing code
+    // because `Either2<A, B>` and `Either2<B, A>` are not the same.
+    types.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
+  }
 
   @override
   String get dartType {

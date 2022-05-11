@@ -167,7 +167,7 @@ class ServerCapabilitiesComputer {
     return ServerCapabilities(
       textDocumentSync: dynamicRegistrations.textSync
           ? null
-          : Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
+          : Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t2(
               TextDocumentSyncOptions(
               // The open/close and sync kind flags are registered dynamically if the
               // client supports them, so these static registrations are based on whether
@@ -279,7 +279,7 @@ class ServerCapabilitiesComputer {
       workspace: ServerCapabilitiesWorkspace(
         workspaceFolders: WorkspaceFoldersServerCapabilities(
           supported: true,
-          changeNotifications: Either2<String, bool>.t2(true),
+          changeNotifications: Either2<bool, String>.t1(true),
         ),
         fileOperations: dynamicRegistrations.fileOperations
             ? null

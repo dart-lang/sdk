@@ -120,7 +120,7 @@ class CompletionResolveHandler
         final dartDoc =
             analyzer.getDartDocPlainText(element.documentationComment);
         final documentation =
-            dartDoc != null ? asStringOrMarkupContent(formats, dartDoc) : null;
+            dartDoc != null ? asMarkupContentOrString(formats, dartDoc) : null;
         final supportsInsertReplace =
             clientCapabilities.insertReplaceCompletionRanges;
 
@@ -152,14 +152,14 @@ class CompletionResolveHandler
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
           textEdit: supportsInsertReplace && insertionRange != replacementRange
-              ? Either2<TextEdit, InsertReplaceEdit>.t2(
+              ? Either2<InsertReplaceEdit, TextEdit>.t1(
                   InsertReplaceEdit(
                     insert: insertionRange,
                     replace: replacementRange,
                     newText: newInsertText,
                   ),
                 )
-              : Either2<TextEdit, InsertReplaceEdit>.t1(
+              : Either2<InsertReplaceEdit, TextEdit>.t2(
                   TextEdit(
                     range: replacementRange,
                     newText: newInsertText,
@@ -253,7 +253,7 @@ class CompletionResolveHandler
       tags: item.tags,
       detail: item.detail,
       documentation: description != null
-          ? Either2<String, MarkupContent>.t1(description)
+          ? Either2<MarkupContent, String>.t2(description)
           : null,
       deprecated: item.deprecated,
       preselect: item.preselect,

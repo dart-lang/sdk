@@ -390,8 +390,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
-              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got TextEdit',
             ))
         .toList();
@@ -535,8 +535,8 @@ void f() {
     final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
-              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got TextEdit',
             ))
         .toList();
@@ -546,26 +546,26 @@ void f() {
 
   List<TextDocumentEdit> _extractTextDocumentEdits(
           Either2<
-                  List<TextDocumentEdit>,
                   List<
-                      Either4<TextDocumentEdit, CreateFile, RenameFile,
-                          DeleteFile>>>
+                      Either4<CreateFile, DeleteFile, RenameFile,
+                          TextDocumentEdit>>,
+                  List<TextDocumentEdit>>
               documentChanges) =>
       documentChanges.map(
-        // Already TextDocumentEdits
-        (edits) => edits,
         // Extract TextDocumentEdits from union of resource changes
         (changes) => changes
             .map(
               (change) => change.map(
-                (textDocEdit) => textDocEdit,
                 (create) => null,
-                (rename) => null,
                 (delete) => null,
+                (rename) => null,
+                (textDocEdit) => textDocEdit,
               ),
             )
             .whereNotNull()
             .toList(),
+        // Already TextDocumentEdits
+        (edits) => edits,
       );
 }
 

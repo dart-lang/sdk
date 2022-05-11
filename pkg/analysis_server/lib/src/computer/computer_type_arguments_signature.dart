@@ -98,7 +98,7 @@ class DartTypeArgumentsSignatureComputer {
       lsp.SignatureInformation(
         label: label,
         documentation: documentation != null
-            ? asStringOrMarkupContent(preferredFormats, documentation)
+            ? asMarkupContentOrString(preferredFormats, documentation)
             : null,
         parameters: parameters,
       ),

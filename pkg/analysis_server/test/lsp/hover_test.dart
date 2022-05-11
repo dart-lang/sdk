@@ -350,15 +350,15 @@ Type: `String`
 
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(
-      (t1) => throw 'Hover contents were String, not MarkupContent',
-      (t2) => t2,
+      (t1) => t1,
+      (t2) => throw 'Hover contents were String, not MarkupContent',
     );
   }
 
   String _getStringContents(Hover hover) {
     return hover.contents.map(
-      (t1) => t1,
-      (t2) => throw 'Hover contents were MarkupContent, not String',
+      (t1) => throw 'Hover contents were MarkupContent, not String',
+      (t2) => t2,
     );
   }
 }

@@ -684,8 +684,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyDocumentChanges(
     Map<String, String> fileContents,
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+    Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
+            List<TextDocumentEdit>>
         documentChanges, {
     Map<String, int>? expectedVersions,
   }) {
@@ -695,21 +695,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       expectDocumentVersions(documentChanges, expectedVersions);
     }
     documentChanges.map(
-      (edits) => applyTextDocumentEdits(fileContents, edits),
       (changes) => applyResourceChanges(fileContents, changes),
+      (edits) => applyTextDocumentEdits(fileContents, edits),
     );
   }
 
   void applyResourceChanges(
     Map<String, String> oldFileContent,
-    List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
   ) {
     for (final change in changes) {
       change.map(
-        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
         (create) => applyResourceCreate(oldFileContent, create),
-        (rename) => applyResourceRename(oldFileContent, rename),
         (delete) => throw 'applyResourceChanges:Delete not currently supported',
+        (rename) => applyResourceRename(oldFileContent, rename),
+        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
       );
     }
   }
@@ -751,7 +751,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   String applyTextEdit(String content,
-      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> change) {
+      Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> change) {
     // Both sites of the union can cast to TextEdit.
     final edit = change.map((e) => e, (e) => e, (e) => e);
     final startPos = edit.range.start;
@@ -815,7 +815,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
     for (final change in sortedChanges) {
       newContent = applyTextEdit(newContent,
-          Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(change));
+          Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t3(change));
     }
 
     return newContent;
@@ -904,28 +904,28 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Validates the document versions for a set of edits match the versions in
   /// the supplied map.
   void expectDocumentVersions(
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+    Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
+            List<TextDocumentEdit>>
         documentChanges,
     Map<String, int> expectedVersions,
   ) {
     documentChanges.map(
-      // Validate versions on simple doc edits
-      (edits) {
-        for (var edit in edits) {
-          expectDocumentVersion(edit, expectedVersions);
-        }
-      },
       // For resource changes, we only need to validate changes since
       // creates/renames/deletes do not supply versions.
       (changes) {
         for (var change in changes) {
           change.map(
-            (edit) => expectDocumentVersion(edit, expectedVersions),
             (create) => {},
-            (rename) {},
             (delete) {},
+            (rename) {},
+            (edit) => expectDocumentVersion(edit, expectedVersions),
           );
+        }
+      },
+      // Validate versions on simple doc edits
+      (edits) {
+        for (var edit in edits) {
+          expectDocumentVersion(edit, expectedVersions);
         }
       },
     );
@@ -1783,22 +1783,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   /// Creates a [TextEdit] using the `insert` range of a [InsertReplaceEdit].
-  TextEdit textEditForInsert(Either2<TextEdit, InsertReplaceEdit> edit) =>
+  TextEdit textEditForInsert(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
         (e) => TextEdit(range: e.insert, newText: e.newText),
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
       );
 
   /// Creates a [TextEdit] using the `replace` range of a [InsertReplaceEdit].
-  TextEdit textEditForReplace(Either2<TextEdit, InsertReplaceEdit> edit) =>
+  TextEdit textEditForReplace(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
         (e) => TextEdit(range: e.replace, newText: e.newText),
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
       );
 
-  TextEdit toTextEdit(Either2<TextEdit, InsertReplaceEdit> edit) => edit.map(
-        (e) => e,
+  TextEdit toTextEdit(Either2<InsertReplaceEdit, TextEdit> edit) => edit.map(
         (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
+        (e) => e,
       );
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
