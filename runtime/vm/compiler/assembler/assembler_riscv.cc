@@ -3295,13 +3295,32 @@ void Assembler::LoadIsolateGroup(Register dst) {
 }
 
 void Assembler::LoadImmediate(Register reg, intx_t imm) {
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
-
 #if XLEN > 32
   if (!Utils::IsInt(32, imm)) {
-    LoadImmediate(reg, (imm - lo) >> 12);
-    slli(reg, reg, 12);
+    int shift = Utils::CountTrailingZeros64(imm);
+    if (IsITypeImm(imm >> shift)) {
+      li(reg, imm >> shift);
+      slli(reg, reg, shift);
+      return;
+    }
+    if ((shift >= 12) && IsUTypeImm(imm >> (shift - 12))) {
+      lui(reg, imm >> (shift - 12));
+      slli(reg, reg, shift - 12);
+      return;
+    }
+
+    if (constant_pool_allowed()) {
+      intptr_t index = object_pool_builder().FindImmediate(imm);
+      LoadWordFromPoolIndex(reg, index);
+      return;
+    }
+
+    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
+    intx_t hi = imm - lo;
+    shift = Utils::CountTrailingZeros64(hi);
+    ASSERT(shift != 0);
+    LoadImmediate(reg, hi >> shift);
+    slli(reg, reg, shift);
     if (lo != 0) {
       addi(reg, reg, lo);
     }
@@ -3309,6 +3328,8 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
   }
 #endif
 
+  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
+  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
   if (hi == 0) {
     addi(reg, ZR, lo);
   } else {
