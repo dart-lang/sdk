@@ -135,7 +135,7 @@ vars = {
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
   "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
+  "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "51435efcd574b7bc18d47a5dd620cb9759dea8f8",
